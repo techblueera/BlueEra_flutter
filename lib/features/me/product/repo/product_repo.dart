@@ -29,15 +29,26 @@ class ProductRepo extends BaseService {
     return response;
   }
 
-  /// Update product inventory variant — PATCH only price/mrp etc.
-  /// `PATCH product-service/api/inventory/{id}`.
+  /// Update a single inventory record (one variant) — PUT price/mrp etc.
+  /// `PUT product-service/api/inventory/{id}`, where `id` is the variant's
+  /// own inventory id.
   Future<ResponseModel> updateInventoryVariantRepo({
     required String inventoryId,
-    required String variantId,
     required Map<String, dynamic> params,
   }) async {
-    return ApiBaseHelper().patchHTTP(
+    return ApiBaseHelper().putHTTP(
       updateProductInventory(inventoryId),
+      params: params,
+      showProgress: false,
+    );
+  }
+
+  /// Place a product order. `POST product-service/api/orders`.
+  Future<ResponseModel> placeProductOrderRepo({
+    required Map<String, dynamic> params,
+  }) async {
+    return ApiBaseHelper().postHTTP(
+      placeProductOrder,
       params: params,
       showProgress: false,
     );

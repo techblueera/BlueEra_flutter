@@ -7,8 +7,8 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
+import 'package:BlueEra/features/me/product/repo/product_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/model/earn_profile_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/repo/earn_profile_repo.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:get/get.dart';
 
@@ -18,7 +18,7 @@ import 'package:get/get.dart';
 /// A cart belongs to a single seller ([store]); placing an order POSTs to
 /// `earn-service/homeProductOrders` then opens the chat.
 class HmpCartController extends GetxController {
-  final _repo = EarnProfileRepo();
+  final _repo = ProductRepo();
 
   /// The seller the current cart belongs to (set when the first item is
   /// added). Null when the cart is empty.
@@ -131,17 +131,22 @@ class HmpCartController extends GetxController {
     store.value = null;
   }
 
-  /// Build the order payload from the current cart.
+  /// Build the order payload from the current cart — one entry per line with
+  /// the variant's inventory id + variant id, quantity and prices.
   Map<String, dynamic> _buildPayload() {
     return {
-      'items': lines
-          .map((item) => {
-                'homeMadeProduct': idOf(item),
-                'quantity': qty(idOf(item)),
-              })
-          .toList(),
+      'items': lines.map((item) {
+        final v = _variantOf(item);
+        return {
+          'inventory': v?.inventoryId ?? '',
+          'productVariant': v?.id ?? '',
+          'quantity': qty(idOf(item)),
+          'mrp': mrpOf(item),
+          'sellingPrice': sellingPriceOf(item),
+        };
+      }).toList(),
       'deliveryType': 'self-pickup',
-      'discount': totalSavings,
+      'discount': 0,
     };
   }
 
@@ -155,7 +160,7 @@ class HmpCartController extends GetxController {
       AppLoader.show();
 
       final response =
-          await _repo.placeHomeProductOrder(params: _buildPayload());
+          await _repo.placeProductOrderRepo(params: _buildPayload());
 
       if (!response.isSuccess) {
         AppLoader.hide();

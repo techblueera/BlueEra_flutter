@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -24,10 +25,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-/// Consumer "home service provider details" screen. The provider profile is
-/// passed in from the listing screen; this fetches the provider's earn-service
-/// listings (`homeService`) via [ServiceController.getServices]. No cart — the
-/// only action is the Chat button, which opens a 1:1 chat with the provider.
 class HomeServiceDiscoverDetailsScreen extends StatefulWidget {
   final EarnProfileModel store;
 
@@ -103,7 +100,7 @@ class _HomeServiceDiscoverDetailsScreenState
                 _buildHero(),
                 _buildIdentity(),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                  padding: const EdgeInsets.fromLTRB(8, 0, 8, 0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -518,19 +515,14 @@ class _HomeServiceDiscoverDetailsScreenState
           children: [
             _sectionHeading('Services'),
             const SizedBox(height: 12),
-            LayoutBuilder(
-              builder: (context, constraints) {
-                const spacing = 12.0;
-                final cardWidth = (constraints.maxWidth - spacing) / 2;
-                return Wrap(
-                  spacing: spacing,
-                  runSpacing: spacing,
-                  children: [
-                    for (final item in items)
-                      SizedBox(width: cardWidth, child: _serviceCard(item)),
-                  ],
-                );
-              },
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: EdgeInsets.zero,
+              itemCount: items.length,
+              separatorBuilder: (_, __) =>
+                  SizedBox(height: SizeConfig.size10),
+              itemBuilder: (_, i) => _serviceCard(items[i]),
             ),
             if (serviceController.isServiceDataLoadingMore.value) ...[
               const SizedBox(height: 12),
@@ -542,77 +534,128 @@ class _HomeServiceDiscoverDetailsScreenState
     });
   }
 
-  // ── Service card — image + title + price range ───────────────────────────
+  // ── Service card — full-bleed image with frosted-glass info bar ──────────
+  // Mirrors the provider-side card on HomeServiceHomePage (consumer view has
+  // no edit affordance).
   Widget _serviceCard(GetServiceModel item) {
     final photos = item.photos ?? const <String>[];
     final imageUrl = photos.isNotEmpty ? photos.first : null;
     final min = item.priceRange?.min;
     final max = item.priceRange?.max;
-    final hasPrice = min != null || max != null;
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.greyE5),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            height: 94,
-            width: double.infinity,
-            child: imageUrl != null && imageUrl.isNotEmpty
-                ? CachedNetworkImage(
-                    imageUrl: imageUrl,
-                    fit: BoxFit.cover,
-                    placeholder: (_, __) =>
-                        Container(color: Colors.grey.shade200),
-                    errorWidget: (_, __, ___) => _cardImageFallback(),
-                  )
-                : _cardImageFallback(),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(
-                  item.title ?? AppStrings.na,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.mainTextColor,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+    final priceLabel = (min == null && max == null)
+        ? null
+        : '${AppConstants.rupeeSymbol}${_formatPrice(min)}-${_formatPrice(max)}';
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(12.0),
+          border: Border.all(color: AppColors.greyE5, width: 0.5),
+        ),
+        child: Stack(
+          children: [
+            // Background image (or fallback) fills the whole card.
+            if (imageUrl != null && imageUrl.isNotEmpty)
+              CachedNetworkImage(
+                imageUrl: imageUrl,
+                height: SizeConfig.size265,
+                width: double.infinity,
+                fit: BoxFit.cover,
+                placeholder: (_, __) => Container(
+                  height: SizeConfig.size265,
+                  color: AppColors.greyE5,
                 ),
-                if (hasPrice) ...[
-                  const SizedBox(height: 8),
-                  CustomText(
-                    '${AppConstants.rupeeSymbol}${min ?? max} - ${AppConstants.rupeeSymbol}${max ?? min}',
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w800,
-                    color: _primary,
+                errorWidget: (_, __, ___) => SizedBox(
+                  height: SizeConfig.size265,
+                  width: double.infinity,
+                  child: _cardImageFallback(),
+                ),
+              )
+            else
+              SizedBox(
+                height: SizeConfig.size265,
+                width: double.infinity,
+                child: _cardImageFallback(),
+              ),
+
+            // Bottom overlay: frosted-glass bar with all service info.
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(12.0),
+                  bottomRight: Radius.circular(12.0),
+                ),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+                  child: Container(
+                    padding: EdgeInsets.all(SizeConfig.size12),
+                    color: const Color(0x80000000),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CustomText(
+                          item.title ?? AppStrings.na,
+                          fontSize: SizeConfig.large,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.white,
+                        ),
+                        if ((item.description ?? '').isNotEmpty) ...[
+                          SizedBox(height: SizeConfig.size6),
+                          CustomText(
+                            item.description!,
+                            fontSize: SizeConfig.small,
+                            color: AppColors.white.withValues(alpha: 0.85),
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                        if (priceLabel != null) ...[
+                          SizedBox(height: SizeConfig.size10),
+                          Row(
+                            children: [
+                              CustomText(
+                                priceLabel,
+                                fontSize: SizeConfig.medium,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.white,
+                              ),
+                              SizedBox(width: SizeConfig.size6),
+                              CustomText(
+                                'Range',
+                                fontSize: SizeConfig.small,
+                                color: AppColors.white.withValues(alpha: 0.75),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
-                ],
-                if ((item.business?.businessName ?? '').isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  CustomText(
-                    item.business!.businessName!,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.secondaryTextColor,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ],
+                ),
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
+  }
+
+  String _formatPrice(int? value) {
+    if (value == null) return '';
+    if (value >= 1000) {
+      final k = value / 1000;
+      final fixed = k == k.truncateToDouble()
+          ? k.toStringAsFixed(0)
+          : k.toStringAsFixed(1);
+      return '${fixed}K';
+    }
+    return value.toString();
   }
 
   Widget _cardImageFallback() {
@@ -620,7 +663,7 @@ class _HomeServiceDiscoverDetailsScreenState
       color: _placeholderBg,
       alignment: Alignment.center,
       child: Icon(Icons.home_repair_service_rounded,
-          size: 32, color: _primary.withValues(alpha: 0.45)),
+          size: 56, color: _primary.withValues(alpha: 0.45)),
     );
   }
 

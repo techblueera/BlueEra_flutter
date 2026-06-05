@@ -15,6 +15,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/google_image_search_service.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/features/me/product/model/generate_ai_product_content.dart';
 import 'package:BlueEra/features/me/product/model/product_catalog_response.dart';
@@ -23,6 +24,7 @@ import 'package:BlueEra/features/me/product/model/single_product_model.dart';
 import 'package:BlueEra/features/me/product/repo/product_repo.dart';
 import 'package:BlueEra/features/me/product/view/admin/product_preview_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/earn_service_controller.dart';
+import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:dio/dio.dart' as dio;
@@ -361,6 +363,58 @@ class ProductController extends GetxController{
       final remaining = maxStep1Images.value - step1Images.length;
       step1Images.addAll(selected.take(remaining));
       update();
+    }
+  }
+
+  /// Searches Google for product images using the entered name/brand.
+  ///
+  /// Returns the image URLs to show in a picker. Returns an empty list (and
+  /// surfaces a snackbar) when the name is empty, the search isn't configured,
+  /// or nothing was found. Shows a loader while the request is in flight.
+  Future<List<String>> searchGoogleImagesStep1() async {
+    final query = productNameStep1Controller.text.trim();
+    if (query.isEmpty) {
+      commonSnackBar(message: 'Please enter product name or brand first');
+      return const [];
+    }
+    if (!GoogleImageSearchService.isConfigured) {
+      commonSnackBar(message: 'Image search is not set up yet');
+      return const [];
+    }
+
+    AppLoader.show(message: 'Searching images...');
+    try {
+      final results = await GoogleImageSearchService.search(query);
+      if (results.isEmpty) {
+        commonSnackBar(message: 'No images found. Try a different name');
+      }
+      return results;
+    } on GoogleImageQuotaException catch (e) {
+      commonSnackBar(message: e.message);
+      return const [];
+    } finally {
+      AppLoader.hide();
+    }
+  }
+
+  /// Downloads [url] to a temp file and adds it to Step 1 images (respecting
+  /// the max-image cap). Shows a loader during the download.
+  Future<void> addImageFromUrlStep1(String url) async {
+    if (step1Images.length >= maxStep1Images.value) {
+      commonSnackBar(message: 'Maximum images reached');
+      return;
+    }
+    AppLoader.show(message: 'Adding image...');
+    try {
+      final path = await GoogleImageSearchService.downloadToTemp(url);
+      if (path == null) {
+        commonSnackBar(message: 'Could not add image. Try another');
+        return;
+      }
+      step1Images.add(path);
+      update();
+    } finally {
+      AppLoader.hide();
     }
   }
 
@@ -748,7 +802,7 @@ class ProductController extends GetxController{
       dynamicAttributes: dynamicAttributes.map(
             (k, v) => MapEntry(k, v.toList()), // convert RxList -> List
       ),
-      variants: aiVariantData, media: [],
+      variants: aiVariantData,
     );
   }
 

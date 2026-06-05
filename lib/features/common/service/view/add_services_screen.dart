@@ -13,7 +13,6 @@ import 'package:BlueEra/features/me/product/view/admin/widget/add_more_details_d
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -52,6 +51,12 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
     super.dispose();
   }
 
+  static const _accent = LinearGradient(
+    colors: [AppColors.blue5CAF, AppColors.primaryColor],
+  );
+
+  bool get _isIndividual => accountTypeGlobal == AppConstants.individual;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -61,284 +66,47 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
             ? AppStrings.service
             : addServiceController.serviceNameCtrl.text,
       ),
+      bottomNavigationBar: _buildBottomBar(),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(SizeConfig.paddingM),
+          padding: EdgeInsets.fromLTRB(
+            SizeConfig.size12,
+            SizeConfig.size12,
+            SizeConfig.size12,
+            SizeConfig.size16,
+          ),
           child: Form(
             key: addServiceController.formKey,
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Upload Images Section
+                _buildHeader(),
+                SizedBox(height: SizeConfig.size12),
+                _buildContextCard(),
+                SizedBox(height: SizeConfig.size12),
 
-                Container(
-                  padding: EdgeInsets.all(SizeConfig.size16),
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    // boxShadow: [AppShadows.textFieldShadow],
-                  ),
+                // ── Service details ──────────────────────────────────
+                _card(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 10, horizontal: 10),
-                        decoration: BoxDecoration(
-                          color: Colors.lightBlue.shade50,
-                          // light blue background
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                              color: Colors.lightBlue.shade200, width: 1),
-                        ),
-                        child:accountTypeGlobal == AppConstants.individual
-                            ? Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                CustomText(" ⚠️ "),
-                                Expanded(
-                                  child: CustomText(
-                                    AppStrings.yourProfessionDesignation,
-                                    color: Colors.blue.shade800,
-                                    fontSize: SizeConfig.size16,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: SizeConfig.size10,),
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                CustomText(
-                                  AppStrings.profession,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blue.shade800,
-                                ),
-                                Flexible(
-                                  child: CustomText(
-                                    "$userProfessionGlobal",
-                                    color: Colors.blue.shade700,
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 3,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: SizeConfig.size5),
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                CustomText(
-                                  "${AppStrings.workType} : ",
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blue.shade800,
-                                ),
-                                Flexible(
-                                  child: CustomText(
-                                    "$userDesignationGlobal ",
-                                    color: Colors.blue.shade700,
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 3,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: SizeConfig.size5),
-
-                          ],
-                        )
-                            : Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                CustomText(" ⚠️ "),
-                                Expanded(
-                                  child: CustomText(
-                                    AppStrings.yourCategorySubcategory,
-                                    color: Colors.blue.shade800,
-                                    fontSize: SizeConfig.size16,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: SizeConfig.size10),
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                CustomText(
-                                  '${AppStrings.category.tr} : ',
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blue.shade800,
-                                ),
-                                Flexible(
-                                  child: CustomText(
-                                    businessCategoryGlobal,
-                                    color: Colors.blue.shade700,
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 3,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            SizedBox(height: SizeConfig.size5),
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                CustomText(
-                                  AppStrings.subCategory,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blue.shade800,
-                                ),
-                                Flexible(
-                                  child: CustomText(
-                                    businessSubCategoryGlobal,
-                                    color: Colors.blue.shade700,
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 3,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                      _sectionHeader(
+                        Icons.image_outlined,
+                        AppStrings.uploadImages,
+                        trailing: _pill("Min 2 / Max 5"),
                       ),
-                      SizedBox(height: SizeConfig.paddingS),
+                      SizedBox(height: SizeConfig.size12),
+                      _buildImageStrip(context),
+                      SizedBox(height: SizeConfig.size20),
 
-                      /// Upload images
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          const CustomText(AppStrings.uploadImages,
-                              fontWeight: FontWeight.w400),
-                          const CustomText("Min 2 / Max 5",
-                              fontWeight: FontWeight.w400),
-                        ],
-                      ),
-                      SizedBox(height: SizeConfig.paddingS),
-                      SizedBox(
-                        height: SizeConfig.size80,
-                        child: GridView.builder(
-                          scrollDirection: Axis.horizontal,
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 1,
-                            mainAxisSpacing: 8,
-                            childAspectRatio: 1,
-                          ),
-                          itemCount: 5,
-                          itemBuilder: (context, index) {
-                            final imgIdx = index;
-                            return GestureDetector(
-                              key: ValueKey('img_$imgIdx'),
-                              onTap: () {
-                                final total = addServiceController
-                                        .existingPhotoUrls.length +
-                                    addServiceController.imageLocalPaths.length;
-                                if (total >= 5) {
-                                  commonSnackBar(
-                                    message:
-                                        AppStrings.limitReachedImages.tr,
-                                  );
-                                } else {
-                                  addServiceController.pickImages(context);
-                                }
-                              },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: AppColors.whiteFE,
-                                  borderRadius: BorderRadius.circular(6.0),
-                                  border: Border.all(
-                                      color: AppColors.greyE5, width: 1),
-                                ),
-                                clipBehavior: Clip.antiAlias,
-                                child: Obx(() {
-                                  final urls = addServiceController
-                                      .existingPhotoUrls;
-                                  final locals = addServiceController
-                                      .imageLocalPaths;
-                                  final isRemote = imgIdx < urls.length;
-                                  final localIdx = imgIdx - urls.length;
-                                  final hasLocal = !isRemote &&
-                                      localIdx < locals.length;
-                                  final hasImage = isRemote || hasLocal;
-                                  return Stack(
-                                    fit: StackFit.expand,
-                                    children: [
-                                      if (isRemote)
-                                        Image.network(
-                                          urls[imgIdx],
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) => Center(
-                                            child: Icon(
-                                              Icons.broken_image_outlined,
-                                              color: AppColors.grey9B,
-                                            ),
-                                          ),
-                                        )
-                                      else if (hasLocal)
-                                        Image.file(
-                                          File(locals[localIdx]),
-                                          fit: BoxFit.cover,
-                                        )
-                                      else
-                                        Center(
-                                          child: Icon(
-                                            Icons.photo_outlined,
-                                            color: AppColors.secondaryTextColor
-                                                .withValues(alpha: 0.3),
-                                          ),
-                                        ),
-                                      if (hasImage)
-                                        Positioned(
-                                          top: 4,
-                                          right: 4,
-                                          child: GestureDetector(
-                                            onTap: () {
-                                              if (isRemote) {
-                                                urls.removeAt(imgIdx);
-                                              } else {
-                                                addServiceController
-                                                    .removeImageAt(localIdx);
-                                              }
-                                            },
-                                            child: Container(
-                                              width: 22,
-                                              height: 22,
-                                              decoration: const BoxDecoration(
-                                                color: Colors.black54,
-                                                shape: BoxShape.circle,
-                                              ),
-                                              child: const Icon(Icons.close,
-                                                  size: 14,
-                                                  color: Colors.white),
-                                            ),
-                                          ),
-                                        ),
-                                    ],
-                                  );
-                                }),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
+                      _sectionHeader(
+                          Icons.design_services_outlined,
+                          AppStrings.serviceName),
                       SizedBox(height: SizeConfig.size10),
-
-                      /// service name
                       CommonTextField(
-                          contentPadding: EdgeInsets.symmetric(
+                          contentPadding: const EdgeInsets.symmetric(
                               vertical: 14, horizontal: 12),
-                          title: AppStrings.serviceName,
+                          title: '',
                           hintText: AppStrings.hintServiceName,
                           textEditController:
                               addServiceController.serviceNameCtrl,
@@ -346,111 +114,27 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                           maxLength: 100,
                           isValidate: true,
                           isCounterVisible: true),
-                      SizedBox(height: SizeConfig.size10),
+                      SizedBox(height: SizeConfig.size20),
 
-                      /// facility
-                      CustomText(
-                        AppStrings.facilities,
-                        fontSize: SizeConfig.medium,
-                        color: AppColors.black,
-                      ),
-                      SizedBox(height: SizeConfig.size8),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: SizeConfig.size16,
-                          vertical: SizeConfig.size10,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppColors.greyE5, width: 1),
-                        ),
-                        child: Row(
-                          children: [
-                            Image.asset("assets/icons/tag_icon.png"),
-                            SizedBox(width: SizeConfig.size12),
-                            Expanded(
-                              child: TextField(
-                                controller: addServiceController.facilitiesCtrl,
-                                onChanged: (_) =>
-                                    addServiceController.update(["addIcon"]),
-                                decoration: InputDecoration(
-                                  hintText: AppStrings.facility.tr,
-                                  hintStyle: TextStyle(
-                                    color: AppColors.grey9B,
-                                    fontSize: 14,
-                                  ),
-                                  border: InputBorder.none,
-                                  enabledBorder: InputBorder.none,
-                                  focusedBorder: InputBorder.none,
-                                  contentPadding: EdgeInsets.zero,
-                                  isDense: true,
-                                ),
-                              ),
-                            ),
-                            GetBuilder<AddServiceController>(
-                              id: "addIcon",
-                              builder: (_) {
-                                return AnimatedSwitcher(
-                                  duration: const Duration(milliseconds: 200),
-                                  transitionBuilder: (child, anim) =>
-                                      ScaleTransition(
-                                          scale: anim, child: child),
-                                  child: addServiceController
-                                          .facilitiesCtrl.text.isNotEmpty
-                                      ? InkWell(
-                                          key: const ValueKey("add"),
-                                          onTap: () {
-                                            addServiceController.addFacility();
-                                            addServiceController
-                                                .update(["addIcon"]);
-                                            unFocus();
-                                          },
-                                          child: LocalAssets(
-                                            imagePath:
-                                                AppIconAssets.addBlueIcon,
-                                            // imgColor: AppColors.grey9A
-                                          ),
-                                        )
-                                      : const SizedBox.shrink(
-                                          key: ValueKey("empty")),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
+                      _sectionHeader(
+                          Icons.checklist_rounded, AppStrings.facilities),
+                      SizedBox(height: SizeConfig.size10),
+                      _buildFacilityInput(),
                       const SizedBox(height: 12),
                       Obx(() => Wrap(
                             spacing: 8,
-                            runSpacing: 2,
-                            children:
-                                addServiceController.facilities.map((facility) {
-                              return Chip(
-                                label: Text(facility),
-                                backgroundColor: AppColors.lightBlue,
-                                labelStyle: TextStyle(
-                                    fontSize: SizeConfig.size14,
-                                    color: Colors.black87),
-                                deleteIcon: const Icon(Icons.close,
-                                    size: 20, color: AppColors.mainTextColor),
-                                shape: RoundedRectangleBorder(
-                                    side: BorderSide(color: Colors.transparent),
-                                    borderRadius: BorderRadius.circular(8.0)),
-                                onDeleted: () => addServiceController
-                                    .removeFacility(facility),
-                                labelPadding: const EdgeInsets.only(left: 12),
-                                padding: EdgeInsets.zero,
-                                visualDensity: VisualDensity.compact,
-                                materialTapTargetSize:
-                                    MaterialTapTargetSize.shrinkWrap,
-                              );
-                            }).toList(),
+                            runSpacing: 6,
+                            children: addServiceController.facilities
+                                .map((facility) => _facilityChip(facility))
+                                .toList(),
                           )),
-                      SizedBox(height: SizeConfig.size10),
+                      SizedBox(height: SizeConfig.size20),
 
-                      /// service description
+                      _sectionHeader(
+                          Icons.notes_outlined, AppStrings.serviceDescription),
+                      SizedBox(height: SizeConfig.size10),
                       CommonTextField(
-                          title: AppStrings.serviceDescription,
+                          title: '',
                           hintText: AppStrings.hintServiceDescription,
                           textEditController:
                               addServiceController.descriptionCtrl,
@@ -459,227 +143,722 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
                               addServiceController.validateServiceDescription,
                           maxLength: 600,
                           isCounterVisible: true),
-                      SizedBox(height: SizeConfig.size10),
+                      SizedBox(height: SizeConfig.size20),
 
-                      /// timing section
+                      _sectionHeader(
+                          Icons.schedule_outlined, AppStrings.timing),
+                      SizedBox(height: SizeConfig.size12),
                       _timingSection(),
                     ],
                   ),
                 ),
 
-                SizedBox(height: SizeConfig.size10),
+                SizedBox(height: SizeConfig.size12),
 
-                Container(
-                  padding: EdgeInsets.all(SizeConfig.size16),
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    // boxShadow: [AppShadows.textFieldShadow],
-                  ),
+                // ── Pricing ──────────────────────────────────────────
+                _card(
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      _sectionHeader(
+                          Icons.sell_outlined, AppStrings.price),
+                      SizedBox(height: SizeConfig.size12),
                       _priceSection(),
-                      SizedBox(height: SizeConfig.size10),
+                      SizedBox(height: SizeConfig.size20),
+                      _sectionHeader(Icons.local_offer_outlined,
+                          AppStrings.discount,
+                          optional: true),
                       _discountSection(),
                     ],
                   ),
                 ),
 
-                SizedBox(height: SizeConfig.size10),
+                SizedBox(height: SizeConfig.size12),
 
-                // Demo Video
-                // _demoVideoSection(),
-                //
-                // SizedBox(height: SizeConfig.size10),
-
-                // Minimum Booking
-
-                Container(
-                  padding: EdgeInsets.all(SizeConfig.size16),
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    // boxShadow: [AppShadows.textFieldShadow],
-                  ),
+                // ── Booking & extra details ──────────────────────────
+                _card(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      _sectionHeader(Icons.event_available_outlined,
+                          AppStrings.minimumBookingAmount,
+                          optional: true),
+                      SizedBox(height: SizeConfig.size10),
                       CommonTextField(
-                        contentPadding:
-                            EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-                        title: AppStrings.minimumBookingAmount,
+                        contentPadding: const EdgeInsets.symmetric(
+                            vertical: 14, horizontal: 12),
+                        title: '',
                         hintText: AppStrings.egRs300,
                         textEditController: addServiceController.minBookingCtrl,
                         keyBoardType: TextInputType.number,
                         regularExpression: RegularExpressionUtils.digitsPattern,
-                        // validator: addServiceController.validateAmount,
                         isValidate: false,
                       ),
-                      SizedBox(height: SizeConfig.size30),
-                      Obx(() => addServiceController.detailsList.isNotEmpty
-                          ? Column(
-                              children: List.generate(
-                                addServiceController.detailsList.length,
-                                (index) {
-                                  final item =
-                                      addServiceController.detailsList[index];
-                                  return Padding(
-                                    padding: EdgeInsets.only(
-                                        bottom: SizeConfig.size15),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        if (index == 0) ...[
-                                          CustomText(
-                                            AppStrings.details,
-                                            fontSize: SizeConfig.medium,
-                                            fontWeight: FontWeight.w500,
-                                            color: AppColors.black,
-                                          ),
-                                          SizedBox(height: SizeConfig.size12),
-                                        ],
-                                        Stack(
-                                          clipBehavior: Clip.none,
-                                          children: [
-                                            Padding(
-                                              padding: const EdgeInsets.only(
-                                                  bottom: 12),
-                                              child: Container(
-                                                padding:
-                                                    const EdgeInsets.all(10),
-                                                decoration: BoxDecoration(
-                                                    color: AppColors.white,
-                                                    boxShadow: [
-                                                      AppShadows.textFieldShadow
-                                                    ],
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            10),
-                                                    border: Border.all(
-                                                      color: AppColors.greyE5,
-                                                    )),
-                                                child: Row(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    // Title + Details
-                                                    Expanded(
-                                                      child: Column(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          CustomText(
-                                                            item.title,
-                                                            fontSize: SizeConfig
-                                                                .large,
-                                                            fontWeight:
-                                                                FontWeight.w600,
-                                                            color: AppColors
-                                                                .mainTextColor,
-                                                          ),
-                                                          const SizedBox(
-                                                              height: 4),
-                                                          CustomText(
-                                                            item.details,
-                                                            fontSize: SizeConfig
-                                                                .medium,
-                                                            fontWeight:
-                                                                FontWeight.w400,
-                                                            color: AppColors
-                                                                .secondaryTextColor,
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                            Positioned(
-                                                right: 6,
-                                                top: -15,
-                                                child: InkWell(
-                                                  onTap: () =>
-                                                      addServiceController
-                                                          .removeDetail(index),
-                                                  child: Container(
-                                                    padding: EdgeInsets.all(6),
-                                                    alignment: Alignment.center,
-                                                    decoration: BoxDecoration(
-                                                        color: AppColors.white,
-                                                        boxShadow: [
-                                                          AppShadows
-                                                              .textFieldShadow
-                                                        ],
-                                                        border: Border.all(
-                                                          color:
-                                                              AppColors.greyE5,
-                                                        ),
-                                                        shape: BoxShape.circle),
-                                                    child: Icon(
-                                                      Icons.close,
-                                                      size: 18,
-                                                    ),
-                                                  ),
-                                                ))
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
-                              ),
-                            )
-                          : SizedBox.shrink()),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          CustomText(
-                            AppStrings.addMoreDetails,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              showAddMoreDetailsDialog(context);
-                            },
-                            child: Container(
-                                height: 28,
-                                width: 28,
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(8),
-                                    color: Colors.blue),
-                                child: Center(
-                                    child: const Icon(
-                                  CupertinoIcons.add,
-                                  color: Colors.white,
-                                  size: 21,
-                                ))),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: SizeConfig.size30),
-                      CustomBtn(
-                        title: _isEditMode
-                            ? AppStrings.update
-                            : AppStrings.postService,
-                        onTap: () {
-                          if (_isEditMode) {
-                            addServiceController.updateServiceApi();
-                          } else {
-                            addServiceController.createServiceApi();
-                          }
-                        },
-                        bgColor: AppColors.primaryColor,
-                        textColor: AppColors.white,
-                        height: SizeConfig.size40,
-                        radius: 10.0,
-                      ),
+                      SizedBox(height: SizeConfig.size20),
+                      _buildDetailsSection(context),
                     ],
                   ),
                 ),
               ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // HERO — gradient banner.
+  // ─────────────────────────────────────────────────────────────
+  Widget _buildHeader() {
+    return Container(
+      padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size14, vertical: SizeConfig.size12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        gradient: _accent,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryColor.withValues(alpha: 0.22),
+            blurRadius: 12,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            right: -16,
+            top: -22,
+            child: Container(
+              width: 70,
+              height: 70,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.10),
+              ),
+            ),
+          ),
+          Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(11),
+                  border:
+                      Border.all(color: Colors.white.withValues(alpha: 0.35)),
+                ),
+                child: Icon(
+                    _isEditMode
+                        ? Icons.edit_note_rounded
+                        : Icons.design_services_outlined,
+                    color: Colors.white,
+                    size: 19),
+              ),
+              SizedBox(width: SizeConfig.size10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CustomText(
+                      _isEditMode
+                          ? 'Update your service'
+                          : 'Finish setting up your service',
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                    const SizedBox(height: 2),
+                    CustomText(
+                      'Add photos, pricing and timings to go live',
+                      fontSize: 11,
+                      color: Colors.white.withValues(alpha: 0.85),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // CONTEXT CARD — profile bits we reuse; warn only if missing.
+  // ─────────────────────────────────────────────────────────────
+  Widget _buildContextCard() {
+    const amber = Color(0xFFB45309);
+    final title = _isIndividual
+        ? AppStrings.yourProfessionDesignation
+        : AppStrings.yourCategorySubcategory;
+    final showWarning = _isIndividual
+        ? (userProfessionGlobal.trim().isEmpty ||
+            userDesignationGlobal.trim().isEmpty)
+        : (businessCategoryGlobal.trim().isEmpty ||
+            businessSubCategoryGlobal.trim().isEmpty);
+
+    return Container(
+      padding: EdgeInsets.all(SizeConfig.size14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF8EC),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFF6DDB0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 30,
+                height: 30,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: amber.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child: const Icon(Icons.info_outline_rounded,
+                    size: 17, color: amber),
+              ),
+              SizedBox(width: SizeConfig.size10),
+              Expanded(
+                child: CustomText(
+                  title,
+                  fontSize: SizeConfig.medium,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF7C4A06),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: SizeConfig.size12),
+          if (_isIndividual) ...[
+            _kvRow(AppStrings.profession, userProfessionGlobal),
+            _kvRow(AppStrings.workType, userDesignationGlobal),
+          ] else ...[
+            _kvRow(AppStrings.category.tr, businessCategoryGlobal),
+            _kvRow(AppStrings.subCategory, businessSubCategoryGlobal),
+          ],
+          if (showWarning) ...[
+            SizedBox(height: SizeConfig.size6),
+            Container(height: 1, color: const Color(0xFFF1DFC0)),
+            SizedBox(height: SizeConfig.size8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.error_outline_rounded,
+                    size: 14, color: AppColors.red00),
+                SizedBox(width: SizeConfig.size6),
+                Expanded(
+                  child: CustomText(
+                    _isIndividual
+                        ? AppStrings.kindlyAddServicesProfession
+                        : AppStrings.kindlyAddServicesCategory,
+                    color: AppColors.red00,
+                    fontSize: SizeConfig.small,
+                    fontWeight: FontWeight.w500,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _kvRow(String label, String value) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: SizeConfig.size6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 92,
+            child: CustomText(
+              label,
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF9A7B45),
+            ),
+          ),
+          Expanded(
+            child: CustomText(
+              value.trim().isEmpty ? '—' : value,
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFF6B4A14),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // Reusable bits.
+  // ─────────────────────────────────────────────────────────────
+  Widget _card({required Widget child}) {
+    return Container(
+      padding: EdgeInsets.all(SizeConfig.size16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFEDEFF4)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x12001120),
+            blurRadius: 16,
+            offset: Offset(0, 6),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+
+  Widget _sectionHeader(IconData icon, String title,
+      {bool optional = false, Widget? trailing}) {
+    return Row(
+      children: [
+        Container(
+          width: 32,
+          height: 32,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: AppColors.primaryColor.withValues(alpha: 0.10),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+                color: AppColors.primaryColor.withValues(alpha: 0.18)),
+          ),
+          child: Icon(icon, size: 17, color: AppColors.primaryColor),
+        ),
+        SizedBox(width: SizeConfig.size10),
+        Flexible(
+          child: CustomText(
+            title,
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            color: AppColors.mainTextColor,
+          ),
+        ),
+        if (optional) ...[
+          SizedBox(width: SizeConfig.size8),
+          _pill('Optional'),
+        ],
+        if (trailing != null) ...[
+          const Spacer(),
+          trailing,
+        ],
+      ],
+    );
+  }
+
+  Widget _pill(String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: AppColors.greyE5.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: CustomText(
+        text,
+        fontSize: 10,
+        fontWeight: FontWeight.w600,
+        color: AppColors.secondaryTextColor,
+      ),
+    );
+  }
+
+  // ─── Image strip — rounded square slots, tap to add, badge to remove ───
+  Widget _buildImageStrip(BuildContext context) {
+    return SizedBox(
+      height: 88,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: 5,
+        separatorBuilder: (_, __) => SizedBox(width: SizeConfig.size10),
+        itemBuilder: (context, imgIdx) {
+          return GestureDetector(
+            key: ValueKey('img_$imgIdx'),
+            onTap: () {
+              final total = addServiceController.existingPhotoUrls.length +
+                  addServiceController.imageLocalPaths.length;
+              if (total >= 5) {
+                commonSnackBar(message: AppStrings.limitReachedImages.tr);
+              } else {
+                addServiceController.pickImages(context);
+              }
+            },
+            child: Obx(() {
+              final urls = addServiceController.existingPhotoUrls;
+              final locals = addServiceController.imageLocalPaths;
+              final isRemote = imgIdx < urls.length;
+              final localIdx = imgIdx - urls.length;
+              final hasLocal = !isRemote && localIdx < locals.length;
+              final hasImage = isRemote || hasLocal;
+              return Container(
+                width: 88,
+                height: 88,
+                decoration: BoxDecoration(
+                  color: hasImage
+                      ? AppColors.whiteFE
+                      : AppColors.primaryColor.withValues(alpha: 0.04),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: hasImage
+                        ? AppColors.greyE5
+                        : AppColors.primaryColor.withValues(alpha: 0.30),
+                    width: 1,
+                  ),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    if (isRemote)
+                      Image.network(
+                        urls[imgIdx],
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Center(
+                          child: Icon(Icons.broken_image_outlined,
+                              color: AppColors.grey9B),
+                        ),
+                      )
+                    else if (hasLocal)
+                      Image.file(File(locals[localIdx]), fit: BoxFit.cover)
+                    else
+                      Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.add_a_photo_outlined,
+                                size: 22,
+                                color: AppColors.primaryColor
+                                    .withValues(alpha: 0.7)),
+                            const SizedBox(height: 4),
+                            CustomText(
+                              imgIdx == 0 ? 'Add' : '',
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.primaryColor
+                                  .withValues(alpha: 0.7),
+                            ),
+                          ],
+                        ),
+                      ),
+                    if (hasImage)
+                      Positioned(
+                        top: 4,
+                        right: 4,
+                        child: GestureDetector(
+                          onTap: () {
+                            if (isRemote) {
+                              urls.removeAt(imgIdx);
+                            } else {
+                              addServiceController.removeImageAt(localIdx);
+                            }
+                          },
+                          child: Container(
+                            width: 22,
+                            height: 22,
+                            decoration: const BoxDecoration(
+                              color: Colors.black54,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.close,
+                                size: 14, color: Colors.white),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            }),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildFacilityInput() {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size16,
+        vertical: SizeConfig.size10,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.whiteFE,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.greyE5, width: 1),
+      ),
+      child: Row(
+        children: [
+          Image.asset("assets/icons/tag_icon.png"),
+          SizedBox(width: SizeConfig.size12),
+          Expanded(
+            child: TextField(
+              controller: addServiceController.facilitiesCtrl,
+              onChanged: (_) => addServiceController.update(["addIcon"]),
+              decoration: InputDecoration(
+                hintText: AppStrings.facility.tr,
+                hintStyle: TextStyle(color: AppColors.grey9B, fontSize: 14),
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                contentPadding: EdgeInsets.zero,
+                isDense: true,
+              ),
+            ),
+          ),
+          GetBuilder<AddServiceController>(
+            id: "addIcon",
+            builder: (_) {
+              return AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                transitionBuilder: (child, anim) =>
+                    ScaleTransition(scale: anim, child: child),
+                child: addServiceController.facilitiesCtrl.text.isNotEmpty
+                    ? InkWell(
+                        key: const ValueKey("add"),
+                        onTap: () {
+                          addServiceController.addFacility();
+                          addServiceController.update(["addIcon"]);
+                          unFocus();
+                        },
+                        child: LocalAssets(imagePath: AppIconAssets.addBlueIcon),
+                      )
+                    : const SizedBox.shrink(key: ValueKey("empty")),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _facilityChip(String facility) {
+    return Chip(
+      label: Text(facility),
+      backgroundColor: AppColors.lightBlue,
+      labelStyle:
+          TextStyle(fontSize: SizeConfig.size14, color: Colors.black87),
+      deleteIcon:
+          const Icon(Icons.close, size: 20, color: AppColors.mainTextColor),
+      shape: RoundedRectangleBorder(
+          side: const BorderSide(color: Colors.transparent),
+          borderRadius: BorderRadius.circular(8.0)),
+      onDeleted: () => addServiceController.removeFacility(facility),
+      labelPadding: const EdgeInsets.only(left: 12),
+      padding: EdgeInsets.zero,
+      visualDensity: VisualDensity.compact,
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    );
+  }
+
+  Widget _buildDetailsSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Obx(() => addServiceController.detailsList.isNotEmpty
+            ? Column(
+                children: List.generate(
+                  addServiceController.detailsList.length,
+                  (index) {
+                    final item = addServiceController.detailsList[index];
+                    return Padding(
+                      padding: EdgeInsets.only(bottom: SizeConfig.size15),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (index == 0) ...[
+                            _sectionHeader(
+                                Icons.list_alt_outlined, AppStrings.details),
+                            SizedBox(height: SizeConfig.size12),
+                          ],
+                          Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                      color: AppColors.white,
+                                      boxShadow: [AppShadows.textFieldShadow],
+                                      borderRadius: BorderRadius.circular(10),
+                                      border:
+                                          Border.all(color: AppColors.greyE5)),
+                                  child: Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            CustomText(
+                                              item.title,
+                                              fontSize: SizeConfig.large,
+                                              fontWeight: FontWeight.w600,
+                                              color: AppColors.mainTextColor,
+                                            ),
+                                            const SizedBox(height: 4),
+                                            CustomText(
+                                              item.details,
+                                              fontSize: SizeConfig.medium,
+                                              fontWeight: FontWeight.w400,
+                                              color:
+                                                  AppColors.secondaryTextColor,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              Positioned(
+                                  right: 6,
+                                  top: -15,
+                                  child: InkWell(
+                                    onTap: () => addServiceController
+                                        .removeDetail(index),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(6),
+                                      alignment: Alignment.center,
+                                      decoration: BoxDecoration(
+                                          color: AppColors.white,
+                                          boxShadow: [
+                                            AppShadows.textFieldShadow
+                                          ],
+                                          border:
+                                              Border.all(color: AppColors.greyE5),
+                                          shape: BoxShape.circle),
+                                      child: const Icon(Icons.close, size: 18),
+                                    ),
+                                  ))
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              )
+            : const SizedBox.shrink()),
+        InkWell(
+          onTap: () => showAddMoreDetailsDialog(context),
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            padding: EdgeInsets.symmetric(
+                horizontal: SizeConfig.size14, vertical: SizeConfig.size12),
+            decoration: BoxDecoration(
+              color: AppColors.primaryColor.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                  color: AppColors.primaryColor.withValues(alpha: 0.25)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  height: 28,
+                  width: 28,
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      color: AppColors.primaryColor),
+                  child: const Center(
+                      child: Icon(CupertinoIcons.add,
+                          color: Colors.white, size: 20)),
+                ),
+                SizedBox(width: SizeConfig.size12),
+                CustomText(
+                  AppStrings.addMoreDetails,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primaryColor,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // STICKY BOTTOM BAR — gradient Post / Update CTA.
+  // ─────────────────────────────────────────────────────────────
+  Widget _buildBottomBar() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        border: Border(top: BorderSide(color: AppColors.greyE5)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: EdgeInsets.all(SizeConfig.size12),
+          child: GestureDetector(
+            onTap: () {
+              if (_isEditMode) {
+                addServiceController.updateServiceApi();
+              } else {
+                addServiceController.createServiceApi();
+              }
+            },
+            child: Container(
+              height: 48,
+              decoration: BoxDecoration(
+                gradient: _accent,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primaryColor.withValues(alpha: 0.32),
+                    blurRadius: 16,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                        _isEditMode
+                            ? Icons.check_rounded
+                            : Icons.send_rounded,
+                        color: Colors.white,
+                        size: 19),
+                    SizedBox(width: SizeConfig.size8),
+                    CustomText(
+                      _isEditMode
+                          ? AppStrings.update
+                          : AppStrings.postService,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.white,
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
@@ -694,7 +873,10 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const CustomText(AppStrings.timing, fontWeight: FontWeight.w500),
+            CustomText('Working hours',
+                fontSize: SizeConfig.small,
+                fontWeight: FontWeight.w500,
+                color: AppColors.secondaryTextColor),
             Obx(() => RadioGroup<bool>(
                   groupValue: addServiceController.isSpecial.value,
                   onChanged: (val) =>
@@ -799,7 +981,10 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const CustomText(AppStrings.price, fontWeight: FontWeight.w500),
+              CustomText('Price type',
+                  fontSize: SizeConfig.small,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.secondaryTextColor),
               RadioGroup<bool>(
                 groupValue: addServiceController.isRange.value,
                 onChanged: (val) =>
@@ -894,10 +1079,6 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
         Obx(() => Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const CustomText(AppStrings.discount, fontWeight: FontWeight.w400),
-                SizedBox(
-                  height: SizeConfig.size8,
-                ),
                 addServiceController.coupons.isEmpty
                     ? Container(
                         decoration: BoxDecoration(

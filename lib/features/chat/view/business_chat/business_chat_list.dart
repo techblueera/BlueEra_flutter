@@ -1,13 +1,11 @@
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
-
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_icon_assets.dart';
-import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/size_config.dart';
@@ -39,17 +37,15 @@ enum ChatBucket { chats, me, skip }
 ///   1. Group rows always go to [ChatBucket.chats].
 ///   2. Non-business conversation types → [ChatBucket.chats] by default,
 ///      or [ChatBucket.skip] when [includeNonBusinessInChats] is false.
-///   3. Seller side (`i_own_business`) — friend orders stay in chats,
-///      stranger customers go to [ChatBucket.me].
+///   3. Seller side (`i_own_business`) — customers go to [ChatBucket.me].
 ///   4. Buyer side (I ordered from someone else's business) → chats.
 ///
 /// `i_own_business` is read straight from the row; when the server hasn't
 /// sent it (legacy payload) we fall back to *my own* account type — if I'm
 /// logged in as a business (`accountTypeGlobal == BUSINESS`) then in a
-/// business conversation I'm the seller side. `is_friend` falls back to
-/// false. (We use `accountTypeGlobal`, the current user's account type,
-/// not `businessTypeGlobal`, which holds the business *category* like
-/// Food / Grocery / OTHER.)
+/// business conversation I'm the seller side. (We use `accountTypeGlobal`,
+/// the current user's account type, not `businessTypeGlobal`, which holds
+/// the business *category* like Food / Grocery / OTHER.)
 ///
 /// The conversation `type` is null-tolerant: legacy payloads that omit it
 /// fall straight through to the seller/buyer logic (this widget is fed by
@@ -65,14 +61,10 @@ ChatBucket bucketChat(ChatList chat, {bool includeNonBusinessInChats = true}) {
     return includeNonBusinessInChats ? ChatBucket.chats : ChatBucket.skip;
   }
 
-  final iOwnBusiness =
-      chat.iOwnBusiness ?? (accountTypeGlobal == AppConstants.business);
+  final iOwnBusiness = chat.iOwnBusiness ?? false;
 
-  // Business convo — seller side.
+  // Business convo — seller side → customers live in the "me" section.
   if (iOwnBusiness) {
-    // Friend override — a friend ordering from my business → chat list.
-    if (chat.isFriend == true) return ChatBucket.chats;
-    // Stranger customer → "me" section.
     return ChatBucket.me;
   }
 
@@ -242,9 +234,9 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SvgPicture.asset(
-                  AppIconAssets.chat,
-                  color: Colors.black,
+                LocalAssets(
+                  imagePath: AppIconAssets.chat,
+                  imgColor: Colors.black,
                   height: 70,
                   width: 70,
                 ),

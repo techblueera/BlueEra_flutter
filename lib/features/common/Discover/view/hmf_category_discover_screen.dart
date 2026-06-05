@@ -11,7 +11,7 @@ import 'package:BlueEra/features/common/Discover/controller/hmf_consumer_control
 import 'package:BlueEra/features/common/Discover/view/hmf_cart_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/hmf_store_details_discover_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_dashboard_view.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/home_made_food_profile_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/hmf_profile_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/me/grocery/widget/discount_badge.dart';

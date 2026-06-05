@@ -1,15 +1,12 @@
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/features/me/product/repo/product_repo.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/home_made_food_profile_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/home_made_product_profile_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/hmf_profile_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/hmp_profile_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/home_service_profile_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/rental_service_guide_bottom_sheet.dart';
 import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -143,11 +140,11 @@ class EarnServiceController extends GetxController{
     }
   }
 
-  /// PATCH /inventory-service/products/inventory/{inventoryId}/variants/{variantId}
-  /// Body: `{ updateFields: { sellingPrice, mrp, varientIsActive }, owner: { id, type } }`.
+  /// PUT product-service/api/inventory/{id} — `id` is the variant's own
+  /// inventory id ([inventoryId]). Body is the flat updated fields:
+  /// `{ sellingPrice, mrp, varientIsActive }`.
   Future<bool> updateProductVariantPrice({
     required String inventoryId,
-    required String variantId,
     required num sellingPrice,
     required num mrp,
     required bool varientIsActive,
@@ -155,21 +152,26 @@ class EarnServiceController extends GetxController{
     try {
       final res = await ProductRepo().updateInventoryVariantRepo(
         inventoryId: inventoryId,
-        variantId: variantId,
         params: {
-          'updateFields': {
-            'sellingPrice': sellingPrice,
-            'mrp': mrp,
-            'varientIsActive': varientIsActive,
-          },
-          ApiKeys.owner: {
-            ApiKeys.id: userId,
-            ApiKeys.type: ProviderType.user.title,
-          },
+          'sellingPrice': sellingPrice,
+          'mrp': mrp,
+          'varientIsActive': varientIsActive,
         },
       );
       if (!res.isSuccess) return false;
-      await fetchOwnProducts();
+      // Reflect the change in-memory so the card and a re-opened edit sheet
+      // show the new values immediately (avoids a stale/cached refetch).
+      for (final p in ownProductDataList) {
+        for (final v
+            in p.product.sellerClassification?.variants ?? const <Variant>[]) {
+          if (v.inventoryId == inventoryId || v.id == inventoryId) {
+            v.sellingPrice = sellingPrice;
+            v.mrp = mrp;
+            v.variantIsActive = varientIsActive;
+          }
+        }
+      }
+      ownProductDataList.refresh();
       return true;
     } catch (_) {
       return false;

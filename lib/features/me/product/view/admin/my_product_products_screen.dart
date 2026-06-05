@@ -2,7 +2,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/me/product/model/product_category_with_inventory_model.dart';
-import 'package:BlueEra/features/me/product/view/admin/widget/own_product_card.dart';
+import 'package:BlueEra/features/me/product/view/admin/widget/admin_product_card.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
@@ -227,7 +227,7 @@ class _MyProductProductsScreenState extends State<MyProductProductsScreen> {
                           final product =
                               controller.productsByCategoryList[index];
 
-                          return OwnProductCard(
+                          return AdminProductCard(
                             product: product,
                             deleteProductApi: () {
                               controller.deleteProduct();

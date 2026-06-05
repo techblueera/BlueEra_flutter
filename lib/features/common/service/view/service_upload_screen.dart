@@ -1,10 +1,9 @@
-import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -12,13 +11,10 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/service/controller/service_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/common_card_widget.dart';
-import 'package:BlueEra/widgets/common_drop_down.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -26,11 +22,7 @@ class ServiceUploadScreen extends StatefulWidget {
   final ProviderType providerType;
   final String? channelId;
 
-  ServiceUploadScreen({
-    Key? key,
-    required this.providerType,
-    this.channelId
-  })
+  ServiceUploadScreen({Key? key, required this.providerType, this.channelId})
       : super(key: key);
 
   @override
@@ -39,13 +31,20 @@ class ServiceUploadScreen extends StatefulWidget {
 
 class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
   final ServiceController controller = Get.put(ServiceController());
-  final viewBusinessDetailsController = Get.find<ViewBusinessDetailsController>();
+  final viewBusinessDetailsController =
+      Get.find<ViewBusinessDetailsController>();
+
+  static const _accent = LinearGradient(
+    colors: [AppColors.blue5CAF, AppColors.primaryColor],
+  );
+
+  bool get _isIndividual => accountTypeGlobal == AppConstants.individual;
 
   @override
   void initState() {
     viewBusinessDetailsController.getAllCategories();
     controller.providerType = widget.providerType;
-    if(widget.channelId!=null) controller.channelId = widget.channelId;
+    if (widget.channelId != null) controller.channelId = widget.channelId;
     super.initState();
   }
 
@@ -57,231 +56,31 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-      appBar: CommonBackAppBar(
-        title: AppStrings.service,
-      ),
+      backgroundColor: AppColors.appBackgroundColor,
+      appBar: CommonBackAppBar(title: AppStrings.service),
+      bottomNavigationBar: _buildBottomBar(),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.all(SizeConfig.size10),
-            child: CommonCardWidget(
-              child:  Obx(()=> AbsorbPointer(
-                absorbing: controller.isGenerateAiServiceLoading.value,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: SizeConfig.paddingXSL),
-
-                    Container(
-                      margin: const EdgeInsets.symmetric(
-                          vertical: 4,
-                          horizontal: 8
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.lightBlue.shade50,
-                        borderRadius: BorderRadius.circular(10.0),
-                        border: Border.all(
-                            color: Colors.lightBlue.shade200, width: 1),
-                      ),
-                      child: accountTypeGlobal == AppConstants.individual
-                          ? Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    CustomText(" ⚠️ "),
-                                    Expanded(
-                                      child: CustomText(
-                                        AppStrings.yourProfessionDesignation,
-                                        color: Colors.blue.shade800,
-                                        fontSize: SizeConfig.size16,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(
-                                  height: SizeConfig.size10,
-                                ),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    CustomText(
-                                      AppStrings.profession,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.blue.shade800,
-                                    ),
-                                    Flexible(
-                                      child: CustomText(
-                                        userProfessionGlobal,
-                                        color: Colors.blue.shade700,
-                                        overflow: TextOverflow.ellipsis,
-                                        maxLines: 3,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: SizeConfig.size5),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    CustomText(
-                                      '${AppStrings.workType} : ',
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.blue.shade800,
-                                    ),
-                                    Flexible(
-                                      child: CustomText(
-                                        "$userDesignationGlobal",
-                                        color: Colors.blue.shade700,
-                                        overflow: TextOverflow.ellipsis,
-                                        maxLines: 3,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: SizeConfig.size5),
-                                CustomText(
-                                  AppStrings.kindlyAddServicesProfession,
-                                  color: AppColors.red00,
-                                  overflow: TextOverflow.ellipsis,
-                                  fontSize: SizeConfig.small,
-                                  maxLines: 3,
-                                ),
-                              ],
-                            )
-                          : Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    CustomText(" ⚠️ "),
-                                    Expanded(
-                                      child: CustomText(
-                                        AppStrings.yourCategorySubcategory,
-                                        color: Colors.blue.shade800,
-                                        fontSize: SizeConfig.size16,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: SizeConfig.size10),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    CustomText(
-                                      '${AppStrings.category.tr} : ',
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.blue.shade800,
-                                    ),
-                                    Flexible(
-                                      child: CustomText(
-                                        businessCategoryGlobal,
-                                        color: Colors.blue.shade700,
-                                        overflow: TextOverflow.ellipsis,
-                                        maxLines: 3,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: SizeConfig.size5),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    CustomText(
-                                      '${AppStrings.subcategory.tr}',
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.blue.shade800,
-                                    ),
-                                    Flexible(
-                                      child: CustomText(
-                                        businessSubCategoryGlobal,
-                                        color: Colors.blue.shade700,
-                                        overflow: TextOverflow.ellipsis,
-                                        maxLines: 3,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                SizedBox(height: SizeConfig.size5),
-                                CustomText(
-                                  AppStrings.kindlyAddServicesCategory,
-                                  color: AppColors.red00,
-                                  overflow: TextOverflow.ellipsis,
-                                  fontSize: SizeConfig.small,
-                                  maxLines: 3,
-                                ),
-                              ],
-                            ),
-                    ),
-
-                    SizedBox(height: SizeConfig.paddingM),
-
-                    // Upload Images Section
-                    _buildUploadImagesSection(context),
-                    SizedBox(height: SizeConfig.paddingM),
-
-                    // Service Category Dropdown (individual providers only)
-                    if (accountTypeGlobal == AppConstants.individual) ...[
-                      CustomText(
-                        AppStrings.category.tr,
-                        fontSize: SizeConfig.large,
-                      ),
-                      SizedBox(height: SizeConfig.size8),
-                      Obx(() => CommonDropdown<ServiceCategoryOption>(
-                            items: ServiceController.serviceCategoryOptions,
-                            selectedValue:
-                                controller.selectedServiceCategory.value,
-                            hintText: 'Select a category',
-                            onChanged: (val) =>
-                                controller.selectedServiceCategory.value = val,
-                            displayValue: (val) => val.name,
-                          )),
-                      SizedBox(height: SizeConfig.paddingM),
-                    ],
-
-                    // Service Name Field
-                    CommonTextField(
-                      title: AppStrings.serviceName,
-                      textEditController: controller.serviceNameController,
-                      hintText: AppStrings.hintServiceName,
-                      onChange: (value) {
-                        controller.serviceName.value = value;
-                      },
-                    ),
-
-                    SizedBox(height: SizeConfig.paddingM),
-
-                    // Short description Field (Optional)
-                    CommonTextField(
-                      title: AppStrings.shortDescription,
-                      textEditController:
-                          controller.serviceShortDescriptionController,
-                      hintText: AppStrings.hintShortDescription,
-                      maxLine: 2,
-                      isValidate: true,
-                      validator: validateServiceDescription,
-                      // minLines: 15,
-                      onChange: (value) {
-                        controller.shortDescriptionName.value = value;
-                      },
-                    ),
-                    SizedBox(height: SizeConfig.size30),
-
-                    // Generate Button
-                    _buildGenerateButton(),
-                    SizedBox(height: SizeConfig.paddingXSL),
-                  ],
-                ),
-              )),
+        child: Obx(
+          () => AbsorbPointer(
+            absorbing: controller.isGenerateAiServiceLoading.value,
+            child: SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(
+                SizeConfig.size12,
+                SizeConfig.size12,
+                SizeConfig.size12,
+                SizeConfig.size16,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildHeader(),
+                  SizedBox(height: SizeConfig.size12),
+                  _buildContextCard(),
+                  SizedBox(height: SizeConfig.size12),
+                  _buildMainCard(context),
+                ],
+              ),
             ),
           ),
         ),
@@ -289,136 +88,582 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
     );
   }
 
-  Widget _buildUploadImagesSection(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CustomText(
-          AppStrings.uploadImages,
-          fontSize: SizeConfig.large,
-        ),
-        SizedBox(height: SizeConfig.size10),
-        Obx(() => GestureDetector(
-              onTap: () async {
-                final String? selected =
-                    await PhotoPickerService.pickSinglePhoto(
-                  context,
-                      AppStrings.selectPhoto.tr,
-                );
-                if ((selected?.isNotEmpty ?? false) && selected != null) {
-                  controller.selectedImage.value = File(selected);
-                }
-              },
-              // onTap: () => controller.showImagePickerDialog(context),
-              child: Container(
-                height: 100,
-                width: 100,
-                decoration: BoxDecoration(
-                  // color: Colors.grey[200],
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey[300]!),
-                ),
-                child: controller.selectedImage.value != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.file(
-                          controller.selectedImage.value!,
-                          fit: BoxFit.cover,
-                        ),
-                      )
-                    : Padding(
-                        padding: EdgeInsets.all(SizeConfig.size30),
-                        child: LocalAssets(
-                          imagePath: AppIconAssets.chat_input_gallery,
-                          imgColor: AppColors.greyAF,
-                        ),
-                      ) /*Icon(
-                        Icons.add_photo_alternate,
-                        size: 40,
-                        color: Colors.grey[500],
-                      )*/
-                ,
+  // ─────────────────────────────────────────────────────────────
+  // HERO — gradient banner introducing the AI flow.
+  // ─────────────────────────────────────────────────────────────
+  Widget _buildHeader() {
+    return Container(
+      padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size14, vertical: SizeConfig.size12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        gradient: _accent,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryColor.withValues(alpha: 0.22),
+            blurRadius: 12,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            right: -16,
+            top: -22,
+            child: Container(
+              width: 70,
+              height: 70,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withValues(alpha: 0.10),
               ),
-            )),
+            ),
+          ),
+          Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(11),
+                  border:
+                      Border.all(color: Colors.white.withValues(alpha: 0.35)),
+                ),
+                child: const Icon(Icons.auto_awesome,
+                    color: Colors.white, size: 19),
+              ),
+              SizedBox(width: SizeConfig.size10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CustomText(
+                      'Add your service in minutes',
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                    ),
+                    const SizedBox(height: 2),
+                    CustomText(
+                      'Fill a few details and let AI craft your listing',
+                      fontSize: 11,
+                      color: Colors.white.withValues(alpha: 0.85),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // CONTEXT CARD — "heads up, we'll use your existing profile bits".
+  // ─────────────────────────────────────────────────────────────
+  Widget _buildContextCard() {
+    const amber = Color(0xFFB45309);
+    final title = _isIndividual
+        ? AppStrings.yourProfessionDesignation
+        : AppStrings.yourCategorySubcategory;
+    final note = _isIndividual
+        ? AppStrings.kindlyAddServicesProfession
+        : AppStrings.kindlyAddServicesCategory;
+    // Only nudge the user when the profile data we rely on is actually
+    // missing — no point warning when profession/designation (or category/
+    // subcategory) are already set.
+    final showWarning = _isIndividual
+        ? (userProfessionGlobal.trim().isEmpty ||
+            userDesignationGlobal.trim().isEmpty)
+        : (businessCategoryGlobal.trim().isEmpty ||
+            businessSubCategoryGlobal.trim().isEmpty);
+
+    return Container(
+      padding: EdgeInsets.all(SizeConfig.size14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF8EC),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFF6DDB0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 30,
+                height: 30,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: amber.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child:
+                    const Icon(Icons.info_outline_rounded, size: 17, color: amber),
+              ),
+              SizedBox(width: SizeConfig.size10),
+              Expanded(
+                child: CustomText(
+                  title,
+                  fontSize: SizeConfig.medium,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF7C4A06),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: SizeConfig.size12),
+          if (_isIndividual) ...[
+            _kvRow(AppStrings.profession, userProfessionGlobal),
+            _kvRow(AppStrings.workType, userDesignationGlobal),
+          ] else ...[
+            _kvRow(AppStrings.category.tr, businessCategoryGlobal),
+            _kvRow(AppStrings.subcategory.tr, businessSubCategoryGlobal),
+          ],
+          if (showWarning) ...[
+            SizedBox(height: SizeConfig.size6),
+            Container(height: 1, color: const Color(0xFFF1DFC0)),
+            SizedBox(height: SizeConfig.size8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(Icons.error_outline_rounded,
+                    size: 14, color: AppColors.red00),
+                SizedBox(width: SizeConfig.size6),
+                Expanded(
+                  child: CustomText(
+                    note,
+                    color: AppColors.red00,
+                    fontSize: SizeConfig.small,
+                    fontWeight: FontWeight.w500,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _kvRow(String label, String value) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: SizeConfig.size6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 92,
+            child: CustomText(
+              label,
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w600,
+              color: const Color(0xFF9A7B45),
+            ),
+          ),
+          Expanded(
+            child: CustomText(
+              value.trim().isEmpty ? '—' : value,
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFF6B4A14),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // MAIN CARD — photo + category + name + description.
+  // ─────────────────────────────────────────────────────────────
+  Widget _buildMainCard(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(SizeConfig.size16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFEDEFF4)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x12001120),
+            blurRadius: 16,
+            offset: Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _sectionHeader(Icons.image_outlined, AppStrings.uploadImages),
+          SizedBox(height: SizeConfig.size10),
+          _buildImageTile(context),
+          SizedBox(height: SizeConfig.size20),
+          _sectionHeader(Icons.design_services_outlined, AppStrings.serviceName),
+          SizedBox(height: SizeConfig.size10),
+          CommonTextField(
+            title: '',
+            textEditController: controller.serviceNameController,
+            hintText: AppStrings.hintServiceName,
+            onChange: (value) => controller.serviceName.value = value,
+          ),
+          SizedBox(height: SizeConfig.size20),
+          if (_isIndividual) ...[
+            _sectionHeader(Icons.category_outlined, AppStrings.category.tr),
+            SizedBox(height: SizeConfig.size10),
+            _buildCategoryGrid(),
+            SizedBox(height: SizeConfig.size20),
+          ],
+          _sectionHeader(Icons.notes_outlined, AppStrings.shortDescription,
+              optional: true),
+          SizedBox(height: SizeConfig.size10),
+          CommonTextField(
+            title: '',
+            textEditController: controller.serviceShortDescriptionController,
+            hintText: AppStrings.hintShortDescription,
+            maxLine: 3,
+            validator: validateServiceDescription,
+            onChange: (value) => controller.shortDescriptionName.value = value,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _sectionHeader(IconData icon, String title, {bool optional = false}) {
+    return Row(
+      children: [
+        Container(
+          width: 32,
+          height: 32,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: AppColors.primaryColor.withValues(alpha: 0.10),
+            borderRadius: BorderRadius.circular(10),
+            border:
+                Border.all(color: AppColors.primaryColor.withValues(alpha: 0.18)),
+          ),
+          child: Icon(icon, size: 17, color: AppColors.primaryColor),
+        ),
+        SizedBox(width: SizeConfig.size10),
+        Flexible(
+          child: CustomText(
+            title,
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            color: AppColors.mainTextColor,
+          ),
+        ),
+        if (optional) ...[
+          SizedBox(width: SizeConfig.size8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: AppColors.greyE5.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: CustomText(
+              'Optional',
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: AppColors.secondaryTextColor,
+            ),
+          ),
+        ],
       ],
     );
   }
 
-  Widget _buildGenerateButton() {
+  // ─── Category grid (static options) — photo + label cards, single-select.
+  Widget _buildCategoryGrid() {
     return Obx(() {
-      if (accountTypeGlobal == AppConstants.individual)
-        return CustomBtn(
-            isValidate: isPersonalServiceValidate(),
-            onTap: isPersonalServiceValidate()
-                ? () async {
-                    if (isPersonalServiceValidate()) {
-                      controller.serviceSubType = 'homeService';
-                      controller.category =
-                          controller.selectedServiceCategory.value?.tagId ?? '';
-
-                      await controller.generateServiceAiController(
-                        serviceDetailsReq: {
-                          ApiKeys.service_name: controller.serviceName.value,
-                          ApiKeys.category: controller.category,
-                          if (controller.shortDescriptionName.value.isNotEmpty) ApiKeys.short_description: controller.shortDescriptionName.value,
-                        },
-                      );
-                    }
-                  }
-                : null,
-            title: controller.isGenerateAiServiceLoading.value
-                ? null // hide text
-                : AppStrings.generate,
-            isLoading: controller.isGenerateAiServiceLoading.value
-        );
-      else
-        return CustomBtn(
-            isValidate: isValidate(),
-            onTap: isValidate()
-                ? () async {
-                    if (isValidate()) {
-                      controller.category = businessCategoryGlobal;
-                      await controller.generateServiceAiController(
-                          serviceDetailsReq: {
-                            ApiKeys.service_name: controller.serviceName.value,
-                            if (isBusiness()) ApiKeys.category: businessCategoryGlobal,
-                            if (isBusiness()) ApiKeys.sub_category: businessSubCategoryGlobal,
-                            if (controller.shortDescriptionName.value.isNotEmpty) ApiKeys.short_description: controller.shortDescriptionName.value,
-                          },
-                      );
-                    }
-                  }
-                : null,
-            title: controller.isGenerateAiServiceLoading.value
-                ? null // hide text
-                : AppStrings.generate,
-            isLoading: controller.isGenerateAiServiceLoading.value
-        );
+      final selectedTagId = controller.selectedServiceCategory.value?.tagId;
+      return GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        padding: EdgeInsets.zero,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 3,
+          crossAxisSpacing: 8,
+          mainAxisSpacing: 8,
+          childAspectRatio: 0.9,
+        ),
+        itemCount: ServiceController.serviceCategoryOptions.length,
+        itemBuilder: (_, i) {
+          final cat = ServiceController.serviceCategoryOptions[i];
+          final isSelected = selectedTagId == cat.tagId;
+          return CommonServiceCard<ServiceCategoryOption>(
+            service: cat,
+            getName: (item) => item.name,
+            getIcon: (item) => item.image,
+            isSelected: isSelected,
+            onTap: (item) {
+              controller.selectedServiceCategory.value =
+                  isSelected ? null : item;
+            },
+          );
+        },
+      );
     });
   }
 
-  isValidate() {
-    if (isBusiness()) {
-      return (controller.selectedImage.value != null &&
-          controller.serviceName.value.isNotEmpty);
-    } else {
-      return (controller.selectedImage.value != null &&
-          controller.serviceName.value.isNotEmpty);
+  // ─── Image: dashed drop tile when empty, full-width preview once picked ───
+  Widget _buildImageTile(BuildContext context) {
+    return Obx(() {
+      final file = controller.selectedImage.value;
+      if (file == null) {
+        return GestureDetector(
+          onTap: () => _pickImage(context),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: SizedBox(
+              height: 158,
+              width: double.infinity,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  Image.asset(
+                    AppImageAssets.homeServicesBanner,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                        color: AppColors.primaryColor.withValues(alpha: 0.06)),
+                  ),
+                  Container(color: Colors.black.withValues(alpha: 0.32)),
+                  Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 48,
+                          height: 48,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.22),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                                color: Colors.white.withValues(alpha: 0.5)),
+                          ),
+                          child: const Icon(Icons.add_a_photo_outlined,
+                              color: Colors.white, size: 22),
+                        ),
+                        SizedBox(height: SizeConfig.size10),
+                        CustomText(
+                          'Add a service photo',
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(height: 2),
+                        CustomText(
+                          'Tap to upload from your device',
+                          fontSize: SizeConfig.small,
+                          color: Colors.white.withValues(alpha: 0.85),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      }
+      return ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Stack(
+          children: [
+            Container(
+              height: 158,
+              width: double.infinity,
+              color: AppColors.whiteFE,
+              child: Image.file(file,
+                  width: double.infinity, height: 158, fit: BoxFit.cover),
+            ),
+            Positioned(
+              top: 8,
+              right: 8,
+              child: GestureDetector(
+                onTap: () => _pickImage(context),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.55),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Icon(Icons.edit_outlined, size: 13, color: Colors.white),
+                      SizedBox(width: 4),
+                      CustomText('Change',
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+  Future<void> _pickImage(BuildContext context) async {
+    final String? selected = await PhotoPickerService.pickSinglePhoto(
+      context,
+      AppStrings.selectPhoto.tr,
+    );
+    if ((selected?.isNotEmpty ?? false) && selected != null) {
+      controller.selectedImage.value = File(selected);
     }
   }
 
+  // ─────────────────────────────────────────────────────────────
+  // STICKY BOTTOM BAR — gradient Generate CTA (disabled until valid).
+  // ─────────────────────────────────────────────────────────────
+  Widget _buildBottomBar() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        border: Border(top: BorderSide(color: AppColors.greyE5)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            SizeConfig.size12,
+            SizeConfig.size12,
+            SizeConfig.size12,
+            SizeConfig.size12,
+          ),
+          child: Obx(() {
+            final loading = controller.isGenerateAiServiceLoading.value;
+            // isValidate/isPersonalServiceValidate read the reactive name /
+            // image / category fields, so the button re-evaluates live.
+            final valid =
+                _isIndividual ? isPersonalServiceValidate() : isValidate();
+            final enabled = valid && !loading;
+            return Opacity(
+              opacity: enabled ? 1 : 0.5,
+              child: GestureDetector(
+                onTap: enabled ? _onGenerate : null,
+                child: Container(
+                  height: 48,
+                  decoration: BoxDecoration(
+                    gradient: _accent,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: enabled
+                        ? [
+                            BoxShadow(
+                              color: AppColors.primaryColor
+                                  .withValues(alpha: 0.32),
+                              blurRadius: 16,
+                              offset: const Offset(0, 8),
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: Center(
+                    child: loading
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2.4,
+                              valueColor:
+                                  AlwaysStoppedAnimation(Colors.white),
+                            ),
+                          )
+                        : Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.auto_awesome,
+                                  color: Colors.white, size: 19),
+                              SizedBox(width: SizeConfig.size8),
+                              CustomText(
+                                AppStrings.generate,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.white,
+                              ),
+                            ],
+                          ),
+                  ),
+                ),
+              ),
+            );
+          }),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _onGenerate() async {
+    if (_isIndividual) {
+      if (!isPersonalServiceValidate()) return;
+      controller.serviceSubType = 'homeService';
+      controller.category = controller.selectedServiceCategory.value?.tagId ?? '';
+      await controller.generateServiceAiController(
+        serviceDetailsReq: {
+          ApiKeys.service_name: controller.serviceName.value,
+          ApiKeys.category: controller.category,
+          if (controller.shortDescriptionName.value.isNotEmpty)
+            ApiKeys.short_description: controller.shortDescriptionName.value,
+        },
+      );
+    } else {
+      if (!isValidate()) return;
+      controller.category = businessCategoryGlobal;
+      await controller.generateServiceAiController(
+        serviceDetailsReq: {
+          ApiKeys.service_name: controller.serviceName.value,
+          if (isBusiness()) ApiKeys.category: businessCategoryGlobal,
+          if (isBusiness()) ApiKeys.sub_category: businessSubCategoryGlobal,
+          if (controller.shortDescriptionName.value.isNotEmpty)
+            ApiKeys.short_description: controller.shortDescriptionName.value,
+        },
+      );
+    }
+  }
+
+  isValidate() {
+    return (controller.selectedImage.value != null &&
+        controller.serviceName.value.isNotEmpty);
+  }
+
   isPersonalServiceValidate() {
-    log('selectedImage-- ${controller.serviceName.value.isNotEmpty}');
     return (controller.selectedImage.value != null &&
         controller.serviceName.value.isNotEmpty &&
         controller.selectedServiceCategory.value != null);
   }
 
+  // Short description is optional — empty is allowed; only enforce a sensible
+  // minimum length once the user actually types something.
   String? validateServiceDescription(String? value) {
-    if (value == null || value.isEmpty)
-      return AppStrings.serviceDescriptionRequired.tr;
-    if (value.length < 15)
+    if (value == null || value.trim().isEmpty) return null;
+    if (value.trim().length < 15) {
       return AppStrings.serviceDescriptionMinLength.tr;
+    }
     return null;
   }
 }

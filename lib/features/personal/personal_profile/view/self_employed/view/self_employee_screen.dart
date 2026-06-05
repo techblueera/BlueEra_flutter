@@ -2080,7 +2080,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen> {
     final String? newPath = await PhotoPickerService.pickSinglePhoto(
       context,
       AppStrings.editCoverPicture,
-      cropAspectRatio: CropAspectRatio(width: 3, height: 1),
+      cropAspectRatio: CropAspectRatio(width: 3, height: 2),
     );
     if (newPath == null || newPath.isEmpty) return;
     dynamic dataImage = await multiPartImage(imagePath: newPath);

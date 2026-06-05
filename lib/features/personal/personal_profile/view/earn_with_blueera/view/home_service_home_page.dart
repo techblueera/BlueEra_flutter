@@ -62,7 +62,7 @@ class _HomeServiceHomePageState extends State<HomeServiceHomePage> {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 15.0),
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 5.0),
       child: Column(
         children: [
           _buildServiceSection(),
@@ -388,14 +388,18 @@ class _HomeServiceHomePageState extends State<HomeServiceHomePage> {
     );
   }
 
-  void _onAddServiceTap() {
-    Get.toNamed(
+  Future<void> _onAddServiceTap() async {
+    // Await the full add flow (ServiceUploadScreen → AddServicesScreenNew).
+    // createServiceApi() pops back here via Get.close(2), so on return we
+    // re-fetch the list — same refresh-on-return contract as the edit flow.
+    await Get.toNamed(
       RouteHelper.getAddServicesScreenRoute(),
       arguments: {
         ApiKeys.id: userId,
         ApiKeys.providerType: ProviderType.user,
       },
     );
+    _fetchHomeServices();
   }
 
   Future<void> _pickAndUploadGalleryImage() async {

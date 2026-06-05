@@ -223,11 +223,13 @@ class ServiceData {
     if (json['experiences'] != null) {
       experiences = List<String>.from(json['experiences']);
     }
+    experienceStartDate = json['experienceStartDate'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['id'] = this.id;
+    data['experienceStartDate'] = this.experienceStartDate;
     data['name'] = this.name;
     data['gender'] = this.gender;
     data['pre'] = this.pre;
@@ -394,6 +396,7 @@ class ServiceMedia {
 
 class PriceData {
   String? priceType;
+  String? feeType;
   int? singlePrice;
   PriceRange? priceRange;
   String? perUnit;
@@ -401,6 +404,7 @@ class PriceData {
 
   PriceData(
       {this.priceType,
+        this.feeType,
         this.singlePrice,
         this.priceRange,
         this.perUnit,
@@ -408,6 +412,7 @@ class PriceData {
 
   PriceData.fromJson(Map<String, dynamic> json) {
     priceType = json['priceType'];
+    feeType = json['feeType'];
     singlePrice = json['singlePrice'];
 
     priceRange = json['priceRange'] != null
@@ -417,9 +422,56 @@ class PriceData {
     minimumBookingAmount = json['minimumBookingAmount'];
   }
 
+  /// Lowest displayable price — prefers the range min, then `singlePrice`.
+  num get effectiveMin => priceRange?.min ?? singlePrice ?? 0;
+
+  /// Highest displayable price (range pricing only).
+  num get effectiveMax => priceRange?.max ?? 0;
+
+  /// True when the price should render as a band (a max strictly above min).
+  /// Falls back to the legacy `priceType == 'range'` flag.
+  bool get effectiveIsRange {
+    if (priceType == 'range') return true;
+    return effectiveMax > 0 && effectiveMax > effectiveMin;
+  }
+
+  /// Per-unit label (e.g. "Hour", "Day", "Visit"); empty for fixed pricing.
+  /// Derived from `perUnit`, else the newer `feeType` field.
+  String get unitLabel {
+    final raw = (perUnit?.trim().isNotEmpty ?? false)
+        ? perUnit!.trim()
+        : (feeType ?? '').trim();
+    switch (raw.toLowerCase()) {
+      case 'hourly':
+      case 'hour':
+        return 'Hour';
+      case 'daily':
+      case 'day':
+        return 'Day';
+      case 'weekly':
+      case 'week':
+        return 'Week';
+      case 'monthly':
+      case 'month':
+        return 'Month';
+      case 'visit':
+      case 'per_visit':
+        return 'Visit';
+      case 'project':
+        return 'Project';
+      case 'fixed':
+      case 'one_time':
+      case 'onetime':
+        return '';
+      default:
+        return raw;
+    }
+  }
+
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['priceType'] = this.priceType;
+    data['feeType'] = this.feeType;
     data['singlePrice'] = this.singlePrice;
 
     if (this.priceRange != null) {
@@ -440,6 +492,7 @@ class ServiceInfo {
   List<String>? workCategories;
   List<String>? whyChooseMe;
   List<String>? serviceType;
+  Availability? availability;
 
   ServiceInfo({
     this.timings,
@@ -450,7 +503,43 @@ class ServiceInfo {
     this.workCategories,
     this.whyChooseMe,
     this.serviceType,
+    this.availability,
   });
+
+  /// Open hours for display. Prefers the legacy flat `timings`; when that's
+  /// empty, derives them from `availability.schedule`'s open-day time slots —
+  /// converting the 24-hour slots ("10:00"/"22:00") into the 12-hour
+  /// AM/PM strings the rest of the UI already parses.
+  List<Timings> get effectiveTimings {
+    if (timings != null && timings!.isNotEmpty) return timings!;
+    final result = <Timings>[];
+    for (final day in availability?.schedule ?? const <DaySchedule>[]) {
+      if (day.isOpen != true) continue;
+      for (final slot in day.timeSlots ?? const <TimeSlot>[]) {
+        final start = _to12Hour(slot.startTime);
+        final end = _to12Hour(slot.endTime);
+        if (start.isEmpty || end.isEmpty) continue;
+        result.add(Timings(start: start, end: end));
+      }
+    }
+    return result;
+  }
+
+  static String _to12Hour(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return '';
+    final t = raw.trim();
+    // Already 12-hour ("10:00 AM") — leave as-is.
+    if (RegExp(r'(AM|PM)', caseSensitive: false).hasMatch(t)) return t;
+    final parts = t.split(':');
+    if (parts.length < 2) return '';
+    final h = int.tryParse(parts[0]);
+    final m = int.tryParse(parts[1]);
+    if (h == null || m == null) return '';
+    final period = h >= 12 ? 'PM' : 'AM';
+    var hour12 = h % 12;
+    if (hour12 == 0) hour12 = 12;
+    return '$hour12:${m.toString().padLeft(2, '0')} $period';
+  }
 
   ServiceInfo.fromJson(Map<String, dynamic> json) {
     if (json['timings'] != null) {
@@ -459,14 +548,19 @@ class ServiceInfo {
         timings!.add(Timings.fromJson(v));
       });
     }
+    availability = json['availability'] != null
+        ? Availability.fromJson(json['availability'])
+        : null;
     if (json['facilities'] != null) {
       facilities = List<String>.from(json['facilities']);
     }
     if (json['expertise'] != null) {
       expertise = List<String>.from(json['expertise']);
     }
-    if(json['serviceOffered'] != null){
-      serviceOffered = List<String>.from(json['serviceOffered']);
+    // API sends this as `servicesOffered`; keep the old key as a fallback.
+    final so = json['servicesOffered'] ?? json['serviceOffered'];
+    if (so != null) {
+      serviceOffered = List<String>.from(so);
     }
     if(json['typesOfWork'] != null){
       typesOfWork = List<String>.from(json['typesOfWork']);
@@ -508,8 +602,86 @@ class ServiceInfo {
     if (serviceType != null) {
       data['serviceType'] = serviceType;
     }
+    if (availability != null) {
+      data['availability'] = availability!.toJson();
+    }
     return data;
   }
+}
+
+class Availability {
+  String? timezone;
+  int? durationInMinutes;
+  List<DaySchedule>? schedule;
+
+  Availability({this.timezone, this.durationInMinutes, this.schedule});
+
+  Availability.fromJson(Map<String, dynamic> json) {
+    timezone = json['timezone'];
+    durationInMinutes = json['durationInMinutes'];
+    if (json['schedule'] != null) {
+      schedule = <DaySchedule>[];
+      json['schedule'].forEach((v) {
+        schedule!.add(DaySchedule.fromJson(v));
+      });
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    final data = <String, dynamic>{};
+    data['timezone'] = timezone;
+    data['durationInMinutes'] = durationInMinutes;
+    if (schedule != null) {
+      data['schedule'] = schedule!.map((v) => v.toJson()).toList();
+    }
+    return data;
+  }
+}
+
+class DaySchedule {
+  String? day;
+  bool? isOpen;
+  List<TimeSlot>? timeSlots;
+
+  DaySchedule({this.day, this.isOpen, this.timeSlots});
+
+  DaySchedule.fromJson(Map<String, dynamic> json) {
+    day = json['day'];
+    isOpen = json['isOpen'];
+    if (json['timeSlots'] != null) {
+      timeSlots = <TimeSlot>[];
+      json['timeSlots'].forEach((v) {
+        timeSlots!.add(TimeSlot.fromJson(v));
+      });
+    }
+  }
+
+  Map<String, dynamic> toJson() {
+    final data = <String, dynamic>{};
+    data['day'] = day;
+    data['isOpen'] = isOpen;
+    if (timeSlots != null) {
+      data['timeSlots'] = timeSlots!.map((v) => v.toJson()).toList();
+    }
+    return data;
+  }
+}
+
+class TimeSlot {
+  String? startTime;
+  String? endTime;
+
+  TimeSlot({this.startTime, this.endTime});
+
+  TimeSlot.fromJson(Map<String, dynamic> json) {
+    startTime = json['startTime'];
+    endTime = json['endTime'];
+  }
+
+  Map<String, dynamic> toJson() => {
+        'startTime': startTime,
+        'endTime': endTime,
+      };
 }
 
 class Timings {

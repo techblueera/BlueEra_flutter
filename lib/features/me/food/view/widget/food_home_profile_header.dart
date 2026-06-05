@@ -121,7 +121,7 @@ class FoodHomeProfileHeader extends StatelessWidget {
                                 await PhotoPickerService.pickSinglePhoto(
                                         context, AppStrings.editCoverPicture.tr,
                                         cropAspectRatio:
-                                            CropAspectRatio(width: 3, height: 1)
+                                            CropAspectRatio(width: 3, height: 2)
                                         // cropAspectRatio: CropAspectRatio(width: 16, height: 9)
                                         )
                                     .catchError((_) => null);

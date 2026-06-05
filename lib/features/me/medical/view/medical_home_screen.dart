@@ -310,7 +310,7 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
       final newPath = await PhotoPickerService.pickSinglePhoto(
         context,
         AppStrings.editCoverPicture,
-        cropAspectRatio: CropAspectRatio(width: 3, height: 1),
+        cropAspectRatio: CropAspectRatio(width: 3, height: 2),
       );
 
       if (newPath == null || newPath.isEmpty) return;

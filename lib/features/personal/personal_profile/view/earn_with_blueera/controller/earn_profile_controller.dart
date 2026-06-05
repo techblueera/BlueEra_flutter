@@ -183,26 +183,40 @@ class EarnProfileController extends GetxController {
   ///
   /// Sets the active [earnProfile] to [activeType] when given, else preserves
   /// the current active type, else the first profile.
+  ///
+  /// When [onlyActiveType] is true and [activeType] is owned, fetches just that
+  /// one flavour's profile instead of every owned type. Used by the earn
+  /// dashboard, which renders only one flavour — so opening the product
+  /// dashboard no longer also fires the food profile request (and vice-versa).
   Future<void> fetchEarnProfile({
     bool showLoading = true,
     String? activeType,
+    bool onlyActiveType = false,
   }) async {
     if (userId.isEmpty) return;
 
-    final List<String> types = Get.isRegistered<ViewPersonalDetailsController>()
-        ? Get.find<ViewPersonalDetailsController>().earnProfileType.toList()
-        : <String>[];
+    final List<String> ownedTypes =
+        Get.isRegistered<ViewPersonalDetailsController>()
+            ? Get.find<ViewPersonalDetailsController>().earnProfileType.toList()
+            : <String>[];
 
-    if (types.isEmpty) {
+    if (ownedTypes.isEmpty) {
       profilesByType.clear();
       earnProfile.value = null;
       return;
     }
 
+    // Single-flavour fetch when the dashboard asks for just the active type;
+    // otherwise fetch every owned type (Store tab needs all storefront cards).
+    final bool fetchSingle = onlyActiveType &&
+        activeType != null &&
+        ownedTypes.contains(activeType);
+    final List<String> types = fetchSingle ? <String>[activeType] : ownedTypes;
+
     try {
       if (showLoading) isProfileLoading.value = true;
 
-      // One request per owned type, in parallel.
+      // One request per requested type, in parallel.
       final entries = await Future.wait(types.map((type) async {
         try {
           final response = await _repo.fetchEarnProfileByUserId(
@@ -218,10 +232,17 @@ class EarnProfileController extends GetxController {
         }
       }));
 
-      profilesByType.assignAll({
-        for (final e in entries)
-          if (e != null) e.key: e.value,
-      });
+      if (fetchSingle) {
+        // Merge just the fetched flavour, keeping any previously-loaded ones.
+        for (final e in entries) {
+          if (e != null) profilesByType[e.key] = e.value;
+        }
+      } else {
+        profilesByType.assignAll({
+          for (final e in entries)
+            if (e != null) e.key: e.value,
+        });
+      }
 
       // Active profile: requested type → currently-active type → first.
       final preferredType = activeType ?? earnProfile.value?.profileType;

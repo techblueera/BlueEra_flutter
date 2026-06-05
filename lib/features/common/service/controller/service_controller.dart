@@ -5,6 +5,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/common/service/model/get_service_model.dart';
 import 'package:BlueEra/features/common/service/controller/add_service_controller.dart';
@@ -42,11 +43,19 @@ class ServiceController extends GetxController {
 
   // Service category dropdown (Tailor / Beautician / Interior Designer /
   // Digital Marketing). The UI shows `name`; the API call uses `tagId`.
-  static const List<ServiceCategoryOption> serviceCategoryOptions = [
-    ServiceCategoryOption(name: 'Tailor', tagId: TAILOR),
-    ServiceCategoryOption(name: 'Beautician', tagId: BEAUTICIAN),
-    ServiceCategoryOption(name: 'Interior Designer', tagId: INTERIOR_DESIGNER),
-    ServiceCategoryOption(name: 'Digital Marketing', tagId: DIGITAL_MARKETING),
+  static final List<ServiceCategoryOption> serviceCategoryOptions = [
+    ServiceCategoryOption(
+        name: 'Tailor', tagId: TAILOR, image: AppImageAssets.tailor),
+    ServiceCategoryOption(
+        name: 'Beautician', tagId: BEAUTICIAN, image: AppImageAssets.beautician),
+    ServiceCategoryOption(
+        name: 'Interior Designer',
+        tagId: INTERIOR_DESIGNER,
+        image: AppImageAssets.interiorDesigner),
+    ServiceCategoryOption(
+        name: 'Digital Marketing',
+        tagId: DIGITAL_MARKETING,
+        image: AppImageAssets.digitalMarketing),
   ];
   final Rxn<ServiceCategoryOption> selectedServiceCategory =
       Rxn<ServiceCategoryOption>();
@@ -283,5 +292,10 @@ class ServiceController extends GetxController {
 class ServiceCategoryOption {
   final String name;
   final String tagId;
-  const ServiceCategoryOption({required this.name, required this.tagId});
+  final String image;
+  const ServiceCategoryOption({
+    required this.name,
+    required this.tagId,
+    this.image = '',
+  });
 }
