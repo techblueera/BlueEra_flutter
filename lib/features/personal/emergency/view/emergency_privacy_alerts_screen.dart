@@ -61,8 +61,8 @@ class _EmergencyPrivacyAlertsScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: AppStrings.emergencyPrivacyAlertTitle,
-        actionText: AppStrings.emergencyStep4Of4,
+        title: AppStrings.emergencyPrivacyAlertTitle.tr,
+        actionText: AppStrings.emergencyStep4Of4.tr,
       ),
       body: Padding(
         padding: EdgeInsets.all(SizeConfig.paddingM),
@@ -70,18 +70,18 @@ class _EmergencyPrivacyAlertsScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _switchTile(AppStrings.emergencyMaskPhoneNumber,
+              _switchTile(AppStrings.emergencyMaskPhoneNumber.tr,
                   controller.maskPhoneNumber),
-              _switchTile(AppStrings.emergencySendSmsAlert,
+              _switchTile(AppStrings.emergencySendSmsAlert.tr,
                   controller.sendSmsAlertWithLocation),
-              _switchTile(AppStrings.emergencyShareMedicalInfo,
+              _switchTile(AppStrings.emergencyShareMedicalInfo.tr,
                   controller.shareMedicalInfo),
-              _switchTile(AppStrings.emergencySendChatAlertGps,
+              _switchTile(AppStrings.emergencySendChatAlertGps.tr,
                   controller.sendChatAlertWithGps),
               SizedBox(height: 16),
-              _checkbox(AppStrings.emergencyConfirmAccurate,
+              _checkbox(AppStrings.emergencyConfirmAccurate.tr,
                   controller.confirmAccurateInfo),
-              _checkbox(AppStrings.emergencyAgreeToShare,
+              _checkbox(AppStrings.emergencyAgreeToShare.tr,
                   controller.agreeToShareDuringEmergency),
               SizedBox(height: 24),
               Obx(() => CustomBtn(
@@ -90,7 +90,7 @@ class _EmergencyPrivacyAlertsScreenState
                     onTap: controller.isValid && !controller.isSaving.value
                         ? controller.submit
                         : null,
-                    title: AppStrings.emergencySubmit,
+                    title: AppStrings.emergencySubmit.tr,
                   )),
             ],
           ),

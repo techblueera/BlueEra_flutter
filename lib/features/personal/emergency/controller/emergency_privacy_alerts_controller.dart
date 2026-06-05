@@ -22,7 +22,7 @@ class EmergencyPrivacyAlertsController extends GetxController {
 
   Future<void> submit() async {
     if (!isValid) {
-      commonSnackBar(message: AppStrings.emergencyConfirmAgreeBeforeSubmit);
+      commonSnackBar(message: AppStrings.emergencyConfirmAgreeBeforeSubmit.tr);
       return;
     }
     try {
@@ -39,12 +39,12 @@ class EmergencyPrivacyAlertsController extends GetxController {
           RouteHelper.getBottomNavigationBarScreenRoute(),
           (route) => false,
         );
-        commonSnackBar(message: AppStrings.emergencySavedPrivacy);
+        commonSnackBar(message: AppStrings.emergencySavedPrivacy.tr);
       } else {
-        commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
+        commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong.tr);
       }
     } catch (e) {
-      commonSnackBar(message: AppStrings.somethingWentWrong);
+      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
     } finally {
       isSaving.value = false;
     }

@@ -43,7 +43,7 @@ class _PricingEngagementScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: "Pricing / Engagement Model"),
+      appBar: CommonBackAppBar(title: AppStrings.proConsultPricingEngagementModel.tr),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(SizeConfig.size14),
@@ -58,7 +58,7 @@ class _PricingEngagementScreenState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _sectionIcon(Icons.currency_rupee,
-                          "Consultation Fee", "Set your fee structure"),
+                          AppStrings.proConsultConsultationFee.tr, AppStrings.proConsultSetFeeStructure.tr),
                       const SizedBox(height: 16),
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -66,10 +66,10 @@ class _PricingEngagementScreenState
                           Expanded(
                             flex: 5,
                             child: CommonTextField(
-                              title: "Fee Type",
+                              title: AppStrings.proConsultFeeType.tr,
                               textEditController:
                                   controller.feeTypeController,
-                              hintText: "E.g. Hourly",
+                              hintText: AppStrings.proConsultEgHourly.tr,
                               inputFormatters: [
                                 FilteringTextInputFormatter.digitsOnly,
                                 LengthLimitingTextInputFormatter(3),
@@ -81,10 +81,10 @@ class _PricingEngagementScreenState
                           Expanded(
                             flex: 4,
                             child: CommonTextField(
-                              title: "Amount",
+                              title: AppStrings.proConsultAmount.tr,
                               textEditController:
                                   controller.feeAmountController,
-                              hintText: "₹600",
+                              hintText: AppStrings.proConsultEgFee600.tr,
                               inputFormatters: [
                                 FilteringTextInputFormatter.digitsOnly,
                                 LengthLimitingTextInputFormatter(10),
@@ -96,10 +96,10 @@ class _PricingEngagementScreenState
                       ),
                       const SizedBox(height: 16),
                       CommonTextField(
-                        title: "Minimum Booking Amount",
+                        title: AppStrings.minimumBookingAmount.tr,
                         textEditController:
                             controller.minBookingController,
-                        hintText: "E.g. ₹600",
+                        hintText: AppStrings.proConsultEgMinFee600.tr,
                         keyBoardType: TextInputType.number,
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
@@ -121,11 +121,11 @@ class _PricingEngagementScreenState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _sectionIcon(Icons.videocam_outlined,
-                          "Consultation Mode", "How do you consult"),
+                          AppStrings.consultationMode.tr, AppStrings.proConsultHowDoYouConsult.tr),
                       const SizedBox(height: 16),
                       Obx(() => CommonDropdownDialog<String>(
-                            title: "Select Mode",
-                            hintText: "E.g. Online",
+                            title: AppStrings.selectMode.tr,
+                            hintText: AppStrings.egOnline.tr,
                             items: controller.consultationModes,
                             selectedValue: controller
                                     .selectedConsultationMode

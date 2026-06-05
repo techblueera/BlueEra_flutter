@@ -44,9 +44,9 @@ class PortfolioProjectCardWidget extends StatelessWidget {
       formattedDate = project.completionDate != null
           ? DateFormat('d MMMM, yyyy')
               .format(DateTime.parse(project.completionDate ?? ""))
-          : "No Date";
+          : AppStrings.proConsultNoDate.tr;
     } else {
-      formattedDate = project.completionDate ?? "No Date";
+      formattedDate = project.completionDate ?? AppStrings.proConsultNoDate.tr;
     }
     // Calculate "Add More" count
     int additionalImages = (project.media?.length ?? 0) - 1;
@@ -98,7 +98,7 @@ class PortfolioProjectCardWidget extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: CustomText(
-                      "+$additionalImages Img",
+                      "+$additionalImages ${AppStrings.proConsultImgSuffix.tr}",
 
                           color: Colors.white,
                           fontSize: 12,
@@ -120,7 +120,7 @@ class PortfolioProjectCardWidget extends StatelessWidget {
                   children: [
                     Expanded(
                       child: CustomText(
-                        project.projectTitle ?? "Untitled Project",
+                        project.projectTitle ?? AppStrings.proConsultUntitledProject.tr,
 
                             fontSize: 16, fontWeight: FontWeight.bold,
                         overflow: TextOverflow.ellipsis,
@@ -173,7 +173,7 @@ class PortfolioProjectCardWidget extends StatelessWidget {
         } else {
           await showCommonDialog(
               context: context,
-              text: 'Are you sure you want to delete this data?',
+              text: AppStrings.proConsultAreYouSureDeleteData.tr,
               confirmCallback: () async {
                 Navigator.of(context).pop(); // Close the dialog
 
@@ -190,10 +190,10 @@ class PortfolioProjectCardWidget extends StatelessWidget {
         }
       },
       itemBuilder: (context) => [
-        PopupMenuItem(value: 'edit', child: CustomText("Edit")),
+        PopupMenuItem(value: 'edit', child: CustomText(AppStrings.edit.tr)),
         PopupMenuItem(
             value: 'delete',
-            child: CustomText("Delete",color: Colors.red)),
+            child: CustomText(AppStrings.delete.tr,color: Colors.red)),
       ],
     );
   }
@@ -225,7 +225,7 @@ class PortfolioProjectCardWidget extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          CustomText("Edit ", fontWeight: FontWeight.w600),
+                          CustomText(AppStrings.edit.tr, fontWeight: FontWeight.w600),
                           IconButton(
                             icon: const Icon(Icons.close),
                             onPressed: () => Get.back(),
@@ -234,21 +234,21 @@ class PortfolioProjectCardWidget extends StatelessWidget {
                       ),
 
                       CommonTextField(
-                        title: "Project Title",
+                        title: AppStrings.projectTitle.tr,
                         textEditController: portfolioController.titleController,
-                        hintText: "E.g. Finance & Tax",
+                        hintText: AppStrings.egFinanceTax.tr,
                         onChange: (val) {
                           setState(() {});
                         },
                       ),
 
                       SizedBox(height: SizeConfig.size12),
-                      const CustomText("Consultation Mode",
+                      CustomText(AppStrings.consultationMode.tr,
                           color: AppColors.mainTextColor),
                       const SizedBox(height: 10),
                       Obx(() => CommonDropdownDialog<String>(
-                            title: "Select Mode",
-                            hintText: "E.g. Online",
+                            title: AppStrings.selectMode.tr,
+                            hintText: AppStrings.egOnline.tr,
                             items: portfolioController.categoryList,
                             selectedValue: portfolioController
                                     .selectedCategory.value.isEmpty
@@ -265,7 +265,7 @@ class PortfolioProjectCardWidget extends StatelessWidget {
 
                       ///DOB selection
                       CustomText(
-                        'When the work was completed',
+                        AppStrings.whenWorkCompleted.tr,
                         fontSize: SizeConfig.medium,
                         color: AppColors.mainTextColor,
                       ),
@@ -296,7 +296,7 @@ class PortfolioProjectCardWidget extends StatelessWidget {
                       SizedBox(height: SizeConfig.size12),
                       if (!isEdit) ...[
                         CustomText(
-                          'Upload Image',
+                          AppStrings.uploadImage.tr,
                           fontSize: SizeConfig.medium,
                           color: AppColors.mainTextColor,
                         ),
@@ -309,7 +309,7 @@ class PortfolioProjectCardWidget extends StatelessWidget {
                         return AiDescriptionField(
                           label: AppStrings.description,
                           hintText:
-                              "Tell us more about the project or case study...",
+                              AppStrings.tellUsMoreAboutProject.tr,
                           controller: portfolioController.descriptionController,
                           rxValue: portfolioController.description,
                           // Your RX variable from the controller
@@ -323,7 +323,7 @@ class PortfolioProjectCardWidget extends StatelessWidget {
                       }),
                       SizedBox(height: SizeConfig.size20),
                       Obx(() => CustomBtn(
-                            title: isEdit ? "Update" : "Save",
+                            title: isEdit ? AppStrings.update.tr : AppStrings.save.tr,
                             isValidate: !(portfolioController.isSaving.value),
                             onTap: portfolioController.isSaving.value
                                 ? null
@@ -379,9 +379,9 @@ class _JobSeekerPortfolioProjectCardWidgetState
       formattedDate = widget.project.completionDate != null
           ? DateFormat('d MMMM, yyyy')
               .format(DateTime.parse(widget.project.completionDate ?? ""))
-          : "No Date";
+          : AppStrings.proConsultNoDate.tr;
     } else {
-      formattedDate = widget.project.completionDate ?? "No Date";
+      formattedDate = widget.project.completionDate ?? AppStrings.proConsultNoDate.tr;
     }
     // Calculate "Add More" count
     int additionalImages = (widget.project.media?.length ?? 0) - 1;
@@ -429,7 +429,7 @@ class _JobSeekerPortfolioProjectCardWidgetState
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: CustomText(
-                      "+$additionalImages Img",
+                      "+$additionalImages ${AppStrings.proConsultImgSuffix.tr}",
 
                           color: Colors.white,
                           fontSize: 12,
@@ -451,7 +451,7 @@ class _JobSeekerPortfolioProjectCardWidgetState
                   children: [
                     Expanded(
                       child: CustomText(
-                        widget.project.projectTitle ?? "Untitled Project",
+                        widget.project.projectTitle ?? AppStrings.proConsultUntitledProject.tr,
 
                             fontSize: 18, fontWeight: FontWeight.bold,
                         overflow: TextOverflow.ellipsis,
@@ -504,7 +504,7 @@ class _JobSeekerPortfolioProjectCardWidgetState
         } else {
           await showCommonDialog(
               context: context,
-              text: 'Are you sure you want to delete this data?',
+              text: AppStrings.proConsultAreYouSureDeleteData.tr,
               confirmCallback: () async {
                 Navigator.of(context).pop(); // Close the dialog
 
@@ -522,10 +522,10 @@ class _JobSeekerPortfolioProjectCardWidgetState
         }
       },
       itemBuilder: (context) => [
-        PopupMenuItem(value: 'edit', child: CustomText("Edit")),
+        PopupMenuItem(value: 'edit', child: CustomText(AppStrings.edit.tr)),
         PopupMenuItem(
             value: 'delete',
-            child: CustomText("Delete",color: Colors.red)),
+            child: CustomText(AppStrings.delete.tr,color: Colors.red)),
       ],
     );
   }

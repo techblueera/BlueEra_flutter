@@ -277,7 +277,7 @@ class ProfessionalsServiceScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionHeader("Expertise",
+          _sectionHeader(AppStrings.expertise.tr,
               onEdit: hasData
                   ? () => _navigateToEdit(ProfessionalProfileScreen())
                   : null),
@@ -335,7 +335,7 @@ class ProfessionalsServiceScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionHeader("Our Services",
+          _sectionHeader(AppStrings.ourServices.tr,
               onEdit: hasData
                   ? () => _navigateToEdit(ProfessionalServiceOffered())
                   : null),
@@ -359,9 +359,9 @@ class ProfessionalsServiceScreen extends StatelessWidget {
           else
             _emptyStateCard(
               icon: Icons.checklist_rounded,
-              title: 'List the services you offer',
-              subtitle: 'Tell clients what they can hire you for.',
-              actionLabel: 'Add',
+              title: AppStrings.proConsultListServices.tr,
+              subtitle: AppStrings.proConsultServicesEmptyBody.tr,
+              actionLabel: AppStrings.add.tr,
               onAdd: () => _navigateToEdit(ProfessionalServiceOffered()),
             ),
         ],
@@ -383,7 +383,7 @@ class ProfessionalsServiceScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionHeader("Portfolio / Case Studies",
+          _sectionHeader(AppStrings.proConsultPortfolioCaseStudies.tr,
               onEdit:
                   hasData ? () => _navigateToEdit(PortfolioScreen()) : null),
           if (hasData)
@@ -407,10 +407,9 @@ class ProfessionalsServiceScreen extends StatelessWidget {
           else
             _emptyStateCard(
               icon: Icons.collections_bookmark_rounded,
-              title: 'Showcase your work',
-              subtitle:
-                  'Add case studies clients can browse before reaching out.',
-              actionLabel: 'Add',
+              title: AppStrings.proConsultShowcaseWork.tr,
+              subtitle: AppStrings.proConsultPortfolioEmptyBody.tr,
+              actionLabel: AppStrings.add.tr,
               onAdd: () => _navigateToEdit(PortfolioScreen()),
             ),
         ],
@@ -432,7 +431,7 @@ class ProfessionalsServiceScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionHeader("Certificate & Awards",
+          _sectionHeader(AppStrings.certificateAwards.tr,
               onEdit: hasData
                   ? () => _navigateToEdit(ProfessionalsCertificatesScreen())
                   : null),
@@ -494,7 +493,7 @@ class ProfessionalsServiceScreen extends StatelessWidget {
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   CustomText(
-                                    cert.title ?? "Certificate",
+                                    cert.title ?? AppStrings.certificate.tr,
                                     color: Colors.white,
                                     fontSize: SizeConfig.medium,
                                     fontWeight: FontWeight.bold,
@@ -529,10 +528,9 @@ class ProfessionalsServiceScreen extends StatelessWidget {
           else
             _emptyStateCard(
               icon: Icons.emoji_events_rounded,
-              title: 'Highlight your credentials',
-              subtitle:
-                  'Add certifications and awards to build trust at a glance.',
-              actionLabel: 'Add',
+              title: AppStrings.proConsultHighlightCredentials.tr,
+              subtitle: AppStrings.proConsultCredentialsEmptyBody.tr,
+              actionLabel: AppStrings.add.tr,
               onAdd: () =>
                   _navigateToEdit(ProfessionalsCertificatesScreen()),
             ),
@@ -556,7 +554,7 @@ class ProfessionalsServiceScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionHeader("Gallery",
+          _sectionHeader(AppStrings.gallery.tr,
               onEdit: hasData
                   ? () => _navigateToEdit(ProfessionalsCertificatesScreen())
                   : null),
@@ -565,10 +563,9 @@ class ProfessionalsServiceScreen extends StatelessWidget {
           else
             _emptyStateCard(
               icon: Icons.photo_library_rounded,
-              title: 'Build your gallery',
-              subtitle:
-                  'Upload photos that show your craft in action.',
-              actionLabel: 'Add',
+              title: AppStrings.proConsultBuildGallery.tr,
+              subtitle: AppStrings.proConsultGalleryEmptyBody.tr,
+              actionLabel: AppStrings.add.tr,
               onAdd: () =>
                   _navigateToEdit(ProfessionalsCertificatesScreen()),
             ),
@@ -753,7 +750,7 @@ class ProfessionalsServiceScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionHeader("Contact Us",
+          _sectionHeader(AppStrings.contactUs.tr,
               onEdit: hasData
                   ? () => _navigateToEdit(ProfessionalContactUsScreen())
                   : null),
@@ -787,10 +784,9 @@ class ProfessionalsServiceScreen extends StatelessWidget {
           else
             _emptyStateCard(
               icon: Icons.contact_mail_rounded,
-              title: 'Add your contact details',
-              subtitle:
-                  'Make it easy for clients to reach you by phone, email or web.',
-              actionLabel: 'Add',
+              title: AppStrings.proConsultAddContactDetailsTitle.tr,
+              subtitle: AppStrings.proConsultContactEmptyBody.tr,
+              actionLabel: AppStrings.add.tr,
               onAdd: () => _navigateToEdit(ProfessionalContactUsScreen()),
             ),
           // Map sits inside the same card so contact details and the
@@ -855,7 +851,7 @@ class ProfessionalsServiceScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionHeader("Working Hours",
+          _sectionHeader(AppStrings.workingHours.tr,
               onEdit: hasData
                   ? () => _navigateToEdit(ProfessionalsTimingScreen())
                   : null),
@@ -864,10 +860,9 @@ class ProfessionalsServiceScreen extends StatelessWidget {
           else
             _emptyStateCard(
               icon: Icons.schedule_rounded,
-              title: 'Set your working hours',
-              subtitle:
-                  'Tell clients when you\'re available so bookings come at the right time.',
-              actionLabel: 'Add',
+              title: AppStrings.proConsultSetWorkingHours.tr,
+              subtitle: AppStrings.proConsultHoursEmptyBody.tr,
+              actionLabel: AppStrings.add.tr,
               onAdd: () => _navigateToEdit(ProfessionalsTimingScreen()),
             ),
         ],
@@ -880,7 +875,7 @@ class ProfessionalsServiceScreen extends StatelessWidget {
     Widget item(
         String day, bool? open, String? openTime, String? closeTime) {
       final isOpen = open == true;
-      final text = isOpen ? "$openTime - $closeTime" : "Closed";
+      final text = isOpen ? "$openTime - $closeTime" : AppStrings.proConsultClosed.tr;
       return Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Row(
@@ -898,28 +893,28 @@ class ProfessionalsServiceScreen extends StatelessWidget {
 
     return Column(
       children: [
-        item("Monday", schedule?.monday?.isOpen,
+        item(AppStrings.monday.tr, schedule?.monday?.isOpen,
             schedule?.monday?.openTime, schedule?.monday?.closeTime),
-        item("Tuesday", schedule?.tuesday?.isOpen,
+        item(AppStrings.tuesday.tr, schedule?.tuesday?.isOpen,
             schedule?.tuesday?.openTime, schedule?.tuesday?.closeTime),
         item(
-            "Wednesday",
+            AppStrings.wednesday.tr,
             schedule?.wednesday?.isOpen,
             schedule?.wednesday?.openTime,
             schedule?.wednesday?.closeTime),
         item(
-            "Thursday",
+            AppStrings.thursday.tr,
             schedule?.thursday?.isOpen,
             schedule?.thursday?.openTime,
             schedule?.thursday?.closeTime),
-        item("Friday", schedule?.friday?.isOpen,
+        item(AppStrings.friday.tr, schedule?.friday?.isOpen,
             schedule?.friday?.openTime, schedule?.friday?.closeTime),
         item(
-            "Saturday",
+            AppStrings.saturday.tr,
             schedule?.saturday?.isOpen,
             schedule?.saturday?.openTime,
             schedule?.saturday?.closeTime),
-        item("Sunday", schedule?.sunday?.isOpen,
+        item(AppStrings.sunday.tr, schedule?.sunday?.isOpen,
             schedule?.sunday?.openTime, schedule?.sunday?.closeTime),
       ],
     );
@@ -940,7 +935,7 @@ class _FullGalleryScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: CustomText(
-          "${AppStrings.gallery} (${imageUrls.length})",
+          "${AppStrings.gallery.tr} (${imageUrls.length})",
           fontWeight: FontWeight.w600,
           color: AppColors.mainTextColor,
         ),

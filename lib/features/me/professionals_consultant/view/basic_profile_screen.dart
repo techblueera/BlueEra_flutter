@@ -49,7 +49,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: "Basic Profile"),
+      appBar: CommonBackAppBar(title: AppStrings.basicProfile.tr),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(SizeConfig.size14),
@@ -63,14 +63,14 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                   child: Column(
                     children: [
                       _sectionIcon(Icons.camera_alt_outlined,
-                          "Profile Photo", "Upload a professional photo"),
+                          AppStrings.proConsultProfilePhoto.tr, AppStrings.proConsultUploadProfessionalPhoto.tr),
                       const SizedBox(height: 16),
                       Center(
                         child: Obx(() => CommonProfileImage(
                               imagePath:
                                   controller.selectedImage.value?.path ??
                                       "",
-                              dialogTitle: "Upload Picture",
+                              dialogTitle: AppStrings.proConsultUploadPicture.tr,
                               onImageUpdate: (path) {
                                 controller.selectedImage.value =
                                     File(path);
@@ -96,27 +96,27 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _sectionIcon(Icons.person_outline,
-                          "Personal Details", "Your name and title"),
+                          AppStrings.personalDetails.tr, AppStrings.proConsultYourNameAndTitle.tr),
                       const SizedBox(height: 16),
                       CommonTextField(
                         title: AppStrings.fullName,
                         textEditController: controller.nameController,
-                        hintText: "E.g. Rajesh Kumar",
+                        hintText: AppStrings.proConsultEgRajeshKumar.tr,
                       ),
                       const SizedBox(height: 16),
                       CommonTextField(
-                        title: "Professional Title",
+                        title: AppStrings.proConsultProfessionalTitle.tr,
                         textEditController:
                             controller.titleController,
-                        hintText: "E.g. Finance & Tax Consultant",
+                        hintText: AppStrings.proConsultEgFinanceTaxConsultant.tr,
                       ),
                       const SizedBox(height: 16),
                       CommonTextField(
-                        title: "Short Tagline",
+                        title: AppStrings.proConsultShortTagline.tr,
                         textEditController:
                             controller.taglineController,
                         hintText:
-                            "E.g. Tax & Compliance Expert for SMEs",
+                            AppStrings.proConsultEgTaxComplianceExpert.tr,
                       ),
                     ],
                   ),
@@ -133,7 +133,7 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _sectionIcon(Icons.location_on_outlined,
-                          "Location & Language", "Where are you based"),
+                          AppStrings.proConsultLocationLanguage.tr, AppStrings.proConsultWhereBased.tr),
                       const SizedBox(height: 16),
                       CommonLocationSearchField(
                         controller: controller.locationController,
@@ -170,12 +170,12 @@ class _BasicProfileScreenState extends State<BasicProfileScreen> {
                         },
                       ),
                       const SizedBox(height: 16),
-                      CustomText("Languages Spoken",
+                      CustomText(AppStrings.proConsultLanguagesSpoken.tr,
                           color: AppColors.mainTextColor),
                       const SizedBox(height: 10),
                       Obx(() => CommonDropdownDialog<String>(
-                            title: "Select Language",
-                            hintText: "E.g. English",
+                            title: AppStrings.selectLanguage.tr,
+                            hintText: AppStrings.proConsultEgEnglish.tr,
                             items: controller.indianLanguages,
                             selectedValue: controller
                                     .selectedLanguage.value.isEmpty

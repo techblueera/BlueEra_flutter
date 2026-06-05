@@ -28,7 +28,7 @@ class PortfolioScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: "Portfolio / Case Studies"),
+      appBar: CommonBackAppBar(title: AppStrings.proConsultPortfolioCaseStudies.tr),
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.only(bottom: 30.0, top: 10),
@@ -56,7 +56,7 @@ class PortfolioScreen extends StatelessWidget {
                 .getProfessionalServiceRes?.value.data?.portfolio?.length,
           );
         }
-        return Center(child: CustomText("NA"));
+        return Center(child: CustomText(AppStrings.na.tr));
       }),
     );
   }
@@ -88,7 +88,7 @@ class PortfolioScreen extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          CustomText("Add More", fontWeight: FontWeight.w600),
+                          CustomText(AppStrings.addMore.tr, fontWeight: FontWeight.w600),
                           IconButton(
                             icon: const Icon(Icons.close),
                             onPressed: () => Get.back(),
@@ -97,21 +97,21 @@ class PortfolioScreen extends StatelessWidget {
                       ),
 
                       CommonTextField(
-                        title: "Project Title",
+                        title: AppStrings.projectTitle.tr,
                         textEditController: portfolioController.titleController,
-                        hintText: "E.g. Finance & Tax",
+                        hintText: AppStrings.egFinanceTax.tr,
                         onChange: (val) {
                           setState(() {});
                         },
                       ),
 
                       SizedBox(height: SizeConfig.size12),
-                      const CustomText("Consultation Mode",
+                      CustomText(AppStrings.consultationMode.tr,
                           color: AppColors.mainTextColor),
                       const SizedBox(height: 10),
                       Obx(() => CommonDropdownDialog<String>(
-                            title: "Select Mode",
-                            hintText: "E.g. Online",
+                            title: AppStrings.selectMode.tr,
+                            hintText: AppStrings.egOnline.tr,
                             items: portfolioController.categoryList,
                             selectedValue: portfolioController
                                     .selectedCategory.value.isEmpty
@@ -128,7 +128,7 @@ class PortfolioScreen extends StatelessWidget {
 
                       ///DOB selection
                       CustomText(
-                        'When the work was completed',
+                        AppStrings.whenWorkCompleted.tr,
                         fontSize: SizeConfig.medium,
                         color: AppColors.mainTextColor,
                       ),
@@ -159,7 +159,7 @@ class PortfolioScreen extends StatelessWidget {
                       SizedBox(height: SizeConfig.size12),
                       if (!isEdit) ...[
                         CustomText(
-                          'Upload Image',
+                          AppStrings.uploadImage.tr,
                           fontSize: SizeConfig.medium,
                           color: AppColors.mainTextColor,
                         ),
@@ -173,7 +173,7 @@ class PortfolioScreen extends StatelessWidget {
                         return AiDescriptionField(
                           label: AppStrings.description,
                           hintText:
-                              "Tell us more about the project or case study...",
+                              AppStrings.tellUsMoreAboutProject.tr,
                           controller: portfolioController.descriptionController,
                           rxValue: portfolioController.description,
                           // Your RX variable from the controller
@@ -187,7 +187,7 @@ class PortfolioScreen extends StatelessWidget {
                       }),
                       SizedBox(height: SizeConfig.size20),
                       Obx(() => CustomBtn(
-                            title: isEdit ? "Update" : "Save",
+                            title: isEdit ? AppStrings.update.tr : AppStrings.save.tr,
                             isValidate: !(portfolioController.isSaving.value),
                             onTap: portfolioController.isSaving.value
                                 ? null
@@ -198,7 +198,7 @@ class PortfolioScreen extends StatelessWidget {
                                             null) {
                                       commonSnackBar(
                                           message:
-                                              "Upload image file is required");
+                                              AppStrings.proConsultUploadImageRequired.tr);
                                       return;
                                     }
                                     await portfolioController.save();
@@ -271,7 +271,7 @@ class PortfolioScreen extends StatelessWidget {
     }
     // Default: Show Upload Placeholder
     return CommonImageUploadTile(
-      title: "Upload Image",
+      title: AppStrings.uploadImage.tr,
       context: context,
       onImageSelected: () async {
         final path = await CommonImageUploadTile.pickImage(context: context);

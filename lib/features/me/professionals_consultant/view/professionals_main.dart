@@ -75,14 +75,14 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
   int _selectedTab = 1; // default to Overview
   bool _showStickyTabs = false;
 
-  static const _tabs = [
-    'Order',
-    'Overview',
-    'Service',
-    'Post',
-    'Store',
-    'Statics',
-  ];
+  List<String> get _tabs => [
+        AppStrings.order.tr,
+        AppStrings.overview.tr,
+        AppStrings.service.tr,
+        AppStrings.post.tr,
+        AppStrings.store.tr,
+        AppStrings.proConsultTabStatics.tr,
+      ];
 
   // Drives the inquiry list shown under the Order tab â€” same controller
   // the Connect screen uses, so socket-driven updates land on both.
@@ -343,7 +343,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    CustomText('Go live',
+                    CustomText(AppStrings.proConsultGoLive.tr,
                         fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.secondaryTextColor),
                     SizedBox(width: SizeConfig.size6),
                     if (isUpdating)
@@ -587,7 +587,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
             ),
             SizedBox(height: SizeConfig.size12),
             Text(
-              'Create your professional profile',
+              AppStrings.proConsultCreateProfileTitle.tr,
               style: TextStyle(
                 fontFamily: AppConstants.OpenSans,
                 fontSize: 16,
@@ -599,9 +599,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
             ),
             SizedBox(height: SizeConfig.size6),
             Text(
-              'Set it up in one tap. Add expertise, services, '
-              'portfolio, certificates and hours from this tab '
-              'afterwards.',
+              AppStrings.proConsultCreateProfileBody.tr,
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
@@ -628,7 +626,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
                         )
                       : const Icon(Icons.add_rounded, size: 18, color: Colors.white),
                   label: Text(
-                    loading ? 'Creatingâ€¦' : 'Create Professional Profile',
+                    loading ? AppStrings.proConsultCreating.tr : AppStrings.proConsultCreateProfessionalProfile.tr,
                     style: TextStyle(
                       fontFamily: AppConstants.OpenSans,
                       fontSize: 13,
@@ -853,7 +851,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
             ),
             const SizedBox(width: 4),
             Text(
-              'Member Â· $since',
+              '${AppStrings.proConsultMemberPrefix.tr} · $since',
               style: TextStyle(
                 fontFamily: AppConstants.OpenSans,
                 fontSize: 10,
@@ -955,7 +953,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
                 if (children.last is! SizedBox) {
                   children.add(SizedBox(height: SizeConfig.size8));
                 }
-                children.add(_infoRow(Icons.cake_rounded, 'Born ${_formatDob(dob)}'));
+                children.add(_infoRow(Icons.cake_rounded, '${AppStrings.proConsultBornPrefix.tr} ${_formatDob(dob)}'));
               }
               if (hasEmail) {
                 if (children.last is! SizedBox) {
@@ -1529,7 +1527,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
     final plan = (data['rechargePlanId'] is Map<String, dynamic>)
         ? data['rechargePlanId'] as Map<String, dynamic>
         : <String, dynamic>{};
-    final name = (plan['name'] ?? 'Active Contribution').toString();
+    final name = (plan['name'] ?? AppStrings.proConsultActiveContribution.tr).toString();
     final tier = (plan['tier'] ?? '').toString();
     final perkType = (plan['perk_type'] ?? '').toString();
     final totalPerks = _asInt(data['total_perks']);
@@ -1579,7 +1577,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
                             overflow: TextOverflow.ellipsis),
                         const SizedBox(height: 2),
                         CustomText(
-                          tier.isNotEmpty ? '${tier.toUpperCase()} MEMBER' : 'MEMBER',
+                          tier.isNotEmpty ? '${tier.toUpperCase()} ${AppStrings.proConsultMemberLabel.tr}' : AppStrings.proConsultMemberLabel.tr,
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
                           color: const Color(0xFFE9D9FF),
@@ -1597,13 +1595,13 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
                   children: [
                     CustomText(
                       perkType.isEmpty
-                          ? 'Perks remaining'
-                          : '${perkType[0].toUpperCase()}${perkType.substring(1)} remaining',
+                          ? AppStrings.proConsultPerksRemaining.tr
+                          : '${perkType[0].toUpperCase()}${perkType.substring(1)} ${AppStrings.proConsultRemainingSuffix.tr}',
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
                       color: const Color(0xFFE9D9FF),
                     ),
-                    CustomText('$perksRemaining of $totalPerks',
+                    CustomText('$perksRemaining ${AppStrings.proConsultOfConnector.tr} $totalPerks',
                         fontSize: 12, fontWeight: FontWeight.w800, color: const Color(0xFFFCD34D)),
                   ],
                 ),
@@ -1677,10 +1675,10 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    CustomText('Contribute now',
+                    CustomText(AppStrings.proConsultContributeNow.tr,
                         fontSize: 22, fontWeight: FontWeight.w800, color: const Color(0xFF221831)),
                     const SizedBox(height: 2),
-                    CustomText('to get order & Visibility',
+                    CustomText(AppStrings.proConsultBannerSubtitle.tr,
                         fontSize: 14, fontWeight: FontWeight.w600, color: const Color(0xFF6E5F8E)),
                   ],
                 ),

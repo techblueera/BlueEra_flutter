@@ -29,8 +29,8 @@ class _EmergencyContactScreenState extends State<EmergencyContactScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: AppStrings.emergencyContactTitle,
-        actionText: AppStrings.emergencyStep3Of4,
+        title: AppStrings.emergencyContactTitle.tr,
+        actionText: AppStrings.emergencyStep3Of4.tr,
       ),
       body: Padding(
         padding: EdgeInsets.all(SizeConfig.paddingM),
@@ -38,35 +38,43 @@ class _EmergencyContactScreenState extends State<EmergencyContactScreen> {
           child: Column(
             children: [
               CommonTextField(
-                title: AppStrings.emergencyContactName,
-                hintText: AppStrings.emergencyContactNameHint,
+                title: AppStrings.emergencyContactName.tr,
+                hintText: AppStrings.emergencyContactNameHint.tr,
                 textEditController: controller.nameController,
               ),
               SizedBox(height: 16),
               CommonTextField(
-                title: AppStrings.emergencyMobileNumber,
-                hintText: AppStrings.emergencyContactMobileHint,
+                title: AppStrings.emergencyMobileNumber.tr,
+                hintText: AppStrings.emergencyContactMobileHint.tr,
                 keyBoardType: TextInputType.number,
                 regularExpression: RegularExpressionUtils.digitsPattern,
                 maxLength: 10,
                 isValidate: true,
                 textEditController: controller.mobileController,
                 validator: (value) {
-                  if (value == null || value.isEmpty) return 'Required';
-                  if (value.startsWith('0')) return 'Leading zeros not allowed';
-                  if (value.length < 10) return 'Minimum 10 digits required';
-                  if (RegExp(r'^0+$').hasMatch(value))
-                    return 'All zeros not allowed';
-                  if (!RegExp(r'^[6-9]').hasMatch(value))
-                    return 'Enter a valid mobile number';
+                  if (value == null || value.isEmpty) {
+                    return AppStrings.emergencyRequiredField.tr;
+                  }
+                  if (value.startsWith('0')) {
+                    return AppStrings.emergencyLeadingZerosNotAllowed.tr;
+                  }
+                  if (value.length < 10) {
+                    return AppStrings.emergencyMin10Digits.tr;
+                  }
+                  if (RegExp(r'^0+$').hasMatch(value)) {
+                    return AppStrings.emergencyAllZerosNotAllowed.tr;
+                  }
+                  if (!RegExp(r'^[6-9]').hasMatch(value)) {
+                    return AppStrings.emergencyValidMobile.tr;
+                  }
                   return null;
                 },
                 onChange: (_) => controller.update(),
               ),
               SizedBox(height: 16),
               CommonTextField(
-                title: AppStrings.emergencyRelationship,
-                hintText: AppStrings.emergencyRelationshipHint,
+                title: AppStrings.emergencyRelationship.tr,
+                hintText: AppStrings.emergencyRelationshipHint.tr,
                 textEditController: controller.relationshipController,
               ),
               SizedBox(height: 24),
@@ -77,7 +85,7 @@ class _EmergencyContactScreenState extends State<EmergencyContactScreen> {
                         controller.isValid.value && !controller.isSaving.value
                             ? controller.submit
                             : null,
-                    title: AppStrings.next,
+                    title: AppStrings.next.tr,
                   )),
             ],
           ),

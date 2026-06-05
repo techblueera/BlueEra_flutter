@@ -44,7 +44,7 @@ class _ProfessionalServiceOfferedState extends State<ProfessionalServiceOffered>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: 'Service Offered'),
+      appBar: CommonBackAppBar(title: AppStrings.proConsultServiceOffered.tr),
       body: Padding(
         padding: EdgeInsets.symmetric(
             vertical: SizeConfig.size15,
@@ -60,7 +60,7 @@ class _ProfessionalServiceOfferedState extends State<ProfessionalServiceOffered>
 
           if(controller.servicesOffered.isEmpty){
             return EmptyStateWidget(
-                message: 'Service offered options not available.'
+                message: AppStrings.proConsultServiceOfferedUnavailable.tr
             );
           }
 
@@ -98,7 +98,7 @@ class _ProfessionalServiceOfferedState extends State<ProfessionalServiceOffered>
                               Icon(CupertinoIcons.add, color: AppColors.primaryColor, size: 20),
                               SizedBox(width: SizeConfig.size8),
                               CustomText(
-                                  "Add More Services",
+                                  AppStrings.proConsultAddMoreServices.tr,
                                   fontSize: SizeConfig.large,
                                   fontWeight: FontWeight.w400,
                                   color: AppColors.primaryColor
@@ -143,7 +143,7 @@ class _ProfessionalServiceOfferedState extends State<ProfessionalServiceOffered>
                         right: SizeConfig.size10,
                       ),
                       child: CustomBtn(
-                        title: controller.isUpdateServiceOfferedLoading.value ? null : AppStrings.update,
+                        title: controller.isUpdateServiceOfferedLoading.value ? null : AppStrings.update.tr,
                         isLoading: controller.isUpdateServiceOfferedLoading.value,
                         onTap: () {
                           controller.updateServicesOffered();

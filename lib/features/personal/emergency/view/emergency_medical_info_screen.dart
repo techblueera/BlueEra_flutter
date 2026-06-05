@@ -33,8 +33,8 @@ class _EmergencyMedicalInfoScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: AppStrings.emergencyMedicalTitle,
-        actionText: AppStrings.emergencyStep2Of4,
+        title: AppStrings.emergencyMedicalTitle.tr,
+        actionText: AppStrings.emergencyStep2Of4.tr,
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -43,7 +43,7 @@ class _EmergencyMedicalInfoScreenState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CustomText(AppStrings.emergencyBloodGroup),
+                CustomText(AppStrings.emergencyBloodGroup.tr),
                 SizedBox(
                   height: 10,
                 ),
@@ -51,8 +51,8 @@ class _EmergencyMedicalInfoScreenState
                   children: [
                     Expanded(
                       child: Obx(() => CommonDropdownDialog<String>(
-                            title: AppStrings.emergencyBloodGroup,
-                            hintText: AppStrings.emergencyBloodGroupHint,
+                            title: AppStrings.emergencyBloodGroup.tr,
+                            hintText: AppStrings.emergencyBloodGroupHint.tr,
                             items: controller.bloodGroupTypes,
                             selectedValue:
                                 controller.selectedBloodGroupType.value,
@@ -67,14 +67,14 @@ class _EmergencyMedicalInfoScreenState
                     SizedBox(width: 12),
                     Expanded(
                       child: Obx(() => CommonDropdownDialog<String>(
-                            title: AppStrings.emergencySign,
-                            hintText: AppStrings.emergencySignHint,
+                            title: AppStrings.emergencySign.tr,
+                            hintText: AppStrings.emergencySignHint.tr,
                             items: controller.bloodGroupSigns,
                             selectedValue:
                                 controller.selectedBloodGroupSign.value,
                             displayValue: (val) => val == '+'
-                                ? AppStrings.emergencyPositive
-                                : AppStrings.emergencyNegative,
+                                ? AppStrings.emergencyPositive.tr
+                                : AppStrings.emergencyNegative.tr,
                             onChanged: (value) {
                               if (value != null) {
                                 controller.selectedBloodGroupSign.value = value;
@@ -86,14 +86,14 @@ class _EmergencyMedicalInfoScreenState
                 ),
                 SizedBox(height: 16),
                 CommonTextField(
-                  title: AppStrings.emergencyKnownAllergies,
-                  hintText: AppStrings.emergencyKnownAllergiesHint,
+                  title: AppStrings.emergencyKnownAllergies.tr,
+                  hintText: AppStrings.emergencyKnownAllergiesHint.tr,
                   textEditController: controller.allergiesController,
                 ),
                 SizedBox(height: 16),
                 CommonTextField(
-                  title: AppStrings.emergencyKnownDisease,
-                  hintText: AppStrings.emergencyKnownDiseaseHint,
+                  title: AppStrings.emergencyKnownDisease.tr,
+                  hintText: AppStrings.emergencyKnownDiseaseHint.tr,
                   textEditController: controller.diseaseController,
                 ),
                 SizedBox(height: 24),
@@ -104,7 +104,7 @@ class _EmergencyMedicalInfoScreenState
                               !controller.isMedicalSaving.value
                           ? controller.submitMedical
                           : null,
-                      title: AppStrings.next,
+                      title: AppStrings.next.tr,
                     )),
               ],
             ),

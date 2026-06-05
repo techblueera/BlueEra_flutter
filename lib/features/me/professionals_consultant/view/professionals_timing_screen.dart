@@ -17,7 +17,7 @@ class ProfessionalsTimingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: "Availability"),
+      appBar: CommonBackAppBar(title: AppStrings.proConsultAvailability.tr),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(SizeConfig.size14),
         child: Column(
@@ -41,7 +41,7 @@ class ProfessionalsTimingScreen extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: CustomText(
-                      "Set your weekly availability so clients know when to reach you",
+                      AppStrings.proConsultWeeklyAvailabilityInfo.tr,
                       color: AppColors.primaryColor,
                       fontSize: SizeConfig.small,
                     ),
@@ -78,12 +78,12 @@ class ProfessionalsTimingScreen extends StatelessWidget {
                             crossAxisAlignment:
                                 CrossAxisAlignment.start,
                             children: [
-                              CustomText("Weekly Schedule",
+                              CustomText(AppStrings.proConsultWeeklySchedule.tr,
                                   fontWeight: FontWeight.w600,
                                   fontSize: SizeConfig.medium),
                               const SizedBox(height: 2),
                               CustomText(
-                                  "Toggle days and set working hours",
+                                  AppStrings.proConsultToggleDaysHours.tr,
                                   color:
                                       AppColors.secondaryTextColor,
                                   fontSize: SizeConfig.small),
@@ -206,7 +206,7 @@ class ProfessionalsTimingScreen extends StatelessWidget {
                                     ),
                                   ] else
                                     CustomText(
-                                      "Closed",
+                                      AppStrings.proConsultClosed.tr,
                                       color: Colors.red,
                                       fontSize: SizeConfig.small,
                                     ),
