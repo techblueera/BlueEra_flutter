@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
@@ -77,7 +78,7 @@ class _ChatRequestsScreenState extends State<ChatRequestsScreen>
     final ok = await _controller.respondToChatRequest(
         conversationId: id, action: 'accept');
     if (ok) {
-      commonSnackBar(message: 'Request accepted');
+      commonSnackBar(message: AppStrings.requestAccepted.tr);
       // Open the chat so the user can immediately reply.
       _openChat(req, isSent: false);
     }
@@ -88,17 +89,19 @@ class _ChatRequestsScreenState extends State<ChatRequestsScreen>
     if (id == null || id.isEmpty) return;
     if (block) {
       final confirmed = await _confirm(
-        title: 'Decline & block sender?',
-        body:
-            'This will permanently silence future requests from this user. Continue?',
-        confirmLabel: 'Decline & block',
+        title: AppStrings.declineAndBlockSenderQuestion.tr,
+        body: AppStrings.declineAndBlockSenderBody.tr,
+        confirmLabel: AppStrings.declineAndBlock.tr,
       );
       if (confirmed != true) return;
     }
     final ok = await _controller.respondToChatRequest(
         conversationId: id, action: 'decline', blockInitiator: block);
     if (ok) {
-      commonSnackBar(message: block ? 'Declined & blocked' : 'Request declined');
+      commonSnackBar(
+          message: block
+              ? AppStrings.declinedAndBlocked.tr
+              : AppStrings.requestDeclined.tr);
     }
   }
 
@@ -106,14 +109,14 @@ class _ChatRequestsScreenState extends State<ChatRequestsScreen>
     final id = req.conversationId;
     if (id == null || id.isEmpty) return;
     final confirmed = await _confirm(
-      title: 'Cancel request?',
-      body: 'The recipient will no longer see this request.',
-      confirmLabel: 'Cancel request',
+      title: AppStrings.cancelRequestQuestion.tr,
+      body: AppStrings.cancelRequestBody.tr,
+      confirmLabel: AppStrings.cancelRequest.tr,
     );
     if (confirmed != true) return;
     final ok = await _controller.cancelChatRequest(id);
     if (ok) {
-      commonSnackBar(message: 'Request cancelled');
+      commonSnackBar(message: AppStrings.requestCancelled.tr);
     }
   }
 
@@ -133,7 +136,7 @@ class _ChatRequestsScreenState extends State<ChatRequestsScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const CustomText('Keep',
+            child: CustomText(AppStrings.keep.tr,
                 fontSize: 13.5, color: Colors.black54),
           ),
           TextButton(
@@ -152,8 +155,8 @@ class _ChatRequestsScreenState extends State<ChatRequestsScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: const CommonBackAppBar(
-        title: 'Requests',
+      appBar: CommonBackAppBar(
+        title: AppStrings.chatRequestsTitle.tr,
         showElevation: 0,
         isLeading: true,
         isMore: false,
@@ -176,9 +179,9 @@ class _ChatRequestsScreenState extends State<ChatRequestsScreen>
                   fontSize: 13.5, fontWeight: FontWeight.w600),
               unselectedLabelStyle: const TextStyle(
                   fontSize: 13.5, fontWeight: FontWeight.w500),
-              tabs: const [
-                Tab(text: 'Requests'),
-                Tab(text: 'Replied'),
+              tabs: [
+                Tab(text: AppStrings.requestsTab.tr),
+                Tab(text: AppStrings.repliedTab.tr),
               ],
             ),
           ),
@@ -231,7 +234,7 @@ class _IncomingList extends StatelessWidget {
       final items = controller.chatRequestsListModel.value.data ?? [];
       return _ListShell(
         status: status,
-        emptyLabel: 'No incoming requests',
+        emptyLabel: AppStrings.noIncomingRequests.tr,
         items: items,
         onRefresh: () =>
             controller.getChatRequestsList(role: 'incoming'),
@@ -267,7 +270,7 @@ class _IncomingActions extends StatelessWidget {
       children: [
         Expanded(
           child: _PillButton(
-            label: 'Accept',
+            label: AppStrings.accept.tr,
             background: AppColors.primaryColor,
             foreground: Colors.white,
             onTap: onAccept,
@@ -276,7 +279,7 @@ class _IncomingActions extends StatelessWidget {
         const SizedBox(width: 8),
         Expanded(
           child: _PillButton(
-            label: 'Decline',
+            label: AppStrings.decline.tr,
             background: const Color(0xFFF2F3F5),
             foreground: Colors.black87,
             onTap: onDecline,
@@ -285,7 +288,7 @@ class _IncomingActions extends StatelessWidget {
         const SizedBox(width: 8),
         _IconPillButton(
           icon: Icons.block,
-          tooltip: 'Decline & block',
+          tooltip: AppStrings.declineAndBlock.tr,
           onTap: onDeclineBlock,
         ),
       ],
@@ -313,7 +316,7 @@ class _SentList extends StatelessWidget {
       final items = controller.sentChatRequestsListModel.value.data ?? [];
       return _ListShell(
         status: status,
-        emptyLabel: 'No outgoing requests',
+        emptyLabel: AppStrings.noOutgoingRequests.tr,
         items: items,
         onRefresh: () => controller.getChatRequestsList(role: 'sent'),
         rowBuilder: (req) => _RequestRow(
@@ -337,7 +340,7 @@ class _SentActions extends StatelessWidget {
       children: [
         Expanded(
           child: _PillButton(
-            label: 'Cancel request',
+            label: AppStrings.cancelRequest.tr,
             background: const Color(0xFFFFEBEE),
             foreground: const Color(0xFFD94A42),
             onTap: onCancel,
@@ -377,12 +380,12 @@ class _ListShell extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const CustomText('Could not load requests',
+            CustomText(AppStrings.couldNotLoadRequests.tr,
                 color: Colors.black54, fontSize: 14),
             const SizedBox(height: 12),
             TextButton(
               onPressed: onRefresh,
-              child: const CustomText('Retry',
+              child: CustomText(AppStrings.retry.tr,
                   color: AppColors.primaryColor,
                   fontSize: 13.5,
                   fontWeight: FontWeight.w600),
@@ -441,11 +444,13 @@ class _RequestRow extends StatelessWidget {
     final party = isSent ? item.recipient : item.initiator;
     final name = (party?.name?.isNotEmpty ?? false)
         ? party!.name!
-        : (party?.contact ?? 'Unknown user');
+        : (party?.contact ?? AppStrings.unknownUser.tr);
     final preview = (item.lastMessage?.isNotEmpty ?? false)
         ? item.lastMessage!
         : (item.lastMessageType == 'reply_to_symbol'
-            ? (isSent ? 'Replied to their symbol' : 'Replied to your symbol')
+            ? (isSent
+                ? AppStrings.repliedToTheirSymbol.tr
+                : AppStrings.repliedToYourSymbol.tr)
             : '');
     final timestamp = _formatTimestamp(item.requestedAt);
 

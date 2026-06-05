@@ -72,7 +72,7 @@ class _ProfessionalContactUsScreenState
 
     return Scaffold(
       appBar: CommonBackAppBar(
-          title: isEdit ? "Update Contact" : AppStrings.contactUs),
+          title: isEdit ? AppStrings.proConsultUpdateContact.tr : AppStrings.contactUs),
       body: Obx(() {
         if (controller.contactUsData.value != null) {
           branchNameController = TextEditingController(
@@ -113,7 +113,7 @@ class _ProfessionalContactUsScreenState
                     const SizedBox(width: 10),
                     Expanded(
                       child: CustomText(
-                        "Add your contact details so clients can reach you",
+                        AppStrings.proConsultAddContactDetailsInfo.tr,
                         color: AppColors.primaryColor,
                         fontSize: SizeConfig.small,
                       ),
@@ -131,19 +131,19 @@ class _ProfessionalContactUsScreenState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _sectionIcon(Icons.person_outline, "Personal Info",
-                          "Your name and website"),
+                      _sectionIcon(Icons.person_outline, AppStrings.proConsultPersonalInfo.tr,
+                          AppStrings.proConsultYourNameWebsite.tr),
                       const SizedBox(height: 16),
                       CommonTextField(
                         textEditController: branchNameController,
-                        hintText: "E.g. Rajesh Kumar",
-                        title: "Contact Person Name",
+                        hintText: AppStrings.proConsultEgRajeshKumar.tr,
+                        title: AppStrings.proConsultContactPersonName.tr,
                         onChange: (_) => _triggerValidation(),
                       ),
                       const SizedBox(height: 12),
                       HttpsTextField(
                         controller: websiteController,
-                        hintText: "https://yourwebsite.com",
+                        hintText: AppStrings.proConsultWebsiteHint.tr,
                         title: AppStrings.website,
                         onChange: (_) => _triggerValidation(),
                       ),
@@ -161,19 +161,19 @@ class _ProfessionalContactUsScreenState
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _sectionIcon(Icons.phone_outlined, "Contact Details",
-                          "Email and phone"),
+                      _sectionIcon(Icons.phone_outlined, AppStrings.proConsultContactDetails.tr,
+                          AppStrings.proConsultEmailPhone.tr),
                       const SizedBox(height: 16),
                       CommonTextField(
                         textEditController: emailController,
-                        hintText: "yourname@gmail.com",
+                        hintText: AppStrings.proConsultEmailHint.tr,
                         title: AppStrings.email,
                         onChange: (_) => _triggerValidation(),
                       ),
                       const SizedBox(height: 12),
                       CommonTextField(
                         textEditController: phoneController,
-                        hintText: "+91 1234567890",
+                        hintText: AppStrings.proConsultPhoneHint.tr,
                         title: AppStrings.phoneNumber,
                         maxLength: 10,
                         keyBoardType: TextInputType.phone,
@@ -194,7 +194,7 @@ class _ProfessionalContactUsScreenState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _sectionIcon(Icons.location_on_outlined,
-                          AppStrings.location, "Your office address"),
+                          AppStrings.location, AppStrings.proConsultYourOfficeAddress.tr),
                       const SizedBox(height: 16),
                       CommonLocationSearchField(
                         controller: addressController,

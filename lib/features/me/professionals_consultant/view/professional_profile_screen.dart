@@ -48,7 +48,7 @@ class _ProfessionalProfileScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: "About Professional"),
+      appBar: CommonBackAppBar(title: AppStrings.proConsultAboutProfessional.tr),
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -64,7 +64,7 @@ class _ProfessionalProfileScreenState
                                 100) {
                           commonSnackBar(
                               message:
-                                  "Please enter valid years of experience");
+                                  AppStrings.proConsultEnterValidYears.tr);
                           return;
                         } else if (int.tryParse(
                                     controller.expMonthController.text) !=
@@ -73,7 +73,7 @@ class _ProfessionalProfileScreenState
                                     controller.expMonthController.text) >
                                 12) {
                           commonSnackBar(
-                              message: "Please enter valid months");
+                              message: AppStrings.proConsultEnterValidMonths.tr);
                           return;
                         }
                         await controller.saveAboutProfessional();
@@ -110,7 +110,7 @@ class _ProfessionalProfileScreenState
                           ),
                           const SizedBox(width: 12),
                           Expanded(
-                            child: CustomText("Your Expertise",
+                            child: CustomText(AppStrings.proConsultYourExpertise.tr,
                                 fontWeight: FontWeight.w600,
                                 fontSize: SizeConfig.medium),
                           ),
@@ -130,7 +130,7 @@ class _ProfessionalProfileScreenState
                         textEditController:
                             controller.expertiseController,
                         hintText:
-                            "E.g. Tax Filing, GST, Compliance...",
+                            AppStrings.proConsultExpertiseHint.tr,
                         maxLine: 3,
                         maxLength: 400,
                       ),
@@ -162,7 +162,7 @@ class _ProfessionalProfileScreenState
                                 size: 20),
                           ),
                           const SizedBox(width: 12),
-                          CustomText("Total Experience",
+                          CustomText(AppStrings.proConsultTotalExperience.tr,
                               fontWeight: FontWeight.w600,
                               fontSize: SizeConfig.medium),
                         ],
@@ -172,20 +172,20 @@ class _ProfessionalProfileScreenState
                         children: [
                           Expanded(
                             child: CommonTextField(
-                              title: "Years",
+                              title: AppStrings.years.tr,
                               textEditController:
                                   controller.expYearController,
-                              hintText: "E.g. 5",
+                              hintText: AppStrings.proConsultEg5.tr,
                               keyBoardType: TextInputType.number,
                             ),
                           ),
                           const SizedBox(width: 15),
                           Expanded(
                             child: CommonTextField(
-                              title: "Months",
+                              title: AppStrings.monthsLabel.tr,
                               textEditController:
                                   controller.expMonthController,
-                              hintText: "E.g. 6",
+                              hintText: AppStrings.proConsultEg6.tr,
                               keyBoardType: TextInputType.number,
                             ),
                           ),
@@ -219,7 +219,7 @@ class _ProfessionalProfileScreenState
                                 size: 20),
                           ),
                           const SizedBox(width: 12),
-                          CustomText("Major Projects",
+                          CustomText(AppStrings.proConsultMajorProjects.tr,
                               fontWeight: FontWeight.w600,
                               fontSize: SizeConfig.medium),
                         ],
@@ -228,7 +228,7 @@ class _ProfessionalProfileScreenState
                       AiDescriptionField(
                         label: "",
                         hintText:
-                            "Tell us about your major projects...",
+                            AppStrings.proConsultMajorProjectsHint.tr,
                         controller:
                             controller.descriptionController,
                         rxValue: controller.description,

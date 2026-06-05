@@ -30,7 +30,7 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: "Gallery & Certifications"),
+      appBar: CommonBackAppBar(title: AppStrings.proConsultGalleryCertifications.tr),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(SizeConfig.size8),
         child: Column(
@@ -42,15 +42,15 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      CustomText("Certificate & Awards",
+                      CustomText(AppStrings.certificateAwards.tr,
                           fontWeight: FontWeight.w600),
                       InkWell(
                         onTap: () {
                           certController.openForCreate();
                           _openAddEditSheet(context, false);
                         },
-                        child: const CustomText(
-                          "+ Add More",
+                        child: CustomText(
+                          "+ ${AppStrings.addMore.tr}",
                           color: AppColors.primaryColor,
                         ),
                       ),
@@ -71,15 +71,15 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         CustomText(
-                            "Upload Images (${controller.propertyPhotosList.length}/20)",
+                            "${AppStrings.proConsultUploadImagesPrefix.tr} (${controller.propertyPhotosList.length}/20)",
                             fontWeight: FontWeight.w600),
                         if (controller.propertyPhotosList.length < 20)
                           InkWell(
                             onTap: () {
                               Get.to(UploadProfessionalsServicePhotosScreen());
                             },
-                            child: const CustomText(
-                              "+ Add More",
+                            child: CustomText(
+                              "+ ${AppStrings.addMore.tr}",
                               color: AppColors.primaryColor,
                             ),
                           ),
@@ -167,7 +167,7 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             CustomText(
-                              cert.title ?? "Certificate Name",
+                              cert.title ?? AppStrings.certificateName.tr,
                               color: Colors.white,
                               fontSize: SizeConfig.medium,
                               fontWeight: FontWeight.bold,
@@ -176,7 +176,7 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
                             ),
                             SizedBox(height: SizeConfig.size4),
                             CustomText(
-                              cert.description ?? "Description goes here...",
+                              cert.description ?? AppStrings.proConsultDescriptionGoesHere.tr,
                               color: Colors.white,
                               fontSize: SizeConfig.small,
                               maxLines: 2,
@@ -223,7 +223,7 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          CustomText("Add More Certificate & Awards",
+                          CustomText(AppStrings.proConsultAddMoreCertAndAwards.tr,
                               fontWeight: FontWeight.w600),
                           IconButton(
                             icon: const Icon(Icons.close),
@@ -235,18 +235,18 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
                       _documentTypeDropdown(),
                       SizedBox(height: SizeConfig.size12),
                       CommonTextField(
-                        title: "Title",
+                        title: AppStrings.title.tr,
                         textEditController: certController.titleController,
-                        hintText: "E.g. Certificate Name",
+                        hintText: AppStrings.proConsultEgCertificateName.tr,
                         onChange: (val) {
                           setState(() {});
                         },
                       ),
                       SizedBox(height: SizeConfig.size12),
                       CommonTextField(
-                        title: "Issued By",
+                        title: AppStrings.proConsultIssuedBy.tr,
                         textEditController: certController.issuedByController,
-                        hintText: "E.g. Authority / Organization",
+                        hintText: AppStrings.proConsultEgAuthority.tr,
                         onChange: (val) {
                           setState(() {});
                         },
@@ -255,7 +255,7 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
                       // _issueDatePicker(context),
                       ///DOB selection
                       CustomText(
-                        'Issued Date',
+                        AppStrings.proConsultIssuedDate.tr,
                         fontSize: SizeConfig.medium,
                         color: AppColors.mainTextColor,
                       ),
@@ -297,8 +297,8 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
                       // ),
                       Obx(() {
                         return AiDescriptionField(
-                          label: AppStrings.description,
-                          hintText: "Tell us more about the organization...",
+                          label: AppStrings.description.tr,
+                          hintText: AppStrings.proConsultTellUsMoreOrganization.tr,
                           controller: certController.descriptionController,
                           rxValue: certController.description,
                           // Your RX variable from the controller
@@ -312,7 +312,7 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
                       }),
                       SizedBox(height: SizeConfig.size20),
                       Obx(() => CustomBtn(
-                            title: isEdit ? "Update" : "Save",
+                            title: isEdit ? AppStrings.update.tr : AppStrings.save.tr,
                             isValidate: !(certController.isSaving.value),
                             onTap: certController.isSaving.value
                                 ? null
@@ -324,12 +324,12 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
                           )),
                       SizedBox(height: SizeConfig.size20),
                       CustomBtn(
-                        title: "Delete",
+                        title: AppStrings.delete.tr,
                         onTap: () async {
                           await showCommonDialog(
                               context: context,
                               text:
-                                  'Are you sure you want to delete this certificate ?',
+                                  AppStrings.proConsultAreYouSureDeleteCert.tr,
                               confirmCallback: () async {
                                 Get.back();
                                 await certController
@@ -341,8 +341,8 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
                               cancelCallback: () {
                                 Navigator.of(context).pop(); // Close the dialog
                               },
-                              confirmText: AppStrings.yes,
-                              cancelText: AppStrings.no);
+                              confirmText: AppStrings.yes.tr,
+                              cancelText: AppStrings.no.tr);
                           // Get.back();
                         },
                         bgColor: AppColors.red00,
@@ -360,18 +360,25 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
   }
 
   Widget _documentTypeDropdown() {
+    // Internal values kept as-is for backend; UI labels are localized.
     final types = ["Award", "Certificate", "License", "Other"];
+    final labels = {
+      "Award": AppStrings.award.tr,
+      "Certificate": AppStrings.certificate.tr,
+      "License": AppStrings.proConsultLicense.tr,
+      "Other": AppStrings.other.tr,
+    };
     return Obx(() => DropdownButtonFormField<String>(
           value: certController.documentType.value,
           items: types
-              .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+              .map((e) => DropdownMenuItem(value: e, child: Text(labels[e] ?? e)))
               .toList(),
           onChanged: (val) {
             if (val != null) certController.documentType.value = val;
           },
-          decoration: const InputDecoration(
-            labelText: "Document Type",
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            labelText: AppStrings.proConsultDocumentType.tr,
+            border: const OutlineInputBorder(),
           ),
         ));
   }
@@ -382,7 +389,7 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CustomText("Upload File"),
+          CustomText(AppStrings.proConsultUploadFile.tr),
           SizedBox(height: SizeConfig.size8),
           Row(
             children: [
@@ -396,7 +403,7 @@ class ProfessionalsCertificatesScreen extends StatelessWidget {
                   }
                 },
                 icon: const Icon(Icons.attach_file),
-                label: const CustomText("JPG / PNG"),
+                label: CustomText(AppStrings.proConsultJpgPng.tr),
                 // label: const Text("PDF / JPG / PNG"),
               ),
               SizedBox(width: SizeConfig.size12),

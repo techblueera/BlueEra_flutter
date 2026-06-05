@@ -2410,8 +2410,7 @@ class AppStrings {
   static const String enterPromoCode = 'enterPromoCode';
   static const String egPromoCode = 'egPromoCode';
   static const String referralCodeLengthError = 'referralCodeLengthError';
-  static const String codeMustContainLettersAndNumbers =
-      'codeMustContainLettersAndNumbers';
+  static const String codeMustContainLettersAndNumbers = 'codeMustContainLettersAndNumbers';
   static const String checking = 'checking';
   static const String noIDontHave = 'noIDontHave';
   static const String referralCodeInvalid = 'referralCodeInvalid';
@@ -4317,6 +4316,138 @@ class AppStrings {
   static const String emergencySavedPrivacy = "emergency_saved_privacy";
   static const String emergencyConfirmAgreeBeforeSubmit = "emergency_confirm_agree_before_submit";
 
+  /// PROFESSIONALS / CONSULTANT MODULE
+  /// Timing Screen
+  static const String proConsultAvailability = "pro_consult_availability";
+  static const String proConsultWeeklyAvailabilityInfo = "pro_consult_weekly_availability_info";
+  static const String proConsultWeeklySchedule = "pro_consult_weekly_schedule";
+  static const String proConsultToggleDaysHours = "pro_consult_toggle_days_hours";
+  static const String proConsultClosed = "pro_consult_closed";
+
+  // Basic Profile Screen
+  static const String proConsultProfilePhoto = "pro_consult_profile_photo";
+  static const String proConsultUploadProfessionalPhoto = "pro_consult_upload_professional_photo";
+  static const String proConsultUploadPicture = "pro_consult_upload_picture";
+  static const String proConsultYourNameAndTitle = "pro_consult_your_name_and_title";
+  static const String proConsultEgRajeshKumar = "pro_consult_eg_rajesh_kumar";
+  static const String proConsultProfessionalTitle = "pro_consult_professional_title";
+  static const String proConsultEgFinanceTaxConsultant = "pro_consult_eg_finance_tax_consultant";
+  static const String proConsultShortTagline = "pro_consult_short_tagline";
+  static const String proConsultEgTaxComplianceExpert = "pro_consult_eg_tax_compliance_expert";
+  static const String proConsultLocationLanguage = "pro_consult_location_language";
+  static const String proConsultWhereBased = "pro_consult_where_based";
+  static const String proConsultLanguagesSpoken = "pro_consult_languages_spoken";
+  static const String proConsultEgEnglish = "pro_consult_eg_english";
+
+  // Portfolio Screen
+  static const String proConsultPortfolioCaseStudies = "pro_consult_portfolio_case_studies";
+  static const String proConsultUploadImageRequired = "pro_consult_upload_image_required";
+  static const String proConsultNoDate = "pro_consult_no_date";
+  static const String proConsultImgSuffix = "pro_consult_img_suffix";
+  static const String proConsultUntitledProject = "pro_consult_untitled_project";
+  static const String proConsultAreYouSureDeleteData = "pro_consult_are_you_sure_delete_data";
+
+  // Pricing Engagement Screen
+  static const String proConsultPricingEngagementModel = "pro_consult_pricing_engagement_model";
+  static const String proConsultConsultationFee = "pro_consult_consultation_fee";
+  static const String proConsultSetFeeStructure = "pro_consult_set_fee_structure";
+  static const String proConsultFeeType = "pro_consult_fee_type";
+  static const String proConsultEgHourly = "pro_consult_eg_hourly";
+  static const String proConsultAmount = "pro_consult_amount";
+  static const String proConsultEgFee600 = "pro_consult_eg_fee_600";
+  static const String proConsultEgMinFee600 = "pro_consult_eg_min_fee_600";
+  static const String proConsultHowDoYouConsult = "pro_consult_how_do_you_consult";
+
+  // Contact Us Screen
+  static const String proConsultUpdateContact = "pro_consult_update_contact";
+  static const String proConsultAddContactDetailsInfo = "pro_consult_add_contact_details_info";
+  static const String proConsultPersonalInfo = "pro_consult_personal_info";
+  static const String proConsultYourNameWebsite = "pro_consult_your_name_website";
+  static const String proConsultContactPersonName = "pro_consult_contact_person_name";
+  static const String proConsultWebsiteHint = "pro_consult_website_hint";
+  static const String proConsultContactDetails = "pro_consult_contact_details";
+  static const String proConsultEmailPhone = "pro_consult_email_phone";
+  static const String proConsultEmailHint = "pro_consult_email_hint";
+  static const String proConsultPhoneHint = "pro_consult_phone_hint";
+  static const String proConsultYourOfficeAddress = "pro_consult_your_office_address";
+
+  // PDF Preview Widget
+  static const String proConsultSelectPdf = "pro_consult_select_pdf";
+  static const String proConsultFileLabel = "pro_consult_file_label";
+
+  // Professional Profile Screen
+  static const String proConsultAboutProfessional = "pro_consult_about_professional";
+  static const String proConsultEnterValidYears = "pro_consult_enter_valid_years";
+  static const String proConsultEnterValidMonths = "pro_consult_enter_valid_months";
+  static const String proConsultYourExpertise = "pro_consult_your_expertise";
+  static const String proConsultExpertiseHint = "pro_consult_expertise_hint";
+  static const String proConsultTotalExperience = "pro_consult_total_experience";
+  static const String proConsultEg5 = "pro_consult_eg_5";
+  static const String proConsultEg6 = "pro_consult_eg_6";
+  static const String proConsultMajorProjects = "pro_consult_major_projects";
+  static const String proConsultMajorProjectsHint = "pro_consult_major_projects_hint";
+
+  // Service Offered Screen
+  static const String proConsultServiceOffered = "pro_consult_service_offered";
+  static const String proConsultServiceOfferedUnavailable = "pro_consult_service_offered_unavailable";
+  static const String proConsultAddMoreServices = "pro_consult_add_more_services";
+
+  // Certificates Screen
+  static const String proConsultGalleryCertifications = "pro_consult_gallery_certifications";
+  static const String proConsultUploadImagesPrefix = "pro_consult_upload_images_prefix";
+  static const String proConsultDescriptionGoesHere = "pro_consult_description_goes_here";
+  static const String proConsultAddMoreCertAndAwards = "pro_consult_add_more_cert_and_awards";
+  static const String proConsultEgCertificateName = "pro_consult_eg_certificate_name";
+  static const String proConsultIssuedBy = "pro_consult_issued_by";
+  static const String proConsultEgAuthority = "pro_consult_eg_authority";
+  static const String proConsultIssuedDate = "pro_consult_issued_date";
+  static const String proConsultTellUsMoreOrganization = "pro_consult_tell_us_more_organization";
+  static const String proConsultAreYouSureDeleteCert = "pro_consult_are_you_sure_delete_cert";
+  static const String proConsultLicense = "pro_consult_license";
+  static const String proConsultDocumentType = "pro_consult_document_type";
+  static const String proConsultUploadFile = "pro_consult_upload_file";
+  static const String proConsultJpgPng = "pro_consult_jpg_png";
+
+  // Main Screen
+  static const String proConsultGoLive = "pro_consult_go_live";
+  static const String proConsultCreateProfileTitle = "pro_consult_create_profile_title";
+  static const String proConsultCreateProfileBody = "pro_consult_create_profile_body";
+  static const String proConsultCreating = "pro_consult_creating";
+  static const String proConsultCreateProfessionalProfile = "pro_consult_create_professional_profile";
+  static const String proConsultMemberPrefix = "pro_consult_member_prefix";
+  static const String proConsultBornPrefix = "pro_consult_born_prefix";
+  static const String proConsultActiveContribution = "pro_consult_active_contribution";
+  static const String proConsultMemberLabel = "pro_consult_member_label";
+  static const String proConsultPerksRemaining = "pro_consult_perks_remaining";
+  static const String proConsultRemainingSuffix = "pro_consult_remaining_suffix";
+  static const String proConsultOfConnector = "pro_consult_of_connector";
+  static const String proConsultContributeNow = "pro_consult_contribute_now";
+  static const String proConsultBannerSubtitle = "pro_consult_banner_subtitle";
+  static const String proConsultTabStatics = "pro_consult_tab_statics";
+
+  // Service Screen (Empty States)
+  static const String proConsultShowcaseExpertise = "pro_consult_showcase_expertise";
+  static const String proConsultExpertiseEmptyBody = "pro_consult_expertise_empty_body";
+  static const String proConsultListServices = "pro_consult_list_services";
+  static const String proConsultServicesEmptyBody = "pro_consult_services_empty_body";
+  static const String proConsultShowcaseWork = "pro_consult_showcase_work";
+  static const String proConsultPortfolioEmptyBody = "pro_consult_portfolio_empty_body";
+  static const String proConsultHighlightCredentials = "pro_consult_highlight_credentials";
+  static const String proConsultCredentialsEmptyBody = "pro_consult_credentials_empty_body";
+  static const String proConsultBuildGallery = "pro_consult_build_gallery";
+  static const String proConsultGalleryEmptyBody = "pro_consult_gallery_empty_body";
+  static const String proConsultAddContactDetailsTitle = "pro_consult_add_contact_details_title";
+  static const String proConsultContactEmptyBody = "pro_consult_contact_empty_body";
+  static const String proConsultSetWorkingHours = "pro_consult_set_working_hours";
+  static const String proConsultHoursEmptyBody = "pro_consult_hours_empty_body";
+
+  /// Emergency Contact Mobile Validators
+  static const String emergencyRequiredField = "emergency_required_field";
+  static const String emergencyLeadingZerosNotAllowed = "emergency_leading_zeros_not_allowed";
+  static const String emergencyMin10Digits = "emergency_min_10_digits";
+  static const String emergencyAllZerosNotAllowed = "emergency_all_zeros_not_allowed";
+  static const String emergencyValidMobile = "emergency_valid_mobile";
+
   /// Choose Delivery Options
   static const String selfPickUpTitle = "self_pick_up_title";
   static const String selfPickUpSubtitle = "self_pick_up_subtitle";
@@ -5179,6 +5310,28 @@ class AppStrings {
   static const String ratingRequired = "ratingRequired";
   static const String selectAtLeastOneStar = "selectAtLeastOneStar";
   static const String receivedRequests = "receivedRequests";
+
+  ///CHAT REQUESTS SCREEN
+  static const String chatRequestsTitle = "chatRequestsTitle";
+  static const String requestsTab = "requestsTab";
+  static const String repliedTab = "repliedTab";
+  static const String cancelRequest = "cancelRequest";
+  static const String declineAndBlock = "declineAndBlock";
+  static const String requestAccepted = "requestAccepted";
+  static const String requestDeclined = "requestDeclined";
+  static const String declinedAndBlocked = "declinedAndBlocked";
+  static const String requestCancelled = "requestCancelled";
+  static const String declineAndBlockSenderQuestion = "declineAndBlockSenderQuestion";
+  static const String declineAndBlockSenderBody = "declineAndBlockSenderBody";
+  static const String cancelRequestQuestion = "cancelRequestQuestion";
+  static const String cancelRequestBody = "cancelRequestBody";
+  static const String keep = "keep";
+  static const String noIncomingRequests = "noIncomingRequests";
+  static const String noOutgoingRequests = "noOutgoingRequests";
+  static const String couldNotLoadRequests = "couldNotLoadRequests";
+  static const String repliedToYourSymbol = "repliedToYourSymbol";
+  static const String repliedToTheirSymbol = "repliedToTheirSymbol";
+
   static const String noRecordFoundLabel = "noRecordFoundLabel";
   static const String bioLabel = "bioLabel";
   static const String postsLabel = "postsLabel";

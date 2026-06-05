@@ -81,6 +81,15 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
     return text[0].toUpperCase() + text.substring(1).toLowerCase();
   }
 
+  /// Closes the drawer, then runs [action]. Action is deferred to the
+  /// next microtask so the drawer's about-to-deactivate context is no
+  /// longer in use when the destination screen pushes.
+  void _closeAndRun(VoidCallback action) {
+    final nav = Navigator.of(context);
+    if (nav.canPop()) nav.pop();
+    Future.microtask(action);
+  }
+
   String accountProfileName() {
     if (accountTypeGlobal != "BUSINESS") {
       return _capitalizeFirstLetter(
@@ -375,7 +384,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () => Get.to(() => WalletScreen()),
+          onTap: () => _closeAndRun(() => Get.to(() => WalletScreen())),
           borderRadius: BorderRadius.circular(14),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -649,7 +658,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: item.onTap,
+        onTap: () => _closeAndRun(item.onTap),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           child: Row(
@@ -702,7 +711,8 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
           Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: () => LogoutHelper.showLogoutDialog(context),
+              onTap: () => _closeAndRun(
+                  () => LogoutHelper.showLogoutDialog(Get.context ?? context)),
               borderRadius: BorderRadius.circular(12),
               child: Container(
                 width: double.infinity,
@@ -769,9 +779,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
           const SizedBox(height: 12),
           GestureDetector(
             behavior: HitTestBehavior.opaque,
-            onTap: () => Future.microtask(() {
-              navigatePushTo(context, ChangeLanguageScreen());
-            }),
+            onTap: () => _closeAndRun(() => Get.to(() => ChangeLanguageScreen())),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(

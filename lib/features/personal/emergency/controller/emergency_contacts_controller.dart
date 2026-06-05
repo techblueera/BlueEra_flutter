@@ -40,25 +40,25 @@ class EmergencyContactsController extends GetxController {
 
   Future<void> submit() async {
     if (!isValid.value) {
-      commonSnackBar(message: AppStrings.emergencyFillRequiredFields);
+      commonSnackBar(message: AppStrings.emergencyFillRequiredFields.tr);
       return;
     }
     try {
       isSaving.value = true;
       final body = {
         "name": nameController.text.trim(),
-        "mobileNumber": mobileController.text.trim(),
+        "contactNo": mobileController.text.trim(),
         "relationship": relationshipController.text.trim(),
       };
       final ResponseModel res = await _repo.submitEmergencyContact(body: body);
       if (res.isSuccess) {
-        commonSnackBar(message: AppStrings.emergencySavedContact);
+        commonSnackBar(message: AppStrings.emergencySavedContact.tr);
         Get.to(EmergencyPrivacyAlertsScreen());
       } else {
-        commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
+        commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong.tr);
       }
     } catch (e) {
-      commonSnackBar(message: AppStrings.somethingWentWrong);
+      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
     } finally {
       isSaving.value = false;
     }

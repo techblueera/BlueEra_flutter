@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/professionals_consultant/controller/professionals_certificates_controller.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -38,7 +39,7 @@ class ProfessionalPdfPreviewWidget extends StatelessWidget {
                   LocalAssets(imagePath: AppIconAssets.documentUploadIcon),
                   SizedBox(width: SizeConfig.size8),
                   CustomText(
-                    "Select PDF",
+                    AppStrings.proConsultSelectPdf.tr,
                     fontSize: SizeConfig.medium,
                     color: AppColors.secondaryTextColor,
                     fontWeight: FontWeight.w400,
@@ -73,14 +74,14 @@ class ProfessionalPdfPreviewWidget extends StatelessWidget {
             children: [
               Expanded(
                 child: CustomText(
-                  "File: ${controller.selectedFile.value!.path.split('/').last}",
+                  "${AppStrings.proConsultFileLabel.tr} ${controller.selectedFile.value!.path.split('/').last}",
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               TextButton.icon(
                 onPressed: controller.removeFile,
                 icon: const Icon(Icons.delete, color: Colors.red),
-                label: const CustomText("Remove", color: Colors.red),
+                label: CustomText(AppStrings.remove.tr, color: Colors.red),
               )
             ],
           ),
