@@ -80,7 +80,7 @@ class ChatSocketService {
       // Debug: log ALL ride-related events from backend at raw socket level
       _socket!.onAny((event, data) {
         // if (event.toString().startsWith('ride:')) {
-          log('[SOCKET_RAW] ⚡ ride event received → event=$event, data=$data');
+        //   log('[SOCKET_RAW] ⚡ ride event received → event=$event, data=$data');
         // }
       });
 

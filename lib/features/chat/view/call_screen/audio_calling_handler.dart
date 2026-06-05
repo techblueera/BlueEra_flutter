@@ -1057,20 +1057,7 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                             isActive: !controller.isCameraOn.value,
                             onTap: () => controller.toggleCamera(),
                           ),
-                        _ControlButton(
-                          icon: controller.isSpeakerOn.value
-                              ? Icons.volume_up_rounded
-                              : Icons.volume_up_outlined,
-                          label: 'Speaker',
-                          isActive: controller.isSpeakerOn.value,
-                          backgroundColor: controller.isSpeakerOn.value
-                              ? Colors.white
-                              : null,
-                          iconColor: controller.isSpeakerOn.value
-                              ? const Color(0xFF1F2C34)
-                              : Colors.white,
-                          onTap: () => controller.toggleSpeaker(),
-                        ),
+                        _buildAudioOutputButton(controller),
                         _ControlButton(
                           icon: controller.isMicOn.value
                               ? Icons.mic_rounded
@@ -1282,20 +1269,7 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                               ? () {}
                               : () => controller.switchCallType(),
                         ),
-                        _ControlButton(
-                          icon: controller.isSpeakerOn.value
-                              ? Icons.volume_up_rounded
-                              : Icons.volume_up_outlined,
-                          label: 'Speaker',
-                          isActive: controller.isSpeakerOn.value,
-                          backgroundColor: controller.isSpeakerOn.value
-                              ? Colors.white
-                              : null,
-                          iconColor: controller.isSpeakerOn.value
-                              ? const Color(0xFF1F2C34)
-                              : Colors.white,
-                          onTap: () => controller.toggleSpeaker(),
-                        ),
+                        _buildAudioOutputButton(controller),
                         _ControlButton(
                           icon: controller.isMicOn.value
                               ? Icons.mic_rounded
@@ -1858,19 +1832,7 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                       }
                     },
                   ),
-                  _ControlButton(
-                    icon: controller.isSpeakerOn.value
-                        ? Icons.volume_up_rounded
-                        : Icons.volume_up_outlined,
-                    label: 'Speaker',
-                    isActive: controller.isSpeakerOn.value,
-                    backgroundColor:
-                        controller.isSpeakerOn.value ? Colors.white : null,
-                    iconColor: controller.isSpeakerOn.value
-                        ? const Color(0xFF1F2C34)
-                        : Colors.white,
-                    onTap: () => controller.toggleSpeaker(),
-                  ),
+                  _buildAudioOutputButton(controller),
                   _ControlButton(
                     icon: controller.isMicOn.value
                         ? Icons.mic_rounded
@@ -1893,6 +1855,139 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                 ],
               );
             }),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ==================== AUDIO OUTPUT ROUTING ====================
+
+  IconData _audioRouteIcon(AudioRoute route) {
+    switch (route) {
+      case AudioRoute.speaker:
+        return Icons.volume_up_rounded;
+      case AudioRoute.earpiece:
+        return Icons.phone_in_talk_rounded;
+      case AudioRoute.bluetooth:
+        return Icons.bluetooth_audio_rounded;
+      case AudioRoute.wiredHeadset:
+        return Icons.headset_rounded;
+    }
+  }
+
+  /// Speaker / audio-output button for the call pill. When a Bluetooth (or
+  /// wired) headset is connected it opens the WhatsApp-style route picker;
+  /// otherwise it behaves as a plain speaker toggle. The icon and highlight
+  /// reflect the currently active route in real time.
+  Widget _buildAudioOutputButton(CallController controller) {
+    return Obx(() {
+      final route = controller.currentAudioRoute.value;
+      final hasPicker = controller.isBluetoothAvailable ||
+          controller.isWiredHeadsetAvailable;
+      // Highlight (white fill) whenever audio is off the earpiece.
+      final active = route != AudioRoute.earpiece;
+      return _ControlButton(
+        icon: _audioRouteIcon(route),
+        label: hasPicker ? 'Audio output' : 'Speaker',
+        isActive: active,
+        backgroundColor: active ? Colors.white : null,
+        iconColor: active ? const Color(0xFF1F2C34) : Colors.white,
+        onTap: () {
+          if (hasPicker) {
+            _showAudioOutputPicker(context, controller);
+          } else {
+            controller.toggleSpeaker();
+          }
+        },
+      );
+    });
+  }
+
+  /// WhatsApp-style bottom sheet listing the available audio outputs. Bluetooth
+  /// / wired rows only appear while such a device is connected, and the list
+  /// updates live (Obx) if a device connects or disconnects while it is open.
+  void _showAudioOutputPicker(BuildContext context, CallController controller) {
+    // Display order matches native WhatsApp: Speaker, Earpiece, then accessories.
+    const order = [
+      AudioRoute.speaker,
+      AudioRoute.earpiece,
+      AudioRoute.bluetooth,
+      AudioRoute.wiredHeadset,
+    ];
+    Get.bottomSheet(
+      Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFF1F2C34),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                margin: const EdgeInsets.only(top: 10, bottom: 6),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.white30,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const Padding(
+                padding: EdgeInsets.fromLTRB(20, 6, 20, 10),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Audio output',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+              Obx(() {
+                final available = controller.availableAudioRoutes;
+                final current = controller.currentAudioRoute.value;
+                final rows = order
+                    .where((r) => available.contains(r))
+                    .map((route) {
+                  final selected = route == current;
+                  return ListTile(
+                    leading: Icon(
+                      _audioRouteIcon(route),
+                      color: selected
+                          ? const Color(0xFF25D366)
+                          : Colors.white,
+                    ),
+                    title: Text(
+                      route.label,
+                      style: TextStyle(
+                        color: selected
+                            ? const Color(0xFF25D366)
+                            : Colors.white,
+                        fontSize: 15,
+                        fontWeight:
+                            selected ? FontWeight.w600 : FontWeight.w400,
+                      ),
+                    ),
+                    trailing: selected
+                        ? const Icon(Icons.check_rounded,
+                            color: Color(0xFF25D366))
+                        : null,
+                    onTap: () {
+                      Get.back();
+                      controller.selectAudioRoute(route);
+                    },
+                  );
+                }).toList();
+                return Column(mainAxisSize: MainAxisSize.min, children: rows);
+              }),
+              const SizedBox(height: 8),
+            ],
           ),
         ),
       ),
@@ -1925,34 +2020,6 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
                 ),
               ),
               const SizedBox(height: 8),
-              // Audio output — route the call to a connected Bluetooth headset.
-              Obx(() {
-                final btOn = controller.isBluetoothOn.value;
-                return ListTile(
-                  leading: Icon(
-                    btOn
-                        ? Icons.bluetooth_audio_rounded
-                        : Icons.bluetooth_rounded,
-                    color: btOn ? const Color(0xFF25D366) : Colors.white,
-                  ),
-                  title: Text(
-                    btOn ? 'Bluetooth (on)' : 'Bluetooth',
-                    style: TextStyle(
-                      color: btOn ? const Color(0xFF25D366) : Colors.white,
-                      fontSize: 14,
-                    ),
-                  ),
-                  trailing: Switch(
-                    value: btOn,
-                    activeThumbColor: const Color(0xFF25D366),
-                    onChanged: (_) => controller.toggleBluetooth(),
-                  ),
-                  onTap: () {
-                    Get.back();
-                    controller.toggleBluetooth();
-                  },
-                );
-              }),
               if (isConnected)
                 ListTile(
                   leading: Icon(

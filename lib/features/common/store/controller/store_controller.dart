@@ -192,6 +192,7 @@ class StoreController extends GetxController{
         ApiKeys.type: typeOfBusiness,
         ApiKeys.radius: kmRadius1500
       };
+      // if(businessCategoryId!=null) queryParams['categoryOfBusiness'] = businessCategoryId;
       if(businessCategoryId!=null) queryParams[ApiKeys.category_id] = businessCategoryId;
 
       final response = await StoreRepo().getSpecificStores(

@@ -47,6 +47,27 @@ enum CallStatus {
   ended
 }
 
+/// Audio output destinations a call can be routed to, WhatsApp-style.
+/// `bluetooth` and `wiredHeadset` only appear in [CallController.availableAudioRoutes]
+/// while such a device is physically connected; the list updates live during a call.
+enum AudioRoute { earpiece, speaker, bluetooth, wiredHeadset }
+
+extension AudioRouteUi on AudioRoute {
+  /// Label shown in the audio-output picker.
+  String get label {
+    switch (this) {
+      case AudioRoute.earpiece:
+        return 'Earpiece';
+      case AudioRoute.speaker:
+        return 'Speaker';
+      case AudioRoute.bluetooth:
+        return 'Bluetooth';
+      case AudioRoute.wiredHeadset:
+        return 'Headset';
+    }
+  }
+}
+
 class CallController extends GetxController {
   final CallRepo _callRepo = CallRepo();
   late ChatSocketService _socket;
@@ -91,6 +112,28 @@ class CallController extends GetxController {
   var isBluetoothOn = false.obs;
   var isFrontCamera = true.obs;
 
+  // ── Audio routing (WhatsApp-style) ──────────────────────────────────────
+  // The currently active output sink. Source of truth; isSpeakerOn/isBluetoothOn
+  // are kept in sync with it for backward compatibility with existing UI.
+  final currentAudioRoute = AudioRoute.earpiece.obs;
+  // Output routes the user can pick right now. Earpiece + Speaker are always
+  // present on a phone; Bluetooth / wired Headset are added/removed live as the
+  // device connects or disconnects (driven by `ondevicechange`).
+  final availableAudioRoutes =
+      <AudioRoute>[AudioRoute.earpiece, AudioRoute.speaker].obs;
+
+  bool get isBluetoothAvailable =>
+      availableAudioRoutes.contains(AudioRoute.bluetooth);
+  bool get isWiredHeadsetAvailable =>
+      availableAudioRoutes.contains(AudioRoute.wiredHeadset);
+
+  // True once the user has explicitly tapped Speaker, so auto-routing (e.g. a
+  // Bluetooth device connecting mid-call) does not override their choice.
+  bool _userPickedSpeaker = false;
+  // Guards the `ondevicechange` subscription so we attach/detach exactly once
+  // per call and never leak it across calls.
+  bool _audioMonitoringActive = false;
+
   // Remote user media state (1-to-1)
   var remoteAudioEnabled = true.obs;
   var remoteVideoEnabled = true.obs;
@@ -131,7 +174,7 @@ class CallController extends GetxController {
       _outgoingRingbackPlayer.setVolume(0.3);
       _outgoingRingbackPlayer.play(AssetSource('sound/old_phone_ring.mp3'));
     } catch (e) {
-      if (kDebugMode) print('startOutgoingRingback error: $e');
+      // if (kDebugMode) print('startOutgoingRingback error: $e');
     }
   }
 
@@ -302,28 +345,28 @@ class CallController extends GetxController {
 
     // Call accepted by receiver
     _socket.listenEvent('call:accepted', (data) {
-      print('[CALL_DEBUG] SOCKET EVENT → call:accepted, data=$data');
+      // print('[CALL_DEBUG] SOCKET EVENT → call:accepted, data=$data');
       if (_disposed) return;
       _handleCallAccepted(data);
     });
 
     // Call declined by receiver
     _socket.listenEvent('call:declined', (data) {
-      print('[CALL_DEBUG] SOCKET EVENT → call:declined');
+      // print('[CALL_DEBUG] SOCKET EVENT → call:declined');
       if (_disposed) return;
       _handleCallDeclined(data);
     });
 
     // Call cancelled by caller
     _socket.listenEvent('call:cancelled', (data) {
-      print('[CALL_DEBUG] SOCKET EVENT → call:cancelled');
+      // print('[CALL_DEBUG] SOCKET EVENT → call:cancelled');
       if (_disposed) return;
       _handleCallCancelled(data);
     });
 
     // Call ended
     _socket.listenEvent('call:ended', (data) {
-      print('[CALL_DEBUG] SOCKET EVENT → call:ended');
+      // print('[CALL_DEBUG] SOCKET EVENT → call:ended');
       if (_disposed) return;
       _handleCallEnded(data);
     });
@@ -339,7 +382,7 @@ class CallController extends GetxController {
 
     // Answered elsewhere
     _socket.listenEvent('call:answered-elsewhere', (data) {
-      print('[CALL_DEBUG] SOCKET EVENT → call:answered-elsewhere');
+      // print('[CALL_DEBUG] SOCKET EVENT → call:answered-elsewhere');
       if (_disposed) return;
       _handleAnsweredElsewhere(data);
     });
@@ -439,8 +482,8 @@ class CallController extends GetxController {
         return false;
       }
     } catch (e) {
-      if (kDebugMode)
-        print('Permission request error (may already be in progress): $e');
+      // if (kDebugMode)
+        // print('Permission request error (may already be in progress): $e');
     }
 
     final params = <String, dynamic>{
@@ -459,18 +502,18 @@ class CallController extends GetxController {
     // ringing timeout and we get an immediate `call:ended` back (observed:
     // callee in foreground only gets a "missed call" toast).
     if (!_socket.isConnected) {
-      print('[CALL_DEBUG] initiateCall → socket disconnected, reconnecting before API call...');
+      // print('[CALL_DEBUG] initiateCall → socket disconnected, reconnecting before API call...');
       _socket.connectToSocket();
       await _waitForSocketConnection();
-      print('[CALL_DEBUG] initiateCall → socket wait done, isConnected=${_socket.isConnected}');
+      // print('[CALL_DEBUG] initiateCall → socket wait done, isConnected=${_socket.isConnected}');
     }
 
-    print('[CALL_DEBUG] initiateCall → API call starting, type=$type');
+    // print('[CALL_DEBUG] initiateCall → API call starting, type=$type');
     ResponseModel response = await _callRepo.initiateCall(params);
 
     if (!response.isSuccess) {
       final statusCode = response.response?.statusCode;
-      print('[CALL_DEBUG] initiateCall → API FAILED, statusCode=$statusCode');
+      // print('[CALL_DEBUG] initiateCall → API FAILED, statusCode=$statusCode');
       // Surface a terminal ringing state locally — the server cannot emit
       // `call:ringing` for a request that never reached the call pipeline.
       // The outgoing screen (if shown) reads this and auto-dismisses.
@@ -507,10 +550,10 @@ class CallController extends GetxController {
     // (which also silences the ringback) in every other teardown path.
     startOutgoingRingback();
 
-    print('[CALL_DEBUG] initiateCall → API SUCCESS, callId=${callId.value}, roomId=${roomId.value}');
+    // print('[CALL_DEBUG] initiateCall → API SUCCESS, callId=${callId.value}, roomId=${roomId.value}');
 
     _iceConfig = IceServerConfig.fromJson(data['ice_servers'] ?? {});
-    print('[CALL_DEBUG] initiateCall → ICE servers parsed, socket.isConnected=${_socket.isConnected}');
+    // print('[CALL_DEBUG] initiateCall → ICE servers parsed, socket.isConnected=${_socket.isConnected}');
 
     // Re-check socket (may have dropped during the API round-trip) — the
     // server must see `call:join-room` before its ringing window expires,
@@ -522,7 +565,7 @@ class CallController extends GetxController {
 
     // Join socket room
     _socket.emitEvent('call:join-room', {'room_id': roomId.value});
-    print('[CALL_DEBUG] initiateCall → emitted call:join-room, isConnected=${_socket.isConnected}');
+    // print('[CALL_DEBUG] initiateCall → emitted call:join-room, isConnected=${_socket.isConnected}');
 
     // Setup local media & peer connection (don't create offer yet)
     _mediaReadyCompleter = Completer<void>();
@@ -530,9 +573,9 @@ class CallController extends GetxController {
     if (!_mediaReadyCompleter!.isCompleted) {
       _mediaReadyCompleter!.complete();
     }
-    print('[CALL_DEBUG] initiateCall → local media ready');
+    // print('[CALL_DEBUG] initiateCall → local media ready');
     await _createPeerConnection(otherUserId ?? '');
-    print('[CALL_DEBUG] initiateCall → peer connection created for $otherUserId');
+    // print('[CALL_DEBUG] initiateCall → peer connection created for $otherUserId');
     _remoteUserId = otherUserId;
 
     // Start 30-second ring timeout
@@ -551,14 +594,14 @@ class CallController extends GetxController {
   // ==================== INCOMING CALL HANDLING ====================
 
   void _handleIncomingCall(dynamic data) {
-    print('[FARE_CALL_DEBUG] _handleIncomingCall → currentStatus=${callStatus.value}, isCallActivityActive=$isCallActivityActive');
-    log('[FARE_CALL_DEBUG] _handleIncomingCall → raw data=$data');
+    // print('[FARE_CALL_DEBUG] _handleIncomingCall → currentStatus=${callStatus.value}, isCallActivityActive=$isCallActivityActive');
+    // log('[FARE_CALL_DEBUG] _handleIncomingCall → raw data=$data');
     if (callStatus.value != CallStatus.idle) {
-      print('[FARE_CALL_DEBUG] _handleIncomingCall → SKIPPED (not idle, status=${callStatus.value})');
+      // print('[FARE_CALL_DEBUG] _handleIncomingCall → SKIPPED (not idle, status=${callStatus.value})');
       return; // already in a call
     }
     if (isCallActivityActive) {
-      print('[FARE_CALL_DEBUG] _handleIncomingCall → SKIPPED (CallActivity active)');
+      // print('[FARE_CALL_DEBUG] _handleIncomingCall → SKIPPED (CallActivity active)');
       return; // call handled by separate task
     }
 
@@ -855,7 +898,7 @@ class CallController extends GetxController {
     }
 
     // --- CallActivity engine (or iOS): handle WebRTC here ---
-    print('[CALL_DEBUG] acceptCall → handling WebRTC in-process (iOS or CallActivity)');
+    // print('[CALL_DEBUG] acceptCall → handling WebRTC in-process (iOS or CallActivity)');
     // ice_servers can be a Map {'iceServers': [...]} or a raw List [...]
     if (iceServersJson is List) {
       _iceConfig = IceServerConfig(
@@ -886,12 +929,12 @@ class CallController extends GetxController {
 
     // Ensure socket is connected and wait for it (killed-state accept may
     // start before socket is ready — without waiting, emitEvent is lost)
-    print('[CALL_DEBUG] acceptCall → socket.isConnected=${_socket.isConnected}');
+    // print('[CALL_DEBUG] acceptCall → socket.isConnected=${_socket.isConnected}');
     if (!_socket.isConnected) {
-      print('[CALL_DEBUG] acceptCall → socket disconnected, reconnecting...');
+      // print('[CALL_DEBUG] acceptCall → socket disconnected, reconnecting...');
       _socket.connectToSocket();
       await _waitForSocketConnection();
-      print('[CALL_DEBUG] acceptCall → socket wait done, isConnected=${_socket.isConnected}');
+      // print('[CALL_DEBUG] acceptCall → socket wait done, isConnected=${_socket.isConnected}');
     }
 
     // Show ongoing notification immediately to keep app in foreground
@@ -899,7 +942,7 @@ class CallController extends GetxController {
 
     // Join socket room
     _socket.emitEvent('call:join-room', {'room_id': savedRoomId});
-    print('[CALL_DEBUG] acceptCall → emitted call:join-room, roomId=$savedRoomId');
+    // print('[CALL_DEBUG] acceptCall → emitted call:join-room, roomId=$savedRoomId');
 
     // Setup local media — signal when ready so offer handler can wait
     try {
@@ -909,28 +952,28 @@ class CallController extends GetxController {
       if (!_mediaReadyCompleter!.isCompleted) {
         _mediaReadyCompleter!.complete();
       }
-      print('[FARE_CALL_DEBUG] acceptCall → local media ready, localStream=${localStream != null ? "EXISTS (tracks=${localStream!.getTracks().length})" : "NULL"}');
+      // print('[FARE_CALL_DEBUG] acceptCall → local media ready, localStream=${localStream != null ? "EXISTS (tracks=${localStream!.getTracks().length})" : "NULL"}');
 
       // If we received an SDP offer while ringing/accepting, process it now
       final offerToProcess = _pendingOffer ?? savedPendingOffer;
-      print('[CALL_DEBUG] acceptCall → pendingOffer=${offerToProcess != null ? "YES" : "NO"}, remoteUserId=$savedRemoteUserId');
-      print('[FARE_CALL_DEBUG] acceptCall → _pendingOffer=${_pendingOffer != null ? "YES" : "NO"}, savedPendingOffer=${savedPendingOffer != null ? "YES" : "NO"}');
-      print('[FARE_CALL_DEBUG] acceptCall → existing peerConnections=${peerConnections.keys.toList()}');
+      // print('[CALL_DEBUG] acceptCall → pendingOffer=${offerToProcess != null ? "YES" : "NO"}, remoteUserId=$savedRemoteUserId');
+      // print('[FARE_CALL_DEBUG] acceptCall → _pendingOffer=${_pendingOffer != null ? "YES" : "NO"}, savedPendingOffer=${savedPendingOffer != null ? "YES" : "NO"}');
+      // print('[FARE_CALL_DEBUG] acceptCall → existing peerConnections=${peerConnections.keys.toList()}');
       if (offerToProcess != null && savedRemoteUserId != null) {
-        print('[CALL_DEBUG] acceptCall → processing pending offer, creating answer...');
+        // print('[CALL_DEBUG] acceptCall → processing pending offer, creating answer...');
         final pc = await _createPeerConnection(savedRemoteUserId);
         final sdp = RTCSessionDescription(
           offerToProcess['sdp'],
           offerToProcess['type'],
         );
         await pc.setRemoteDescription(sdp);
-        print('[CALL_DEBUG] acceptCall → remote description set');
+        // print('[CALL_DEBUG] acceptCall → remote description set');
         await _flushPendingCandidates(savedRemoteUserId);
-        print('[CALL_DEBUG] acceptCall → pending ICE candidates flushed');
+        // print('[CALL_DEBUG] acceptCall → pending ICE candidates flushed');
 
         final answer = await pc.createAnswer();
         await pc.setLocalDescription(answer);
-        print('[CALL_DEBUG] acceptCall → answer created, emitting call:answer');
+        // print('[CALL_DEBUG] acceptCall → answer created, emitting call:answer');
         _socket.emitEvent('call:answer', {
           'room_id': savedRoomId,
           'target_user_id': savedRemoteUserId,
@@ -940,7 +983,7 @@ class CallController extends GetxController {
           'call_id': callId.value,
         });
         _pendingOffer = null;
-        print('[CALL_DEBUG] acceptCall → call:answer emitted to $savedRemoteUserId');
+        // print('[CALL_DEBUG] acceptCall → call:answer emitted to $savedRemoteUserId');
       } else if (savedRemoteUserId != null) {
         // No pending offer yet — send our own. Glare is resolved by the
         // caller's `_handleRemoteOffer` re-sending its own offer back to us,
@@ -952,7 +995,7 @@ class CallController extends GetxController {
           // The caller's offer may arrive before the rider joins the room and
           // get lost — sending our own offer ensures the WebRTC handshake
           // completes. Glare is handled by _handleRemoteOffer (callee yields).
-          print('[FARE_CALL] acceptCall → no pending offer, sending our own offer (fare-call, glare-safe)');
+          // print('[FARE_CALL] acceptCall → no pending offer, sending our own offer (fare-call, glare-safe)');
           final pc = await _createPeerConnection(savedRemoteUserId);
           final offer = await pc.createOffer();
           await pc.setLocalDescription(offer);
@@ -961,9 +1004,9 @@ class CallController extends GetxController {
             'target_user_id': savedRemoteUserId,
             'sdp': {'sdp': offer.sdp, 'type': offer.type},
           });
-          print('[FARE_CALL] acceptCall → call:offer emitted to $savedRemoteUserId (rider-initiated)');
+          // print('[FARE_CALL] acceptCall → call:offer emitted to $savedRemoteUserId (rider-initiated)');
         } else {
-          print('[CALL_DEBUG] acceptCall → NO pending offer, sending our own offer (glare-safe)');
+          // print('[CALL_DEBUG] acceptCall → NO pending offer, sending our own offer (glare-safe)');
           final pc = await _createPeerConnection(savedRemoteUserId);
           final offer = await pc.createOffer();
           await pc.setLocalDescription(offer);
@@ -972,10 +1015,10 @@ class CallController extends GetxController {
             'target_user_id': savedRemoteUserId,
             'sdp': {'sdp': offer.sdp, 'type': offer.type},
           });
-          print('[CALL_DEBUG] acceptCall → call:offer emitted to $savedRemoteUserId (receiver-initiated)');
+          // print('[CALL_DEBUG] acceptCall → call:offer emitted to $savedRemoteUserId (receiver-initiated)');
         }
       } else {
-        print('[CALL_DEBUG] acceptCall → WARNING: no remoteUserId, cannot create WebRTC connection');
+        // print('[CALL_DEBUG] acceptCall → WARNING: no remoteUserId, cannot create WebRTC connection');
       }
     } catch (e, stack) {
       print('acceptCall WebRTC error: $e');
@@ -1537,8 +1580,8 @@ class CallController extends GetxController {
   void _handleRemoteOffer(dynamic data) async {
     final fromUserId = data['from_user_id'] ?? '';
     _remoteUserId = fromUserId;
-    print('[CALL_DEBUG] _handleRemoteOffer → from=$fromUserId, currentStatus=${callStatus.value}');
-    print('[FARE_CALL_DEBUG] _handleRemoteOffer → isFareCall=${isFareCall.value}, isCaller=${isCaller.value}, roomId=${roomId.value}');
+    // print('[CALL_DEBUG] _handleRemoteOffer → from=$fromUserId, currentStatus=${callStatus.value}');
+    // print('[FARE_CALL_DEBUG] _handleRemoteOffer → isFareCall=${isFareCall.value}, isCaller=${isCaller.value}, roomId=${roomId.value}');
 
     // If still ringing or in the middle of accepting, store the offer
     if (callStatus.value == CallStatus.ringing ||
@@ -1551,25 +1594,25 @@ class CallController extends GetxController {
     // Only process if we're in connecting/connected state
     if (callStatus.value != CallStatus.connecting &&
         callStatus.value != CallStatus.connected) {
-      print('[CALL_DEBUG] _handleRemoteOffer → SKIPPED (status=${callStatus.value})');
-      print('[FARE_CALL_DEBUG] _handleRemoteOffer → ⚠️ OFFER DROPPED! This may cause fare-call connection failure');
+      // print('[CALL_DEBUG] _handleRemoteOffer → SKIPPED (status=${callStatus.value})');
+      // print('[FARE_CALL_DEBUG] _handleRemoteOffer → ⚠️ OFFER DROPPED! This may cause fare-call connection failure');
       return;
     }
 
     // Wait for local media to be ready before creating peer connection
     // (offer can arrive while _setupLocalMedia is still running)
     if (_mediaReadyCompleter != null && !_mediaReadyCompleter!.isCompleted) {
-      print('[FARE_CALL_DEBUG] _handleRemoteOffer → waiting for media to be ready...');
+      // print('[FARE_CALL_DEBUG] _handleRemoteOffer → waiting for media to be ready...');
       try {
         await _mediaReadyCompleter!.future;
-        print('[FARE_CALL_DEBUG] _handleRemoteOffer → media ready, proceeding');
+        // print('[FARE_CALL_DEBUG] _handleRemoteOffer → media ready, proceeding');
       } catch (e) {
-        print('[FARE_CALL_DEBUG] _handleRemoteOffer → media setup failed: $e');
+        // print('[FARE_CALL_DEBUG] _handleRemoteOffer → media setup failed: $e');
         return;
       }
     }
 
-    print('[FARE_CALL_DEBUG] _handleRemoteOffer → existing peerConnections=${peerConnections.keys.toList()}, localStream=${localStream != null ? "EXISTS" : "NULL"}');
+    // print('[FARE_CALL_DEBUG] _handleRemoteOffer → existing peerConnections=${peerConnections.keys.toList()}, localStream=${localStream != null ? "EXISTS" : "NULL"}');
     var pc =
         peerConnections[fromUserId] ?? await _createPeerConnection(fromUserId);
 
@@ -1579,7 +1622,7 @@ class CallController extends GetxController {
     // we have a conflict. Android native WebRTC does NOT support rollback
     // (setLocalDescription with null SDP causes a native crash).
     // Use caller/callee rule: caller keeps their offer, callee yields.
-    print('[FARE_CALL_DEBUG] _handleRemoteOffer → signalingState=${pc.signalingState} before setRemoteDescription');
+    // print('[FARE_CALL_DEBUG] _handleRemoteOffer → signalingState=${pc.signalingState} before setRemoteDescription');
     if (pc.signalingState ==
         RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
       if (isCaller.value) {
@@ -1589,7 +1632,7 @@ class CallController extends GetxController {
         // we emitted). Without re-sending, both sides deadlock waiting for
         // an answer that never comes — call stays in `connecting` until
         // the 30s timeout fires.
-        print('[FARE_CALL_DEBUG] _handleRemoteOffer → OFFER GLARE: we are caller, ignoring remote offer and re-sending ours');
+        // print('[FARE_CALL_DEBUG] _handleRemoteOffer → OFFER GLARE: we are caller, ignoring remote offer and re-sending ours');
         try {
           final localDesc = await pc.getLocalDescription();
           if (localDesc != null) {
@@ -1598,37 +1641,37 @@ class CallController extends GetxController {
               'target_user_id': fromUserId,
               'sdp': {'sdp': localDesc.sdp, 'type': localDesc.type},
             });
-            print('[FARE_CALL_DEBUG] _handleRemoteOffer → re-sent our offer to $fromUserId');
+            // print('[FARE_CALL_DEBUG] _handleRemoteOffer → re-sent our offer to $fromUserId');
           }
         } catch (e) {
-          print('[FARE_CALL_DEBUG] _handleRemoteOffer → re-send error: $e');
+          // print('[FARE_CALL_DEBUG] _handleRemoteOffer → re-send error: $e');
         }
         return;
       }
       // We're the callee — drop our offer by closing and recreating the peer connection.
-      print('[FARE_CALL_DEBUG] _handleRemoteOffer → OFFER GLARE: we are callee, recreating peer to accept remote offer');
+      // print('[FARE_CALL_DEBUG] _handleRemoteOffer → OFFER GLARE: we are callee, recreating peer to accept remote offer');
       await _closePeerConnection(fromUserId);
       pc = await _createPeerConnection(fromUserId);
     }
 
     try {
       await pc.setRemoteDescription(sdp);
-      print('[FARE_CALL_DEBUG] _handleRemoteOffer → remote description SET successfully');
+      // print('[FARE_CALL_DEBUG] _handleRemoteOffer → remote description SET successfully');
     } catch (e) {
-      print('[FARE_CALL_DEBUG] _handleRemoteOffer → ❌ setRemoteDescription FAILED: $e');
+      // print('[FARE_CALL_DEBUG] _handleRemoteOffer → ❌ setRemoteDescription FAILED: $e');
       return;
     }
 
     // Flush buffered ICE candidates
     final pendingCount = _pendingCandidates[fromUserId]?.length ?? 0;
-    print('[FARE_CALL_DEBUG] _handleRemoteOffer → flushing $pendingCount pending ICE candidates');
+    // print('[FARE_CALL_DEBUG] _handleRemoteOffer → flushing $pendingCount pending ICE candidates');
     await _flushPendingCandidates(fromUserId);
 
     // Create and send answer
     try {
       final answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
-      print('[FARE_CALL_DEBUG] _handleRemoteOffer → answer created, SDP length=${answer.sdp?.length}');
+      // print('[FARE_CALL_DEBUG] _handleRemoteOffer → answer created, SDP length=${answer.sdp?.length}');
 
       _socket.emitEvent('call:answer', {
         'room_id': roomId.value,
@@ -1638,9 +1681,9 @@ class CallController extends GetxController {
         // `call:ringing`. Without it, the caller stays on `connecting`.
         'call_id': callId.value,
       });
-      print('[FARE_CALL_DEBUG] _handleRemoteOffer → answer emitted to $fromUserId');
+      // print('[FARE_CALL_DEBUG] _handleRemoteOffer → answer emitted to $fromUserId');
     } catch (e) {
-      print('[FARE_CALL_DEBUG] _handleRemoteOffer → ❌ ANSWER CREATION FAILED: $e');
+      // print('[FARE_CALL_DEBUG] _handleRemoteOffer → ❌ ANSWER CREATION FAILED: $e');
     }
   }
 
@@ -1685,12 +1728,12 @@ class CallController extends GetxController {
     final fromUserId = data['from_user_id'] ?? '';
     final candidateMap = data['candidate'];
     if (candidateMap == null) {
-      print('[FARE_CALL_DEBUG] _handleRemoteIceCandidate → candidateMap is NULL, skipping');
+      // print('[FARE_CALL_DEBUG] _handleRemoteIceCandidate → candidateMap is NULL, skipping');
       return;
     }
 
     final candidateStr = candidateMap['candidate'] ?? '';
-    print('[FARE_CALL_DEBUG] _handleRemoteIceCandidate → from=$fromUserId, candidate=${candidateStr.toString().substring(0, candidateStr.toString().length > 60 ? 60 : candidateStr.toString().length)}...');
+    // print('[FARE_CALL_DEBUG] _handleRemoteIceCandidate → from=$fromUserId, candidate=${candidateStr.toString().substring(0, candidateStr.toString().length > 60 ? 60 : candidateStr.toString().length)}...');
 
     final candidate = RTCIceCandidate(
       candidateMap['candidate'],
@@ -1700,19 +1743,19 @@ class CallController extends GetxController {
 
     final pc = peerConnections[fromUserId];
     if (pc != null) {
-      print('[FARE_CALL_DEBUG] _handleRemoteIceCandidate → pc found, signalingState=${pc.signalingState}, connectionState=${pc.connectionState}');
+      // print('[FARE_CALL_DEBUG] _handleRemoteIceCandidate → pc found, signalingState=${pc.signalingState}, connectionState=${pc.connectionState}');
       try {
         await pc.addCandidate(candidate);
-        print('[FARE_CALL_DEBUG] _handleRemoteIceCandidate → candidate added successfully');
+        // print('[FARE_CALL_DEBUG] _handleRemoteIceCandidate → candidate added successfully');
       } catch (e) {
-        print('[FARE_CALL_DEBUG] _handleRemoteIceCandidate → addCandidate failed ($e), buffering. Buffered count=${(_pendingCandidates[fromUserId]?.length ?? 0) + 1}');
+        // print('[FARE_CALL_DEBUG] _handleRemoteIceCandidate → addCandidate failed ($e), buffering. Buffered count=${(_pendingCandidates[fromUserId]?.length ?? 0) + 1}');
         // Buffer until remote description is set
         _pendingCandidates.putIfAbsent(fromUserId, () => []);
         _pendingCandidates[fromUserId]!.add(candidate);
         return;
       }
     } else {
-      print('[FARE_CALL_DEBUG] _handleRemoteIceCandidate → NO peer connection for $fromUserId, buffering. Available peers=${peerConnections.keys.toList()}');
+      // print('[FARE_CALL_DEBUG] _handleRemoteIceCandidate → NO peer connection for $fromUserId, buffering. Available peers=${peerConnections.keys.toList()}');
       // Buffer until remote description is set
       _pendingCandidates.putIfAbsent(fromUserId, () => []);
       _pendingCandidates[fromUserId]!.add(candidate);
@@ -1884,14 +1927,20 @@ class CallController extends GetxController {
     if (isVideo) {
       // Enable local video - add video track if not present
       _enableLocalVideo();
-      isSpeakerOn.value = true;
-      _setSpeakerphone(true);
+      // Switching to video moves to speaker — unless a headset is connected,
+      // in which case keep audio on that device (native behaviour).
+      if (!isBluetoothAvailable && !isWiredHeadsetAvailable) {
+        selectAudioRoute(AudioRoute.speaker);
+      }
     } else {
       // Disable camera
       localStream?.getVideoTracks().forEach((track) => track.enabled = false);
       isCameraOn.value = false;
-      isSpeakerOn.value = false;
-      _setSpeakerphone(false);
+      // Drop back to the earpiece on audio, unless a headset is in use.
+      if (currentAudioRoute.value == AudioRoute.speaker) {
+        selectAudioRoute(
+            isBluetoothAvailable ? AudioRoute.bluetooth : AudioRoute.earpiece);
+      }
     }
   }
 
@@ -2007,14 +2056,10 @@ class CallController extends GetxController {
       rethrow;
     }
 
-    // Speaker defaults
-    if (!isVideo) {
-      isSpeakerOn.value = false;
-      _setSpeakerphone(false);
-    } else {
-      isSpeakerOn.value = true;
-      _setSpeakerphone(true);
-    }
+    // Start live audio-device monitoring and apply the initial route
+    // (prefers a connected Bluetooth/wired headset, else speaker for video /
+    // earpiece for voice — same defaults as before).
+    await _startAudioRouteMonitoring(isVideo: isVideo);
   }
 
   Future<RTCPeerConnection> _createPeerConnection(String peerId) async {
@@ -2164,71 +2209,246 @@ class CallController extends GetxController {
     isFrontCamera.value = !isFrontCamera.value;
   }
 
+  /// Speaker button (round control in the call pill). Toggles between Speaker
+  /// and the "natural" sink — a connected Bluetooth headset if there is one,
+  /// otherwise the earpiece. Kept for the existing single-button UI.
   void toggleSpeaker() {
-    isSpeakerOn.value = !isSpeakerOn.value;
-    // Speaker and Bluetooth are different sinks — selecting speaker (or
-    // dropping back to the earpiece) ends any Bluetooth routing.
-    isBluetoothOn.value = false;
-    _setSpeakerphone(isSpeakerOn.value);
+    if (currentAudioRoute.value == AudioRoute.speaker) {
+      selectAudioRoute(
+          isBluetoothAvailable ? AudioRoute.bluetooth : AudioRoute.earpiece);
+    } else {
+      selectAudioRoute(AudioRoute.speaker);
+    }
   }
 
-  /// Route call audio to a connected Bluetooth headset. Tapping again falls
-  /// back to the earpiece. If no Bluetooth device is connected the platform
-  /// keeps the earpiece, so we reset the flag to keep the UI honest.
+  /// Bluetooth toggle (legacy entry point, e.g. the "More" sheet switch).
+  /// Routes to Bluetooth when available, else falls back to the earpiece.
   Future<void> toggleBluetooth() async {
-    final enable = !isBluetoothOn.value;
-    isBluetoothOn.value = enable;
-    if (enable) {
-      // Bluetooth replaces speaker output.
-      isSpeakerOn.value = false;
+    if (currentAudioRoute.value == AudioRoute.bluetooth) {
+      await selectAudioRoute(AudioRoute.earpiece);
+    } else if (isBluetoothAvailable) {
+      await selectAudioRoute(AudioRoute.bluetooth);
+    } else {
+      // No Bluetooth device connected — keep the UI honest.
+      isBluetoothOn.value = false;
     }
+  }
+
+  /// Route active-call audio to [route] and reflect it in the reactive state.
+  /// Works on both Android (Twilio AudioSwitch via `selectAudioOutput`) and iOS
+  /// (AVAudioSession override + category options). Safe to call any time during
+  /// a call; ignored for routes that aren't currently available.
+  Future<void> selectAudioRoute(AudioRoute route) async {
+    // Don't let callers pick a device that isn't plugged in.
+    if (!availableAudioRoutes.contains(route)) {
+      if ((route == AudioRoute.bluetooth && !isBluetoothAvailable) ||
+          (route == AudioRoute.wiredHeadset && !isWiredHeadsetAvailable)) {
+        return;
+      }
+    }
+
+    currentAudioRoute.value = route;
+    _userPickedSpeaker = route == AudioRoute.speaker;
+    // Keep legacy flags in sync so existing UI bindings stay correct.
+    isSpeakerOn.value = route == AudioRoute.speaker;
+    isBluetoothOn.value = route == AudioRoute.bluetooth;
+
     try {
-      if (enable) {
-        if (Platform.isAndroid) {
-          // Prefers a Bluetooth SCO device when one is available, otherwise
-          // keeps the earpiece (speakerphone stays off).
-          await Helper.setSpeakerphoneOnButPreferBluetooth();
-        } else if (Platform.isIOS) {
-          // Clearing the speaker override lets the audio session route to a
-          // connected Bluetooth device (allowed via the options below).
-          await Helper.setSpeakerphoneOn(false);
-          await Helper.setAppleAudioConfiguration(AppleAudioConfiguration(
-            appleAudioCategory: AppleAudioCategory.playAndRecord,
-            appleAudioCategoryOptions: {
-              AppleAudioCategoryOption.allowBluetooth,
-              AppleAudioCategoryOption.allowBluetoothA2DP,
-            },
-            appleAudioMode: AppleAudioMode.voiceChat,
-          ));
+      if (Platform.isAndroid) {
+        // AudioSwitch routes by type name: bluetooth | wired-headset | speaker | earpiece.
+        switch (route) {
+          case AudioRoute.speaker:
+            await Helper.selectAudioOutput('speaker');
+            break;
+          case AudioRoute.earpiece:
+            await Helper.selectAudioOutput('earpiece');
+            break;
+          case AudioRoute.bluetooth:
+            await Helper.selectAudioOutput('bluetooth');
+            break;
+          case AudioRoute.wiredHeadset:
+            await Helper.selectAudioOutput('wired-headset');
+            break;
         }
-      } else {
-        // Back to the earpiece.
-        _setSpeakerphone(false);
+      } else if (Platform.isIOS) {
+        await _applyIosRoute(route);
       }
     } catch (e) {
-      if (kDebugMode) print('Failed to toggle bluetooth audio: $e');
+      if (kDebugMode) print('selectAudioRoute($route) failed: $e');
     }
   }
 
-  void _setSpeakerphone(bool enabled) {
-    try {
-      Helper.setSpeakerphoneOn(enabled);
-      // On iOS, also configure the audio session for voice chat mode
-      // so earpiece/speaker routing works correctly during calls.
-      if (Platform.isIOS) {
-        Helper.setAppleAudioConfiguration(AppleAudioConfiguration(
+  /// iOS routing. The AVAudioSession picks the physical port; we only steer it
+  /// via the speaker override and the category's Bluetooth options.
+  Future<void> _applyIosRoute(AudioRoute route) async {
+    switch (route) {
+      case AudioRoute.speaker:
+        await Helper.setAppleAudioConfiguration(AppleAudioConfiguration(
           appleAudioCategory: AppleAudioCategory.playAndRecord,
           appleAudioCategoryOptions: {
             AppleAudioCategoryOption.allowBluetooth,
             AppleAudioCategoryOption.allowBluetoothA2DP,
-            if (enabled) AppleAudioCategoryOption.defaultToSpeaker,
+            AppleAudioCategoryOption.defaultToSpeaker,
           },
           appleAudioMode: AppleAudioMode.voiceChat,
         ));
-      }
-    } catch (e) {
-      if (kDebugMode) print('Failed to set speakerphone: $e');
+        await Helper.setSpeakerphoneOn(true);
+        break;
+      case AudioRoute.earpiece:
+        // No Bluetooth option ⇒ iOS won't auto-route to a BT device, forcing
+        // the built-in receiver even when a headset is paired.
+        await Helper.setSpeakerphoneOn(false);
+        await Helper.setAppleAudioConfiguration(AppleAudioConfiguration(
+          appleAudioCategory: AppleAudioCategory.playAndRecord,
+          appleAudioCategoryOptions: {},
+          appleAudioMode: AppleAudioMode.voiceChat,
+        ));
+        break;
+      case AudioRoute.bluetooth:
+      case AudioRoute.wiredHeadset:
+        // Clearing the speaker override lets the session route to the connected
+        // accessory (allowed via the options below).
+        await Helper.setSpeakerphoneOn(false);
+        await Helper.setAppleAudioConfiguration(AppleAudioConfiguration(
+          appleAudioCategory: AppleAudioCategory.playAndRecord,
+          appleAudioCategoryOptions: {
+            AppleAudioCategoryOption.allowBluetooth,
+            AppleAudioCategoryOption.allowBluetoothA2DP,
+          },
+          appleAudioMode: AppleAudioMode.voiceChat,
+        ));
+        break;
     }
+  }
+
+  // ── Real-time audio device detection ────────────────────────────────────
+
+  /// Begin watching for audio-device connect/disconnect events for the active
+  /// call and apply the initial route. Idempotent — safe to call per call setup.
+  Future<void> _startAudioRouteMonitoring({required bool isVideo}) async {
+    // Bluetooth routing/detection needs BLUETOOTH_CONNECT at runtime on
+    // Android 12+. Request it non-blockingly — the call proceeds regardless
+    // (BT is optional), and a grant simply unlocks BT routing.
+    await _ensureBluetoothPermission();
+    if (!_audioMonitoringActive) {
+      _audioMonitoringActive = true;
+      // Fired by the native layer on BT/wired/route changes (Android & iOS).
+      navigator.mediaDevices.ondevicechange = (_) => _refreshAudioRoutes();
+    }
+    _userPickedSpeaker = isVideo; // video calls open on speaker by default
+    await _refreshAudioRoutes(initial: true, initialIsVideo: isVideo);
+  }
+
+  /// Request BLUETOOTH_CONNECT on Android (no-op elsewhere). Never throws and
+  /// never blocks the call — a denial just means BT routing stays unavailable.
+  Future<void> _ensureBluetoothPermission() async {
+    if (!Platform.isAndroid) return;
+    try {
+      final status = await Permission.bluetoothConnect.status;
+      if (!status.isGranted && !status.isPermanentlyDenied) {
+        await Permission.bluetoothConnect.request();
+      }
+    } catch (_) {}
+  }
+
+  /// Stop watching device changes and reset routing state. Called during call
+  /// teardown so the listener never leaks into the next call.
+  void _stopAudioRouteMonitoring() {
+    if (_audioMonitoringActive) {
+      _audioMonitoringActive = false;
+      try {
+        navigator.mediaDevices.ondevicechange = null;
+      } catch (_) {}
+    }
+    _userPickedSpeaker = false;
+    availableAudioRoutes.assignAll([AudioRoute.earpiece, AudioRoute.speaker]);
+    currentAudioRoute.value = AudioRoute.earpiece;
+    isBluetoothOn.value = false;
+  }
+
+  /// Enumerate the current audio outputs, rebuild [availableAudioRoutes], and
+  /// (re)apply the appropriate route. Re-runs whenever a device connects or
+  /// disconnects so the UI matches native WhatsApp behaviour.
+  Future<void> _refreshAudioRoutes(
+      {bool initial = false, bool initialIsVideo = false}) async {
+    final hadBluetooth = isBluetoothAvailable;
+    try {
+      final devices = await navigator.mediaDevices.enumerateDevices();
+      bool hasBt = false;
+      bool hasWired = false;
+      for (final d in devices) {
+        // iOS only reports the *current* output via 'audiooutput' but exposes a
+        // connected BT/wired headset as an 'audioinput' too — inspect both so
+        // detection works on either platform.
+        if (d.kind != 'audiooutput' && d.kind != 'audioinput') continue;
+        final id = d.deviceId.toLowerCase();
+        final label = d.label.toLowerCase();
+        if (id == 'bluetooth' || _looksBluetooth(label)) {
+          hasBt = true;
+        } else if (id == 'wired-headset' || _looksWiredHeadset(label)) {
+          hasWired = true;
+        }
+      }
+
+      final routes = <AudioRoute>[AudioRoute.earpiece, AudioRoute.speaker];
+      if (hasBt) routes.add(AudioRoute.bluetooth);
+      if (hasWired) routes.add(AudioRoute.wiredHeadset);
+      availableAudioRoutes.assignAll(routes);
+    } catch (e) {
+      if (kDebugMode) print('_refreshAudioRoutes enumerate failed: $e');
+    }
+
+    // Decide the route to apply.
+    AudioRoute target;
+    if (initial) {
+      // Prefer an already-connected accessory; otherwise speaker for video,
+      // earpiece for voice — matching the previous default behaviour.
+      if (isBluetoothAvailable) {
+        target = AudioRoute.bluetooth;
+      } else if (isWiredHeadsetAvailable) {
+        target = AudioRoute.wiredHeadset;
+      } else {
+        target = initialIsVideo ? AudioRoute.speaker : AudioRoute.earpiece;
+      }
+    } else {
+      final current = currentAudioRoute.value;
+      final btJustConnected = !hadBluetooth && isBluetoothAvailable;
+      if (btJustConnected && !_userPickedSpeaker) {
+        // Auto-route to a newly connected headset, just like native calling.
+        target = AudioRoute.bluetooth;
+      } else if (!availableAudioRoutes.contains(current)) {
+        // The active sink vanished (headset unplugged) — fall back sensibly.
+        target = _userPickedSpeaker
+            ? AudioRoute.speaker
+            : (isBluetoothAvailable
+                ? AudioRoute.bluetooth
+                : (isWiredHeadsetAvailable
+                    ? AudioRoute.wiredHeadset
+                    : AudioRoute.earpiece));
+      } else {
+        // Nothing relevant changed for routing; just refreshed the menu.
+        return;
+      }
+    }
+    await selectAudioRoute(target);
+  }
+
+  bool _looksBluetooth(String label) {
+    if (label.isEmpty) return false;
+    return label.contains('bluetooth') ||
+        label.contains('airpod') ||
+        label.contains('headset') && label.contains('bt') ||
+        label.contains('hands-free') ||
+        label.contains('handsfree') ||
+        label.contains('car');
+  }
+
+  bool _looksWiredHeadset(String label) {
+    if (label.isEmpty) return false;
+    return label.contains('wired') ||
+        label.contains('headphone') ||
+        label.contains('headphones') ||
+        (label.contains('headset') && !_looksBluetooth(label));
   }
 
   // ==================== CALL HISTORY ====================
@@ -2545,7 +2765,7 @@ class CallController extends GetxController {
 
     await _createPeerConnection(riderId);
     _remoteUserId = riderId;
-    print('[FARE_CALL] joinFareCallAsCustomer → peer connection created for $riderId');
+    // print('[FARE_CALL] joinFareCallAsCustomer → peer connection created for $riderId');
 
     // ── Start ring timeout (same as initiateCall) ──
     _startRingTimer();
@@ -2557,7 +2777,7 @@ class CallController extends GetxController {
 
     // Don't create offer — wait for call:accepted from rider,
     // which triggers _handleCallAccepted → creates offer (same as initiateCall)
-    print('[FARE_CALL] joinFareCallAsCustomer → ready, waiting for call:accepted');
+    // print('[FARE_CALL] joinFareCallAsCustomer → ready, waiting for call:accepted');
 
     return true;
   }
@@ -2585,14 +2805,14 @@ class CallController extends GetxController {
   /// Reject the ride from fare-call. Call ends, next rider gets called.
   Future<bool> rejectFareCallRide() async {
     if (fareCallOrderId.value.isEmpty) return false;
-    print('[FARE_CALL] rejectFareCallRide → orderId=${fareCallOrderId.value}');
+    // print('[FARE_CALL] rejectFareCallRide → orderId=${fareCallOrderId.value}');
     final repo = MakeOrderRepo();
     final response = await repo.rideActionApi(
       {'action': 'reject'},
       fareCallOrderId.value,
     );
     if (response.isSuccess) {
-      print('[FARE_CALL] Ride rejected, next rider will be called');
+      // print('[FARE_CALL] Ride rejected, next rider will be called');
       declineCall();
       return true;
     } else {
@@ -2610,14 +2830,14 @@ class CallController extends GetxController {
     // double-disposes the local renderer and stops SocketKeepAliveService
     // twice, which breaks the *next* call's peer connection.
     if (_cleaningUp) {
-      print('[CALL_DEBUG] _cleanup → skipped (re-entrant)');
+      // print('[CALL_DEBUG] _cleanup → skipped (re-entrant)');
       return;
     }
     if (callStatus.value == CallStatus.idle &&
         peerConnections.isEmpty &&
         localStream == null &&
         localRenderer == null) {
-      print('[CALL_DEBUG] _cleanup → skipped (already fully cleaned)');
+      // print('[CALL_DEBUG] _cleanup → skipped (already fully cleaned)');
       return;
     }
     _cleaningUp = true;
@@ -2638,6 +2858,9 @@ class CallController extends GetxController {
     _connectionTimer = null;
     _peerDisconnectTimer?.cancel();
     _peerDisconnectTimer = null;
+
+    // Stop live audio-device monitoring and reset routing state for next call.
+    _stopAudioRouteMonitoring();
 
     // --- 2. Cancel all notifications & overlays ---
     _cancelOngoingNotification();
@@ -2736,7 +2959,7 @@ class CallController extends GetxController {
 
   void _resetState() {
     stopRingtone();
-    print('[FARE_CALL_DEBUG] _resetState → resetting all state, was isFareCall=${isFareCall.value}, fareCallOrderId=${fareCallOrderId.value}');
+    // print('[FARE_CALL_DEBUG] _resetState → resetting all state, was isFareCall=${isFareCall.value}, fareCallOrderId=${fareCallOrderId.value}');
     callStatus.value = CallStatus.idle;
     callId.value = '';
     roomId.value = '';
@@ -2878,14 +3101,14 @@ class CallController extends GetxController {
         Get.toNamed('/IncomingRiderOrderScreen');
       }
     } catch (e) {
-      print('[FARE_CALL] _handleRideOrderFromCallKit error: $e');
+      // print('[FARE_CALL] _handleRideOrderFromCallKit error: $e');
     }
   }
 
   void _setupCallKitListeners() {
     FlutterCallkitIncoming.onEvent.listen((CallEvent? event) {
       if (event == null) return;
-      print('[CALL_DEBUG] CALLKIT EVENT → ${event.event}, body=${event.body}');
+      // print('[CALL_DEBUG] CALLKIT EVENT → ${event.event}, body=${event.body}');
       final extra =
           Map<String, dynamic>.from(event.body['extra'] as Map? ?? {});
 
@@ -2904,7 +3127,7 @@ class CallController extends GetxController {
 
       switch (event.event) {
         case Event.actionCallAccept:
-          print('[CALL_DEBUG] CALLKIT → actionCallAccept, killedStateHandled=$_killedStateAcceptHandled');
+          // print('[CALL_DEBUG] CALLKIT → actionCallAccept, killedStateHandled=$_killedStateAcceptHandled');
           // Immediately tell CallKit the call is connected so its internal
           // duration-timer cannot later auto-mark it as a missed call while
           // the user is actively on the call.
@@ -3005,7 +3228,7 @@ class CallController extends GetxController {
             fareCallRideDetails.value = Map<String, dynamic>.from(jsonDecode(rideJson));
           }
         } catch (_) {}
-        print('[FARE_CALL] Detected fare-call from push notification, orderId=${fareCallOrderId.value}');
+        // print('[FARE_CALL] Detected fare-call from push notification, orderId=${fareCallOrderId.value}');
       }
 
       // Connect socket if not connected (app may have been in background)
@@ -3059,7 +3282,7 @@ void showFlutterCallNotification({
             status == CallStatus.connecting ||
             status == CallStatus.connected ||
             status == CallStatus.outgoing)) {
-      print('showFlutterCallNotification: skipped — call already active ($status, activeId=$activeCallId, incomingId=$callSessionId)');
+      // print('showFlutterCallNotification: skipped — call already active ($status, activeId=$activeCallId, incomingId=$callSessionId)');
       return;
     }
   }
@@ -3162,12 +3385,12 @@ void showFlutterCallNotification({
     ),
   );
 
-  print('[CALL_DEBUG] showFlutterCallNotification → calling showCallkitIncoming, id=$callSessionId, type=$callType');
+  // print('[CALL_DEBUG] showFlutterCallNotification → calling showCallkitIncoming, id=$callSessionId, type=$callType');
   try {
     await FlutterCallkitIncoming.showCallkitIncoming(params);
     _callsShownInCallKit.add(callSessionId);
-    print('[CALL_DEBUG] showFlutterCallNotification → showCallkitIncoming returned OK');
+    // print('[CALL_DEBUG] showFlutterCallNotification → showCallkitIncoming returned OK');
   } catch (e, st) {
-    print('[CALL_DEBUG] showFlutterCallNotification → showCallkitIncoming ERROR: $e\n$st');
+    // print('[CALL_DEBUG] showFlutterCallNotification → showCallkitIncoming ERROR: $e\n$st');
   }
 }

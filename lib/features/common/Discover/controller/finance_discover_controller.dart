@@ -11,7 +11,6 @@ class FinanceDiscoverController extends GetxController {
   final isLoadingMore = false.obs;
   final hasMore = true.obs;
   final error = ''.obs;
-
   final selectedCategory = ''.obs;
   final selectedDetail = Rx<FinanceBusinessItem?>(null);
 
@@ -40,26 +39,16 @@ class FinanceDiscoverController extends GetxController {
         isLoading.value = true;
       }
       error.value = '';
-
-    // String catData=  _mapCategoryToApiType(selectedCategory.value);
-// logs("catData= ${catData}");
-logs("selectedCategory.value= ${selectedCategory.value}");
       final ResponseModel res = await ApiBaseHelper().getHTTP(
-        // "other-service/business-profile/search?distance=5000&limit=$_limit&type=BANKING_SECTOR",
-        // "other-service/business-profile/search?distance=5000&limit=$_limit&type=LOANS_SECTOR",
-        // "other-service/business-profile/search?distance=5000&limit=$_limit&sub_type=LOANS_SECTOR",
-        // "other-service/business-profile/search?distance=5000&limit=$_limit&sub_type=BANKING_SECTOR",
+        // "other-service/business-profile/search?distance=5000&limit=$_limit&category_Of_Business=CONSULTING_BUSINESS_SERVICES",
         "other-service/business-profile/search?distance=5000&limit=$_limit&sub_type=${selectedCategory.value}",
-        // "other-service/business-profile/search?distance=5000&limit=$_limit&type=finance",
-        // "other-service/business-profile/search?distance=5000&limit=$_limit&type=$categoryType",
         onError: (e) {},
         onSuccess: (data) {},
       );
 
       if (res.isSuccess) {
         final List data = res.response?.data['data'] ?? [];
-        final items =
-            data.map((e) => FinanceBusinessItem.fromJson(e)).toList();
+        final items = data.map((e) => FinanceBusinessItem.fromJson(e)).toList();
         if (items.isEmpty) {
           hasMore.value = false;
         } else {

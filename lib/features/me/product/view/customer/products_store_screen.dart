@@ -223,7 +223,6 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
                     delegate: StickyCategoryHeaderDelegate(
                       topPadding: statusBarHeight,
                       categories: _categories.map((c) {
-                        debugPrint('Products tagId=${c.tagId} name=${c.name}');
                         return StickyCategory(
                         id: c.tagId ?? '',
                         name: c.name ?? '',

@@ -13,13 +13,6 @@ class StoreRepo extends BaseService {
     } else {
       url = "$getStoreListing?page=$page&limit=$limit&radius=$kmRadius1000";
     }
-
-    // if ((lat?.isNotEmpty ?? false) && (long?.isNotEmpty ?? false)) {
-    //   url = "$getStoreListing?page=$page&lat=$lat&lng=$long";
-    // } else {
-    //   url = "$getStoreListing?page=$page";
-    // }
-
     final response = await ApiBaseHelper().getHTTP(
       url,
       showProgress: false,

@@ -61,7 +61,6 @@ class _ShoppingCardWidgetState extends State<ShoppingCardWidget> {
                   spacing: spacing,
                   runSpacing: spacing,
                   children: displayCategories.map((c) {
-                    debugPrint('Products tagId=${c.tagId} name=${c.name}');
                     return SizedBox(
                       width: itemWidth,
                       child: CommonServiceCard(
