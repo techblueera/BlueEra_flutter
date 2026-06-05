@@ -328,6 +328,9 @@ Widget  ChatListTile({
   required ThemeData theme,
   bool showNewBadgeIfRecent = false,
   bool showFlagBadge = false,
+  // Inquiry tab: show a "New" label below the time when the conversation was
+  // created within the last 4 hours (uses `chat.createdAt`).
+  bool showNewIfRecentlyCreated = false,
 }) {
   final sender = chat?.sender;
   final senderName = chat?.lastMessage == "Order Message"
@@ -357,6 +360,22 @@ Widget  ChatListTile({
           DateTime.now().difference(lastMessageAt).inMinutes < 15;
     } catch (_) {
       isRecentLastMessage = false;
+    }
+  }
+
+  // Inquiry tab: a conversation created within the last 4 hours is flagged
+  // "New" below the time, regardless of unread / last-message state.
+  bool isRecentlyCreated = false;
+  if (showNewIfRecentlyCreated) {
+    final createdRaw = chat?.createdAt ?? '';
+    if (createdRaw.isNotEmpty) {
+      try {
+        final createdAt = DateTime.parse(createdRaw).toLocal();
+        final diff = DateTime.now().difference(createdAt);
+        isRecentlyCreated = !diff.isNegative && diff.inMinutes < 240;
+      } catch (_) {
+        isRecentlyCreated = false;
+      }
     }
   }
 
@@ -761,6 +780,23 @@ Widget  ChatListTile({
                   ),
                 ],
               ),
+              if (isRecentlyCreated) ...[
+                SizedBox(height: SizeConfig.size4),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: CustomText(
+                    AppStrings.newTag.tr,
+                    color: AppColors.primaryColor,
+                    fontSize: SizeConfig.size11,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
               SizedBox(height: SizeConfig.size6),
               Row(
                 mainAxisSize: MainAxisSize.min,
@@ -1308,6 +1344,27 @@ void _initiateCallInApp({
   }
 }
 
+/// Public entry to the chat call-options bottom sheet (voice / video / normal
+/// call) — the same sheet the chat appbar's call icon opens. Exposed so other
+/// widgets (e.g. the order card's Call button) can reuse it.
+void showChatCallOptionsBottomSheet({
+  required BuildContext context,
+  String? otherUserId,
+  String? conversationId,
+  required String userName,
+  required String userImage,
+  required String contactNo,
+}) {
+  _showCallOptionsBottomSheet(
+    context: context,
+    otherUserId: otherUserId,
+    conversationId: conversationId,
+    userName: userName,
+    userImage: userImage,
+    contactNo: contactNo,
+  );
+}
+
 void _showCallOptionsBottomSheet({
   required BuildContext context,
   String? otherUserId,
@@ -1344,7 +1401,7 @@ void _showCallOptionsBottomSheet({
                 title: AppStrings.voiceCall.tr,
                 subtitle: AppStrings.callEncryptedNoContactShare.tr,
                 onTap: () {
-                  print("ljkcnsdlkjcslkdcsdc ${conversationId}");
+
                   Navigator.pop(ctx);
                   _initiateCallFromChat(
                     callType: CallType.audio,
@@ -1812,7 +1869,11 @@ AppBar getChatTitleAppBar(BuildContext context, {
               RouteHelper.getBottomNavigationBarScreenRoute()));
           chatViewController.onSelectChatTab(1);
         } else {
-          Get.back();
+          // Use the framework Navigator instead of Get.back(): Get.back()
+          // internally calls closeCurrentSnackbar(), which throws a
+          // LateInitializationError when a queued snackbar's animation
+          // controller hasn't been initialized yet.
+          Navigator.pop(context);
           chatViewController.emitEvent(
               ChatEmitEvents.ChatList, {ApiKeys.type: "$socketType"},);
         }

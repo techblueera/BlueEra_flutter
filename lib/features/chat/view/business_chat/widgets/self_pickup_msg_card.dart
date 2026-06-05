@@ -4,18 +4,25 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/chat/auth/controller/order_controllar.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
+import 'package:BlueEra/features/chat/auth/model/saved_address_model.dart';
 import 'package:BlueEra/features/chat/auth/model/self_pickup_order_model.dart';
+import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
+import 'package:BlueEra/features/common/Discover/view/book_your_transport/product_order_booking_rider_main.dart';
 import 'package:BlueEra/features/me/grocery/repo/grocery_repo.dart';
+import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart';
 import 'package:BlueEra/features/chat/view/order_main_chat_screen.dart';
 import 'package:BlueEra/features/chat/view/widget/component_widgets.dart';
+import 'package:BlueEra/features/chat/view/business_chat/widgets/ride_drop_location_sheet.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
@@ -782,9 +789,16 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
     final totalItems = selfPickupOrder?.totalItems ?? items.length;
     final grandTotal = selfPickupOrder?.grandTotal ?? 0;
 
-    return Container(
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Forward icon shifted to the centre of the left margin.
+        _buildForwardCircle(),
+        const SizedBox(width: 8),
+        Container(
       margin: const EdgeInsets.only(bottom: 2),
-      width: SizeConfig.screenWidth * 0.75,
+      width: SizeConfig.screenWidth * 0.72,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -821,7 +835,7 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       CustomText(
-                        'Self-Pickup Order',
+                        'Your Order',
                         fontSize: SizeConfig.size14,
                         fontWeight: FontWeight.w600,
                         color: AppColors.primaryColor,
@@ -909,6 +923,8 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
           ),
         ],
       ),
+        ),
+      ],
     );
   }
 
@@ -1027,7 +1043,7 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
               ),
               const SizedBox(width: 8),
               CustomText(
-                'Preparing...',
+                'Waiting For Approval',
                 fontSize: SizeConfig.size14,
                 fontWeight: FontWeight.w600,
                 color: Colors.orange,
@@ -1039,16 +1055,29 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
     );
   }
 
-  Widget _buildForwardRow() {
+  /// Circular forward affordance shown in the left margin, vertically centred
+  /// beside the order card. Keeps the original forward/share-PDF action.
+  Widget _buildForwardCircle() {
     return InkWell(
       onTap: _isGeneratingPdf ? null : _generateAndSharePdf,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (_isGeneratingPdf)
-              SizedBox(
+      borderRadius: BorderRadius.circular(22),
+      child: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 4,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        alignment: Alignment.center,
+        child: _isGeneratingPdf
+            ? const SizedBox(
                 width: 16,
                 height: 16,
                 child: CircularProgressIndicator(
@@ -1056,22 +1085,145 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
                   color: AppColors.primaryColor,
                 ),
               )
-            else
-              Icon(
+            : const Icon(
                 Icons.shortcut_rounded,
                 color: AppColors.grayText,
                 size: 20,
               ),
-            const SizedBox(width: 6),
+      ),
+    );
+  }
+
+  /// Bottom action row that replaced the inline "Forward" button — Call,
+  /// Payment and Ride shortcuts for the order.
+  Widget _buildForwardRow() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _orderActionButton(
+            icon: Icons.call,
+            label: 'Call',
+            color: Colors.green,
+            // Same call-options bottom sheet as the chat appbar's call icon.
+            onTap: () {
+              final sender = widget.message.sender;
+              showChatCallOptionsBottomSheet(
+                context: context,
+                otherUserId: sender?.id,
+                conversationId: widget.conversationId,
+                userName: sender?.name ?? '',
+                userImage: sender?.profileImage ?? '',
+                contactNo: sender?.contactNo ?? '',
+              );
+            },
+          ),
+          _orderActionButton(
+            icon: Icons.account_balance_wallet_outlined,
+            label: 'Payment',
+            color: AppColors.primaryColor,
+            // TODO: wire to the payment flow.
+            onTap: () => commonSnackBar(message: 'Coming soon....'),
+          ),
+          _orderActionButton(
+            icon: Icons.two_wheeler,
+            label: 'Ride',
+            color: Colors.deepOrange,
+            // Ask for the drop location (saved addresses + add-new), stored
+            // locally, then look up the shop pickup location and open the
+            // transport booking screen with riders already being searched.
+            onTap: () async {
+              final drop = await showRideDropLocationSheet(context);
+              if (drop != null) {
+                await _startRideToDrop(drop);
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Resolves the shop (business) pickup location, sets pickup = shop and
+  /// drop = the just-chosen [drop] address on the shared [DiscoverController],
+  /// kicks off the rider search, and opens the transport booking screen.
+  Future<void> _startRideToDrop(SavedAddress drop) async {
+    final dropLat = drop.lat ?? 0.0;
+    final dropLng = drop.lng ?? 0.0;
+    if (dropLat == 0.0 && dropLng == 0.0) {
+      commonSnackBar(
+          message:
+              'Selected address has no location. Please re-select it from the suggestions.');
+      return;
+    }
+
+    // The shop is the business that owns this self-pickup order.
+    final businessId = widget.message.metadata?.selfPickupOrder?.businessId ??
+        widget.message.sender?.id ??
+        '';
+    if (businessId.isEmpty) {
+      commonSnackBar(message: 'Shop pickup location is unavailable.');
+      return;
+    }
+
+    AppLoader.show(message: 'Finding riders...');
+    try {
+      // Fetch the shop's pickup coordinates + address.
+      final orderController = getOrPut(() => OrderNowController());
+      await orderController.viewBusinessForLocation(businessId, 'BUSINESS');
+      final pickupLat = double.tryParse(orderController.lat.value) ?? 0.0;
+      final pickupLng = double.tryParse(orderController.long.value) ?? 0.0;
+      final pickupAddress = orderController.address.value;
+
+      if (pickupLat == 0.0 && pickupLng == 0.0) {
+        AppLoader.hide();
+        commonSnackBar(message: 'Could not get the shop pickup location.');
+        return;
+      }
+
+      // Seed the transport flow: pickup = shop, drop = chosen address.
+      final discoverController = getOrPut(() => DiscoverController());
+      discoverController.selectedFromLat?.value = pickupLat;
+      discoverController.selectedFromLong?.value = pickupLng;
+      discoverController.selectedFromAddress?.value = pickupAddress;
+      discoverController.selectedToLat?.value = dropLat;
+      discoverController.selectedToLong?.value = dropLng;
+      discoverController.selectedToAddress?.value = drop.fullAddress;
+
+      // Search for riders between the shop and the drop, then open the screen.
+      await discoverController.getBookingRidersApi();
+      AppLoader.hide();
+      Get.to(() =>
+          const ProductOrderBookingRiderMain(vehicleType: 'TWO_WHEELER'));
+    } catch (e) {
+      AppLoader.hide();
+      log('startRideToDrop error: $e');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+
+  Widget _orderActionButton({
+    required IconData icon,
+    required String label,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(height: 2),
             CustomText(
-              _isGeneratingPdf
-                  ? 'Preparing packing PDF...'
-                  : 'Forward',
-              fontSize: SizeConfig.size12,
-              fontWeight: FontWeight.w500,
-              color: _isGeneratingPdf
-                  ? AppColors.primaryColor
-                  : AppColors.grayText,
+              label,
+              fontSize: SizeConfig.size11,
+              fontWeight: FontWeight.w600,
+              color: color,
             ),
           ],
         ),

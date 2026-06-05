@@ -11,6 +11,14 @@ class UserByPhoneModel {
   final String? bio;
   final String? accountType;
 
+  /// Business category name from `category_details.name` (e.g. "Watches &
+  /// Eyewear"). Present for BUSINESS users; null for individuals.
+  final String? categoryName;
+
+  /// Individual user's designation (e.g. "Bike Rider"), shown as the header
+  /// subtext when there's no business category.
+  final String? designation;
+
   UserByPhoneModel({
     required this.id,
     required this.name,
@@ -20,9 +28,24 @@ class UserByPhoneModel {
     this.location,
     this.bio,
     this.accountType,
+    this.categoryName,
+    this.designation,
   });
 
-  factory UserByPhoneModel.fromJson(Map<String, dynamic> json) {
+  /// Header subtext for the phone-lookup UI: the business category when set,
+  /// otherwise the individual's designation, otherwise null.
+  String? get subtitle {
+    if ((categoryName ?? '').trim().isNotEmpty) return categoryName;
+    if ((designation ?? '').trim().isNotEmpty) return designation;
+    return null;
+  }
+
+  /// [json] is the response's `user` object; [business] is the sibling
+  /// `business` object, which is where `category_details` actually lives. Both
+  /// are checked so the category resolves regardless of which side carries it.
+  factory UserByPhoneModel.fromJson(Map<String, dynamic> json,
+      {Map<String, dynamic>? business}) {
+    final category = business?['category_details'] ?? json['category_details'];
     return UserByPhoneModel(
       id: json['_id']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
@@ -32,6 +55,8 @@ class UserByPhoneModel {
       location: json['location']?.toString(),
       bio: json['bio']?.toString(),
       accountType: json['account_type']?.toString(),
+      categoryName: category is Map ? category['name']?.toString() : null,
+      designation: json['designation']?.toString(),
     );
   }
 }

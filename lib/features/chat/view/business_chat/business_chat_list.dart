@@ -107,9 +107,15 @@ class BusinessChatsList extends StatefulWidget {
     this.onlySenderId,
     this.isInParentScroll = false,
     this.showDateFilter = false,
+    this.showNewIfRecentlyCreated = false,
   });
   final bool? isForwardUI;
   final bool? isNewGroupUI;
+
+  /// When `true`, each chat row shows a "New" label below the time if the
+  /// conversation was created within the last 4 hours. Enabled by the Connect
+  /// screen's Inquiry tab; defaults to `false` elsewhere.
+  final bool showNewIfRecentlyCreated;
 
   /// Hides chats whose `lastMessageSenderId` equals this value — used
   /// by the self-employed / professionals "Order" tabs to surface only
@@ -456,6 +462,7 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
             theme: theme,
             isForwardUI: widget.isForwardUI,
             showFlagBadge: true,
+            showNewIfRecentlyCreated: widget.showNewIfRecentlyCreated,
             context: context,
           );
         },

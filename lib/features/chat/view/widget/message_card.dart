@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
@@ -7,8 +8,11 @@ import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
+import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
+import 'package:BlueEra/features/chat/auth/model/user_by_phone_model.dart';
+import 'package:BlueEra/features/chat/auth/service/call_activity_service.dart';
 import 'package:BlueEra/features/chat/auth/model/symbol_details_model.dart';
 import 'package:BlueEra/features/chat/view/widget/video_and_image_card_widget.dart';
 import 'package:BlueEra/features/common/food/view/food_details_view_screen.dart';
@@ -1917,17 +1921,18 @@ class _MessageCardState extends State<MessageCard>
               height: 40,
               child: Row(
                 children: [
-                  // Message button
+                  // Chat button — opens an in-app BlueEra chat when the number
+                  // belongs to a BlueEra user, otherwise the native SMS app.
                   Expanded(
                     child: InkWell(
                       onTap: () {
                         if (displayNumber != 'No number') {
-                          _launchSms(displayNumber);
+                          _onContactChatTap(displayName, displayNumber);
                         }
                       },
                       child: Center(
                         child: CustomText(
-                          "Message",
+                          "Chat",
                           color: isReceiveMsg
                               ? theme.colorScheme.primary
                               : Colors.white,
@@ -1945,12 +1950,14 @@ class _MessageCardState extends State<MessageCard>
                         ? Colors.grey.shade300
                         : Colors.white.withValues(alpha: 0.3),
                   ),
-                  // Call button
+                  // Call button — places an in-app BlueEra audio call when the
+                  // number belongs to a BlueEra user, otherwise opens the
+                  // native phone dialer.
                   Expanded(
                     child: InkWell(
                       onTap: () {
                         if (displayNumber != 'No number') {
-                          _launchCall(displayNumber);
+                          _onContactCallTap(displayName, displayNumber);
                         }
                       },
                       child: Center(
@@ -1973,7 +1980,8 @@ class _MessageCardState extends State<MessageCard>
                         ? Colors.grey.shade300
                         : Colors.white.withValues(alpha: 0.3),
                   ),
-                  // Save / View button
+                  // Add to contact button — opens the native phone book's
+                  // "new contact" editor prefilled with this name + number.
                   Expanded(
                     child: InkWell(
                       onTap: () async {
@@ -1981,12 +1989,14 @@ class _MessageCardState extends State<MessageCard>
                       },
                       child: Center(
                         child: CustomText(
-                          "Save",
+                          "Add to contact",
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
                           color: isReceiveMsg
                               ? theme.colorScheme.primary
                               : Colors.white,
                           fontWeight: FontWeight.w600,
-                          fontSize: 13.5,
+                          fontSize: 12,
                         ),
                       ),
                     ),
@@ -2014,6 +2024,92 @@ class _MessageCardState extends State<MessageCard>
     }
   }
 
+  /// Shared-contact "Chat" action. Looks the number up on BlueEra: a registered
+  /// user opens (or creates) an in-app personal chat; anyone else falls back to
+  /// the native SMS app.
+  Future<void> _onContactChatTap(String name, String number) async {
+    final UserByPhoneModel? user =
+        await chatViewController.resolveBlueEraUserByPhone(number);
+    if (user != null) {
+      chatViewController.checkChatConnectionAndOpenChat(
+        userId: user.id,
+        name: user.name.isNotEmpty ? user.name : name,
+        conductNo: user.contactNo ?? number,
+        profile: user.profileImage,
+        route: AppConstants.route_contact,
+      );
+    } else {
+      _launchSms(number);
+    }
+  }
+
+  /// Shared-contact "Call" action. Looks the number up on BlueEra: a registered
+  /// user gets an in-app audio call; anyone else falls back to the native phone
+  /// dialer.
+  Future<void> _onContactCallTap(String name, String number) async {
+    final UserByPhoneModel? user =
+        await chatViewController.resolveBlueEraUserByPhone(number);
+    if (user != null) {
+      _startBlueEraAudioCall(user, name);
+    } else {
+      _launchCall(number);
+    }
+  }
+
+  /// Start an in-app BlueEra audio call to [user]. Mirrors the call-back flow
+  /// used by [CallMessageCard]: on Android the call runs in the native
+  /// CallActivity (with an in-app fallback if it can't launch), elsewhere it
+  /// goes straight to the in-app CallRoomScreen.
+  void _startBlueEraAudioCall(UserByPhoneModel user, String fallbackName) {
+    final targetUserId = user.id;
+    if (targetUserId.isEmpty) return;
+    final targetUserName =
+        user.name.isNotEmpty ? user.name : fallbackName;
+    final targetUserImage = user.profileImage ?? '';
+
+    if (Platform.isAndroid) {
+      CallController.isCallActivityActive = true;
+      CallActivityService.launchCallActivity(
+        callId: '',
+        roomId: '',
+        conversationId: '',
+        callType: 'audio',
+        callerName: targetUserName,
+        callerImage: targetUserImage,
+        remoteUserId: targetUserId,
+        remoteUserName: targetUserName,
+        remoteUserImage: targetUserImage,
+        isCaller: true,
+      ).then((launched) {
+        if (!launched) {
+          CallController.isCallActivityActive = false;
+          _initiateContactCallInApp(
+              targetUserId, targetUserName, targetUserImage);
+        }
+      });
+      return;
+    }
+
+    _initiateContactCallInApp(targetUserId, targetUserName, targetUserImage);
+  }
+
+  void _initiateContactCallInApp(
+      String otherUserId, String userName, String userImage) async {
+    if (!Get.isRegistered<CallController>()) {
+      Get.put(CallController());
+    }
+    final callController = Get.find<CallController>();
+    final success = await callController.initiateCall(
+      type: CallType.audio,
+      otherUserId: otherUserId,
+      userName: userName,
+      userImage: userImage,
+    );
+    if (success) {
+      Get.toNamed('/CallRoomScreen');
+    }
+  }
+
 
   String formatChatHistoryTime(String isoDateString) {
     try {
@@ -2035,6 +2131,28 @@ class _MessageCardState extends State<MessageCard>
     }
   }
 
+  /// Normalize a raw phone string to Indian E.164 format (`+91XXXXXXXXXX`) so
+  /// the contact is saved with the country code. Keeps any already-present
+  /// country code, otherwise prepends +91 to the last 10 digits.
+  String _toIndianNumber(String raw) {
+    String digits = raw.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.isEmpty) return raw;
+    // Already has the 91 country code (12 digits) → just add the +.
+    if (digits.length == 12 && digits.startsWith('91')) {
+      return '+$digits';
+    }
+    // Plain 10-digit Indian mobile number.
+    if (digits.length == 10) {
+      return '+91$digits';
+    }
+    // Longer string with a country code already → keep last 10 as the local
+    // part under +91 only when it doesn't carry another country code.
+    if (digits.length > 10) {
+      return '+91${digits.substring(digits.length - 10)}';
+    }
+    return raw;
+  }
+
   Future<void> saveContactWithEditor(String name, String phoneNumber) async {
     // Request contact permission
     var permissionStatus = await Permission.contacts.request();
@@ -2042,7 +2160,7 @@ class _MessageCardState extends State<MessageCard>
     if (permissionStatus.isGranted) {
       final contact = Contact()
         ..name = Name(first: name)
-        ..phones = [Phone(phoneNumber)];
+        ..phones = [Phone(_toIndianNumber(phoneNumber))];
 
       // Opens the native contact editor with prefilled data so user can review/edit
       await FlutterContacts.openExternalInsert(contact);

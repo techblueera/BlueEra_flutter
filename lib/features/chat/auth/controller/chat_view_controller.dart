@@ -133,7 +133,7 @@ class ChatViewController extends GetxController {
     "last_message": "Ask anything about business",
     "last_message_type": "text",
     "sender": {
-      "name": "BlueEra Business Friend",
+      "name": "Ask BlueEra Ai",
       "contact_no": "BlueEra Friend",
       "profile_image":
           AppImageAssets.app_logo,
@@ -838,7 +838,6 @@ class ChatViewController extends GetxController {
       chatSocket.listenEvent(ChatEmitEvents.ChatList, (data) async {
 
         final parsedData = GetChatListModel.fromJson(data);
-        log("jenkwljclkcewc ChatList Len: ${parsedData.chatList?.length} -  ${data}");
 
         // The server doesn't always echo `type` back in the ChatList
         // response. When that happens, fall back to the type we asked for
@@ -3083,21 +3082,134 @@ class ChatViewController extends GetxController {
 
       final dynamic userJson = responseModel.getExtraData('user');
       if (responseModel.isSuccess && userJson is Map) {
-        final user =
-            UserByPhoneModel.fromJson(Map<String, dynamic>.from(userJson));
+        final dynamic businessJson = responseModel.getExtraData('business');
+        final user = UserByPhoneModel.fromJson(
+          Map<String, dynamic>.from(userJson),
+          business: businessJson is Map
+              ? Map<String, dynamic>.from(businessJson)
+              : null,
+        );
         if (user.id.isEmpty) {
           commonSnackBar(message: AppStrings.somethingWentWrong);
           return;
         }
         showUserByPhoneBottomSheet(user);
       } else {
-        commonSnackBar(
-            message: responseModel.message ?? 'No BlueEra user found for this number');
+        // No BlueEra user for this number — offer to save it as a new contact.
+        showAddNewContactBottomSheet(digits);
       }
     } catch (e) {
       commonSnackBar(message: e.toString());
     } finally {
       isFetchingUserByPhone.value = false;
+    }
+  }
+
+  /// Resolve [rawPhone] to a BlueEra user via `user-service/user/by-phone/{phone}`
+  /// and return the matched user, or `null` when there is no BlueEra account for
+  /// the number (or the number/lookup is invalid).
+  ///
+  /// Unlike [openUserDetailsByPhone] this performs NO UI of its own — callers
+  /// decide what to do with the result. Used by the shared-contact card so its
+  /// Call / Chat buttons route BlueEra contacts to an in-app call / chat and
+  /// non-BlueEra numbers to the native dialer / SMS app.
+  Future<UserByPhoneModel?> resolveBlueEraUserByPhone(String rawPhone) async {
+    String digits = rawPhone.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.length > 10) {
+      digits = digits.substring(digits.length - 10);
+    }
+    if (digits.length != 10) {
+      commonSnackBar(message: 'Invalid mobile number');
+      return null;
+    }
+    if (isFetchingUserByPhone.value) return null;
+    isFetchingUserByPhone.value = true;
+    try {
+      final ResponseModel responseModel =
+          await ChatViewRepo().getUserByPhoneApi(digits);
+      final dynamic userJson = responseModel.getExtraData('user');
+      if (responseModel.isSuccess && userJson is Map) {
+        final dynamic businessJson = responseModel.getExtraData('business');
+        final user = UserByPhoneModel.fromJson(
+          Map<String, dynamic>.from(userJson),
+          business: businessJson is Map
+              ? Map<String, dynamic>.from(businessJson)
+              : null,
+        );
+        return user.id.isEmpty ? null : user;
+      }
+      return null;
+    } catch (e) {
+      commonSnackBar(message: e.toString());
+      return null;
+    } finally {
+      isFetchingUserByPhone.value = false;
+    }
+  }
+
+  /// Cache of phone-number → BlueEra user lookups so message bubbles can render
+  /// an inline user preview (DP + name) without re-hitting the API on every
+  /// rebuild. A key present with a non-null value means a BlueEra user exists;
+  /// a key present with `null` means "checked, no BlueEra account". Observable
+  /// so the inline preview widgets rebuild when a lookup completes.
+  final RxMap<String, UserByPhoneModel?> phoneUserCache =
+      <String, UserByPhoneModel?>{}.obs;
+  final Set<String> _phoneLookupInFlight = {};
+
+  /// Normalise a raw phone string (may carry `+91`, spaces, dashes) to the
+  /// 10-digit national number the API expects, or null when it isn't a valid
+  /// 10-digit mobile number.
+  String? normalizePhone(String rawPhone) {
+    String digits = rawPhone.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.length > 10) digits = digits.substring(digits.length - 10);
+    return digits.length == 10 ? digits : null;
+  }
+
+  /// Already-resolved BlueEra user for [rawPhone], or null when the number is
+  /// invalid, not yet looked up, or has no BlueEra account. Pair with
+  /// [isPhoneChecked] to tell "not yet looked up" from "checked, none".
+  UserByPhoneModel? cachedPhoneUser(String rawPhone) {
+    final digits = normalizePhone(rawPhone);
+    if (digits == null) return null;
+    return phoneUserCache[digits];
+  }
+
+  bool isPhoneChecked(String rawPhone) {
+    final digits = normalizePhone(rawPhone);
+    if (digits == null) return false;
+    return phoneUserCache.containsKey(digits);
+  }
+
+  /// Looks up [rawPhone] against BlueEra exactly once and records the result in
+  /// [phoneUserCache]. Silent — no UI of its own. Safe to call on every build;
+  /// it short-circuits when the number is cached or a lookup is already in
+  /// flight.
+  Future<void> ensurePhoneUserLoaded(String rawPhone) async {
+    final digits = normalizePhone(rawPhone);
+    if (digits == null) return;
+    if (phoneUserCache.containsKey(digits)) return;
+    if (_phoneLookupInFlight.contains(digits)) return;
+    _phoneLookupInFlight.add(digits);
+    try {
+      final ResponseModel responseModel =
+          await ChatViewRepo().getUserByPhoneApi(digits);
+      final dynamic userJson = responseModel.getExtraData('user');
+      if (responseModel.isSuccess && userJson is Map) {
+        final dynamic businessJson = responseModel.getExtraData('business');
+        final user = UserByPhoneModel.fromJson(
+          Map<String, dynamic>.from(userJson),
+          business: businessJson is Map
+              ? Map<String, dynamic>.from(businessJson)
+              : null,
+        );
+        phoneUserCache[digits] = user.id.isEmpty ? null : user;
+      } else {
+        phoneUserCache[digits] = null;
+      }
+    } catch (_) {
+      // Leave uncached so a later render can retry the lookup.
+    } finally {
+      _phoneLookupInFlight.remove(digits);
     }
   }
 
