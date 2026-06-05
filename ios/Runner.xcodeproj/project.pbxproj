@@ -10,7 +10,6 @@
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
 		351D75FA2FD2DDC6000D6022 /* old_phone_ring.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 351D75F92FD2DDC6000D6022 /* old_phone_ring.mp3 */; };
-		352CE84D2FCDF33B00694C17 /* ringtone.caf in Resources */ = {isa = PBXBuildFile; fileRef = 352CE84C2FCDF33B00694C17 /* ringtone.caf */; };
 		3535542F2DCB6CF200F4ECDB /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3535542E2DCB6CF200F4ECDB /* GoogleService-Info.plist */; };
 		35A0BF982FD1E8490098D997 /* messenger.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 35A0BF972FD1E8490098D997 /* messenger.mp3 */; };
 		35A0BF992FD1E8490098D997 /* hangouts_call.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 35A0BF962FD1E8490098D997 /* hangouts_call.mp3 */; };
@@ -82,7 +81,6 @@
 		331C807B294A618700263BE5 /* RunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunnerTests.swift; sourceTree = "<group>"; };
 		331C8081294A63A400263BE5 /* RunnerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunnerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		351D75F92FD2DDC6000D6022 /* old_phone_ring.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = old_phone_ring.mp3; sourceTree = "<group>"; };
-		352CE84C2FCDF33B00694C17 /* ringtone.caf */ = {isa = PBXFileReference; lastKnownFileType = file; path = ringtone.caf; sourceTree = "<group>"; };
 		3535542E2DCB6CF200F4ECDB /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		3550E5542EBC640800525B61 /* hello_delivery.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = hello_delivery.mp3; sourceTree = "<group>"; };
 		3550E5562EBC640800525B61 /* notification_sound.wav */ = {isa = PBXFileReference; lastKnownFileType = audio.wav; path = notification_sound.wav; sourceTree = "<group>"; };
@@ -213,7 +211,6 @@
 				351D75F92FD2DDC6000D6022 /* old_phone_ring.mp3 */,
 				35A0BF962FD1E8490098D997 /* hangouts_call.mp3 */,
 				35A0BF972FD1E8490098D997 /* messenger.mp3 */,
-				352CE84C2FCDF33B00694C17 /* ringtone.caf */,
 				3550E5542EBC640800525B61 /* hello_delivery.mp3 */,
 				3550E5562EBC640800525B61 /* notification_sound.wav */,
 				9740EEB11CF90186004384FC /* Flutter */,
@@ -389,7 +386,6 @@
 				351D75FA2FD2DDC6000D6022 /* old_phone_ring.mp3 in Resources */,
 				97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */,
 				3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */,
-				352CE84D2FCDF33B00694C17 /* ringtone.caf in Resources */,
 				3535542F2DCB6CF200F4ECDB /* GoogleService-Info.plist in Resources */,
 				35A0BF982FD1E8490098D997 /* messenger.mp3 in Resources */,
 				35A0BF992FD1E8490098D997 /* hangouts_call.mp3 in Resources */,
@@ -683,8 +679,8 @@
 				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 46RN9MXMLM;
 				ENABLE_BITCODE = NO;
-				FLUTTER_BUILD_NAME = 1.2.97;
-				FLUTTER_BUILD_NUMBER = 3;
+				FLUTTER_BUILD_NAME = 1.2.98;
+				FLUTTER_BUILD_NUMBER = 1;
 				INFOPLIST_FILE = Runner/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = BlueEra;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
@@ -692,7 +688,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2.97;
+				MARKETING_VERSION = 1.2.98;
 				PRODUCT_BUNDLE_IDENTIFIER = ai.bluecs.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1003,8 +999,8 @@
 				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 46RN9MXMLM;
 				ENABLE_BITCODE = NO;
-				FLUTTER_BUILD_NAME = 1.2.97;
-				FLUTTER_BUILD_NUMBER = 3;
+				FLUTTER_BUILD_NAME = 1.2.98;
+				FLUTTER_BUILD_NUMBER = 1;
 				INFOPLIST_FILE = Runner/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = BlueEra;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
@@ -1012,7 +1008,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2.97;
+				MARKETING_VERSION = 1.2.98;
 				PRODUCT_BUNDLE_IDENTIFIER = ai.bluecs.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1035,8 +1031,8 @@
 				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = 46RN9MXMLM;
 				ENABLE_BITCODE = NO;
-				FLUTTER_BUILD_NAME = 1.2.97;
-				FLUTTER_BUILD_NUMBER = 3;
+				FLUTTER_BUILD_NAME = 1.2.98;
+				FLUTTER_BUILD_NUMBER = 1;
 				INFOPLIST_FILE = Runner/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = BlueEra;
 				IPHONEOS_DEPLOYMENT_TARGET = 15.6;
@@ -1044,7 +1040,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2.97;
+				MARKETING_VERSION = 1.2.98;
 				PRODUCT_BUNDLE_IDENTIFIER = ai.bluecs.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
