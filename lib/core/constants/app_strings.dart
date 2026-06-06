@@ -832,6 +832,9 @@ class AppStrings {
   static const emailAlreadyVerified = "emailAlreadyVerified";
   static const deleteConfirmation = "deleteConfirmation";
   static const documentDeletedSuccessfully = "documentDeletedSuccessfully";
+  static const deleteDocumentConfirm = "deleteDocumentConfirm";
+  static const numberPlate = "numberPlate";
+  static const sideImage = "sideImage";
   static const delete = "delete";
   static const editFunctionalityMessage = "editFunctionalityMessage";
 
@@ -1810,6 +1813,7 @@ class AppStrings {
   static const String vehicleUseType = 'vehicleUseType';
   static const String egPassengerDeliveryGoods = 'egPassengerDeliveryGoods';
   static const String vehicleName = 'vehicleName';
+  static const String vehicleNameCompanyName = 'vehicleNameCompanyName';
   static const String egSP125 = 'egSP125';
   static const String fuelType = 'fuelType';
   static const String egPetrolDiesel = 'egPetrolDiesel';

@@ -2227,6 +2227,7 @@
   "vehicleLeftSideImages": "গাড়ির বাম পাশের ছবি",
   "vehicleModelYearManufacturing": "যানবাহনের মডেল (উৎপাদনের বছর)",
   "vehicleName": "যানবাহনের নাম",
+  "vehicleNameCompanyName": "যানবাহনের নাম (কোম্পানির নাম)",
   "vehicleNumber": "যানবাহনের নম্বর",
   "vehicleNumberPlateImages": "গাড়ির নাম্বার প্লেটের ছবি",
   "vehicleRightSideImages": "গাড়ির ডান পাশের ছবি",

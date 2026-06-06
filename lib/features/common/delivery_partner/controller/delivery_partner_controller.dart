@@ -132,6 +132,14 @@ class DeliveryPartnerController extends GetxController {
   Rx<VehicleEnumItem?> selectedVehicleUseType = Rx<VehicleEnumItem?>(null);
   Rx<VehicleEnumItem?> selectedFuelType = Rx<VehicleEnumItem?>(null);
 
+  /// Vehicle model year (manufacturing) — current year back to last 40 years.
+  final Rxn<String> selectedVehicleModelYear = Rxn<String>();
+
+  List<String> get vehicleModelYears {
+    final currentYear = DateTime.now().year;
+    return List.generate(41, (i) => (currentYear - i).toString());
+  }
+
   Future<ImageUploadResponseModel?> uploadInit(
       {required String fileType}) async {
     try {
@@ -212,6 +220,31 @@ class DeliveryPartnerController extends GetxController {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       isRiderStatusLoading.value = false;
+    }
+  }
+
+  RxBool isRiderDeleteDocumentLoading = false.obs;
+
+  /// Deletes a single uploaded onboarding document and refreshes status.
+  /// [documentType] is one of:
+  ///   aadhar | pan | dl | rc | vehicle-images | vehicle-information
+  /// NOTE: relies on an assumed DELETE endpoint — confirm with backend.
+  Future<void> ridersDeleteDocumentApi(String documentType) async {
+    try {
+      isRiderDeleteDocumentLoading.value = true;
+      final response = await DeliveryPartnerRepo()
+          .ridersOnboardingDeleteDocumentRepo(documentType: documentType);
+      if (response.isSuccess) {
+        commonSnackBar(message: AppStrings.documentDeletedSuccessfully.tr);
+        await ridersOnboardingStatusRepoApi();
+      } else {
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      isRiderDeleteDocumentLoading.value = false;
     }
   }
 

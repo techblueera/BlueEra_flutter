@@ -124,8 +124,7 @@ class _VehicleInformationWidgetState extends State<VehicleInformationWidget> {
 
                       /// Vehicle Name
                       CommonTextField(
-                        title: "Vehicle Name (Company Name)",
-                        // title: AppStrings.vehicleName.tr,
+                        title: AppStrings.vehicleNameCompanyName.tr,
                         hintText:"Honda",
                         textEditController: controller.vehicleNameController,
                         isValidate: true,
@@ -167,15 +166,25 @@ class _VehicleInformationWidgetState extends State<VehicleInformationWidget> {
                       ),
                       SizedBox(height: SizeConfig.paddingM),
 
-                      /// Vehicle Model
-                      CommonTextField(
+                      /// Vehicle Model Year (Manufacturing)
+                      CustomText(
+                        AppStrings.vehicleModelYearManufacturing,
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.mainTextColor,
+                      ),
+                      SizedBox(height: SizeConfig.size8),
+                      CommonDropdownDialog<String>(
+                        items: controller.vehicleModelYears,
+                        selectedValue:
+                            controller.selectedVehicleModelYear.value,
                         title: AppStrings.vehicleModelYearManufacturing,
                         hintText: AppStrings.eg2020,
-                        // hintText: "E.g. Honda, Maruti, BMW....",
-                        keyBoardType: TextInputType.number,
-                        maxLength: 4,
-                        textEditController: controller.vehicleModelController,
-                        isValidate: true,
+                        displayValue: (value) => value,
+                        onChanged: (value) {
+                          controller.selectedVehicleModelYear.value = value;
+                          controller.vehicleModelController.text = value ?? '';
+                        },
                       ),
                       SizedBox(height: SizeConfig.paddingM),
 
