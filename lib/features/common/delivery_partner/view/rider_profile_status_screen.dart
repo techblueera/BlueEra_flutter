@@ -1213,15 +1213,48 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
   // ─── DOCUMENT CARDS ───────────────────────────────────────────────
 
   List<Widget> _buildDocumentCards(BuildContext context) {
+    final data = riderOnboardingStatusData;
+    final controller = widget.deliveryPartnerController;
+    // Vehicle photos returned by the status API (empty until the backend
+    // adds image URLs — see RiderOnboardingStatusData._parseVehicleImages).
+    final vehicleImages = data.vehicleImageUrls
+        .map((e) => _DialogImage(e.url, caption: _vehicleSlotLabel(e.slot)))
+        .toList();
     final items = [
       _DocumentItem(
         stepNumber: 1,
         icon: Icons.directions_car_rounded,
         title: AppStrings.addYourVehicleInfo.tr,
         example: AppStrings.egVehicleNo.tr,
-        currentValue: riderOnboardingStatusData.vehicleNo ?? '',
-        isCompleted: riderOnboardingStatusData.vehicleInformation ?? false,
+        currentValue: data.vehicleNo ?? '',
+        isCompleted: data.vehicleInformation ?? false,
+        // Text-only document: the view dialog shows the saved fields and
+        // an Edit action that pre-fills and re-opens the form.
+        enableDataView: true,
+        dataRows: [
+          if (data.vehicleName?.isNotEmpty ?? false)
+            MapEntry(AppStrings.vehicleName.tr, data.vehicleName!),
+          if (data.vehicleType?.isNotEmpty ?? false)
+            MapEntry(AppStrings.vehicleType.tr, data.vehicleType!),
+          if (data.vehicleModelYear?.isNotEmpty ?? false)
+            MapEntry(AppStrings.vehicleModelYearManufacturing.tr,
+                data.vehicleModelYear!),
+          if (data.vehicleNo?.isNotEmpty ?? false)
+            MapEntry(AppStrings.vehicleNumber.tr, data.vehicleNo!),
+        ],
+        documentType: 'vehicle-information',
         onTap: () {
+          // Pre-fill the saved text fields for edit mode. The dropdowns
+          // (registration/fuel/use type) are re-selected by the user —
+          // the status response doesn't return all of them.
+          controller.vehicleNameController.text = data.vehicleName ?? '';
+          controller.vehicleModelController.text = data.vehicleModelYear ?? '';
+          controller.selectedVehicleModelYear.value =
+              (data.vehicleModelYear?.isNotEmpty ?? false)
+                  ? data.vehicleModelYear
+                  : null;
+          controller.vehicleRegistrationNumberController.text =
+              data.vehicleNo ?? '';
           Get.bottomSheet(
             CommonBottomSheet(
               title: AppStrings.vehicleInformation.tr,
@@ -1241,18 +1274,21 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
         title: AppStrings.addYourAadharNumber.tr,
         dialogTitle: AppStrings.aadharCard.tr,
         example: AppStrings.egAadharNo.tr,
-        currentValue: riderOnboardingStatusData.aadharNo ?? '',
-        isCompleted: riderOnboardingStatusData.aadhar ?? false,
-        imageUrl: riderOnboardingStatusData.aadharImage,
-        // Aadhar is the one document that stays viewable (View + Edit)
-        // once filled even if no image URL is on file — the dialog
-        // surfaces the saved number and re-opens this sheet to edit.
+        currentValue: data.aadharNo ?? '',
+        isCompleted: data.aadhar ?? false,
+        imageUrl: data.aadharImage,
+        dialogImages: _twoSidedImages(data.aadharImage, data.aadharImageBack),
+        dataRows: [
+          if (data.aadharNo?.isNotEmpty ?? false)
+            MapEntry(AppStrings.aadharNumber.tr, data.aadharNo!),
+        ],
+        documentType: 'aadhar',
+        // Aadhar stays viewable (View + Edit) once filled even if no image
+        // URL is on file — the dialog surfaces the saved number.
         enableDataView: true,
         onTap: () {
-          // Pre-fill the saved number so the sheet opens in "edit"
-          // mode when reached from the View dialog's Edit action.
-          widget.deliveryPartnerController.aadharController.text =
-              riderOnboardingStatusData.aadharNo ?? '';
+          // Pre-fill the saved number so the sheet opens in "edit" mode.
+          controller.aadharController.text = data.aadharNo ?? '';
           Get.bottomSheet(
             CommonBottomSheet(
               title: AppStrings.aadharCard.tr,
@@ -1270,10 +1306,21 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
         title: AppStrings.addYourPanNumber.tr,
         dialogTitle: AppStrings.panCard.tr,
         example: AppStrings.egPanNo.tr,
-        currentValue: riderOnboardingStatusData.panNo ?? '',
-        isCompleted: riderOnboardingStatusData.pan ?? false,
-        imageUrl: riderOnboardingStatusData.panImage,
+        currentValue: data.panNo ?? '',
+        isCompleted: data.pan ?? false,
+        imageUrl: data.panImage,
+        // PAN is single-sided — one image, no caption.
+        dialogImages: [
+          if (data.panImage?.isNotEmpty ?? false) _DialogImage(data.panImage!),
+        ],
+        dataRows: [
+          if (data.panNo?.isNotEmpty ?? false)
+            MapEntry(AppStrings.panNumber.tr, data.panNo!),
+        ],
+        documentType: 'pan',
+        enableDataView: true,
         onTap: () {
+          controller.panNumberController.text = data.panNo ?? '';
           Get.bottomSheet(
             CommonBottomSheet(
               title: AppStrings.panCard.tr,
@@ -1291,10 +1338,18 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
         title: AppStrings.addYourDrivingLicenceNumber.tr,
         dialogTitle: AppStrings.drivingLicence.tr,
         example: AppStrings.egDlNo.tr,
-        currentValue: riderOnboardingStatusData.dlNo ?? '',
-        isCompleted: riderOnboardingStatusData.dl ?? false,
-        imageUrl: riderOnboardingStatusData.dlImage,
+        currentValue: data.dlNo ?? '',
+        isCompleted: data.dl ?? false,
+        imageUrl: data.dlImage,
+        dialogImages: _twoSidedImages(data.dlImage, data.dlImageBack),
+        dataRows: [
+          if (data.dlNo?.isNotEmpty ?? false)
+            MapEntry(AppStrings.drivingLicenceNumber.tr, data.dlNo!),
+        ],
+        documentType: 'dl',
+        enableDataView: true,
         onTap: () {
+          controller.drivingLicenseController.text = data.dlNo ?? '';
           Get.bottomSheet(
             CommonBottomSheet(
               title: AppStrings.drivingLicence.tr,
@@ -1312,10 +1367,18 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
         title: AppStrings.addYourRcNumber.tr,
         dialogTitle: AppStrings.rcBook.tr,
         example: AppStrings.egRcNo.tr,
-        currentValue: riderOnboardingStatusData.rcNo ?? '',
-        isCompleted: riderOnboardingStatusData.rc ?? false,
-        imageUrl: riderOnboardingStatusData.rcImage,
+        currentValue: data.rcNo ?? '',
+        isCompleted: data.rc ?? false,
+        imageUrl: data.rcImage,
+        dialogImages: _twoSidedImages(data.rcImage, data.rcImageBack),
+        dataRows: [
+          if (data.rcNo?.isNotEmpty ?? false)
+            MapEntry(AppStrings.rcNumber.tr, data.rcNo!),
+        ],
+        documentType: 'rc',
+        enableDataView: true,
         onTap: () {
+          controller.rcController.text = data.rcNo ?? '';
           Get.bottomSheet(
             CommonBottomSheet(
               title: AppStrings.rc.tr,
@@ -1333,7 +1396,11 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
         title: AppStrings.vehicleImages.tr,
         example: AppStrings.uploadVehicleImage.tr,
         currentValue: '',
-        isCompleted: riderOnboardingStatusData.vehicleImages ?? false,
+        isCompleted: data.vehicleImages ?? false,
+        // Thumbnail uses the first photo; the dialog shows the full set.
+        imageUrl: vehicleImages.isNotEmpty ? vehicleImages.first.url : null,
+        dialogImages: vehicleImages,
+        documentType: 'vehicle-images',
         onTap: () {
           Get.bottomSheet(
             CommonBottomSheet(
@@ -1351,6 +1418,33 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
     return items.map((item) => _buildDocumentCard(item)).toList();
   }
 
+  // Two-sided ID images (Aadhar/DL/RC) with localized Front/Back
+  // captions; empty entries are skipped so a missing side is dropped.
+  List<_DialogImage> _twoSidedImages(String? front, String? back) {
+    return [
+      if (front?.isNotEmpty ?? false)
+        _DialogImage(front!, caption: AppStrings.frontSide.tr),
+      if (back?.isNotEmpty ?? false)
+        _DialogImage(back!, caption: AppStrings.backSide.tr),
+    ];
+  }
+
+  // Maps a vehicle-image slot key to its localized caption.
+  String _vehicleSlotLabel(String slot) {
+    switch (slot) {
+      case 'numberPlate':
+        return AppStrings.numberPlate.tr;
+      case 'front':
+        return AppStrings.frontSide.tr;
+      case 'back':
+        return AppStrings.backSide.tr;
+      case 'side':
+        return AppStrings.sideImage.tr;
+      default:
+        return '';
+    }
+  }
+
   Widget _buildDocumentCard(_DocumentItem item) {
     final state = widget.deliveryPartnerController.riderVerificationState;
     // The card has three interactive states:
@@ -1363,27 +1457,34 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
     //      backend returns image URLs).
     final hasUploadedImage = item.isCompleted &&
         (item.imageUrl?.isNotEmpty ?? false);
-    // Aadhar (enableDataView) stays viewable once completed even when no
-    // image URL is on file — the view dialog surfaces the saved number
-    // and an Edit action instead of the plain "Done" pill.
-    final isViewable =
-        item.isCompleted && (hasUploadedImage || item.enableDataView);
+    // A document stays viewable (View + Edit/Replace + Delete) once
+    // completed when it has an image, dialog images, or opts into the
+    // data view (IDs surface their saved number; Vehicle Information its
+    // text fields) — otherwise it falls back to the plain "Done" pill.
+    final isViewable = item.isCompleted &&
+        (hasUploadedImage ||
+            item.enableDataView ||
+            item.dialogImages.isNotEmpty);
     final allowUpload =
         !item.isCompleted || state == RiderVerificationState.rejected;
     final VoidCallback? onCardTap = isViewable
         ? () => _showDocumentViewDialog(
               context,
               title: item.dialogTitle ?? item.title,
-              imageUrl: item.imageUrl,
-              dataLabel:
-                  item.enableDataView ? AppStrings.aadharNumber.tr : null,
-              dataValue: item.enableDataView ? item.currentValue : null,
+              images: item.dialogImages,
+              dataRows: item.dataRows,
               onReplace: item.onTap,
+              // Documents with a data view read as "Edit"; image-only
+              // ones (vehicle photos) read as "Replace".
               actionLabel:
                   item.enableDataView ? AppStrings.editLabel.tr : null,
               actionIcon: item.enableDataView
                   ? Icons.edit_rounded
                   : Icons.refresh_rounded,
+              onDelete: item.documentType == null
+                  ? null
+                  : () => widget.deliveryPartnerController
+                      .ridersDeleteDocumentApi(item.documentType!),
             )
         : (allowUpload ? item.onTap : null);
 
@@ -1717,19 +1818,26 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
   //   3. ACTIONS — Replace (outlined primary) closes the dialog and
   //               re-opens the upload bottom sheet; Done (filled
   //               primary) just closes.
+  // Generalized document view dialog. Renders any number of captioned
+  // images (front/back for two-sided IDs, the four vehicle photos for
+  // the vehicle gallery), any number of labeled data rows (the saved
+  // number for IDs, the text fields for Vehicle Information), an
+  // Edit/Replace action, and — when [onDelete] is supplied — a Delete
+  // action gated behind a confirmation dialog.
   void _showDocumentViewDialog(
     BuildContext context, {
     required String title,
-    String? imageUrl,
-    String? dataLabel,
-    String? dataValue,
+    List<_DialogImage> images = const [],
+    List<MapEntry<String, String>> dataRows = const [],
     required VoidCallback onReplace,
     String? actionLabel,
     IconData actionIcon = Icons.refresh_rounded,
+    VoidCallback? onDelete,
   }) {
-    final maxImageHeight = MediaQuery.of(context).size.height * 0.55;
-    final hasImage = imageUrl?.isNotEmpty ?? false;
-    final hasData = dataValue?.isNotEmpty ?? false;
+    // Stacked images share the vertical budget so the dialog never
+    // overflows; a lone image gets the full 55 %.
+    final maxImageHeight = MediaQuery.of(context).size.height *
+        (images.length > 1 ? 0.34 : 0.55);
     Get.dialog(
       Dialog(
         backgroundColor: Colors.transparent,
@@ -1759,94 +1867,158 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
               mainAxisSize: MainAxisSize.min,
               children: [
                 _buildDialogHeader(title),
-                if (hasImage) ...[
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxHeight: maxImageHeight,
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: InteractiveViewer(
-                        minScale: 1.0,
-                        maxScale: 4.0,
-                        child: CachedNetworkImage(
-                          imageUrl: imageUrl!,
-                          fit: BoxFit.contain,
-                          placeholder: (_, __) => _buildDialogImageFallback(
-                            const CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                          errorWidget: (_, __, ___) =>
-                              _buildDialogImageFallback(
-                            Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.broken_image_rounded,
-                                  size: 44,
-                                  color:
-                                      AppColors.secondaryTextColor,
-                                ),
-                                const SizedBox(height: 8),
-                                CustomText(
-                                  AppStrings.couldNotLoadImage.tr,
-                                  fontSize: SizeConfig.small,
-                                  color: AppColors.secondaryTextColor,
-                                ),
-                              ],
+                if (images.isNotEmpty)
+                  Flexible(
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          for (final image in images)
+                            _buildDialogImageSection(
+                              image.url,
+                              maxImageHeight,
+                              caption: image.caption,
                             ),
-                          ),
-                        ),
+                        ],
                       ),
                     ),
                   ),
-                ),
-                Padding(
-                  padding:
-                      const EdgeInsets.fromLTRB(16, 6, 16, 4),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.zoom_in_rounded,
-                        size: 14,
-                        color: AppColors.secondaryTextColor,
-                      ),
-                      const SizedBox(width: 4),
-                      CustomText(
-                        AppStrings.pinchToZoom.tr,
-                        fontSize: SizeConfig.small,
-                        color: AppColors.secondaryTextColor,
-                      ),
-                    ],
-                  ),
-                ),
-                ],
-                if (hasData) _buildDialogDataRow(dataLabel, dataValue!),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: _buildDialogReplaceBtn(
-                          onReplace,
-                          label: actionLabel,
-                          icon: actionIcon,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _buildDialogDoneBtn(),
-                      ),
-                    ],
-                  ),
+                for (final row in dataRows)
+                  _buildDialogDataRow(row.key, row.value),
+                _buildDialogActions(
+                  onReplace: onReplace,
+                  actionLabel: actionLabel,
+                  actionIcon: actionIcon,
+                  onDelete: onDelete,
                 ),
               ],
             ),
           ),
         ),
+      ),
+      barrierColor: Colors.black.withValues(alpha: 0.55),
+    );
+  }
+
+  // Action footer for the view dialog: Edit/Replace + Done side by side,
+  // with an optional full-width Delete button beneath when the document
+  // supports deletion.
+  Widget _buildDialogActions({
+    required VoidCallback onReplace,
+    String? actionLabel,
+    IconData actionIcon = Icons.refresh_rounded,
+    VoidCallback? onDelete,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: _buildDialogReplaceBtn(
+                  onReplace,
+                  label: actionLabel,
+                  icon: actionIcon,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildDialogDoneBtn(),
+              ),
+            ],
+          ),
+          // if (onDelete != null) ...[
+          //   const SizedBox(height: 12),
+          //   _buildDialogDeleteBtn(onDelete),
+          // ],
+        ],
+      ),
+    );
+  }
+
+  // Full-width destructive button. Closes the view dialog and routes
+  // through a confirmation before invoking [onDelete].
+  Widget _buildDialogDeleteBtn(VoidCallback onDelete) {
+    return InkWell(
+      onTap: () => _confirmDeleteDocument(onDelete),
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: AppColors.redE4,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: AppColors.red00.withValues(alpha: 0.45),
+            width: 1.2,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.delete_outline_rounded,
+              size: 16,
+              color: AppColors.red00,
+            ),
+            const SizedBox(width: 6),
+            CustomText(
+              AppStrings.deleteDocument.tr,
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w700,
+              color: AppColors.red00,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Confirmation step before deleting. Closes the confirm dialog and the
+  // underlying view dialog, then fires [onDelete] (the controller call).
+  void _confirmDeleteDocument(VoidCallback onDelete) {
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: CustomText(
+          AppStrings.deleteDocument.tr,
+          fontSize: SizeConfig.large,
+          fontWeight: FontWeight.w700,
+          color: AppColors.mainTextColor,
+        ),
+        content: CustomText(
+          AppStrings.deleteDocumentConfirm.tr,
+          fontSize: SizeConfig.small,
+          color: AppColors.secondaryTextColor,
+          maxLines: 4,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: CustomText(
+              AppStrings.cancel.tr,
+              fontSize: SizeConfig.medium,
+              color: AppColors.secondaryTextColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              Get.back(); // close confirmation
+              Get.back(); // close the view dialog
+              onDelete();
+            },
+            child: CustomText(
+              AppStrings.delete.tr,
+              fontSize: SizeConfig.medium,
+              color: AppColors.red00,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
       ),
       barrierColor: Colors.black.withValues(alpha: 0.55),
     );
@@ -1900,6 +2072,93 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
           ),
         ],
       ),
+    );
+  }
+
+  // One document image inside the view dialog: an optional caption
+  // (e.g. "Front"/"Back" when both sides are shown), the pinch-to-zoom
+  // InteractiveViewer wrapping a CachedNetworkImage, and the zoom hint.
+  // Capped at [maxImageHeight] so stacked sides don't overflow.
+  Widget _buildDialogImageSection(
+    String imageUrl,
+    double maxImageHeight, {
+    String? caption,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (caption != null && caption.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+            child: CustomText(
+              caption,
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w600,
+              color: AppColors.secondaryTextColor,
+            ),
+          ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: maxImageHeight,
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: InteractiveViewer(
+                minScale: 1.0,
+                maxScale: 4.0,
+                child: CachedNetworkImage(
+                  imageUrl: imageUrl,
+                  fit: BoxFit.contain,
+                  placeholder: (_, __) => _buildDialogImageFallback(
+                    const CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  errorWidget: (_, __, ___) => _buildDialogImageFallback(
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.broken_image_rounded,
+                          size: 44,
+                          color: AppColors.secondaryTextColor,
+                        ),
+                        const SizedBox(height: 8),
+                        CustomText(
+                          AppStrings.couldNotLoadImage.tr,
+                          fontSize: SizeConfig.small,
+                          color: AppColors.secondaryTextColor,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.zoom_in_rounded,
+                size: 14,
+                color: AppColors.secondaryTextColor,
+              ),
+              const SizedBox(width: 4),
+              CustomText(
+                AppStrings.pinchToZoom.tr,
+                fontSize: SizeConfig.small,
+                color: AppColors.secondaryTextColor,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -2077,13 +2336,24 @@ class _DocumentItem {
   // Null/empty for documents that don't have a single-image preview
   // (Vehicle Information, Vehicle Images).
   final String? imageUrl;
+  // The captioned images shown in the view dialog. Front/back for the
+  // two-sided IDs, a single image for PAN, the four photos for Vehicle
+  // Images, and empty for text-only Vehicle Information.
+  final List<_DialogImage> dialogImages;
+  // Labeled rows shown in the view dialog (the saved ID number, or the
+  // text fields for Vehicle Information). Empty for image-only docs.
+  final List<MapEntry<String, String>> dataRows;
+  // Identifier passed to the delete endpoint
+  // (aadhar | pan | dl | rc | vehicle-images | vehicle-information).
+  // Null disables the Delete action for this card.
+  final String? documentType;
   // Clean title shown at the top of the view dialog. Falls back to
   // [title] when null.
   final String? dialogTitle;
   // When true, the card stays viewable (View + Edit) once completed even
-  // if no [imageUrl] is on file — the view dialog surfaces the saved
-  // [currentValue] and re-opens [onTap] as an edit flow. Currently only
-  // the Aadhar card opts in.
+  // if no [imageUrl] is on file — the view dialog surfaces the
+  // [dataRows] and re-opens [onTap] as an edit flow. ID documents and
+  // Vehicle Information opt in; image-only Vehicle Images does not.
   final bool enableDataView;
 
   _DocumentItem({
@@ -2095,7 +2365,19 @@ class _DocumentItem {
     required this.isCompleted,
     required this.onTap,
     this.imageUrl,
+    this.dialogImages = const [],
+    this.dataRows = const [],
+    this.documentType,
     this.dialogTitle,
     this.enableDataView = false,
   });
+}
+
+/// A single captioned image rendered inside the document view dialog.
+/// [caption] is null for unambiguous single images (e.g. PAN).
+class _DialogImage {
+  final String url;
+  final String? caption;
+
+  const _DialogImage(this.url, {this.caption});
 }

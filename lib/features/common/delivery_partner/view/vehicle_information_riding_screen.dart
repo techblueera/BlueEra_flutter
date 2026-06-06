@@ -128,8 +128,7 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
 
                     /// Vehicle Name
                     CommonTextField(
-                      title: "Vehicle Name (Company Name)",
-                      // title: AppStrings.vehicleName.tr,
+                      title: AppStrings.vehicleNameCompanyName.tr,
                       hintText:"Honda",
                       textEditController: controller.vehicleNameController,
                       isValidate: true,
@@ -170,7 +169,7 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
                     ),
                     SizedBox(height: SizeConfig.paddingM),
 
-                    /// Vehicle Model
+                    // /// Vehicle Model
                     CommonTextField(
                       title: AppStrings.vehicleModelYearManufacturing.tr,
                       hintText: AppStrings.eg2020.tr,

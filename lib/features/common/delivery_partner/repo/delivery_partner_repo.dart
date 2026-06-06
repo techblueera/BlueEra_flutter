@@ -89,6 +89,19 @@ class DeliveryPartnerRepo extends BaseService {
     return response;
   }
 
+  /// ridersOnboardingDeleteDocumentRepo
+  /// [documentType] — aadhar | pan | dl | rc | vehicle-images | vehicle-information
+  Future<ResponseModel> ridersOnboardingDeleteDocumentRepo(
+      {required String documentType}) async {
+    var response = await ApiBaseHelper().deleteHTTP(
+      ridersOnboardingDeleteDocument(documentType),
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   /// initRiderServiceUploadRepo
   Future<ResponseModel> initRiderServiceFileUploadRepo({required String fileType}) async {
     var response = await ApiBaseHelper().getHTTP(

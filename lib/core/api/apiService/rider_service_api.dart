@@ -27,6 +27,11 @@ mixin RiderServiceApi {
       "rider-service/riders/onboarding/vehicle-information"; // Onboarding rider (step 6)
   final String ridersOnboardingStatus =
       "rider-service/riders/onboarding/status"; // Fetch onboarding rider status
+  // Delete a single uploaded onboarding document. [documentType] is one
+  // of: aadhar | pan | dl | rc | vehicle-images | vehicle-information.
+  // NOTE: assumed REST path — confirm with backend before relying on it.
+  String ridersOnboardingDeleteDocument(String documentType) =>
+      "rider-service/riders/onboarding/documents/$documentType";
   final String initRiderServiceUpload = "rider-service/s3/presigned-url";
   final String ridersAssociatedShops =
       "rider-service/riders/associations/shops";

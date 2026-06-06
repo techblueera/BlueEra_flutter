@@ -505,10 +505,11 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
               "approved";
           final tabs = <String>[
             approved ? AppStrings.myOrder.tr : AppStrings.document.tr,
-            'Overview',
-            'Post',
-            'Store',
-            'Statics',
+
+            AppStrings.overview.tr,
+            AppStrings.post.tr,
+            AppStrings.store.tr,
+            AppStrings.statics.tr,
           ];
           return LayoutBuilder(
             builder: (context, constraints) {
