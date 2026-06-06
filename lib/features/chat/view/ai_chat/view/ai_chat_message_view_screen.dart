@@ -372,7 +372,7 @@ class _AiChatMessageViewScreenState extends State<AiChatMessageViewScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 30),
                 ],
               )
             ],
