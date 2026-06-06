@@ -93,7 +93,7 @@ class _HomeServiceHomePageState extends State<HomeServiceHomePage> {
             children: [
               Expanded(
                 child: CustomText(
-                  'Home Service',
+                  AppStrings.homeServiceSection,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: AppColors.mainTextColor,
@@ -223,7 +223,7 @@ class _HomeServiceHomePageState extends State<HomeServiceHomePage> {
                               ),
                               SizedBox(width: SizeConfig.size6),
                               CustomText(
-                                'Range',
+                                AppStrings.rangeLabelEarn,
                                 fontSize: SizeConfig.small,
                                 color: AppColors.white.withValues(alpha: 0.75),
                               ),
@@ -352,7 +352,7 @@ class _HomeServiceHomePageState extends State<HomeServiceHomePage> {
                 ),
                 const SizedBox(height: 6.0),
                 CustomText(
-                  'You Have Not Added Any Service',
+                  AppStrings.youHaveNotAddedAnyService,
                   fontSize: SizeConfig.small,
                   fontWeight: FontWeight.w600,
                   color: AppColors.white,
@@ -372,7 +372,7 @@ class _HomeServiceHomePageState extends State<HomeServiceHomePage> {
                         border: Border.all(color: AppColors.primaryColor),
                       ),
                       child: CustomText(
-                        'Add Home Service',
+                        AppStrings.addHomeService,
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w600,
                         color: AppColors.white,
@@ -405,7 +405,7 @@ class _HomeServiceHomePageState extends State<HomeServiceHomePage> {
   Future<void> _pickAndUploadGalleryImage() async {
     final path = await CommonImageUploadTile.pickImage(
       context: context,
-      title: 'Upload Photo',
+      title: AppStrings.uploadPhotoTitle,
     );
     if (path == null || path.isEmpty) return;
     await earnProfileController.addGalleryImage(File(path));

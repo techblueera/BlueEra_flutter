@@ -5,6 +5,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -86,7 +87,7 @@ class _HomeMadeProductHomePageState extends State<HomeMadeProductHomePage> {
       final hasProducts = products.isNotEmpty;
 
       return _section(
-        'Home Made Product',
+        AppStrings.homeMadeProductSection,
         isLoading
             ? const SizedBox(
                 height: 200,
@@ -101,14 +102,14 @@ class _HomeMadeProductHomePageState extends State<HomeMadeProductHomePage> {
                 children: [
                   _editChip(
                     onTap: _onAddProductTap,
-                    label: 'Add',
+                    label: AppStrings.add,
                     icon: Icons.add,
                   ),
                   SizedBox(width: SizeConfig.size6),
                   _editChip(
                     onTap: () =>
                         Get.to(() => const HomeMadeProductsViewAllScreen()),
-                    label: 'View All',
+                    label: AppStrings.viewAll,
                     icon: Icons.arrow_forward_rounded,
                   ),
                 ],
@@ -184,7 +185,7 @@ class _HomeMadeProductHomePageState extends State<HomeMadeProductHomePage> {
                 ),
                 const SizedBox(height: 6.0),
                 CustomText(
-                  'You Have Not Added Any Product',
+                  AppStrings.youHaveNotAddedAnyProduct,
                   fontSize: SizeConfig.small,
                   fontWeight: FontWeight.w600,
                   color: AppColors.white,
@@ -204,7 +205,7 @@ class _HomeMadeProductHomePageState extends State<HomeMadeProductHomePage> {
                         border: Border.all(color: AppColors.primaryColor),
                       ),
                       child: CustomText(
-                        'Add Home Made Product',
+                        AppStrings.addHomeMadeProduct,
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w600,
                         color: AppColors.white,
@@ -233,7 +234,7 @@ class _HomeMadeProductHomePageState extends State<HomeMadeProductHomePage> {
   Future<void> _pickAndUploadGalleryImage() async {
     final path = await CommonImageUploadTile.pickImage(
       context: context,
-      title: 'Upload Photo',
+      title: AppStrings.uploadPhotoTitle,
     );
     if (path == null || path.isEmpty) return;
     await earnProfileController.addGalleryImage(File(path));

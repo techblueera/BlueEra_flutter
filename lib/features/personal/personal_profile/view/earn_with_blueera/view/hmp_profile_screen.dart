@@ -56,7 +56,7 @@ class _HomeProfileScreenState extends State<HomeProfileScreen> {
   Future<void> _pickLogo() async {
     final path = await CommonImageUploadTile.pickImage(
       context: context,
-      title: 'Your Business Logo',
+      title: AppStrings.yourBusinessLogo,
     );
     if (path != null) {
       _logoFile.value = File(path);
@@ -66,7 +66,7 @@ class _HomeProfileScreenState extends State<HomeProfileScreen> {
   Future<void> _pickGalleryImage() async {
     final path = await CommonImageUploadTile.pickImage(
       context: context,
-      title: 'Upload Photo',
+      title: AppStrings.uploadPhotoTitle,
     );
     if (path != null) {
       _galleryImages.add(path);
@@ -78,11 +78,11 @@ class _HomeProfileScreenState extends State<HomeProfileScreen> {
   Future<void> _onCreate() async {
     if (!_formKey.currentState!.validate()) return;
     if (_logoFile.value == null) {
-      commonSnackBar(message: 'Please select a logo');
+      commonSnackBar(message: AppStrings.pleaseSelectALogo.tr);
       return;
     }
     if (!_acceptPrivacy) {
-      commonSnackBar(message: 'Please accept Privacy and Content Policy');
+      commonSnackBar(message: AppStrings.pleaseAcceptPrivacyAndContentPolicy.tr);
       return;
     }
 
@@ -111,7 +111,7 @@ class _HomeProfileScreenState extends State<HomeProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: 'Home Made Product'),
+      appBar: CommonBackAppBar(title: AppStrings.homeMadeProductSection),
       bottomNavigationBar: _buildActionButtons(),
       body: SingleChildScrollView(
         padding: EdgeInsets.symmetric(
@@ -130,23 +130,23 @@ class _HomeProfileScreenState extends State<HomeProfileScreen> {
 
                 CommonTextField(
                   textEditController: _nameController,
-                  title: 'Your Business Name',
-                  hintText: 'e.g. Sangita Handicraft...',
+                  title: AppStrings.yourBusinessName,
+                  hintText: AppStrings.egSangitaHandicraft,
                   isValidate: true,
                 ),
                 SizedBox(height: SizeConfig.size16),
 
                 CommonTextField(
                   textEditController: _houseNumberController,
-                  title: 'House Number',
-                  hintText: 'e.g. MG12',
+                  title: AppStrings.houseNumberLabel,
+                  hintText: AppStrings.egMG12,
                 ),
                 SizedBox(height: SizeConfig.size16),
 
                 CommonLocationSearchField(
                   controller: _addressController,
-                  title: 'Address',
-                  hintText: 'e.g. Lucknow, Utter Pradesh',
+                  title: AppStrings.addressLabel,
+                  hintText: AppStrings.egLucknowUtterPradesh,
                   isShowLeading: false,
                   onSelected: (placeId, lat, lng, address) {
                     debugPrint(
@@ -181,7 +181,7 @@ class _HomeProfileScreenState extends State<HomeProfileScreen> {
                 SizedBox(height: SizeConfig.size20),
 
                 _buildToggleRow(
-                  label: 'Do You Provide Home Delivery ?',
+                  label: AppStrings.doYouProvideHomeDelivery,
                   value: _homeDelivery,
                   onChanged: (v) => setState(() => _homeDelivery = v),
                 ),
@@ -235,14 +235,14 @@ class _HomeProfileScreenState extends State<HomeProfileScreen> {
               ),
               SizedBox(height: SizeConfig.size8),
               CustomText(
-                'Your Business Logo',
+                AppStrings.yourBusinessLogo,
                 fontSize: SizeConfig.medium,
                 fontWeight: FontWeight.w500,
                 color: AppColors.mainTextColor,
               ),
               SizedBox(height: 2),
               CustomText(
-                'Add your brand logo or profile picture',
+                AppStrings.addYourBrandLogoOrProfilePicture,
                 fontSize: SizeConfig.small,
                 color: AppColors.secondaryTextColor,
               ),
@@ -258,7 +258,7 @@ class _HomeProfileScreenState extends State<HomeProfileScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CustomText(
-          'Alternate Contact No. (Optional)',
+          AppStrings.alternateContactNoOptional,
           fontSize: SizeConfig.medium,
           fontWeight: FontWeight.w500,
           color: AppColors.mainTextColor,
@@ -353,17 +353,17 @@ class _HomeProfileScreenState extends State<HomeProfileScreen> {
                 color: AppColors.mainTextColor,
               ),
               children: [
-                TextSpan(text: 'Accept '),
+                TextSpan(text: '${AppStrings.acceptLabelEarn.tr} '),
                 TextSpan(
-                  text: 'Privacy',
+                  text: AppStrings.privacyLabel.tr,
                   style: TextStyle(color: AppColors.primaryColor),
                 ),
-                TextSpan(text: ' and '),
+                TextSpan(text: ' ${AppStrings.andText.tr} '),
                 TextSpan(
-                  text: 'Content',
+                  text: AppStrings.contentLabel.tr,
                   style: TextStyle(color: AppColors.primaryColor),
                 ),
-                TextSpan(text: ' Policy'),
+                TextSpan(text: ' ${AppStrings.policyLabel.tr}'),
               ],
             ),
           ),

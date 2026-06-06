@@ -51,16 +51,16 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
   final RxInt _selectedFoodTab = 0.obs;
 
   static const _foodCategories = [
-    (type: FoodCategoryType.bakery, title: 'Bakery'),
-    (type: FoodCategoryType.namkeens, title: 'Namkeens'),
-    (type: FoodCategoryType.sweets, title: 'Sweets'),
-    (type: FoodCategoryType.pickles, title: 'Pickles'),
+    (type: FoodCategoryType.bakery, title: AppStrings.bakery),
+    (type: FoodCategoryType.namkeens, title: AppStrings.namkeensLabel),
+    (type: FoodCategoryType.sweets, title: AppStrings.sweets),
+    (type: FoodCategoryType.pickles, title: AppStrings.picklesLabel),
   ];
 
   static const _tiffinSlots = [
-    (type: MealType.breakfast, title: 'Break-Fast', timing: '6AM - 10AM'),
-    (type: MealType.morningTiffin, title: 'Morning Tiffin / Lunch', timing: '7AM - 2PM'),
-    (type: MealType.eveningDinner, title: 'Evening Tiffin / Dinner', timing: '5PM - 10PM'),
+    (type: MealType.breakfast, title: AppStrings.breakFastSlot, timing: AppStrings.slotTimingBreakfast),
+    (type: MealType.morningTiffin, title: AppStrings.morningTiffinLunch, timing: AppStrings.slotTimingLunch),
+    (type: MealType.eveningDinner, title: AppStrings.eveningTiffinDinner, timing: AppStrings.slotTimingDinner),
   ];
 
   @override
@@ -112,7 +112,7 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
       }
 
       return _section(
-        'Tiffin',
+        AppStrings.tiffin,
         SizedBox(
           height: 290,
           child: ListView.separated(
@@ -128,7 +128,7 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
 
   Widget _buildTiffinShimmer() {
     return _section(
-      'Tiffin',
+      AppStrings.tiffin,
       SizedBox(
         height: 290,
         child: buildLoadingShimmer(
@@ -290,7 +290,7 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            CustomText('Live',
+                            CustomText(AppStrings.liveLabel,
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.secondaryTextColor),
@@ -450,7 +450,7 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
                     TiffinBottomSheet.show(context, false);
                   },
                   icon: AppIconAssets.add,
-                  label: 'Add',
+                  label: AppStrings.add,
                 ),
               ),
             ),
@@ -516,7 +516,7 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            CustomText('Served ${slot.timing}',
+                            CustomText('${AppStrings.servedPrefix.tr} ${slot.timing.tr}',
                                 fontSize: SizeConfig.small,
                                 color: AppColors.secondaryTextColor),
                             SizedBox(height: 2),
@@ -592,7 +592,7 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
       }
 
       return _section(
-        'Home Made Food',
+        AppStrings.homeMadeFoodSection,
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -607,7 +607,7 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
 
   Widget _buildHomeMadeFoodShimmer() {
     return _section(
-      'Home Made Food',
+      AppStrings.homeMadeFoodSection,
       buildLoadingShimmer(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -920,7 +920,7 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
   Future<void> _pickAndUploadGalleryImage() async {
     final path = await CommonImageUploadTile.pickImage(
       context: context,
-      title: 'Upload Photo',
+      title: AppStrings.uploadPhotoTitle,
     );
     if (path == null || path.isEmpty) return;
     await earnProfileController.addGalleryImage(File(path));

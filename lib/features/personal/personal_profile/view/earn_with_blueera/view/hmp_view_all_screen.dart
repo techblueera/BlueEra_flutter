@@ -49,7 +49,7 @@ class _HomeMadeProductsViewAllScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: 'Home Made Product'),
+      appBar: CommonBackAppBar(title: AppStrings.homeMadeProductSection),
       body: Obx(() {
         if (earnServiceController.isOwnProductDataFirstLoading.value &&
             earnServiceController.ownProductDataList.isEmpty) {
