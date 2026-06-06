@@ -49,10 +49,12 @@ import '../../../chat/auth/controller/chat_lock_controller.dart';
 import '../../../chat/auth/controller/chat_pin_archive_controller.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../chat/auth/model/GetChatListModel.dart';
+import '../../../chat/view/business_chat/widgets/ride_drop_location_sheet.dart';
 import '../../../chat/view/forward_screen/chat_forward_screen.dart';
 import '../../../chat/view/lock_chat/locked_chats_screen.dart';
 import '../../../chat/view/widget/chat_flag_bottom_sheet.dart';
 import '../../../personal/personal_profile/controller/languge_list_controller.dart';
+import 'inquiry_ride_order_selection_screen.dart';
 
 enum SavedFeedTab {
   posts;
@@ -360,9 +362,15 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
         children: [
 
           InkWell(
-            onTap: () {
-              // TODO: wire to the rider destination.
-              commonSnackBar(message: "Coming soon....");
+            onTap: () async {
+              // Open the same drop-location bottom sheet used by the
+              // self-pickup order card's "Ride" action. On confirm, open the
+              // inquiry-order selection screen for the chosen drop location.
+              final drop = await showRideDropLocationSheet(context);
+              if (drop != null) {
+                Get.to(() =>
+                    InquiryRideOrderSelectionScreen(dropAddress: drop));
+              }
             },
             borderRadius: BorderRadius.circular(20),
             child: SvgPicture.asset(

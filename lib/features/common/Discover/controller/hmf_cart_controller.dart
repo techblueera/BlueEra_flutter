@@ -159,8 +159,8 @@ class HmfCartController extends GetxController {
         name: kitchen.serviceName,
         profile: kitchen.serviceLogo,
         route: AppConstants.route_discover,
-        prefilledMessage:
-            'Hi! I just placed an order: $summary. Total ${AppConstants.rupeeSymbol}${total.toStringAsFixed(0)}.',
+        // prefilledMessage:
+        //     'Hi! I just placed an order: $summary. Total ${AppConstants.rupeeSymbol}${total.toStringAsFixed(0)}.',
       );
     } catch (e) {
       AppLoader.hide();

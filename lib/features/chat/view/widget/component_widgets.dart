@@ -24,7 +24,6 @@ import 'chat_flag_bottom_sheet.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/popup_menu_builders.dart';
-import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../core/routes/route_helper.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../../business/visit_business_profile/view/visit_business_profile_new.dart';
@@ -44,7 +43,6 @@ import '../group_chat/view_group_members.dart';
 import '../group_chat/widgets/delete_chat_history_dialog.dart';
 import '../group_chat/widgets/pin_message_dialoge_widget.dart';
 import '../symbol_view/symbol_view_images.dart';
-import 'common_ai_chat_topics.dart';
 import 'chat_shortcut_service.dart';
 import 'common_delete_message.dart';
 import '../media_view_page/conversation_media_page.dart';
@@ -1845,14 +1843,6 @@ AppBar getChatTitleAppBar(BuildContext context, {
           ? Get.find<AiChatProfileController>()
           : Get.put(AiChatProfileController()))
       : null;
-  void SendMessageToAI({required String message, String? tag}){
-    chatViewController
-        .sendMessageToAiSocket(
-        type: AppConstants.personal_Chat_Type,
-        tag:tag,
-        message: message
-    );
-  }
   return AppBar(
     elevation: 0,
     backgroundColor: Colors.white,
@@ -2102,76 +2092,20 @@ AppBar getChatTitleAppBar(BuildContext context, {
 
               ),
             )),
-      if(isFromAiChat==true)
-      InkWell(
-        onTap: (){
-          Get.dialog(
-            GestureDetector(
-              onTap: () {
-                Get.back(); // 👈 close when tapping empty space
-              },
-              behavior: HitTestBehavior.opaque, // IMPORTANT
-              child: Material(
-                color: Colors.black.withValues(alpha: 0.2), // optional dim background
-                child: Align(
-                  alignment: Alignment.topLeft,
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 12, bottom: 20,top: 110),
-                    child: GestureDetector(
-                      onTap: () {}, // 👈 prevent dialog tap from closing
-                      child: InitialMessageOptionDialog(
-                        userName: userNameGlobal,
-                        topics: AppConstants.aiChatTopics,
-                        onSend: (message, tag) {
-                          SendMessageToAI(message: message, tag: tag);
-                          Get.back();
-                        },
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            barrierDismissible: false, // handled manually now (more reliable)
-          );
-        },
-        child: Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(4),
-              border: Border.all(color: AppColors.primaryColor)
-            ),
-            padding: EdgeInsets.symmetric(horizontal: 8,vertical: 2),
-            child: CustomText(AppStrings.newTag.tr,color: AppColors.primaryColor,)),
-      ),
-      SizedBox(width: SizeConfig.size12),
-      // SvgPicture.asset(AppIconAssets.chat_video_call),
-      // const SizedBox(width: 12),
-      // Active AI reply-language badge (persists until the user changes it).
+      // Language change shortcut — same action as the 3-dot menu's
+      // "language" option.
       if(isFromAiChat == true)
-        Obx(() {
-          final lang = aiProfileCtrl!.language.value;
-          if (lang.isEmpty) return const SizedBox.shrink();
-          return Container(
-            margin: EdgeInsets.only(right: SizeConfig.size6),
-            padding: EdgeInsets.symmetric(
-                horizontal: SizeConfig.size8, vertical: SizeConfig.size3),
-            decoration: BoxDecoration(
-              color: AppColors.primaryColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.language,
-                    size: SizeConfig.size14, color: AppColors.primaryColor),
-                SizedBox(width: SizeConfig.size3),
-                CustomText(lang,
-                    fontSize: SizeConfig.size12,
-                    color: AppColors.primaryColor),
-              ],
-            ),
-          );
-        }),
+        InkWell(
+          onTap: () => showAiChatLanguageSheet(context,
+              controller: aiProfileCtrl!, type: type ?? ''),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            child: Icon(Icons.language,
+                color: AppColors.chat_input_icon_color, size: 26),
+          ),
+        )
+      else
+        SizedBox(width: SizeConfig.size12),
       if(isFromAiChat == true)
         Obx(() {
           // Read .value synchronously so Obx tracks it and rebuilds the menu
@@ -2287,6 +2221,7 @@ void showDeleteChatDialog(String conId) {
     barrierDismissible: false, // user must tap button
   );
 }
+
 PreferredSize getChatOptionsAppBar(BuildContext context, {
    String? userId,
    String? conversationId,

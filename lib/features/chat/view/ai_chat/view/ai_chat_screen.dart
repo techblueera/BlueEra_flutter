@@ -1,12 +1,17 @@
 
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../auth/controller/chat_theme_controller.dart';
 import '../../../auth/controller/chat_view_controller.dart';
 import '../../../auth/controller/ai_chat_profile_controller.dart';
+import '../../widget/common_ai_chat_topics.dart';
 import '../../widget/component_widgets.dart';
 import 'ai_chat_message_view_screen.dart';
 
@@ -51,6 +56,65 @@ class _AiChatScreenState extends State<AiChatScreen> {
     super.dispose();
   }
 
+  /// Opens the AI topics / quick-start dialog.
+  void _openTopicsDialog() {
+    Get.dialog(
+      GestureDetector(
+        onTap: () => Get.back(),
+        behavior: HitTestBehavior.opaque,
+        child: Material(
+          color: Colors.black.withValues(alpha: 0.2),
+          child: Align(
+            alignment: Alignment.center,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: GestureDetector(
+                onTap: () {},
+                child: InitialMessageOptionDialog(
+                  userName: userNameGlobal,
+                  topics: AppConstants.aiChatTopics,
+                  onSend: (message, tag) {
+                    chatViewController.sendMessageToAiSocket(
+                      type: widget.type ?? '',
+                      tag: tag,
+                      message: message,
+                    );
+                    Get.back();
+                  },
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+      barrierDismissible: false,
+    );
+  }
+
+  /// "New" option shown at the top of the chat screen — opens the topics
+  /// quick-start dialog.
+  Widget _newOption() {
+    return Container(
+      width: double.infinity,
+      alignment: Alignment.centerLeft,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      child: InkWell(
+        onTap: _openTopicsDialog,
+        borderRadius: BorderRadius.circular(4),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(4),
+            border: Border.all(color: AppColors.primaryColor),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          child: CustomText(
+            AppStrings.newTag.tr,
+            color: AppColors.primaryColor,
+          ),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,8 +131,15 @@ class _AiChatScreenState extends State<AiChatScreen> {
           name: widget.name,
           profileImage: widget.profileImage,
         ),
-        body: AiChatMessageViewScreen(
-          type: widget.type,
+        body: Column(
+          children: [
+            _newOption(),
+            Expanded(
+              child: AiChatMessageViewScreen(
+                type: widget.type,
+              ),
+            ),
+          ],
         ),
       ),
     );
