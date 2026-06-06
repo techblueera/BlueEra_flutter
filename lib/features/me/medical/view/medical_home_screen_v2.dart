@@ -209,8 +209,11 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
                         _buildProfileRow(_data?.businessProfile),
                       ],
                     ),
-                    // Top bar (status inset + 56) + the profile row (~64).
-                    topBarHeight: MediaQuery.of(context).padding.top + 120,
+                    // Top bar (status inset + ~56) + the profile row (~74).
+                    // Sized with headroom so the profile row's two text lines
+                    // don't overflow the fixed header height (was +120 → 6px
+                    // overflow).
+                    topBarHeight: MediaQuery.of(context).padding.top + 132,
                     tabViews: [
                       _tabScroll(_buildInquiryTab()),
                       BusinessStatisticsScreen(businessId: userId),
@@ -750,33 +753,54 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildTopBar() {
     final topInset = MediaQuery.of(context).padding.top;
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.fromLTRB(
-        SizeConfig.size12,
-        topInset + SizeConfig.size8,
-        SizeConfig.size12,
-        SizeConfig.size10,
-      ),
+    // Glassmorphic header — mirrors GroceryHomeScreenV2: a frosted translucent
+    // white bar (over the pattern background) with a hairline white border and
+    // an outer shadow, instead of the old solid blue gradient.
+    return DecoratedBox(
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF1E88FF), Color(0xFF0040A0)],
-        ),
-      ),
-      child: Row(
-        children: [
-          _circleIconButton(icon: Icons.menu, onTap: _openDrawer),
-          SizedBox(width: SizeConfig.size6),
-          // Pills wrapped in Flexible so their inner text can ellipsize
-          // instead of pushing the row past its width.
-          Flexible(child: const ReferEarnPill()),
-          const Spacer(),
-          _circleIconButton(icon: Icons.notifications_none, onTap: _openNotifications),
-          SizedBox(width: SizeConfig.size6),
-          _goLivePill(),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x42001120),
+            blurRadius: 16,
+            offset: Offset(0, 0),
+            blurStyle: BlurStyle.outer,
+          ),
         ],
+      ),
+      child: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.fromLTRB(
+              SizeConfig.size12,
+              topInset + SizeConfig.size8,
+              SizeConfig.size12,
+              SizeConfig.size10,
+            ),
+            decoration: BoxDecoration(
+              color: const Color(0x33FFFFFF),
+              border: Border.all(
+                color: Colors.white,
+                width: 1.0,
+              ),
+            ),
+            child: Row(
+              children: [
+                _circleIconButton(icon: Icons.menu, onTap: _openDrawer),
+                SizedBox(width: SizeConfig.size6),
+                // Pills wrapped in Flexible so their inner text can ellipsize
+                // instead of pushing the row past its width.
+                Flexible(child: const ReferEarnPill()),
+                const Spacer(),
+                _circleIconButton(
+                    icon: Icons.notifications_none, onTap: _openNotifications),
+                SizedBox(width: SizeConfig.size6),
+                _goLivePill(),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
