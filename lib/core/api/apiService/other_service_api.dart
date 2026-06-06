@@ -12,5 +12,7 @@ mixin OtherServiceApi {
   final String otherTimings = "other-service/timings";
   final String otherGallery = "other-service/gallery";
   final String otherBusinessProfile = "other-service/business-profile";
+  final String otherBusinessProfileSearch =
+      "other-service/business-profile/search";
   final String otherContactUsService = 'other-service/contact';
 }

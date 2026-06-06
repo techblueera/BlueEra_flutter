@@ -260,6 +260,143 @@ class StoreController extends GetxController{
     }
   }
 
+  /// GET NEAR-BY SERVICE BUSINESSES
+  /// (other-service/business-profile/search)
+  ///
+  /// Drives the "Services near me" Discover screen. Sends the selected
+  /// service category as `categoryOfBusiness` (the category tag id, e.g.
+  /// `BEAUTY_FITNESS_PERSONAL_CARE`) and maps each business-profile result
+  /// into [GetAllStoreResModel] so the existing store card can render it.
+  Future<void> getServiceBusinessesNearBy({bool isLoadMore = false}) async {
+    if (isLoadMore) {
+      if (isAllStoreLoadingMore.value || !allStoreHasMore) return;
+      isAllStoreLoadingMore.value = true;
+    } else {
+      isAllStoreFirstLoading.value = true;
+      allStore.clear();
+      allStorePage = 1;
+      allStoreHasMore = true;
+    }
+
+    try {
+      final Map<String, dynamic> queryParams = {
+        'distance': kmRadius5000,
+        ApiKeys.limit: 10,
+        ApiKeys.page: allStorePage,
+      };
+      if (businessCategoryId != null) {
+        queryParams['categoryOfBusiness'] = businessCategoryId;
+      }
+
+      final response = await StoreRepo()
+          .searchServiceBusinessProfiles(queryParams: queryParams);
+
+      if (response.isSuccess) {
+        getAllStoreResponse.value = ApiResponse.complete(response);
+
+        final responseData = response.response?.data;
+        List rawList = [];
+        if (responseData is Map && responseData['data'] is List) {
+          rawList = responseData['data'] as List;
+        } else if (responseData is List) {
+          rawList = responseData;
+        }
+
+        // Dedupe against what's already loaded so a non-paginated response
+        // (or a repeated page) can't append the same profiles twice.
+        final existingIds = allStore.map((s) => s.id).toSet();
+        final newStores = rawList
+            .whereType<Map>()
+            .map((e) =>
+                _businessProfileToStore(Map<String, dynamic>.from(e)))
+            .where((s) => s.id == null || !existingIds.contains(s.id))
+            .toList();
+
+        log("Loaded ${newStores.length} service businesses");
+
+        if (newStores.isNotEmpty) {
+          if (isLoadMore) {
+            allStore.addAll(newStores);
+          } else {
+            allStore.assignAll(newStores);
+          }
+          allStorePage++;
+        } else {
+          allStoreHasMore = false;
+        }
+      } else {
+        getAllStoreResponse.value = ApiResponse.error('error');
+        log("API failed with status: ${response.statusCode}");
+      }
+    } catch (e, s) {
+      log("Error: $s");
+      getAllStoreResponse.value = ApiResponse.error('error');
+    } finally {
+      if (isLoadMore) {
+        isAllStoreLoadingMore.value = false;
+      } else {
+        isAllStoreFirstLoading.value = false;
+      }
+    }
+  }
+
+  /// Maps a single `business-profile/search` item into the store model the
+  /// list card consumes. The search API uses camelCase keys and a GeoJSON
+  /// `[lng, lat]` coordinate pair, unlike the snake_case store endpoint.
+  GetAllStoreResModel _businessProfileToStore(Map<String, dynamic> json) {
+    final profile =
+        json['profile'] is Map ? Map<String, dynamic>.from(json['profile']) : null;
+    dynamic field(String key) => json[key] ?? profile?[key];
+
+    num? lat;
+    num? lon;
+    String? address;
+    final loc = field('location');
+    if (loc is Map) {
+      address = loc['address']?.toString();
+      final coords = loc['coordinates'];
+      if (coords is List && coords.length >= 2) {
+        lon = coords[0] is num ? coords[0] as num : null;
+        lat = coords[1] is num ? coords[1] as num : null;
+      }
+    }
+
+    final livePhotos = <String>[];
+    final cover = field('coverUrl')?.toString().trim();
+    if (cover != null && cover.isNotEmpty) livePhotos.add(cover);
+    final gallery = field('gallery');
+    if (gallery is List) {
+      for (final g in gallery) {
+        final urls = g is Map ? g['imageUrls'] : null;
+        if (urls is List) {
+          livePhotos.addAll(
+            urls.map((e) => e.toString().trim()).where((e) => e.isNotEmpty),
+          );
+        }
+      }
+    }
+
+    final category = field('category')?.toString();
+    final type = field('type')?.toString();
+
+    // Re-shape into the snake_case map [GetAllStoreResModel.fromJson] expects
+    // so the existing parser builds the model (and avoids referencing the
+    // `BusinessLocation` type, whose name is ambiguous in this file).
+    return GetAllStoreResModel.fromJson({
+      'id': field('_id')?.toString(),
+      'user_id': field('userId')?.toString(),
+      'business_name': field('profileName')?.toString(),
+      'business_description': field('description')?.toString(),
+      'logo': field('logoUrl')?.toString().trim(),
+      'live_photos': livePhotos,
+      'address': address,
+      'business_location':
+          (lat != null || lon != null) ? {'lat': lat, 'lon': lon} : null,
+      'Nature_of_Business': category ?? type,
+      'created_at': field('createdAt')?.toString(),
+    });
+  }
+
   ///GET STORE PRODUCT ONLY....
   Future<void> getAllProductNearBy({
     ProviderType? providerType,

@@ -97,6 +97,20 @@ class StoreRepo extends BaseService {
     return response;
   }
 
+  ///SEARCH SERVICE BUSINESS PROFILES (other-service/business-profile/search)
+  Future<ResponseModel> searchServiceBusinessProfiles({
+    required Map<String, dynamic> queryParams,
+  }) async {
+    final response = await ApiBaseHelper().getHTTP(
+      otherBusinessProfileSearch,
+      showProgress: false,
+      params: queryParams,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   ///GET SPECIFIC STORES......
   Future<ResponseModel> getSpecificStores({required Map<String, dynamic> queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(
