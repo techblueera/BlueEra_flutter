@@ -32,10 +32,9 @@ class MedicalGalleryUploadScreen extends StatelessWidget {
                   title: AppStrings.selectCategory,
                   hintText: AppStrings.interiorPhotosHint.tr,
                   items: controller.categories,
-                  selectedValue: controller.selectedCategory.value.isEmpty
-                      ? null
-                      : controller.selectedCategory.value,
-                  displayValue: (cat) => cat,
+                  selectedValue:
+                      controller.selectedCategory.value.isEmpty ? null : controller.selectedCategory.value,
+                  displayValue: (cat) => cat.tr,
                   onChanged: (value) => controller.onCategoryChanged(value),
                 )),
 
@@ -52,16 +51,13 @@ class MedicalGalleryUploadScreen extends StatelessWidget {
                     crossAxisSpacing: 10,
                     mainAxisSpacing: 10,
                   ),
-                  itemCount: controller.selectedImages.length < 6
-                      ? controller.selectedImages.length + 1
-                      : 6,
+                  itemCount: controller.selectedImages.length < 6 ? controller.selectedImages.length + 1 : 6,
                   itemBuilder: (context, index) {
                     // Add-image tile
                     if (index == controller.selectedImages.length && index < 6) {
                       return GestureDetector(
                         onTap: () async {
-                          final path = await CommonImageUploadTile.pickImage(
-                              context: context);
+                          final path = await CommonImageUploadTile.pickImage(context: context);
                           if (path != null) controller.addImage(path);
                         },
                         child: Container(
@@ -108,12 +104,10 @@ class MedicalGalleryUploadScreen extends StatelessWidget {
 
             // Submit button
             Obx(() {
-              final isValid = controller.selectedCategory.value.isNotEmpty &&
-                  controller.selectedImages.isNotEmpty;
+              final isValid =
+                  controller.selectedCategory.value.isNotEmpty && controller.selectedImages.isNotEmpty;
               return CustomBtn(
-                title: controller.isUploading.value
-                    ? AppStrings.uploadingLabel
-                    : AppStrings.submit,
+                title: controller.isUploading.value ? AppStrings.uploadingLabel : AppStrings.submit,
                 isValidate: isValid && !controller.isUploading.value,
                 isLoading: controller.isUploading.value,
                 onTap: isValid && !controller.isUploading.value

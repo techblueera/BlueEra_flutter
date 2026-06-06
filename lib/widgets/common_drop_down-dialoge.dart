@@ -31,8 +31,7 @@ class CommonDropdownDialog<T> extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<CommonDropdownDialog<T>> createState() =>
-      _CommonDropdownDialogState<T>();
+  State<CommonDropdownDialog<T>> createState() => _CommonDropdownDialogState<T>();
 }
 
 class _CommonDropdownDialogState<T> extends State<CommonDropdownDialog<T>> {
@@ -41,8 +40,7 @@ class _CommonDropdownDialogState<T> extends State<CommonDropdownDialog<T>> {
       context: context,
       builder: (context) {
         return Dialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Container(
             padding: EdgeInsets.all(SizeConfig.size16),
             decoration: BoxDecoration(
@@ -80,7 +78,7 @@ class _CommonDropdownDialogState<T> extends State<CommonDropdownDialog<T>> {
                             ? SvgPicture.asset(item.icon, height: 24, width: 24)
                             : null,
                         title: CustomText(
-                          widget.displayValue(item).replaceAll('\n', ' '),
+                          widget.displayValue(item).replaceAll('\n', ' ').tr,
                           fontWeight: FontWeight.w400,
                           fontSize: SizeConfig.size15,
                         ),
@@ -121,33 +119,26 @@ class _CommonDropdownDialogState<T> extends State<CommonDropdownDialog<T>> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (widget.dialogTitle?.isNotEmpty ?? false)...[
-            CustomText(widget.dialogTitle,
-
-              fontSize:SizeConfig.medium,
+          if (widget.dialogTitle?.isNotEmpty ?? false) ...[
+            CustomText(
+              widget.dialogTitle,
+              fontSize: SizeConfig.medium,
               fontWeight: FontWeight.w400,
               color: AppColors.mainTextColor,
             ),
-            SizedBox(height: SizeConfig.paddingL,),
+            SizedBox(
+              height: SizeConfig.paddingL,
+            ),
           ],
           Container(
-            padding: EdgeInsets.symmetric(
-                horizontal: SizeConfig.size15, vertical: SizeConfig.size10),
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size15, vertical: SizeConfig.size10),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10),
-              color: Theme.of(context).inputDecorationTheme.fillColor ??
-                  Colors.white,
+              color: Theme.of(context).inputDecorationTheme.fillColor ?? Colors.white,
               border: Border.all(
-                color: Theme.of(context)
-                        .inputDecorationTheme
-                        .enabledBorder
-                        ?.borderSide
-                        .color ??
-                    Colors.grey,
+                color: Theme.of(context).inputDecorationTheme.enabledBorder?.borderSide.color ?? Colors.grey,
               ),
-              boxShadow: const [
-                BoxShadow(color: Colors.black12, blurRadius: 3)
-              ],
+              boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 3)],
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -162,13 +153,10 @@ class _CommonDropdownDialogState<T> extends State<CommonDropdownDialog<T>> {
                                 height: 22,
                                 width: 22,
                               ),
-                            if (widget.selectedValue is CommentTypeModel)
-                              const SizedBox(width: 8),
+                            if (widget.selectedValue is CommentTypeModel) const SizedBox(width: 8),
                             Flexible(
                               child: CustomText(
-                                widget
-                                    .displayValue(widget.selectedValue as T)
-                                    .replaceAll('\n', ' '),
+                                widget.displayValue(widget.selectedValue as T).replaceAll('\n', ' ').tr,
                                 color: Colors.black,
                                 fontWeight: FontWeight.w400,
                                 fontSize: SizeConfig.size15,
@@ -196,15 +184,13 @@ class _CommonDropdownDialogState<T> extends State<CommonDropdownDialog<T>> {
                         ),*/
                 ),
                 if (widget.showDownArrow ?? false)
-                  const Icon(Icons.keyboard_arrow_down_outlined,
-                      color: Colors.grey),
+                  const Icon(Icons.keyboard_arrow_down_outlined, color: Colors.grey),
               ],
             ),
           ),
           if (widget.errorText != null)
             Padding(
-              padding: EdgeInsets.only(
-                  left: SizeConfig.size12, top: SizeConfig.size6),
+              padding: EdgeInsets.only(left: SizeConfig.size12, top: SizeConfig.size6),
               child: CustomText(
                 widget.errorText!,
                 color: Colors.red,

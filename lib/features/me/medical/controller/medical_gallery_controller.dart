@@ -14,12 +14,12 @@ class MedicalGalleryController extends GetxController {
   var isUploading = false.obs;
 
   final List<String> categories = [
-    AppStrings.medicalGalleryExternalParking,
-    AppStrings.medicalGalleryInteriorPhotos,
-    AppStrings.medicalGalleryEquipmentPhotos,
-    AppStrings.medicalGalleryTeamStaffPhotos,
-    AppStrings.medicalGalleryMedicinesProducts,
-    AppStrings.medicalGalleryBillingCounter,
+    AppStrings.medicalGalleryExternalParking.tr,
+    AppStrings.medicalGalleryInteriorPhotos.tr,
+    AppStrings.medicalGalleryEquipmentPhotos.tr,
+    AppStrings.medicalGalleryTeamStaffPhotos.tr,
+    AppStrings.medicalGalleryMedicinesProducts.tr,
+    AppStrings.medicalGalleryBillingCounter.tr,
   ];
 
   var selectedCategory = ''.obs;
@@ -43,8 +43,7 @@ class MedicalGalleryController extends GetxController {
       ResponseModel response = await MedicalRepo().fetchMedicalGalleryRepo();
 
       if (response.isSuccess) {
-        OtherServiceGalleryResModel model =
-            OtherServiceGalleryResModel.fromJson(response.response?.data);
+        OtherServiceGalleryResModel model = OtherServiceGalleryResModel.fromJson(response.response?.data);
         if (model.data != null && model.data!.isNotEmpty) {
           for (var photo in model.data!) {
             if (photo.imageUrls != null && photo.imageUrls!.isNotEmpty) {
@@ -74,7 +73,8 @@ class MedicalGalleryController extends GetxController {
       selectedImages.add(path);
     } else {
       commonSnackBar(
-          message: '${AppStrings.medicalLimitReachedPrefix.tr} $maxImages ${AppStrings.medicalLimitReachedSuffix.tr}');
+          message:
+              '${AppStrings.medicalLimitReachedPrefix.tr} $maxImages ${AppStrings.medicalLimitReachedSuffix.tr}');
     }
   }
 
@@ -126,18 +126,15 @@ class MedicalGalleryController extends GetxController {
         'imageUrls': uploadedUrls,
       };
 
-      ResponseModel response =
-          await MedicalRepo().createMedicalGalleryRepo(params: body);
+      ResponseModel response = await MedicalRepo().createMedicalGalleryRepo(params: body);
 
       if (response.isSuccess) {
-        commonSnackBar(
-            message: response.message ?? AppStrings.medicalGalleryUploadedSuccessfully.tr);
+        commonSnackBar(message: response.message ?? AppStrings.medicalGalleryUploadedSuccessfully.tr);
         resetUploadForm();
         Get.back();
         fetchGallery();
       } else {
-        commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong);
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
@@ -154,19 +151,16 @@ class MedicalGalleryController extends GetxController {
     required String imageUrl,
   }) async {
     try {
-      ResponseModel response =
-          await MedicalRepo().deleteMedicalGalleryImageRepo(
+      ResponseModel response = await MedicalRepo().deleteMedicalGalleryImageRepo(
         galleryId: galleryId,
         params: {'imageUrl': imageUrl},
       );
 
       if (response.isSuccess) {
-        commonSnackBar(
-            message: response.message ?? AppStrings.medicalImageDeletedSuccessfully.tr);
+        commonSnackBar(message: response.message ?? AppStrings.medicalImageDeletedSuccessfully.tr);
         fetchGallery();
       } else {
-        commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong);
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
@@ -178,16 +172,13 @@ class MedicalGalleryController extends GetxController {
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Future<void> deleteGalleryEntry({required String galleryId}) async {
     try {
-      ResponseModel response =
-          await MedicalRepo().deleteMedicalGalleryRepo(galleryId: galleryId);
+      ResponseModel response = await MedicalRepo().deleteMedicalGalleryRepo(galleryId: galleryId);
 
       if (response.isSuccess) {
         galleryList.removeWhere((g) => g.id == galleryId);
-        commonSnackBar(
-            message: response.message ?? AppStrings.medicalGalleryDeleted.tr);
+        commonSnackBar(message: response.message ?? AppStrings.medicalGalleryDeleted.tr);
       } else {
-        commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong);
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
