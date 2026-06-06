@@ -110,6 +110,15 @@ class AppStrings {
   ///PAYMENT SETTING SCREEN
   static const paymentSetting = "paymentSetting";
   static const allBankAccounts = "allBankAccounts";
+  static const savedPaymentMethods = "savedPaymentMethods";
+  static const methodSaved = "methodSaved";
+  static const methodsSaved = "methodsSaved";
+  static const bankAccounts = "bankAccounts";
+  static const upiIds = "upiIds";
+  static const scanToPay = "scanToPay";
+  static const viewQr = "viewQr";
+  static const upiQrTitle = "upiQrTitle";
+  static const upiIdCopied = "upiIdCopied";
   static const addAccount = "addAccount";
   static const accountNoLabel = "accountNoLabel";
   static const ifscCodeLabel = "ifscCodeLabel";
@@ -135,6 +144,7 @@ class AppStrings {
   static const add = "add";
   static const upiIdRequired = "upiIdRequired";
   static const invalidUpiId = "invalidUpiId";
+  static const pleaseSelectAccountType = "pleaseSelectAccountType";
   static const bankAddedSuccessfully = "bankAddedSuccessfully";
   static const failedToAddAccount = "failedToAddAccount";
   static const failedToUpdateAccount = "failedToUpdateAccount";

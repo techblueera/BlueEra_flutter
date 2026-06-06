@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:BlueEra/env.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
@@ -18,13 +17,28 @@ class GoogleImageQuotaException implements Exception {
   String toString() => message;
 }
 
+/// Thrown when the Custom Search API rejects the request for a configuration
+/// reason (e.g. the API isn't enabled on the project / key not permitted), so
+/// callers can show a clearer message than a silent empty result.
+class GoogleImageUnavailableException implements Exception {
+  final String message;
+  const GoogleImageUnavailableException([
+    this.message = 'Image search is currently unavailable. Please try again later.',
+  ]);
+
+  @override
+  String toString() => message;
+}
+
 /// Fetches product images from Google's Programmable Search (Custom Search
 /// JSON API) by name/brand, so the add-product flow can pull a photo without
 /// the user having to shoot or upload one.
 ///
-/// Requires `GOOGLE_CSE_API_KEY` (a Google API key with the "Custom Search
-/// API" enabled) and `GOOGLE_CSE_CX` (the search-engine id, image search on)
-/// in `.env`. When either is missing, [isConfigured] is false and [search]
+/// Requires a Google API key with the "Custom Search API" enabled
+/// (`GOOGLE_CSE_API_KEY`) and the search-engine id (`GOOGLE_CSE_CX`, image
+/// search on). These are no longer bundled in `.env` — they are fetched at
+/// runtime from `product-service/api/products/fe/ai-keys` and supplied via
+/// [configure]. When either is missing, [isConfigured] is false and [search]
 /// returns an empty list.
 class GoogleImageSearchService {
   GoogleImageSearchService._();
@@ -36,8 +50,17 @@ class GoogleImageSearchService {
     ),
   );
 
-  static String get _apiKey => Env.googleCseApiKey ?? '';
-  static String get _cx => Env.googleCseCx ?? '';
+  // Runtime-supplied keys (from the ai-keys endpoint). Empty until configured.
+  static String _apiKey = '';
+  static String _cx = '';
+
+  /// Stores the Custom Search credentials fetched from the backend so [search]
+  /// can authenticate. Safe to call repeatedly; ignores blank values so a
+  /// failed refresh can't wipe a previously-working config.
+  static void configure({String? apiKey, String? cx}) {
+    if (apiKey != null && apiKey.trim().isNotEmpty) _apiKey = apiKey.trim();
+    if (cx != null && cx.trim().isNotEmpty) _cx = cx.trim();
+  }
 
   /// True only when both the API key and search-engine id are present.
   static bool get isConfigured => _apiKey.isNotEmpty && _cx.isNotEmpty;
@@ -84,7 +107,17 @@ class GoogleImageSearchService {
       if (_isQuotaError(e.response)) {
         throw const GoogleImageQuotaException();
       }
+      // Surface Google's exact rejection reason (e.g. API key restriction,
+      // accessNotConfigured, invalid cx) so 403s are diagnosable.
       debugPrint('GoogleImageSearchService.search error: $e');
+      debugPrint(
+          'GoogleImageSearchService.search response -> '
+          'status=${e.response?.statusCode} body=${e.response?.data}');
+      // A non-quota 403 is a config/permission rejection from Google (API not
+      // enabled on the project, key not permitted, etc.) — tell the user.
+      if (e.response?.statusCode == 403) {
+        throw const GoogleImageUnavailableException();
+      }
       return const [];
     } catch (e) {
       debugPrint('GoogleImageSearchService.search error: $e');

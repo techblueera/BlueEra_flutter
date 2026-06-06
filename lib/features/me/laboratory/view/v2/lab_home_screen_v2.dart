@@ -18,6 +18,7 @@ import 'package:BlueEra/features/me/laboratory/view/v2/tabs/lab_posts_tab_v2.dar
 import 'package:BlueEra/features/me/laboratory/view/v2/tabs/lab_stats_tab_v2.dart';
 import 'package:BlueEra/features/me/laboratory/view/v2/tabs/lab_tests_tab_v2.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -33,13 +34,14 @@ class LabHomeScreenV2 extends StatefulWidget {
   State<LabHomeScreenV2> createState() => _LabHomeScreenV2State();
 }
 
-class _LabHomeScreenV2State extends State<LabHomeScreenV2> {
+class _LabHomeScreenV2State extends State<LabHomeScreenV2>
+    with SingleTickerProviderStateMixin {
   late final LabFullDetailsController _labController;
   final _businessController =
       getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
   bool _isGoLive = false;
-  int _selectedTab = 0;
+  late final TabController _tabController;
   List<String> get _tabs => [
     AppStrings.inquiry.tr,
     AppStrings.overview.tr,
@@ -68,6 +70,7 @@ class _LabHomeScreenV2State extends State<LabHomeScreenV2> {
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: _tabs.length, vsync: this);
     if (!Get.isRegistered<LabFullDetailsController>()) {
       _labController = Get.put(LabFullDetailsController(), permanent: true);
     } else {
@@ -89,6 +92,24 @@ class _LabHomeScreenV2State extends State<LabHomeScreenV2> {
   }
 
   @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  /// Wraps a tab body in a refreshable scroll view for the [TabBarView].
+  Widget _tabScroll(Widget child) {
+    return RefreshIndicator(
+      onRefresh: _labController.fetchFullDetails,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.only(bottom: kBottomNavigationBarHeight + 30),
+        child: child,
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFEAF2FB),
@@ -97,55 +118,24 @@ class _LabHomeScreenV2State extends State<LabHomeScreenV2> {
         child: Stack(
           children: [
             _buildPatternBackground(),
-            Column(
-              children: [
-                _buildTopBar(),
-                // _buildProfileRow(),
-                Expanded(
-                  child: RefreshIndicator(
-                    onRefresh: _labController.fetchFullDetails,
-                    child: SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: EdgeInsets.only(
-                        bottom: kBottomNavigationBarHeight + 30,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: SizeConfig.size10),
-                          _buildTabsCard(),
-                          SizedBox(height: SizeConfig.size12),
-                          _buildTabContent(),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+            HomeTabScaffold(
+              controller: _tabController,
+              tabLabels: _tabs,
+              topBar: _buildTopBar(),
+              topBarHeight: MediaQuery.of(context).padding.top + 56,
+              tabViews: [
+                _tabScroll(const LabInquiryTabV2()),
+                _tabScroll(LabOverviewTabV2(controller: _labController)),
+                _tabScroll(LabTestsTabV2(controller: _labController)),
+                _tabScroll(LabFacilitiesTabV2(controller: _labController)),
+                _tabScroll(const LabPostsTabV2()),
+                _tabScroll(const LabStatsTabV2()),
               ],
             ),
           ],
         ),
       ),
     );
-  }
-
-  Widget _buildTabContent() {
-    switch (_selectedTab) {
-      case 0:
-        return const LabInquiryTabV2();
-      case 1:
-        return LabOverviewTabV2(controller: _labController);
-      case 2:
-        return LabTestsTabV2(controller: _labController);
-      case 3:
-        return LabFacilitiesTabV2(controller: _labController);
-      case 4:
-        return const LabPostsTabV2();
-      case 5:
-        return const LabStatsTabV2();
-      default:
-        return const SizedBox.shrink();
-    }
   }
 
   // ─── Background pattern ───
@@ -291,53 +281,6 @@ class _LabHomeScreenV2State extends State<LabHomeScreenV2> {
   // ─── Profile row ───
 
 
-  // ─── Tabs card ───
-  Widget _buildTabsCard() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-      child: Container(
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: List.generate(_tabs.length, (i) {
-              final selected = i == _selectedTab;
-              return Padding(
-                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size4),
-                child: GestureDetector(
-                  onTap: () => setState(() => _selectedTab = i),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: SizeConfig.size16,
-                      vertical: SizeConfig.size6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: selected ? AppColors.primaryColor : Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: selected
-                            ? AppColors.primaryColor
-                            : Colors.grey.shade300,
-                      ),
-                    ),
-                    alignment: Alignment.center,
-                    child: CustomText(
-                      _tabs[i],
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color:
-                          selected ? Colors.white : AppColors.mainTextColor,
-                    ),
-                  ),
-                ),
-              );
-            }),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ─── Preview as visitor ───
 }
 
 /// Stacked-coin glyph used by the "Earn" pill in the gradient header.

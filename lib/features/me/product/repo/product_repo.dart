@@ -354,6 +354,18 @@ class ProductRepo extends BaseService {
     return response;
   }
 
+  /// Fetch the Google Custom Search keys (api key + cx) for product image
+  /// search. `GET product-service/api/products/fe/ai-keys`.
+  Future<ResponseModel> getProductAiKeysRepo() async {
+    final response = await ApiBaseHelper().getHTTP(
+      productAiKeys,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   Future<ResponseModel> productNestedCategoryRepo(
       {Map<String, dynamic>? queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(

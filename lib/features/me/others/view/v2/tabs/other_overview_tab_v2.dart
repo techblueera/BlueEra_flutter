@@ -4,7 +4,9 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
@@ -188,6 +190,18 @@ class OtherOverviewTabV2 extends StatelessWidget {
                     ),
                 ],
               ),
+            ),
+          ),
+
+          SizedBox(height: SizeConfig.size10),
+
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+            child: WebsiteOverviewCard(
+              websiteUrl: businessController
+                  .businessProfileDetails.value?.data?.websiteUrl,
+              onSave: (url) => businessController
+                  .updateBusinessProfileDetails({ApiKeys.websiteUrl: url}),
             ),
           ),
 

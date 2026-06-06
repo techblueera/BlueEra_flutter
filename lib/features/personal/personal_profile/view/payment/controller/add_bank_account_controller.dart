@@ -27,6 +27,12 @@ class AddBankAccountController extends GetxController {
 
   final RxString selectedBankAccountType = 'Select Account'.obs;
 
+  /// Mirrors the UPI ID field so the Add screen can render a live QR preview.
+  final RxString upiInput = ''.obs;
+
+  /// True once [upiInput] is a syntactically valid UPI ID (drives the QR).
+  bool get isUpiInputValid => upiRegex.hasMatch(upiInput.value.trim());
+
 
   @override
   void onInit() {
@@ -55,17 +61,31 @@ class AddBankAccountController extends GetxController {
       update();
     }
   }
-  final upiRegex = RegExp(r'^[\w.\-]{2,256}@[a-zA-Z]{2,64}$');
+  // UPI VPA: <handle>@<psp> e.g. john.doe-1@oksbi, 9876543210@ybl
+  // - handle (before @): 2-256 of letters/digits/._-
+  // - psp (after @): 2-64 letters only (oksbi, ybl, paytm, apl …)
+  final upiRegex = RegExp(r'^[a-zA-Z0-9._\-]{2,256}@[a-zA-Z]{2,64}$');
   String? upiValidate(String? value) {
     if (value == null || value.trim().isEmpty) {
       isUpiValidate.value = false;
       return AppStrings.upiIdRequired.tr;
     }
-    if (upiRegex.hasMatch(value.trim())) {
+    if (!upiRegex.hasMatch(value.trim())) {
       isUpiValidate.value = false;
       return AppStrings.invalidUpiId.tr;
     }
     isUpiValidate.value = true;
+    return null;
+  }
+
+  /// Validates the account-type dropdown so the form blocks submit until the
+  /// user picks a real option (initial value is the 'Select Account' hint).
+  String? validateAccountType(String? value) {
+    if (value == null ||
+        value.trim().isEmpty ||
+        value == 'Select Account') {
+      return AppStrings.pleaseSelectAccountType.tr;
+    }
     return null;
   }
 
@@ -119,7 +139,7 @@ class AddBankAccountController extends GetxController {
     if (!formKey.currentState!.validate()) {
       return;
     }
-    isLoading.value = false;
+    isLoading.value = true;
     try {
       ResponseModel response = await PaymentRepo().postAddAccount(params:
       {

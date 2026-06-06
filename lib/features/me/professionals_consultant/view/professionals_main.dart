@@ -10,6 +10,8 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
+import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -67,13 +69,13 @@ class ProfessionalsMainScreen extends StatefulWidget {
   State<ProfessionalsMainScreen> createState() => _ProfessionalsMainScreenState();
 }
 
-class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
+class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
+    with SingleTickerProviderStateMixin {
   final _ctrl = Get.put(AiProfessionalsController());
   final _personalCtrl = getOrPut(() => PersonalCreateProfileController());
   final _viewCtrl = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
 
-  int _selectedTab = 1; // default to Overview
-  bool _showStickyTabs = false;
+  late final TabController _tabController;
 
   List<String> get _tabs => [
         AppStrings.order.tr,
@@ -91,6 +93,11 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(
+      length: _tabs.length,
+      initialIndex: 1,
+      vsync: this,
+    );
     _ctrl.professionalsFullDetailsController();
     _viewCtrl.UserFollowersAndPostsCount(userId);
     // Hydrate the business chat list so the Order tab's inquiry list
@@ -107,6 +114,12 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
   }
 
   @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return _buildScaffold(context);
   }
@@ -120,82 +133,20 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
         child: Stack(
           children: [
             _buildPatternBackground(),
-            NotificationListener<ScrollNotification>(
-              onNotification: (n) {
-                if (n.depth != 0) return false;
-                if (n.metrics.axis != Axis.vertical) return false;
-                final shouldShow = n.metrics.pixels > topBarHeight;
-                if (shouldShow != _showStickyTabs) {
-                  setState(() => _showStickyTabs = shouldShow);
-                }
-                return false;
-              },
-              child: CustomScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                slivers: [
-                  SliverAppBar(
-                    primary: false,
-                    pinned: false,
-                    floating: true,
-                    snap: true,
-                    backgroundColor: Colors.transparent,
-                    elevation: 0,
-                    scrolledUnderElevation: 0,
-                    surfaceTintColor: Colors.transparent,
-                    automaticallyImplyLeading: false,
-                    toolbarHeight: topBarHeight,
-                    flexibleSpace: _buildTopBar(),
-                  ),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      child: _buildTabsCard(),
-                    ),
-                  ),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                        top: SizeConfig.size10,
-                        bottom: kBottomNavigationBarHeight + 30,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: _buildTabContent(),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+            HomeTabScaffold(
+              controller: _tabController,
+              tabLabels: _tabs,
+              topBar: _buildTopBar(),
+              topBarHeight: topBarHeight,
+              tabViews: [
+                _tabScroll(_buildOrderTab()),
+                _tabScroll(_buildOverviewTab()),
+                _tabScroll(_buildServiceTab()),
+                _tabScroll(_buildPostTab()),
+                _tabScroll(const [EarnStoreCards()]),
+                _tabScroll(_buildStaticsTab()),
+              ],
             ),
-            if (_showStickyTabs)
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: ClipRect(
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                    child: Container(
-                      padding: EdgeInsets.only(top: topInset + 10, bottom: 10),
-                      decoration: const BoxDecoration(
-                        color: Color(0x66FFFFFF),
-                        border: Border(
-                          bottom: BorderSide(color: Colors.white, width: 1),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Color(0x42001120),
-                            blurRadius: 16,
-                            offset: Offset(0, 4),
-                            blurStyle: BlurStyle.outer,
-                          ),
-                        ],
-                      ),
-                      child: _buildTabsCard(),
-                    ),
-                  ),
-                ),
-              ),
           ],
         ),
       ),
@@ -411,100 +362,21 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
     );
   }
 
-  Widget _buildTabsCard() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      child: Container(
-        height: 48,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE6E8EE), width: 1),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x1A001120),
-              blurRadius: 16,
-              offset: Offset(0, 6),
-            ),
-          ],
-        ),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final tabWidth = constraints.maxWidth / _tabs.length;
-            const indicatorWidth = 28.0;
-            final indicatorLeft = tabWidth * _selectedTab + (tabWidth - indicatorWidth) / 2;
-            return Stack(
-              children: [
-                Row(
-                  children: List.generate(_tabs.length, (i) {
-                    final selected = _selectedTab == i;
-                    return Expanded(
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () => setState(() => _selectedTab = i),
-                        child: Center(
-                          child: AnimatedDefaultTextStyle(
-                            duration: const Duration(milliseconds: 220),
-                            curve: Curves.easeOutCubic,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                              letterSpacing: 0.2,
-                              color: selected ? AppColors.primaryColor : AppColors.mainTextColor,
-                            ),
-                            child: Text(_tabs[i]),
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                ),
-                AnimatedPositioned(
-                  duration: const Duration(milliseconds: 280),
-                  curve: Curves.easeOutCubic,
-                  left: indicatorLeft,
-                  bottom: 6,
-                  child: Container(
-                    width: indicatorWidth,
-                    height: 3,
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryColor,
-                      borderRadius: BorderRadius.circular(3),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primaryColor.withValues(alpha: 0.4),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
+  /// Wraps a tab's content list in a scrollable body for the [TabBarView].
+  /// The per-tab builders return bounded box widgets, so SingleChildScrollView
+  /// + Column reproduces the previous SliverToBoxAdapter + Column layout.
+  Widget _tabScroll(List<Widget> children) {
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: EdgeInsets.only(
+        top: SizeConfig.size10,
+        bottom: kBottomNavigationBarHeight + 30,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
       ),
     );
-  }
-
-  List<Widget> _buildTabContent() {
-    switch (_selectedTab) {
-      case 0:
-        return _buildOrderTab();
-      case 1:
-        return _buildOverviewTab();
-      case 2:
-        return _buildServiceTab();
-      case 3:
-        return _buildPostTab();
-      case 4:
-        return const [EarnStoreCards()];
-      case 5:
-        return _buildStaticsTab();
-      default:
-        return const [SizedBox.shrink()];
-    }
   }
 
   List<Widget> _buildOverviewTab() {
@@ -524,6 +396,17 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen> {
       _buildActionRow(),
       SizedBox(height: SizeConfig.size12),
       const ProfileLocationCard(),
+      SizedBox(height: SizeConfig.size12),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: Obx(() => WebsiteOverviewCard(
+              websiteUrl: _viewCtrl.website.value,
+              onSave: (url) => _personalCtrl.updateUserProfileDetails(
+                params: {ApiKeys.website: url},
+                isFromProfileOnly: true,
+              ),
+            )),
+      ),
       SizedBox(height: SizeConfig.size12),
       _buildQrCard(),
       SizedBox(height: SizeConfig.size12),

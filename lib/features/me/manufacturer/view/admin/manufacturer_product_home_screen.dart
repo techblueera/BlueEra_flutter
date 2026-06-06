@@ -1,7 +1,9 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
+import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/features/business/widgets/business_description_card.dart';
 import 'package:BlueEra/features/business/widgets/business_joined_profile_card.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
@@ -72,6 +74,19 @@ class _ProductHomeScreenState extends State<ManufacturerProductHomeScreen> {
             final details = _businessController.businessProfileDetails.value?.data;
             return BusinessContactMapCard(
               businessProfileDetails: details,
+            );
+          }),
+        ),
+        SizedBox(height: SizeConfig.size12),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+          child: Obx(() {
+            final details = _businessController.businessProfileDetails.value?.data;
+            return WebsiteOverviewCard(
+              websiteUrl: details?.websiteUrl,
+              onSave: (url) => _businessController.updateBusinessProfileDetails(
+                {ApiKeys.websiteUrl: url},
+              ),
             );
           }),
         ),

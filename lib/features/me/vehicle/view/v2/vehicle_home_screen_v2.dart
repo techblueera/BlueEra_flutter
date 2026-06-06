@@ -20,9 +20,12 @@ import 'package:BlueEra/features/me/vehicle/view/widgets/vehicle_card.dart';
 import 'package:BlueEra/features/me/vehicle/view/widgets/vehicle_contact_form_sheet.dart';
 import 'package:BlueEra/features/me/vehicle/view/widgets/vehicle_form_sheet.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
+import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
+import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -45,7 +48,8 @@ class VehicleHomeScreenV2 extends StatefulWidget {
   State<VehicleHomeScreenV2> createState() => _VehicleHomeScreenV2State();
 }
 
-class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2> {
+class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2>
+    with SingleTickerProviderStateMixin {
   final VehicleController _ctrl =
       getOrPut(() => VehicleController(), permanent: true);
 
@@ -57,7 +61,7 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2> {
 
   bool _isGoLive = false;
   int _selectedTab = 1; // default to Overview, like professionals_main
-
+  late final TabController _tabController;
 
   List<String>  _tabs = [
     AppStrings.inquiry.tr,
@@ -69,6 +73,11 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2> {
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(
+      length: _tabs.length,
+      initialIndex: _selectedTab,
+      vsync: this,
+    )..addListener(_handleTabChange);
     _ctrl.fetchMyVehicles();
     _ctrl.fetchMyContacts(showProgress: false);
     _ctrl.fetchMyGallery(showProgress: false);
@@ -76,6 +85,40 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2> {
     _chatViewController.emitEvent(
       ChatEmitEvents.ChatList,
       {ApiKeys.type: AppConstants.business_Chat_Type},
+    );
+  }
+
+  /// Keep [_selectedTab] synced so the Vehicles-tab FAB shows/hides correctly.
+  void _handleTabChange() {
+    if (_selectedTab != _tabController.index) {
+      setState(() => _selectedTab = _tabController.index);
+    }
+  }
+
+  @override
+  void dispose() {
+    _tabController.removeListener(_handleTabChange);
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _refreshAll() async {
+    await Future.wait([
+      _ctrl.fetchMyVehicles(showProgress: false),
+      _ctrl.fetchMyGallery(showProgress: false),
+      _ctrl.fetchMyContacts(showProgress: false),
+    ]);
+  }
+
+  /// Wraps a tab body in a refreshable scroll view for the [TabBarView].
+  Widget _tabScroll(Widget child) {
+    return RefreshIndicator(
+      onRefresh: _refreshAll,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.only(bottom: kBottomNavigationBarHeight + 30),
+        child: child,
+      ),
     );
   }
 
@@ -89,40 +132,35 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2> {
         child: Stack(
           children: [
             _buildPatternBackground(),
-            Column(
-              children: [
-                _buildTopBar(),
-
-                Expanded(
-                  child: RefreshIndicator(
-                    // Pull-to-refresh hydrates fleet + gallery + contacts
-                    // in parallel — gallery and contacts both render
-                    // inside the Overview tab so every section the user
-                    // can see must refresh on every pull.
-                    onRefresh: () async {
-                      await Future.wait([
-                        _ctrl.fetchMyVehicles(showProgress: false),
-                        _ctrl.fetchMyGallery(showProgress: false),
-                        _ctrl.fetchMyContacts(showProgress: false),
-                      ]);
-                    },
-                    child: SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: EdgeInsets.only(
-                        bottom: kBottomNavigationBarHeight + 30,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: SizeConfig.size10),
-                          _buildTabsCard(),
-                          SizedBox(height: SizeConfig.size12),
-                          _buildTabContent(),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+            HomeTabScaffold(
+              controller: _tabController,
+              tabLabels: _tabs,
+              topBar: _buildTopBar(),
+              topBarHeight: MediaQuery.of(context).padding.top + 56,
+              tabViews: [
+                _tabScroll(SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.65,
+                  child: const BusinessChatsList(),
+                )),
+                _tabScroll(_OverviewTab(
+                  controller: _ctrl,
+                  onAdd: _onAddVehicle,
+                  onAddGalleryPhoto: _onAddGalleryPhoto,
+                  onDeleteGalleryItem: _confirmDeleteGalleryItem,
+                  onAddContact: _onAddContact,
+                  onEditContact: _onEditContact,
+                  onDeleteContact: _confirmDeleteContact,
+                )),
+                _tabScroll(_VehiclesTab(
+                  controller: _ctrl,
+                  onEdit: _onEditVehicle,
+                  onDelete: _confirmDelete,
+                )),
+                _tabScroll(SizedBox(
+                  height: MediaQuery.of(context).size.height * 0.7,
+                  child: FeedScreen(postFilterType: PostType.myPosts),
+                )),
+                _tabScroll(_StatsTab(controller: _ctrl)),
               ],
             ),
           ],
@@ -146,44 +184,6 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2> {
             )
           : null,
     );
-  }
-
-  // ─── Tab body ───────────────────────────────────────────────────
-  Widget _buildTabContent() {
-    switch (_selectedTab) {
-      case 0:
-        return SizedBox(
-          height: MediaQuery.of(context).size.height * 0.65,
-          child: const BusinessChatsList(),
-        );
-      case 1:
-        return _OverviewTab(
-          controller: _ctrl,
-          onAdd: _onAddVehicle,
-          onAddGalleryPhoto: _onAddGalleryPhoto,
-          onDeleteGalleryItem: _confirmDeleteGalleryItem,
-          onAddContact: _onAddContact,
-          onEditContact: _onEditContact,
-          onDeleteContact: _confirmDeleteContact,
-        );
-      case 2:
-        return _VehiclesTab(
-          controller: _ctrl,
-          onEdit: _onEditVehicle,
-          onDelete: _confirmDelete,
-        );
-      case 3:
-        // Embed feed filtered to the user's posts — same hook
-        // professionals_main uses.
-        return SizedBox(
-          height: MediaQuery.of(context).size.height * 0.7,
-          child: FeedScreen(postFilterType: PostType.myPosts),
-        );
-      case 4:
-        return _StatsTab(controller: _ctrl);
-      default:
-        return const SizedBox.shrink();
-    }
   }
 
   // ─── Background pattern ─────────────────────────────────────────
@@ -326,49 +326,6 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2> {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-
-  // ─── Tabs row (pill chips, mirrors lab_home_screen_v2) ──────────
-  Widget _buildTabsCard() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: List.generate(_tabs.length, (i) {
-            final selected = i == _selectedTab;
-            return Padding(
-              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size4),
-              child: GestureDetector(
-                onTap: () => setState(() => _selectedTab = i),
-                child: Container(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: SizeConfig.size16,
-                    vertical: SizeConfig.size6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: selected ? AppColors.primaryColor : Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: selected
-                          ? AppColors.primaryColor
-                          : Colors.grey.shade300,
-                    ),
-                  ),
-                  alignment: Alignment.center,
-                  child: CustomText(
-                    _tabs[i],
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: selected ? Colors.white : AppColors.mainTextColor,
-                  ),
-                ),
-              ),
-            );
-          }),
         ),
       ),
     );
@@ -578,6 +535,9 @@ class _OverviewTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final viewCtrl =
+        getOrPut(() => ViewPersonalDetailsController(), permanent: true);
+    final personalCtrl = getOrPut(() => PersonalCreateProfileController());
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
       child: Column(
@@ -675,6 +635,14 @@ class _OverviewTab extends StatelessWidget {
             onEdit: onEditContact,
             onDelete: onDeleteContact,
           ),
+          SizedBox(height: SizeConfig.size16),
+          Obx(() => WebsiteOverviewCard(
+                websiteUrl: viewCtrl.website.value,
+                onSave: (url) => personalCtrl.updateUserProfileDetails(
+                  params: {ApiKeys.website: url},
+                  isFromProfileOnly: true,
+                ),
+              )),
         ],
       ),
     );

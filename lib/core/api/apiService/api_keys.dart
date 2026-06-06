@@ -167,6 +167,7 @@ class ApiKeys {
   static const jobHighlights = 'jobHighlights';
   static const qualifications = 'qualifications';
   static const experience = 'experience';
+  static const experienceStartDate = 'experienceStartDate';
   static const languages = 'languages';
   static const communicationPreference = 'communicationPreference';
   static const isWalkIn = 'isWalkIn';

@@ -25,6 +25,10 @@ mixin ProductServiceApi {
       'product-service/api/products/$productId';
   final String productNestedCategory = 'product-service/api/categories/nested';
 
+  /// Front-end AI keys (Google Custom Search key + cx) for product image search.
+  /// `GET product-service/api/products/fe/ai-keys`.
+  final String productAiKeys = 'product-service/api/products/fe/ai-key';
+
   /// Categories for a given group (e.g. `homeMadeProduct`) — backs the
   /// AI add-product category grid for the user/earn flow.
   String productCategoriesByGroup(String group) =>

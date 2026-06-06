@@ -377,13 +377,16 @@ class ProductController extends GetxController{
       commonSnackBar(message: 'Please enter product name or brand first');
       return const [];
     }
-    if (!GoogleImageSearchService.isConfigured) {
-      commonSnackBar(message: 'Image search is not set up yet');
-      return const [];
-    }
 
     AppLoader.show(message: 'Searching images...');
     try {
+      // Keys are served at runtime (not bundled in .env) — fetch & cache once.
+      await ensureImageSearchConfigured();
+      if (!GoogleImageSearchService.isConfigured) {
+        commonSnackBar(message: 'Image search is not set up yet');
+        return const [];
+      }
+
       final results = await GoogleImageSearchService.search(query);
       if (results.isEmpty) {
         commonSnackBar(message: 'No images found. Try a different name');
@@ -392,8 +395,36 @@ class ProductController extends GetxController{
     } on GoogleImageQuotaException catch (e) {
       commonSnackBar(message: e.message);
       return const [];
+    } on GoogleImageUnavailableException catch (e) {
+      commonSnackBar(message: e.message);
+      return const [];
     } finally {
       AppLoader.hide();
+    }
+  }
+
+  /// Fetches the Google Custom Search keys (api key + cx) from
+  /// `product-service/api/products/fe/ai-keys` and hands them to
+  /// [GoogleImageSearchService]. No-ops once already configured. Safe to call
+  /// on screen open to prefetch so the first image search is instant.
+  Future<void> ensureImageSearchConfigured() async {
+    if (GoogleImageSearchService.isConfigured) return;
+    try {
+      final response = await ProductRepo().getProductAiKeysRepo();
+      if (response.isSuccess) {
+        // Keys come at the top level of the body (no `data` wrapper), so read
+        // the raw response rather than ResponseModel.data (which digs into
+        // `['data']`).
+        final body = response.response?.data;
+        if (body is Map) {
+          GoogleImageSearchService.configure(
+            apiKey: body['apiKey']?.toString(),
+            cx: body['cxKey']?.toString(),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('searchGoogleImagesStep1 ai-keys fetch error: $e');
     }
   }
 

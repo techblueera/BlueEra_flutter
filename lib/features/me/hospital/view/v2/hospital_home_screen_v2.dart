@@ -18,6 +18,7 @@ import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_overview_tab_
 import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_posts_tab_v2.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_stats_tab_v2.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get_utils/src/extensions/internacionalization.dart';
@@ -32,12 +33,13 @@ class HospitalHomeScreenV2 extends StatefulWidget {
   State<HospitalHomeScreenV2> createState() => _HospitalHomeScreenV2State();
 }
 
-class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2> {
+class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2>
+    with SingleTickerProviderStateMixin {
   late final HospitalServiceAiController _hospitalController;
   final _businessController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+  late final TabController _tabController;
 
   bool _isGoLive = false;
-  int _selectedTab = 0;
 
   static final _tabs = [
     AppStrings.hospitalInquiry.tr,
@@ -63,6 +65,7 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2> {
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: _tabs.length, vsync: this);
     _hospitalController = getOrPut(() => HospitalServiceAiController());
     if (_hospitalController.hospitalDataResModel?.value.data == null) {
       _hospitalController.getHospitalFullDetailsController();
@@ -82,6 +85,26 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2> {
   }
 
   @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  /// Wraps a tab body in a refreshable scroll view for the [TabBarView].
+  Widget _tabScroll(Widget child) {
+    return RefreshIndicator(
+      onRefresh: () async {
+        await _hospitalController.getHospitalFullDetailsController();
+      },
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.only(bottom: kBottomNavigationBarHeight + 30),
+        child: child,
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFEAF2FB),
@@ -90,61 +113,26 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2> {
         child: Stack(
           children: [
             _buildPatternBackground(),
-            Column(
-              children: [
-                _buildTopBar(),
-                // _buildProfileRow(),
-                Expanded(
-                  child: RefreshIndicator(
-                    onRefresh: () async {
-                      await _hospitalController.getHospitalFullDetailsController();
-                    },
-                    child: SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: EdgeInsets.only(
-                        bottom: kBottomNavigationBarHeight + 30,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: SizeConfig.size10),
-                          _buildTabsCard(),
-                          SizedBox(height: SizeConfig.size12),
-                          _buildTabContent(),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+            HomeTabScaffold(
+              controller: _tabController,
+              tabLabels: _tabs,
+              topBar: _buildTopBar(),
+              topBarHeight: MediaQuery.of(context).padding.top + 56,
+              tabViews: [
+                _tabScroll(const HospitalInquiryTabV2()),
+                _tabScroll(HospitalOverviewTabV2(controller: _hospitalController)),
+                _tabScroll(
+                    HospitalDepartmentsTabV2(controller: _hospitalController)),
+                _tabScroll(
+                    HospitalFacilitiesTabV2(controller: _hospitalController)),
+                _tabScroll(const HospitalPostsTabV2()),
+                _tabScroll(const HospitalStatsTabV2()),
               ],
             ),
           ],
         ),
       ),
     );
-  }
-
-  // ─────────────────────────────────────────────
-  // TAB CONTENT — switches body by _selectedTab
-  // ─────────────────────────────────────────────
-  Widget _buildTabContent() {
-    switch (_selectedTab) {
-      case 0:
-        return const HospitalInquiryTabV2();
-      case 1:
-        return HospitalOverviewTabV2(controller: _hospitalController);
-      case 2:
-        return HospitalDepartmentsTabV2(controller: _hospitalController);
-      case 3:
-        return HospitalFacilitiesTabV2(controller: _hospitalController);
-      case 4:
-        return const HospitalPostsTabV2();
-      case 5:
-        return const HospitalStatsTabV2();
-
-      default:
-        return const SizedBox.shrink();
-    }
   }
 
   // ─────────────────────────────────────────────
@@ -293,52 +281,6 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2> {
 
   // ─────────────────────────────────────────────
   // TABS CARD
-  // ─────────────────────────────────────────────
-  Widget _buildTabsCard() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-      child: Container(
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: List.generate(_tabs.length, (i) {
-              final selected = i == _selectedTab;
-              return Padding(
-                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size4),
-                child: GestureDetector(
-                  onTap: () => setState(() => _selectedTab = i),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: SizeConfig.size16,
-                      vertical: SizeConfig.size6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: selected ? AppColors.primaryColor : Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: selected ? AppColors.primaryColor : Colors.grey.shade300,
-                      ),
-                    ),
-                    alignment: Alignment.center,
-                    child: CustomText(
-                      _tabs[i],
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: selected ? Colors.white : AppColors.mainTextColor,
-                    ),
-                  ),
-                ),
-              );
-            }),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ─────────────────────────────────────────────
-  // PREVIEW AS VISITOR — opens the public discover preview so the owner
-  // can see what other users see for this hospital.
   // ─────────────────────────────────────────────
 }
 

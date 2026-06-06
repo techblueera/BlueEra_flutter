@@ -18,6 +18,7 @@ import 'package:BlueEra/features/me/hotel/view/v2/tabs/hotel_posts_tab_v2.dart';
 import 'package:BlueEra/features/me/hotel/view/v2/tabs/hotel_rooms_tab_v2.dart';
 import 'package:BlueEra/features/me/hotel/view/v2/tabs/hotel_stats_tab_v2.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get_utils/src/extensions/internacionalization.dart';
@@ -33,12 +34,13 @@ class HotelHomeScreenV2 extends StatefulWidget {
   State<HotelHomeScreenV2> createState() => _HotelHomeScreenV2State();
 }
 
-class _HotelHomeScreenV2State extends State<HotelHomeScreenV2> {
+class _HotelHomeScreenV2State extends State<HotelHomeScreenV2>
+    with SingleTickerProviderStateMixin {
   late final HotelDetailController _hotelController;
   final _businessController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+  late final TabController _tabController;
 
   bool _isGoLive = false;
-  int _selectedTab = 0;
   List<String> get _tabs => [
         AppStrings.inquiry.tr,
         AppStrings.overview.tr,
@@ -65,6 +67,7 @@ class _HotelHomeScreenV2State extends State<HotelHomeScreenV2> {
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: _tabs.length, vsync: this);
     _hotelController = getOrPut(() => HotelDetailController());
     if (_hotelController.hotelData.value == null) {
       _hotelController.loadHotelData();
@@ -83,6 +86,24 @@ class _HotelHomeScreenV2State extends State<HotelHomeScreenV2> {
   }
 
   @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  /// Wraps a tab body in a refreshable scroll view for the [TabBarView].
+  Widget _tabScroll(Widget child) {
+    return RefreshIndicator(
+      onRefresh: () async => _hotelController.loadHotelData(),
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.only(bottom: kBottomNavigationBarHeight + 30),
+        child: child,
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFEAF2FB),
@@ -91,54 +112,24 @@ class _HotelHomeScreenV2State extends State<HotelHomeScreenV2> {
         child: Stack(
           children: [
             _buildPatternBackground(),
-            Column(
-              children: [
-                _buildTopBar(),
-                Expanded(
-                  child: RefreshIndicator(
-                    onRefresh: () async => _hotelController.loadHotelData(),
-                    child: SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: EdgeInsets.only(
-                        bottom: kBottomNavigationBarHeight + 30,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: SizeConfig.size10),
-                          _buildTabsCard(),
-                          SizedBox(height: SizeConfig.size12),
-                          _buildTabContent(),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+            HomeTabScaffold(
+              controller: _tabController,
+              tabLabels: _tabs,
+              topBar: _buildTopBar(),
+              topBarHeight: MediaQuery.of(context).padding.top + 56,
+              tabViews: [
+                _tabScroll(const HotelInquiryTabV2()),
+                _tabScroll(HotelOverviewTabV2(controller: _hotelController)),
+                _tabScroll(HotelRoomsTabV2(controller: _hotelController)),
+                _tabScroll(HotelAmenitiesTabV2(controller: _hotelController)),
+                _tabScroll(const HotelPostsTabV2()),
+                _tabScroll(const HotelStatsTabV2()),
               ],
             ),
           ],
         ),
       ),
     );
-  }
-
-  Widget _buildTabContent() {
-    switch (_selectedTab) {
-      case 0:
-        return const HotelInquiryTabV2();
-      case 1:
-        return HotelOverviewTabV2(controller: _hotelController);
-      case 2:
-        return HotelRoomsTabV2(controller: _hotelController);
-      case 3:
-        return HotelAmenitiesTabV2(controller: _hotelController);
-      case 4:
-        return const HotelPostsTabV2();
-      case 5:
-        return const HotelStatsTabV2();
-      default:
-        return const SizedBox.shrink();
-    }
   }
 
   Widget _buildPatternBackground() {
@@ -268,47 +259,6 @@ class _HotelHomeScreenV2State extends State<HotelHomeScreenV2> {
     );
   }
 
-  Widget _buildTabsCard() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-      child: Container(
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: List.generate(_tabs.length, (i) {
-              final selected = i == _selectedTab;
-              return Padding(
-                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size4),
-                child: GestureDetector(
-                  onTap: () => setState(() => _selectedTab = i),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: SizeConfig.size16,
-                      vertical: SizeConfig.size6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: selected ? AppColors.primaryColor : Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: selected ? AppColors.primaryColor : Colors.grey.shade300,
-                      ),
-                    ),
-                    alignment: Alignment.center,
-                    child: CustomText(
-                      _tabs[i],
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: selected ? Colors.white : AppColors.mainTextColor,
-                    ),
-                  ),
-                ),
-              );
-            }),
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 class _CoinStackIcon extends StatelessWidget {

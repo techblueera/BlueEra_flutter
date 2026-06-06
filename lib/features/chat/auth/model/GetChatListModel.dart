@@ -79,6 +79,8 @@ class ChatList {
     this.repliedSymbol,
     this.repliedSymbolId,
     this.iOwnBusiness,
+    this.isOrder,
+    this.businessOwnerUserId,
     this.isFriend,
     this.type,
   });
@@ -129,6 +131,14 @@ class ChatList {
     // so the bucketer can apply its legacy account-type fallback.
     iOwnBusiness = _asBool(json['i_own_business']);
     isFriend = _asBool(json['is_friend']);
+
+    // Current backend routing spec (replaces the legacy i_own_business path):
+    //   is_order               → this is an order / discover-initiated chat
+    //   business_owner_user_id → the seller/receiver's user id
+    // `bucketChat` sends an order to the "Me" section only when the logged-in
+    // user IS that owner; otherwise it stays in "Chat".
+    isOrder = _asBool(json['is_order']);
+    businessOwnerUserId = json['business_owner_user_id']?.toString();
 
     // Conversation type ("business" | "group" | …) — the `type` column of
     // the B2B routing truth table. Drives `bucketChat`. Null on legacy
@@ -184,6 +194,14 @@ class ChatList {
   /// bucketer then falls back to the counterpart's account type.
   bool? iOwnBusiness;
 
+  /// True when this is an order / discover-initiated chat (backend `is_order`).
+  bool? isOrder;
+
+  /// User id of the business owner (seller/receiver) for an order chat
+  /// (backend `business_owner_user_id`). Compared against the logged-in user
+  /// to route the chat to the "Me" (owner) vs "Chat" (buyer) section.
+  String? businessOwnerUserId;
+
   /// True when the other participant is in my contacts. Used to override
   /// the seller-side "me" routing so a friend's order stays in chats.
   bool? isFriend;
@@ -227,6 +245,8 @@ class ChatList {
       map['replied_symbol_id'] = repliedSymbolId;
     }
     map['i_own_business'] = iOwnBusiness;
+    map['is_order'] = isOrder;
+    map['business_owner_user_id'] = businessOwnerUserId;
     map['is_friend'] = isFriend;
     map['type'] = type;
 

@@ -10,14 +10,6 @@ abstract class Env {
   @EnviedField(varName: 'GEMINI_API_KEY')
   static String geminiApiKey = _Env.geminiApiKey;
 
-  // Google Programmable Search — used to fetch a product image by name/brand.
-  // optional:true so a blank value (not yet configured) doesn't break codegen.
-  @EnviedField(varName: 'GOOGLE_CSE_API_KEY', optional: true)
-  static String? googleCseApiKey = _Env.googleCseApiKey;
-
-  @EnviedField(varName: 'GOOGLE_CSE_CX', optional: true)
-  static String? googleCseCx = _Env.googleCseCx;
-
   @EnviedField(varName: 'PROJECT_FIREBASE_BASE_ID')
   static String projectFireBaseId = _Env.projectFireBaseId;
 
