@@ -532,6 +532,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   Widget resolveBusinessScreen() {
+    logs("businessTypeGlobal=== ${businessTypeGlobal}");
+    logs("businessCategoryGlobal=== ${businessCategoryGlobal}");
     // 1. First, check if it is a Food business
     if (businessTypeGlobal.toUpperCase() == BusinessType.Food.name.toUpperCase()) {
       return const FoodMainScreen(fromBottomNavBar: true);
@@ -542,6 +544,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     } else if (businessTypeGlobal.toUpperCase() == BusinessType.Healthcare.name.toUpperCase()) {
       if ((businessCategoryGlobal.toUpperCase() == AppConstants.HOSPITALS.toUpperCase()) ||
           (businessCategoryGlobal.toUpperCase() == AppConstants.wellness.toUpperCase()) ||
+          (businessCategoryGlobal.toUpperCase() == "Doctors".toUpperCase()) ||
           (businessCategoryGlobal.toUpperCase() == AppConstants.clinic.toUpperCase())) {
         return const HospitalMain();
       } else if (businessCategoryGlobal.toUpperCase() == AppConstants.DIAGNOSTIC_TESTING_CENTERS) {
