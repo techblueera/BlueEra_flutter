@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -47,7 +46,6 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
   @override
   void initState() {
     super.initState();
-    controller.typeOfBusiness = BusinessType.Service.name;
 
     if (widget.serviceCategory != null && _categories.isNotEmpty) {
       controller.businessCategoryId = widget.serviceCategory;
@@ -58,20 +56,20 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
       controller.businessCategoryId = _categories.first.tagId;
     }
 
-    controller.getAllStoreNearBy();
+    controller.getServiceBusinessesNearBy();
   }
 
   void _onCategoryTap(CategoryData item, int index) {
     _selectedIndex.value = index;
     controller.businessCategoryId = item.tagId;
-    controller.getAllStoreNearBy();
+    controller.getServiceBusinessesNearBy();
   }
 
   bool _onScrollNotification(ScrollNotification notification) {
     if (notification is ScrollUpdateNotification &&
         notification.metrics.pixels >=
             notification.metrics.maxScrollExtent - 200) {
-      controller.getAllStoreNearBy(isLoadMore: true);
+      controller.getServiceBusinessesNearBy(isLoadMore: true);
     }
     return false;
   }

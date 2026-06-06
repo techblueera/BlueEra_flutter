@@ -12,7 +12,6 @@ class StoreController extends GetxController {
       isLoading.value = true;
       final response = await StoreDataRepo().fetchStoreList(lat: lat,lng: lng);
       if (response.statusCode == 200) {
-        print("dngkjb ${response.statusCode}");
         final List<StoreDataModel> stores = List<StoreDataModel>.from(
           (response.response!.data as List).map((e) => StoreDataModel.fromJson(e)),
         );
