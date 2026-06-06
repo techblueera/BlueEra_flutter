@@ -18,6 +18,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_verfication.dart';
 import 'package:BlueEra/features/business/widgets/business_verify_now_button.dart';
@@ -39,6 +40,7 @@ import 'package:BlueEra/features/me/medical/repo/medical_repo.dart';
 import 'package:BlueEra/features/me/medical/view/medical_gallery/medical_gallery_list_screen.dart';
 import 'package:BlueEra/features/me/others/model/other_service_gallery_res_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -61,14 +63,13 @@ class MedicalHomeScreenV2 extends StatefulWidget {
   State<MedicalHomeScreenV2> createState() => _MedicalHomeScreenV2State();
 }
 
-class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
+class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
+    with SingleTickerProviderStateMixin {
   MedicalHomeResponseModel? _data;
   bool _isLoading = true;
   bool _isGoLive = false;
-  // Default landing tab unchanged: Overview. The previous code used index
-  // `1` for Overview; after inserting `Inquiry` at index `0`, every other
-  // tab shifts by `+1`, so Overview is now `2`.
-  int _selectedTab = 2;
+  // Default landing tab unchanged: Overview (index 2 — Inquiry is at 0).
+  late final TabController _tabController;
 
   late final MedicalGalleryController _galleryController;
   late final MedicalController _medicalController;
@@ -101,6 +102,8 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: _tabs.length, initialIndex: 2, vsync: this)
+      ..addListener(_handleTabChange);
     _galleryController = Get.put(MedicalGalleryController());
     _medicalController = getOrPut(() => MedicalController());
     // Hydrate the business chat list so the Inquiry tab has data ready
@@ -159,6 +162,32 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // BUILD
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  /// Lazy-loads the products catalog only when the Products tab is opened.
+  void _handleTabChange() {
+    if (_tabController.index == 3) {
+      _ensureProductsLoaded();
+    }
+  }
+
+  @override
+  void dispose() {
+    _tabController.removeListener(_handleTabChange);
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  /// Wraps a tab's content list in a scrollable body for the [TabBarView].
+  Widget _tabScroll(List<Widget> children) {
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: EdgeInsets.only(bottom: kBottomNavigationBarHeight + 30),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -170,26 +199,28 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
             : Stack(
                 children: [
                   _buildPatternBackground(),
-                  Column(
-                    children: [
-                      _buildTopBar(),
-                      _buildProfileRow(_data?.businessProfile),
-                      Expanded(
-                        child: SingleChildScrollView(
-                          padding: EdgeInsets.only(
-                            bottom: kBottomNavigationBarHeight + 30,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(height: SizeConfig.size10),
-                              _buildTabsCard(),
-                              SizedBox(height: SizeConfig.size12),
-                              ..._buildTabContent(),
-                            ],
-                          ),
-                        ),
-                      ),
+                  HomeTabScaffold(
+                    controller: _tabController,
+                    tabLabels: _tabs,
+                    topBar: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildTopBar(),
+                        _buildProfileRow(_data?.businessProfile),
+                      ],
+                    ),
+                    // Top bar (status inset + ~56) + the profile row (~74).
+                    // Sized with headroom so the profile row's two text lines
+                    // don't overflow the fixed header height (was +120 → 6px
+                    // overflow).
+                    topBarHeight: MediaQuery.of(context).padding.top + 132,
+                    tabViews: [
+                      _tabScroll(_buildInquiryTab()),
+                      BusinessStatisticsScreen(businessId: userId),
+                      _tabScroll(_buildOverviewSlivers()),
+                      _tabScroll(_buildProductsTab()),
+                      _tabScroll(_buildPostTab()),
+                      BusinessStatisticsScreen(businessId: userId),
                     ],
                   ),
                 ],
@@ -207,24 +238,6 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
   // identical to before â€” same `BusinessStatisticsScreen` body), just
   // at its new index `1` so the existing flow stays intact.
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  List<Widget> _buildTabContent() {
-    switch (_selectedTab) {
-      case 0:
-        return _buildInquiryTab();
-      case 2:
-        return _buildOverviewSlivers();
-      case 3:
-        _ensureProductsLoaded();
-        return _buildProductsTab();
-      case 4:
-        return _buildPostTab();
-      case 1:
-      case 5:
-        return [BusinessStatisticsScreen(businessId: userId)];
-      default:
-        return [_buildComingSoon()];
-    }
-  }
 
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // INQUIRY TAB â€” incoming inquiries only (chats whose latest message
@@ -265,6 +278,16 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
       _buildTestimonialsSection(),
       SizedBox(height: SizeConfig.size16),
       _buildContactSection(_data?.businessProfile),
+      SizedBox(height: SizeConfig.size16),
+      Obx(() => Padding(
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+            child: WebsiteOverviewCard(
+              websiteUrl: _businessController
+                  .businessProfileDetails.value?.data?.websiteUrl,
+              onSave: (url) => _businessController
+                  .updateBusinessProfileDetails({ApiKeys.websiteUrl: url}),
+            ),
+          )),
       SizedBox(height: SizeConfig.size16),
     ];
   }
@@ -712,23 +735,6 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
     ];
   }
 
-  Widget _buildComingSoon() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12, vertical: SizeConfig.size40),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.hourglass_empty, size: 48, color: AppColors.secondaryTextColor),
-            SizedBox(height: SizeConfig.size10),
-            CustomText(AppStrings.comingSoon.tr,
-                fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.mainTextColor),
-          ],
-        ),
-      ),
-    );
-  }
-
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // BACKGROUND
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -747,33 +753,54 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildTopBar() {
     final topInset = MediaQuery.of(context).padding.top;
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.fromLTRB(
-        SizeConfig.size12,
-        topInset + SizeConfig.size8,
-        SizeConfig.size12,
-        SizeConfig.size10,
-      ),
+    // Glassmorphic header — mirrors GroceryHomeScreenV2: a frosted translucent
+    // white bar (over the pattern background) with a hairline white border and
+    // an outer shadow, instead of the old solid blue gradient.
+    return DecoratedBox(
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF1E88FF), Color(0xFF0040A0)],
-        ),
-      ),
-      child: Row(
-        children: [
-          _circleIconButton(icon: Icons.menu, onTap: _openDrawer),
-          SizedBox(width: SizeConfig.size6),
-          // Pills wrapped in Flexible so their inner text can ellipsize
-          // instead of pushing the row past its width.
-          Flexible(child: const ReferEarnPill()),
-          const Spacer(),
-          _circleIconButton(icon: Icons.notifications_none, onTap: _openNotifications),
-          SizedBox(width: SizeConfig.size6),
-          _goLivePill(),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x42001120),
+            blurRadius: 16,
+            offset: Offset(0, 0),
+            blurStyle: BlurStyle.outer,
+          ),
         ],
+      ),
+      child: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.fromLTRB(
+              SizeConfig.size12,
+              topInset + SizeConfig.size8,
+              SizeConfig.size12,
+              SizeConfig.size10,
+            ),
+            decoration: BoxDecoration(
+              color: const Color(0x33FFFFFF),
+              border: Border.all(
+                color: Colors.white,
+                width: 1.0,
+              ),
+            ),
+            child: Row(
+              children: [
+                _circleIconButton(icon: Icons.menu, onTap: _openDrawer),
+                SizedBox(width: SizeConfig.size6),
+                // Pills wrapped in Flexible so their inner text can ellipsize
+                // instead of pushing the row past its width.
+                Flexible(child: const ReferEarnPill()),
+                const Spacer(),
+                _circleIconButton(
+                    icon: Icons.notifications_none, onTap: _openNotifications),
+                SizedBox(width: SizeConfig.size6),
+                _goLivePill(),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -960,52 +987,6 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2> {
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // TABS CARD (single white card with pills)
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  Widget _buildTabsCard() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8, vertical: SizeConfig.size8),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(28),
-          boxShadow: const [
-            BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 1)),
-          ],
-        ),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: List.generate(_tabs.length, (i) {
-              final selected = i == _selectedTab;
-              return Padding(
-                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size4),
-                child: GestureDetector(
-                  onTap: () => setState(() => _selectedTab = i),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16, vertical: SizeConfig.size6),
-                    decoration: BoxDecoration(
-                      color: selected ? AppColors.primaryColor : Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: selected ? AppColors.primaryColor : Colors.grey.shade300,
-                      ),
-                    ),
-                    alignment: Alignment.center,
-                    child: CustomText(
-                      _tabs[i],
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: selected ? Colors.white : AppColors.mainTextColor,
-                    ),
-                  ),
-                ),
-              );
-            }),
-          ),
-        ),
-      ),
-    );
-  }
 
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // BANNER (cover image)

@@ -10,6 +10,8 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
+import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -63,10 +65,11 @@ class FoodMainScreen extends StatefulWidget {
   State<FoodMainScreen> createState() => _FoodMainScreenState();
 }
 
-class _FoodMainScreenState extends State<FoodMainScreen> {
+class _FoodMainScreenState extends State<FoodMainScreen>
+    with SingleTickerProviderStateMixin {
   int _selectedTab = 1;
   bool _isGoLive = false;
-  bool _showStickyTabs = false;
+  late final TabController _tabController;
 
   late final RestaurantController _foodController;
   late final ViewBusinessDetailsController _businessController;
@@ -89,6 +92,11 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(
+      length: _tabs.length,
+      initialIndex: _selectedTab,
+      vsync: this,
+    )..addListener(_handleTabChange);
     _foodController = getOrPut(() => RestaurantController());
     _businessController =
         getOrPut(() => ViewBusinessDetailsController(), permanent: true);
@@ -153,10 +161,21 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     }
   }
 
-  void _onTabTapped(int i) {
-    if (i == _selectedTab) return;
-    setState(() => _selectedTab = i);
-    _fetchForTab(i);
+  /// Keep [_selectedTab] (the content source-of-truth for FAB/go-live state)
+  /// in sync with the TabController and fire the new tab's lazy fetch when the
+  /// user taps a tab or swipes between them.
+  void _handleTabChange() {
+    if (_selectedTab != _tabController.index) {
+      setState(() => _selectedTab = _tabController.index);
+      _fetchForTab(_tabController.index);
+    }
+  }
+
+  @override
+  void dispose() {
+    _tabController.removeListener(_handleTabChange);
+    _tabController.dispose();
+    super.dispose();
   }
 
   // BUILD
@@ -170,97 +189,21 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
         child: Stack(
           children: [
             _buildPatternBackground(),
-            NotificationListener<ScrollNotification>(
-              onNotification: (n) {
-                if (n.metrics.axis != Axis.vertical) return false;
-                final shouldShow = n.metrics.pixels > topBarHeight;
-                if (shouldShow != _showStickyTabs) {
-                  setState(() => _showStickyTabs = shouldShow);
-                }
-                return false;
-              },
-              child: RefreshIndicator(
-                onRefresh: _onRefreshCurrentTab,
-                // Each tab handles its own loading state (popular
-                // dishes shimmer, food-menu grid empty state, feed
-                // skeleton, etc.) so there's no global gate that blocks
-                // the chrome while one tab's API is in flight.
-                child: CustomScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  slivers: [
-                    // Top bar â€” slides out of view on scroll-down,
-                    // snaps back on scroll-up (floating + snap).
-                    SliverAppBar(
-                      primary: false,
-                      pinned: false,
-                      floating: true,
-                      snap: true,
-                      backgroundColor: Colors.transparent,
-                      elevation: 0,
-                      scrolledUnderElevation: 0,
-                      surfaceTintColor: Colors.transparent,
-                      automaticallyImplyLeading: false,
-                      toolbarHeight: topBarHeight,
-                      flexibleSpace: _buildTopBar(),
-                    ),
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(
-                            vertical: SizeConfig.size10),
-                        child: _buildTabsCard(),
-                      ),
-                    ),
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                          left: 20,
-                          top: SizeConfig.size4,
-                          bottom: kBottomNavigationBarHeight + 30,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: _buildTabContent(),
-                        ),
-                      ),
-                    ),
-                  ],
+            HomeTabScaffold(
+              controller: _tabController,
+              tabLabels: _tabs,
+              topBar: _buildTopBar(),
+              topBarHeight: topBarHeight,
+              tabViews: [
+                _tabScroll(_buildOrderTab()),
+                _tabScroll(_buildOverviewSlivers()),
+                _tabScroll(_buildProductsTab()),
+                _tabScroll(_buildPostTab()),
+                BusinessStatisticsScreen(
+                  businessId: businessId.isNotEmpty ? businessId : userId,
                 ),
-              ),
+              ],
             ),
-            // Sticky overlay â€” only shown after the in-flow tabs have
-            // scrolled past. Padded for the status bar so it doesn't
-            // sit under the notch.
-            if (_showStickyTabs)
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: ClipRect(
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                    child: Container(
-                      padding: EdgeInsets.only(
-                          top: topInset + 10, bottom: 10),
-                      decoration: const BoxDecoration(
-                        color: Color(0x66FFFFFF),
-                        border: Border(
-                          bottom:
-                              BorderSide(color: Colors.white, width: 1),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Color(0x42001120),
-                            blurRadius: 16,
-                            offset: Offset(0, 4),
-                            blurStyle: BlurStyle.outer,
-                          ),
-                        ],
-                      ),
-                      child: _buildTabsCard(),
-                    ),
-                  ),
-                ),
-              ),
           ],
         ),
       ),
@@ -302,27 +245,26 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     }
   }
 
-  // TAB CONTENT â€” switches body by _selectedTab
-  //   0 Order, 1 Overview, 2 Products, 3 Post, 4 Statistics
-  List<Widget> _buildTabContent() {
-    switch (_selectedTab) {
-      case 0:
-        return _buildOrderTab();
-      case 1:
-        return _buildOverviewSlivers();
-      case 2:
-        return _buildProductsTab();
-      case 3:
-        return _buildPostTab();
-      case 4:
-        return [
-          BusinessStatisticsScreen(
-            businessId: businessId.isNotEmpty ? businessId : userId,
-          ),
-        ];
-      default:
-        return [_buildComingSoon(label: AppStrings.comingSoon.tr)];
-    }
+  /// Wraps a tab's content list in a refreshable, scrollable body for the
+  /// [TabBarView]. The per-tab builders (`_buildOrderTab`, `_buildOverviewSlivers`,
+  /// …) already return bounded box widgets, so a SingleChildScrollView + Column
+  /// reproduces the previous SliverToBoxAdapter + Column layout exactly.
+  Widget _tabScroll(List<Widget> children) {
+    return RefreshIndicator(
+      onRefresh: _onRefreshCurrentTab,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.only(
+          left: 20,
+          top: SizeConfig.size4,
+          bottom: kBottomNavigationBarHeight + 30,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: children,
+        ),
+      ),
+    );
   }
 
   // ORDER TAB â€” top slot is reactive to the contribution status:
@@ -846,6 +788,20 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
         }),
       ),
       SizedBox(height: SizeConfig.size12),
+      Padding(
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+        child: Obx(() {
+          final details =
+              _businessController.businessProfileDetails.value?.data;
+          return WebsiteOverviewCard(
+            websiteUrl: details?.websiteUrl,
+            onSave: (url) => _businessController.updateBusinessProfileDetails(
+              {ApiKeys.websiteUrl: url},
+            ),
+          );
+        }),
+      ),
+      SizedBox(height: SizeConfig.size12),
       _buildQrCodeSection(),
       SizedBox(height: SizeConfig.size12),
       Padding(
@@ -1296,32 +1252,6 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
     }
   }
 
-  Widget _buildComingSoon({required String label}) {
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: SizeConfig.size12,
-        vertical: SizeConfig.size40,
-      ),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.hourglass_empty,
-                size: 48, color: AppColors.secondaryTextColor),
-            SizedBox(height: SizeConfig.size10),
-            CustomText(
-              label,
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: AppColors.mainTextColor,
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // BACKGROUND
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -1567,88 +1497,6 @@ class _FoodMainScreenState extends State<FoodMainScreen> {
   // underline that glides under the selected tab. Mirrors the grocery
   // home v2 design.
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  Widget _buildTabsCard() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      child: Container(
-        height: 48,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE6E8EE), width: 1),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x1A001120),
-              blurRadius: 16,
-              offset: Offset(0, 6),
-            ),
-          ],
-        ),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final tabWidth = constraints.maxWidth / _tabs.length;
-            const indicatorWidth = 28.0;
-            final indicatorLeft =
-                tabWidth * _selectedTab + (tabWidth - indicatorWidth) / 2;
-            return Stack(
-              children: [
-                Row(
-                  children: List.generate(_tabs.length, (i) {
-                    final selected = _selectedTab == i;
-                    return Expanded(
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () => _onTabTapped(i),
-                        child: Center(
-                          child: AnimatedDefaultTextStyle(
-                            duration: const Duration(milliseconds: 220),
-                            curve: Curves.easeOutCubic,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: selected
-                                  ? FontWeight.w700
-                                  : FontWeight.w500,
-                              letterSpacing: 0.2,
-                              color: selected
-                                  ? AppColors.primaryColor
-                                  : AppColors.mainTextColor,
-                            ),
-                            child: Text(_tabs[i]),
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                ),
-                AnimatedPositioned(
-                  duration: const Duration(milliseconds: 280),
-                  curve: Curves.easeOutCubic,
-                  left: indicatorLeft,
-                  bottom: 6,
-                  child: Container(
-                    width: indicatorWidth,
-                    height: 3,
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryColor,
-                      borderRadius: BorderRadius.circular(3),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primaryColor
-                              .withValues(alpha: 0.4),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
-      ),
-    );
-  }
 
   // JOINED + IDENTITY + COVER STACK â€” three stacked cards mirroring
   // the grocery v2 overview header:

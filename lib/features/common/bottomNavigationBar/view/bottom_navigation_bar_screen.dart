@@ -572,7 +572,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       // (and therefore other_repo.dart APIs). Lives in a separate
       // directory so the UI can diverge in the future without touching
       // the shared `OthersMain` tree.
-
       return const AutomotiveServiceMain();
     } else if (_isSpecificProductAutomotive()) {
       return const ProductScreen();

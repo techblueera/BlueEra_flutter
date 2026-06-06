@@ -18,7 +18,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/self_employed/vi
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/widget/working_hours_editor.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
-import 'package:BlueEra/widgets/common_drop_down.dart';
+import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -1558,17 +1558,19 @@ class _SelfProfessionServiceScreenState
                         fontWeight: FontWeight.w400,
                         color: AppColors.mainTextColor),
                     SizedBox(height: SizeConfig.size8),
-                    CommonDropdown<String>(
-                      items: controller.experienceYears,
-                      selectedValue: controller.selectedExperienceYear.value,
-                      hintText: "E.g 1 Year..",
-                      onChanged: (val) {
-                        controller.selectedExperienceYear.value = val;
-                        log('val -- $val');
-                        log('experience -- ${controller.selectedExperienceYear.value}');
-                      },
-                      displayValue: (val) => val,
-                    ),
+                    Obx(() => CommonDropdownDialog<String>(
+                          title: AppStrings.years,
+                          items: controller.experienceYears,
+                          selectedValue:
+                              controller.selectedExperienceYear.value,
+                          hintText: "E.g 1 Year..",
+                          onChanged: (val) {
+                            controller.selectedExperienceYear.value = val;
+                            log('val -- $val');
+                            log('experience -- ${controller.selectedExperienceYear.value}');
+                          },
+                          displayValue: (val) => val,
+                        )),
                   ],
                 ),
               ),
@@ -1582,14 +1584,16 @@ class _SelfProfessionServiceScreenState
                         fontWeight: FontWeight.w400,
                         color: AppColors.mainTextColor),
                     SizedBox(height: SizeConfig.size8),
-                    CommonDropdown<String>(
-                      items: controller.experienceMonths,
-                      selectedValue: controller.selectedExperienceMonth.value,
-                      hintText: "E.g 3 Months..",
-                      onChanged: (val) =>
-                      controller.selectedExperienceMonth.value = val,
-                      displayValue: (val) => val,
-                    ),
+                    Obx(() => CommonDropdownDialog<String>(
+                          title: 'Months',
+                          items: controller.experienceMonths,
+                          selectedValue:
+                              controller.selectedExperienceMonth.value,
+                          hintText: "E.g 3 Months..",
+                          onChanged: (val) =>
+                              controller.selectedExperienceMonth.value = val,
+                          displayValue: (val) => val,
+                        )),
                   ],
                 ),
               ),
@@ -1616,11 +1620,25 @@ class _SelfProfessionServiceScreenState
                 return;
               }
 
-              Map<String, dynamic> params = {
-                ApiKeys.experience: {
-                  ApiKeys.years: controller.selectedExperienceYear.value,
-                  ApiKeys.months: controller.selectedExperienceMonth.value,
-                },
+              // The dropdowns hold labels like "4 Years" / "6 Months" (and
+              // "10+ Years"), so pull out the leading number.
+              int leadingInt(String? s) =>
+                  int.tryParse(RegExp(r'\d+').firstMatch(s ?? '')?.group(0) ?? '') ??
+                  0;
+              final years = leadingInt(controller.selectedExperienceYear.value);
+              final months = leadingInt(controller.selectedExperienceMonth.value);
+
+              // Anchor the experience to a FIXED calendar start date
+              // (today minus the entered duration) instead of storing the
+              // static years/months. The profile then recomputes the elapsed
+              // time from this date on every view (calculateExperience), so
+              // 4y6m entered today reads as 4y7m a month later.
+              final now = DateTime.now();
+              final startDate =
+                  DateTime(now.year - years, now.month - months, now.day);
+
+              final params = <String, dynamic>{
+                ApiKeys.experienceStartDate: startDate.toIso8601String(),
               };
 
               controller.updateEarnServiceData(params: params);

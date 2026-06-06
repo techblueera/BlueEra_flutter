@@ -8,6 +8,7 @@ import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/getx_utils.dart';
+import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../../../widgets/horizontal_tab_selector.dart';
@@ -25,50 +26,31 @@ import '../reminder_chat/reminder_chat_list.dart';
 import '../widget/component_widgets.dart';
 
 /// Where a business-list row belongs:
-///   [chats] — the main chat list (buyer side, friends, groups)
-///   [me]    — the seller's "my customers" section (stranger orders)
-///   [skip]  — excluded entirely
+///   [chats] — the main Chat tab (buyers, normal chats, groups)
+///   [me]    — the seller/receiver's "Me" section (orders I own)
+///   [skip]  — excluded entirely (not produced by the current rule; kept
+///             so existing call-sites/switches stay valid)
 enum ChatBucket { chats, me, skip }
 
 /// Single source of truth for routing one chat row — the Dart twin of the
-/// backend `bucketChat` spec. Call once per row.
+/// backend `bucketChat` spec. Uses ONLY `is_order` + `business_owner_user_id`
+/// (the legacy `i_own_business` flag is intentionally ignored). Works the same
+/// for REST list rows and socket `chatListItem`s since both carry these fields.
 ///
-/// Priority (mirrors the backend `bucketChat`):
-///   1. Group rows always go to [ChatBucket.chats].
-///   2. Non-business conversation types → [ChatBucket.chats] by default,
-///      or [ChatBucket.skip] when [includeNonBusinessInChats] is false.
-///   3. Seller side (`i_own_business`) — customers go to [ChatBucket.me].
-///   4. Buyer side (I ordered from someone else's business) → chats.
+///   is_order && business_owner_user_id == me  → [ChatBucket.me]    (receiver/seller)
+///   is_order && business_owner_user_id != me  → [ChatBucket.chats]  (orderer/buyer)
+///   !is_order                                 → [ChatBucket.chats]  (normal chat)
 ///
-/// `i_own_business` is read straight from the row; when the server hasn't
-/// sent it (legacy payload) we fall back to *my own* account type — if I'm
-/// logged in as a business (`accountTypeGlobal == BUSINESS`) then in a
-/// business conversation I'm the seller side. (We use `accountTypeGlobal`,
-/// the current user's account type, not `businessTypeGlobal`, which holds
-/// the business *category* like Food / Grocery / OTHER.)
-///
-/// The conversation `type` is null-tolerant: legacy payloads that omit it
-/// fall straight through to the seller/buyer logic (this widget is fed by
-/// the business endpoint, so an absent type means "business").
-ChatBucket bucketChat(ChatList chat, {bool includeNonBusinessInChats = true}) {
-  // Group rows always live in the chat list.
-  if (chat.isGroup == true || chat.type == AppConstants.group_Chat_Type) {
-    return ChatBucket.chats;
-  }
+/// `me` is the logged-in user's id (`userId`).
+ChatBucket bucketChat(ChatList chat) {
+  final isOrder = chat.isOrder == true;
+  final iAmOwner =
+      (chat.businessOwnerUserId ?? '').toString() == userId.toString();
 
-  // Known non-business conversation type → chats (or skip when opted out).
-  if (chat.type != null && chat.type != AppConstants.business_Chat_Type) {
-    return includeNonBusinessInChats ? ChatBucket.chats : ChatBucket.skip;
-  }
+  // Order / discover chat that I own → my "Me" section (I'm the receiver).
+  if (isOrder && iAmOwner) return ChatBucket.me;
 
-  final iOwnBusiness = chat.iOwnBusiness ?? false;
-
-  // Business convo — seller side → customers live in the "me" section.
-  if (iOwnBusiness) {
-    return ChatBucket.me;
-  }
-
-  // Business convo — buyer side (I ordered from someone else's business).
+  // Buyer side of an order, or any non-order chat → the Chat tab.
   return ChatBucket.chats;
 }
 

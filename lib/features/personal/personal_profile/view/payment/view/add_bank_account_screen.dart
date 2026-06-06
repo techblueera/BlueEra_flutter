@@ -15,6 +15,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 import '../controller/add_bank_account_controller.dart';
+import '../widget/upi_qr_widget.dart';
 
 class AddBankAccountScreen extends StatelessWidget {
   AddBankAccountScreen({super.key});
@@ -25,7 +26,6 @@ class AddBankAccountScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.whiteF1,
       appBar: CommonBackAppBar(
         title: controller.isupdate.value
             ? AppStrings.updateBankAccount
@@ -63,8 +63,12 @@ class AddBankAccountScreen extends StatelessWidget {
                         CommonDropdown<String>(
                           items: ['Bank Account', "UPI"],
                           selectedValue: controller.selectedBankAccountType
-                              .value,
+                                      .value ==
+                                  'Select Account'
+                              ? null
+                              : controller.selectedBankAccountType.value,
                           hintText: AppStrings.selectAccount.tr,
+                          validator: controller.validateAccountType,
                           onChanged: (val) {
                             controller.selectedBankAccountType.value =
                                 val ?? '';
@@ -182,6 +186,8 @@ class AddBankAccountScreen extends StatelessWidget {
                                 hintText: AppStrings.upiIdHint.tr,
                                 keyBoardType: TextInputType.text,
                                 validator: controller.upiValidate,
+                                onChange: (val) =>
+                                    controller.upiInput.value = val,
                                 contentPadding: EdgeInsets.symmetric(
                                   horizontal: SizeConfig.size16,
                                   vertical: SizeConfig.size12,
@@ -189,6 +195,22 @@ class AddBankAccountScreen extends StatelessWidget {
                                 borderColor: AppColors.greyE5,
                                 borderWidth: 1,
                               ),
+
+                              /// Live QR generated from the entered UPI ID.
+                              Obx(() {
+                                if (!controller.isUpiInputValid) {
+                                  return const SizedBox.shrink();
+                                }
+                                return Padding(
+                                  padding: EdgeInsets.only(
+                                      top: SizeConfig.paddingM),
+                                  child: UpiQrPreview(
+                                    upiId: controller.upiInput.value.trim(),
+                                    bankName:
+                                        controller.bankNameController.text.trim(),
+                                  ),
+                                );
+                              }),
                             ],
                           ),
 
@@ -202,16 +224,19 @@ class AddBankAccountScreen extends StatelessWidget {
                     Obx(() =>
                         CustomBtn(
                           onTap: (){
-                            if(controller.selectedBankAccountType.value == "Bank Account"){
+                            final type = controller.selectedBankAccountType.value;
+                            if(type == "Bank Account"){
                               if(controller.isupdate.value){
                                 controller.updateAccount();
                               }else{
                                 controller.addAccount();
                               }
-                            }else{
+                            }else if(type == "UPI"){
                               controller.AddUpiApi();
+                            }else{
+                              // No type chosen yet — surface the dropdown error.
+                              controller.formKey.currentState?.validate();
                             }
-
                           },
                           title: controller.isupdate.value ? AppStrings.update.tr : AppStrings.add.tr,
                           isLoading: controller.isLoading.value,

@@ -34,6 +34,8 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Prefetch the Google image-search keys so the first search is instant.
+      controller.ensureImageSearchConfigured();
       if (_isBusiness) {
         if (controller.productsNestedCategoryList.isEmpty) {
           controller.fetchProductsNestedCategory();

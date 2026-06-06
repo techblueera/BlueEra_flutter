@@ -1,7 +1,6 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
-import 'package:BlueEra/features/me/me_tab_registry.dart';
 import 'package:BlueEra/features/me/school/view/v2/school_home_screen_v2.dart';
 import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
@@ -19,17 +18,13 @@ class SchoolMain extends StatefulWidget {
   State<SchoolMain> createState() => _SchoolMainState();
 }
 
-class _SchoolMainState extends State<SchoolMain>
-    with SingleTickerProviderStateMixin, RouteAware {
-  late TabController _tabController;
+class _SchoolMainState extends State<SchoolMain> with RouteAware {
   final schoolAboutUsController = Get.put(SchoolAboutUsController());
   final controller = Get.put(SchoolController());
 
   @override
   void initState() {
     apiCalling();
-    _tabController = TabController(length: 2, vsync: this);
-    MeTabRegistry.register(_tabController);
     super.initState();
   }
 
@@ -59,8 +54,6 @@ class _SchoolMainState extends State<SchoolMain>
 
   @override
   void dispose() {
-    MeTabRegistry.unregister(_tabController);
-    _tabController.dispose();
     super.dispose();
   }
 

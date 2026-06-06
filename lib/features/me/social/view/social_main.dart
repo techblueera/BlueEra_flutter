@@ -11,7 +11,6 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/choose_earn_service_screen.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
@@ -34,7 +33,6 @@ import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/webview_common.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
@@ -56,45 +54,20 @@ class _SocialMainScreenState extends State<SocialMainScreen>
       getOrPut(() => ViewPersonalDetailsController(), permanent: true);
 
   TabController? _tabController;
-  bool _lastHasWebsite = false;
 
   @override
   void initState() {
     super.initState();
-    _lastHasWebsite = _hasWebsite;
-    // Tabs: Post · Profile · Rental · [Website?] · Statistics
-    // Rental sits after Profile so the identity-then-content
-    // rhythm matches the other dashboards (self-employee /
-    // professionals / rider / cab) that surface RentalTabBody.
-    // Tabs: Post · Profile · [Website?] · Store · Statistics
+    // Tabs: Post · Profile · Store · Statistics.
+    // The website is shown (and edited) inside the Profile tab's info
+    // section, so there is no separate Website tab.
     _tabController = TabController(
-      length: _lastHasWebsite ? 5 : 4,
+      length: 4,
       vsync: this,
     );
     _viewCtrl.UserFollowersAndPostsCount(userId);
     if (!Get.isRegistered<FeedController>()) {
       Get.put(FeedController());
-    }
-  }
-
-  bool get _hasWebsite =>
-      (_ctrl.profile.value?.data?.contact?.websiteUrl ?? '').isNotEmpty;
-
-  String get _websiteUrl =>
-      _ctrl.profile.value?.data?.contact?.websiteUrl ?? '';
-
-  void _rebuildTabsIfNeeded() {
-    final current = _hasWebsite;
-    if (current != _lastHasWebsite) {
-      _lastHasWebsite = current;
-      final oldIndex = _tabController?.index ?? 0;
-      _tabController?.dispose();
-      final newLength = current ? 5 : 4;
-      _tabController = TabController(
-        length: newLength,
-        vsync: this,
-        initialIndex: oldIndex.clamp(0, newLength - 1),
-      );
     }
   }
 
@@ -116,7 +89,6 @@ class _SocialMainScreenState extends State<SocialMainScreen>
         bottom: false,
         child: Obx(() {
         _ctrl.profile.value;
-        _rebuildTabsIfNeeded();
         final tabCtrl = _tabController;
         if (tabCtrl == null) return const SizedBox.shrink();
 
@@ -155,8 +127,6 @@ class _SocialMainScreenState extends State<SocialMainScreen>
                   tabs: [
                     const Tab(text: 'Post'),
                     const Tab(text: 'Profile'),
-                    if (_lastHasWebsite)
-                      Tab(text: AppStrings.website.tr),
                     const Tab(text: 'Store'),
                     Tab(text: AppStrings.statistics.tr),
                   ],
@@ -173,12 +143,6 @@ class _SocialMainScreenState extends State<SocialMainScreen>
                 id: userId,
               ),
               SocialHomeScreen(),
-              if (_lastHasWebsite)
-                CommonWebView(
-                  urlLink: _websiteUrl,
-                  urlTitle: '',
-                  hideAppBar: true,
-                ),
               const SingleChildScrollView(
                 physics: AlwaysScrollableScrollPhysics(),
                 padding: EdgeInsets.only(top: 12, bottom: 24),

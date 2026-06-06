@@ -10,6 +10,7 @@ import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -23,7 +24,6 @@ import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
 import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
 import 'package:BlueEra/features/common/statistics/view/business_statistics_screen.dart';
-import 'package:BlueEra/features/me/me_tab_registry.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/me/product/model/product_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/product/view/admin/admin_all_top_selling_products_screen.dart';
@@ -52,7 +52,6 @@ class _ProductScreenState extends State<ProductScreen>
   int _selectedTab = 1; // matches grocery's default (Overview)
   bool _isLoading = true;
   bool _isGoLive = false;
-  bool _showStickyTabs = false;
 
   late final List<String> _tabs;
   late final List<Widget> _tabViews;
@@ -98,7 +97,6 @@ class _ProductScreenState extends State<ProductScreen>
       initialIndex: _selectedTab,
       vsync: this,
     )..addListener(_onTabChanged);
-    MeTabRegistry.register(_tabController!);
     setState(() => _isLoading = false);
   }
 
@@ -160,7 +158,6 @@ class _ProductScreenState extends State<ProductScreen>
   @override
   void dispose() {
     if (_tabController != null) {
-      MeTabRegistry.unregister(_tabController!);
       _tabController!.removeListener(_onTabChanged);
     }
     _tabController?.dispose();
@@ -187,95 +184,19 @@ class _ProductScreenState extends State<ProductScreen>
         child: Stack(
           children: [
             _buildPatternBackground(),
-            NotificationListener<ScrollNotification>(
-              onNotification: (n) {
-                if (n.metrics.axis != Axis.vertical) return false;
-                final shouldShow = n.metrics.pixels > topBarHeight;
-                if (shouldShow != _showStickyTabs) {
-                  setState(() => _showStickyTabs = shouldShow);
-                }
-                return false;
-              },
-              child: RefreshIndicator(
-                onRefresh: _onRefreshCurrentTab,
-                child: CustomScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  slivers: [
-                    // Top bar â€” slides out of view on scroll-down,
-                    // snaps back on scroll-up (floating + snap).
-                    SliverAppBar(
-                      primary: false,
-                      pinned: false,
-                      floating: true,
-                      snap: true,
-                      backgroundColor: Colors.transparent,
-                      elevation: 0,
-                      scrolledUnderElevation: 0,
-                      surfaceTintColor: Colors.transparent,
-                      automaticallyImplyLeading: false,
-                      toolbarHeight: topBarHeight,
-                      flexibleSpace: _buildTopBar(),
-                    ),
-                    // In-flow tabs (no padding around them; let it sit
-                    // tight under the top bar). When the user scrolls
-                    // past, a separate overlay sticks them to the top.
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        child: _buildTabsCard(),
-                      ),
-                    ),
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                          left: 20,
-                          top: SizeConfig.size10,
-                          bottom: kBottomNavigationBarHeight + 30,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: _buildTabContent(),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            HomeTabScaffold(
+              controller: _tabController!,
+              tabLabels: _tabs,
+              topBar: _buildTopBar(),
+              topBarHeight: topBarHeight,
+              tabViews: [
+                _tabScroll(_buildOrderTab()),
+                _tabScroll(const [ProductHomeScreen()]),
+                _tabScroll([_ProductsTabBody(onAddProduct: _onAddProduct)]),
+                _tabScroll([_PostTabBody()]),
+                BusinessStatisticsScreen(businessId: userId),
+              ],
             ),
-            // Sticky overlay â€” only shown after the in-flow tabs have
-            // scrolled past. Padded for the status bar so it doesn't
-            // sit under the notch.
-            if (_showStickyTabs)
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: ClipRect(
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                    child: Container(
-                      padding: EdgeInsets.only(
-                          top: topInset + 10, bottom: 10),
-                      decoration: const BoxDecoration(
-                        color: Color(0x66FFFFFF),
-                        border: Border(
-                          bottom:
-                              BorderSide(color: Colors.white, width: 1),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Color(0x42001120),
-                            blurRadius: 16,
-                            offset: Offset(0, 4),
-                            blurStyle: BlurStyle.outer,
-                          ),
-                        ],
-                      ),
-                      child: _buildTabsCard(),
-                    ),
-                  ),
-                ),
-              ),
           ],
         ),
       ),
@@ -288,27 +209,26 @@ class _ProductScreenState extends State<ProductScreen>
   // _buildTabContent pattern so the outer CustomScrollView controls
   // the scroll for every tab.
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  List<Widget> _buildTabContent() {
-    switch (_selectedTab) {
-      case 0:
-        return _buildOrderTab();
-
-      case 1:
-        return const [ProductHomeScreen()];
-      case 2:
-        return [_ProductsTabBody(onAddProduct: _onAddProduct)];
-      case 3:
-        return [_PostTabBody()];
-      case 4:
-        return [
-          SizedBox(
-            height: MediaQuery.of(context).size.height * 0.7,
-            child: BusinessStatisticsScreen(businessId: userId),
-          ),
-        ];
-      default:
-        return const [SizedBox.shrink()];
-    }
+  /// Wraps a tab's content list in a refreshable, scrollable body for the
+  /// [TabBarView]. The per-tab bodies are content-only (designed for a parent
+  /// scroll), so SingleChildScrollView + Column reproduces the previous
+  /// CustomScrollView layout. Statistics is passed directly (owns its scroll).
+  Widget _tabScroll(List<Widget> children) {
+    return RefreshIndicator(
+      onRefresh: _onRefreshCurrentTab,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.only(
+          left: 20,
+          top: SizeConfig.size10,
+          bottom: kBottomNavigationBarHeight + 30,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: children,
+        ),
+      ),
+    );
   }
 
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -1102,99 +1022,6 @@ class _ProductScreenState extends State<ProductScreen>
   // TABS â€” solid white card with high-contrast labels and an animated
   // underline that glides under the selected tab. Mirrors the grocery
   // v2 home design so styling stays consistent across me-section.
-  Widget _buildTabsCard() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      child: Container(
-        height: 48,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE6E8EE), width: 1),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x1A001120),
-              blurRadius: 16,
-              offset: Offset(0, 6),
-            ),
-          ],
-        ),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final tabWidth = constraints.maxWidth / _tabs.length;
-            const indicatorWidth = 28.0;
-            final indicatorLeft =
-                tabWidth * _selectedTab + (tabWidth - indicatorWidth) / 2;
-            return Stack(
-              children: [
-                Row(
-                  children: List.generate(_tabs.length, (i) {
-                    final selected = _selectedTab == i;
-                    return Expanded(
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () => _onTabTapped(i),
-                        child: Center(
-                          child: AnimatedDefaultTextStyle(
-                            duration: const Duration(milliseconds: 220),
-                            curve: Curves.easeOutCubic,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: selected
-                                  ? FontWeight.w700
-                                  : FontWeight.w500,
-                              letterSpacing: 0.2,
-                              color: selected
-                                  ? AppColors.primaryColor
-                                  : AppColors.mainTextColor,
-                            ),
-                            child: Text(_tabs[i]),
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                ),
-                AnimatedPositioned(
-                  duration: const Duration(milliseconds: 280),
-                  curve: Curves.easeOutCubic,
-                  left: indicatorLeft,
-                  bottom: 6,
-                  child: Container(
-                    width: indicatorWidth,
-                    height: 3,
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryColor,
-                      borderRadius: BorderRadius.circular(3),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primaryColor
-                              .withValues(alpha: 0.4),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  void _onTabTapped(int i) {
-    final c = _tabController;
-    if (c == null) return;
-    if (i < 0 || i >= c.length) return;
-    if (i == c.index) return;
-    // _selectedTab is updated by _onTabChanged when animateTo
-    // notifies â€” no preemptive setState here, otherwise the listener
-    // sees `_selectedTab == c.index` and skips the fetch on tap.
-    c.animateTo(i);
-  }
 }
 
 // POST TAB â€” embeds FeedScreen filtered to the current user's posts.

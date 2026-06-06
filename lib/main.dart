@@ -758,11 +758,26 @@ Future<void> main() async {
 // LAUNCH APP -- first frame renders immediately
 // ═══════════════════════════════════════════════════════════════════════════
 
+// Catches sync errors from the Flutter framework.
+// Network-image load failures (e.g. S3 403/404 on deleted/expired business
+// logos) are an expected runtime condition, not a bug. Raw NetworkImage /
+// DecorationImage / CircleAvatar have no errorBuilder, so each failure dumps a
+// full stack trace on every rebuild and floods the console. Drop those here;
+// forward every other error to the previous handler (Crashlytics in release,
+// the console in debug).
+  final FlutterExceptionHandler? defaultOnError = FlutterError.onError;
+  FlutterError.onError = (FlutterErrorDetails details) {
+    if (_isNetworkImageError(details)) return;
+    if (kReleaseMode) {
+      FirebaseCrashlytics.instance.recordFlutterFatalError(details);
+    } else {
+      defaultOnError?.call(details);
+    }
+  };
   if (kReleaseMode) {
-// Catches sync errors from the Flutter framework
-    FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
 // Catches async errors that aren't handled by Flutter itself
     PlatformDispatcher.instance.onError = (error, stack) {
+      if (error is NetworkImageLoadException) return true;
       FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
       return true;
     };
@@ -778,6 +793,16 @@ Future<void> main() async {
 // already cover all uncaught errors, so runZonedGuarded is unnecessary.
   runApp(MyApp(initialLocale: locale));
   _initDeferred(localizationService);
+}
+
+/// True for expected network-image load failures (broken/expired/forbidden URLs
+/// such as S3 403s on missing business logos). These are reported by the
+/// painting layer's "image resource service" and are not actionable bugs, so we
+/// suppress their console/Crashlytics noise instead of logging a stack trace on
+/// every rebuild.
+bool _isNetworkImageError(FlutterErrorDetails details) {
+  return details.exception is NetworkImageLoadException ||
+      details.library == 'image resource service';
 }
 
 // ═══════════════════════════════════════════════════════════════════════════

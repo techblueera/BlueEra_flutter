@@ -243,7 +243,9 @@ class AuthController extends GetxController {
               Get.offNamedUntil(
                 RouteHelper.getBottomNavigationBarScreenRoute(),
                     (route) => false,
-                arguments: {ApiKeys.initialIndex: 0},
+                // Land on the Discover tab (index 1) after login, same as the
+                // individual branch below.
+                arguments: {ApiKeys.initialIndex: 1},
               );
             } else if (data.data?.accountType?.toUpperCase() ==
                 AppConstants.individual) {

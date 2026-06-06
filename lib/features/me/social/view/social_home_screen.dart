@@ -14,6 +14,8 @@ import 'package:BlueEra/features/me/social/view/social_contact_us/social_contact
 import 'package:BlueEra/features/me/social/view/social_feed/social_feed_screen.dart';
 import 'package:BlueEra/features/me/social/view/social_vision_mission_screen.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_property_card.dart';
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -157,6 +159,15 @@ class _SocialHomeScreenState extends State<SocialHomeScreen>
               _reveal(8, _buildTestimonialSection()),
               const SizedBox(height: 14),
               _reveal(9, _buildContactCard(data)),
+              const SizedBox(height: 14),
+              Obx(() => WebsiteOverviewCard(
+                    websiteUrl: viewProfileController.website.value,
+                    onSave: (url) =>
+                        personalCreateProfileController.updateUserProfileDetails(
+                      params: {ApiKeys.website: url},
+                      isFromProfileOnly: true,
+                    ),
+                  )),
               const SizedBox(height: 14),
               _reveal(10, _buildMapCard(data)),
               const SizedBox(height: 14),

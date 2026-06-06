@@ -40,6 +40,7 @@ import 'package:BlueEra/features/personal/personal_profile/widgets/profile_locat
 import 'package:BlueEra/features/personal/personal_profile/widgets/profile_top_bar.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:croppy/croppy.dart';
@@ -71,15 +72,14 @@ class CabAndTransportPartner extends StatefulWidget {
 }
 
 class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
-    with RouteAware {
+    with SingleTickerProviderStateMixin, RouteAware {
   final controller = getOrPut(() => EarnServiceController());
   final deliveryPartnerController = getOrPut(() => DeliveryPartnerController());
   final _viewCtrl =
       getOrPut(() => ViewPersonalDetailsController(), permanent: true);
   final _personalCtrl = getOrPut(() => PersonalCreateProfileController());
 
-  int _selectedTab = 0;
-  bool _showStickyTabs = false;
+  late final TabController _tabController;
 
   // Order/Document share a single tab â€” its label flips between
   // "Document" (KYC pending) and "My Order" (approved), matching
@@ -101,6 +101,7 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 5, vsync: this);
     _checkRiderStatus();
     _viewCtrl.UserFollowersAndPostsCount(userId);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -126,6 +127,7 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
 
   @override
   void dispose() {
+    _tabController.dispose();
     deleteIfRegistered<EarnServiceController>();
     deleteIfRegistered<DeliveryPartnerController>();
     RouteHelper.routeObserver.unsubscribe(this);
@@ -153,87 +155,54 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
         child: Stack(
           children: [
             _buildPatternBackground(),
-            NotificationListener<ScrollNotification>(
-              onNotification: (n) {
-                if (n.depth != 0) return false;
-                if (n.metrics.axis != Axis.vertical) return false;
-                final shouldShow = n.metrics.pixels > topBarHeight;
-                if (shouldShow != _showStickyTabs) {
-                  setState(() => _showStickyTabs = shouldShow);
-                }
-                return false;
-              },
-              child: CustomScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                slivers: [
-                  SliverAppBar(
-                    primary: false,
-                    pinned: false,
-                    floating: true,
-                    snap: true,
-                    backgroundColor: Colors.transparent,
-                    elevation: 0,
-                    scrolledUnderElevation: 0,
-                    surfaceTintColor: Colors.transparent,
-                    automaticallyImplyLeading: false,
-                    toolbarHeight: topBarHeight,
-                      flexibleSpace: ProfileTopBar(
-                        onGoLiveTap: handleGoLiveTap,
-                        showGoLivePill: Platform.isAndroid,
-                      )
-                  ),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      child: _buildTabsCard(),
-                    ),
-                  ),
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: EdgeInsets.only(
-                        top: SizeConfig.size10,
-                        bottom: kBottomNavigationBarHeight + 30,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: _buildTabContent(),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (_showStickyTabs)
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: ClipRect(
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                    child: Container(
-                      padding: EdgeInsets.only(top: topInset + 10, bottom: 10),
-                      decoration: const BoxDecoration(
-                        color: Color(0x66FFFFFF),
-                        border: Border(
-                          bottom: BorderSide(color: Colors.white, width: 1),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Color(0x42001120),
-                            blurRadius: 16,
-                            offset: Offset(0, 4),
-                            blurStyle: BlurStyle.outer,
-                          ),
-                        ],
-                      ),
-                      child: _buildTabsCard(),
-                    ),
-                  ),
+            // Tab labels are reactive (first label flips Document/My Order
+            // with the partner's verification status), so the scaffold is
+            // rebuilt inside an Obx.
+            Obx(() {
+              final approved = deliveryPartnerController
+                      .riderOnboardingStatusData.value?.verificationStatus ==
+                  "approved";
+              final tabLabels = <String>[
+                approved ? AppStrings.myOrder.tr : AppStrings.document.tr,
+                'Overview',
+                'Post',
+                'Store',
+                'Statics',
+              ];
+              return HomeTabScaffold(
+                controller: _tabController,
+                tabLabels: tabLabels,
+                topBar: ProfileTopBar(
+                  onGoLiveTap: handleGoLiveTap,
+                  showGoLivePill: Platform.isAndroid,
                 ),
-              ),
+                topBarHeight: topBarHeight,
+                tabViews: [
+                  _tabScroll(_buildOrderTab()),
+                  _tabScroll(_buildOverviewTab()),
+                  _tabScroll(_buildPostTab()),
+                  _tabScroll(const [EarnStoreCards()]),
+                  _tabScroll(_buildStaticsTab()),
+                ],
+              );
+            }),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Wraps a tab's content list in a scrollable body for the [TabBarView].
+  Widget _tabScroll(List<Widget> children) {
+    return SingleChildScrollView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: EdgeInsets.only(
+        top: SizeConfig.size10,
+        bottom: kBottomNavigationBarHeight + 30,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
       ),
     );
   }
@@ -482,125 +451,10 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
   // "Document" (KYC pending) and "My Order" (approved), mirroring
   // RiderServiceScreen â€” a single tab serves both flows.
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  Widget _buildTabsCard() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      child: Container(
-        height: 48,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE6E8EE), width: 1),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x1A001120),
-              blurRadius: 16,
-              offset: Offset(0, 6),
-            ),
-          ],
-        ),
-        child: Obx(() {
-          final approved = deliveryPartnerController
-                  .riderOnboardingStatusData.value?.verificationStatus ==
-              "approved";
-          final tabs = <String>[
-            approved ? AppStrings.myOrder.tr : AppStrings.document.tr,
-
-            AppStrings.overview.tr,
-            AppStrings.post.tr,
-            AppStrings.store.tr,
-            AppStrings.statics.tr,
-          ];
-          return LayoutBuilder(
-            builder: (context, constraints) {
-              final tabWidth = constraints.maxWidth / tabs.length;
-              const indicatorWidth = 24.0;
-              final indicatorLeft =
-                  tabWidth * _selectedTab + (tabWidth - indicatorWidth) / 2;
-              return Stack(
-                children: [
-                  Row(
-                    children: List.generate(tabs.length, (i) {
-                      final selected = _selectedTab == i;
-                      return Expanded(
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () => setState(() => _selectedTab = i),
-                          child: Center(
-                            child: AnimatedDefaultTextStyle(
-                              duration: const Duration(milliseconds: 220),
-                              curve: Curves.easeOutCubic,
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: selected
-                                    ? FontWeight.w700
-                                    : FontWeight.w500,
-                                letterSpacing: 0.2,
-                                color: selected
-                                    ? AppColors.primaryColor
-                                    : AppColors.mainTextColor,
-                              ),
-                              child: Text(
-                                tabs[i],
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    }),
-                  ),
-                  AnimatedPositioned(
-                    duration: const Duration(milliseconds: 280),
-                    curve: Curves.easeOutCubic,
-                    left: indicatorLeft,
-                    bottom: 6,
-                    child: Container(
-                      width: indicatorWidth,
-                      height: 3,
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryColor,
-                        borderRadius: BorderRadius.circular(3),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primaryColor
-                                .withValues(alpha: 0.4),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            },
-          );
-        }),
-      ),
-    );
-  }
 
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // TAB CONTENT
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  List<Widget> _buildTabContent() {
-    switch (_selectedTab) {
-      case _orderIndex:
-        return _buildOrderTab();
-      case _overviewIndex:
-        return _buildOverviewTab();
-      case _postIndex:
-        return _buildPostTab();
-      case _storeIndex:
-        return const [EarnStoreCards()];
-      case _staticsIndex:
-        return _buildStaticsTab();
-      default:
-        return const [SizedBox.shrink()];
-    }
-  }
 
   // Order / Document tab â€” single source of truth: verification
   // status. Unapproved partners see [RiderProfileStatusScreen] which

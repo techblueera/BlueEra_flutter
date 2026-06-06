@@ -184,6 +184,20 @@ class WalletController extends GetxController {
     }
   }
 
+  /// True while both BANK + UPI withdrawal methods are being fetched together
+  /// (the per-call `walletWithdrawalMethodResponse` status gets overwritten by
+  /// the second call, so the payment-settings screen uses this flag instead).
+  RxBool isMethodsLoading = false.obs;
+
+  /// Fetches BOTH bank accounts and UPI IDs so the payment-settings screen can
+  /// list every saved withdrawal method.
+  Future<void> getAllWithdrawalMethods() async {
+    isMethodsLoading.value = true;
+    await getWalletWithdrawalMethod(params: {ApiKeys.methodType: "BANK"});
+    await getWalletWithdrawalMethod(params: {ApiKeys.methodType: "UPI"});
+    isMethodsLoading.value = false;
+  }
+
   Future<void> getWalletWithdrawalMethod({required Map<String, dynamic> params}) async {
     try {
 

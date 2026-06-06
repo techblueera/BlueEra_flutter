@@ -18,6 +18,7 @@ import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart
 import 'package:BlueEra/features/business/widgets/business_description_card.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
+import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
@@ -33,6 +34,7 @@ import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventor
 import 'package:BlueEra/features/me/grocery/view/all_top_selling_grocery_products_screen.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
 import 'package:BlueEra/widgets/common_business_live_photo.dart';
+import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -56,10 +58,11 @@ class GroceryHomeScreenV2 extends StatefulWidget {
   State<GroceryHomeScreenV2> createState() => _GroceryHomeScreenV2State();
 }
 
-class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
+class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
+    with SingleTickerProviderStateMixin {
   bool _isGoLive = false;
   int _selectedTab = 1;
-  bool _showStickyTabs = false;
+  late final TabController _tabController;
 
   late final GroceryController _groceryController;
   final _businessController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
@@ -80,6 +83,11 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(
+      length: _tabs.length,
+      initialIndex: _selectedTab,
+      vsync: this,
+    )..addListener(_handleTabChange);
     _groceryController = getOrPut(() => GroceryController());
     // Hydrate the order chat list so the Order tab's incoming-orders
     // list has data ready when the user switches to it. Mirrors what
@@ -125,10 +133,20 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
     }
   }
 
-  void _onTabTapped(int i) {
-    if (i == _selectedTab) return;
-    setState(() => _selectedTab = i);
-    _fetchForTab(i);
+  /// Keep [_selectedTab] in sync with the TabController and fire the new tab's
+  /// lazy fetch when the user taps a tab or swipes between them.
+  void _handleTabChange() {
+    if (_selectedTab != _tabController.index) {
+      setState(() => _selectedTab = _tabController.index);
+      _fetchForTab(_tabController.index);
+    }
+  }
+
+  @override
+  void dispose() {
+    _tabController.removeListener(_handleTabChange);
+    _tabController.dispose();
+    super.dispose();
   }
 
   /// Pull-to-refresh dispatcher â€” each tab owns a different data set,
@@ -183,93 +201,19 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
         child: Stack(
           children: [
             _buildPatternBackground(),
-            NotificationListener<ScrollNotification>(
-              onNotification: (n) {
-                if (n.metrics.axis != Axis.vertical) return false;
-                final shouldShow = n.metrics.pixels > topBarHeight;
-                if (shouldShow != _showStickyTabs) {
-                  setState(() => _showStickyTabs = shouldShow);
-                }
-                return false;
-              },
-              child: RefreshIndicator(
-                onRefresh: _onRefreshCurrentTab,
-                child: CustomScrollView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  slivers: [
-                    // Top bar â€” slides out of view on scroll-down,
-                    // snaps back on scroll-up (floating + snap).
-                    SliverAppBar(
-                      primary: false,
-                      pinned: false,
-                      floating: true,
-                      snap: true,
-                      backgroundColor: Colors.transparent,
-                      elevation: 0,
-                      scrolledUnderElevation: 0,
-                      surfaceTintColor: Colors.transparent,
-                      automaticallyImplyLeading: false,
-                      toolbarHeight: topBarHeight,
-                      flexibleSpace: _buildTopBar(),
-                    ),
-                    // In-flow tabs (no padding around them; let it sit
-                    // tight under the top bar). When the user scrolls
-                    // past, a separate overlay sticks them to the top.
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        child: _buildTabsCard(),
-                      ),
-                    ),
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: EdgeInsets.only(
-                          left: 20,
-                          top: SizeConfig.size10,
-                          bottom: kBottomNavigationBarHeight + 30,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: _buildTabContent(),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            HomeTabScaffold(
+              controller: _tabController,
+              tabLabels: _tabs,
+              topBar: _buildTopBar(),
+              topBarHeight: topBarHeight,
+              tabViews: [
+                _tabScroll(_buildOrderTab()),
+                _tabScroll(_buildOverviewSlivers()),
+                _tabScroll(_buildProductsTab()),
+                _tabScroll(_buildPostTab()),
+                BusinessStatisticsScreen(businessId: widget.businessId),
+              ],
             ),
-            // Sticky overlay â€” only shown after the in-flow tabs have
-            // scrolled past. Padded for the status bar so it doesn't
-            // sit under the notch.
-            if (_showStickyTabs)
-              Positioned(
-                top: 0,
-                left: 0,
-                right: 0,
-                child: ClipRect(
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                    child: Container(
-                      padding: EdgeInsets.only(top: topInset + 10, bottom: 10),
-                      decoration: const BoxDecoration(
-                        color: Color(0x66FFFFFF),
-                        border: Border(
-                          bottom: BorderSide(color: Colors.white, width: 1),
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Color(0x42001120),
-                            blurRadius: 16,
-                            offset: Offset(0, 4),
-                            blurStyle: BlurStyle.outer,
-                          ),
-                        ],
-                      ),
-                      child: _buildTabsCard(),
-                    ),
-                  ),
-                ),
-              ),
           ],
         ),
       ),
@@ -289,108 +233,30 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
   // a small brand-colored glow so the selection reads at a glance even
   // on busy backgrounds.
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  Widget _buildTabsCard() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      child: Container(
-        height: 48,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE6E8EE), width: 1),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x1A001120),
-              blurRadius: 16,
-              offset: Offset(0, 6),
-            ),
-          ],
-        ),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final tabWidth = constraints.maxWidth / _tabs.length;
-            const indicatorWidth = 28.0;
-            final indicatorLeft = tabWidth * _selectedTab + (tabWidth - indicatorWidth) / 2;
-            return Stack(
-              children: [
-                // Tap rows + animated labels. Selected tab swaps to
-                // primaryColor + bold; unselected stays mainTextColor +
-                // medium so the strip reads clearly when nothing is hot.
-                Row(
-                  children: List.generate(_tabs.length, (i) {
-                    final selected = _selectedTab == i;
-                    return Expanded(
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () => _onTabTapped(i),
-                        child: Center(
-                          child: AnimatedDefaultTextStyle(
-                            duration: const Duration(milliseconds: 220),
-                            curve: Curves.easeOutCubic,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                              letterSpacing: 0.2,
-                              color: selected ? AppColors.primaryColor : AppColors.mainTextColor,
-                            ),
-                            child: Text(_tabs[i]),
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                ),
-                // Animated underline â€” slides between tabs. Soft
-                // brand-color glow gives the indicator a touch of
-                // emphasis without dominating the card.
-                AnimatedPositioned(
-                  duration: const Duration(milliseconds: 280),
-                  curve: Curves.easeOutCubic,
-                  left: indicatorLeft,
-                  bottom: 6,
-                  child: Container(
-                    width: indicatorWidth,
-                    height: 3,
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryColor,
-                      borderRadius: BorderRadius.circular(3),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primaryColor.withValues(alpha: 0.4),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
-      ),
-    );
-  }
 
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // TAB CONTENT â€” switches body by _selectedTab
   //   0 Order, 1 Overview, 2 Products, 3 Post, 4 Statics
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  List<Widget> _buildTabContent() {
-    switch (_selectedTab) {
-      case 0:
-        return _buildOrderTab();
-      case 1:
-        return _buildOverviewSlivers();
-      case 2:
-        return _buildProductsTab();
-      case 3:
-        return _buildPostTab();
-      case 4:
-        return [BusinessStatisticsScreen(businessId: widget.businessId)];
-      default:
-        return [_buildComingSoon()];
-    }
+  /// Wraps a tab's content list in a refreshable, scrollable body for the
+  /// [TabBarView]. The per-tab builders return bounded box widgets, so
+  /// SingleChildScrollView + Column reproduces the previous layout.
+  Widget _tabScroll(List<Widget> children) {
+    return RefreshIndicator(
+      onRefresh: _onRefreshCurrentTab,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.only(
+          left: 20,
+          top: SizeConfig.size10,
+          bottom: kBottomNavigationBarHeight + 30,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: children,
+        ),
+      ),
+    );
   }
 
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -916,6 +782,18 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
         }),
       ),
       SizedBox(height: SizeConfig.size12),
+      Padding(
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+        child: Obx(() {
+          final details = _businessController.businessProfileDetails.value?.data;
+          return WebsiteOverviewCard(
+            websiteUrl: details?.websiteUrl,
+            onSave: (url) => _businessController
+                .updateBusinessProfileDetails({ApiKeys.websiteUrl: url}),
+          );
+        }),
+      ),
+      SizedBox(height: SizeConfig.size12),
       _buildQrCodeSection(),
       SizedBox(height: SizeConfig.size12),
       Padding(
@@ -1108,23 +986,6 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2> {
         Get.to(() => AddChatSymbolScreen());
         break;
     }
-  }
-
-  Widget _buildComingSoon() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12, vertical: SizeConfig.size40),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.hourglass_empty, size: 48, color: AppColors.secondaryTextColor),
-            SizedBox(height: SizeConfig.size10),
-            CustomText(AppStrings.comingSoon.tr,
-                fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.mainTextColor),
-          ],
-        ),
-      ),
-    );
   }
 
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

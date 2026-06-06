@@ -22,6 +22,7 @@ import 'package:BlueEra/features/me/others/view/v2/tabs/other_services_tab_v2.da
 import 'package:BlueEra/features/me/others/view/v2/tabs/other_stats_tab_v2.dart';
 import 'package:BlueEra/features/personal/personal_profile/widgets/profile_top_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -37,12 +38,13 @@ class OtherHomeScreenV2 extends StatefulWidget {
   State<OtherHomeScreenV2> createState() => _OtherHomeScreenV2State();
 }
 
-class _OtherHomeScreenV2State extends State<OtherHomeScreenV2> {
+class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
+    with SingleTickerProviderStateMixin {
   late final BusinessProfileFullController _otherController;
   final _businessController   = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
   bool _isGoLive = false;
-  int _selectedTab = 0;
+  late final TabController _tabController;
 
   // Built as a getter so `.tr` is re-evaluated on locale change rather
   // than frozen at class-load time. `statics` is reused for the Stats
@@ -74,6 +76,7 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2> {
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: _tabs.length, vsync: this);
     _otherController = getOrPut(() => BusinessProfileFullController());
     if (_otherController.businessProfile.value == null) {
       _otherController.getBusinessProfileFull();
@@ -91,6 +94,12 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2> {
   }
 
   @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFEAF2FB),
@@ -99,30 +108,17 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2> {
         child: Stack(
           children: [
             _buildPatternBackground(),
-            Column(
-              children: [
-                _buildTopBar(),
-
-                Expanded(
-                  child: RefreshIndicator(
-                    onRefresh: _otherController.getBusinessProfileFull,
-                    child: SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: EdgeInsets.only(
-                        bottom: kBottomNavigationBarHeight + 30,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: SizeConfig.size10),
-                          _buildTabsCard(),
-                          SizedBox(height: SizeConfig.size12),
-                          _buildTabContent(),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+            HomeTabScaffold(
+              controller: _tabController,
+              tabLabels: _tabs,
+              topBar: _buildTopBar(),
+              topBarHeight: MediaQuery.of(context).padding.top + 56,
+              tabViews: [
+                _tabScroll(const OtherInquiryTabV2()),
+                _tabScroll(OtherOverviewTabV2(controller: _otherController)),
+                _tabScroll(const OtherServicesTabV2()),
+                _tabScroll(const OtherPostsTabV2()),
+                _tabScroll(const OtherStatsTabV2()),
               ],
             ),
           ],
@@ -131,21 +127,15 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2> {
     );
   }
 
-  Widget _buildTabContent() {
-    switch (_selectedTab) {
-      case 0:
-        return const OtherInquiryTabV2();
-      case 1:
-        return OtherOverviewTabV2(controller: _otherController);
-      case 2:
-        return const OtherServicesTabV2();
-      case 3:
-        return const OtherPostsTabV2();
-      case 4:
-        return const OtherStatsTabV2();
-      default:
-        return const SizedBox.shrink();
-    }
+  Widget _tabScroll(Widget child) {
+    return RefreshIndicator(
+      onRefresh: _otherController.getBusinessProfileFull,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.only(bottom: kBottomNavigationBarHeight + 30),
+        child: child,
+      ),
+    );
   }
 
   Widget _buildPatternBackground() {
@@ -347,89 +337,6 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2> {
   }
 
 
-
-  Widget _buildTabsCard() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      child: Container(
-        height: 48,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE6E8EE), width: 1),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x1A001120),
-              blurRadius: 16,
-              offset: Offset(0, 6),
-            ),
-          ],
-        ),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final tabWidth = constraints.maxWidth / _tabs.length;
-            const indicatorWidth = 28.0;
-            final indicatorLeft =
-                tabWidth * _selectedTab + (tabWidth - indicatorWidth) / 2;
-            return Stack(
-              children: [
-                Row(
-                  children: List.generate(_tabs.length, (i) {
-                    final selected = _selectedTab == i;
-                    return Expanded(
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () => setState(() => _selectedTab = i),
-                        child: Center(
-                          child: AnimatedDefaultTextStyle(
-                            duration: const Duration(milliseconds: 220),
-                            curve: Curves.easeOutCubic,
-                            style: TextStyle(
-                              fontSize: 13,
-                              fontWeight: selected
-                                  ? FontWeight.w700
-                                  : FontWeight.w500,
-                              letterSpacing: 0.2,
-                              color: selected
-                                  ? AppColors.primaryColor
-                                  : AppColors.mainTextColor,
-                            ),
-                            child: Text(_tabs[i]),
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                ),
-                AnimatedPositioned(
-                  duration: const Duration(milliseconds: 280),
-                  curve: Curves.easeOutCubic,
-                  left: indicatorLeft,
-                  bottom: 6,
-                  child: Container(
-                    width: indicatorWidth,
-                    height: 3,
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryColor,
-                      borderRadius: BorderRadius.circular(3),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primaryColor
-                              .withValues(alpha: 0.4),
-                          blurRadius: 6,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
-        ),
-      ),
-    );
-  }
 
 }
 
