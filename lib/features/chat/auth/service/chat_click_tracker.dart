@@ -56,11 +56,11 @@ class ChatClickTracker {
   }
 
   static void track({
-    required String businessId,
+    required String userId,
     ChatClickSource source = ChatClickSource.other,
     Map<String, dynamic>? metadata,
   }) {
-    final id = businessId.trim();
+    final id = userId.trim();
     if (id.isEmpty) return;
 
     final body = <String, dynamic>{
@@ -71,7 +71,7 @@ class ChatClickTracker {
 
     unawaited(
       _repo
-          .recordChatClick(businessId: id, body: body)
+          .recordChatClick(userId: id, body: body)
           .catchError((_) => ResponseModel()),
     );
   }

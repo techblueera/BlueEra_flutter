@@ -51,7 +51,7 @@ class DiscoverChatIcon extends StatelessWidget {
         final bId = businessId?.trim();
         if (bId != null && bId.isNotEmpty) {
           ChatClickTracker.track(
-            businessId: bId,
+            userId: bId,
             source: trackingSource,
             metadata: trackingMetadata,
           );

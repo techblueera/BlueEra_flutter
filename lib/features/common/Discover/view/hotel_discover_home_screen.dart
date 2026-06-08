@@ -10,6 +10,8 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
+import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
+import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
 import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/features/me/hotel/view/widget/hotel_home_gallery_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -80,7 +82,10 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
     final id = profile?.businessId ?? '';
     if (id.isNotEmpty) {
       viewBusinessDetailsController.viewBusinessProfileById(id);
-      storeController.trackStoreDetailView(id);
+      ProfileClickTracker.track(
+        userId: id,
+        source: ChatClickSource.searchResult,
+      );
     }
   }
 

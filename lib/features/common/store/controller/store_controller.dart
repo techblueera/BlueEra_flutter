@@ -16,7 +16,6 @@ import 'package:BlueEra/features/common/store/models/product_consumer_nested_cat
 import 'package:BlueEra/features/common/store/repo/store_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -94,37 +93,6 @@ class StoreController extends GetxController{
     searchController.dispose();
     scrollController.dispose();
     super.onClose();
-  }
-
-  // ── Business Store View Tracking ─────────────────────────────────
-
-  final Set<String> _viewedBusinessIds = {};
-
-  /// Track store view in a list (with deduplication - fires once per store per session)
-  void trackStoreListView(String storeId) {
-    if (kReleaseMode && storeId.isNotEmpty && !_viewedBusinessIds.contains(storeId)) {
-      _viewedBusinessIds.add(storeId);
-      Future.microtask(() {
-        try {
-          StoreRepo().businessByViewCountIDApi(businessId: storeId);
-        } catch (e) {
-          print("Failed to track list view: $e");
-        }
-      });
-    }
-  }
-
-  /// Track store view when visiting a single store detail screen (fires every visit)
-  void trackStoreDetailView(String storeId) {
-    if (kReleaseMode && storeId.isNotEmpty) {
-      Future.microtask(() {
-        try {
-          StoreRepo().businessByViewCountIDApi(businessId: storeId);
-        } catch (e) {
-          print("Failed to track detail view: $e");
-        }
-      });
-    }
   }
 
   // ── Product Category Tree ─────────────────────────────────

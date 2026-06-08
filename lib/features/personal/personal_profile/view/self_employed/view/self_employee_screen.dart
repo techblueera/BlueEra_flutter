@@ -28,7 +28,7 @@ import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_property_card.dart';
-import 'package:BlueEra/features/common/statistics/view/business_statistics_screen.dart';
+import 'package:BlueEra/features/common/statistics/view/profile_statistics_screen.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting_cards.dart';
 import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
 import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
@@ -847,7 +847,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
   // key since self-employed accounts don't have a separate businessId.
   List<Widget> _buildStaticsTab() {
     return [
-      BusinessStatisticsScreen(businessId: userId),
+      ProfileStatisticsScreen(userId: userId),
       SizedBox(height: SizeConfig.size12),
       _earnStatPlaceholder('Home Made Food Statistics'),
       _earnStatPlaceholder('Home Made Products Statistics'),

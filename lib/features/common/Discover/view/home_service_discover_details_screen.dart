@@ -12,6 +12,7 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
+import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
 import 'package:BlueEra/features/common/service/controller/service_controller.dart';
 import 'package:BlueEra/features/common/service/model/get_service_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/model/earn_profile_model.dart';
@@ -49,6 +50,13 @@ class _HomeServiceDiscoverDetailsScreenState
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) => _fetchServices());
+    final id = (store.id ?? store.userId ?? '').trim();
+    if (id.isNotEmpty) {
+      ProfileClickTracker.track(
+        userId: id,
+        source: ChatClickSource.searchResult,
+      );
+    }
   }
 
   void _fetchServices() {
@@ -421,7 +429,7 @@ class _HomeServiceDiscoverDetailsScreenState
     final bId = store.id?.trim();
     if (bId != null && bId.isNotEmpty) {
       ChatClickTracker.track(
-          businessId: bId, source: ChatClickSource.searchResult);
+          userId: bId, source: ChatClickSource.searchResult);
     }
     final chatViewController = getOrPut(() => ChatViewController());
     chatViewController.checkChatConnectionAndOpenChat(

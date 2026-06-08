@@ -6,6 +6,8 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart';
+import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
+import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/discover_professionals_view_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
 import 'package:BlueEra/features/common/Discover/widget/filter_capsule.dart';
@@ -391,9 +393,15 @@ class _AllProfessionConsultantScreenState
         : '${distanceKm < 10 ? distanceKm.toStringAsFixed(1) : distanceKm.toStringAsFixed(0)} km';
     final modeStr = mode.isEmpty ? '—' : mode;
 
-    void openDetail() => Get.to(() => DiscoverProfessionalsViewScreen(
-          professionalConsData: service,
-        ));
+    void openDetail() {
+      ProfileClickTracker.track(
+        userId: service.userId ?? '',
+        source: ChatClickSource.searchResult,
+      );
+      Get.to(() => DiscoverProfessionalsViewScreen(
+            professionalConsData: service,
+          ));
+    }
 
     return InkWell(
       onTap: openDetail,

@@ -15,6 +15,8 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
+import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
 import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/widgets/visit_business_stats_card.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
@@ -49,7 +51,10 @@ class _MedicalPharmacyDetailScreenState
     final id = widget.businessId;
     if (id.isNotEmpty) {
       viewBusinessDetailsController.viewBusinessProfileById(id);
-      storeController.trackStoreDetailView(id);
+      ProfileClickTracker.track(
+        userId: id,
+        source: ChatClickSource.storeDetail,
+      );
     }
     _fetchData();
   }

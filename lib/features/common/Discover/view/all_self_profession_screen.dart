@@ -10,6 +10,8 @@ import 'package:BlueEra/features/common/Discover/widget/discover_map_widgets.dar
 import 'package:BlueEra/features/common/Discover/widget/filter_capsule.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
+import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
+import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
 import 'package:BlueEra/features/common/Discover/view/self_employee_view_screen.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
@@ -282,6 +284,10 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
                     InkWell(
                       onTap: () {
                         Navigator.of(sheetCtx).pop();
+                        ProfileClickTracker.track(
+                          userId: service.id ?? '',
+                          source: ChatClickSource.searchResult,
+                        );
                         Get.to(() => SelfEmployeeViewScreen(
                               service: service,
                               timingMap:
@@ -559,13 +565,19 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
     final badgeText =
         (priceData?.feeType ?? priceData?.priceType ?? '').capitalizeFirst ?? '';
 
-    void openDetail() => Get.to(() => SelfEmployeeViewScreen(
-          service: service,
-          timingMap: timingMap,
-          priceDisplay: priceDisplay,
-          priceBadgeText: badgeText,
-          priceBadgeColor: badgeColor,
-        ));
+    void openDetail() {
+      ProfileClickTracker.track(
+        userId: service.id ?? '',
+        source: ChatClickSource.searchResult,
+      );
+      Get.to(() => SelfEmployeeViewScreen(
+            service: service,
+            timingMap: timingMap,
+            priceDisplay: priceDisplay,
+            priceBadgeText: badgeText,
+            priceBadgeColor: badgeColor,
+          ));
+    }
 
     return InkWell(
       onTap: openDetail,

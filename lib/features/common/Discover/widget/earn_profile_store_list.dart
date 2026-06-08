@@ -457,7 +457,7 @@ class EarnProfileStoreCard extends StatelessWidget {
     final bId = store.id?.trim();
     if (bId != null && bId.isNotEmpty) {
       ChatClickTracker.track(
-        businessId: bId,
+        userId: bId,
         source: ChatClickSource.searchResult,
       );
     }

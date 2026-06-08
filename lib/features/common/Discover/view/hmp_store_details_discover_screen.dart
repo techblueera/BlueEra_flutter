@@ -8,6 +8,7 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
+import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/features/common/Discover/controller/hmp_cart_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/hmp_store_details_controller.dart';
@@ -52,6 +53,21 @@ class _HmpStoreDetailsDiscoverScreenState
   // screen) — found here so adds survive coming back to the list.
   late final HmpCartController cartController =
       getOrPut(() => HmpCartController());
+
+  @override
+  void initState() {
+    super.initState();
+    // Track the profile visit (fire-and-forget). Home-made-product profiles
+    // are individual accounts, so fall back to userId when the business id is
+    // absent — same key the chat tracker / chat open uses for this store.
+    final id = (store.id ?? store.userId ?? '').trim();
+    if (id.isNotEmpty) {
+      ProfileClickTracker.track(
+        userId: id,
+        source: ChatClickSource.searchResult,
+      );
+    }
+  }
 
   @override
   void dispose() {
@@ -420,7 +436,7 @@ class _HmpStoreDetailsDiscoverScreenState
     final bId = store.id?.trim();
     if (bId != null && bId.isNotEmpty) {
       ChatClickTracker.track(
-          businessId: bId, source: ChatClickSource.searchResult);
+          userId: bId, source: ChatClickSource.searchResult);
     }
     final chatViewController = getOrPut(() => ChatViewController());
     chatViewController.checkChatConnectionAndOpenChat(

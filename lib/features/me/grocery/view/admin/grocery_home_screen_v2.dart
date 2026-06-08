@@ -25,7 +25,8 @@ import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
-import 'package:BlueEra/features/common/statistics/view/business_statistics_screen.dart';
+import 'package:BlueEra/features/common/statistics/controller/profile_statistics_controller.dart';
+import 'package:BlueEra/features/common/statistics/view/profile_statistics_screen.dart';
 import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
 import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
@@ -128,7 +129,15 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
         // Post â€” FeedScreen owns its own controller fetch on mount.
         break;
       case 4:
-        // Statics â€” BusinessStatisticsScreen owns its own data.
+        // Statics â€” ProfileStatisticsScreen self-fetches on first build.
+        // It's kept alive (AutomaticKeepAliveClientMixin), so its initState
+        // won't re-run on later taps; trigger a refresh here so the analytics
+        // reload every time the user opens the Statics tab. On the very first
+        // tap the controller isn't registered yet (the screen builds this
+        // frame and fires its own init), so we skip to avoid a double fetch.
+        if (Get.isRegistered<ProfileStatisticsController>()) {
+          Get.find<ProfileStatisticsController>().refresh();
+        }
         break;
     }
   }
@@ -178,7 +187,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
         }
         break;
       case 4:
-        // BusinessStatisticsScreen manages its own state and doesn't
+        // ProfileStatisticsScreen manages its own state and doesn't
         // expose an external refresh hook â€” no-op for now.
         break;
     }
@@ -211,7 +220,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
                 _tabScroll(_buildOverviewSlivers()),
                 _tabScroll(_buildProductsTab()),
                 _tabScroll(_buildPostTab()),
-                BusinessStatisticsScreen(businessId: widget.businessId),
+                ProfileStatisticsScreen(userId: widget.businessId),
               ],
             ),
           ],

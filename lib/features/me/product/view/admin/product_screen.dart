@@ -23,7 +23,7 @@ import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
 import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
-import 'package:BlueEra/features/common/statistics/view/business_statistics_screen.dart';
+import 'package:BlueEra/features/common/statistics/view/profile_statistics_screen.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/me/product/model/product_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/product/view/admin/admin_all_top_selling_products_screen.dart';
@@ -89,7 +89,7 @@ class _ProductScreenState extends State<ProductScreen>
       const ProductHomeScreen(),
       _ProductsTabBody(onAddProduct: _onAddProduct),
       _PostTabBody(),
-      BusinessStatisticsScreen(businessId: userId),
+      ProfileStatisticsScreen(userId: userId),
     ];
 
     _tabController = TabController(
@@ -149,7 +149,7 @@ class _ProductScreenState extends State<ProductScreen>
         }
         break;
       case 4:
-        // Statics: BusinessStatisticsScreen manages its own state and
+        // Statics: ProfileStatisticsScreen manages its own state and
         // doesn't expose an external refresh hook â€” no-op for now.
         break;
     }
@@ -194,7 +194,7 @@ class _ProductScreenState extends State<ProductScreen>
                 _tabScroll(const [ProductHomeScreen()]),
                 _tabScroll([_ProductsTabBody(onAddProduct: _onAddProduct)]),
                 _tabScroll([_PostTabBody()]),
-                BusinessStatisticsScreen(businessId: userId),
+                ProfileStatisticsScreen(userId: userId),
               ],
             ),
           ],

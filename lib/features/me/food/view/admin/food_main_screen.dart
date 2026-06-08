@@ -30,7 +30,7 @@ import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_ba
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
-import 'package:BlueEra/features/common/statistics/view/business_statistics_screen.dart';
+import 'package:BlueEra/features/common/statistics/view/profile_statistics_screen.dart';
 import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
 import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
 import 'package:BlueEra/features/me/food/controller/restaurant_controller.dart';
@@ -156,7 +156,7 @@ class _FoodMainScreenState extends State<FoodMainScreen>
         // Post â€” FeedScreen owns its own controller fetch on mount.
         break;
       case 4:
-        // Statistics â€” BusinessStatisticsScreen owns its own data.
+        // Statistics â€” ProfileStatisticsScreen owns its own data.
         break;
     }
   }
@@ -199,8 +199,8 @@ class _FoodMainScreenState extends State<FoodMainScreen>
                 _tabScroll(_buildOverviewSlivers()),
                 _tabScroll(_buildProductsTab()),
                 _tabScroll(_buildPostTab()),
-                BusinessStatisticsScreen(
-                  businessId: businessId.isNotEmpty ? businessId : userId,
+                ProfileStatisticsScreen(
+                  userId: businessId.isNotEmpty ? businessId : userId,
                 ),
               ],
             ),
@@ -239,7 +239,7 @@ class _FoodMainScreenState extends State<FoodMainScreen>
         }
         break;
       case 4:
-        // BusinessStatisticsScreen manages its own state and doesn't
+        // ProfileStatisticsScreen manages its own state and doesn't
         // expose an external refresh hook â€” no-op for now.
         break;
     }

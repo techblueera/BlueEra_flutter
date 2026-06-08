@@ -21,7 +21,6 @@ import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:visibility_detector/visibility_detector.dart';
 
 class ProductsStoreScreen extends StatefulWidget {
   final String? productCategoryName;
@@ -348,22 +347,13 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
                 }
 
                 final storeData = controller.allStore[index];
-                final String businessId = storeData.id ?? "";
 
-                return VisibilityDetector(
-                  key: Key("business_$businessId"),
-                  onVisibilityChanged: (info) {
-                    if (info.visibleFraction >= 0.5 && businessId.isNotEmpty) {
-                      controller.trackStoreListView(businessId);
-                    }
-                  },
-                  child: Padding(
-                    padding: EdgeInsets.only(bottom: dynamicSize(10)),
-                    child: ProductStoreCard(
-                      ds: dynamicSize,
-                      index: index,
-                      getAllStoreResData: storeData,
-                    ),
+                return Padding(
+                  padding: EdgeInsets.only(bottom: dynamicSize(10)),
+                  child: ProductStoreCard(
+                    ds: dynamicSize,
+                    index: index,
+                    getAllStoreResData: storeData,
                   ),
                 );
               },

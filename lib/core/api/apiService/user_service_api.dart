@@ -10,10 +10,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 /// Constants are copied verbatim from the original `base_service.dart`,
 /// including:
 ///   * leading slashes on some paths (`/user-service/...`) — kept to match
-///     the wire format the client currently sends;
-///   * the known double slash in `businessViews` (`user-service//...`) —
-///     preserved here so this file mirrors current behaviour. Worth a
-///     separate cleanup ticket, not silently "fixed" during a refactor.
+///     the wire format the client currently sends.
 ///
 /// Companion reference docs:
 ///   * `lib/docs/user-service-api-endpoints.md` — this file's endpoint table.
@@ -73,14 +70,20 @@ mixin UserServiceApi {
   final String removeBusinessLivePhotos =
       'user-service/business/remove-live-image';
 
-  // NOTE: source path has a double slash — preserved intentionally.
-  String businessViews(String businessId) =>
-      "user-service//business/$businessId/view";
 
-  String chatClickRecord(String businessId) =>
-      'user-service/business/$businessId/chat-click';
-  String chatClickStats(String businessId) =>
-      'user-service/business/$businessId/chat-clicks';
+  // too — the same id keys a business account or an individual profile.
+  String chatClickRecord(String userId) =>
+      'user-service/business/$userId/chat-click';
+  String chatClickStats(String userId) =>
+      'user-service/business/$userId/chat-clicks';
+
+  // Profile-visit tracking (POST, records one visit) + analytics (GET, summary
+  // of total/unique visits). The id is the visited profile's userId — works for
+  // both business and personal profiles.
+  String profileVisitRecord(String userId) =>
+      'user-service/profile-visit/$userId/profile-visit';
+  String profileVisitStats(String userId) =>
+      'user-service/profile-visit/$userId/profile-visits';
 
   // ── Categories & subcategories ──────────────────────────────────────
   final String getAllcategories = 'user-service/business/getAllcategories';

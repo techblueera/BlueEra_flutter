@@ -13,6 +13,8 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
+import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
+import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
 import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
@@ -56,7 +58,10 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
     super.initState();
     viewBusinessDetailsController.viewBusinessProfileById(widget.visitBusinessId);
     controller.fetchAllGroceryData(widget.userId, otherStore: true);
-    storeController.trackStoreDetailView(widget.visitBusinessId);
+    ProfileClickTracker.track(
+      userId: widget.visitBusinessId,
+      source: ChatClickSource.storeDetail,
+    );
     dev.log(
       '[VisitStore] initState '
       'ctrlHash=${identityHashCode(groceryCustomerController)} '

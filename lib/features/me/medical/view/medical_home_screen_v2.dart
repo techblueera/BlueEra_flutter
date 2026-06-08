@@ -31,7 +31,7 @@ import 'package:BlueEra/features/common/Discover/view/self_employee_view_screen.
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
-import 'package:BlueEra/features/common/statistics/view/business_statistics_screen.dart';
+import 'package:BlueEra/features/common/statistics/view/profile_statistics_screen.dart';
 import 'package:BlueEra/features/me/medical/controller/medical_controller.dart';
 import 'package:BlueEra/features/me/medical/controller/medical_gallery_controller.dart';
 import 'package:BlueEra/features/me/medical/model/medical_home_response_model.dart';
@@ -216,11 +216,11 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
                     topBarHeight: MediaQuery.of(context).padding.top + 132,
                     tabViews: [
                       _tabScroll(_buildInquiryTab()),
-                      BusinessStatisticsScreen(businessId: userId),
+                      ProfileStatisticsScreen(userId: userId),
                       _tabScroll(_buildOverviewSlivers()),
                       _tabScroll(_buildProductsTab()),
                       _tabScroll(_buildPostTab()),
-                      BusinessStatisticsScreen(businessId: userId),
+                      ProfileStatisticsScreen(userId: userId),
                     ],
                   ),
                 ],
@@ -235,7 +235,7 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
   //
   // Inquiry was inserted at index `0`; every other tab's case shifted
   // by `+1`. The legacy `Order` placeholder still surfaces stats (kept
-  // identical to before â€” same `BusinessStatisticsScreen` body), just
+  // identical to before â€” same `ProfileStatisticsScreen` body), just
   // at its new index `1` so the existing flow stays intact.
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -678,7 +678,7 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
               children: [
                 ElevatedButton(
                     onPressed: () {
-                      Get.to(BusinessStatisticsScreen(businessId: userId));
+                      Get.to(ProfileStatisticsScreen(userId: userId));
                     },
                     child: CustomText(AppStrings.clickMe.tr)),
                 Row(

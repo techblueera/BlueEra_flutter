@@ -5,6 +5,8 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
+import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
 import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
@@ -53,7 +55,10 @@ class _DiscoverLabViewScreenState extends State<DiscoverLabViewScreen> {
     final id = widget.detailsData.id;
     if (id.isNotEmpty) {
       viewBusinessDetailsController.viewBusinessProfileById(id);
-      storeController.trackStoreDetailView(id);
+      ProfileClickTracker.track(
+        userId: id,
+        source: ChatClickSource.searchResult,
+      );
     }
   }
 
