@@ -71,7 +71,7 @@ class UploadPropertyPhotosScreen extends StatelessWidget {
           selectedValue: controller.selectedCategory.value.isEmpty
               ? null
               : controller.selectedCategory.value,
-          displayValue: (cat) => cat,
+          displayValue: (cat) => controller.categoryLabel(cat),
           onChanged: controller.onCategoryChanged,
         ));
   }

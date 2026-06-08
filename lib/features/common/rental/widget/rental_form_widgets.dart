@@ -566,12 +566,18 @@ class RentalChipSelector extends StatefulWidget {
   final int initialIndex;
   final ValueChanged<int>? onChanged;
 
+  /// Optional mapper from option wire-key to localized display label.
+  /// When omitted, the option string is rendered verbatim — used for
+  /// option lists that double as both wire-key and display text.
+  final String Function(String)? labelFor;
+
   const RentalChipSelector({
     super.key,
     required this.label,
     required this.options,
     this.initialIndex = 0,
     this.onChanged,
+    this.labelFor,
   });
 
   @override
@@ -625,7 +631,8 @@ class _RentalChipSelectorState extends State<RentalChipSelector> {
                   ),
                 ),
                 child: CustomText(
-                  widget.options[i],
+                  widget.labelFor?.call(widget.options[i]) ??
+                      widget.options[i],
                   fontSize: 13,
                   fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
                   color: selected

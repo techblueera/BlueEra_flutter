@@ -309,8 +309,9 @@ String chipLabelFor(FilterId id, String value) {
       return value == 'Yes Attached' ? 'Attached Bath' : 'No Attached Bath';
     case FilterId.bachelorsAllowed:
       return value == 'Yes Allowed' ? 'Bachelors Allowed' : 'No Bachelors';
-    case FilterId.listedBy:
     case FilterId.houseApartmentType:
+      return PropertyController.haTypeLabel(value);
+    case FilterId.listedBy:
     case FilterId.facing:
     case FilterId.furnishing:
     case FilterId.availabilityStatus:

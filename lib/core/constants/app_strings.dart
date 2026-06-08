@@ -6859,4 +6859,22 @@ class AppStrings {
 
   // FAB
   static const String addListingFabLabel = "addListingFabLabel";
+
+  /// HOTEL property-photo categories (lib/features/me/hotel/controller/
+  /// property_photo_controller.dart) — display labels for the upload
+  /// dropdown. The same English strings double as API wire-keys in
+  /// `PropertyPhotoController.categories`, so the controller list keeps
+  /// the literals; the view layer renders the localized variant at
+  /// display time by mapping each option through these keys.
+  static const String photoCategoryExternalViewParking = "photoCategoryExternalViewParking";
+  static const String photoCategoryLobbyGarden = "photoCategoryLobbyGarden";
+  static const String photoCategoryRooms = "photoCategoryRooms";
+  static const String photoCategoryRestaurantBar = "photoCategoryRestaurantBar";
+  static const String photoCategoryGymSwimmingPool = "photoCategoryGymSwimmingPool";
+
+  /// DISCOVER map widgets (lib/features/common/Discover/widget/
+  /// discover_map_widgets.dart) — banner location pill placeholder and
+  /// the bottom-right "View on map" CTA on the inline map preview.
+  static const String selectLocationPill = "selectLocationPill";
+  static const String viewOnMap = "viewOnMap";
 }

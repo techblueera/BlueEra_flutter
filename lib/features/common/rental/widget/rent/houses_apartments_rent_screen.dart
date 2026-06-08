@@ -53,6 +53,7 @@ class _HousesApartmentsRentScreenState
                         RentalChipSelector(
                           label: AppStrings.houseApartmentTypeLabel.tr,
                           options: PropertyController.haTypeOptions,
+                          labelFor: PropertyController.haTypeLabel,
                           onChanged: (v) => _ctrl.haType.value = v,
                         ),
                         const SizedBox(height: 18),

@@ -159,6 +159,9 @@ class PropertyController extends GetxController {
     'PG And Guest House',
   ];
 
+  /// House & Apartment type — wire-keys sent to the API. Kept in English
+  /// so the backend contract is stable across languages. Use
+  /// [haTypeLabel] to resolve a localized display string at render time.
   static const haTypeOptions = [
     'Flat/Apartments',
     'Independent / Builder Floor',
@@ -166,6 +169,25 @@ class PropertyController extends GetxController {
     'House & Villa',
     'Duplex',
   ];
+
+  /// Resolves the localized display label for a [haTypeOptions] wire-key.
+  /// Falls back to the raw key if it isn't one of the known options
+  /// (e.g. a server-added value we haven't translated yet).
+  static String haTypeLabel(String key) {
+    switch (key) {
+      case 'Flat/Apartments':
+        return AppStrings.haTypeFlatApartments.tr;
+      case 'Independent / Builder Floor':
+        return AppStrings.haTypeIndependentBuilderFloor.tr;
+      case 'Farm House':
+        return AppStrings.haTypeFarmHouse.tr;
+      case 'House & Villa':
+        return AppStrings.haTypeHouseVilla.tr;
+      case 'Duplex':
+        return AppStrings.haTypeDuplex.tr;
+    }
+    return key;
+  }
   static const bhkOptions = ['1', '2', '3', '4+'];
   static const bathroomOptions = ['1', '2', '3', '4+'];
   static const furnishingOptions = ['Furnished', 'Semi-Furnished', 'Unfurnished'];

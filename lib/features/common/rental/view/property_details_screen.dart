@@ -1374,6 +1374,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         RentalChipSelector(
           label: AppStrings.typeLabel.tr,
           options: PropertyController.haTypeOptions,
+          labelFor: PropertyController.haTypeLabel,
           initialIndex: typeIdx,
           onChanged: (i) => typeIdx = i,
         ),
@@ -2072,7 +2073,13 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     final pg = p.pgAndGuestHouse;
 
     if (ha != null) {
-      _add(result, AppStrings.typeLabel.tr, ha.houseApartmentType);
+      _add(
+        result,
+        AppStrings.typeLabel.tr,
+        ha.houseApartmentType != null
+            ? PropertyController.haTypeLabel(ha.houseApartmentType!)
+            : null,
+      );
       _add(result, AppStrings.filterLabelBHK.tr, ha.bhk);
       _add(result, AppStrings.filterLabelBathrooms.tr, ha.bathrooms);
       _add(result, AppStrings.filterLabelAvailability.tr,
