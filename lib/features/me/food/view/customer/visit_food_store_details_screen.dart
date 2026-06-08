@@ -9,6 +9,8 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
+import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
 import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
@@ -65,7 +67,10 @@ class _VisitFoodStoreDetailsScreenState
     viewBusinessDetailsController.viewBusinessProfileById(widget.visitBusinessId);
     controller.fetchHomeData(businessId: widget.visitBusinessId);
     controller.fetchDiscountFoodProducts(businessId: widget.visitBusinessId);
-    storeController.trackStoreDetailView(widget.visitBusinessId);
+    ProfileClickTracker.track(
+      userId: widget.visitBusinessId,
+      source: ChatClickSource.storeDetail,
+    );
   }
 
   void _openVariantsSheetForOfferDish(CategoryFoodProductData product) {

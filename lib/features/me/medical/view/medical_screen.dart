@@ -1,7 +1,7 @@
 ﻿import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/me/medical/controller/medical_controller.dart';
-import 'package:BlueEra/features/common/statistics/controller/business_statistics_controller.dart';
+import 'package:BlueEra/features/common/statistics/controller/profile_statistics_controller.dart';
 import 'package:BlueEra/features/me/medical/view/medical_home_screen_v2.dart';
 import 'package:BlueEra/features/me/medical/controller/user_medical_controller.dart';
 import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
@@ -21,7 +21,7 @@ class _MedicalScreenState extends State<MedicalScreen> {
   void dispose() {
     deleteIfRegistered<MedicalController>();
     deleteIfRegistered<UserMedicalController>();
-    deleteIfRegistered<BusinessStatisticsController>();
+    deleteIfRegistered<ProfileStatisticsController>();
     super.dispose();
   }
 

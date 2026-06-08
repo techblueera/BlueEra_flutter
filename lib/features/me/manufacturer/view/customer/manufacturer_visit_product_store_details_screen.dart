@@ -7,6 +7,8 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
+import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
+import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
 import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/features/me/manufacturer/controller/manufacturer_inventory_controller.dart';
@@ -63,7 +65,10 @@ class _VisitProductStoreDetailsScreenState
     viewBusinessDetailsController
         .viewBusinessProfileById(widget.visitBusinessId);
     controller.fetchAllProductData(visitBusinessId: widget.visitBusinessId);
-    storeController.trackStoreDetailView(widget.visitBusinessId);
+    ProfileClickTracker.track(
+      userId: widget.visitBusinessId,
+      source: ChatClickSource.storeDetail,
+    );
   }
 
   /// First variant id of a product — the key the cart uses.

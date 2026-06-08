@@ -29,7 +29,7 @@ import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_property_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_store_section.dart';
-import 'package:BlueEra/features/common/statistics/view/business_statistics_screen.dart';
+import 'package:BlueEra/features/common/statistics/view/profile_statistics_screen.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting_cards.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
@@ -429,7 +429,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   // separate businessId so the analytics key is the user id.
   List<Widget> _buildStaticsTab() {
     return [
-      BusinessStatisticsScreen(businessId: userId),
+      ProfileStatisticsScreen(userId: userId),
       SizedBox(height: SizeConfig.size12),
       const EarnStatSections(),
       SizedBox(height: SizeConfig.size16),

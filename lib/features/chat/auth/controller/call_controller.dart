@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/services/ads/interstitial_ad_manager.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:BlueEra/widgets/global_message_service.dart';
 import 'package:flutter/foundation.dart';
@@ -1560,6 +1561,7 @@ class CallController extends GetxController {
       _coldStartCall = false;
       launchedForCall.value = false;
       Get.offAllNamed('/BottomNavigationBarScreen');
+      _showCallEndedInterstitial();
       return;
     }
     final route = Get.currentRoute;
@@ -1571,7 +1573,22 @@ class CallController extends GetxController {
         route == '/IncomingRiderOrderScreen') {
       Get.back();
     }
+    _showCallEndedInterstitial();
     // Note: FareCallQueueScreen manages its own lifecycle via DiscoverController
+  }
+
+  /// Show a full-screen interstitial ad once a (regular, non-fare) call tears
+  /// down. Both the caller and the callee reach the call-teardown path —
+  /// `endCall` for whoever hangs up, `_handleCallEnded` / `_handleAnsweredElsewhere`
+  /// for the other side — so the ad shows on both ends, on Android and iOS.
+  /// Best-effort: deferred a beat so it overlays the post-call screen (chat /
+  /// home) instead of the call UI mid-dismiss, and never blocks teardown.
+  void _showCallEndedInterstitial() {
+    // Rider / fare calls don't get ads — they have their own queue/map flow.
+    if (isFareCall.value) return;
+    Future.delayed(const Duration(milliseconds: 400), () {
+      InterstitialAdManager.instance.showInterstitial();
+    });
   }
 
   // ==================== WEBRTC SIGNALING ====================

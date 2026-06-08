@@ -40,20 +40,18 @@ class _VisitGroceryProductsScreenState extends State<VisitGroceryProductsScreen>
   final groceryCustomerController = getOrPut(() => GrocerySelfPickupConsumerController());
   final ScrollController scrollController = ScrollController();
   final TextEditingController searchController = TextEditingController();
-  late String _userId;
 
   @override
   void initState() {
     super.initState();
     scrollController.addListener(_onScrollListener);
-    _userId = widget.userId;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.fetchGroceryNestedCategoryWithInventory(
           userId: widget.userId,
           groceryCatKey: widget.argArrGroceryCatKey
       ).then((response) {
         controller.selectedGroceryData.value = controller.groceryNestedCategoryWithInventoryList.first;
-        fetchGroceryProducts();
+        fetchGlobalGroceryProducts();
       });
     });
   }
@@ -61,9 +59,9 @@ class _VisitGroceryProductsScreenState extends State<VisitGroceryProductsScreen>
   void _onScrollListener(){
     if (scrollController.position.pixels >=
         scrollController.position.maxScrollExtent - 200 &&
-        !controller.isGroceryDataLoadingMore.value &&
-        controller.groceryDataHasMore) {
-      fetchGroceryProducts(isLoadMore: true);
+        !controller.isGlobalGroceryDataLoadingMore.value &&
+        controller.globalGroceryDataHasMore) {
+      fetchGlobalGroceryProducts(isLoadMore: true);
     }
   }
 
@@ -73,11 +71,10 @@ class _VisitGroceryProductsScreenState extends State<VisitGroceryProductsScreen>
     super.dispose();
   }
 
-  void fetchGroceryProducts({bool isLoadMore = false}) {
+  void fetchGlobalGroceryProducts({bool isLoadMore = false}) {
     final String categoryId = controller.selectedGroceryData.value?.sId ?? '';
 
-    controller.fetchGroceryProducts(
-      userId: _userId,
+    controller.fetchGlobalGroceryProducts(
       categoryId: categoryId,
       isLoadMore: isLoadMore,
     );
@@ -120,7 +117,7 @@ class _VisitGroceryProductsScreenState extends State<VisitGroceryProductsScreen>
               controller.isSearchOpen.value = !isOpen;
               if (!controller.isSearchOpen.value) {
                 searchController.clear();
-                // controller.fetchGroceryProducts();
+                // controller.fetchGlobalGroceryProducts();
               }
             },
             child: Padding(
@@ -180,7 +177,7 @@ class _VisitGroceryProductsScreenState extends State<VisitGroceryProductsScreen>
           return;
         }
         controller.selectedGroceryData.value = selected;
-        fetchGroceryProducts();
+        fetchGlobalGroceryProducts();
       },
     );
   }
@@ -206,7 +203,7 @@ class _VisitGroceryProductsScreenState extends State<VisitGroceryProductsScreen>
               unSelectedBorderColor: AppColors.greyE5,
               onTabSelected: (index, label) {
                 controller.selectedHorizontalTabIndex.value = index;
-                fetchGroceryProducts();
+                fetchGlobalGroceryProducts();
               },
             );
           },),
@@ -214,7 +211,7 @@ class _VisitGroceryProductsScreenState extends State<VisitGroceryProductsScreen>
           SizedBox(height: 8),
 
           Expanded(
-            child: controller.isGroceryDataFirstLoading.value
+            child: controller.isGlobalGroceryDataFirstLoading.value
                 ? Center(
               child: Padding(
                 padding: EdgeInsets.all(SizeConfig.size20),
@@ -225,10 +222,10 @@ class _VisitGroceryProductsScreenState extends State<VisitGroceryProductsScreen>
                 ),
               ),
             )
-                : controller.groceryProductsList.isNotEmpty
+                : controller.globalGroceryProductsList.isNotEmpty
                 ? MasonryGridView.count(
-              itemCount: controller.groceryProductsList.length +
-                  (controller.isGroceryDataLoadingMore.value ? 1 : 0),
+              itemCount: controller.globalGroceryProductsList.length +
+                  (controller.isGlobalGroceryDataLoadingMore.value ? 1 : 0),
               controller: scrollController,
               padding: EdgeInsets.only(
                   bottom: SizeConfig.size15 + kBottomNavigationBarHeight
@@ -237,14 +234,14 @@ class _VisitGroceryProductsScreenState extends State<VisitGroceryProductsScreen>
               crossAxisSpacing: 6,
               mainAxisSpacing: 6,
               itemBuilder: (BuildContext context, int index) {
-                if (index >= controller.groceryProductsList.length) {
+                if (index >= controller.globalGroceryProductsList.length) {
                   return const Padding(
                     padding: EdgeInsets.all(20),
                     child: Center(child: CircularProgressIndicator()),
                   );
                 }
 
-                final groceryProducts = controller.groceryProductsList[index];
+                final groceryProducts = controller.globalGroceryProductsList[index];
 
                 return GroceryProductCard(
                     groceryProducts: groceryProducts,

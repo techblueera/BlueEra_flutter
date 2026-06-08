@@ -358,7 +358,7 @@ class AppStrings {
   static const max600Hint = "max600Hint";
   static const feeTypeLabel = "feeTypeLabel";
   static const egPerVisit = "egPerVisit";
-  // BusinessStatisticsScreen
+  // ProfileStatisticsScreen
   static const unableToLoadStatistics = "unableToLoadStatistics";
   static const noAnalyticsDataAvailable = "noAnalyticsDataAvailable";
   static const chatCount = "chatCount";

@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/services/ads/interstitial_ad_manager.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -814,6 +815,11 @@ Future<void> _initDeferred(LocalizationService localizationService) async {
   /// lat/lng are populated before the default Discover tab fires its
   /// location-based APIs. Fire-and-forget — must not block the first frame.
   unawaited(LocationService.fetchLocation());
+
+  /// Initialise the AdMob SDK + preload the first interstitial. Fire-and-forget
+  /// — ads must never block startup; the end-of-call hook shows whatever is
+  /// ready by then (and preloads the next).
+  unawaited(InterstitialAdManager.instance.initialize());
 
   /// Fire-and-forget parallel batch -- none of these block the UI
   await Future.wait<void>([

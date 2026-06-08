@@ -208,6 +208,13 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- Google AdMob App ID — injected from local.properties (ADMOB_APP_ID)
+             via the manifestPlaceholder defined in app/build.gradle, so the id
+             is not hardcoded in source. The iOS counterpart lives in
+             ios/Runner/Info.plist as GADApplicationIdentifier. -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="${admobAppId}" />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/ic_stat" />

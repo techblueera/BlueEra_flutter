@@ -1,5 +1,5 @@
 ﻿import 'package:BlueEra/core/constants/shared_preference_utils.dart';
-import 'package:BlueEra/features/common/statistics/view/business_statistics_screen.dart';
+import 'package:BlueEra/features/common/statistics/view/profile_statistics_screen.dart';
 import 'package:flutter/material.dart';
 
 /// Stats tab for the redesigned lab "me" profile.
@@ -13,6 +13,6 @@ class LabStatsTabV2 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BusinessStatisticsScreen(businessId: userId);
+    return ProfileStatisticsScreen(userId: userId);
   }
 }

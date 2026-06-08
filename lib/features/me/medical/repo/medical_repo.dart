@@ -664,26 +664,6 @@ class MedicalRepo extends BaseService {
   // UPLOAD
   // ─────────────────────────────────────────────
 
-  // ─────────────────────────────────────────────
-  // CHAT-CLICK ANALYTICS
-  // ─────────────────────────────────────────────
-
-  /// Get business chat-click analytics (timeseries, summary, comparison, etc.).
-  /// See `lib/docs/CHAT_CLICK_ANALYTICS_INTEGRATION_GUIDE.md` for query params.
-  Future<ResponseModel> fetchChatClickStatsRepo({
-    required String businessId,
-    Map<String, dynamic>? queryParams,
-  }) async {
-    final response = await ApiBaseHelper().getHTTP(
-      chatClickStats(businessId),
-      params: queryParams,
-      showProgress: false,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
-    return response;
-  }
-
   /// Generate Pre-signed S3 Upload URL
   Future<ResponseModel> fetchUploadInitRepo(
       {Map<String, dynamic>? queryParams}) async {

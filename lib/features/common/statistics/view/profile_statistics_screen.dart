@@ -3,7 +3,8 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/common/statistics/controller/business_statistics_controller.dart';
+import 'package:BlueEra/features/common/statistics/controller/profile_statistics_controller.dart';
+import 'package:BlueEra/features/common/statistics/model/profile_visit_analytics_model.dart';
 import 'package:BlueEra/features/me/medical/model/chat_click_analytics_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -11,26 +12,27 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
-/// Statistics tab shared across every business-type screen (medical, hotel,
-/// hospital, lab, school, food, grocery, manufacturer, etc.).
+/// Statistics tab shared across every profile-type screen — both business
+/// (medical, hotel, hospital, lab, school, food, grocery, manufacturer, etc.)
+/// and individual (self-employed, gig, social, professional) profiles.
 ///
 /// Renders KPI cards backed by the centralized chat-click analytics endpoint
-/// (`GET /business/:businessId/chat-clicks?format=full`). Each card shows a
+/// (`GET /business/:userId/chat-clicks?format=full`). Each card shows a
 /// big headline number plus a line chart of the matching timeseries — the
 /// design mirrors `assets/dummy/chart.png`.
-class BusinessStatisticsScreen extends StatefulWidget {
-  final String businessId;
+class ProfileStatisticsScreen extends StatefulWidget {
+  final String userId;
 
-  const BusinessStatisticsScreen({super.key, required this.businessId});
+  const ProfileStatisticsScreen({super.key, required this.userId});
 
   @override
-  State<BusinessStatisticsScreen> createState() =>
-      _BusinessStatisticsScreenState();
+  State<ProfileStatisticsScreen> createState() =>
+      _ProfileStatisticsScreenState();
 }
 
-class _BusinessStatisticsScreenState extends State<BusinessStatisticsScreen>
+class _ProfileStatisticsScreenState extends State<ProfileStatisticsScreen>
     with AutomaticKeepAliveClientMixin {
-  late final BusinessStatisticsController _controller;
+  late final ProfileStatisticsController _controller;
 
   @override
   bool get wantKeepAlive => true;
@@ -38,80 +40,86 @@ class _BusinessStatisticsScreenState extends State<BusinessStatisticsScreen>
   @override
   void initState() {
     super.initState();
-    _controller = getOrPut(() => BusinessStatisticsController());
+    _controller = getOrPut(() => ProfileStatisticsController());
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _controller.init(businessId: widget.businessId);
+      _controller.init(userId: widget.userId);
     });
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return ColoredBox(
-      color: AppColors.appBackgroundColor,
-      child: Obx(() {
-        final status = _controller.analyticsResponse.value.status;
-        final hasData = _controller.analytics.value != null;
+    return Obx(() {
+      final status = _controller.analyticsResponse.value.status;
+      final hasData = _controller.analytics.value != null;
 
-        if (status == Status.LOADING && !hasData) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(vertical: 120),
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        if (status == Status.ERROR && !hasData) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 80),
-            child: _ErrorState(
-              message: _controller.errorMessage.value ??
-                  AppStrings.unableToLoadStatistics.tr,
-              onRetry: _controller.refresh,
-            ),
-          );
-        }
-
-        final data = _controller.analytics.value?.data;
-        if (data == null) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 80),
-            child: _ErrorState(
-              message: AppStrings.noAnalyticsDataAvailable.tr,
-              onRetry: _controller.refresh,
-            ),
-          );
-        }
-
-        return _StatisticsBody(
-          data: data,
-          range: _controller.selectedRange.value,
-          onRangeChanged: _controller.changeRange,
+      if (status == Status.LOADING && !hasData) {
+        return const Padding(
+          padding: EdgeInsets.symmetric(vertical: 120),
+          child: Center(child: CircularProgressIndicator()),
         );
-      }),
-    );
+      }
+
+      if (status == Status.ERROR && !hasData) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 80),
+          child: _ErrorState(
+            message: _controller.errorMessage.value ??
+                AppStrings.unableToLoadStatistics.tr,
+            onRetry: _controller.refresh,
+          ),
+        );
+      }
+
+      final data = _controller.analytics.value?.data;
+      if (data == null) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 80),
+          child: _ErrorState(
+            message: AppStrings.noAnalyticsDataAvailable.tr,
+            onRetry: _controller.refresh,
+          ),
+        );
+      }
+
+      return _StatisticsBody(
+        chatData: data,
+        profileData: _controller.profileVisits.value?.data,
+        range: _controller.selectedRange.value,
+        onRangeChanged: _controller.changeRange,
+      );
+    });
   }
 }
 
 class _StatisticsBody extends StatelessWidget {
-  final ChatClickAnalyticsData data;
+  /// Chat-click analytics — backs the "Chat count" card.
+  final ChatClickAnalyticsData chatData;
+
+  /// Profile-visit analytics — backs the "Profile visits" card. Null while
+  /// its (independent) request is still loading or if it failed; the card
+  /// then renders zeros / an empty chart rather than blocking the page.
+  final ProfileVisitData? profileData;
   final StatsRange range;
   final ValueChanged<StatsRange> onRangeChanged;
 
   const _StatisticsBody({
-    required this.data,
+    required this.chatData,
+    required this.profileData,
     required this.range,
     required this.onRangeChanged,
   });
 
   @override
   Widget build(BuildContext context) {
-    final summary = data.summary;
-    final ts = data.timeseries;
-    final lastClickedAt = summary.lastClickedAt;
+    final chatSummary = chatData.summary;
+    final chatPoints =
+        chatData.timeseries?.series ?? const <ChatClickSeriesPoint>[];
+    final chatAvg = _averageOf(chatPoints, (p) => p.clicks);
 
-    final clickPoints = ts?.series ?? const <ChatClickSeriesPoint>[];
-    final clicksAvg = _averageOf(clickPoints, (p) => p.clicks);
-    final usersAvg = _averageOf(clickPoints, (p) => p.uniqueUsers);
+    final profileSummary = profileData?.summary;
+    final profilePoints = profileData?.series ?? const <ProfileVisitPoint>[];
+    final profileAvg = _averageOf(profilePoints, (p) => p.visits);
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -128,28 +136,28 @@ class _StatisticsBody extends StatelessWidget {
           _StatCard(
             title: AppStrings.chatCount.tr,
             headlineLabel: '${range.label} ${AppStrings.averageSuffix.tr}',
-            headlineValue: _formatLakh(summary.totalClicks),
-            asOfDate: lastClickedAt,
-            asOfValue: clickPoints.isNotEmpty
-                ? _formatLakh(clickPoints.last.clicks)
-                : _formatLakh(summary.totalClicks),
-            trailingAverage: clicksAvg,
-            spots: _toSpots(clickPoints, (p) => p.clicks),
-            xLabels: _xAxisLabels(clickPoints),
+            headlineValue: _formatLakh(chatSummary.totalClicks),
+            asOfDate: chatSummary.lastClickedAt,
+            asOfValue: chatPoints.isNotEmpty
+                ? _formatLakh(chatPoints.last.clicks)
+                : _formatLakh(chatSummary.totalClicks),
+            trailingAverage: chatAvg,
+            spots: _toSpots(chatPoints, (p) => p.clicks),
+            xLabels: _xAxisLabels(chatPoints, (p) => p.bucket),
             lineColor: AppColors.darkBlueShade,
           ),
           SizedBox(height: SizeConfig.paddingS),
           _StatCard(
             title: AppStrings.profileVisits.tr,
             headlineLabel: '${range.label} ${AppStrings.averageSuffix.tr}',
-            headlineValue: _formatLakh(summary.uniqueUsers),
-            asOfDate: lastClickedAt,
-            asOfValue: clickPoints.isNotEmpty
-                ? _formatLakh(clickPoints.last.uniqueUsers)
-                : _formatLakh(summary.uniqueUsers),
-            trailingAverage: usersAvg,
-            spots: _toSpots(clickPoints, (p) => p.uniqueUsers),
-            xLabels: _xAxisLabels(clickPoints),
+            headlineValue: _formatLakh(profileSummary?.totalVisits ?? 0),
+            asOfDate: profileSummary?.lastVisitedAt,
+            asOfValue: profilePoints.isNotEmpty
+                ? _formatLakh(profilePoints.last.visits)
+                : _formatLakh(profileSummary?.totalVisits ?? 0),
+            trailingAverage: profileAvg,
+            spots: _toSpots(profilePoints, (p) => p.visits),
+            xLabels: _xAxisLabels(profilePoints, (p) => p.bucket),
             lineColor: AppColors.primaryColor,
           ),
         ],
@@ -157,19 +165,13 @@ class _StatisticsBody extends StatelessWidget {
     );
   }
 
-  static double _averageOf(
-    List<ChatClickSeriesPoint> points,
-    int Function(ChatClickSeriesPoint) reader,
-  ) {
+  static double _averageOf<T>(List<T> points, num Function(T) reader) {
     if (points.isEmpty) return 0;
-    final total = points.fold<int>(0, (sum, p) => sum + reader(p));
+    final total = points.fold<num>(0, (sum, p) => sum + reader(p));
     return total / points.length;
   }
 
-  static List<FlSpot> _toSpots(
-    List<ChatClickSeriesPoint> points,
-    int Function(ChatClickSeriesPoint) reader,
-  ) {
+  static List<FlSpot> _toSpots<T>(List<T> points, num Function(T) reader) {
     final spots = <FlSpot>[];
     for (var i = 0; i < points.length; i++) {
       spots.add(FlSpot(i.toDouble(), reader(points[i]).toDouble()));
@@ -177,17 +179,20 @@ class _StatisticsBody extends StatelessWidget {
     return spots;
   }
 
-  static List<String> _xAxisLabels(List<ChatClickSeriesPoint> points) {
-    if (points.length < 2) {
-      return points
-          .map((p) => p.bucket == null ? '' : DateFormat('d MMM').format(p.bucket!))
-          .toList();
-    }
+  static List<String> _xAxisLabels<T>(
+    List<T> points,
+    DateTime? Function(T) bucketOf,
+  ) {
     final formatter = DateFormat('d MMM');
-    return [
-      points.first.bucket == null ? '' : formatter.format(points.first.bucket!),
-      points.last.bucket == null ? '' : formatter.format(points.last.bucket!),
-    ];
+    String fmt(T p) {
+      final b = bucketOf(p);
+      return b == null ? '' : formatter.format(b);
+    }
+
+    if (points.length < 2) {
+      return points.map(fmt).toList();
+    }
+    return [fmt(points.first), fmt(points.last)];
   }
 
   static String _formatLakh(num value) {
@@ -482,6 +487,11 @@ class _LineChart extends StatelessWidget {
           LineChartBarData(
             spots: spots,
             isCurved: true,
+            // Without this, a flat run of zeros followed by a spike makes the
+            // cubic spline dip BELOW the baseline (the line "goes down" before
+            // shooting up). This clamps the curve so it never under/overshoots
+            // past the actual data points.
+            preventCurveOverShooting: true,
             color: lineColor,
             barWidth: 2.5,
             isStrokeCapRound: true,

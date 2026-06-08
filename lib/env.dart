@@ -45,4 +45,19 @@ abstract class Env {
 
   @EnviedField(varName: 'PROD_RAZORPAY_KEY')
   static String prodRazorPayKey = _Env.prodRazorPayKey;
+
+  @EnviedField(varName: 'ADMOB_INTERSTITIAL_AD_UNIT_ANDROID')
+  static String admobInterstitialAdUnitAndroid =
+      _Env.admobInterstitialAdUnitAndroid;
+
+  @EnviedField(varName: 'ADMOB_INTERSTITIAL_AD_UNIT_IOS')
+  static String admobInterstitialAdUnitIos = _Env.admobInterstitialAdUnitIos;
+
+  @EnviedField(varName: 'ADMOB_TEST_INTERSTITIAL_AD_UNIT_ANDROID')
+  static String admobTestInterstitialAdUnitAndroid =
+      _Env.admobTestInterstitialAdUnitAndroid;
+
+  @EnviedField(varName: 'ADMOB_TEST_INTERSTITIAL_AD_UNIT_IOS')
+  static String admobTestInterstitialAdUnitIos =
+      _Env.admobTestInterstitialAdUnitIos;
 }
