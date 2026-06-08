@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/language_localization_service/language_service_app.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
+import 'package:BlueEra/core/services/business_profile_cache.dart';
+import 'package:BlueEra/core/services/personal_profile_cache.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
@@ -274,6 +276,15 @@ class SharedPreferenceUtils {
       final workManagerBaseUrl =
           await SharedPreferenceUtils.getBaseUrlSecureValue();
       await _secureStorage.deleteAll();
+
+      // Wipe the per-profile Hive caches on every logout path (not just
+      // LogoutHelper) so the next login can never replay the previous
+      // user's stale business/personal profile and must hit the API
+      // fresh. Best-effort: a failure here must not block the wipe.
+      try {
+        await BusinessProfileCache.clear();
+        await PersonalProfileCache.clear();
+      } catch (_) {}
 
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove("last_dialog_shown");

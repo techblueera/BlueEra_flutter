@@ -153,7 +153,7 @@ class _ChatSearchScreenState extends State<ChatSearchScreen> {
         elevation: 0.5,
         titleSpacing: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
           onPressed: () => Get.back(),
         ),
         title: TextField(

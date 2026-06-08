@@ -222,7 +222,7 @@ class _PorterVehicleListScreenState extends State<PorterVehicleListScreen> {
                         horizontal: 24, vertical: 12),
                   ),
                   onPressed: () => Get.back(),
-                  icon: const Icon(Icons.arrow_back, color: Colors.white),
+                  icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
                   label: const CustomText(
                     AppStrings.goBack,
                     color: Colors.white,

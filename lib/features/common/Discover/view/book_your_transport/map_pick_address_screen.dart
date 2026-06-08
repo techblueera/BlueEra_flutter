@@ -266,7 +266,7 @@ class _MapPickAddressScreenState extends State<MapPickAddressScreen> {
               top: 12,
               left: 12,
               child: _circleIconButton(
-                icon: Icons.arrow_back,
+                icon: Icons.arrow_back_ios_new,
                 onTap: () => Navigator.of(context).pop(),
               ),
             ),

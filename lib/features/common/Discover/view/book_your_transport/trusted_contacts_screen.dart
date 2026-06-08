@@ -310,7 +310,7 @@ class _TrustedContactsScreenState extends State<TrustedContactsScreen> {
                           shape: BoxShape.circle,
                           border: Border.all(color: AppColors.whiteE5),
                         ),
-                        child: const Icon(Icons.arrow_back,
+                        child: const Icon(Icons.arrow_back_ios_new,
                             size: 16, color: AppColors.black),
                       ),
                     ),

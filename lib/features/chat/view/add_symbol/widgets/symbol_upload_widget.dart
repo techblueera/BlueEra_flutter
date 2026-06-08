@@ -855,7 +855,7 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
                   left: 20,
                   top: MediaQuery.of(context).size.height / 2 - 30,
                   child: IconButton(
-                    icon: const Icon(Icons.arrow_back,
+                    icon: const Icon(Icons.arrow_back_ios_new,
                         color: Colors.white, size: 40),
                     onPressed: () {
                       setState(() {

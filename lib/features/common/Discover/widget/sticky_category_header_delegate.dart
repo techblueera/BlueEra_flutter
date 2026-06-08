@@ -204,7 +204,7 @@ class StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
                                   .withValues(alpha: 0.15),
                               shape: BoxShape.circle,
                             ),
-                            child: Icon(Icons.arrow_back,
+                            child: Icon(Icons.arrow_back_ios_new,
                                 color: AppColors.white,
                                 size: SizeConfig.size20),
                           ),

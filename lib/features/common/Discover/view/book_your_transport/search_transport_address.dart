@@ -1176,7 +1176,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
               child: Row(
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.arrow_back,
+                    icon: const Icon(Icons.arrow_back_ios_new,
                         color: AppColors.black),
                     onPressed: _closeSearch,
                   ),
