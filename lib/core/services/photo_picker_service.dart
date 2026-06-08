@@ -19,10 +19,6 @@ import 'package:path_provider/path_provider.dart';
 
 /// Single entry point for picking photos in the app.
 class PhotoPickerService {
-  // Per-page snapshot of the last crop state so re-opening a picker on
-  // the same gallery slot restores the previous crop framing.
-  static final Map<int, CroppableImageData?> _cropMemory = {};
-
   // ─────────────────────────────────────────────────────────────
   // PUBLIC API — SINGLE PHOTO
   // ─────────────────────────────────────────────────────────────
@@ -348,6 +344,11 @@ class PhotoPickerService {
 
     if (!context.mounted) return '';
 
+    // Always open the cropper fresh on the actual image (no `initialData`).
+    // A remembered crop is keyed only by `page`, which is not unique to an
+    // image, so restoring it carried a previous image's framing over and
+    // made the crop appear "reset". Starting fresh every time avoids that.
+    //
     // Await the cropper's own result. With `shouldPopAfterCrop` the cropper
     // pops itself with the CropImageResult on submit, or with null when the
     // user backs out — so cancellation returns cleanly instead of hanging,
@@ -357,7 +358,6 @@ class PhotoPickerService {
       locale: const Locale('en', 'US'),
       imageProvider: fileImage,
       heroTag: 'photo-$page',
-      initialData: _cropMemory[page],
       enabledTransformations: const [
         Transformation.resize,
         Transformation.panAndScale,
@@ -375,9 +375,6 @@ class PhotoPickerService {
     );
 
     if (result == null) return ''; // user cancelled the cropper
-
-    // Remember the framing so re-opening this slot restores the crop.
-    _cropMemory[page] = result.transformationsData;
 
     final savedFile = await _saveUiImageToFile(result.uiImage, page);
     return savedFile?.path ?? '';
