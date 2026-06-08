@@ -272,6 +272,23 @@ class ViewBusinessDetailsController extends GetxController {
 
     if (!persistPrefs) return;
 
+    // Never let a missing/empty value from the response overwrite the
+    // id we already hold — an empty `_id`/`user_id` in the payload would
+    // otherwise wipe `userBusinessId` in secure storage and, after the
+    // `getUserLoginData()` re-read below, blank out the `businessId`
+    // global that every downstream business API depends on.
+    final resolvedBusinessId =
+        (businessProfileDetails.value?.data?.id?.trim().isNotEmpty ?? false)
+            ? businessProfileDetails.value!.data!.id!
+            : businessId;
+    final resolvedBusinessUserId =
+        (businessProfileDetails.value?.data?.userId?.trim().isNotEmpty ?? false)
+            ? businessProfileDetails.value!.data!.userId!
+            : userId;
+
+    // Bail out rather than persisting an empty businessId we can't use.
+    if (resolvedBusinessId.isEmpty) return;
+
     log('business type -- ${businessProfileDetails.value?.data?.typeOfBusiness}');
     await SharedPreferenceUtils.userLoggedInBusiness(
       email: businessProfileDetails.value?.data?.ownerDetails?[0].email ?? '',
@@ -279,8 +296,8 @@ class ViewBusinessDetailsController extends GetxController {
       businessName: businessProfileDetails.value?.data?.businessName ?? '',
       businessOwnerName:
           businessProfileDetails.value?.data?.ownerDetails?[0].name ?? '',
-      businessId: businessProfileDetails.value!.data!.id!,
-      loginBusinessUserId: businessProfileDetails.value!.data!.userId!,
+      businessId: resolvedBusinessId,
+      loginBusinessUserId: resolvedBusinessUserId,
       userNameAt: "",
       businessAddress: businessProfileDetails.value?.data?.address ?? '',
       categoryOfBusiness:

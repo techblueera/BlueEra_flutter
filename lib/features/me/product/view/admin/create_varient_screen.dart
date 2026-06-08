@@ -266,11 +266,13 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                                            decoration: TextDecoration.lineThrough,
                                          ),
                                          SizedBox(width: 8),
-                                         CustomText(
-                                           '${product.discount}% off',
-                                           fontWeight: FontWeight.bold,
-                                           fontSize: SizeConfig.medium,
-                                           color: Colors.green,
+                                         Flexible(
+                                           child: CustomText(
+                                             '${product.discount}% off',
+                                             fontWeight: FontWeight.bold,
+                                             fontSize: SizeConfig.medium,
+                                             color: Colors.green,
+                                           ),
                                          ),
                                        ],
                                      )

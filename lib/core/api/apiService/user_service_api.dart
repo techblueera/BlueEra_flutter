@@ -60,6 +60,7 @@ mixin UserServiceApi {
   // ──────────────────────────────────────────────────────────────────────
   // 2. Business profile
   // ──────────────────────────────────────────────────────────────────────
+  // final String viewBusinessProfile = '/user-service/business/6a265c5df09a0aaf6cabbb6c';
   final String viewBusinessProfile = '/user-service/business/$businessId';
   final String updateBusinessProfile =
       '/user-service/business/updateBusinessProfile';

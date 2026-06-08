@@ -88,7 +88,7 @@ class _ArchiveChatListPageState extends State<ArchiveChatListPage> {
           backgroundColor: Colors.white,
           elevation: 0.5,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black),
+            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
             onPressed: () {
               if (isSelectionMode) {
                 _clearSelection();

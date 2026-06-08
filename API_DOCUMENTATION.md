@@ -1,38 +1,3 @@
-https://be.beapp.in/api/user-service/user/me/device-token
-
-https://be.beapp.in/api/user-service/user/updateUser
-api login otp verification ===>D token===>spstore====>logout 123
-
-api update api ===> D token===>store==>api wotking ===
-
-
-user https://be.beapp.in/api/user-service/user/getUserWithFollowersAndPostsCount/6a09903bb3b8327f72a2201c
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 # Medical Service - Complete API Documentation
 
 **Base URLs:**

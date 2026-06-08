@@ -692,7 +692,6 @@ class _ProductScreenState extends State<ProductScreen>
                 ),
               ),
               child: Row(
-                mainAxisSize: MainAxisSize.min,
                 children: [
                   ClipOval(
                     child: BackdropFilter(
@@ -724,24 +723,34 @@ class _ProductScreenState extends State<ProductScreen>
                     ),
                   ),
                   SizedBox(width: SizeConfig.size12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CustomText(
-                        AppStrings.contributeNow.tr,
-                        fontSize: 26,
-                        fontWeight: FontWeight.w800,
-                        color: const Color(0xFF221831),
-                      ),
-                      const SizedBox(height: 2),
-                      CustomText(
-                        AppStrings.toGetOrderVisibility.tr,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF6E5F8E),
-                      ),
-                    ],
+                  // Expanded so the copy ellipsizes within the banner
+                  // width instead of pushing the Row past its bounds —
+                  // the long/localized strings at these large font sizes
+                  // were the source of the RenderFlex overflow.
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CustomText(
+                          AppStrings.contributeNow.tr,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF221831),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        CustomText(
+                          AppStrings.toGetOrderVisibility.tr,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF6E5F8E),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -1358,7 +1367,7 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Hero zone â€” brand-tinted backdrop with the photo
+            // Hero zone brand-tinted backdrop with the photo
             // centered (BoxFit.contain so product shots never crop).
             // Discount sticker top-left, rank pill top-right.
             AspectRatio(

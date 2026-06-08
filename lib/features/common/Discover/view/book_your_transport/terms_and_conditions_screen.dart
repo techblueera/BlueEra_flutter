@@ -169,7 +169,7 @@ class _Hero extends StatelessWidget {
                       color: Colors.white.withValues(alpha: 0.18),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.arrow_back,
+                    child: const Icon(Icons.arrow_back_ios_new,
                         color: AppColors.white, size: 20),
                   ),
                 ),

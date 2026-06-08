@@ -93,7 +93,7 @@ class _FullImagePreviewPageState extends State<FullImagePreviewPage> {
                       child: Row(
                         children: [
                           IconButton(
-                            icon: const Icon(Icons.arrow_back,
+                            icon: const Icon(Icons.arrow_back_ios_new,
                                 color: Colors.white, size: 24),
                             onPressed: () => Navigator.pop(context),
                           ),

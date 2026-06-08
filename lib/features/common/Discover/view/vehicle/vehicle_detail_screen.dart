@@ -337,7 +337,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                   child: Row(
                     children: [
                       _coverIconButton(
-                        icon: Icons.arrow_back,
+                        icon: Icons.arrow_back_ios_new,
                         onTap: () => Navigator.of(context).pop(),
                       ),
                       const Spacer(),

@@ -25,7 +25,6 @@ import 'package:BlueEra/features/common/delivery_partner/controller/delivery_par
 import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
-import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting_cards.dart';
 import 'package:BlueEra/features/common/statistics/view/business_statistics_screen.dart';
@@ -39,9 +38,7 @@ import 'package:BlueEra/features/personal/personal_profile/widgets/profile_bio_c
 import 'package:BlueEra/features/personal/personal_profile/widgets/profile_location_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/widgets/profile_top_bar.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
-import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
@@ -92,11 +89,7 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
   static const _orderSubChat = 1;
   int _orderSubTab = _orderSubOrders;
 
-  static const _orderIndex = 0;
-  static const _overviewIndex = 1;
-  static const _postIndex = 2;
-  static const _storeIndex = 3;
-  static const _staticsIndex = 4;
+
 
   @override
   void initState() {

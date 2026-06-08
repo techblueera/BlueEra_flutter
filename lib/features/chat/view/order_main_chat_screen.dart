@@ -21,7 +21,6 @@ import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../widgets/common_search_bar.dart';
 import '../../../core/constants/getx_utils.dart';
-import '../../../core/constants/shared_preference_utils.dart';
 import '../../../core/constants/snackbar_helper.dart';
 import '../../../widgets/custom_text_cm.dart';
 import '../../common/bottomNavigationBar/controller/bottom_bar_controller.dart';

@@ -1,7 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
-import 'package:BlueEra/core/constants/app_enum.dart';
 
 class BusinessProfileRepo extends BaseService {
   Future<ResponseModel> viewParticularBusinessProfile() async {

@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
@@ -656,10 +657,13 @@ openPersonalProfile({required String? userID}) {
 // Popup menu builders moved to PopupMenuBuilders class in popup_menu_builders.dart
 
 bool isIndividual() {
+  logs("isIndividual accountTypeGlobal.toUpperCase() ${accountTypeGlobal.toUpperCase()}");
+
   return (accountTypeGlobal.toUpperCase() == AppConstants.individual);
 }
 
 bool isBusiness() {
+  logs("isBusiness accountTypeGlobal.toUpperCase() ${accountTypeGlobal.toUpperCase()}");
   return (accountTypeGlobal.toUpperCase() == AppConstants.business);
 }
 
@@ -669,9 +673,6 @@ String formatMonthStringDate(String inputDate) {
   return DateFormat('dd-MMM-yyyy').format(parsedDate);
 }
 
-// List<String> isShowOther = ["product", "service", "both"];
-// List<String> isShowProduct = ["product", "service", "both"];
-// List<String> isShowService = ["product", "service", "both", "food"];
 List<String> isShowProduct = [AppConstants.product];
 List<String> isShowService = [AppConstants.service];
 List<String> isShowFood = [AppConstants.food];
