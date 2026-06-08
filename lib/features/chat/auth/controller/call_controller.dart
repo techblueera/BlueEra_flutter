@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -1663,7 +1662,6 @@ class CallController extends GetxController {
     }
 
     // Flush buffered ICE candidates
-    final pendingCount = _pendingCandidates[fromUserId]?.length ?? 0;
     // print('[FARE_CALL_DEBUG] _handleRemoteOffer → flushing $pendingCount pending ICE candidates');
     await _flushPendingCandidates(fromUserId);
 
@@ -1732,7 +1730,6 @@ class CallController extends GetxController {
       return;
     }
 
-    final candidateStr = candidateMap['candidate'] ?? '';
     // print('[FARE_CALL_DEBUG] _handleRemoteIceCandidate → from=$fromUserId, candidate=${candidateStr.toString().substring(0, candidateStr.toString().length > 60 ? 60 : candidateStr.toString().length)}...');
 
     final candidate = RTCIceCandidate(
@@ -3390,7 +3387,7 @@ void showFlutterCallNotification({
     await FlutterCallkitIncoming.showCallkitIncoming(params);
     _callsShownInCallKit.add(callSessionId);
     // print('[CALL_DEBUG] showFlutterCallNotification → showCallkitIncoming returned OK');
-  } catch (e, st) {
+  } catch (e) {
     // print('[CALL_DEBUG] showFlutterCallNotification → showCallkitIncoming ERROR: $e\n$st');
   }
 }
