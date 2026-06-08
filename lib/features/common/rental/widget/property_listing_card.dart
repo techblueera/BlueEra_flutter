@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
@@ -224,14 +225,14 @@ class PropertyListingCard extends StatelessWidget {
   String _distanceLabel() {
     final lat = property.location?.latitude.toDouble() ?? 0.0;
     final lng = property.location?.longitude.toDouble() ?? 0.0;
-    if (lat == 0.0 || lng == 0.0) return '— KM Away';
+    if (lat == 0.0 || lng == 0.0) return AppStrings.kmAwayEmpty.tr;
     final km = calculateDistanceKm(
       LocationService.lat,
       LocationService.lng,
       lat,
       lng,
     );
-    return '${km.toStringAsFixed(0)}KM Away';
+    return AppStrings.kmAwayFmt.trParams({'km': km.toStringAsFixed(0)});
   }
 
   // ─── STATS ROW ──────────────────────────────────────────────────
@@ -328,16 +329,16 @@ class PropertyListingCard extends StatelessWidget {
   String _priceSuffix() {
     if (property.listingType != 'Rent') return '';
     final pt = property.priceType;
-    if (pt == null || pt.isEmpty) return '/Month';
+    if (pt == null || pt.isEmpty) return AppStrings.perMonthSuffix.tr;
     switch (pt) {
       case 'PerMonth':
-        return '/Month';
+        return AppStrings.perMonthSuffix.tr;
       case 'PerQuarter':
-        return '/Quarter';
+        return AppStrings.perQuarterSuffix.tr;
       case 'Per6Months':
-        return '/6 Months';
+        return AppStrings.perSixMonthsSuffix.tr;
       case 'PerYear':
-        return '/Year';
+        return AppStrings.perYearSuffix.tr;
       case 'OneTime':
         return '';
       default:
@@ -352,7 +353,8 @@ class PropertyListingCard extends StatelessWidget {
     if (amount == null || amount.trim().isEmpty) return '';
     final n = num.tryParse(amount.trim());
     if (n == null || n <= 0) return '';
-    return '+ Deposit ₹${formatIndianNumber(n)}';
+    return AppStrings.depositPrefixFmt
+        .trParams({'amount': formatIndianNumber(n).toString()});
   }
 
   Widget _areaColumn() {
@@ -391,28 +393,34 @@ class PropertyListingCard extends StatelessWidget {
   ({String value, String label}) _areaStat() {
     final ha = property.houseAndApartment;
     if (ha != null && (ha.areaDetails ?? '').isNotEmpty) {
-      return (value: ha.areaDetails!, label: 'Built-up Area');
+      return (value: ha.areaDetails!, label: AppStrings.builtUpAreaLabel.tr);
     }
     final lp = property.landAndPlots;
     if (lp?.plotAreaDetails?.totalArea != null &&
         lp!.plotAreaDetails!.totalArea!.isNotEmpty) {
-      return (value: lp.plotAreaDetails!.totalArea!, label: 'Plot Area');
+      return (
+        value: lp.plotAreaDetails!.totalArea!,
+        label: AppStrings.plotAreaLabel.tr,
+      );
     }
     final so = property.shopAndOffices;
     if (so != null && (so.superBuiltupArea ?? '').isNotEmpty) {
-      return (value: so.superBuiltupArea!, label: 'Built-up Area');
+      return (
+        value: so.superBuiltupArea!,
+        label: AppStrings.builtUpAreaLabel.tr,
+      );
     }
     final np = property.newProjectsAndProperties;
     if (np != null && (np.area ?? '').isNotEmpty) {
-      return (value: np.area!, label: 'Area');
+      return (value: np.area!, label: AppStrings.areaLabel.tr);
     }
     final pg = property.pgAndGuestHouse;
     if (pg != null && (pg.roomType ?? '').isNotEmpty) {
-      return (value: pg.roomType!, label: 'Room Type');
+      return (value: pg.roomType!, label: AppStrings.filterLabelRoomType.tr);
     }
     return (
       value: property.rating.toStringAsFixed(1),
-      label: 'Rating',
+      label: AppStrings.ratingStatLabel.tr,
     );
   }
 
@@ -563,7 +571,7 @@ class PropertyListingCard extends StatelessWidget {
             ?.trim() ??
         '';
     if (builder.isNotEmpty) return builder;
-    return 'Property Owner';
+    return AppStrings.propertyOwnerFallback.tr;
   }
 
   String _ownerSubline() {
@@ -572,8 +580,10 @@ class PropertyListingCard extends StatelessWidget {
     // sub-model and echoed back in the response — pull it from
     // whichever sub-model carries it. Falls back to 'Owner' when
     // the field is missing on an older payload.
-    final role = _listedByRole() ?? 'Owner';
-    return isOwner ? 'You • $role' : role;
+    final role = _listedByRole() ?? AppStrings.ownerRoleFallback.tr;
+    return isOwner
+        ? AppStrings.youDotRoleFmt.trParams({'role': role})
+        : role;
   }
 
   /// Pulls `listedBy` from whichever type-specific sub-model has it.
@@ -612,13 +622,13 @@ class PropertyListingCard extends StatelessWidget {
     // Share endpoint not wired through to the rental flow yet — keep
     // the chip visible so the layout matches the Discover design;
     // surface a hint so the tap isn't silent.
-    commonSnackBar(message: 'Share coming soon');
+    commonSnackBar(message: AppStrings.shareComingSoon.tr);
   }
 
   void _openChat() {
     final ownerId = property.userId;
     if (ownerId == null || ownerId.isEmpty) {
-      commonSnackBar(message: 'Owner not available for chat');
+      commonSnackBar(message: AppStrings.ownerNotAvailableForChat.tr);
       return;
     }
     final chatController = Get.find<ChatViewController>();
@@ -657,7 +667,7 @@ class PropertyListingCard extends StatelessWidget {
             ListTile(
               leading: Icon(Icons.delete_outline, color: AppColors.redB4),
               title: CustomText(
-                'Delete Property',
+                AppStrings.deletePropertyTitle.tr,
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
                 color: AppColors.redB4,
@@ -679,14 +689,14 @@ class PropertyListingCard extends StatelessWidget {
       AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: CustomText(
-          'Delete Property',
+          AppStrings.deletePropertyTitle.tr,
           fontSize: SizeConfig.large18,
           fontWeight: FontWeight.w800,
           color: AppColors.mainTextColor,
         ),
         content: CustomText(
-          'Are you sure you want to delete "${property.propertyName}"? '
-              'This action cannot be undone.',
+          AppStrings.deletePropertyConfirmFmt
+              .trParams({'name': property.propertyName}),
           fontSize: SizeConfig.small,
           color: AppColors.secondaryTextColor,
         ),
@@ -694,7 +704,7 @@ class PropertyListingCard extends StatelessWidget {
           TextButton(
             onPressed: () => Get.back(),
             child: CustomText(
-              'Cancel',
+              AppStrings.cancel.tr,
               fontSize: 14,
               fontWeight: FontWeight.w600,
               color: AppColors.secondaryTextColor,
@@ -706,7 +716,7 @@ class PropertyListingCard extends StatelessWidget {
               _deleteProperty();
             },
             child: CustomText(
-              'Delete',
+              AppStrings.delete.tr,
               fontSize: 14,
               fontWeight: FontWeight.w700,
               color: AppColors.redB4,
@@ -728,15 +738,16 @@ class PropertyListingCard extends StatelessWidget {
       final response = await repo.deleteProperty(property.id!);
       Get.back();
       if (response.isSuccess) {
-        commonSnackBar(message: 'Property deleted successfully');
+        commonSnackBar(message: AppStrings.propertyDeletedSuccessfully.tr);
         onDeleted?.call();
       } else {
         commonSnackBar(
-            message: response.message ?? 'Failed to delete property');
+            message:
+                response.message ?? AppStrings.failedToDeleteProperty.tr);
       }
     } catch (_) {
       Get.back();
-      commonSnackBar(message: 'Something went wrong');
+      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
     }
   }
 

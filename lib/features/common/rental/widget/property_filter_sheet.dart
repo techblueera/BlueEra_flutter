@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/rental/controller/property_discover_controller.dart';
 import 'package:BlueEra/features/common/rental/controller/property_filter_registry.dart';
@@ -79,8 +80,8 @@ class _PropertyFilterSheetState extends State<PropertyFilterSheet> {
 
   List<_FilterSection> _buildSections() {
     return [
-      const _FilterSection(key: 'budget', label: 'Budget'),
-      const _FilterSection(key: 'locality', label: 'Locality'),
+      _FilterSection(key: 'budget', label: AppStrings.budget.tr),
+      _FilterSection(key: 'locality', label: AppStrings.localityLabel.tr),
       for (final d in _ctrl.visibleFilterDefs)
         _FilterSection(key: d.id.name, label: d.label, def: d),
     ];
@@ -192,7 +193,7 @@ class _PropertyFilterSheetState extends State<PropertyFilterSheet> {
             children: [
               Expanded(
                 child: CustomText(
-                  'Filters',
+                  AppStrings.filtersLabel.tr,
                   fontSize: SizeConfig.large18,
                   fontWeight: FontWeight.w800,
                   color: AppColors.mainTextColor,
@@ -298,7 +299,7 @@ class _PropertyFilterSheetState extends State<PropertyFilterSheet> {
       padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
       children: [
         CustomText(
-          'Budget in ₹',
+          AppStrings.budgetInRupees.tr,
           fontSize: SizeConfig.medium,
           fontWeight: FontWeight.w700,
           color: AppColors.mainTextColor,
@@ -309,8 +310,8 @@ class _PropertyFilterSheetState extends State<PropertyFilterSheet> {
           children: [
             Expanded(
               child: RentalLabeledField(
-                label: 'Min',
-                hint: 'No min',
+                label: AppStrings.minLabel.tr,
+                hint: AppStrings.noMin.tr,
                 controller: _minCtrl,
                 keyboardType: TextInputType.number,
                 onChanged: (_) => setState(() {}),
@@ -319,7 +320,7 @@ class _PropertyFilterSheetState extends State<PropertyFilterSheet> {
             Padding(
               padding: const EdgeInsets.fromLTRB(10, 0, 10, 12),
               child: CustomText(
-                'to',
+                AppStrings.toSeparator.tr,
                 fontSize: SizeConfig.small,
                 fontWeight: FontWeight.w500,
                 color: AppColors.secondaryTextColor,
@@ -327,8 +328,8 @@ class _PropertyFilterSheetState extends State<PropertyFilterSheet> {
             ),
             Expanded(
               child: RentalLabeledField(
-                label: 'Max',
-                hint: 'No max',
+                label: AppStrings.maxLabel.tr,
+                hint: AppStrings.noMax.tr,
                 controller: _maxCtrl,
                 keyboardType: TextInputType.number,
                 onChanged: (_) => setState(() {}),
@@ -345,8 +346,8 @@ class _PropertyFilterSheetState extends State<PropertyFilterSheet> {
       padding: const EdgeInsets.fromLTRB(16, 18, 16, 18),
       children: [
         RentalLabeledField(
-          label: 'City / Locality',
-          hint: 'E.g. Mumbai, Delhi...',
+          label: AppStrings.cityLocalityLabel.tr,
+          hint: AppStrings.egMumbaiDelhi.tr,
           controller: _cityCtrl,
           onChanged: (_) => setState(() {}),
         ),
@@ -400,7 +401,7 @@ class _PropertyFilterSheetState extends State<PropertyFilterSheet> {
               padding:
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
               child: CustomText(
-                allSelected ? 'Clear All' : 'Select All',
+                allSelected ? AppStrings.clearAll.tr : AppStrings.selectAll.tr,
                 fontSize: SizeConfig.medium,
                 fontWeight: FontWeight.w700,
                 color: AppColors.primaryColor,
@@ -477,7 +478,7 @@ class _PropertyFilterSheetState extends State<PropertyFilterSheet> {
                     border: Border.all(color: AppColors.primaryColor),
                   ),
                   child: CustomText(
-                    'Clear all',
+                    AppStrings.clearAll.tr,
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
                     color: AppColors.primaryColor,
@@ -490,8 +491,9 @@ class _PropertyFilterSheetState extends State<PropertyFilterSheet> {
               flex: 2,
               child: RentalPrimaryButton(
                 label: _pendingCount > 0
-                    ? 'Apply Filters ($_pendingCount)'
-                    : 'Apply Filters',
+                    ? AppStrings.applyFiltersFmt
+                        .trParams({'count': '$_pendingCount'})
+                    : AppStrings.applyFiltersLabel.tr,
                 onTap: _apply,
               ),
             ),

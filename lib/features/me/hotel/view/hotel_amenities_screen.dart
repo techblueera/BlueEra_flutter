@@ -89,7 +89,6 @@ class HotelAmenitiesScreen extends StatelessWidget {
   }
 
   Widget _buildAmenityRow(_AmenityItem item) {
-    final isEnabled = controller.hotelAmenityStatus[item.keyId] ?? false;
     return CommonCardWidget(
       borderColorColor: AppColors.whiteE5,
       cardMargin: 7,
@@ -109,10 +108,12 @@ class HotelAmenitiesScreen extends StatelessWidget {
           ),
           Transform.scale(
             scale: 0.75,
-            child: Switch(
-              value: isEnabled,
-              activeThumbColor: AppColors.primaryColor,
-              onChanged: (v) => controller.updateAmenity(item.keyId, v),
+            child: Obx(
+              () => Switch(
+                value: controller.hotelAmenityStatus[item.keyId] ?? false,
+                activeThumbColor: AppColors.primaryColor,
+                onChanged: (v) => controller.updateAmenity(item.keyId, v),
+              ),
             ),
           ),
         ],

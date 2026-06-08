@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/common/rental/controller/property_controller.dart';
 import 'package:BlueEra/features/common/rental/widget/complete_your_listing_screen.dart';
 import 'package:BlueEra/features/common/rental/widget/rent/complete_your_rent_listing_screen.dart';
@@ -29,7 +30,7 @@ class _LandPlotsSpecificationsScreenState
     return (value) {
       final v = value?.trim() ?? '';
       if (v.isEmpty) return emptyMessage;
-      if (num.tryParse(v) == null) return 'Enter a valid number';
+      if (num.tryParse(v) == null) return AppStrings.enterValidNumber.tr;
       return null;
     };
   }
@@ -64,52 +65,46 @@ class _LandPlotsSpecificationsScreenState
                         RentalLocationField(),
                         const SizedBox(height: 18),
                         RentalChipSelector(
-                          label: 'Project Type',
-                          options: const ['For Rent', 'For Sale'],
+                          label: AppStrings.projectTypeLabel.tr,
+                          options: PropertyController.lpProjectTypeOptions,
                           onChanged: (i) => _ctrl.lpProjectType.value = i,
                         ),
                         const SizedBox(height: 18),
                         RentalChipSelector(
-                          label: 'Listed By',
-                          options: const ['Owner', 'Builder', 'Dealer'],
+                          label: AppStrings.filterLabelListedBy.tr,
+                          options: PropertyController.listedByOptions,
                           onChanged: (i) => _ctrl.lpListedBy.value = i,
                         ),
                         const SizedBox(height: 14),
                         const RentalListedByNameField(),
                         const SizedBox(height: 18),
                         RentalAreaField(
-                          label: 'Add Plot Area Details',
-                          hint: 'E.g. 4060',
+                          label: AppStrings.addPlotAreaDetails.tr,
+                          hint: AppStrings.egArea4060.tr,
                           onChanged: (v) => _ctrl.lpPlotArea.value = v,
-                          validator: _numericRequired('Please enter plot area'),
+                          validator:
+                              _numericRequired(AppStrings.pleaseEnterPlotArea.tr),
                         ),
                         const SizedBox(height: 14),
                         RentalAreaField(
-                          label: 'Enter Length',
-                          hint: 'Enter Length',
+                          label: AppStrings.enterLengthFieldLabel.tr,
+                          hint: AppStrings.enterLengthFieldLabel.tr,
                           onChanged: (v) => _ctrl.lpLength.value = v,
-                          validator: _numericRequired('Please enter length'),
+                          validator: _numericRequired(
+                              AppStrings.pleaseEnterLengthValidation.tr),
                         ),
                         const SizedBox(height: 14),
                         RentalAreaField(
-                          label: 'Enter Breadth',
-                          hint: 'Enter Breadth',
+                          label: AppStrings.enterBreadthFieldLabel.tr,
+                          hint: AppStrings.enterBreadthFieldLabel.tr,
                           onChanged: (v) => _ctrl.lpBreadth.value = v,
-                          validator: _numericRequired('Please enter breadth'),
+                          validator: _numericRequired(
+                              AppStrings.pleaseEnterBreadthValidation.tr),
                         ),
                         const SizedBox(height: 18),
                         RentalChipSelector(
-                          label: 'Facing',
-                          options: const [
-                            'North',
-                            'South',
-                            'East',
-                            'West',
-                            'North-East',
-                            'North-West',
-                            'South-East',
-                            'South-West',
-                          ],
+                          label: AppStrings.filterLabelFacing.tr,
+                          options: PropertyController.facingOptions,
                           onChanged: (i) => _ctrl.lpFacing.value = i,
                         ),
                       ],
@@ -122,7 +117,7 @@ class _LandPlotsSpecificationsScreenState
         ),
         bottomNavigationBar: RentalBottomBar(
           child: RentalPrimaryButton(
-            label: 'Next',
+            label: AppStrings.next.tr,
             onTap: () {
               FocusScope.of(context).unfocus();
               setState(() => _autovalidate = AutovalidateMode.onUserInteraction);

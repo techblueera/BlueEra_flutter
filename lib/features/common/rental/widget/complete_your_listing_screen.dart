@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/common/rental/controller/property_controller.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_form_widgets.dart';
@@ -78,7 +79,7 @@ class _CompleteYourListingScreenState extends State<CompleteYourListingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: 'Complete Your Listing'),
+      appBar: CommonBackAppBar(title: AppStrings.completeYourListing.tr),
       body: Column(
         children: [
           const RentalStepProgressBar(progress: 1.0),
@@ -99,7 +100,7 @@ class _CompleteYourListingScreenState extends State<CompleteYourListingScreen> {
                           children: [
                             Expanded(
                               child: CustomText(
-                                'Upload Your Work Photo',
+                                AppStrings.uploadYourWorkPhoto.tr,
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
                                 color: AppColors.mainTextColor,
@@ -120,7 +121,7 @@ class _CompleteYourListingScreenState extends State<CompleteYourListingScreen> {
                               Expanded(
                                 child: _UploadTile(
                                   icon: Icons.camera_alt_outlined,
-                                  label: 'Take A Picture',
+                                  label: AppStrings.takeAPicture.tr,
                                   onTap: _pickFromCamera,
                                 ),
                               ),
@@ -128,7 +129,7 @@ class _CompleteYourListingScreenState extends State<CompleteYourListingScreen> {
                               Expanded(
                                 child: _UploadTile(
                                   icon: Icons.folder_outlined,
-                                  label: 'Folders',
+                                  label: AppStrings.foldersLabel.tr,
                                   onTap: _pickFromGallery,
                                 ),
                               ),
@@ -167,7 +168,7 @@ class _CompleteYourListingScreenState extends State<CompleteYourListingScreen> {
       ),
       bottomNavigationBar: RentalBottomBar(
         child: Obx(() => RentalPrimaryButton(
-          label: 'Post Now',
+          label: AppStrings.postNow.tr,
           isLoading: _ctrl.isLoading.value,
           onTap: () async {
             FocusScope.of(context).unfocus();
@@ -261,7 +262,7 @@ class _PriceDetailsSectionState extends State<_PriceDetailsSection> {
           children: [
             Expanded(
               child: CustomText(
-                'Price Details',
+                AppStrings.priceDetails.tr,
                 fontSize: 14,
                 fontWeight: FontWeight.w700,
                 color: AppColors.mainTextColor,
@@ -284,7 +285,7 @@ class _PriceDetailsSectionState extends State<_PriceDetailsSection> {
                   ),
                   const SizedBox(width: 4),
                   CustomText(
-                    'Price Range',
+                    AppStrings.priceRangeLabel.tr,
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: AppColors.primaryColor,
@@ -302,20 +303,20 @@ class _PriceDetailsSectionState extends State<_PriceDetailsSection> {
               Expanded(
                 child: RentalLabeledField(
                   label: '',
-                  hint: 'Min Price',
+                  hint: AppStrings.minPriceHint.tr,
                   keyboardType: TextInputType.number,
                   onChanged: (v) => _ctrl.priceFrom.value = v,
-                  validator: _numericRequired('Enter min price'),
+                  validator: _numericRequired(AppStrings.enterMinPrice.tr),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: RentalLabeledField(
                   label: '',
-                  hint: 'Max Price',
+                  hint: AppStrings.maxPriceHint.tr,
                   keyboardType: TextInputType.number,
                   onChanged: (v) => _ctrl.priceTo.value = v,
-                  validator: _numericRequired('Enter max price'),
+                  validator: _numericRequired(AppStrings.enterMaxPrice.tr),
                 ),
               ),
             ],
@@ -323,23 +324,23 @@ class _PriceDetailsSectionState extends State<_PriceDetailsSection> {
         else
           RentalLabeledField(
             label: '',
-            hint: 'E.g. ₹40,660',
+            hint: AppStrings.egRupees40660.tr,
             keyboardType: TextInputType.number,
             onChanged: (v) => _ctrl.price.value = v,
-            validator: _numericRequired('Enter price'),
+            validator: _numericRequired(AppStrings.enterPrice.tr),
           ),
         const SizedBox(height: 12),
-        _checkRow('All Inclusive Price', _allInclusive, (v) {
+        _checkRow(AppStrings.allInclusivePriceLabel.tr, _allInclusive, (v) {
           setState(() => _allInclusive = v);
           _ctrl.allInclusivePrice.value = v;
         }),
         const SizedBox(height: 8),
-        _checkRow('Price Negotiable', _negotiable, (v) {
+        _checkRow(AppStrings.priceNegotiableLabel.tr, _negotiable, (v) {
           setState(() => _negotiable = v);
           _ctrl.priceNegotiable.value = v;
         }),
         const SizedBox(height: 8),
-        _checkRow('Tax And Govt. Charges Excluded', _taxExcluded, (v) {
+        _checkRow(AppStrings.taxAndGovtChargesExcluded.tr, _taxExcluded, (v) {
           setState(() => _taxExcluded = v);
           _ctrl.taxAndGovtChargeExcluded.value = v;
         }),
@@ -352,7 +353,7 @@ class _PriceDetailsSectionState extends State<_PriceDetailsSection> {
         if (!isSell) ...[
           const SizedBox(height: 16),
           RentalChipSelector(
-            label: 'Rent Duration',
+            label: AppStrings.rentDurationLabel.tr,
             options: PropertyController.rentDurationOptions
                 .map((k) => PropertyController.priceTypeLabels[k] ?? k)
                 .toList(),
@@ -368,12 +369,16 @@ class _PriceDetailsSectionState extends State<_PriceDetailsSection> {
         // token/booking money the buyer puts down, so the wire payload
         // stays identical across both flows — only the label changes.
         RentalLabeledField(
-          label: isSell ? 'Booking Amount' : 'Security Deposit',
-          hint: 'E.g. ₹50,000',
+          label: isSell
+              ? AppStrings.bookingAmountLabel.tr
+              : AppStrings.securityDepositLabel.tr,
+          hint: AppStrings.egRupees50000.tr,
           keyboardType: TextInputType.number,
           onChanged: (v) => _ctrl.securityDepositAmount.value = v,
           validator: _numericRequired(
-            isSell ? 'Enter booking amount' : 'Enter security deposit amount',
+            isSell
+                ? AppStrings.enterBookingAmount.tr
+                : AppStrings.enterSecurityDepositAmount.tr,
           ),
         ),
       ],
@@ -387,7 +392,7 @@ class _PriceDetailsSectionState extends State<_PriceDetailsSection> {
     return (value) {
       final v = value?.trim() ?? '';
       if (v.isEmpty) return emptyMessage;
-      if (int.tryParse(v) == null) return 'Enter a valid number';
+      if (int.tryParse(v) == null) return AppStrings.enterValidNumber.tr;
       return null;
     };
   }

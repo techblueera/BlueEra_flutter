@@ -6406,4 +6406,457 @@ class AppStrings {
   static const String flatAndRoomChip = "flatAndRoomChip";
   static const String vehicleChip = "vehicleChip";
   static const String liveLabel = "live";
+
+  /// RENTAL / PROPERTY controllers (lib/features/common/rental/controller)
+  /// — display labels, validation messages, sort/filter labels, and chip
+  /// labels. Wire-key values (sent to backend) keep their literal form;
+  /// these keys cover only the user-facing display strings.
+
+  // Area units (shared across step 2 screens)
+  static const String areaUnitSqFt = "areaUnitSqFt";
+  static const String areaUnitSqM = "areaUnitSqM";
+  static const String areaUnitSqYd = "areaUnitSqYd";
+  static const String areaUnitAcres = "areaUnitAcres";
+
+  // Price/rent duration labels (priceTypeLabels)
+  static const String rentDurationMonthly = "rentDurationMonthly";
+  static const String rentDurationQuarterly = "rentDurationQuarterly";
+  static const String rentDurationHalfYearly = "rentDurationHalfYearly";
+  static const String rentDurationYearly = "rentDurationYearly";
+  static const String rentDurationOneTime = "rentDurationOneTime";
+
+  // Sale / Rent category labels (saleTypes, rentTypes)
+  static const String propertyCategoryHousesApartments = "propertyCategoryHousesApartments";
+  static const String propertyCategoryNewProjectsProperties = "propertyCategoryNewProjectsProperties";
+  static const String propertyCategoryLandsPlots = "propertyCategoryLandsPlots";
+  static const String propertyCategoryShopsOffices = "propertyCategoryShopsOffices";
+  static const String propertyCategoryPGGuestHouse = "propertyCategoryPGGuestHouse";
+
+  // Dashboard category labels (with line breaks)
+  static const String propertyDashHousesApartments = "propertyDashHousesApartments";
+  static const String propertyDashNewProjectsProperties = "propertyDashNewProjectsProperties";
+  static const String propertyDashShopsOffices = "propertyDashShopsOffices";
+  static const String propertyDashLandsPlots = "propertyDashLandsPlots";
+  static const String propertyDashPGGuestHouse = "propertyDashPGGuestHouse";
+
+  // House & Apartment type options
+  static const String haTypeFlatApartments = "haTypeFlatApartments";
+  static const String haTypeIndependentBuilderFloor = "haTypeIndependentBuilderFloor";
+  static const String haTypeFarmHouse = "haTypeFarmHouse";
+  static const String haTypeHouseVilla = "haTypeHouseVilla";
+  static const String haTypeDuplex = "haTypeDuplex";
+
+  // Furnishing options
+  static const String furnishingFurnished = "furnishingFurnished";
+  static const String furnishingSemiFurnished = "furnishingSemiFurnished";
+  static const String furnishingUnfurnished = "furnishingUnfurnished";
+
+  // Listed-by options
+  static const String listedByOwner = "listedByOwner";
+  static const String listedByBuilder = "listedByBuilder";
+  static const String listedByDealer = "listedByDealer";
+
+  // Availability options
+  static const String availabilityReadyToMove = "availabilityReadyToMove";
+  static const String availabilityUnderConstruction = "availabilityUnderConstruction";
+
+  // Facing direction options
+  static const String facingNorth = "facingNorth";
+  static const String facingSouth = "facingSouth";
+  static const String facingEast = "facingEast";
+  static const String facingWest = "facingWest";
+  static const String facingNorthEast = "facingNorthEast";
+  static const String facingNorthWest = "facingNorthWest";
+  static const String facingSouthEast = "facingSouthEast";
+  static const String facingSouthWest = "facingSouthWest";
+
+  // Land & Plots project type
+  static const String lpProjectTypeForRent = "lpProjectTypeForRent";
+  static const String lpProjectTypeForSale = "lpProjectTypeForSale";
+
+  // Shop / Office project status
+  static const String shopProjectStatusNewLaunch = "shopProjectStatusNewLaunch";
+
+  // New Project property-type options
+  static const String npTypeOneRK = "npTypeOneRK";
+  static const String npTypeOneBHK = "npTypeOneBHK";
+  static const String npTypeTwoBHK = "npTypeTwoBHK";
+  static const String npTypeThreeBHK = "npTypeThreeBHK";
+  static const String npTypeFourBHK = "npTypeFourBHK";
+  static const String npTypeFourBHKPlus = "npTypeFourBHKPlus";
+  static const String npTypeOffice = "npTypeOffice";
+
+  // Towers range options
+  static const String towersOneToThree = "towersOneToThree";
+  static const String towersThreeToFive = "towersThreeToFive";
+  static const String towersFiveToTen = "towersFiveToTen";
+  static const String towersTenPlus = "towersTenPlus";
+
+  // Floors range options
+  static const String floorsOneToFive = "floorsOneToFive";
+  static const String floorsSixToTen = "floorsSixToTen";
+  static const String floorsTenToTwenty = "floorsTenToTwenty";
+  static const String floorsTwentyPlus = "floorsTwentyPlus";
+
+  // PG subtype options
+  static const String pgSubtypeGuestHouse = "pgSubtypeGuestHouse";
+  static const String pgSubtypePG = "pgSubtypePG";
+  static const String pgSubtypeRoommate = "pgSubtypeRoommate";
+
+  // PG room type options
+  static const String pgRoomSingleSharing = "pgRoomSingleSharing";
+  static const String pgRoomDoubleSharing = "pgRoomDoubleSharing";
+  static const String pgRoomTripleSharing = "pgRoomTripleSharing";
+  static const String pgRoomDormitory = "pgRoomDormitory";
+
+  // Bachelor / attached bathroom / meals yes-no options
+  static const String bachelorsYesAllowed = "bachelorsYesAllowed";
+  static const String bachelorsNotAllowed = "bachelorsNotAllowed";
+  static const String attachedBathroomYes = "attachedBathroomYes";
+  static const String attachedBathroomNo = "attachedBathroomNo";
+  static const String mealsYesIncluded = "mealsYesIncluded";
+  static const String mealsNotIncluded = "mealsNotIncluded";
+
+  // Property kind
+  static const String propertyKindResidential = "propertyKindResidential";
+  static const String propertyKindCommercial = "propertyKindCommercial";
+
+  // Validation / snackbar messages (property submission flow)
+  static const String pleaseEnterProjectName = "pleaseEnterProjectName";
+  static const String pleaseAddDescription = "pleaseAddDescription";
+  static const String pleaseUploadAtLeast2Images = "pleaseUploadAtLeast2Images";
+  static const String pleaseSelectRentDuration = "pleaseSelectRentDuration";
+  static const String propertyListedSuccessfully = "propertyListedSuccessfully";
+  static const String failedToListProperty = "failedToListProperty";
+
+  // Sort labels (PropertySortByLabel.label)
+  static const String sortRelevance = "sortRelevance";
+  static const String sortNewestFirst = "sortNewestFirst";
+  static const String sortPriceLowToHigh = "sortPriceLowToHigh";
+  static const String sortPriceHighToLow = "sortPriceHighToLow";
+  static const String sortPricePerSqftLowToHigh = "sortPricePerSqftLowToHigh";
+  static const String sortPricePerSqftHighToLow = "sortPricePerSqftHighToLow";
+
+  // Sort chip labels (compact, in discover filter strip)
+  static const String sortChipSort = "sortChipSort";
+  static const String sortChipNewest = "sortChipNewest";
+  static const String sortChipPriceUp = "sortChipPriceUp";
+  static const String sortChipPriceDown = "sortChipPriceDown";
+  static const String sortChipPerSqftUp = "sortChipPerSqftUp";
+  static const String sortChipPerSqftDown = "sortChipPerSqftDown";
+
+  // Filter registry labels (propertyFilterRegistry)
+  static const String filterLabelListedBy = "filterLabelListedBy";
+  static const String filterLabelMinRating = "filterLabelMinRating";
+  static const String filterLabelHouseType = "filterLabelHouseType";
+  static const String filterLabelBHK = "filterLabelBHK";
+  static const String filterLabelBathrooms = "filterLabelBathrooms";
+  static const String filterLabelFacing = "filterLabelFacing";
+  static const String filterLabelCarParking = "filterLabelCarParking";
+  static const String filterLabelFurnishing = "filterLabelFurnishing";
+  static const String filterLabelAvailability = "filterLabelAvailability";
+  static const String filterLabelBachelors = "filterLabelBachelors";
+  static const String filterLabelProjectStatus = "filterLabelProjectStatus";
+  static const String filterLabelWashrooms = "filterLabelWashrooms";
+  static const String filterLabelPGType = "filterLabelPGType";
+  static const String filterLabelRoomType = "filterLabelRoomType";
+  static const String filterLabelAttachedBathroom = "filterLabelAttachedBathroom";
+  static const String filterLabelMeals = "filterLabelMeals";
+  static const String filterLabelPropertyType = "filterLabelPropertyType";
+  static const String filterLabelTowers = "filterLabelTowers";
+  static const String filterLabelFloors = "filterLabelFloors";
+
+  // Min-rating option values
+  static const String minRatingThreePlus = "minRatingThreePlus";
+  static const String minRatingFourPlus = "minRatingFourPlus";
+  static const String minRatingFourHalfPlus = "minRatingFourHalfPlus";
+
+  // Chip-label formats (chipLabelFor) — placeholders use {value}
+  static const String chipBhkFmt = "chipBhkFmt";
+  static const String chipBathFmt = "chipBathFmt";
+  static const String chipParkingFmt = "chipParkingFmt";
+  static const String chipWashroomSingular = "chipWashroomSingular";
+  static const String chipWashroomPluralFmt = "chipWashroomPluralFmt";
+  static const String chipTowersFmt = "chipTowersFmt";
+  static const String chipFloorsFmt = "chipFloorsFmt";
+  static const String chipRatingFmt = "chipRatingFmt";
+  static const String chipMealsIncluded = "chipMealsIncluded";
+  static const String chipNoMeals = "chipNoMeals";
+  static const String chipAttachedBath = "chipAttachedBath";
+  static const String chipNoAttachedBath = "chipNoAttachedBath";
+  static const String chipBachelorsAllowed = "chipBachelorsAllowed";
+  static const String chipNoBachelors = "chipNoBachelors";
+
+  /// RENTAL / PROPERTY views (lib/features/common/rental/view) — labels,
+  /// hints, edit-sheet titles, dialog/snackbar messages, and highlight-
+  /// chip formats specific to the property details/discover/dashboard
+  /// screens. Existing constants (description, price, edit, update,
+  /// showLess, readMore, enterAmount, comment, done, uploadPhotos,
+  /// enterAddress, pleaseSelectRating, gallery, fixedPrice, uploadFailed)
+  /// are reused.
+
+  // Property-details header CTAs / fallbacks
+  static const String chatWithOwner = "chatWithOwner";
+  static const String ownerNotAvailableForChat = "ownerNotAvailableForChat";
+
+  // Listed-by card
+  static const String listerName = "listerName";
+  static const String notSpecified = "notSpecified";
+
+  // Rate-this-property card + sheet
+  static const String rateThisProperty = "rateThisProperty";
+  static const String tapStarToShareExperience = "tapStarToShareExperience";
+  static const String submitRating = "submitRating";
+  static const String commentOptional = "commentOptional";
+  static const String shareYourExperienceHint = "shareYourExperienceHint";
+  static const String ratingComingSoon = "ratingComingSoon";
+
+  // Section headers in property details
+  static const String keyHighlights = "keyHighlights";
+  static const String propertyInformation = "propertyInformation";
+
+  // Edit-title-card sheet
+  static const String editPropertyDetails = "editPropertyDetails";
+  static const String propertyNameLabel = "propertyNameLabel";
+  static const String enterPropertyName = "enterPropertyName";
+  static const String enterDescription = "enterDescription";
+  static const String priceTypeLabel = "priceTypeLabel";
+  static const String priceRangeLabel = "priceRangeLabel";
+  static const String enterPrice = "enterPrice";
+  static const String minimumPrice = "minimumPrice";
+  static const String enterMinPrice = "enterMinPrice";
+  static const String maximumPrice = "maximumPrice";
+  static const String enterMaxPrice = "enterMaxPrice";
+  static const String propertyLocationLabel = "propertyLocationLabel";
+
+  // Edit-listed-by sheet
+  static const String editListedBy = "editListedBy";
+  static const String enterName = "enterName";
+
+  // Edit-photos sheet
+  static const String editPhotos = "editPhotos";
+  static const String currentPhotosFmt = "currentPhotosFmt";
+  static const String newPhotosFmt = "newPhotosFmt";
+  static const String cameraLabel = "cameraLabel";
+  static const String galleryLabel = "galleryLabel";
+  static const String uploadPhotosCta = "uploadPhotosCta";
+
+  // Specs-sheet labels & hints (House / Land / Shop / NewProject / PG)
+  static const String typeLabel = "typeLabel";
+  static const String areaDetailsLabel = "areaDetailsLabel";
+  static const String egArea1200SqFt = "egArea1200SqFt";
+  static const String maintenanceMonthlyLabel = "maintenanceMonthlyLabel";
+  static const String totalFloorsLabel = "totalFloorsLabel";
+  static const String enterTotalFloors = "enterTotalFloors";
+  static const String editLandDetails = "editLandDetails";
+  static const String projectTypeLabel = "projectTypeLabel";
+  static const String plotAreaLabel = "plotAreaLabel";
+  static const String totalAreaHint = "totalAreaHint";
+  static const String lengthLabel = "lengthLabel";
+  static const String enterLength = "enterLength";
+  static const String breadthLabel = "breadthLabel";
+  static const String enterBreadth = "enterBreadth";
+  static const String editShopDetails = "editShopDetails";
+  static const String superBuiltUpArea = "superBuiltUpArea";
+  static const String enterAreaHint = "enterAreaHint";
+  static const String editProjectDetails = "editProjectDetails";
+  static const String areaLabel = "areaLabel";
+  static const String builderNameLabel = "builderNameLabel";
+  static const String enterBuilderName = "enterBuilderName";
+  static const String reraRegistrationNo = "reraRegistrationNo";
+  static const String enterReraNumber = "enterReraNumber";
+  static const String noOfTowersLabel = "noOfTowersLabel";
+  static const String noOfFloorsLabel = "noOfFloorsLabel";
+  static const String keyAmenitiesLabel = "keyAmenitiesLabel";
+  static const String egSwimmingPoolGymPark = "egSwimmingPoolGymPark";
+  static const String editPgDetails = "editPgDetails";
+  static const String subtypeLabel = "subtypeLabel";
+  static const String mealsIncludedLabel = "mealsIncludedLabel";
+  static const String egWifiLaundryAc = "egWifiLaundryAc";
+
+  // Update-fields snackbars
+  static const String cannotUpdatePropertyIdMissing = "cannotUpdatePropertyIdMissing";
+  static const String updatedSuccessfully = "updatedSuccessfully";
+  static const String updateFailed = "updateFailed";
+  static const String photosUploadedSuccessfully = "photosUploadedSuccessfully";
+
+  // Compact field label used in Property Information row
+  static const String reraNoLabel = "reraNoLabel";
+
+  // Highlight-chip formats (extractHighlights, plural variants where the
+  // existing chipBathFmt/chipWashroomPluralFmt etc. don't fit).
+  static const String chipBathroomsFmt = "chipBathroomsFmt";
+  static const String chipLengthFmt = "chipLengthFmt";
+  static const String chipBreadthFmt = "chipBreadthFmt";
+
+  /// RENTAL / PROPERTY widgets (lib/features/common/rental/widget/*) —
+  /// covers list-your-property flow (sell + rent), complete-listing
+  /// sheets, all spec sub-screens (HA / Land / Shop / NewProject / PG),
+  /// the filter sheet, and the listing card. Existing constants
+  /// (cancel, delete, next, min, max, location, currentLocation,
+  /// postNow, selectAll, clearAll, areYouSureDelete, enterValidNumber,
+  /// projectName, kmAway, locationLabel, pleaseEnterYourName,
+  /// pleaseEnterProjectName, pleaseAddDescription, listerName,
+  /// listYourProperty, listingType, securityDeposit, securityDepositLabel)
+  /// are reused.
+
+  // Screen / sheet titles
+  static const String completeYourListing = "completeYourListing";
+  static const String propertySpecificationsTitle = "propertySpecificationsTitle";
+  static const String landPlotsSpecificationsTitle = "landPlotsSpecificationsTitle";
+  static const String shopsOfficesSpecificationsTitle = "shopsOfficesSpecificationsTitle";
+  static const String listYourLandPlots = "listYourLandPlots";
+  static const String listYourShopsOffices = "listYourShopsOffices";
+
+  // Photo upload section
+  static const String uploadYourWorkPhoto = "uploadYourWorkPhoto";
+  static const String takeAPicture = "takeAPicture";
+  static const String foldersLabel = "foldersLabel";
+
+  // List-your-property step 1 fields
+  static const String selectSaleType = "selectSaleType";
+  static const String selectRentType = "selectRentType";
+  static const String whatKindOfProperty = "whatKindOfProperty";
+  static const String projectNameLabel = "projectNameLabel";
+  static const String enterProjectNameHint = "enterProjectNameHint";
+  static const String describeWhatYouAreSelling = "describeWhatYouAreSelling";
+  static const String describeWhatYouAreRenting = "describeWhatYouAreRenting";
+  static const String textHint = "textHint";
+
+  // Location row inside RentalLocationField
+  static const String whereIsYourPropertyLocated = "whereIsYourPropertyLocated";
+  static const String egGomtiNagarLucknow = "egGomtiNagarLucknow";
+  static const String directMyLocation = "directMyLocation";
+
+  // Lister-name row
+  static const String enterYourNameHint = "enterYourNameHint";
+
+  // Specifications shared field labels & hints
+  static const String houseApartmentTypeLabel = "houseApartmentTypeLabel";
+  static const String availabilityStatusLabel = "availabilityStatusLabel";
+  static const String bachelorsAllowedLabel = "bachelorsAllowedLabel";
+  static const String addAreaDetails = "addAreaDetails";
+  static const String addPlotAreaDetails = "addPlotAreaDetails";
+  static const String enterLengthFieldLabel = "enterLengthFieldLabel";
+  static const String enterBreadthFieldLabel = "enterBreadthFieldLabel";
+  static const String superBuiltUpAreaDetailsLabel = "superBuiltUpAreaDetailsLabel";
+  static const String floorDetails = "floorDetails";
+  static const String totalFloorsAndYourFloorHint = "totalFloorsAndYourFloorHint";
+  static const String floorNoLabel = "floorNoLabel";
+  static const String superBuiltupAreaSqftLabel = "superBuiltupAreaSqftLabel";
+  static const String carpetAreaSqftLabel = "carpetAreaSqftLabel";
+  static const String typeOfPropertyLabel = "typeOfPropertyLabel";
+
+  // Validation messages
+  static const String pleaseEnterArea = "pleaseEnterArea";
+  static const String pleaseEnterMaintenance = "pleaseEnterMaintenance";
+  static const String pleaseEnterTotalFloors = "pleaseEnterTotalFloors";
+  static const String pleaseEnterPlotArea = "pleaseEnterPlotArea";
+  static const String pleaseEnterLengthValidation = "pleaseEnterLengthValidation";
+  static const String pleaseEnterBreadthValidation = "pleaseEnterBreadthValidation";
+  static const String pleaseEnterBuilderName = "pleaseEnterBuilderName";
+  static const String pleaseEnterReraNumber = "pleaseEnterReraNumber";
+  static const String pleaseEnterKeyAmenities = "pleaseEnterKeyAmenities";
+  static const String enterBookingAmount = "enterBookingAmount";
+  static const String enterSecurityDepositAmount = "enterSecurityDepositAmount";
+
+  // Example hints
+  static const String egArea4060 = "egArea4060";
+  static const String egThreeBhk = "egThreeBhk";
+  static const String egFourPlus = "egFourPlus";
+  static const String egSemiFurnished = "egSemiFurnished";
+  static const String egOwner = "egOwner";
+  static const String egEight = "egEight";
+  static const String egNo = "egNo";
+  static const String egDuplex = "egDuplex";
+  static const String loremPlaceholder = "loremPlaceholder";
+  static const String egRupees40660 = "egRupees40660";
+  static const String egRupees50000 = "egRupees50000";
+  static const String egRupees60660 = "egRupees60660";
+  static const String egDecember = "egDecember";
+  static const String eg2026 = "eg2026";
+  static const String egLoremIpsumDolor = "egLoremIpsumDolor";
+  static const String egRiteshKumarSharma = "egRiteshKumarSharma";
+  static const String egRera456523 = "egRera456523";
+  static const String egLucknowUtterPradeshNoida = "egLucknowUtterPradeshNoida";
+
+  // Price details section
+  static const String priceDetails = "priceDetails";
+  static const String priceFromLabel = "priceFromLabel";
+  static const String priceToFieldLabel = "priceToFieldLabel";
+  static const String maxLabel = "maxLabel";
+  static const String minPriceHint = "minPriceHint";
+  static const String maxPriceHint = "maxPriceHint";
+  static const String noMin = "noMin";
+  static const String noMax = "noMax";
+  static const String toSeparator = "toSeparator";
+  static const String bookingAmountLabel = "bookingAmountLabel";
+  static const String allInclusivePriceLabel = "allInclusivePriceLabel";
+  static const String priceNegotiableLabel = "priceNegotiableLabel";
+  static const String taxAndGovtChargesExcluded = "taxAndGovtChargesExcluded";
+  static const String rentDurationLabel = "rentDurationLabel";
+  static const String electricityIncludedLabel = "electricityIncludedLabel";
+  static const String waterChargesIncludedLabel = "waterChargesIncludedLabel";
+  static const String locationFieldLabel = "locationFieldLabel";
+
+  // Project launch info section
+  static const String projectLaunchInformation = "projectLaunchInformation";
+  static const String developerBuilderName = "developerBuilderName";
+  static const String projectLaunchMonth = "projectLaunchMonth";
+  static const String projectLaunchYear = "projectLaunchYear";
+  static const String expectedPossessionMonth = "expectedPossessionMonth";
+  static const String expectedPossessionYear = "expectedPossessionYear";
+
+  // Post-listing snackbars
+  static const String listingPosted = "listingPosted";
+  static const String yourProjectListingSubmitted = "yourProjectListingSubmitted";
+
+  // Filter sheet
+  static const String applyFiltersLabel = "applyFiltersLabel";
+  static const String applyFiltersFmt = "applyFiltersFmt";
+  static const String budgetInRupees = "budgetInRupees";
+  static const String cityLocalityLabel = "cityLocalityLabel";
+  static const String localityLabel = "localityLabel";
+
+  // Listing card — price suffixes, deposit, owner, stat labels, actions
+  static const String perMonthSuffix = "perMonthSuffix";
+  static const String perQuarterSuffix = "perQuarterSuffix";
+  static const String perSixMonthsSuffix = "perSixMonthsSuffix";
+  static const String perYearSuffix = "perYearSuffix";
+  static const String depositPrefixFmt = "depositPrefixFmt";
+  static const String builtUpAreaLabel = "builtUpAreaLabel";
+  static const String ratingStatLabel = "ratingStatLabel";
+  static const String propertyOwnerFallback = "propertyOwnerFallback";
+  static const String ownerRoleFallback = "ownerRoleFallback";
+  static const String youDotRoleFmt = "youDotRoleFmt";
+  static const String shareComingSoon = "shareComingSoon";
+  static const String deletePropertyTitle = "deletePropertyTitle";
+  static const String deletePropertyConfirmFmt = "deletePropertyConfirmFmt";
+  static const String propertyDeletedSuccessfully = "propertyDeletedSuccessfully";
+  static const String failedToDeleteProperty = "failedToDeleteProperty";
+  static const String kmAwayEmpty = "kmAwayEmpty";
+  static const String kmAwayFmt = "kmAwayFmt";
+
+  // Form widget header subtitles
+  static const String forSaleHousesApartmentsSubtitle = "forSaleHousesApartmentsSubtitle";
+  static const String forRentHousesApartmentsSubtitle = "forRentHousesApartmentsSubtitle";
+  static const String forSaleNewProjectsSubtitle = "forSaleNewProjectsSubtitle";
+  static const String landsPlotsForSaleSubtitle = "landsPlotsForSaleSubtitle";
+  static const String forRentShopsOfficesSubtitle = "forRentShopsOfficesSubtitle";
+  static const String forSaleShopsOfficesSubtitle = "forSaleShopsOfficesSubtitle";
+
+  // Form widget chip labels / misc
+  static const String chipHousesSale = "chipHousesSale";
+  static const String chipHousesRent = "chipHousesRent";
+  static const String chipNewProjectsShort = "chipNewProjectsShort";
+  static const String chipLandsPlotsShort = "chipLandsPlotsShort";
+  static const String chipShopsRentShort = "chipShopsRentShort";
+  static const String chipShopsSaleShort = "chipShopsSaleShort";
+  static const String selectUnitTooltip = "selectUnitTooltip";
+  static const String optionOne = "optionOne";
+  static const String optionTwo = "optionTwo";
+  static const String optionThree = "optionThree";
+
+  // FAB
+  static const String addListingFabLabel = "addListingFabLabel";
 }

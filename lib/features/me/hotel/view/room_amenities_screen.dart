@@ -21,45 +21,19 @@ class RoomAmenitiesScreen extends StatelessWidget {
   /// Display name + SVG asset key + JSON payload key for each amenity row.
   static const List<_AmenityItem> _amenities = [
     _AmenityItem(
-        name: AppStrings.hotelAirConditioning,
-        assetKey: 'AIR_CONDITIONING',
-        keyId: 'airConditioning'),
+        name: AppStrings.hotelAirConditioning, assetKey: 'AIR_CONDITIONING', keyId: 'airConditioning'),
+    _AmenityItem(name: AppStrings.hotelFreeWifi, assetKey: 'WIFI', keyId: 'freeWifi'),
+    _AmenityItem(name: AppStrings.hotelTelevision, assetKey: 'TELEVISION', keyId: 'television'),
+    _AmenityItem(name: AppStrings.hotelRoomServiceItem, assetKey: 'ROOM_SERVICE', keyId: 'roomService'),
+    _AmenityItem(name: AppStrings.hotelPowerBackup, assetKey: 'POWER_BACKUP', keyId: 'powerBackup'),
+    _AmenityItem(name: AppStrings.hotelBalcony, assetKey: 'BALCONY', keyId: 'balcony'),
     _AmenityItem(
-        name: AppStrings.hotelFreeWifi, assetKey: 'WIFI', keyId: 'freeWifi'),
+        name: AppStrings.hotelAttachedBathroom, assetKey: 'ATTACHED_BATHROOM', keyId: 'attachedBathroom'),
+    _AmenityItem(name: AppStrings.hotelWardrobe, assetKey: 'WARDROBE', keyId: 'wardrobe'),
+    _AmenityItem(name: AppStrings.hotelDeskChair, assetKey: 'WORK_DESK', keyId: 'deskChair'),
     _AmenityItem(
-        name: AppStrings.hotelTelevision,
-        assetKey: 'TELEVISION',
-        keyId: 'television'),
-    _AmenityItem(
-        name: AppStrings.hotelRoomServiceItem,
-        assetKey: 'ROOM_SERVICE',
-        keyId: 'roomService'),
-    _AmenityItem(
-        name: AppStrings.hotelPowerBackup,
-        assetKey: 'POWER_BACKUP',
-        keyId: 'powerBackup'),
-    _AmenityItem(
-        name: AppStrings.hotelBalcony, assetKey: 'BALCONY', keyId: 'balcony'),
-    _AmenityItem(
-        name: AppStrings.hotelAttachedBathroom,
-        assetKey: 'ATTACHED_BATHROOM',
-        keyId: 'attachedBathroom'),
-    _AmenityItem(
-        name: AppStrings.hotelWardrobe,
-        assetKey: 'WARDROBE',
-        keyId: 'wardrobe'),
-    _AmenityItem(
-        name: AppStrings.hotelDeskChair,
-        assetKey: 'WORK_DESK',
-        keyId: 'deskChair'),
-    _AmenityItem(
-        name: AppStrings.hotelRoomRefrigerators,
-        assetKey: 'ROOM_REFRIGERATOR',
-        keyId: 'roomRefrigerators'),
-    _AmenityItem(
-        name: AppStrings.hotelElectricKettle,
-        assetKey: 'ELECTRIC_KETTLE',
-        keyId: 'electricKettle'),
+        name: AppStrings.hotelRoomRefrigerators, assetKey: 'ROOM_REFRIGERATOR', keyId: 'roomRefrigerators'),
+    _AmenityItem(name: AppStrings.hotelElectricKettle, assetKey: 'ELECTRIC_KETTLE', keyId: 'electricKettle'),
   ];
 
   @override
@@ -110,10 +84,12 @@ class RoomAmenitiesScreen extends StatelessWidget {
           ),
           Transform.scale(
             scale: 0.75,
-            child: Switch(
-              value: isEnabled,
-              activeThumbColor: AppColors.primaryColor,
-              onChanged: (v) => controller.updateAmenity(item.keyId, v),
+            child: Obx(
+              () => Switch(
+                value: isEnabled,
+                activeThumbColor: AppColors.primaryColor,
+                onChanged: (v) => controller.updateAmenity(item.keyId, v),
+              ),
             ),
           ),
         ],

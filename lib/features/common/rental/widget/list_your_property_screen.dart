@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/common/rental/controller/property_controller.dart';
 import 'package:BlueEra/features/common/rental/widget/land_plots_specifications_screen.dart';
 import 'package:BlueEra/features/common/rental/widget/new_project_specifications_screen.dart';
@@ -43,7 +44,7 @@ class _ListYourPropertyScreenState extends State<ListYourPropertyScreen> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        appBar: CommonBackAppBar(title: 'List Your Property'),
+        appBar: CommonBackAppBar(title: AppStrings.listYourProperty.tr),
         body: Column(
           children: [
             const RentalStepProgressBar(progress: 0.33),
@@ -58,17 +59,17 @@ class _ListYourPropertyScreenState extends State<ListYourPropertyScreen> {
                     children: [
                       RentalFormCard(
                         child: RentalChipSelector(
-                          label: 'Select Sale Type',
+                          label: AppStrings.selectSaleType.tr,
                           options: PropertyController.saleTypes,
                           onChanged: (i) =>
                               _ctrl.selectedPropertyTypeIndex.value = i,
                         ),
                       ),
                       const SizedBox(height: 12),
-                      const RentalFormCard(
+                      RentalFormCard(
                         child: RentalChipSelector(
-                          label: 'What Kind Of Property',
-                          options: ['Residential', 'Commercial'],
+                          label: AppStrings.whatKindOfProperty.tr,
+                          options: PropertyController.propertyKindOptions,
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -77,8 +78,8 @@ class _ListYourPropertyScreenState extends State<ListYourPropertyScreen> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             RentalLabeledField(
-                              label: 'Project Name',
-                              hint: 'Enter project name',
+                              label: AppStrings.projectNameLabel.tr,
+                              hint: AppStrings.enterProjectNameHint.tr,
                               maxLength: 70,
                               textInputAction: TextInputAction.next,
                               controller: _projectNameCtrl,
@@ -86,15 +87,15 @@ class _ListYourPropertyScreenState extends State<ListYourPropertyScreen> {
                                   _ctrl.projectName.value = v,
                               validator: (v) {
                                 if (v == null || v.trim().isEmpty) {
-                                  return 'Please enter project name';
+                                  return AppStrings.pleaseEnterProjectName.tr;
                                 }
                                 return null;
                               },
                             ),
                             const SizedBox(height: 14),
                             RentalLabeledField(
-                              label: 'Describe What You Are Selling',
-                              hint: 'Text',
+                              label: AppStrings.describeWhatYouAreSelling.tr,
+                              hint: AppStrings.textHint.tr,
                               maxLength: 2000,
                               maxLines: 5,
                               textInputAction: TextInputAction.done,
@@ -103,7 +104,7 @@ class _ListYourPropertyScreenState extends State<ListYourPropertyScreen> {
                                   _ctrl.description.value = v,
                               validator: (v) {
                                 if (v == null || v.trim().isEmpty) {
-                                  return 'Please add a description';
+                                  return AppStrings.pleaseAddDescription.tr;
                                 }
                                 return null;
                               },
@@ -120,7 +121,7 @@ class _ListYourPropertyScreenState extends State<ListYourPropertyScreen> {
         ),
         bottomNavigationBar: RentalBottomBar(
           child: RentalPrimaryButton(
-            label: 'Next',
+            label: AppStrings.next.tr,
             onTap: _onNext,
           ),
         ),

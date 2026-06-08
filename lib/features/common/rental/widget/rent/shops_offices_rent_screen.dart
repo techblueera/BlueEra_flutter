@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/common/rental/controller/property_controller.dart';
 import 'package:BlueEra/features/common/rental/widget/rent/complete_your_rent_listing_screen.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_form_widgets.dart';
@@ -28,7 +29,8 @@ class _ShopsOfficesRentScreenState extends State<ShopsOfficesRentScreen> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        appBar: CommonBackAppBar(title: 'Property Specifications'),
+        appBar: CommonBackAppBar(
+            title: AppStrings.propertySpecificationsTitle.tr),
         body: Column(
           children: [
             const RentalStepProgressBar(progress: 0.66),
@@ -45,56 +47,52 @@ class _ShopsOfficesRentScreenState extends State<ShopsOfficesRentScreen> {
                         RentalLocationField(),
                         const SizedBox(height: 18),
                         RentalChipSelector(
-                          label: 'Furnishing',
-                          options: const [
-                            'Furnished',
-                            'Semi-Furnished',
-                            'Unfurnished'
-                          ],
+                          label: AppStrings.filterLabelFurnishing.tr,
+                          options: PropertyController.furnishingOptions,
                           onChanged: (v) => _ctrl.soFurnishing.value = v,
                         ),
                         const SizedBox(height: 18),
                         RentalChipSelector(
-                          label: 'Listed By',
-                          options: const ['Owner', 'Builder', 'Dealer'],
+                          label: AppStrings.filterLabelListedBy.tr,
+                          options: PropertyController.listedByOptions,
                           onChanged: (v) => _ctrl.soListedBy.value = v,
                         ),
                         const SizedBox(height: 14),
                         const RentalListedByNameField(),
                         const SizedBox(height: 18),
                         RentalAreaField(
-                          label: 'Super Built-Up Area Details',
-                          hint: 'E.g. 4060',
+                          label: AppStrings.superBuiltUpAreaDetailsLabel.tr,
+                          hint: AppStrings.egArea4060.tr,
                           onChanged: (v) => _ctrl.soArea.value = v,
                           validator: (v) {
                             final s = v?.trim() ?? '';
-                            if (s.isEmpty) return 'Please enter area';
+                            if (s.isEmpty) return AppStrings.pleaseEnterArea.tr;
                             if (num.tryParse(s) == null) {
-                              return 'Enter a valid number';
+                              return AppStrings.enterValidNumber.tr;
                             }
                             return null;
                           },
                         ),
                         const SizedBox(height: 14),
                         RentalLabeledField(
-                          label: 'Maintenance (Monthly)',
-                          hint: 'E.g. ₹40,660',
+                          label: AppStrings.maintenanceMonthlyLabel.tr,
+                          hint: AppStrings.egRupees40660.tr,
                           keyboardType: TextInputType.number,
                           onChanged: (v) => _ctrl.soMaintenance.value = v,
                           validator: (v) => v == null || v.trim().isEmpty
-                              ? 'Please enter maintenance'
+                              ? AppStrings.pleaseEnterMaintenance.tr
                               : null,
                         ),
                         const SizedBox(height: 18),
                         RentalChipSelector(
-                          label: 'Car Parking',
-                          options: const ['1', '2', '3', '4+'],
+                          label: AppStrings.filterLabelCarParking.tr,
+                          options: PropertyController.parkingOptions,
                           onChanged: (v) => _ctrl.soCarParking.value = v,
                         ),
                         const SizedBox(height: 18),
                         RentalChipSelector(
-                          label: 'Washrooms',
-                          options: const ['1', '2', '3', '4+'],
+                          label: AppStrings.filterLabelWashrooms.tr,
+                          options: PropertyController.washroomOptions,
                           onChanged: (v) => _ctrl.soWashrooms.value = v,
                         ),
                       ],
@@ -107,7 +105,7 @@ class _ShopsOfficesRentScreenState extends State<ShopsOfficesRentScreen> {
         ),
         bottomNavigationBar: RentalBottomBar(
           child: RentalPrimaryButton(
-            label: 'Next',
+            label: AppStrings.next.tr,
             onTap: () {
               FocusScope.of(context).unfocus();
               setState(() => _autovalidate = AutovalidateMode.onUserInteraction);

@@ -1,14 +1,16 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class AddListingFab extends StatefulWidget {
   final VoidCallback onPressed;
-  final String label;
+  final String? label;
 
   const AddListingFab({
     super.key,
     required this.onPressed,
-    this.label = 'Add Listing',
+    this.label,
   });
 
   @override
@@ -116,7 +118,7 @@ class _AddListingFabState extends State<AddListingFab>
                       ),
                       const SizedBox(width: 10),
                       Text(
-                        widget.label,
+                        widget.label ?? AppStrings.addListingFabLabel.tr,
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 14,

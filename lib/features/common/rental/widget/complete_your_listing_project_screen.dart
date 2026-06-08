@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_form_widgets.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -17,7 +18,7 @@ class CompleteYourListingProjectScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: 'Complete Your Listing'),
+      appBar: CommonBackAppBar(title: AppStrings.completeYourListing.tr),
       body: Column(
         children: [
           const RentalStepProgressBar(progress: 1.0),
@@ -31,7 +32,7 @@ class CompleteYourListingProjectScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CustomText(
-                    'Upload Your Work Photo',
+                    AppStrings.uploadYourWorkPhoto.tr,
                     fontSize: 14,
                     fontWeight: FontWeight.w700,
                     color: AppColors.mainTextColor,
@@ -42,7 +43,7 @@ class CompleteYourListingProjectScreen extends StatelessWidget {
                       Expanded(
                         child: _UploadTile(
                           icon: Icons.camera_alt_outlined,
-                          label: 'Take A Picture',
+                          label: AppStrings.takeAPicture.tr,
                           onTap: () {},
                         ),
                       ),
@@ -50,7 +51,7 @@ class CompleteYourListingProjectScreen extends StatelessWidget {
                       Expanded(
                         child: _UploadTile(
                           icon: Icons.folder_outlined,
-                          label: 'Folders',
+                          label: AppStrings.foldersLabel.tr,
                           onTap: () {},
                         ),
                       ),
@@ -60,7 +61,7 @@ class CompleteYourListingProjectScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            const RentalFormCard(
+            RentalFormCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -69,25 +70,25 @@ class CompleteYourListingProjectScreen extends StatelessWidget {
                     children: [
                       Expanded(
                         child: RentalLabeledField(
-                          label: 'Price From',
-                          hint: 'E.g. ₹40,660',
+                          label: AppStrings.priceFromLabel.tr,
+                          hint: AppStrings.egRupees40660.tr,
                           keyboardType: TextInputType.number,
                         ),
                       ),
-                      SizedBox(width: 12),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: RentalLabeledField(
-                          label: 'Price TO',
-                          hint: 'E.g. ₹60,660',
+                          label: AppStrings.priceToFieldLabel.tr,
+                          hint: AppStrings.egRupees60660.tr,
                           keyboardType: TextInputType.number,
                         ),
                       ),
                     ],
                   ),
-                  SizedBox(height: 14),
+                  const SizedBox(height: 14),
                   RentalLabeledField(
-                    label: 'Location',
-                    hint: 'E.g. Lucknow Utter Pradesh noida',
+                    label: AppStrings.locationFieldLabel.tr,
+                    hint: AppStrings.egLucknowUtterPradeshNoida.tr,
                   ),
                 ],
               ),
@@ -99,11 +100,11 @@ class CompleteYourListingProjectScreen extends StatelessWidget {
       ),
       bottomNavigationBar: RentalBottomBar(
         child: RentalPrimaryButton(
-          label: 'Post Now',
+          label: AppStrings.postNow.tr,
           onTap: () {
             Get.snackbar(
-              'Listing Posted',
-              'Your project listing has been submitted.',
+              AppStrings.listingPosted.tr,
+              AppStrings.yourProjectListingSubmitted.tr,
               snackPosition: SnackPosition.BOTTOM,
               backgroundColor: AppColors.primaryColor,
               colorText: Colors.white,
