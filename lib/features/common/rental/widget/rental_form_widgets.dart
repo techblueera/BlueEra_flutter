@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/rental/controller/property_controller.dart';
@@ -32,17 +33,17 @@ enum RentalCategory {
   String get headerSubtitle {
     switch (this) {
       case RentalCategory.housesSale:
-        return 'For Sale: Houses & Apartments';
+        return AppStrings.forSaleHousesApartmentsSubtitle.tr;
       case RentalCategory.housesRent:
-        return 'For Rent: Houses & Apartments';
+        return AppStrings.forRentHousesApartmentsSubtitle.tr;
       case RentalCategory.newProjectsSale:
-        return 'For Sale: New Projects & Properties';
+        return AppStrings.forSaleNewProjectsSubtitle.tr;
       case RentalCategory.landsPlotsSale:
-        return 'Lands & Plots For Sale';
+        return AppStrings.landsPlotsForSaleSubtitle.tr;
       case RentalCategory.shopsOfficesRent:
-        return 'For Rent: Shops & Offices';
+        return AppStrings.forRentShopsOfficesSubtitle.tr;
       case RentalCategory.shopsOfficesSale:
-        return 'For Sale: Shops & Offices';
+        return AppStrings.forSaleShopsOfficesSubtitle.tr;
     }
   }
 
@@ -66,17 +67,17 @@ enum RentalCategory {
   String get chipLabel {
     switch (this) {
       case RentalCategory.housesSale:
-        return 'Houses Sale';
+        return AppStrings.chipHousesSale.tr;
       case RentalCategory.housesRent:
-        return 'Houses Rent';
+        return AppStrings.chipHousesRent.tr;
       case RentalCategory.newProjectsSale:
-        return 'New Projects';
+        return AppStrings.chipNewProjectsShort.tr;
       case RentalCategory.landsPlotsSale:
-        return 'Lands & Plots';
+        return AppStrings.chipLandsPlotsShort.tr;
       case RentalCategory.shopsOfficesRent:
-        return 'Shops Rent';
+        return AppStrings.chipShopsRentShort.tr;
       case RentalCategory.shopsOfficesSale:
-        return 'Shops Sale';
+        return AppStrings.chipShopsSaleShort.tr;
     }
   }
 
@@ -92,14 +93,14 @@ enum RentalCategory {
   String get listYourTitle {
     switch (this) {
       case RentalCategory.landsPlotsSale:
-        return 'List Your Land & Plots';
+        return AppStrings.listYourLandPlots.tr;
       case RentalCategory.shopsOfficesRent:
       case RentalCategory.shopsOfficesSale:
-        return 'List Your Shops & Offices';
+        return AppStrings.listYourShopsOffices.tr;
       case RentalCategory.housesSale:
       case RentalCategory.housesRent:
       case RentalCategory.newProjectsSale:
-        return 'List Your Property';
+        return AppStrings.listYourProperty.tr;
     }
   }
 
@@ -107,14 +108,14 @@ enum RentalCategory {
   String get specificationsTitle {
     switch (this) {
       case RentalCategory.landsPlotsSale:
-        return 'Land & Plots Specifications';
+        return AppStrings.landPlotsSpecificationsTitle.tr;
       case RentalCategory.shopsOfficesRent:
       case RentalCategory.shopsOfficesSale:
-        return 'Shops & Offices Specifications';
+        return AppStrings.shopsOfficesSpecificationsTitle.tr;
       case RentalCategory.housesSale:
       case RentalCategory.housesRent:
       case RentalCategory.newProjectsSale:
-        return 'Property Specifications';
+        return AppStrings.propertySpecificationsTitle.tr;
     }
   }
 }
@@ -201,8 +202,8 @@ class _RentalLocationFieldState extends State<RentalLocationField> {
       children: [
         CommonLocationSearchField(
           controller: _locationCtrl,
-          title: 'Where Is Your Property Located',
-          hintText: 'E.g. Gomti Nagar, Lucknow...',
+          title: AppStrings.whereIsYourPropertyLocated.tr,
+          hintText: AppStrings.egGomtiNagarLucknow.tr,
           isShowLeading: false,
           onSelected: (placeId, lat, lng, address) {
             _locationCtrl.text = address;
@@ -217,7 +218,7 @@ class _RentalLocationFieldState extends State<RentalLocationField> {
           child: Row(
             children: [
               CustomText(
-                'Direct My Location',
+                AppStrings.directMyLocation.tr,
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: AppColors.primaryColor,
@@ -243,7 +244,8 @@ class _RentalLocationFieldState extends State<RentalLocationField> {
     final parts = [addr.street, addr.city, addr.state]
         .where((e) => e.isNotEmpty)
         .toList();
-    final address = parts.isNotEmpty ? parts.join(', ') : 'Current Location';
+    final address =
+        parts.isNotEmpty ? parts.join(', ') : AppStrings.currentLocation.tr;
     _ctrl.locationAddress.value = address;
     _locationCtrl.text = address;
   }
@@ -288,9 +290,11 @@ class RentalCategoryHeader extends StatelessWidget {
   RentalCategoryHeader({
     super.key,
     String? image,
-    this.title = 'Rent & Properties',
-    this.subtitle = 'For Sale: Houses & Apartments',
-  }) : image = image ?? AppImageAssets.propertyHouseSell;
+    String? title,
+    String? subtitle,
+  })  : image = image ?? AppImageAssets.propertyHouseSell,
+        title = title ?? AppStrings.rentAndProperties.tr,
+        subtitle = subtitle ?? AppStrings.forSaleHousesApartmentsSubtitle.tr;
 
   /// Convenience constructor that derives the header image + subtitle
   /// from a [RentalCategory]. Used when the screen is launched from
@@ -353,12 +357,14 @@ class RentalListedByNameField extends StatelessWidget {
   Widget build(BuildContext context) {
     final ctrl = Get.find<PropertyController>();
     return RentalLabeledField(
-      label: 'Lister Name',
-      hint: 'Enter your name',
+      label: AppStrings.listerName.tr,
+      hint: AppStrings.enterYourNameHint.tr,
       textInputAction: TextInputAction.next,
       onChanged: (v) => ctrl.listedByName.value = v,
       validator: (v) {
-        if (v == null || v.trim().isEmpty) return 'Please enter your name';
+        if (v == null || v.trim().isEmpty) {
+          return AppStrings.pleaseEnterYourName.tr;
+        }
         return null;
       },
     );
@@ -475,7 +481,7 @@ class RentalLabeledDropdown extends StatefulWidget {
     super.key,
     required this.label,
     required this.hint,
-    this.items = const ['Option 1', 'Option 2', 'Option 3'],
+    this.items = const [],
   });
 
   @override
@@ -560,12 +566,18 @@ class RentalChipSelector extends StatefulWidget {
   final int initialIndex;
   final ValueChanged<int>? onChanged;
 
+  /// Optional mapper from option wire-key to localized display label.
+  /// When omitted, the option string is rendered verbatim — used for
+  /// option lists that double as both wire-key and display text.
+  final String Function(String)? labelFor;
+
   const RentalChipSelector({
     super.key,
     required this.label,
     required this.options,
     this.initialIndex = 0,
     this.onChanged,
+    this.labelFor,
   });
 
   @override
@@ -619,7 +631,8 @@ class _RentalChipSelectorState extends State<RentalChipSelector> {
                   ),
                 ),
                 child: CustomText(
-                  widget.options[i],
+                  widget.labelFor?.call(widget.options[i]) ??
+                      widget.options[i],
                   fontSize: 13,
                   fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
                   color: selected
@@ -734,8 +747,8 @@ class RentalAreaField extends StatefulWidget {
 
   const RentalAreaField({
     super.key,
-    this.label = 'Add Area Details',
-    this.hint = 'E.g. 4060',
+    this.label = '',
+    this.hint = '',
     this.onChanged,
     this.validator,
   });
@@ -762,11 +775,14 @@ class _RentalAreaFieldState extends State<RentalAreaField> {
 
   @override
   Widget build(BuildContext context) {
+    final label =
+        widget.label.isNotEmpty ? widget.label : AppStrings.addAreaDetails.tr;
+    final hint = widget.hint.isNotEmpty ? widget.hint : AppStrings.egArea4060.tr;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CustomText(
-          widget.label,
+          label,
           fontSize: 14,
           fontWeight: FontWeight.w700,
           color: AppColors.mainTextColor,
@@ -787,7 +803,7 @@ class _RentalAreaFieldState extends State<RentalAreaField> {
                 },
                 validator: widget.validator,
                 decoration: InputDecoration(
-                  hintText: widget.hint,
+                  hintText: hint,
                   hintStyle: TextStyle(
                     color:
                         AppColors.secondaryTextColor.withValues(alpha: 0.75),
@@ -832,7 +848,7 @@ class _RentalAreaFieldState extends State<RentalAreaField> {
       final currentUnit = _ctrl.areaUnit.value;
       return PopupMenuButton<String>(
         initialValue: currentUnit,
-        tooltip: 'Select unit',
+        tooltip: AppStrings.selectUnitTooltip.tr,
         onSelected: (val) => _ctrl.areaUnit.value = val,
         color: Colors.white,
         elevation: 8,

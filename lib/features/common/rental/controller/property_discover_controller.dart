@@ -40,7 +40,7 @@ enum PropertySortBy {
   priceLowToHigh,
   priceHighToLow,
   pricePerSqftLowToHigh,
-  pricePerSqftHighToLow, none,
+  pricePerSqftHighToLow,
 }
 
 extension PropertySortByLabel on PropertySortBy {
@@ -59,9 +59,6 @@ extension PropertySortByLabel on PropertySortBy {
         return 'Price / sq.ft. : Low to High';
       case PropertySortBy.pricePerSqftHighToLow:
         return 'Price / sq.ft. : High to Low';
-      case PropertySortBy.none:
-        // TODO: Handle this case.
-        throw UnimplementedError();
     }
   }
 
@@ -80,9 +77,6 @@ extension PropertySortByLabel on PropertySortBy {
         return '₹/sqft ↑';
       case PropertySortBy.pricePerSqftHighToLow:
         return '₹/sqft ↓';
-      case PropertySortBy.none:
-        // TODO: Handle this case.
-        throw UnimplementedError();
     }
   }
 }
@@ -145,9 +139,6 @@ class PropertyDiscoverController extends GetxController {
         break;
       case PropertySortBy.relevance:
         return;
-      case PropertySortBy.none:
-        // TODO: Handle this case.
-        throw UnimplementedError();
     }
     properties.assignAll(sorted);
   }

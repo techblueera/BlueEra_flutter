@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/common/rental/controller/property_controller.dart';
 import 'package:BlueEra/features/common/rental/widget/rent/complete_your_rent_listing_screen.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_form_widgets.dart';
@@ -29,7 +30,8 @@ class _PgGuestHouseRentScreenState extends State<PgGuestHouseRentScreen> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        appBar: CommonBackAppBar(title: 'Property Specifications'),
+        appBar: CommonBackAppBar(
+            title: AppStrings.propertySpecificationsTitle.tr),
         body: Column(
           children: [
             const RentalStepProgressBar(progress: 0.66),
@@ -46,65 +48,57 @@ class _PgGuestHouseRentScreenState extends State<PgGuestHouseRentScreen> {
                         RentalLocationField(),
                         const SizedBox(height: 18),
                         RentalChipSelector(
-                          label: 'Subtype',
-                          options: const ['Guest House', 'PG', 'Roommate'],
+                          label: AppStrings.subtypeLabel.tr,
+                          options: PropertyController.pgSubtypeOptions,
                           onChanged: (v) => _ctrl.pgSubtype.value = v,
                         ),
                         const SizedBox(height: 18),
                         RentalChipSelector(
-                          label: 'Room Type',
-                          options: const [
-                            'Single Sharing',
-                            'Double Sharing',
-                            'Triple Sharing',
-                            'Dormitory',
-                          ],
+                          label: AppStrings.filterLabelRoomType.tr,
+                          options: PropertyController.pgRoomTypeOptions,
                           onChanged: (v) => _ctrl.pgRoomType.value = v,
                         ),
                         const SizedBox(height: 18),
                         RentalChipSelector(
-                          label: 'Attached Bathroom',
-                          options: const ['Yes Attached', 'Not Attached'],
+                          label: AppStrings.filterLabelAttachedBathroom.tr,
+                          options:
+                              PropertyController.attachedBathroomOptions,
                           onChanged: (v) =>
                               _ctrl.pgAttachedBathroom.value = v,
                         ),
                         const SizedBox(height: 18),
                         RentalChipSelector(
-                          label: 'Furnishing',
-                          options: const [
-                            'Furnished',
-                            'Semi-Furnished',
-                            'Unfurnished'
-                          ],
+                          label: AppStrings.filterLabelFurnishing.tr,
+                          options: PropertyController.furnishingOptions,
                           onChanged: (v) => _ctrl.pgFurnishing.value = v,
                         ),
                         const SizedBox(height: 18),
                         RentalChipSelector(
-                          label: 'Listed By',
-                          options: const ['Owner', 'Builder', 'Dealer'],
+                          label: AppStrings.filterLabelListedBy.tr,
+                          options: PropertyController.listedByOptions,
                           onChanged: (v) => _ctrl.pgListedBy.value = v,
                         ),
                         const SizedBox(height: 14),
                         const RentalListedByNameField(),
                         const SizedBox(height: 18),
                         RentalChipSelector(
-                          label: 'Car Parking',
-                          options: const ['1', '2', '3', '4+'],
+                          label: AppStrings.filterLabelCarParking.tr,
+                          options: PropertyController.parkingOptions,
                           onChanged: (v) => _ctrl.pgCarParking.value = v,
                         ),
                         const SizedBox(height: 18),
                         RentalChipSelector(
-                          label: 'Meals Included',
-                          options: const ['Yes Included', 'Not Included'],
+                          label: AppStrings.mealsIncludedLabel.tr,
+                          options: PropertyController.mealsOptions,
                           onChanged: (v) => _ctrl.pgMealsIncluded.value = v,
                         ),
                         const SizedBox(height: 18),
                         RentalLabeledField(
-                          label: 'Key Amenities',
-                          hint: 'E.g. Lorem Ipsum Dolor',
+                          label: AppStrings.keyAmenitiesLabel.tr,
+                          hint: AppStrings.egLoremIpsumDolor.tr,
                           onChanged: (v) => _ctrl.pgKeyAmenities.value = v,
                           validator: (v) => v == null || v.trim().isEmpty
-                              ? 'Please enter key amenities'
+                              ? AppStrings.pleaseEnterKeyAmenities.tr
                               : null,
                         ),
                       ],
@@ -117,7 +111,7 @@ class _PgGuestHouseRentScreenState extends State<PgGuestHouseRentScreen> {
         ),
         bottomNavigationBar: RentalBottomBar(
           child: RentalPrimaryButton(
-            label: 'Next',
+            label: AppStrings.next.tr,
             onTap: () {
               FocusScope.of(context).unfocus();
               setState(() => _autovalidate = AutovalidateMode.onUserInteraction);

@@ -1,6 +1,7 @@
 import 'dart:ui' as ui;
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -56,7 +57,7 @@ Widget bannerMapLocationPill() {
           SizedBox(width: SizeConfig.size6),
           Flexible(
             child: CustomText(
-              title.isEmpty ? 'Select location' : title,
+              title.isEmpty ? AppStrings.selectLocationPill.tr : title,
               fontSize: SizeConfig.medium,
               color: AppColors.white,
               fontWeight: FontWeight.w700,
@@ -175,7 +176,7 @@ class DiscoverMapPreview extends StatelessWidget {
                           size: 16, color: AppColors.primaryColor),
                       const SizedBox(width: 6),
                       CustomText(
-                        'View on map',
+                        AppStrings.viewOnMap.tr,
                         fontSize: SizeConfig.small,
                         color: AppColors.primaryColor,
                         fontWeight: FontWeight.w700,

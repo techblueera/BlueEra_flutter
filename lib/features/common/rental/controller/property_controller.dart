@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/rental/controller/property_dashboard_controller.dart';
 import 'package:BlueEra/features/common/rental/model/property_model.dart';
@@ -143,7 +144,6 @@ class PropertyController extends GetxController {
   // ── Loading ──
   final isLoading = false.obs;
 
-
   // ── Chip label maps ──
   static const saleTypes = [
     'Houses & Apartments',
@@ -159,6 +159,9 @@ class PropertyController extends GetxController {
     'PG And Guest House',
   ];
 
+  /// House & Apartment type — wire-keys sent to the API. Kept in English
+  /// so the backend contract is stable across languages. Use
+  /// [haTypeLabel] to resolve a localized display string at render time.
   static const haTypeOptions = [
     'Flat/Apartments',
     'Independent / Builder Floor',
@@ -166,6 +169,25 @@ class PropertyController extends GetxController {
     'House & Villa',
     'Duplex',
   ];
+
+  /// Resolves the localized display label for a [haTypeOptions] wire-key.
+  /// Falls back to the raw key if it isn't one of the known options
+  /// (e.g. a server-added value we haven't translated yet).
+  static String haTypeLabel(String key) {
+    switch (key) {
+      case 'Flat/Apartments':
+        return AppStrings.haTypeFlatApartments.tr;
+      case 'Independent / Builder Floor':
+        return AppStrings.haTypeIndependentBuilderFloor.tr;
+      case 'Farm House':
+        return AppStrings.haTypeFarmHouse.tr;
+      case 'House & Villa':
+        return AppStrings.haTypeHouseVilla.tr;
+      case 'Duplex':
+        return AppStrings.haTypeDuplex.tr;
+    }
+    return key;
+  }
   static const bhkOptions = ['1', '2', '3', '4+'];
   static const bathroomOptions = ['1', '2', '3', '4+'];
   static const furnishingOptions = ['Furnished', 'Semi-Furnished', 'Unfurnished'];
@@ -173,21 +195,38 @@ class PropertyController extends GetxController {
   static const availabilityOptions = ['Ready to Move', 'Under Construction'];
   static const parkingOptions = ['1', '2', '3', '4+'];
   static const facingOptions = [
-    'North', 'South', 'East', 'West',
-    'North-East', 'North-West', 'South-East', 'South-West',
+    'North',
+    'South',
+    'East',
+    'West',
+    'North-East',
+    'North-West',
+    'South-East',
+    'South-West',
   ];
   static const lpProjectTypeOptions = ['For Rent', 'For Sale'];
   static const soProjectStatusOptions = [
-    'New Launch', 'Ready to Move', 'Under Construction',
+    'New Launch',
+    'Ready to Move',
+    'Under Construction',
   ];
   static const npPropertyTypeOptions = [
-    '1 RK', '1 BHK', '2 BHK', '3 BHK', '4 BHK', '4 BHK+', 'Office',
+    '1 RK',
+    '1 BHK',
+    '2 BHK',
+    '3 BHK',
+    '4 BHK',
+    '4 BHK+',
+    'Office',
   ];
   static const towersOptions = ['1 to 3', '3 to 5', '5 to 10', '10 +'];
   static const floorsOptions = ['1 to 5', '6 to 10', '10 to 20', '20+'];
   static const pgSubtypeOptions = ['Guest House', 'PG', 'Roommate'];
   static const pgRoomTypeOptions = [
-    'Single Sharing', 'Double Sharing', 'Triple Sharing', 'Dormitory',
+    'Single Sharing',
+    'Double Sharing',
+    'Triple Sharing',
+    'Dormitory',
   ];
   static const bachelorOptions = ['Yes Allowed', 'Not Allowed'];
   static const attachedBathroomOptions = ['Yes Attached', 'Not Attached'];
@@ -224,7 +263,6 @@ class PropertyController extends GetxController {
     return null;
   }
 
-
   String? validateStep3() {
     // Form-level validators on the screen already check the price /
     // deposit text fields inline. The controller's job here is only
@@ -232,8 +270,7 @@ class PropertyController extends GetxController {
     // chip-selector value (it's not a FormField, so it can't be
     // validated through `_formKey.currentState!.validate()`).
     if (photoPaths.length < 2) return 'Please upload at least 2 images';
-    if (priceType.value.trim().isEmpty ||
-        !priceTypeOptions.contains(priceType.value)) {
+    if (priceType.value.trim().isEmpty || !priceTypeOptions.contains(priceType.value)) {
       return 'Please select a rent duration';
     }
     return null;
@@ -244,17 +281,25 @@ class PropertyController extends GetxController {
   String get _propertyTypeKey {
     if (listingType.value == 'Sell') {
       switch (selectedPropertyTypeIndex.value) {
-        case 0: return 'HouseAndApartment';
-        case 1: return 'NewProjectsAndProperties';
-        case 2: return 'LandAndPlots';
-        case 3: return 'ShopAndOffices';
+        case 0:
+          return 'HouseAndApartment';
+        case 1:
+          return 'NewProjectsAndProperties';
+        case 2:
+          return 'LandAndPlots';
+        case 3:
+          return 'ShopAndOffices';
       }
     } else {
       switch (selectedPropertyTypeIndex.value) {
-        case 0: return 'HouseAndApartment';
-        case 1: return 'LandAndPlots';
-        case 2: return 'ShopAndOffices';
-        case 3: return 'PGAndGuestHouse';
+        case 0:
+          return 'HouseAndApartment';
+        case 1:
+          return 'LandAndPlots';
+        case 2:
+          return 'ShopAndOffices';
+        case 3:
+          return 'PGAndGuestHouse';
       }
     }
     return 'HouseAndApartment';
@@ -294,18 +339,11 @@ class PropertyController extends GetxController {
               coordinates: [locationLng.value, locationLat.value],
             )
           : null,
-      houseAndApartment: _propertyTypeKey == 'HouseAndApartment'
-          ? _buildHouseApartment()
-          : null,
-      landAndPlots:
-          _propertyTypeKey == 'LandAndPlots' ? _buildLandPlots() : null,
-      shopAndOffices:
-          _propertyTypeKey == 'ShopAndOffices' ? _buildShopOffices() : null,
-      newProjectsAndProperties: _propertyTypeKey == 'NewProjectsAndProperties'
-          ? _buildNewProject()
-          : null,
-      pgAndGuestHouse:
-          _propertyTypeKey == 'PGAndGuestHouse' ? _buildPgGuestHouse() : null,
+      houseAndApartment: _propertyTypeKey == 'HouseAndApartment' ? _buildHouseApartment() : null,
+      landAndPlots: _propertyTypeKey == 'LandAndPlots' ? _buildLandPlots() : null,
+      shopAndOffices: _propertyTypeKey == 'ShopAndOffices' ? _buildShopOffices() : null,
+      newProjectsAndProperties: _propertyTypeKey == 'NewProjectsAndProperties' ? _buildNewProject() : null,
+      pgAndGuestHouse: _propertyTypeKey == 'PGAndGuestHouse' ? _buildPgGuestHouse() : null,
     );
 
     return model.toJson();
@@ -319,26 +357,15 @@ class PropertyController extends GetxController {
       bhk: bhkOptions[haBhk.value],
       bathrooms: bathroomOptions[haBathrooms.value],
       listedBy: listedByOptions[haListedBy.value],
-      areaDetails: haArea.value.trim().isNotEmpty
-          ? '${haArea.value.trim()} ${areaUnit.value}'
-          : null,
+      areaDetails: haArea.value.trim().isNotEmpty ? '${haArea.value.trim()} ${areaUnit.value}' : null,
       carParking: parkingOptions[haCarParking.value],
       facing: facingOptions[haFacing.value],
-      availabilityStatus: !isRent
-          ? availabilityOptions[haAvailabilityStatus.value]
-          : null,
+      availabilityStatus: !isRent ? availabilityOptions[haAvailabilityStatus.value] : null,
       furnishing: isRent ? furnishingOptions[haFurnishing.value] : null,
-      bachelorsAllowed:
-          isRent ? bachelorOptions[haBachelorsAllowed.value] : null,
-      maintenance: haMaintenance.value.trim().isNotEmpty
-          ? haMaintenance.value.trim()
-          : null,
-      totalFloors: haTotalFloors.value.trim().isNotEmpty
-          ? haTotalFloors.value.trim()
-          : null,
-      floorNo: haFloorNo.value.trim().isNotEmpty
-          ? haFloorNo.value.trim()
-          : null,
+      bachelorsAllowed: isRent ? bachelorOptions[haBachelorsAllowed.value] : null,
+      maintenance: haMaintenance.value.trim().isNotEmpty ? haMaintenance.value.trim() : null,
+      totalFloors: haTotalFloors.value.trim().isNotEmpty ? haTotalFloors.value.trim() : null,
+      floorNo: haFloorNo.value.trim().isNotEmpty ? haFloorNo.value.trim() : null,
     );
   }
 
@@ -364,12 +391,8 @@ class PropertyController extends GetxController {
       superBuiltupArea: soArea.value.trim(),
       carParkings: parkingOptions[soCarParking.value],
       washrooms: washroomOptions[soWashrooms.value],
-      projectStatus: listingType.value == 'Sell'
-          ? soProjectStatusOptions[soProjectStatus.value]
-          : null,
-      maintenance: soMaintenance.value.trim().isNotEmpty
-          ? soMaintenance.value.trim()
-          : null,
+      projectStatus: listingType.value == 'Sell' ? soProjectStatusOptions[soProjectStatus.value] : null,
+      maintenance: soMaintenance.value.trim().isNotEmpty ? soMaintenance.value.trim() : null,
     );
   }
 
@@ -389,12 +412,7 @@ class PropertyController extends GetxController {
         expectedPossessionYear: npPossessionYear.value,
       ),
       keyAmenities: npKeyAmenities.value.trim().isNotEmpty
-          ? npKeyAmenities.value
-              .trim()
-              .split(',')
-              .map((e) => e.trim())
-              .where((e) => e.isNotEmpty)
-              .toList()
+          ? npKeyAmenities.value.trim().split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList()
           : null,
       noOfTowers: towersOptions[npNoOfTowers.value],
       noOfFloors: floorsOptions[npNoOfFloors.value],
@@ -414,12 +432,7 @@ class PropertyController extends GetxController {
       carParking: parkingOptions[pgCarParking.value],
       mealsIncluded: mealsOptions[pgMealsIncluded.value],
       keyAmenities: pgKeyAmenities.value.trim().isNotEmpty
-          ? pgKeyAmenities.value
-              .trim()
-              .split(',')
-              .map((e) => e.trim())
-              .where((e) => e.isNotEmpty)
-              .toList()
+          ? pgKeyAmenities.value.trim().split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList()
           : null,
     );
   }
@@ -448,17 +461,17 @@ class PropertyController extends GetxController {
       final response = await _repo.createProperty(body);
 
       if (response.isSuccess) {
-        commonSnackBar(message: 'Property listed successfully');
+        commonSnackBar(message: AppStrings.propertyListedSuccessfully.tr);
         _refreshDashboard();
         return true;
       } else {
         commonSnackBar(
-          message: response.message ?? 'Failed to list property',
+          message: response.message ?? AppStrings.failedToListProperty.tr,
         );
         return false;
       }
     } catch (e) {
-      commonSnackBar(message: 'Something went wrong');
+      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
       return false;
     } finally {
       isLoading.value = false;

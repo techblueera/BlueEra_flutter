@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/common/rental/controller/property_controller.dart';
 import 'package:BlueEra/features/common/rental/widget/complete_your_listing_screen.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_form_widgets.dart';
@@ -54,54 +55,46 @@ class _NewProjectSpecificationsScreenState
                             RentalLocationField(),
                             const SizedBox(height: 18),
                             RentalChipSelector(
-                              label: 'Project Type',
-                              options: const ['Residential', 'Commercial'],
+                              label: AppStrings.projectTypeLabel.tr,
+                              options: PropertyController.propertyKindOptions,
                               onChanged: (i) =>
                                   _ctrl.npProjectType.value = i,
                             ),
                             const SizedBox(height: 18),
                             RentalChipSelector(
-                              label: 'Project Status',
-                              options: const [
-                                'New Launch',
-                                'Under Construction'
-                              ],
+                              label: AppStrings.filterLabelProjectStatus.tr,
+                              options: PropertyController.availabilityOptions,
                               onChanged: (i) =>
                                   _ctrl.npProjectStatus.value = i,
                             ),
                             const SizedBox(height: 18),
                             RentalChipSelector(
-                              label: 'Type Of Property',
-                              options: const [
-                                '1 RK',
-                                '1 BHK',
-                                '2 BHK',
-                                '3 BHK',
-                                '4 BHK',
-                                '4 BHK+',
-                                'Office',
-                              ],
+                              label: AppStrings.typeOfPropertyLabel.tr,
+                              options:
+                                  PropertyController.npPropertyTypeOptions,
                               onChanged: (i) =>
                                   _ctrl.npTypeOfProperty.value = i,
                             ),
                             const SizedBox(height: 18),
                             RentalAreaField(
-                              label: 'Add Area Details',
-                              hint: 'E.g. 4060',
+                              label: AppStrings.addAreaDetails.tr,
+                              hint: AppStrings.egArea4060.tr,
                               onChanged: (v) => _ctrl.npArea.value = v,
                               validator: (v) {
                                 final s = v?.trim() ?? '';
-                                if (s.isEmpty) return 'Please enter area';
+                                if (s.isEmpty) {
+                                  return AppStrings.pleaseEnterArea.tr;
+                                }
                                 if (num.tryParse(s) == null) {
-                                  return 'Enter a valid number';
+                                  return AppStrings.enterValidNumber.tr;
                                 }
                                 return null;
                               },
                             ),
                             const SizedBox(height: 18),
                             RentalChipSelector(
-                              label: 'Listed By',
-                              options: const ['Owner', 'Builder', 'Dealer'],
+                              label: AppStrings.filterLabelListedBy.tr,
+                              options: PropertyController.listedByOptions,
                               onChanged: (i) => _ctrl.npListedBy.value = i,
                             ),
                           ],
@@ -113,15 +106,15 @@ class _NewProjectSpecificationsScreenState
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             CustomText(
-                              'Project Launch Information',
+                              AppStrings.projectLaunchInformation.tr,
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
                               color: AppColors.mainTextColor,
                             ),
                             const SizedBox(height: 12),
                             RentalLabeledField(
-                              label: 'Developer/Builder Name',
-                              hint: 'E.g. Ritesh Kumar Sharma',
+                              label: AppStrings.developerBuilderName.tr,
+                              hint: AppStrings.egRiteshKumarSharma.tr,
                               onChanged: (v) {
                                 // Single name input for new projects — feeds
                                 // both the launch-info builderName and the
@@ -133,27 +126,27 @@ class _NewProjectSpecificationsScreenState
                               },
                               validator: (v) =>
                                   v == null || v.trim().isEmpty
-                                      ? 'Please enter builder name'
+                                      ? AppStrings.pleaseEnterBuilderName.tr
                                       : null,
                             ),
                             const SizedBox(height: 14),
                             RentalLabeledField(
-                              label: 'RERA Registration No.',
-                              hint: 'E.g. 456523',
+                              label: AppStrings.reraRegistrationNo.tr,
+                              hint: AppStrings.egRera456523.tr,
                               onChanged: (v) => _ctrl.npReraNo.value = v,
                               validator: (v) =>
                                   v == null || v.trim().isEmpty
-                                      ? 'Please enter RERA number'
+                                      ? AppStrings.pleaseEnterReraNumber.tr
                                       : null,
                             ),
                             const SizedBox(height: 14),
-                            const Row(
+                            Row(
                               children: [
                                 Expanded(
                                   child: RentalLabeledDropdown(
-                                    label: 'Project Launch Month',
-                                    hint: 'E.g. December',
-                                    items: [
+                                    label: AppStrings.projectLaunchMonth.tr,
+                                    hint: AppStrings.egDecember.tr,
+                                    items: const [
                                       'January',
                                       'February',
                                       'March',
@@ -169,12 +162,12 @@ class _NewProjectSpecificationsScreenState
                                     ],
                                   ),
                                 ),
-                                SizedBox(width: 12),
+                                const SizedBox(width: 12),
                                 Expanded(
                                   child: RentalLabeledDropdown(
-                                    label: 'Project Launch Year',
-                                    hint: 'E.g. 2026',
-                                    items: [
+                                    label: AppStrings.projectLaunchYear.tr,
+                                    hint: AppStrings.eg2026.tr,
+                                    items: const [
                                       '2024',
                                       '2025',
                                       '2026',
@@ -188,13 +181,14 @@ class _NewProjectSpecificationsScreenState
                               ],
                             ),
                             const SizedBox(height: 14),
-                            const Row(
+                            Row(
                               children: [
                                 Expanded(
                                   child: RentalLabeledDropdown(
-                                    label: 'Expected Possession Month',
-                                    hint: 'E.g. December',
-                                    items: [
+                                    label:
+                                        AppStrings.expectedPossessionMonth.tr,
+                                    hint: AppStrings.egDecember.tr,
+                                    items: const [
                                       'January',
                                       'February',
                                       'March',
@@ -210,12 +204,12 @@ class _NewProjectSpecificationsScreenState
                                     ],
                                   ),
                                 ),
-                                SizedBox(width: 12),
+                                const SizedBox(width: 12),
                                 Expanded(
                                   child: RentalLabeledDropdown(
-                                    label: 'Expected Possession Year',
-                                    hint: 'E.g. 2026',
-                                    items: [
+                                    label: AppStrings.expectedPossessionYear.tr,
+                                    hint: AppStrings.eg2026.tr,
+                                    items: const [
                                       '2024',
                                       '2025',
                                       '2026',
@@ -237,52 +231,33 @@ class _NewProjectSpecificationsScreenState
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             RentalLabeledField(
-                              label: 'Key Amenities',
-                              hint: 'E.g. Lorem Ipsum Dolor',
+                              label: AppStrings.keyAmenitiesLabel.tr,
+                              hint: AppStrings.egLoremIpsumDolor.tr,
                               onChanged: (v) =>
                                   _ctrl.npKeyAmenities.value = v,
                               validator: (v) =>
                                   v == null || v.trim().isEmpty
-                                      ? 'Please enter key amenities'
+                                      ? AppStrings.pleaseEnterKeyAmenities.tr
                                       : null,
                             ),
                             const SizedBox(height: 18),
                             RentalChipSelector(
-                              label: 'No. Of Towers',
-                              options: const [
-                                '1 to 3',
-                                '3 to 5',
-                                '5 to 10',
-                                '10 +'
-                              ],
+                              label: AppStrings.noOfTowersLabel.tr,
+                              options: PropertyController.towersOptions,
                               onChanged: (i) =>
                                   _ctrl.npNoOfTowers.value = i,
                             ),
                             const SizedBox(height: 18),
                             RentalChipSelector(
-                              label: 'No. Of Floors',
-                              options: const [
-                                '1 to 5',
-                                '6 to 10',
-                                '10 to 20',
-                                '20+'
-                              ],
+                              label: AppStrings.noOfFloorsLabel.tr,
+                              options: PropertyController.floorsOptions,
                               onChanged: (i) =>
                                   _ctrl.npNoOfFloors.value = i,
                             ),
                             const SizedBox(height: 18),
                             RentalChipSelector(
-                              label: 'Facing',
-                              options: const [
-                                'North',
-                                'South',
-                                'East',
-                                'West',
-                                'North-East',
-                                'North-West',
-                                'South-East',
-                                'South-West',
-                              ],
+                              label: AppStrings.filterLabelFacing.tr,
+                              options: PropertyController.facingOptions,
                               onChanged: (i) => _ctrl.npFacing.value = i,
                             ),
                           ],
@@ -297,7 +272,7 @@ class _NewProjectSpecificationsScreenState
         ),
         bottomNavigationBar: RentalBottomBar(
           child: RentalPrimaryButton(
-            label: 'Next',
+            label: AppStrings.next.tr,
             onTap: () {
               FocusScope.of(context).unfocus();
               setState(() => _autovalidate = AutovalidateMode.onUserInteraction);

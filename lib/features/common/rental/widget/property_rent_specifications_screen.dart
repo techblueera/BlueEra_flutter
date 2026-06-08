@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/common/rental/widget/complete_your_listing_screen.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_form_widgets.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -14,20 +15,20 @@ class PropertyRentSpecificationsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: 'Property Specifications'),
+      appBar: CommonBackAppBar(title: AppStrings.propertySpecificationsTitle.tr),
       body: Column(
         children: [
           const RentalStepProgressBar(progress: 0.66),
           Expanded(child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-        child: const RentalFormCard(
+        child: RentalFormCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               RentalLabeledDropdown(
-                label: 'Type',
-                hint: 'Duplex',
-                items: [
+                label: AppStrings.typeLabel.tr,
+                hint: AppStrings.egDuplex.tr,
+                items: const [
                   'Apartment',
                   'Independent House',
                   'Duplex',
@@ -36,77 +37,77 @@ class PropertyRentSpecificationsScreen extends StatelessWidget {
                   'Studio'
                 ],
               ),
-              SizedBox(height: 14),
+              const SizedBox(height: 14),
               RentalLabeledDropdown(
-                label: 'BHK',
-                hint: 'E.g. 3BHK',
-                items: ['1 BHK', '2 BHK', '3 BHK', '4 BHK', '5+ BHK'],
+                label: AppStrings.filterLabelBHK.tr,
+                hint: AppStrings.egThreeBhk.tr,
+                items: const ['1 BHK', '2 BHK', '3 BHK', '4 BHK', '5+ BHK'],
               ),
-              SizedBox(height: 14),
+              const SizedBox(height: 14),
               RentalLabeledDropdown(
-                label: 'Bathrooms',
-                hint: 'E.g. 4+',
-                items: ['1', '2', '3', '4', '4+'],
+                label: AppStrings.filterLabelBathrooms.tr,
+                hint: AppStrings.egFourPlus.tr,
+                items: const ['1', '2', '3', '4', '4+'],
               ),
-              SizedBox(height: 14),
+              const SizedBox(height: 14),
               RentalLabeledDropdown(
-                label: 'Furnishing',
-                hint: 'E.g. Semi Furnished',
-                items: ['Furnished', 'Semi Furnished', 'Unfurnished'],
+                label: AppStrings.filterLabelFurnishing.tr,
+                hint: AppStrings.egSemiFurnished.tr,
+                items: const ['Furnished', 'Semi Furnished', 'Unfurnished'],
               ),
-              SizedBox(height: 14),
+              const SizedBox(height: 14),
               RentalLabeledDropdown(
-                label: 'Listed By',
-                hint: 'E.g. Owner',
-                items: ['Owner', 'Dealer', 'Builder'],
+                label: AppStrings.filterLabelListedBy.tr,
+                hint: AppStrings.egOwner.tr,
+                items: const ['Owner', 'Dealer', 'Builder'],
               ),
-              SizedBox(height: 14),
+              const SizedBox(height: 14),
               RentalLabeledField(
-                label: 'Super Builtup Area Sqft',
-                hint: 'E.g. 4060',
+                label: AppStrings.superBuiltupAreaSqftLabel.tr,
+                hint: AppStrings.egArea4060.tr,
                 keyboardType: TextInputType.number,
               ),
-              SizedBox(height: 14),
+              const SizedBox(height: 14),
               RentalLabeledField(
-                label: 'Carpet Area Sqft',
-                hint: 'E.g. 4060',
+                label: AppStrings.carpetAreaSqftLabel.tr,
+                hint: AppStrings.egArea4060.tr,
                 keyboardType: TextInputType.number,
               ),
-              SizedBox(height: 14),
+              const SizedBox(height: 14),
               RentalLabeledDropdown(
-                label: 'Bachelors Allowed',
-                hint: 'E.g. No',
-                items: ['Yes', 'No'],
+                label: AppStrings.bachelorsAllowedLabel.tr,
+                hint: AppStrings.egNo.tr,
+                items: const ['Yes', 'No'],
               ),
-              SizedBox(height: 14),
+              const SizedBox(height: 14),
               RentalLabeledField(
-                label: 'Maintenance (Monthly)',
-                hint: 'E.g. ₹40,660',
+                label: AppStrings.maintenanceMonthlyLabel.tr,
+                hint: AppStrings.egRupees40660.tr,
                 keyboardType: TextInputType.number,
               ),
-              SizedBox(height: 14),
+              const SizedBox(height: 14),
               RentalLabeledField(
-                label: 'Total Floors',
-                hint: 'E.g. 8',
+                label: AppStrings.totalFloorsLabel.tr,
+                hint: AppStrings.egEight.tr,
                 keyboardType: TextInputType.number,
               ),
-              SizedBox(height: 14),
+              const SizedBox(height: 14),
               RentalLabeledField(
-                label: 'Floor No',
-                hint: 'E.g. 8',
+                label: AppStrings.floorNoLabel.tr,
+                hint: AppStrings.egEight.tr,
                 keyboardType: TextInputType.number,
               ),
-              SizedBox(height: 14),
+              const SizedBox(height: 14),
               RentalLabeledDropdown(
-                label: 'Car Parking',
-                hint: 'Lorem',
-                items: ['None', '1', '2', '3+'],
+                label: AppStrings.filterLabelCarParking.tr,
+                hint: AppStrings.loremPlaceholder.tr,
+                items: const ['None', '1', '2', '3+'],
               ),
-              SizedBox(height: 14),
+              const SizedBox(height: 14),
               RentalLabeledDropdown(
-                label: 'Facing',
-                hint: 'Lorem',
-                items: [
+                label: AppStrings.filterLabelFacing.tr,
+                hint: AppStrings.loremPlaceholder.tr,
+                items: const [
                   'North',
                   'South',
                   'East',
@@ -125,7 +126,7 @@ class PropertyRentSpecificationsScreen extends StatelessWidget {
       ),
       bottomNavigationBar: RentalBottomBar(
         child: RentalPrimaryButton(
-          label: 'Next',
+          label: AppStrings.next.tr,
           onTap: () => Get.to(() => const CompleteYourListingScreen()),
         ),
       ),

@@ -20,17 +20,40 @@ class PropertyPhotoController extends GetxController {
   final RxBool isSaving = false.obs;
 
   /// Existing albums returned by the API.
-  final RxList<HotelPropertyPhotoData> propertyPhotosList =
-      <HotelPropertyPhotoData>[].obs;
+  final RxList<HotelPropertyPhotoData> propertyPhotosList = <HotelPropertyPhotoData>[].obs;
 
   /// Available album categories shown in the upload dropdown.
-  final List<String> categories = const [
-    "External View & Parking",
-    "Lobby & Garden",
-    "Rooms",
-    "Restaurant & Bar",
-    "Gym & Swimming Pool",
+  ///
+  /// Each entry is the wire-key sent to the backend's `category` field —
+  /// kept in English so the API contract is stable across languages.
+  /// Use [categoryLabel] to resolve the localized display string at
+  /// render time.
+  final List<String> categories = [
+    AppStrings.photoCategoryExternalViewParking.tr,
+    AppStrings.photoCategoryLobbyGarden.tr,
+    AppStrings.photoCategoryRooms.tr,
+    AppStrings.photoCategoryRestaurantBar.tr,
+    AppStrings.photoCategoryGymSwimmingPool.tr,
   ];
+
+  /// Resolves the localized display label for a category wire-key.
+  /// Falls back to the raw key if it's not one of the known options
+  /// (e.g. a server-added category we haven't translated yet).
+  String categoryLabel(String key) {
+    switch (key) {
+      case "External View & Parking":
+        return AppStrings.photoCategoryExternalViewParking.tr;
+      case "Lobby & Garden":
+        return AppStrings.photoCategoryLobbyGarden.tr;
+      case "Rooms":
+        return AppStrings.photoCategoryRooms.tr;
+      case "Restaurant & Bar":
+        return AppStrings.photoCategoryRestaurantBar.tr;
+      case "Gym & Swimming Pool":
+        return AppStrings.photoCategoryGymSwimmingPool.tr;
+    }
+    return key;
+  }
 
   /// Max picks before [addImage] starts rejecting.
   static const int _maxImagesPerUpload = 6;
@@ -98,8 +121,7 @@ class PropertyPhotoController extends GetxController {
         return;
       }
 
-      final ResponseModel response =
-          await _repo.addHotelPropertyPhotosRepo(reqBody: {
+      final ResponseModel response = await _repo.addHotelPropertyPhotosRepo(reqBody: {
         "category": selectedCategory.value,
         "images": urls,
       });
@@ -136,8 +158,7 @@ class PropertyPhotoController extends GetxController {
 
       if (response.isSuccess) {
         Get.back();
-        commonSnackBar(
-            message: response.response?.data['message'] ?? AppStrings.successful);
+        commonSnackBar(message: response.response?.data['message'] ?? AppStrings.successful);
         await fetchPhotos();
       } else {
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);

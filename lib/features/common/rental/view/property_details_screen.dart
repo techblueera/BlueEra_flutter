@@ -117,7 +117,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       ),
                       const SizedBox(width: 8),
                       CustomText(
-                        'Chat with Owner',
+                        AppStrings.chatWithOwner.tr,
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
@@ -134,7 +134,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
   void _openChat() {
     final ownerId = p.userId;
     if (ownerId == null || ownerId.isEmpty) {
-      commonSnackBar(message: 'Owner not available for chat');
+      commonSnackBar(message: AppStrings.ownerNotAvailableForChat.tr);
       return;
     }
     final chatController = Get.find<ChatViewController>();
@@ -339,7 +339,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       onTap: () =>
                           setState(() => _showFullDesc = !_showFullDesc),
                       child: CustomText(
-                        _showFullDesc ? 'Show Less' : 'Read More',
+                        _showFullDesc
+                            ? AppStrings.showLess.tr
+                            : AppStrings.readMore.tr,
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w700,
                         color: AppColors.primaryColor,
@@ -404,8 +406,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     if (!hasInfo && !_isOwner) return const SizedBox.shrink();
 
     final rows = <(String, String)>[];
-    if (name.isNotEmpty) rows.add(('Lister Name', name));
-    if (role.isNotEmpty) rows.add(('Listed By', role));
+    if (name.isNotEmpty) rows.add((AppStrings.listerName.tr, name));
+    if (role.isNotEmpty) rows.add((AppStrings.filterLabelListedBy.tr, role));
 
     return CustomFormCard(
       margin: EdgeInsets.symmetric(horizontal: SizeConfig.size14),
@@ -417,7 +419,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             children: [
               Expanded(
                 child: CustomText(
-                  'Listed By',
+                  AppStrings.filterLabelListedBy.tr,
                   fontSize: SizeConfig.large,
                   fontWeight: FontWeight.w800,
                   color: AppColors.mainTextColor,
@@ -429,7 +431,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           const SizedBox(height: 10),
           if (rows.isEmpty)
             CustomText(
-              'Not specified',
+              AppStrings.notSpecified.tr,
               fontSize: SizeConfig.small,
               fontWeight: FontWeight.w500,
               color: AppColors.secondaryTextColor,
@@ -481,14 +483,14 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CustomText(
-            'Rate this property',
+            AppStrings.rateThisProperty.tr,
             fontSize: SizeConfig.large,
             fontWeight: FontWeight.w800,
             color: AppColors.mainTextColor,
           ),
           const SizedBox(height: 4),
           CustomText(
-            'Tap a star to share your experience',
+            AppStrings.tapStarToShareExperience.tr,
             fontSize: SizeConfig.small,
             fontWeight: FontWeight.w500,
             color: AppColors.secondaryTextColor,
@@ -519,8 +521,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     int selected = initial;
     final commentCtrl = TextEditingController();
     _openEditSheet(
-      title: 'Rate this property',
-      saveLabel: 'Submit Rating',
+      title: AppStrings.rateThisProperty.tr,
+      saveLabel: AppStrings.submitRating.tr,
       children: [
         StatefulBuilder(
           builder: (ctx, setLocal) {
@@ -544,8 +546,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         ),
         const SizedBox(height: 16),
         RentalLabeledField(
-          label: 'Comment (optional)',
-          hint: 'Share your experience...',
+          label: AppStrings.commentOptional.tr,
+          hint: AppStrings.shareYourExperienceHint.tr,
           controller: commentCtrl,
           maxLines: 3,
           maxLength: 500,
@@ -553,12 +555,12 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
       ],
       onSave: () {
         if (selected <= 0) {
-          commonSnackBar(message: 'Please select a rating');
+          commonSnackBar(message: AppStrings.pleaseSelectRating.tr);
           return;
         }
         // Rating submission not wired up yet — just acknowledge for now.
         Get.back();
-        commonSnackBar(message: 'Rating coming soon');
+        commonSnackBar(message: AppStrings.ratingComingSoon.tr);
       },
     );
   }
@@ -574,7 +576,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CustomText(
-            'Key Highlights',
+            AppStrings.keyHighlights.tr,
             fontSize: SizeConfig.large,
             fontWeight: FontWeight.w800,
             color: AppColors.mainTextColor,
@@ -631,7 +633,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             children: [
               Expanded(
                 child: CustomText(
-                  'Property Information',
+                  AppStrings.propertyInformation.tr,
                   fontSize: SizeConfig.large,
                   fontWeight: FontWeight.w800,
                   color: AppColors.mainTextColor,
@@ -688,7 +690,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             children: [
               Expanded(
                 child: CustomText(
-                  'Gallery',
+                  AppStrings.gallery.tr,
                   fontSize: SizeConfig.large,
                   fontWeight: FontWeight.w800,
                   color: AppColors.mainTextColor,
@@ -824,8 +826,9 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     required String title,
     required List<Widget> children,
     required VoidCallback onSave,
-    String saveLabel = 'Update',
+    String? saveLabel,
   }) {
+    saveLabel ??= AppStrings.update.tr;
     Get.bottomSheet(
       Container(
         constraints: BoxConstraints(
@@ -930,18 +933,18 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     bool isRange = hasRange;
 
     _openEditSheet(
-      title: 'Edit Property Details',
+      title: AppStrings.editPropertyDetails.tr,
       children: [
         RentalLabeledField(
-          label: 'Property Name',
-          hint: 'Enter property name',
+          label: AppStrings.propertyNameLabel.tr,
+          hint: AppStrings.enterPropertyName.tr,
           controller: nameCtrl,
           maxLength: 70,
         ),
         const SizedBox(height: 16),
         RentalLabeledField(
-          label: 'Description',
-          hint: 'Enter description',
+          label: AppStrings.description.tr,
+          hint: AppStrings.enterDescription.tr,
           controller: descCtrl,
           maxLines: 4,
           maxLength: 2000,
@@ -953,30 +956,33 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 RentalChipSelector(
-                  label: 'Price Type',
-                  options: const ['Fixed Price', 'Price Range'],
+                  label: AppStrings.priceTypeLabel.tr,
+                  options: [
+                    AppStrings.fixedPrice.tr,
+                    AppStrings.priceRangeLabel.tr,
+                  ],
                   initialIndex: isRange ? 1 : 0,
                   onChanged: (i) => setLocal(() => isRange = i == 1),
                 ),
                 const SizedBox(height: 16),
                 if (!isRange)
                   RentalLabeledField(
-                    label: 'Price',
-                    hint: 'Enter price',
+                    label: AppStrings.price.tr,
+                    hint: AppStrings.enterPrice.tr,
                     controller: priceCtrl,
                     keyboardType: TextInputType.number,
                   )
                 else ...[
                   RentalLabeledField(
-                    label: 'Minimum Price',
-                    hint: 'Enter min price',
+                    label: AppStrings.minimumPrice.tr,
+                    hint: AppStrings.enterMinPrice.tr,
                     controller: fromCtrl,
                     keyboardType: TextInputType.number,
                   ),
                   const SizedBox(height: 12),
                   RentalLabeledField(
-                    label: 'Maximum Price',
-                    hint: 'Enter max price',
+                    label: AppStrings.maximumPrice.tr,
+                    hint: AppStrings.enterMaxPrice.tr,
                     controller: toCtrl,
                     keyboardType: TextInputType.number,
                   ),
@@ -987,8 +993,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         ),
         const SizedBox(height: 16),
         RentalLabeledField(
-          label: 'Property Location',
-          hint: 'Enter address',
+          label: AppStrings.propertyLocationLabel.tr,
+          hint: AppStrings.enterAddress.tr,
           controller: locCtrl,
           maxLines: 2,
         ),
@@ -1028,18 +1034,18 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     final hasRole = _subTypeHasListedBy;
 
     _openEditSheet(
-      title: 'Edit Listed By',
+      title: AppStrings.editListedBy.tr,
       children: [
         RentalLabeledField(
-          label: 'Lister Name',
-          hint: 'Enter name',
+          label: AppStrings.listerName.tr,
+          hint: AppStrings.enterName.tr,
           controller: nameCtrl,
           maxLength: 70,
         ),
         if (hasRole) ...[
           const SizedBox(height: 16),
           RentalChipSelector(
-            label: 'Listed By',
+            label: AppStrings.filterLabelListedBy.tr,
             options: PropertyController.listedByOptions,
             initialIndex: roleIdx,
             onChanged: (i) => roleIdx = i,
@@ -1104,7 +1110,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                         children: [
                           Expanded(
                             child: CustomText(
-                              'Edit Photos',
+                              AppStrings.editPhotos.tr,
                               fontSize: SizeConfig.large18,
                               fontWeight: FontWeight.w800,
                               color: AppColors.mainTextColor,
@@ -1139,7 +1145,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         CustomText(
-                          'Current Photos (${allImages.length})',
+                          AppStrings.currentPhotosFmt.trParams(
+                              {'count': '${allImages.length}'}),
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
                           color: AppColors.mainTextColor,
@@ -1175,7 +1182,8 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                         if (newPaths.isNotEmpty) ...[
                           const SizedBox(height: 16),
                           CustomText(
-                            'New Photos (${newPaths.length})',
+                            AppStrings.newPhotosFmt.trParams(
+                                {'count': '${newPaths.length}'}),
                             fontSize: 14,
                             fontWeight: FontWeight.w700,
                             color: AppColors.mainTextColor,
@@ -1230,7 +1238,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                             Expanded(
                               child: _photoPickTile(
                                 icon: Icons.camera_alt_outlined,
-                                label: 'Camera',
+                                label: AppStrings.cameraLabel.tr,
                                 onTap: () async {
                                   final path =
                                       await PhotoPickerService.pickFromCamera(
@@ -1245,7 +1253,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                             Expanded(
                               child: _photoPickTile(
                                 icon: Icons.photo_library_outlined,
-                                label: 'Gallery',
+                                label: AppStrings.galleryLabel.tr,
                                 onTap: () async {
                                   final paths = await PhotoPickerService
                                       .pickMultipleFromGallery(ctx,
@@ -1268,7 +1276,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                     child: Padding(
                       padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
                       child: RentalPrimaryButton(
-                        label: 'Upload Photos',
+                        label: AppStrings.uploadPhotosCta.tr,
                         onTap: () => _uploadImages(newPaths),
                       ),
                     ),
@@ -1361,24 +1369,25 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     final isRent = p.listingType == 'Rent';
 
     _openEditSheet(
-      title: 'Edit Property Details',
+      title: AppStrings.editPropertyDetails.tr,
       children: [
         RentalChipSelector(
-          label: 'Type',
+          label: AppStrings.typeLabel.tr,
           options: PropertyController.haTypeOptions,
+          labelFor: PropertyController.haTypeLabel,
           initialIndex: typeIdx,
           onChanged: (i) => typeIdx = i,
         ),
         const SizedBox(height: 16),
         RentalChipSelector(
-          label: 'BHK',
+          label: AppStrings.filterLabelBHK.tr,
           options: PropertyController.bhkOptions,
           initialIndex: bhkIdx,
           onChanged: (i) => bhkIdx = i,
         ),
         const SizedBox(height: 16),
         RentalChipSelector(
-          label: 'Bathrooms',
+          label: AppStrings.filterLabelBathrooms.tr,
           options: PropertyController.bathroomOptions,
           initialIndex: bathIdx,
           onChanged: (i) => bathIdx = i,
@@ -1386,21 +1395,21 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         const SizedBox(height: 16),
         if (isRent) ...[
           RentalChipSelector(
-            label: 'Furnishing',
+            label: AppStrings.filterLabelFurnishing.tr,
             options: PropertyController.furnishingOptions,
             initialIndex: furnIdx,
             onChanged: (i) => furnIdx = i,
           ),
           const SizedBox(height: 16),
           RentalChipSelector(
-            label: 'Bachelors Allowed',
+            label: AppStrings.filterLabelBachelors.tr,
             options: PropertyController.bachelorOptions,
             initialIndex: bachIdx,
             onChanged: (i) => bachIdx = i,
           ),
         ] else ...[
           RentalChipSelector(
-            label: 'Availability',
+            label: AppStrings.filterLabelAvailability.tr,
             options: PropertyController.availabilityOptions,
             initialIndex: availIdx,
             onChanged: (i) => availIdx = i,
@@ -1408,41 +1417,41 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         ],
         const SizedBox(height: 16),
         RentalChipSelector(
-          label: 'Listed By',
+          label: AppStrings.filterLabelListedBy.tr,
           options: PropertyController.listedByOptions,
           initialIndex: listedIdx,
           onChanged: (i) => listedIdx = i,
         ),
         const SizedBox(height: 16),
         RentalLabeledField(
-          label: 'Area Details',
-          hint: 'E.g. 1200 sq.ft.',
+          label: AppStrings.areaDetailsLabel.tr,
+          hint: AppStrings.egArea1200SqFt.tr,
           controller: areaCtrl,
         ),
         const SizedBox(height: 16),
         RentalLabeledField(
-          label: 'Maintenance (Monthly)',
-          hint: 'Enter amount',
+          label: AppStrings.maintenanceMonthlyLabel.tr,
+          hint: AppStrings.enterAmount.tr,
           controller: maintCtrl,
           keyboardType: TextInputType.number,
         ),
         const SizedBox(height: 16),
         RentalLabeledField(
-          label: 'Total Floors',
-          hint: 'Enter total floors',
+          label: AppStrings.totalFloorsLabel.tr,
+          hint: AppStrings.enterTotalFloors.tr,
           controller: floorsCtrl,
           keyboardType: TextInputType.number,
         ),
         const SizedBox(height: 16),
         RentalChipSelector(
-          label: 'Car Parking',
+          label: AppStrings.filterLabelCarParking.tr,
           options: PropertyController.parkingOptions,
           initialIndex: parkIdx,
           onChanged: (i) => parkIdx = i,
         ),
         const SizedBox(height: 16),
         RentalChipSelector(
-          label: 'Facing',
+          label: AppStrings.filterLabelFacing.tr,
           options: PropertyController.facingOptions,
           initialIndex: faceIdx,
           onChanged: (i) => faceIdx = i,
@@ -1497,42 +1506,42 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         TextEditingController(text: lp?.plotAreaDetails?.breadth ?? '');
 
     _openEditSheet(
-      title: 'Edit Land Details',
+      title: AppStrings.editLandDetails.tr,
       children: [
         RentalChipSelector(
-          label: 'Project Type',
+          label: AppStrings.projectTypeLabel.tr,
           options: PropertyController.lpProjectTypeOptions,
           initialIndex: projIdx,
           onChanged: (i) => projIdx = i,
         ),
         const SizedBox(height: 16),
         RentalChipSelector(
-          label: 'Listed By',
+          label: AppStrings.filterLabelListedBy.tr,
           options: PropertyController.listedByOptions,
           initialIndex: listedIdx,
           onChanged: (i) => listedIdx = i,
         ),
         const SizedBox(height: 16),
         RentalLabeledField(
-          label: 'Plot Area',
-          hint: 'Total area',
+          label: AppStrings.plotAreaLabel.tr,
+          hint: AppStrings.totalAreaHint.tr,
           controller: areaCtrl,
         ),
         const SizedBox(height: 16),
         RentalLabeledField(
-          label: 'Length',
-          hint: 'Enter length',
+          label: AppStrings.lengthLabel.tr,
+          hint: AppStrings.enterLength.tr,
           controller: lenCtrl,
         ),
         const SizedBox(height: 16),
         RentalLabeledField(
-          label: 'Breadth',
-          hint: 'Enter breadth',
+          label: AppStrings.breadthLabel.tr,
+          hint: AppStrings.enterBreadth.tr,
           controller: brCtrl,
         ),
         const SizedBox(height: 16),
         RentalChipSelector(
-          label: 'Facing',
+          label: AppStrings.filterLabelFacing.tr,
           options: PropertyController.facingOptions,
           initialIndex: faceIdx,
           onChanged: (i) => faceIdx = i,
@@ -1573,10 +1582,10 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     final maintCtrl = TextEditingController(text: so?.maintenance ?? '');
 
     _openEditSheet(
-      title: 'Edit Shop Details',
+      title: AppStrings.editShopDetails.tr,
       children: [
         RentalChipSelector(
-          label: 'Furnishing',
+          label: AppStrings.filterLabelFurnishing.tr,
           options: PropertyController.furnishingOptions,
           initialIndex: furnIdx,
           onChanged: (i) => furnIdx = i,
@@ -1584,7 +1593,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         if (p.listingType == 'Sell') ...[
           const SizedBox(height: 16),
           RentalChipSelector(
-            label: 'Project Status',
+            label: AppStrings.filterLabelProjectStatus.tr,
             options: PropertyController.soProjectStatusOptions,
             initialIndex: statusIdx,
             onChanged: (i) => statusIdx = i,
@@ -1592,34 +1601,34 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         ],
         const SizedBox(height: 16),
         RentalChipSelector(
-          label: 'Listed By',
+          label: AppStrings.filterLabelListedBy.tr,
           options: PropertyController.listedByOptions,
           initialIndex: listedIdx,
           onChanged: (i) => listedIdx = i,
         ),
         const SizedBox(height: 16),
         RentalLabeledField(
-          label: 'Super Built-Up Area',
-          hint: 'Enter area',
+          label: AppStrings.superBuiltUpArea.tr,
+          hint: AppStrings.enterAreaHint.tr,
           controller: areaCtrl,
         ),
         const SizedBox(height: 16),
         RentalLabeledField(
-          label: 'Maintenance (Monthly)',
-          hint: 'Enter amount',
+          label: AppStrings.maintenanceMonthlyLabel.tr,
+          hint: AppStrings.enterAmount.tr,
           controller: maintCtrl,
           keyboardType: TextInputType.number,
         ),
         const SizedBox(height: 16),
         RentalChipSelector(
-          label: 'Car Parking',
+          label: AppStrings.filterLabelCarParking.tr,
           options: PropertyController.parkingOptions,
           initialIndex: parkIdx,
           onChanged: (i) => parkIdx = i,
         ),
         const SizedBox(height: 16),
         RentalChipSelector(
-          label: 'Washrooms',
+          label: AppStrings.filterLabelWashrooms.tr,
           options: PropertyController.washroomOptions,
           initialIndex: washIdx,
           onChanged: (i) => washIdx = i,
@@ -1668,71 +1677,71 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         text: np?.keyAmenities?.join(', ') ?? '');
 
     _openEditSheet(
-      title: 'Edit Project Details',
+      title: AppStrings.editProjectDetails.tr,
       children: [
         RentalChipSelector(
-          label: 'Project Type',
+          label: AppStrings.projectTypeLabel.tr,
           options: PropertyController.propertyKindOptions,
           initialIndex: projIdx,
           onChanged: (i) => projIdx = i,
         ),
         const SizedBox(height: 16),
         RentalChipSelector(
-          label: 'Project Status',
+          label: AppStrings.filterLabelProjectStatus.tr,
           options: PropertyController.availabilityOptions,
           initialIndex: statusIdx,
           onChanged: (i) => statusIdx = i,
         ),
         const SizedBox(height: 16),
         RentalChipSelector(
-          label: 'Property Type',
+          label: AppStrings.filterLabelPropertyType.tr,
           options: PropertyController.npPropertyTypeOptions,
           initialIndex: typeIdx,
           onChanged: (i) => typeIdx = i,
         ),
         const SizedBox(height: 16),
         RentalLabeledField(
-          label: 'Area',
-          hint: 'Enter area',
+          label: AppStrings.areaLabel.tr,
+          hint: AppStrings.enterAreaHint.tr,
           controller: areaCtrl,
         ),
         const SizedBox(height: 16),
         RentalLabeledField(
-          label: 'Builder Name',
-          hint: 'Enter builder name',
+          label: AppStrings.builderNameLabel.tr,
+          hint: AppStrings.enterBuilderName.tr,
           controller: builderCtrl,
         ),
         const SizedBox(height: 16),
         RentalLabeledField(
-          label: 'RERA Registration No.',
-          hint: 'Enter RERA number',
+          label: AppStrings.reraRegistrationNo.tr,
+          hint: AppStrings.enterReraNumber.tr,
           controller: reraCtrl,
         ),
         const SizedBox(height: 16),
         RentalChipSelector(
-          label: 'No. of Towers',
+          label: AppStrings.noOfTowersLabel.tr,
           options: PropertyController.towersOptions,
           initialIndex: towerIdx,
           onChanged: (i) => towerIdx = i,
         ),
         const SizedBox(height: 16),
         RentalChipSelector(
-          label: 'No. of Floors',
+          label: AppStrings.noOfFloorsLabel.tr,
           options: PropertyController.floorsOptions,
           initialIndex: floorIdx,
           onChanged: (i) => floorIdx = i,
         ),
         const SizedBox(height: 16),
         RentalChipSelector(
-          label: 'Facing',
+          label: AppStrings.filterLabelFacing.tr,
           options: PropertyController.facingOptions,
           initialIndex: faceIdx,
           onChanged: (i) => faceIdx = i,
         ),
         const SizedBox(height: 16),
         RentalLabeledField(
-          label: 'Key Amenities',
-          hint: 'E.g. Swimming Pool, Gym, Park',
+          label: AppStrings.keyAmenitiesLabel.tr,
+          hint: AppStrings.egSwimmingPoolGymPark.tr,
           controller: amenCtrl,
         ),
       ],
@@ -1791,60 +1800,60 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         text: pg?.keyAmenities?.join(', ') ?? '');
 
     _openEditSheet(
-      title: 'Edit PG Details',
+      title: AppStrings.editPgDetails.tr,
       children: [
         RentalChipSelector(
-          label: 'Subtype',
+          label: AppStrings.subtypeLabel.tr,
           options: PropertyController.pgSubtypeOptions,
           initialIndex: subIdx,
           onChanged: (i) => subIdx = i,
         ),
         const SizedBox(height: 16),
         RentalChipSelector(
-          label: 'Room Type',
+          label: AppStrings.filterLabelRoomType.tr,
           options: PropertyController.pgRoomTypeOptions,
           initialIndex: roomIdx,
           onChanged: (i) => roomIdx = i,
         ),
         const SizedBox(height: 16),
         RentalChipSelector(
-          label: 'Attached Bathroom',
+          label: AppStrings.filterLabelAttachedBathroom.tr,
           options: PropertyController.attachedBathroomOptions,
           initialIndex: bathIdx,
           onChanged: (i) => bathIdx = i,
         ),
         const SizedBox(height: 16),
         RentalChipSelector(
-          label: 'Furnishing',
+          label: AppStrings.filterLabelFurnishing.tr,
           options: PropertyController.furnishingOptions,
           initialIndex: furnIdx,
           onChanged: (i) => furnIdx = i,
         ),
         const SizedBox(height: 16),
         RentalChipSelector(
-          label: 'Listed By',
+          label: AppStrings.filterLabelListedBy.tr,
           options: PropertyController.listedByOptions,
           initialIndex: listedIdx,
           onChanged: (i) => listedIdx = i,
         ),
         const SizedBox(height: 16),
         RentalChipSelector(
-          label: 'Car Parking',
+          label: AppStrings.filterLabelCarParking.tr,
           options: PropertyController.parkingOptions,
           initialIndex: parkIdx,
           onChanged: (i) => parkIdx = i,
         ),
         const SizedBox(height: 16),
         RentalChipSelector(
-          label: 'Meals Included',
+          label: AppStrings.mealsIncludedLabel.tr,
           options: PropertyController.mealsOptions,
           initialIndex: mealIdx,
           onChanged: (i) => mealIdx = i,
         ),
         const SizedBox(height: 16),
         RentalLabeledField(
-          label: 'Key Amenities',
-          hint: 'E.g. WiFi, Laundry, AC',
+          label: AppStrings.keyAmenitiesLabel.tr,
+          hint: AppStrings.egWifiLaundryAc.tr,
           controller: amenCtrl,
         ),
       ],
@@ -1879,7 +1888,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
 
   Future<void> _updateFields(Map<String, dynamic> updates) async {
     if (p.id == null) {
-      commonSnackBar(message: 'Cannot update: property ID missing');
+      commonSnackBar(message: AppStrings.cannotUpdatePropertyIdMissing.tr);
       return;
     }
 
@@ -1905,15 +1914,15 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           });
         }
         Get.back(); // close bottom sheet
-        commonSnackBar(message: 'Updated successfully');
+        commonSnackBar(message: AppStrings.updatedSuccessfully.tr);
       } else {
         Get.back(); // close loading
         commonSnackBar(
-            message: response.message ?? 'Update failed');
+            message: response.message ?? AppStrings.updateFailed.tr);
       }
     } catch (e) {
       Get.back(); // close loading
-      commonSnackBar(message: 'Something went wrong');
+      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
     }
   }
 
@@ -1948,15 +1957,15 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
           });
         }
         Get.back(); // close bottom sheet
-        commonSnackBar(message: 'Photos uploaded successfully');
+        commonSnackBar(message: AppStrings.photosUploadedSuccessfully.tr);
       } else {
         Get.back(); // close loading
         commonSnackBar(
-            message: response.message ?? 'Upload failed');
+            message: response.message ?? AppStrings.uploadFailed.tr);
       }
     } catch (e) {
       Get.back(); // close loading
-      commonSnackBar(message: 'Something went wrong');
+      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
     }
   }
 
@@ -1977,13 +1986,22 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         result.add((Icons.square_foot, ha.areaDetails!));
       }
       if (ha.bathrooms != null) {
-        result.add((Icons.bathtub_outlined, '${ha.bathrooms} Bathrooms'));
+        result.add((
+          Icons.bathtub_outlined,
+          AppStrings.chipBathroomsFmt.trParams({'value': ha.bathrooms!}),
+        ));
       }
       if (ha.totalFloors != null) {
-        result.add((Icons.layers_outlined, '${ha.totalFloors} Floors'));
+        result.add((
+          Icons.layers_outlined,
+          AppStrings.chipFloorsFmt.trParams({'value': ha.totalFloors!}),
+        ));
       }
       if (ha.bhk != null) {
-        result.add((Icons.bed_outlined, '${ha.bhk} BHK'));
+        result.add((
+          Icons.bed_outlined,
+          AppStrings.chipBhkFmt.trParams({'value': ha.bhk!}),
+        ));
       }
     } else if (lp != null) {
       final plot = lp.plotAreaDetails;
@@ -1991,30 +2009,49 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
         result.add((Icons.square_foot, plot!.totalArea!));
       }
       if (plot?.length != null) {
-        result.add((Icons.straighten, 'L: ${plot!.length}'));
+        result.add((
+          Icons.straighten,
+          AppStrings.chipLengthFmt.trParams({'value': plot!.length!}),
+        ));
       }
       if (plot?.breadth != null) {
-        result.add((Icons.straighten, 'B: ${plot!.breadth}'));
+        result.add((
+          Icons.straighten,
+          AppStrings.chipBreadthFmt.trParams({'value': plot!.breadth!}),
+        ));
       }
     } else if (so != null) {
       if (so.superBuiltupArea != null) {
         result.add((Icons.square_foot, so.superBuiltupArea!));
       }
       if (so.washrooms != null) {
-        result.add((Icons.bathtub_outlined, '${so.washrooms} Washrooms'));
+        result.add((
+          Icons.bathtub_outlined,
+          AppStrings.chipWashroomPluralFmt
+              .trParams({'value': so.washrooms!}),
+        ));
       }
       if (so.carParkings != null) {
-        result.add((Icons.local_parking, '${so.carParkings} Parking'));
+        result.add((
+          Icons.local_parking,
+          AppStrings.chipParkingFmt.trParams({'value': so.carParkings!}),
+        ));
       }
     } else if (np != null) {
       if (np.area != null) {
         result.add((Icons.square_foot, np.area!));
       }
       if (np.noOfTowers != null) {
-        result.add((Icons.apartment_outlined, '${np.noOfTowers} Towers'));
+        result.add((
+          Icons.apartment_outlined,
+          AppStrings.chipTowersFmt.trParams({'value': np.noOfTowers!}),
+        ));
       }
       if (np.noOfFloors != null) {
-        result.add((Icons.layers_outlined, '${np.noOfFloors} Floors'));
+        result.add((
+          Icons.layers_outlined,
+          AppStrings.chipFloorsFmt.trParams({'value': np.noOfFloors!}),
+        ));
       }
     } else if (pg != null) {
       if (pg.roomType != null) {
@@ -2036,58 +2073,67 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     final pg = p.pgAndGuestHouse;
 
     if (ha != null) {
-      _add(result, 'Type', ha.houseApartmentType);
-      _add(result, 'BHK', ha.bhk);
-      _add(result, 'Bathrooms', ha.bathrooms);
-      _add(result, 'Availability', ha.availabilityStatus);
-      _add(result, 'Furnishing', ha.furnishing);
-      _add(result, 'Listed By', ha.listedBy);
-      _add(result, 'Bachelors Allowed', ha.bachelorsAllowed);
-      _add(result, 'Area Details', ha.areaDetails);
-      _add(result, 'Maintenance (Monthly)', ha.maintenance);
-      _add(result, 'Total Floors', ha.totalFloors);
-      _add(result, 'Car Parking', ha.carParking);
-      _add(result, 'Facing', ha.facing);
+      _add(
+        result,
+        AppStrings.typeLabel.tr,
+        ha.houseApartmentType != null
+            ? PropertyController.haTypeLabel(ha.houseApartmentType!)
+            : null,
+      );
+      _add(result, AppStrings.filterLabelBHK.tr, ha.bhk);
+      _add(result, AppStrings.filterLabelBathrooms.tr, ha.bathrooms);
+      _add(result, AppStrings.filterLabelAvailability.tr,
+          ha.availabilityStatus);
+      _add(result, AppStrings.filterLabelFurnishing.tr, ha.furnishing);
+      _add(result, AppStrings.filterLabelListedBy.tr, ha.listedBy);
+      _add(result, AppStrings.filterLabelBachelors.tr, ha.bachelorsAllowed);
+      _add(result, AppStrings.areaDetailsLabel.tr, ha.areaDetails);
+      _add(result, AppStrings.maintenanceMonthlyLabel.tr, ha.maintenance);
+      _add(result, AppStrings.totalFloorsLabel.tr, ha.totalFloors);
+      _add(result, AppStrings.filterLabelCarParking.tr, ha.carParking);
+      _add(result, AppStrings.filterLabelFacing.tr, ha.facing);
     } else if (lp != null) {
-      _add(result, 'Project Type', lp.projectType);
-      _add(result, 'Listed By', lp.listedBy);
+      _add(result, AppStrings.projectTypeLabel.tr, lp.projectType);
+      _add(result, AppStrings.filterLabelListedBy.tr, lp.listedBy);
       final plot = lp.plotAreaDetails;
       if (plot != null) {
-        _add(result, 'Plot Area', plot.totalArea);
-        _add(result, 'Length', plot.length);
-        _add(result, 'Breadth', plot.breadth);
+        _add(result, AppStrings.plotAreaLabel.tr, plot.totalArea);
+        _add(result, AppStrings.lengthLabel.tr, plot.length);
+        _add(result, AppStrings.breadthLabel.tr, plot.breadth);
       }
-      _add(result, 'Facing', lp.facing);
+      _add(result, AppStrings.filterLabelFacing.tr, lp.facing);
     } else if (so != null) {
-      _add(result, 'Furnishing', so.furnishing);
-      _add(result, 'Project Status', so.projectStatus);
-      _add(result, 'Listed By', so.listedBy);
-      _add(result, 'Super Built-Up Area', so.superBuiltupArea);
-      _add(result, 'Maintenance (Monthly)', so.maintenance);
-      _add(result, 'Car Parking', so.carParkings);
-      _add(result, 'Washrooms', so.washrooms);
+      _add(result, AppStrings.filterLabelFurnishing.tr, so.furnishing);
+      _add(result, AppStrings.filterLabelProjectStatus.tr, so.projectStatus);
+      _add(result, AppStrings.filterLabelListedBy.tr, so.listedBy);
+      _add(result, AppStrings.superBuiltUpArea.tr, so.superBuiltupArea);
+      _add(result, AppStrings.maintenanceMonthlyLabel.tr, so.maintenance);
+      _add(result, AppStrings.filterLabelCarParking.tr, so.carParkings);
+      _add(result, AppStrings.filterLabelWashrooms.tr, so.washrooms);
     } else if (np != null) {
-      _add(result, 'Project Type', np.projectType);
-      _add(result, 'Project Status', np.projectStatus);
-      _add(result, 'Property Type', np.typeOfProperty);
-      _add(result, 'Area', np.area);
+      _add(result, AppStrings.projectTypeLabel.tr, np.projectType);
+      _add(result, AppStrings.filterLabelProjectStatus.tr, np.projectStatus);
+      _add(result, AppStrings.filterLabelPropertyType.tr, np.typeOfProperty);
+      _add(result, AppStrings.areaLabel.tr, np.area);
       final launch = np.projectLaunchInformation;
       if (launch != null) {
-        _add(result, 'Builder Name', launch.builderName);
-        _add(result, 'RERA No.', launch.reraRegistrationNumber);
+        _add(result, AppStrings.builderNameLabel.tr, launch.builderName);
+        _add(result, AppStrings.reraNoLabel.tr,
+            launch.reraRegistrationNumber);
       }
-      _add(result, 'No. of Towers', np.noOfTowers);
-      _add(result, 'No. of Floors', np.noOfFloors);
-      _add(result, 'Facing', np.facing);
+      _add(result, AppStrings.noOfTowersLabel.tr, np.noOfTowers);
+      _add(result, AppStrings.noOfFloorsLabel.tr, np.noOfFloors);
+      _add(result, AppStrings.filterLabelFacing.tr, np.facing);
       _addAmenities(result, np.keyAmenities);
     } else if (pg != null) {
-      _add(result, 'Subtype', pg.subType);
-      _add(result, 'Room Type', pg.roomType);
-      _add(result, 'Attached Bathroom', pg.attachedBathroom);
-      _add(result, 'Furnishing', pg.furnishing);
-      _add(result, 'Listed By', pg.listedBy);
-      _add(result, 'Car Parking', pg.carParking);
-      _add(result, 'Meals Included', pg.mealsIncluded);
+      _add(result, AppStrings.subtypeLabel.tr, pg.subType);
+      _add(result, AppStrings.filterLabelRoomType.tr, pg.roomType);
+      _add(result, AppStrings.filterLabelAttachedBathroom.tr,
+          pg.attachedBathroom);
+      _add(result, AppStrings.filterLabelFurnishing.tr, pg.furnishing);
+      _add(result, AppStrings.filterLabelListedBy.tr, pg.listedBy);
+      _add(result, AppStrings.filterLabelCarParking.tr, pg.carParking);
+      _add(result, AppStrings.mealsIncludedLabel.tr, pg.mealsIncluded);
       _addAmenities(result, pg.keyAmenities);
     }
     return result;
@@ -2101,7 +2147,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
 
   void _addAmenities(List<(String, String)> list, List<String>? amenities) {
     if (amenities != null && amenities.isNotEmpty) {
-      list.add(('Key Amenities', amenities.join(', ')));
+      list.add((AppStrings.keyAmenitiesLabel.tr, amenities.join(', ')));
     }
   }
 

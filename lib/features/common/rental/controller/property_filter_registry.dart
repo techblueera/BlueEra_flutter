@@ -1,5 +1,7 @@
 import 'package:BlueEra/features/common/rental/controller/property_controller.dart';
 
+import '../../../../core/constants/app_strings.dart';
+
 /// Stable identifiers for every chip-style filter the rental discover
 /// screen knows about. Common free-text/range filters (city, price)
 /// are special-cased in [PropertyDiscoverController] — they don't fit
@@ -99,18 +101,18 @@ const Map<String, Set<String>?> _allTypesAny = {
 
 /// Single source of truth for every chip-style filter. Order here is
 /// the order they appear in the bottom sheet.
-final List<FilterDef> propertyFilterRegistry = const [
+final List<FilterDef> propertyFilterRegistry = [
   // ── Common ────────────────────────────────────────────────────
   FilterDef(
     id: FilterId.listedBy,
-    label: 'Listed By',
+    label: AppStrings.filterLabelListedBy,
     apiKey: 'listedBy',
     options: PropertyController.listedByOptions,
     appliesTo: _allTypesAny,
   ),
   FilterDef(
     id: FilterId.minRating,
-    label: 'Min Rating',
+    label: AppStrings.filterLabelMinRating,
     apiKey: 'minRating',
     options: ['3+', '4+', '4.5+'],
     appliesTo: _allTypesAny,
@@ -119,21 +121,21 @@ final List<FilterDef> propertyFilterRegistry = const [
   // ── HouseAndApartment only ───────────────────────────────────
   FilterDef(
     id: FilterId.houseApartmentType,
-    label: 'House Type',
+    label: AppStrings.filterLabelHouseType,
     apiKey: 'houseApartmentType',
     options: PropertyController.haTypeOptions,
     appliesTo: {PropertyTypeKey.houseAndApartment: null},
   ),
   FilterDef(
     id: FilterId.bhk,
-    label: 'BHK',
+    label: AppStrings.filterLabelBHK,
     apiKey: 'bhk',
     options: PropertyController.bhkOptions,
     appliesTo: {PropertyTypeKey.houseAndApartment: null},
   ),
   FilterDef(
     id: FilterId.bathrooms,
-    label: 'Bathrooms',
+    label: AppStrings.filterLabelBathrooms,
     apiKey: 'bathrooms',
     options: PropertyController.bathroomOptions,
     appliesTo: {PropertyTypeKey.houseAndApartment: null},
@@ -142,7 +144,7 @@ final List<FilterDef> propertyFilterRegistry = const [
   // ── Facing — HA / Lands / NewProjects ────────────────────────
   FilterDef(
     id: FilterId.facing,
-    label: 'Facing',
+    label: AppStrings.filterLabelFacing,
     apiKey: 'facing',
     options: PropertyController.facingOptions,
     appliesTo: {
@@ -155,7 +157,7 @@ final List<FilterDef> propertyFilterRegistry = const [
   // ── Car Parking — HA / Shops / PG ────────────────────────────
   FilterDef(
     id: FilterId.carParking,
-    label: 'Car Parking',
+    label: AppStrings.filterLabelCarParking,
     apiKey: 'carParking',
     options: PropertyController.parkingOptions,
     appliesTo: {
@@ -168,7 +170,7 @@ final List<FilterDef> propertyFilterRegistry = const [
   // ── Furnishing — HA(Rent), Shops, PG ─────────────────────────
   FilterDef(
     id: FilterId.furnishing,
-    label: 'Furnishing',
+    label: AppStrings.filterLabelFurnishing,
     apiKey: 'furnishing',
     options: PropertyController.furnishingOptions,
     appliesTo: {
@@ -181,7 +183,7 @@ final List<FilterDef> propertyFilterRegistry = const [
   // ── HA Sell only ─────────────────────────────────────────────
   FilterDef(
     id: FilterId.availabilityStatus,
-    label: 'Availability',
+    label: AppStrings.filterLabelAvailability,
     apiKey: 'availabilityStatus',
     options: PropertyController.availabilityOptions,
     appliesTo: {
@@ -192,7 +194,7 @@ final List<FilterDef> propertyFilterRegistry = const [
   // ── Bachelors — HA(Rent) / PG ────────────────────────────────
   FilterDef(
     id: FilterId.bachelorsAllowed,
-    label: 'Bachelors',
+    label: AppStrings.filterLabelBachelors,
     apiKey: 'bachelorsAllowed',
     options: PropertyController.bachelorOptions,
     appliesTo: {
@@ -204,7 +206,7 @@ final List<FilterDef> propertyFilterRegistry = const [
   // ── Project Status — Shops / NewProjects ─────────────────────
   FilterDef(
     id: FilterId.projectStatus,
-    label: 'Project Status',
+    label: AppStrings.filterLabelProjectStatus,
     apiKey: 'projectStatus',
     options: PropertyController.soProjectStatusOptions,
     appliesTo: {
@@ -216,7 +218,7 @@ final List<FilterDef> propertyFilterRegistry = const [
   // ── Shops only ───────────────────────────────────────────────
   FilterDef(
     id: FilterId.washrooms,
-    label: 'Washrooms',
+    label: AppStrings.filterLabelWashrooms,
     apiKey: 'washrooms',
     options: PropertyController.washroomOptions,
     appliesTo: {PropertyTypeKey.shopAndOffices: null},
@@ -225,28 +227,28 @@ final List<FilterDef> propertyFilterRegistry = const [
   // ── PG only ──────────────────────────────────────────────────
   FilterDef(
     id: FilterId.pgSubType,
-    label: 'PG Type',
+    label: AppStrings.filterLabelPGType,
     apiKey: 'subType',
     options: PropertyController.pgSubtypeOptions,
     appliesTo: {PropertyTypeKey.pgAndGuestHouse: null},
   ),
   FilterDef(
     id: FilterId.pgRoomType,
-    label: 'Room Type',
+    label: AppStrings.filterLabelRoomType,
     apiKey: 'roomType',
     options: PropertyController.pgRoomTypeOptions,
     appliesTo: {PropertyTypeKey.pgAndGuestHouse: null},
   ),
   FilterDef(
     id: FilterId.attachedBathroom,
-    label: 'Attached Bathroom',
+    label: AppStrings.filterLabelAttachedBathroom,
     apiKey: 'attachedBathroom',
     options: PropertyController.attachedBathroomOptions,
     appliesTo: {PropertyTypeKey.pgAndGuestHouse: null},
   ),
   FilterDef(
     id: FilterId.mealsIncluded,
-    label: 'Meals',
+    label: AppStrings.filterLabelMeals,
     apiKey: 'mealsIncluded',
     options: PropertyController.mealsOptions,
     appliesTo: {PropertyTypeKey.pgAndGuestHouse: null},
@@ -255,21 +257,21 @@ final List<FilterDef> propertyFilterRegistry = const [
   // ── NewProjects only ─────────────────────────────────────────
   FilterDef(
     id: FilterId.typeOfProperty,
-    label: 'Property Type',
+    label: AppStrings.filterLabelPropertyType,
     apiKey: 'typeOfProperty',
     options: PropertyController.npPropertyTypeOptions,
     appliesTo: {PropertyTypeKey.newProjects: null},
   ),
   FilterDef(
     id: FilterId.noOfTowers,
-    label: 'Towers',
+    label: AppStrings.filterLabelTowers,
     apiKey: 'noOfTowers',
     options: PropertyController.towersOptions,
     appliesTo: {PropertyTypeKey.newProjects: null},
   ),
   FilterDef(
     id: FilterId.noOfFloors,
-    label: 'Floors',
+    label: AppStrings.filterLabelFloors,
     apiKey: 'noOfFloors',
     options: PropertyController.floorsOptions,
     appliesTo: {PropertyTypeKey.newProjects: null},
@@ -307,8 +309,9 @@ String chipLabelFor(FilterId id, String value) {
       return value == 'Yes Attached' ? 'Attached Bath' : 'No Attached Bath';
     case FilterId.bachelorsAllowed:
       return value == 'Yes Allowed' ? 'Bachelors Allowed' : 'No Bachelors';
-    case FilterId.listedBy:
     case FilterId.houseApartmentType:
+      return PropertyController.haTypeLabel(value);
+    case FilterId.listedBy:
     case FilterId.facing:
     case FilterId.furnishing:
     case FilterId.availabilityStatus:
