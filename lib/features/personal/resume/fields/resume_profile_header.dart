@@ -50,7 +50,6 @@ class _ResumeProfileHeaderState extends State<ResumeProfileHeader> {
                           isGallery: true,
                         );
                         if (newPath != null &&
-                            newPath is String &&
                             newPath.isNotEmpty) {
                           await controller.updateProfilePic(File(newPath));
                           controller.getMyResume();

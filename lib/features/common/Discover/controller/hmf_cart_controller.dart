@@ -140,7 +140,7 @@ class HmfCartController extends GetxController {
       AppLoader.hide();
 
       // Capture the order summary before clearing the cart.
-      final summary = lines.map((e) => '${e.foodName} x${qty(e.id)}').join(', ');
+      lines.map((e) => '${e.foodName} x${qty(e.id)}').join(', ');
       final total = totalPrice;
 
       clear();

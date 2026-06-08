@@ -73,11 +73,6 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   static const _orderSubChat = 1;
   int _orderSubTab = _orderSubOrders;
 
-  static const _orderIndex = 0;
-  static const _overviewIndex = 1;
-  static const _postIndex = 2;
-  static const _storeIndex = 3;
-  static const _staticsIndex = 4;
 
   @override
   void initState() {

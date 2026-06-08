@@ -1,7 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/common/Discover/model/finance_search_res_model.dart';
 import 'package:get/get.dart';
 
@@ -67,22 +66,4 @@ class FinanceDiscoverController extends GetxController {
     }
   }
 
-  String _mapCategoryToApiType(String slugId) {
-    switch (slugId) {
-      case 'ADVISORY_SECTOR':
-        return 'advisory';
-      case 'BANKING_SECTOR':
-        return 'banking';
-      case 'CAPITAL_MARKET':
-        return 'capital_market';
-      case 'DATA_SECTOR':
-        return 'data';
-      case 'INSURANCE_SECTOR':
-        return 'insurance';
-      case 'LOAN_SECTOR':
-        return 'loan';
-      default:
-        return 'finance';
-    }
-  }
 }

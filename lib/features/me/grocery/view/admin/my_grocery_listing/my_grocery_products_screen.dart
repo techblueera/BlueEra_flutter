@@ -9,7 +9,6 @@ import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/grocery_product_card.dart';
-import 'package:BlueEra/features/me/grocery/widget/common_cart_icon.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
