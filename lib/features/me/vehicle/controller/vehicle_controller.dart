@@ -19,6 +19,12 @@ import 'package:mime/mime.dart';
 class VehicleController extends GetxController {
   final VehicleRepo _repo = VehicleRepo();
 
+  // ─── Type taxonomy (drives the type picker) ───────────────────────
+  // Populated from `GET /vehicles/types` — never hardcoded. The chosen
+  // `value` is sent back as `category` on create/update.
+  final RxList<VehicleType> vehicleTypes = <VehicleType>[].obs;
+  final Rx<ApiResponse> vehicleTypesState = ApiResponse.initial().obs;
+
   // ─── Owner-side state (Me-tab) ────────────────────────────────────
   final RxList<Vehicle> myVehicles = <Vehicle>[].obs;
   final Rx<ApiResponse> myVehiclesState = ApiResponse.initial().obs;
@@ -52,6 +58,46 @@ class VehicleController extends GetxController {
   final RxBool isSavingVehicle = false.obs;
   final RxBool isUploadingMedia = false.obs;
   final RxDouble uploadProgress = 0.0.obs;
+
+  // ────────────────────────────────────────────────────────────────
+  // Vehicle types (taxonomy)
+  // ────────────────────────────────────────────────────────────────
+
+  /// Load the canonical type taxonomy for the picker. Cached — the
+  /// taxonomy is server-static, so we skip the call once it's populated
+  /// unless [force] is set.
+  Future<void> fetchVehicleTypes({bool force = false}) async {
+    if (!force && vehicleTypes.isNotEmpty) return;
+    vehicleTypesState.value = ApiResponse.loading();
+    try {
+      final res = await _repo.listVehicleTypes();
+      if (res.isSuccess) {
+        final list =
+            (res.response?.data?['vehicleTypes'] as List?) ?? const [];
+        vehicleTypes.value = list
+            .whereType<Map>()
+            .map((m) => VehicleType.fromJson(Map<String, dynamic>.from(m)))
+            .toList();
+        vehicleTypesState.value = ApiResponse.complete(vehicleTypes);
+      } else {
+        vehicleTypesState.value =
+            ApiResponse.error(res.message?.toString() ?? 'Failed to load');
+      }
+    } catch (e) {
+      vehicleTypesState.value = ApiResponse.error(e.toString());
+    }
+  }
+
+  /// Resolve a category `value` (e.g. `"CAR"`) to its display label
+  /// (e.g. `"Car"`) using the loaded taxonomy. Falls back to the raw
+  /// value when the taxonomy isn't loaded or the value is unknown.
+  String labelForCategory(String? value) {
+    if (value == null || value.isEmpty) return '';
+    for (final t in vehicleTypes) {
+      if (t.value == value) return t.label;
+    }
+    return value;
+  }
 
   // ────────────────────────────────────────────────────────────────
   // Vehicles — owner

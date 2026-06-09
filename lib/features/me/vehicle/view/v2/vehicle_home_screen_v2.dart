@@ -78,6 +78,7 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2>
       initialIndex: _selectedTab,
       vsync: this,
     )..addListener(_handleTabChange);
+    _ctrl.fetchVehicleTypes();
     _ctrl.fetchMyVehicles();
     _ctrl.fetchMyContacts(showProgress: false);
     _ctrl.fetchMyGallery(showProgress: false);
@@ -176,11 +177,7 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2>
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
               ),
-              onPressed: (){
-                Get.to(VehicleContactFormSheet());
-
-              },
-              // onPressed: _onAddVehicle,
+              onPressed: _onAddVehicle,
             )
           : null,
     );

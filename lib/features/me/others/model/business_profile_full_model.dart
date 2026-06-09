@@ -201,7 +201,18 @@ class Location {
   Location.fromJson(Map<String, dynamic> json) {
     name = json['name'];
     address = json['address'];
-    coordinates = json['coordinates'].cast<double>();
+    // A freshly-created profile can come back with `coordinates` missing
+    // or null (→ NoSuchMethodError on `.cast`), or with the values sent
+    // as strings (→ "String is not a subtype of double" when read later).
+    // Coerce each element through num so both shapes parse safely.
+    final coords = json['coordinates'];
+    if (coords is List) {
+      coordinates = coords
+          .where((e) => e != null)
+          .map((e) => e is num ? e.toDouble() : double.tryParse(e.toString()))
+          .whereType<double>()
+          .toList();
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -505,9 +516,13 @@ class Gallery {
     userId = json['userId'];
     businessProfileId = json['businessProfileId'];
     if (json['imageUrls'] != null) {
-      imageUrls = json['imageUrls'].cast<String>();
-      // Clean URLs just in case
-      imageUrls = imageUrls!.map((url) => url.trim()).toList();
+      // Drop null elements before casting — a null inside the list made
+      // the old `.cast<String>().map((u) => u.trim())` throw
+      // "type 'Null' is not a subtype of type 'String'".
+      imageUrls = (json['imageUrls'] as List)
+          .where((e) => e != null)
+          .map((e) => e.toString().trim())
+          .toList();
     }
     title = json['title'];
     createdAt = json['createdAt'];

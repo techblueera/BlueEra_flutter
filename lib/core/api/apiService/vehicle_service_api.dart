@@ -5,6 +5,8 @@
 /// See `lib/docs/FLUTTER_INTEGRATION_GUIDE.md` for the full contract.
 mixin VehicleServiceApi {
   // Public + owner vehicle CRUD
+  // Canonical, server-controlled type taxonomy (drives the type picker).
+  final String vehicleTypes = 'vehicle-service/vehicles/types';
   final String vehiclesList = 'vehicle-service/vehicles';
   String vehicleById(String id) => 'vehicle-service/vehicles/get/$id';
   final String vehiclesCreate = 'vehicle-service/vehicles/create';

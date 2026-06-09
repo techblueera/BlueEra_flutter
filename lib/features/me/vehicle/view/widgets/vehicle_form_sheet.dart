@@ -1,11 +1,14 @@
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/me/vehicle/controller/vehicle_controller.dart';
 import 'package:BlueEra/features/me/vehicle/model/vehicle_models.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
 /// Result returned from [VehicleFormSheet] when the user submits the
@@ -46,6 +49,8 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
   final _formKey = GlobalKey<FormState>();
   final _picker = ImagePicker();
   final _scrollController = ScrollController();
+  final VehicleController _ctrl =
+      getOrPut(() => VehicleController(), permanent: true);
 
   late final TextEditingController _nameCtrl;
   late final TextEditingController _descCtrl;
@@ -91,6 +96,9 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
     _category = v?.category;
     _fuel = v?.fuelType;
     _transmission = v?.transmission;
+    // Populate the type picker from `GET /vehicles/types` (cached in the
+    // controller) — the list is data-driven, never hardcoded.
+    _ctrl.fetchVehicleTypes();
   }
 
   @override
@@ -248,20 +256,7 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
                         maxLines: 3,
                       ),
                       Row(children: [
-                        Expanded(
-                          child: _dropdown<String>(
-                            label: 'Category',
-                            value: _category,
-                            items: const [
-                              'CAR',
-                              'BIKE',
-                              'TRUCK',
-                              'BUS',
-                              'OTHER'
-                            ],
-                            onChanged: (v) => setState(() => _category = v),
-                          ),
-                        ),
+                        Expanded(child: _categoryDropdown()),
                         SizedBox(width: SizeConfig.size10),
                         Expanded(
                           child: _field(
@@ -682,6 +677,43 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
         ),
       ),
     );
+  }
+
+  /// Category picker driven by `GET /vehicles/types`. Reactive on the
+  /// controller's taxonomy so it fills in the moment the API resolves.
+  /// While the taxonomy is loading (or if it fails) we fall back to the
+  /// canonical wire values so the field is never empty. Unknown server
+  /// categories are normalized to `OTHER`, so an edit value that's no
+  /// longer in the list is surfaced as an extra option to avoid the
+  /// `DropdownButtonFormField` value-not-in-items assertion.
+  Widget _categoryDropdown() {
+    const fallback = <String>[
+      'CAR',
+      'BIKE',
+      'SCOOTER',
+      'TRUCK',
+      'AUTO',
+      'BUS',
+      'OTHER',
+    ];
+    return Obx(() {
+      final loaded = _ctrl.vehicleTypes;
+      final values = loaded.isNotEmpty
+          ? loaded.map((t) => t.value).toList()
+          : List<String>.from(fallback);
+      if (_category != null &&
+          _category!.isNotEmpty &&
+          !values.contains(_category)) {
+        values.insert(0, _category!);
+      }
+      return _dropdown<String>(
+        label: 'Category',
+        value: _category,
+        items: values,
+        onChanged: (v) => setState(() => _category = v),
+        itemLabel: (v) => _ctrl.labelForCategory(v),
+      );
+    });
   }
 
   Widget _dropdown<T>({
