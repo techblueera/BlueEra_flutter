@@ -246,13 +246,29 @@ class SharedPreferenceUtils {
   ///SET STORAGE VALUE...
   static Future<void> setSecureValue(
       String sharedPreferencesKey, dynamic sharedPreferencesValue) async {
+    // flutter_secure_storage DELETES the key when handed a null value. A
+    // nullable API field (e.g. `data.business` that's momentarily null on a
+    // login refresh) would therefore silently WIPE a previously-stored good
+    // value — this is why `businessId` came back empty in some sessions.
+    // Treat null as a no-op; intentional clears go through delete()/
+    // deleteAll(), never through a null write.
+    if (sharedPreferencesValue == null) return;
     await _secureStorage.write(
         key: sharedPreferencesKey, value: sharedPreferencesValue);
   }
 
   ///GET STORAGE VALUE...
   static Future getSecureValue(String sharedPreferencesKey) async {
-    return _secureStorage.read(key: sharedPreferencesKey);
+    // Reads can intermittently throw on Android (keystore /
+    // EncryptedSharedPreferences decrypt failures). Swallow and return null
+    // so callers fall back to their default instead of the exception
+    // propagating and leaving a global unset mid-boot.
+    try {
+      return await _secureStorage.read(key: sharedPreferencesKey);
+    } catch (e) {
+      debugPrint('getSecureValue($sharedPreferencesKey) failed: $e');
+      return null;
+    }
   }
 
   static Future<String?> getBookingAvailabilityDetail() async {
@@ -396,9 +412,15 @@ getUserLoginStatus() async {
 }
 
 getUserLoginBusinessId() async {
-  businessId = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.userBusinessId) ??
-      "";
+  final stored = await SharedPreferenceUtils.getSecureValue(
+      SharedPreferenceUtils.userBusinessId);
+  // Only adopt a non-empty stored id. A transient null/empty read (keystore
+  // hiccup, or a refresh that hasn't re-persisted yet) must not wipe a
+  // businessId we already hold this session — every downstream business API
+  // depends on it. Logout clears it explicitly via clearPreferenceDataOnly().
+  if (stored is String && stored.trim().isNotEmpty) {
+    businessId = stored;
+  }
 }
 
 getUserLoginAccountType() async {

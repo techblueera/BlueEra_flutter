@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 
 class PersonalProfileRepo extends BaseService {
@@ -11,7 +12,6 @@ class PersonalProfileRepo extends BaseService {
 
     return response;
   }
-
 
   /// RESTORE/UPDATE DEVICE TOKEN — called when the fetched profile has a
   /// null/empty device_token, so the backend rebinds this device for push.
@@ -28,12 +28,14 @@ class PersonalProfileRepo extends BaseService {
   }
 
   ///UPDATE USER PROFILE....
-  Future<ResponseModel> updateUser({
-    required Map<String, dynamic> formData,
-    bool? showProgress
-  }) async {
+  Future<ResponseModel> updateUser(
+      {required Map<String, dynamic> formData, bool? showProgress}) async {
+    // updateBusinessAccount
+    logs("accountTypeGlobal.toUpperCase()= ${accountTypeGlobal.toUpperCase()}");
     final response = await ApiBaseHelper().putHTTP(
-      "$updateIndividualAccountUser$userId",
+    /*  (accountTypeGlobal.toUpperCase() == "BUSINESS")
+          ? "$updateBusinessAccount$userId"
+          :*/ "$updateIndividualAccountUser$userId",
       params: formData,
       showProgress: showProgress ?? true,
       isMultipart: true,
@@ -48,7 +50,8 @@ class PersonalProfileRepo extends BaseService {
     return response;
   }
 
-  Future<ResponseModel> getUserWithFollowersAndPostsCount(String? userId) async {
+  Future<ResponseModel> getUserWithFollowersAndPostsCount(
+      String? userId) async {
     final response = await ApiBaseHelper().getHTTP(
       "$FollowersAndPostsCount/$userId",
       showProgress: false,
@@ -62,8 +65,10 @@ class PersonalProfileRepo extends BaseService {
 
     return response;
   }
+
   ///UPLOAD INTRO VIDEO INIT...
-  Future<ResponseModel?> uploadIntroVideoInit({required Map<String, dynamic> queryParams}) async {
+  Future<ResponseModel?> uploadIntroVideoInit(
+      {required Map<String, dynamic> queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(
       userUploadInit,
       params: queryParams,
@@ -73,9 +78,10 @@ class PersonalProfileRepo extends BaseService {
     );
     return response;
   }
+
   Future<ResponseModel> uploadIntroVideo({required String videoLink}) async {
     final Map<String, dynamic> payload = {
-      ApiKeys.videoLink:videoLink,
+      ApiKeys.videoLink: videoLink,
     };
 
     return await ApiBaseHelper().postHTTP(
@@ -105,7 +111,8 @@ class PersonalProfileRepo extends BaseService {
   }
 
   // SET PROVIDER STATUS Patch
-  Future<ResponseModel> setServiceStatusRepo({required Map<String,dynamic> bodyReq}) async {
+  Future<ResponseModel> setServiceStatusRepo(
+      {required Map<String, dynamic> bodyReq}) async {
     final response = await ApiBaseHelper().patchHTTP(
       mapServiceProviderStatus,
       params: bodyReq,
@@ -115,6 +122,7 @@ class PersonalProfileRepo extends BaseService {
     );
     return response;
   }
+
   // GET PROVIDER STATUS Patch
   Future<ResponseModel> getServiceStatusRepo() async {
     final response = await ApiBaseHelper().getHTTP(
@@ -125,5 +133,4 @@ class PersonalProfileRepo extends BaseService {
     );
     return response;
   }
-
 }

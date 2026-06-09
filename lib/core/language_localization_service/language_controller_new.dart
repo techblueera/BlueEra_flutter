@@ -3,10 +3,13 @@ import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/language_localization_service/language_model_new.dart';
 import 'package:BlueEra/core/language_localization_service/language_service_app.dart';
 import 'package:BlueEra/environment_config.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/auth/repo/personal_profile_repo.dart';
 import 'package:get/get.dart';
@@ -16,7 +19,13 @@ import 'package:http/http.dart' as http;
 class LanguageControllerNew extends GetxController {
   static const String _boxName = 'translations';
   static const String _fallbackLang = 'en';
-  static const List<String> _supportedLangCodes = ['en', 'hi', 'kn','gu','mr'];
+  static const List<String> _supportedLangCodes = [
+    'en',
+    'hi',
+    'kn',
+    'gu',
+    'mr'
+  ];
 
   final languages = <LanguageModelNew>[].obs;
   Box? _box;
@@ -128,15 +137,27 @@ class LanguageControllerNew extends GetxController {
     final token = authTokenGlobal;
     if (token == null || token.isEmpty) return;
     try {
-      ResponseModel responseModel =  await PersonalProfileRepo().updateUser(
-        formData: {ApiKeys.language: langCode},
+      ResponseModel responseModel = await PersonalProfileRepo().updateUser(
+        formData: {
+          ApiKeys.language: langCode,
+          "account_type": accountTypeGlobal.toUpperCase()
+        },
         showProgress: false,
       );
       if (responseModel.isSuccess) {
         // final upgraded = IndividualUserResponseModel.fromJson(responseModel.response?.data ?? {});
         // await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.authToken, upgraded.token);
         // await getUserAuthToken();
-        await Get.find<ViewPersonalDetailsController>().viewPersonalProfile();
+        if (accountTypeGlobal.toUpperCase() == "INDIVIDUAL") {
+          await Get.find<ViewPersonalDetailsController>().viewPersonalProfile();
+        }
+        if (accountTypeGlobal.toUpperCase() == "BUSINESS") {
+          final viewProfileController =
+              getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+          final pending = <Future<void>>[
+            viewProfileController.viewBusinessProfile(),
+          ];
+        }
       }
     } catch (e) {
       log('Failed to sync language preference to server: $e');
