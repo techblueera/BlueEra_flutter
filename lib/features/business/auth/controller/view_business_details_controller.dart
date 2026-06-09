@@ -192,17 +192,17 @@ class ViewBusinessDetailsController extends GetxController {
   /// between "shimmer off" and the server confirming the new asset).
   Future<void> viewBusinessProfile({bool silent = false}) async {
     await getUserLoginBusinessId();
-
+logs("BUSINESS ID=== ${businessId}");
     // 1. Show cached business profile (if any) immediately so the UI
     //    isn't blank while the network call is in flight. Skipped in
     //    `silent` mode — the caller (typically a post-update refresh)
     //    already has fresher in-memory state than the cache, and
     //    replaying the cache would visibly revert the change.
-    final cacheKey = businessId.isNotEmpty ? businessId : userId;
-    final cached = silent ? null : await BusinessProfileCache.read(cacheKey);
-    if (cached != null) {
-      _applyBusinessProfileData(cached, persistPrefs: false);
-    }
+    // final cacheKey = businessId.isNotEmpty ? businessId : userId;
+    // final cached = silent ? null : await BusinessProfileCache.read(cacheKey);
+    // if (cached != null) {
+    //   _applyBusinessProfileData(cached, persistPrefs: false);
+    // }
 
     // 2. Silently refresh from the server and replace state + cache on
     //    success.
@@ -223,10 +223,10 @@ class ViewBusinessDetailsController extends GetxController {
 
       // Only surface the error to the user when we have nothing cached
       // to fall back on — otherwise the cached UI is already showing.
-      if (cached == null) {
-        commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong);
-      }
+      // if (cached == null) {
+      //   commonSnackBar(
+      //       message: responseModel.message ?? AppStrings.somethingWentWrong);
+      // }
     }
   }
 
@@ -348,7 +348,7 @@ class ViewBusinessDetailsController extends GetxController {
         viewBusinessResponse = ApiResponse.complete(responseModel);
         final upgraded = BusinessUserResponseModel.fromJson(
             responseModel.response?.data ?? {});
-
+logs("upgraded.businessId=== ${upgraded.businessId}");
         await SharedPreferenceUtils.setSecureValue(
             SharedPreferenceUtils.userBusinessId, upgraded.businessId);
 
