@@ -97,6 +97,28 @@ extension VehicleTransmissionWire on VehicleTransmission {
   }
 }
 
+/// One entry of the server-controlled vehicle type taxonomy returned by
+/// `GET /vehicles/types`. The picker must be populated from this list
+/// (never hardcoded) — the chosen [value] (e.g. `"CAR"`) is sent back as
+/// `category` on create/update; [label] is the human-facing display.
+class VehicleType {
+  final String value; // wire value, e.g. "CAR" — sent as `category`
+  final String label; // display label, e.g. "Car"
+  final String? icon; // optional icon key, e.g. "car"
+
+  VehicleType({
+    required this.value,
+    required this.label,
+    this.icon,
+  });
+
+  factory VehicleType.fromJson(Map<String, dynamic> j) => VehicleType(
+        value: (j['value'] ?? '') as String,
+        label: (j['label'] ?? (j['value'] ?? '')) as String,
+        icon: j['icon'] as String?,
+      );
+}
+
 class Vehicle {
   final String? id;
   final String? userId;

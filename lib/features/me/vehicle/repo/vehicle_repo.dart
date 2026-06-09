@@ -16,6 +16,17 @@ import 'package:dio/dio.dart';
 class VehicleRepo extends BaseService {
   // ─── Vehicles ────────────────────────────────────────────────────
 
+  /// GET /vehicles/types — public, no auth. Canonical type taxonomy
+  /// used to populate the type picker (step 1 of the upload flow).
+  Future<ResponseModel> listVehicleTypes({bool showProgress = false}) async {
+    return ApiBaseHelper().getHTTP(
+      vehicleTypes,
+      showProgress: showProgress,
+      onSuccess: (_) {},
+      onError: (_) {},
+    );
+  }
+
   /// GET /vehicles  — public, paginated, filterable.
   Future<ResponseModel> listVehicles({
     String? category,
