@@ -12,6 +12,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 
 /// Add / edit form for a single [VehicleContact]. Presented as a full-page
 /// screen — the layout mirrors `HospitalBranchDetailsFormScreen`
@@ -126,18 +127,18 @@ class _VehicleContactFormSheetState extends State<VehicleContactFormSheet> {
       if (v.trim().isEmpty) return '';
       final digits = v.replaceAll(RegExp(r'\D'), '');
       return (digits.length < 6 || digits.length > 15)
-          ? 'Enter a valid phone number'
+          ? AppStrings.enterValidPhoneErr.tr
           : '';
     }
 
     setState(() {
       _locationNameError = _locationNameCtrl.text.trim().isEmpty
-          ? 'Location name is required'
+          ? AppStrings.locationNameRequiredErr.tr
           : '';
 
       _pincodeError = _pincodeCtrl.text.trim().isNotEmpty &&
               !RegExp(r'^\d{4,8}$').hasMatch(_pincodeCtrl.text.trim())
-          ? 'Enter a valid pincode'
+          ? AppStrings.enterValidPincodeErr.tr
           : '';
 
       _phoneError = phoneCheck(_phoneCtrl.text);
@@ -145,17 +146,17 @@ class _VehicleContactFormSheetState extends State<VehicleContactFormSheet> {
 
       _emailError = _emailCtrl.text.trim().isNotEmpty &&
               !emailRegex.hasMatch(_emailCtrl.text.trim())
-          ? 'Enter a valid email'
+          ? AppStrings.enterValidEmailErr.tr
           : '';
 
       _websiteError = _websiteCtrl.text.trim().isNotEmpty &&
               !urlRegex.hasMatch(_websiteCtrl.text.trim())
-          ? 'Enter a valid website URL (e.g. https://example.com)'
+          ? AppStrings.enterValidWebsiteUrlErr.tr
           : '';
 
       _mapLinkError = _mapLinkCtrl.text.trim().isNotEmpty &&
               !urlRegex.hasMatch(_mapLinkCtrl.text.trim())
-          ? 'Enter a valid map link URL'
+          ? AppStrings.enterValidMapLinkErr.tr
           : '';
 
       _isFormValid = _locationNameError.isEmpty &&
@@ -236,18 +237,18 @@ class _VehicleContactFormSheetState extends State<VehicleContactFormSheet> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: AppStrings.contactUs),
+      appBar: CommonBackAppBar(title: AppStrings.contactUs.tr),
       body: CommonCardWidget(
         padding: 0,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              _buildHeader(AppStrings.location),
+              _buildHeader(AppStrings.location.tr),
               CommonTextField(
                 textEditController: _locationNameCtrl,
-                hintText: 'E.g. Head Office, Mumbai',
-                title: 'Location name',
+                hintText: AppStrings.locationNameHintExample.tr,
+                title: AppStrings.locationNameLabel.tr,
                 onChange: (_) => _validate(),
               ),
               if (_locationNameError.isNotEmpty)
@@ -255,8 +256,8 @@ class _VehicleContactFormSheetState extends State<VehicleContactFormSheet> {
               const SizedBox(height: 12),
               CommonLocationSearchField(
                 controller: _addressCtrl,
-                title: AppStrings.location,
-                hintText: 'Search address…',
+                title: AppStrings.location.tr,
+                hintText: AppStrings.searchAddressHint.tr,
                 onSelected: (placeId, lat, lng, address) {
                   _addressCtrl.text = address;
                   _selectedLat = lat;
@@ -269,8 +270,8 @@ class _VehicleContactFormSheetState extends State<VehicleContactFormSheet> {
                 Expanded(
                   child: CommonTextField(
                     textEditController: _cityCtrl,
-                    hintText: 'City',
-                    title: 'City',
+                    hintText: AppStrings.city.tr,
+                    title: AppStrings.city.tr,
                     onChange: (_) => _validate(),
                   ),
                 ),
@@ -278,8 +279,8 @@ class _VehicleContactFormSheetState extends State<VehicleContactFormSheet> {
                 Expanded(
                   child: CommonTextField(
                     textEditController: _stateCtrl,
-                    hintText: 'State',
-                    title: 'State',
+                    hintText: AppStrings.state.tr,
+                    title: AppStrings.state.tr,
                     onChange: (_) => _validate(),
                   ),
                 ),
@@ -289,8 +290,8 @@ class _VehicleContactFormSheetState extends State<VehicleContactFormSheet> {
                 Expanded(
                   child: CommonTextField(
                     textEditController: _countryCtrl,
-                    hintText: 'Country',
-                    title: 'Country',
+                    hintText: AppStrings.countryLabel.tr,
+                    title: AppStrings.countryLabel.tr,
                     onChange: (_) => _validate(),
                   ),
                 ),
@@ -298,8 +299,8 @@ class _VehicleContactFormSheetState extends State<VehicleContactFormSheet> {
                 Expanded(
                   child: CommonTextField(
                     textEditController: _pincodeCtrl,
-                    hintText: 'Pincode',
-                    title: 'Pincode',
+                    hintText: AppStrings.pincodeLabel.tr,
+                    title: AppStrings.pincodeLabel.tr,
                     keyBoardType: TextInputType.number,
                     inputFormatters: [
                       FilteringTextInputFormatter.digitsOnly,
@@ -313,18 +314,18 @@ class _VehicleContactFormSheetState extends State<VehicleContactFormSheet> {
               const SizedBox(height: 12),
               HttpsTextField(
                 controller: _mapLinkCtrl,
-                hintText: 'https://maps.app.goo.gl/...',
-                title: 'Map link (optional)',
+                hintText: AppStrings.mapLinkHintExample.tr,
+                title: AppStrings.mapLinkOptionalLabel.tr,
                 onChange: (_) => _validate(),
               ),
               if (_mapLinkError.isNotEmpty) _buildErrorText(_mapLinkError),
 
               const SizedBox(height: 24),
-              _buildHeader(AppStrings.contactUs),
+              _buildHeader(AppStrings.contactUs.tr),
               CommonTextField(
                 textEditController: _phoneCtrl,
-                hintText: '1234567890',
-                title: AppStrings.phoneNumber,
+                hintText: AppStrings.phoneNumberHintExample.tr,
+                title: AppStrings.phoneNumber.tr,
                 keyBoardType: TextInputType.phone,
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'[0-9+\-\s()]')),
@@ -336,8 +337,8 @@ class _VehicleContactFormSheetState extends State<VehicleContactFormSheet> {
               const SizedBox(height: 12),
               CommonTextField(
                 textEditController: _altPhoneCtrl,
-                hintText: '1234567890',
-                title: 'Alternate phone',
+                hintText: AppStrings.phoneNumberHintExample.tr,
+                title: AppStrings.alternatePhoneLabel.tr,
                 keyBoardType: TextInputType.phone,
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'[0-9+\-\s()]')),
@@ -349,8 +350,8 @@ class _VehicleContactFormSheetState extends State<VehicleContactFormSheet> {
               const SizedBox(height: 12),
               CommonTextField(
                 textEditController: _emailCtrl,
-                hintText: 'example@gmail.com',
-                title: AppStrings.enterEmailAddress,
+                hintText: AppStrings.emailHintExample.tr,
+                title: AppStrings.enterEmailAddress.tr,
                 keyBoardType: TextInputType.emailAddress,
                 onChange: (_) => _validate(),
               ),
@@ -358,16 +359,16 @@ class _VehicleContactFormSheetState extends State<VehicleContactFormSheet> {
               const SizedBox(height: 12),
               HttpsTextField(
                 controller: _websiteCtrl,
-                hintText: 'https://example.com',
-                title: AppStrings.website,
+                hintText: AppStrings.websiteUrlHintExample.tr,
+                title: AppStrings.website.tr,
                 onChange: (_) => _validate(),
               ),
               if (_websiteError.isNotEmpty) _buildErrorText(_websiteError),
               const SizedBox(height: 12),
               CommonTextField(
                 textEditController: _hoursCtrl,
-                hintText: 'Mon–Sat · 9–7',
-                title: 'Opening hours',
+                hintText: AppStrings.openingHoursHintExample.tr,
+                title: AppStrings.openingHoursLabel.tr,
                 onChange: (_) => _validate(),
               ),
 
@@ -377,13 +378,13 @@ class _VehicleContactFormSheetState extends State<VehicleContactFormSheet> {
                 value: _isPrimary,
                 onChanged: (v) => setState(() => _isPrimary = v),
                 title: CustomText(
-                  'Primary contact',
+                  AppStrings.primaryContactLabel.tr,
                   fontSize: 14,
                   fontWeight: FontWeight.w700,
                   color: AppColors.mainTextColor,
                 ),
                 subtitle: CustomText(
-                  'Shown first on your public profile.',
+                  AppStrings.shownFirstOnProfile.tr,
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                   color: AppColors.secondaryTextColor,
@@ -393,7 +394,7 @@ class _VehicleContactFormSheetState extends State<VehicleContactFormSheet> {
               const SizedBox(height: 32),
               CustomBtn(
                 onTap: () => _handleSubmit(),
-                title: _isEdit ? 'Save changes' : AppStrings.submit,
+                title: _isEdit ? AppStrings.saveChanges.tr : AppStrings.submit.tr,
                 isValidate: _isFormValid,
               ),
             ],

@@ -1,9 +1,11 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/vehicle/model/vehicle_models.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 /// Reusable card for both the owner-side dashboard and the public
 /// Discover listing.
@@ -154,7 +156,11 @@ class VehicleCard extends StatelessWidget {
                     if (vehicle.transmission != null)
                       _Chip(label: _humanTransmission(vehicle.transmission!)),
                     if (vehicle.seatingCapacity != null)
-                      _Chip(label: '${vehicle.seatingCapacity} seats'),
+                      _Chip(
+                        label: AppStrings.seatsCountFmt.trParams({
+                          'count': '${vehicle.seatingCapacity}',
+                        }),
+                      ),
                   ],
                 ),
                 SizedBox(height: SizeConfig.size8),
@@ -219,39 +225,39 @@ class VehicleCard extends StatelessWidget {
   }
 
   String _compactNumber(double v) {
-    if (v >= 1e7) return '${(v / 1e7).toStringAsFixed(2)} Cr';
-    if (v >= 1e5) return '${(v / 1e5).toStringAsFixed(2)} L';
-    if (v >= 1e3) return '${(v / 1e3).toStringAsFixed(1)}K';
+    if (v >= 1e7) return '${(v / 1e7).toStringAsFixed(2)} ${AppStrings.compactUnitCr.tr}';
+    if (v >= 1e5) return '${(v / 1e5).toStringAsFixed(2)} ${AppStrings.compactUnitLac.tr}';
+    if (v >= 1e3) return '${(v / 1e3).toStringAsFixed(1)}${AppStrings.compactUnitThousand.tr}';
     return v.toStringAsFixed(0);
   }
 
   String _humanFuel(VehicleFuelType f) {
     switch (f) {
       case VehicleFuelType.petrol:
-        return 'Petrol';
+        return AppStrings.fuelPetrol.tr;
       case VehicleFuelType.diesel:
-        return 'Diesel';
+        return AppStrings.fuelDiesel.tr;
       case VehicleFuelType.electric:
-        return 'Electric';
+        return AppStrings.fuelElectric.tr;
       case VehicleFuelType.cng:
-        return 'CNG';
+        return AppStrings.fuelCng.tr;
       case VehicleFuelType.hybrid:
-        return 'Hybrid';
+        return AppStrings.fuelHybrid.tr;
       case VehicleFuelType.other:
-        return 'Other';
+        return AppStrings.fuelOther.tr;
     }
   }
 
   String _humanTransmission(VehicleTransmission t) {
     switch (t) {
       case VehicleTransmission.manual:
-        return 'Manual';
+        return AppStrings.transmissionManual.tr;
       case VehicleTransmission.automatic:
-        return 'Automatic';
+        return AppStrings.transmissionAutomatic.tr;
       case VehicleTransmission.amt:
-        return 'AMT';
+        return AppStrings.transmissionAmt.tr;
       case VehicleTransmission.cvt:
-        return 'CVT';
+        return AppStrings.transmissionCvt.tr;
     }
   }
 }

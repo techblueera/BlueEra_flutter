@@ -1,4 +1,3 @@
-
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -25,28 +24,26 @@ class _OtherJobListingScreenState extends State<OtherJobListingScreen> {
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.only(
-              right: 10.0, left: 10.0, bottom: 40, top: 10),
+          padding: const EdgeInsets.only(right: 10.0, left: 10.0, bottom: 40, top: 10),
           child: PositiveCustomBtn(
               bgColor: AppColors.white,
               textColor: AppColors.primaryColor,
               borderColor: AppColors.primaryColor,
               onTap: () {
-                Get.toNamed(RouteHelper.getCreateJobPostScreenRoute(),
-                    arguments: {
-                      'isEditMode': false,
-                      'jobId': '',
-                      'createJobVia': 'others',
-                    });
+                Get.toNamed(RouteHelper.getCreateJobPostScreenRoute(), arguments: {
+                  'isEditMode': false,
+                  'jobId': '',
+                  'createJobVia': 'other',
+                });
               },
               title: AppStrings.otherCreateJob.tr),
         ),
       ),
-
       body: AllJobPostScreen(
         key: ValueKey(AppConstants.All),
-        onHeaderVisibilityChanged: (val){},
-        headerHeight: 0,screenListingVia: "education",
+        onHeaderVisibilityChanged: (val) {},
+        headerHeight: 0,
+        screenListingVia: "education",
       ),
     );
   }

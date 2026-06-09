@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/vehicle/controller/vehicle_controller.dart';
@@ -127,28 +128,31 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
   // user is never forced to fill optional inputs.
 
   String? _vName(String? v) =>
-      (v == null || v.trim().isEmpty) ? 'Name is required' : null;
+      (v == null || v.trim().isEmpty) ? AppStrings.nameRequiredErr.tr : null;
 
   String? _vYear(String? v) {
     if (v == null || v.trim().isEmpty) return null;
     final n = int.tryParse(v.trim());
     final maxYear = DateTime.now().year + 1;
-    if (n == null) return 'Enter a valid year';
-    if (n < 1900 || n > maxYear) return 'Year must be 1900–$maxYear';
+    if (n == null) return AppStrings.enterValidYearErr.tr;
+    if (n < 1900 || n > maxYear) {
+      return AppStrings.yearRangeErrFmt
+          .trParams({'maxYear': '$maxYear'});
+    }
     return null;
   }
 
   String? _vSeats(String? v) {
     if (v == null || v.trim().isEmpty) return null;
     final n = int.tryParse(v.trim());
-    if (n == null || n <= 0 || n > 100) return 'Enter 1–100';
+    if (n == null || n <= 0 || n > 100) return AppStrings.enterSeatsRangeErr.tr;
     return null;
   }
 
   String? _vPrice(String? v) {
     if (v == null || v.trim().isEmpty) return null;
     final n = double.tryParse(v.trim());
-    if (n == null || n < 0) return 'Enter a valid price';
+    if (n == null || n < 0) return AppStrings.enterValidPriceErr.tr;
     return null;
   }
 
@@ -243,16 +247,16 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
                       SizedBox(height: SizeConfig.size12),
                       _imagesPickerTile(),
                       SizedBox(height: SizeConfig.size16),
-                      _label('Basics'),
+                      _label(AppStrings.basicsLabel.tr),
                       _field(
                         controller: _nameCtrl,
-                        label: 'Name *',
+                        label: AppStrings.nameRequiredFieldLabel.tr,
                         validator: _vName,
                         textInputAction: TextInputAction.next,
                       ),
                       _field(
                         controller: _descCtrl,
-                        label: 'Description',
+                        label: AppStrings.description.tr,
                         maxLines: 3,
                       ),
                       Row(children: [
@@ -261,7 +265,7 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
                         Expanded(
                           child: _field(
                             controller: _subCategoryCtrl,
-                            label: 'Sub-category',
+                            label: AppStrings.subCategoryLabel.tr,
                           ),
                         ),
                       ]),
@@ -269,14 +273,14 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
                         Expanded(
                           child: _field(
                             controller: _brandCtrl,
-                            label: 'Brand',
+                            label: AppStrings.brand.tr,
                           ),
                         ),
                         SizedBox(width: SizeConfig.size10),
                         Expanded(
                           child: _field(
                             controller: _modelCtrl,
-                            label: 'Model',
+                            label: AppStrings.modelLabel.tr,
                           ),
                         ),
                       ]),
@@ -284,7 +288,7 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
                         Expanded(
                           child: _field(
                             controller: _yearCtrl,
-                            label: 'Year',
+                            label: AppStrings.yearLabel.tr,
                             keyboardType: TextInputType.number,
                             inputFormatters: [
                               FilteringTextInputFormatter.digitsOnly,
@@ -297,7 +301,7 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
                         Expanded(
                           child: _field(
                             controller: _colorCtrl,
-                            label: 'Color',
+                            label: AppStrings.color.tr,
                           ),
                         ),
                       ]),
@@ -306,7 +310,7 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
                       // consistently in lists ("MH02AB1234").
                       _field(
                         controller: _regCtrl,
-                        label: 'Registration no. (optional)',
+                        label: AppStrings.registrationNoOptional.tr,
                         textCapitalization: TextCapitalization.characters,
                         inputFormatters: [
                           LengthLimitingTextInputFormatter(20),
@@ -314,11 +318,11 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
                         ],
                       ),
                       SizedBox(height: SizeConfig.size12),
-                      _label('Specs'),
+                      _label(AppStrings.specsLabel.tr),
                       Row(children: [
                         Expanded(
                           child: _dropdown<VehicleFuelType>(
-                            label: 'Fuel',
+                            label: AppStrings.fuelLabel.tr,
                             value: _fuel,
                             items: VehicleFuelType.values,
                             onChanged: (v) => setState(() => _fuel = v),
@@ -329,7 +333,7 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
                         SizedBox(width: SizeConfig.size10),
                         Expanded(
                           child: _dropdown<VehicleTransmission>(
-                            label: 'Transmission',
+                            label: AppStrings.transmissionLabel.tr,
                             value: _transmission,
                             items: VehicleTransmission.values,
                             onChanged: (v) =>
@@ -343,7 +347,7 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
                         Expanded(
                           child: _field(
                             controller: _seatsCtrl,
-                            label: 'Seats',
+                            label: AppStrings.seats.tr,
                             keyboardType: TextInputType.number,
                             inputFormatters: [
                               FilteringTextInputFormatter.digitsOnly,
@@ -356,13 +360,13 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
                         Expanded(
                           child: _field(
                             controller: _mileageCtrl,
-                            label: 'Mileage',
+                            label: AppStrings.mileageLabel.tr,
                           ),
                         ),
                       ]),
                       _field(
                         controller: _priceCtrl,
-                        label: 'Price (INR)',
+                        label: AppStrings.priceInrLabel.tr,
                         keyboardType: const TextInputType.numberWithOptions(
                             decimal: true),
                         inputFormatters: [
@@ -391,7 +395,7 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
                   borderRadius: BorderRadius.circular(12)),
             ),
             child: CustomText(
-              'Cancel',
+              AppStrings.cancel.tr,
               fontSize: 14,
               fontWeight: FontWeight.w700,
               color: AppColors.secondaryTextColor,
@@ -410,7 +414,7 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
               elevation: 0,
             ),
             child: Text(
-              _isEdit ? 'Save changes' : 'Create vehicle',
+              _isEdit ? AppStrings.saveChanges.tr : AppStrings.createVehicleLabel.tr,
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 14,
@@ -442,7 +446,7 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
         elevation: 0.5,
         iconTheme: IconThemeData(color: AppColors.mainTextColor),
         title: CustomText(
-          _isEdit ? 'Edit vehicle' : 'Add vehicle',
+          _isEdit ? AppStrings.editVehicleLabel.tr : AppStrings.addVehicleLabel.tr,
           fontSize: 18,
           fontWeight: FontWeight.w800,
           color: AppColors.mainTextColor,
@@ -504,14 +508,14 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
                   color: Colors.black.withValues(alpha: 0.55),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.camera_alt_rounded,
+                    const Icon(Icons.camera_alt_rounded,
                         size: 14, color: Colors.white),
-                    SizedBox(width: 6),
-                    Text('Cover photo',
-                        style: TextStyle(
+                    const SizedBox(width: 6),
+                    Text(AppStrings.coverPhoto.tr,
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
@@ -535,7 +539,7 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
               size: 28, color: AppColors.primaryColor),
           SizedBox(height: SizeConfig.size4),
           CustomText(
-            'Tap to add cover',
+            AppStrings.tapToAddCoverLabel.tr,
             fontSize: 12,
             fontWeight: FontWeight.w600,
             color: AppColors.primaryColor,
@@ -553,7 +557,7 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
         Row(
           children: [
             CustomText(
-              'Gallery images',
+              AppStrings.galleryImagesLabel.tr,
               fontSize: 13,
               fontWeight: FontWeight.w700,
               color: AppColors.mainTextColor,
@@ -564,7 +568,7 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
               icon: Icon(Icons.add_photo_alternate_rounded,
                   size: 18, color: AppColors.primaryColor),
               label: CustomText(
-                'Add photos',
+                AppStrings.addPhotos.tr,
                 color: AppColors.primaryColor,
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
@@ -582,7 +586,7 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
               borderRadius: BorderRadius.circular(10),
             ),
             child: CustomText(
-              'No photos picked yet',
+              AppStrings.noPhotosPickedYet.tr,
               textAlign: TextAlign.center,
               fontSize: 12,
               fontWeight: FontWeight.w500,
@@ -707,7 +711,7 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
         values.insert(0, _category!);
       }
       return _dropdown<String>(
-        label: 'Category',
+        label: AppStrings.category.tr,
         value: _category,
         items: values,
         onChanged: (v) => setState(() => _category = v),

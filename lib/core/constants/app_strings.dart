@@ -500,6 +500,51 @@ class AppStrings {
   static const noVehiclesInFleet = "noVehiclesInFleet";
   static const tapAddVehicleHint = "tapAddVehicleHint";
   static const contactsLabel = "contactsLabel";
+  // WebsiteOverviewCard (Me-home Overview).
+  static const noWebsiteAddedHint = "noWebsiteAddedHint";
+  static const websiteUrlHintExample = "websiteUrlHintExample";
+  // VehicleContactFormSheet / VehicleFormSheet / VehicleCard widgets.
+  static const locationNameLabel = "locationNameLabel";
+  static const locationNameHintExample = "locationNameHintExample";
+  static const locationNameRequiredErr = "locationNameRequiredErr";
+  static const searchAddressHint = "searchAddressHint";
+  static const countryLabel = "countryLabel";
+  static const pincodeLabel = "pincodeLabel";
+  static const enterValidPincodeErr = "enterValidPincodeErr";
+  static const mapLinkOptionalLabel = "mapLinkOptionalLabel";
+  static const mapLinkHintExample = "mapLinkHintExample";
+  static const enterValidMapLinkErr = "enterValidMapLinkErr";
+  static const phoneNumberHintExample = "phoneNumberHintExample";
+  static const enterValidPhoneErr = "enterValidPhoneErr";
+  static const alternatePhoneLabel = "alternatePhoneLabel";
+  static const emailHintExample = "emailHintExample";
+  static const enterValidEmailErr = "enterValidEmailErr";
+  static const enterValidWebsiteUrlErr = "enterValidWebsiteUrlErr";
+  static const openingHoursLabel = "openingHoursLabel";
+  static const openingHoursHintExample = "openingHoursHintExample";
+  static const primaryContactLabel = "primaryContactLabel";
+  static const shownFirstOnProfile = "shownFirstOnProfile";
+  static const nameRequiredErr = "nameRequiredErr";
+  static const enterValidYearErr = "enterValidYearErr";
+  static const yearRangeErrFmt = "yearRangeErrFmt";
+  static const enterSeatsRangeErr = "enterSeatsRangeErr";
+  static const enterValidPriceErr = "enterValidPriceErr";
+  static const basicsLabel = "basicsLabel";
+  static const nameRequiredFieldLabel = "nameRequiredFieldLabel";
+  static const subCategoryLabel = "subCategoryLabel";
+  static const modelLabel = "modelLabel";
+  static const registrationNoOptional = "registrationNoOptional";
+  static const specsLabel = "specsLabel";
+  static const priceInrLabel = "priceInrLabel";
+  static const createVehicleLabel = "createVehicleLabel";
+  static const editVehicleLabel = "editVehicleLabel";
+  static const tapToAddCoverLabel = "tapToAddCoverLabel";
+  static const galleryImagesLabel = "galleryImagesLabel";
+  static const noPhotosPickedYet = "noPhotosPickedYet";
+  static const seatsCountFmt = "seatsCountFmt";
+  static const compactUnitCr = "compactUnitCr";
+  static const compactUnitLac = "compactUnitLac";
+  static const compactUnitThousand = "compactUnitThousand";
   // Visitor-side professional profile additions (DiscoverProfessionalsViewScreen).
   static const pricingAndEngagement = "pricingAndEngagement";
   static const introductionVideo = "introductionVideo";
@@ -6091,7 +6136,7 @@ class AppStrings {
   static const String profileTypeLabel = "profileTypeLabel";
   static const String professionLabel = "professionLabel";
   static const String businessTypeLabel = "businessTypeLabel";
-  static const String subCategoryLabel = "subCategoryLabel";
+
   static const String imLive = "imLive";
   static const String goOffline = "goOffline";
 

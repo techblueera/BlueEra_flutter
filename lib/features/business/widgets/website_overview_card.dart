@@ -1,8 +1,10 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 /// Dedicated "Website" card for the Me-home Overview tabs.
 ///
@@ -50,7 +52,7 @@ class WebsiteOverviewCard extends StatelessWidget {
               SizedBox(width: SizeConfig.size8),
               Expanded(
                 child: CustomText(
-                  'Website',
+                  AppStrings.website.tr,
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w700,
                   color: AppColors.mainTextColor,
@@ -79,7 +81,7 @@ class WebsiteOverviewCard extends StatelessWidget {
                           size: 14, color: AppColors.primaryColor),
                       SizedBox(width: SizeConfig.size4),
                       CustomText(
-                        _hasUrl ? 'Edit' : 'Add',
+                        _hasUrl ? AppStrings.edit.tr : AppStrings.add.tr,
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w600,
                         color: AppColors.primaryColor,
@@ -127,7 +129,7 @@ class WebsiteOverviewCard extends StatelessWidget {
             )
           else
             CustomText(
-              'No website added yet. Tap "Add" to link your website.',
+              AppStrings.noWebsiteAddedHint.tr,
               fontSize: SizeConfig.small,
               color: AppColors.secondaryTextColor,
             ),
@@ -142,24 +144,24 @@ class WebsiteOverviewCard extends StatelessWidget {
       context: context,
       builder: (ctx) {
         return AlertDialog(
-          title: const Text('Website'),
+          title: Text(AppStrings.website.tr),
           content: TextField(
             controller: controller,
             keyboardType: TextInputType.url,
             autofocus: true,
-            decoration: const InputDecoration(
-              hintText: 'https://example.com',
-              border: OutlineInputBorder(),
+            decoration: InputDecoration(
+              hintText: AppStrings.websiteUrlHintExample.tr,
+              border: const OutlineInputBorder(),
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
+              child: Text(AppStrings.cancel.tr),
             ),
             TextButton(
               onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-              child: const Text('Save'),
+              child: Text(AppStrings.save.tr),
             ),
           ],
         );
