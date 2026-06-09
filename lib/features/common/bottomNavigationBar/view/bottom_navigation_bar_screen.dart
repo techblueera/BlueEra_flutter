@@ -490,25 +490,14 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       case 0:
         return meScreens();
       case 1:
-        return PopScope(
-          canPop: false,
-          onPopInvokedWithResult: (didPop, _) {
-            if (!didPop) {
-              bottomBarController.onChangeIndex(0);
-            }
-          },
-          child: const DiscoverScreen(),
-        );
+        // Back handling for all tabs lives in BottomNavigationBarWidget
+        // (_handleBackPress) — the single source of truth. Wrapping tab
+        // screens in their own PopScope here registered a *second*
+        // canPop:false handler on the same route, so a single back press
+        // fired both callbacks and produced erratic navigation.
+        return const DiscoverScreen();
       case 2:
-        return PopScope(
-          canPop: false,
-          onPopInvokedWithResult: (didPop, _) {
-            if (!didPop) {
-              bottomBarController.onChangeIndex(0);
-            }
-          },
-          child: const ConnectMainPage(),
-        );
+        return const ConnectMainPage();
       case 3:
       default:
         return const OrderMainChatScreen();

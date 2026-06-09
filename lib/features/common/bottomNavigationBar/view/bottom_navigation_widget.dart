@@ -39,10 +39,11 @@ class BottomNavigationBarWidget extends StatelessWidget {
       onHeaderVisibilityChanged.call(true);
       return false;
     }
-    // From Connect (0) or Order (3), back routes to Discover (1) instead
-    // of falling through to the press-twice-to-exit flow. Discover is the
-    // app's "home" tab in this layout.
-    if (currentIndex == 0 || currentIndex == 3) {
+    // Discover (1) is the app's "home" tab. Back from any other tab
+    // (Me=0, Connect=2, Order=3) routes to Discover instead of exiting.
+    // Only when already on Discover does back fall through to the
+    // press-twice-to-exit flow below.
+    if (currentIndex != 1) {
       onTap(1);
       return false;
     }

@@ -91,6 +91,7 @@ class BusinessProfileRepo extends BaseService {
 
   Future<ResponseModel> viewBusinessProfileById(String userId) async {
     final response = await ApiBaseHelper().getHTTP(
+      // "$bussinessProfileById/6a27b32d37875c6a8eb7b3da",
       "$bussinessProfileById/$userId",
       showProgress: false,
       onError: (error) {},
