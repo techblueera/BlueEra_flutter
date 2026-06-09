@@ -29,14 +29,13 @@ class ManufacturerProductRepo extends BaseService {
     return response;
   }
 
-  /// Update product inventory variant — PATCH only price/mrp etc.
-  /// `PATCH product-service/api/inventory/{id}`.
+  /// Update an inventory variant (price / mrp / active) — PUT
+  /// `product-service/api/inventory/{id}`. Mirrors the product service.
   Future<ResponseModel> updateInventoryVariantRepo({
     required String inventoryId,
-    required String variantId,
     required Map<String, dynamic> params,
   }) async {
-    return ApiBaseHelper().patchHTTP(
+    return ApiBaseHelper().putHTTP(
       updateProductInventory(inventoryId),
       params: params,
       showProgress: false,
@@ -116,46 +115,6 @@ class ManufacturerProductRepo extends BaseService {
     return response;
   }
 
-  // GET: Fetch full business profile
-  Future<dynamic> getBusinessProfileFullRepo(String id) async {
-    return await ApiBaseHelper().getHTTP(
-      "product-service/api/business-profile/$id/full",
-      showProgress: true,
-      onSuccess: (res) {},
-      onError: (error) {},
-    );
-  }
-
-  ///UPDATE PRODUCT BUSINESS....
-  Future<ResponseModel> updateProductBusinessProfileRepo(
-      {required Map<String, dynamic> reqBODY,}) async {
-    final response = await ApiBaseHelper().putHTTP(
-        productBusinessProfile,
-        params: reqBODY,
-        onError: (error) {},
-        onSuccess: (data) {});
-    return response;
-  }
-
-  /// GENERATED AI PRODUCT DETAILS...
-  Future<ResponseModel> aiGenerateProductFetchDetailsRepo(
-      {required Map<String, dynamic> reqBody}) async {
-    final response = await ApiBaseHelper().postHTTP(
-        generateProductBusiness, params: reqBody, onError: (error) {}, onSuccess: (data) {});
-    return response;
-  }
-
-  ///CREATE BUSINESS.......
-  Future<ResponseModel> createProductBusinessProfileRepo(
-      {required dynamic reqBODY,}) async {
-    final response = await ApiBaseHelper().postHTTP(
-        productBusinessProfile,
-        params: reqBODY,
-        onError: (error) {},
-        onSuccess: (data) {});
-    return response;
-  }
-
   /// Fetch ManufacturerProduct Category With Inventory
   Future<ResponseModel> fetchProductCategoryWithInventoryRepo() async {
     final response = await ApiBaseHelper().getHTTP(
@@ -179,20 +138,11 @@ class ManufacturerProductRepo extends BaseService {
   }
 
 
-  ///GET BUSINESS PROFILE REPO....
-  Future<ResponseModel> getBusinessProfileRepo() async {
-    final response = await ApiBaseHelper().getHTTP(
-        productBusinessProfile,
-        onError: (error) {},
-        onSuccess: (data) {});
-    return response;
-  }
-
   /// Place bulk product self-pickup order
   Future<ResponseModel> placeBulkProductOrderApi(
       {Map<String, dynamic>? params}) async {
     final response = await ApiBaseHelper().postHTTP(
-      placeBulkProductOrder,
+      placeProductOrder,
       params: params,
       showProgress: false,
       onError: (error) {},
@@ -201,85 +151,11 @@ class ManufacturerProductRepo extends BaseService {
     return response;
   }
 
-  /// Mark product self-pickup order as ready (seller side)
-  Future<ResponseModel> markProductOrderReadyRepo(
-      {required String orderId}) async {
-    final response = await ApiBaseHelper().putHTTP(
-      productOrderReady(orderId),
-      showProgress: false,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
-    return response;
-  }
-
-  ///Add ManufacturerProduct...
-  Future<ResponseModel> addProduct({required Map<String, dynamic> params}) async {
-    final response = await ApiBaseHelper().postHTTP(
-      products,
-      params: params,
-      showProgress: false,
-      isMultipart: true,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
-    return response;
-  }
-
-  ///Get ManufacturerProduct...
-  Future<ResponseModel> getProduct({required String channelId}) async {
-    String channelProduct = channelProducts(channelId);
-    final response = await ApiBaseHelper().getHTTP(
-      channelProduct,
-      showProgress: false,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
-    return response;
-  }
-
-  ///Get Single ManufacturerProduct ...
-  Future<ResponseModel> getSingleProductDetails({required String productId}) async {
-    String channelProductDetails = product(productId);
-    final response = await ApiBaseHelper().getHTTP(
-      channelProductDetails,
-      showProgress: false,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
-    return response;
-  }
-
-  ///update ManufacturerProduct Details...
-  Future<ResponseModel> updateProductDetails({required String productId, required Map<String, dynamic> params}) async {
-    String channelProductDetails = product(productId);
-    final response = await ApiBaseHelper().putHTTP(
-      channelProductDetails,
-      showProgress: false,
-      isMultipart: true,
-      params: params,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
-    return response;
-  }
-
-  ///Delete ManufacturerProduct...
-  Future<ResponseModel> deleteProduct({required String productId}) async {
-    String channelProductDetails = product(productId);
-    final response = await ApiBaseHelper().deleteHTTP(
-      channelProductDetails,
-      showProgress: false,
-      onError: (error) {},
-      onSuccess: (data) {},
-    );
-    return response;
-  }
-
-  // Create ManufacturerProduct (multipart)
+  // Create ManufacturerProduct (multipart) — uses the new admin create
+  // endpoint, mirroring the product service.
   Future<ResponseModel> createProductViaAiApi({required Map<String, dynamic> params}) async {
     final response = await ApiBaseHelper().postHTTP(
-      createProductViaAi,
+      createProductAdmin,
       params: params,
       isMultipart: true,
       showProgress: false,
@@ -290,11 +166,13 @@ class ManufacturerProductRepo extends BaseService {
   }
 
   ///Add ManufacturerProduct To Inventory...
-  Future<ResponseModel> addProductToInventoryApi({required Map<String, dynamic> params}) async {
+  /// Body is a raw JSON array of inventory entries (one per variant) — same
+  /// shape the product service posts.
+  Future<ResponseModel> addProductToInventoryApi({required dynamic params}) async {
     final response = await ApiBaseHelper().postHTTP(
       addProductToInventory,
       params: params,
-      isMultipart: true,
+      isArrayReq: true,
       showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
@@ -315,12 +193,14 @@ class ManufacturerProductRepo extends BaseService {
     return response;
   }
 
+  /// Create variants on a product. Body is `{ variantData: [...] }`;
+  /// `productId` lives in the URL only. POST (mirrors the product service).
   Future<ResponseModel> addUpdateProductVariantApi({
     required Map<String, dynamic> params,
     required String productId,
 
   }) async {
-    final response = await ApiBaseHelper().patchHTTP(
+    final response = await ApiBaseHelper().postHTTP(
       addUpdateProductVariant(productId),
       params: params,
       showProgress: false,

@@ -6,7 +6,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/widgets/app_home_background.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -193,11 +193,8 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
     }
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // BUILD â€” fixed header (top bar + profile row + tabs row) with only
   // the tab content scrolling underneath it. Mirrors the reference
   // mock at assets/img1.png: the chrome stays put while content moves.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   @override
   Widget build(BuildContext context) {
     final topInset = MediaQuery.of(context).padding.top;
@@ -229,24 +226,6 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
     );
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // TABS â€” glass-pill container with a smoothly-sliding gradient
-  // indicator that morphs between tabs. Selected tab text fades from
-  // secondary grey â†’ white and from medium â†’ bold weight in a single
-  // continuous transition. The indicator carries the brand-colored
-  // glow + a 1-px inner top highlight for a "lifted glass" feel.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // TABS â€” solid white card with high-contrast labels and an animated
-  // underline that glides under the selected tab. The underline carries
-  // a small brand-colored glow so the selection reads at a glance even
-  // on busy backgrounds.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // TAB CONTENT â€” switches body by _selectedTab
-  //   0 Order, 1 Overview, 2 Products, 3 Post, 4 Statics
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   /// Wraps a tab's content list in a refreshable, scrollable body for the
   /// [TabBarView]. The per-tab builders return bounded box widgets, so
   /// SingleChildScrollView + Column reproduces the previous layout.
@@ -268,14 +247,12 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
     );
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // ORDER TAB â€” top slot is reactive to the contribution status:
   //   â€¢ Active recharge present â†’ premium "membership peek" card with
   //     plan name, perks-remaining strip, and a forward chevron that
   //     pushes ContributionScreen.
   //   â€¢ Otherwise â†’ the lavender "Contribute now" CTA.
   // Below the slot sits the legacy [MyGroceryOrders] list region.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildOrderTab() {
     // Lazy-register the contribution controller â€” its `onInit` fires
     // /recharge/plans + /recharge/current. Bound here (only when the
@@ -1001,13 +978,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
   // BACKGROUND
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildPatternBackground() {
-    return Positioned.fill(
-      child: Image.asset(
-        AppImageAssets.chatDefaultBg,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Container(color: const Color(0xFFEAF2FB)),
-      ),
-    );
+    return const AppHomeBackground();
   }
 
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

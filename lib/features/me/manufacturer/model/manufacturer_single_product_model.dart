@@ -318,7 +318,10 @@ class ManufacturerVariant {
   factory ManufacturerVariant.fromJson(Map<String, dynamic> json) {
     return ManufacturerVariant(
       mediaRelatedToVariant: List<String>.from(json['media_related_to_varient'] ?? []),
-      attributesMap: json['attributes_map'] ?? {},
+      // Some endpoints return `attributes_map`, others (e.g. get-product-by-id)
+      // return `attributes` — accept either so the create-variant screen keeps
+      // its options after a refresh.
+      attributesMap: json['attributes_map'] ?? json['attributes'] ?? {},
       attributesStruct: json['attributes_struct'] ?? {},
       sku: json['sku'] ?? '',
       hsn: json['hsn'] ?? '',
@@ -332,7 +335,7 @@ class ManufacturerVariant {
       variantIsActive: json['varientIsActive'] ?? false,
       createdAt: json['createdAt'] ?? '',
       updatedAt: json['updatedAt'] ?? '',
-      id: json['id'] ?? '',
+      id: json['id'] ?? json['_id'] ?? '',
     );
   }
 

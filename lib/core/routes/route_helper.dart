@@ -44,12 +44,15 @@ import 'package:BlueEra/features/me/product/view/admin/product_cart_screen.dart'
 import 'package:BlueEra/features/me/product/view/admin/product_nested_category_with_inventory_screen.dart';
 import 'package:BlueEra/features/me/product/view/admin/my_product_products_screen.dart';
 import 'package:BlueEra/features/me/product/view/admin/product_screen.dart';
-// Manufacturer fork â€” classes are Manufacturer-prefixed so no alias
-// is needed.
 import 'package:BlueEra/features/me/manufacturer/view/admin/manufacturer_product_screen.dart';
 import 'package:BlueEra/features/me/manufacturer/view/admin/my_manufacturer_products_screen.dart';
-import 'package:BlueEra/features/me/manufacturer/view/admin/manufacturer_inventory_business_cards_screen.dart';
 import 'package:BlueEra/features/me/manufacturer/view/customer/manufacturer_products_store_details_screen.dart';
+import 'package:BlueEra/features/me/manufacturer/controller/manufacturer_product_controller.dart';
+import 'package:BlueEra/features/me/manufacturer/view/admin/manufacturer_add_product_via_ai_step1.dart';
+import 'package:BlueEra/features/me/manufacturer/view/admin/manufacturer_add_product_via_ai_step2.dart';
+import 'package:BlueEra/features/me/manufacturer/view/admin/manufacturer_create_variant_screen.dart';
+import 'package:BlueEra/features/me/manufacturer/view/admin/manufacturer_product_preview_screen.dart';
+import 'package:BlueEra/features/me/manufacturer/view/admin/manufacturer_nested_category_with_inventory_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/choose_earn_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_dashboard_view.dart';
 import 'package:share_handler/share_handler.dart';
@@ -459,11 +462,26 @@ class RouteHelper {
   static String getManufacturerStoreDetailsScreenRoute() =>
       RouteConstant.manufacturerStoreDetailsScreen;
 
-  static String getManufacturerInventoryBusinessCardsScreenRoute() =>
-      RouteConstant.manufacturerInventoryBusinessCardsScreen;
+  // static String getManufacturerInventoryBusinessCardsScreenRoute() =>
+  //     RouteConstant.manufacturerInventoryBusinessCardsScreen;
 
   static String getMyManufacturerProductsScreenRoute() =>
       RouteConstant.myManufacturerProductsScreen;
+
+  static String getManufacturerAddProductViaAiStep1Route() =>
+      RouteConstant.manufacturerAddProductViaAiStep1;
+
+  static String getManufacturerAddProductViaAiStep2Route() =>
+      RouteConstant.manufacturerAddProductViaAiStep2;
+
+  static String getManufacturerProductPreviewScreenRoute() =>
+      RouteConstant.manufacturerProductPreviewScreen;
+
+  static String getManufacturerCreateVariantScreenRoute() =>
+      RouteConstant.manufacturerCreateVariantScreen;
+
+  static String getManufacturerNestedCategoryWithInventoryScreenRoute() =>
+      RouteConstant.manufacturerNestedCategoryWithInventoryScreen;
 
   static String getFoodUploadScreenRoute() => 
       RouteConstant.foodUploadScreen;
@@ -1317,6 +1335,70 @@ class RouteHelper {
         return MaterialPageRoute(
             builder: (_) => ManufacturerProductScreen(),
             settings: RouteSettings(name: getManufacturerScreenRoute()));
+      case RouteConstant.manufacturerAddProductViaAiStep1:
+        final args = settings.arguments as Map<String, dynamic>;
+        final String id = args[ApiKeys.id] as String;
+        final ProviderType providerType =
+            args[ApiKeys.providerType] as ProviderType;
+        return MaterialPageRoute(
+            builder: (_) => ManufacturerAddProductViaAiStep1(
+                id: id, providerType: providerType),
+            settings: RouteSettings(
+                name: getManufacturerAddProductViaAiStep1Route()));
+      case RouteConstant.manufacturerAddProductViaAiStep2:
+        final args = settings.arguments as Map<String, dynamic>;
+        final ManufacturerProductController controller =
+            args[ApiKeys.controller] as ManufacturerProductController;
+        final GenerateAiProductContent generateAiProductContent =
+            args[ApiKeys.generateAiProductContent] as GenerateAiProductContent;
+        final String id = args[ApiKeys.id] as String;
+        final ProviderType providerType =
+            args[ApiKeys.providerType] as ProviderType;
+        return MaterialPageRoute(
+            builder: (_) => ManufacturerAddProductViaAiStep2(
+                  controller: controller,
+                  generateAiProductContent: generateAiProductContent,
+                  id: id,
+                  providerType: providerType,
+                ),
+            settings: RouteSettings(
+                name: getManufacturerAddProductViaAiStep2Route()));
+      case RouteConstant.manufacturerProductPreviewScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        final ManufacturerProductPreviewArgs? argProductData =
+            args?[ApiKeys.argProductData] as ManufacturerProductPreviewArgs?;
+        final bool? isFromProductCreation =
+            args?[ApiKeys.isFromProductCreation] as bool?;
+        final bool? isUserCanCreateVariants =
+            args?[ApiKeys.isUserCanCreateVariants] as bool?;
+        final String? id = args?[ApiKeys.id] as String?;
+        final ProviderType? providerType =
+            args?[ApiKeys.providerType] as ProviderType?;
+        return MaterialPageRoute(
+            builder: (_) => ManufacturerProductPreviewScreen(
+                  id: id,
+                  providerType: providerType,
+                  productPreviewArgs: argProductData,
+                  isFromProductCreation: isFromProductCreation ?? false,
+                  isUserCanCreateVariants: isUserCanCreateVariants ?? true,
+                ),
+            settings: RouteSettings(
+                name: getManufacturerProductPreviewScreenRoute()));
+      case RouteConstant.manufacturerCreateVariantScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final ManufacturerProductController controller =
+            args[ApiKeys.controller] as ManufacturerProductController;
+        final String id = args[ApiKeys.id] as String;
+        final ProviderType providerType =
+            args[ApiKeys.providerType] as ProviderType;
+        return MaterialPageRoute(
+            builder: (_) => ManufacturerCreateVariantScreen(
+                  controller: controller,
+                  id: id,
+                  providerType: providerType,
+                ),
+            settings: RouteSettings(
+                name: getManufacturerCreateVariantScreenRoute()));
       case RouteConstant.addServicesScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final ProviderType providerType =
@@ -1430,11 +1512,11 @@ class RouteHelper {
             builder: (_) => InventoryBusinessCardsScreen(),
             settings:
                 RouteSettings(name: getInventoryBusinessCardsScreenRoute()));
-      case RouteConstant.manufacturerInventoryBusinessCardsScreen:
-        return MaterialPageRoute(
-            builder: (_) => ManufacturerInventoryBusinessCardsScreen(),
-            settings: RouteSettings(
-                name: getManufacturerInventoryBusinessCardsScreenRoute()));
+      // case RouteConstant.manufacturerInventoryBusinessCardsScreen:
+      //   return MaterialPageRoute(
+      //       builder: (_) => ManufacturerInventoryBusinessCardsScreen(),
+      //       settings: RouteSettings(
+      //           name: getManufacturerInventoryBusinessCardsScreenRoute()));
       case RouteConstant.foodUploadScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final ProviderType providerType =
@@ -2083,6 +2165,27 @@ class RouteHelper {
                 ),
             settings:
                 RouteSettings(name: getMyManufacturerProductsScreenRoute()));
+
+      case RouteConstant.manufacturerNestedCategoryWithInventoryScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final List<ProductCategoryWithInventoryModel>
+            argProductCategoryWithInventory =
+            args[ApiKeys.argProductCategoryWithInventory]
+                as List<ProductCategoryWithInventoryModel>;
+        final String argProductCatName =
+            args[ApiKeys.argProductCatName] as String;
+        final String argProductCatKey =
+            args[ApiKeys.argProductCatKey] as String;
+        return MaterialPageRoute(
+            builder: (_) => ManufacturerNestedCategoryWithInventoryScreen(
+                  argProductCategoryWithInventory:
+                      argProductCategoryWithInventory,
+                  argProductCatKey: argProductCatKey,
+                  argProductCatName: argProductCatName,
+                ),
+            settings: RouteSettings(
+                name:
+                    getManufacturerNestedCategoryWithInventoryScreenRoute()));
 
       case RouteConstant.foodEntryAiScreen:
         final args = settings.arguments as Map<String, dynamic>;

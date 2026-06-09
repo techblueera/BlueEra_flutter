@@ -175,12 +175,12 @@ class InventoryController extends GetxController {
   RxList<ProductCategoryWithInventoryModel> productNestedCategoryList = <ProductCategoryWithInventoryModel>[].obs;
   RxBool productNestedCategoryLoading = false.obs;
 
-  Future<void> fetchAllProductData({String? visitBusinessId}) async {
+  Future<void> fetchAllProductData({String? visitUserId}) async {
     try {
       myProductLoading.value = true;
       await Future.wait([
-        fetchProductCategoryWithInventory(visitBusinessId: visitBusinessId),
-        fetchBusinessProducts(visitBusinessId: visitBusinessId),
+        fetchProductCategoryWithInventory(visitUserId: visitUserId),
+        fetchBusinessProducts(visitUserId: visitUserId),
       ]);
     } catch (e) {
       log('Error fetching product data: $e');
@@ -190,14 +190,14 @@ class InventoryController extends GetxController {
   }
 
   Future<void> fetchProductCategoryWithInventory({
-    String? visitBusinessId,
+    String? visitUserId,
   }) async {
     try {
       fetchProductCategoryResponse.value = ApiResponse.initial('Initial');
 
       ResponseModel response;
-      if(visitBusinessId!=null){
-        response = await ProductRepo().fetchPublicProductCategoryWithInventoryRepo();
+      if(visitUserId!=null){
+        response = await ProductRepo().fetchPublicProductCategoryWithInventoryRepo(visitUserId: visitUserId);
       }else{
         response = await ProductRepo().fetchProductCategoryWithInventoryRepo();
       }
@@ -437,7 +437,7 @@ class InventoryController extends GetxController {
   }
 
   Future<void> fetchBusinessProducts({
-    String? visitBusinessId,
+    String? visitUserId,
     bool? isDiscountedProducts,
     bool isLoadMore = false,
   }) async {
@@ -464,7 +464,7 @@ class InventoryController extends GetxController {
       final Map<String, dynamic> queryParams = {
         ApiKeys.ownerType: ProviderType.business.title,
       };
-      if(visitBusinessId!=null) queryParams[ApiKeys.businessId] = visitBusinessId;
+      if(visitUserId!=null) queryParams[ApiKeys.businessId] = visitUserId;
       if(isDiscountedProducts!=null) queryParams[ApiKeys.isDiscounted] = isDiscountedProducts;
       queryParams[ApiKeys.page] = _allProductsPage;
       queryParams[ApiKeys.limit] = _allProductsLimit;
@@ -995,6 +995,41 @@ class InventoryController extends GetxController {
     } finally {
       isDeleteProductVariantLoading.value = false;
       deleteProductVariantResponse.value = ApiResponse.error('error');
+    }
+  }
+
+  /// Updates a single inventory variant's selling price / mrp / active flag by
+  /// its inventory id, via the product-service inventory endpoint. Refreshes
+  /// the in-memory [allProducts] so the card reflects the change immediately.
+  Future<bool> updateProductVariantPrice({
+    required String inventoryId,
+    required num sellingPrice,
+    required num mrp,
+    required bool varientIsActive,
+  }) async {
+    try {
+      final res = await ProductRepo().updateInventoryVariantRepo(
+        inventoryId: inventoryId,
+        params: {
+          'sellingPrice': sellingPrice,
+          'mrp': mrp,
+          'varientIsActive': varientIsActive,
+        },
+      );
+      if (!res.isSuccess) return false;
+      for (final p in allProducts) {
+        for (final v in p.product.sellerClassification?.variants ?? const []) {
+          if (v.inventoryId == inventoryId || v.id == inventoryId) {
+            v.sellingPrice = sellingPrice;
+            v.mrp = mrp;
+            v.variantIsActive = varientIsActive;
+          }
+        }
+      }
+      allProducts.refresh();
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 }

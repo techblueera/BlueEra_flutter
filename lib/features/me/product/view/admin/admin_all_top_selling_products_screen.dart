@@ -3,7 +3,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
-import 'package:BlueEra/features/me/product/view/admin/widget/product_top_selling_tile.dart';
+import 'package:BlueEra/features/me/product/view/admin/widget/admin_product_card.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:flutter/material.dart';
@@ -104,29 +104,10 @@ class _AdminAllTopSellingProductsScreenState
                   mainAxisSpacing: 10,
                   crossAxisSpacing: 10,
                   childCount: items.length,
-                  itemBuilder: (context, index) => Container(
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: AppColors.greyE5),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        ClipRRect(
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(10),
-                            topRight: Radius.circular(10),
-                          ),
-                          child: AspectRatio(
-                            aspectRatio: 1.05,
-                            child:
-                                ProductTopSellingImage(product: items[index]),
-                          ),
-                        ),
-                        ProductTopSellingInfoSection(product: items[index]),
-                      ],
-                    ),
+                  itemBuilder: (context, index) => AdminProductCard(
+                    product: items[index],
+                    deleteProductApi: () {},
+                    isGridShow: true,
                   ),
                 ),
               ),

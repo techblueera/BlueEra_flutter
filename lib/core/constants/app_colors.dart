@@ -73,7 +73,17 @@ class AppColors {
   static const greenDarkOut = Color.fromRGBO(69, 90, 100, 1);
   static const greyBf = Color(0xffB0B4BF);
   static const primaryColor = Color(0xFF0086FF);
-  static const appBackgroundColor = Color(0xFFE0E6F3);
+
+  /// Const baseline for the app/scaffold background — the value [appBackgroundColor]
+  /// resets to. Use this (not the mutable field) wherever a `const` context is
+  /// required.
+  static const Color appBackgroundColorDefault = Color(0xFFE0E6F3);
+
+  /// Live app/scaffold background colour. Mutable so the "Background" picker
+  /// (colour mode) can recolour every screen that reads this — and the theme's
+  /// `scaffoldBackgroundColor` — app-wide. Reset restores
+  /// [appBackgroundColorDefault]. See [AppBackgroundController].
+  static Color appBackgroundColor = appBackgroundColorDefault;
   static const mainTextColor = Color(0xFF090707);
   static const secondaryTextColor = Color(0xFF505050);
   static const shadowColor = Color(0xFA999999);

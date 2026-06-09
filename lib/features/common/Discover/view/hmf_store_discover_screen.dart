@@ -27,7 +27,6 @@ class HmfStoreDiscoverScreen extends StatefulWidget {
 class _HmfStoreDiscoverScreenState extends State<HmfStoreDiscoverScreen> {
   static const String _profileType = 'homeMadeFood';
   static const Color _primary = AppColors.primaryColor;
-  static const Color _primaryDark = AppColors.blue5CAF;
 
   final controller = getOrPut(
     () => EarnProfilesDiscoverController(profileType: _profileType),
@@ -173,11 +172,14 @@ class _HmfStoreDiscoverScreenState extends State<HmfStoreDiscoverScreen> {
                 headerSliverBuilder: (context, innerBoxIsScrolled) => [
                   SliverToBoxAdapter(
                     child: Container(
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
-                          colors: [_primary, _primaryDark],
+                          colors: [
+                            AppColors.blue5CAF.withValues(alpha: 0.1),
+                            AppColors.blue5CAF.withValues(alpha: 0.8),
+                          ],
                         ),
                       ),
                       child: Column(

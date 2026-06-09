@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/common/service/controller/add_service_controller.dart';
+import 'package:BlueEra/features/me/manufacturer/controller/manufacturer_product_controller.dart';
 import 'package:BlueEra/features/me/product/controller/product_controller.dart';
 import 'package:BlueEra/features/me/product/model/detail_item.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/controller/add_flat_rental_service_controller.dart';
@@ -76,6 +77,12 @@ class AddMoreDetailsController extends GetxController {
           details: details['detail'].toString(),
         );
         Get.find<ProductController>().addDetail(detailItem);
+      }else if(fromScreen == RouteConstant.manufacturerAddProductViaAiStep2) {
+        final detailItem = ManufacturerProductMoreDetails(
+          title: details['title'].toString(),
+          details: details['detail'].toString(),
+        );
+        Get.find<ManufacturerProductController>().addDetail(detailItem);
       }else if(fromScreen == RouteConstant.addServicesScreen){
         final detailItem = DetailItem(
           title: details['title'].toString(),

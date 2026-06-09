@@ -15,9 +15,9 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
 class CustomerAllTopSellingProductsScreen extends StatefulWidget {
-  final String visitBusinessId;
+  final String visitUserId;
 
-  const CustomerAllTopSellingProductsScreen({super.key, required this.visitBusinessId});
+  const CustomerAllTopSellingProductsScreen({super.key, required this.visitUserId});
 
   @override
   State<CustomerAllTopSellingProductsScreen> createState() =>
@@ -47,7 +47,7 @@ class _CustomerAllTopSellingProductsScreenState
     // observable mutations don't re-enter an in-flight build.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.fetchBusinessProducts(
-          visitBusinessId: widget.visitBusinessId,
+          visitUserId: widget.visitUserId,
           isDiscountedProducts: true);
     });
   }
@@ -69,7 +69,7 @@ class _CustomerAllTopSellingProductsScreenState
     } else {
       _cartController.addToCart(
         product,
-        businessId: widget.visitBusinessId,
+        userId: widget.visitUserId,
         businessName: bDetails?.businessName,
         businessLogo: bDetails?.logo,
         businessAddress: bDetails?.address,
@@ -91,7 +91,7 @@ class _CustomerAllTopSellingProductsScreenState
       // Controller remembers the active owner id for the paginated run,
       // so we don't need to re-pass `visitBusinessId` here.
       controller.fetchBusinessProducts(
-          visitBusinessId: widget.visitBusinessId,
+          visitUserId: widget.visitUserId,
           isDiscountedProducts: true,
           isLoadMore: true);
     }
@@ -99,7 +99,7 @@ class _CustomerAllTopSellingProductsScreenState
 
   Future<void> _onRefresh() async {
     await controller.fetchBusinessProducts(
-      visitBusinessId: widget.visitBusinessId,
+      visitUserId: widget.visitUserId,
       isDiscountedProducts: true,
     );
   }

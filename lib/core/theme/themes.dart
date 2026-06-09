@@ -53,7 +53,11 @@ class AppThemes {
   //   ),
   // );
 
-  static final ThemeData light = ThemeData(
+  // A getter (not a cached `final`) so each read re-evaluates
+  // `AppColors.appBackgroundColor`. The "Background" picker mutates that field
+  // and calls `Get.changeTheme(AppThemes.light)` to repaint the scaffold
+  // background app-wide.
+  static ThemeData get light => ThemeData(
     hoverColor: Colors.grey,
     fontFamily: AppConstants.OpenSans,
     appBarTheme: AppBarTheme(

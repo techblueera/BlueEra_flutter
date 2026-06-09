@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 
@@ -179,9 +180,12 @@ class ProductRepo extends BaseService {
   }
 
   /// Fetch Product Category With Inventory
-  Future<ResponseModel> fetchPublicProductCategoryWithInventoryRepo() async {
+  Future<ResponseModel> fetchPublicProductCategoryWithInventoryRepo({required String visitUserId}) async {
     final response = await ApiBaseHelper().getHTTP(
       productPublicInventoryByCategory,
+      params: {
+        ApiKeys.businessId: visitUserId
+      },
       showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
@@ -203,7 +207,7 @@ class ProductRepo extends BaseService {
   Future<ResponseModel> placeBulkProductOrderApi(
       {Map<String, dynamic>? params}) async {
     final response = await ApiBaseHelper().postHTTP(
-      placeBulkProductOrder,
+      placeProductOrder,
       params: params,
       showProgress: false,
       onError: (error) {},

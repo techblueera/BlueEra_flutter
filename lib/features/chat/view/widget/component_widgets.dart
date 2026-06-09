@@ -1920,7 +1920,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
         } else if (socketType == "business") {
           // Get.to(() => VisitFoodStoreDetailsScreen(visitBusinessId:  userId ?? ""));
           Get.to(() => VisitProductStoreDetailsScreen(
-                visitBusinessId: userId ?? "",
+                visitUserId: userId ?? "",
               ));
         } else {
           _navigateToProfile(authorId: userId ?? '', type: type ?? "");

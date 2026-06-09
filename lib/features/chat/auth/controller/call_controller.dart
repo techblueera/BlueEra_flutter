@@ -264,6 +264,13 @@ class CallController extends GetxController {
   /// Prevents the main engine from reacting to socket events for the same call.
   static bool isCallActivityActive = false;
 
+  /// Whether the CURRENT call ever reached the connected state (i.e. was
+  /// actually picked up). The end-of-call interstitial only fires for answered
+  /// calls — never for missed / rejected / unanswered ones. Set on connect
+  /// ([_startCallTimer]), consumed when the ad is triggered
+  /// ([_showCallEndedInterstitial]), and reset when a new call starts.
+  bool _wasCallConnected = false;
+
   /// True when a killed-state accept has already been triggered from main.dart.
   /// Prevents the CallKit listener from firing acceptCall a second time.
   static bool _killedStateAcceptHandled = false;
@@ -471,6 +478,8 @@ class CallController extends GetxController {
     required String userName,
     required String userImage,
   }) async {
+    // Fresh call — clear the "was picked up" marker.
+    _wasCallConnected = false;
     // Request permissions (wrapped in try-catch to avoid PlatformException
     // when another permission request is already in progress)
     try {
@@ -604,6 +613,8 @@ class CallController extends GetxController {
       // print('[FARE_CALL_DEBUG] _handleIncomingCall → SKIPPED (CallActivity active)');
       return; // call handled by separate task
     }
+    // Fresh incoming call — clear the "was picked up" marker.
+    _wasCallConnected = false;
 
     callId.value = data['call_id'] ?? '';
     roomId.value = data['room_id'] ?? '';
@@ -1423,7 +1434,25 @@ class CallController extends GetxController {
     if (callId.value.isNotEmpty) cancelIncomingCallLocalNotification(callId.value);
 
     print('[CALL_DEBUG] _handleCallEnded → isFareCall=${isFareCall.value}, callStatus=${callStatus.value}, data=$data');
-    if (isCallActivityActive && !isCallActivityEngine) return;
+    if (isCallActivityActive && !isCallActivityEngine) {
+      // This call ran in the CallActivity engine (separate isolate, no Ads
+      // SDK). The MAIN engine also receives this `call:ended` event and IS
+      // where ads are initialised — so show the post-call interstitial here.
+      // Connected calls only (duration > 0), delayed so the call activity has
+      // finished and this app is foreground. (Complements the cross-isolate
+      // resume flag; the ad manager's _isShowing guard dedupes.)
+      final dur = (data is Map)
+          ? (int.tryParse('${data['duration_seconds'] ?? 0}') ?? 0)
+          : 0;
+      print('[INTERSTITIAL_AD] main engine ← call-activity call:ended dur=${dur}s');
+      if (dur > 0) {
+        Future.delayed(const Duration(milliseconds: 1500), () {
+          print('[INTERSTITIAL_AD] main engine showing post-call ad (call-activity call)');
+          InterstitialAdManager.instance.showInterstitial();
+        });
+      }
+      return;
+    }
     if (callStatus.value == CallStatus.idle) return;
 
     // Ignore self-originated `call:ended` echoes: if the server is just
@@ -1438,9 +1467,12 @@ class CallController extends GetxController {
       return;
     }
 
-    // Fare-call: don't pop fare-call screens — the queue/map handles its own lifecycle
+    // Fare-call: don't pop fare-call screens — the queue/map handles its own
+    // lifecycle. Still fire the interstitial (fare/rider calls get ads too),
+    // since this branch returns before _navigateBackFromCallScreen.
     if (isFareCall.value) {
       print('[FARE_CALL] _handleCallEnded → cleaning up without navigating');
+      _showCallEndedInterstitial();
       _leaveRoomAndCleanup();
       return;
     }
@@ -1553,6 +1585,12 @@ class CallController extends GetxController {
 
   /// Safely navigate back from any call screen if currently on one
   void _navigateBackFromCallScreen() {
+    // The interstitial must fire on EVERY call end, including the Android
+    // CallActivity engine path that returns early below (the wrapper handles
+    // the activity finish, so the Flutter-navigation tail never runs). Showing
+    // it here first guarantees the ad triggers regardless of engine.
+    _showCallEndedInterstitial();
+
     // In CallActivity engine, the wrapper handles activity finish — skip Flutter navigation
     if (isCallActivityEngine) return;
 
@@ -1561,7 +1599,6 @@ class CallController extends GetxController {
       _coldStartCall = false;
       launchedForCall.value = false;
       Get.offAllNamed('/BottomNavigationBarScreen');
-      _showCallEndedInterstitial();
       return;
     }
     final route = Get.currentRoute;
@@ -1573,22 +1610,79 @@ class CallController extends GetxController {
         route == '/IncomingRiderOrderScreen') {
       Get.back();
     }
-    _showCallEndedInterstitial();
     // Note: FareCallQueueScreen manages its own lifecycle via DiscoverController
   }
 
-  /// Show a full-screen interstitial ad once a (regular, non-fare) call tears
-  /// down. Both the caller and the callee reach the call-teardown path —
+  /// Show a full-screen interstitial ad once a call tears down — every call
+  /// type (regular, fare and rider). Both the caller and the callee reach the
+  /// call-teardown path —
   /// `endCall` for whoever hangs up, `_handleCallEnded` / `_handleAnsweredElsewhere`
   /// for the other side — so the ad shows on both ends, on Android and iOS.
   /// Best-effort: deferred a beat so it overlays the post-call screen (chat /
   /// home) instead of the call UI mid-dismiss, and never blocks teardown.
   void _showCallEndedInterstitial() {
-    // Rider / fare calls don't get ads — they have their own queue/map flow.
-    if (isFareCall.value) return;
+    // NOTE: unconditional prints (not kDebugMode-gated) so they surface in
+    // logcat for RELEASE-build interstitial testing. Filter with the tag
+    // `[INTERSTITIAL_AD]`. Remove once ad delivery is verified.
+    //
+    // Only fire for calls that were actually PICKED UP (connected) — never for
+    // missed / rejected / unanswered calls. Consume the flag so it fires once.
+    final wasConnected = _wasCallConnected;
+    _wasCallConnected = false;
+    print('[INTERSTITIAL_AD] call ended → _showCallEndedInterstitial '
+        'isFareCall=${isFareCall.value} wasConnected=$wasConnected '
+        'engine=${isCallActivityEngine ? "callActivity" : "main"}');
+    if (!wasConnected) {
+      print('[INTERSTITIAL_AD] skipped — call was never connected (not picked up)');
+      return;
+    }
+
+    if (isCallActivityEngine) {
+      // The Android CallActivity runs in a SEPARATE Flutter engine/isolate
+      // where the Ads SDK was never initialised (main()'s init ran in the main
+      // isolate), and its activity is about to finish — so an interstitial
+      // can't show here. Hand off via a disk flag (statics don't cross
+      // isolates); the MAIN engine shows it on resume. See
+      // AppLifecycleHandler.
+      print('[INTERSTITIAL_AD] callActivity engine → flagged; main app shows on resume');
+      markPendingCallEndedAd();
+      return;
+    }
+
     Future.delayed(const Duration(milliseconds: 400), () {
+      print('[INTERSTITIAL_AD] requesting showInterstitial()');
       InterstitialAdManager.instance.showInterstitial();
     });
+  }
+
+  /// Cross-isolate hand-off flag for the call-ended interstitial. The
+  /// there (where the Ads SDK is initialised). Statics can't be used — the two
+  /// engines are different Dart isolates.
+  ///
+  /// Uses flutter_secure_storage (via [SharedPreferenceUtils]) NOT Hive: Hive
+  /// caches each box per-isolate, so the main engine wouldn't see the call
+  /// engine's write. Secure storage hits the platform store on every call, so
+  /// it's reliable across engines.
+  static const String _callAdPendingKey = 'pending_call_ended_ad';
+
+  static Future<void> markPendingCallEndedAd() async {
+    try {
+      await SharedPreferenceUtils.setSecureValue(_callAdPendingKey, 'true');
+    } catch (_) {}
+  }
+
+  static Future<bool> consumePendingCallEndedAd() async {
+    try {
+      final value =
+          await SharedPreferenceUtils.getSecureValue(_callAdPendingKey);
+      final pending = value == 'true';
+      if (pending) {
+        await SharedPreferenceUtils.setSecureValue(_callAdPendingKey, '');
+      }
+      return pending;
+    } catch (_) {
+      return false;
+    }
   }
 
   // ==================== WEBRTC SIGNALING ====================
@@ -2542,6 +2636,16 @@ class CallController extends GetxController {
       _formatDuration(callDurationSeconds.value);
 
   void _startCallTimer() {
+    // The call is now connected (picked up) — mark it so the end-of-call
+    // interstitial fires for this call.
+    _wasCallConnected = true;
+    // Preload an interstitial NOW so one is ready by the time the call ends
+    // (the call duration gives it ample time to load). Skipped in the
+    // CallActivity engine — that ad is shown by the main engine, which already
+    // preloads at startup. initialize() is idempotent + fire-and-forget.
+    if (!isCallActivityEngine) {
+      InterstitialAdManager.instance.initialize();
+    }
     _callTimer?.cancel();
     callDurationSeconds.value = 0;
     _callTimer = Timer.periodic(const Duration(seconds: 1), (_) {

@@ -465,7 +465,7 @@ class _ProductPreviewScreenState extends State<ManufacturerProductPreviewScreen>
                           title: AppStrings.createVariantStartSelling,
                           onTap: () {
                             Get.toNamed(
-                              RouteHelper.getCreateVariantScreenRoute(),
+                              RouteHelper.getManufacturerCreateVariantScreenRoute(),
                               arguments: {
                                 ApiKeys.controller: controller,
                                 ApiKeys.id: widget.id,

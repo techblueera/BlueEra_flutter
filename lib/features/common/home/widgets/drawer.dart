@@ -28,6 +28,7 @@ import '../../../personal/personal_profile/view/wallet/wallet_screen.dart';
 import '../../../personal/personal_profile/view/widget/changes_languages_screen.dart';
 import '../../auth/controller/auth_controller.dart';
 import '../../connect/view/connect_main_page.dart';
+import '../view/app_background_screen.dart';
 import '../view/saved_feed_screen.dart';
 
 /// Editorial profile drawer — frosted-glass shell over an aurora hero
@@ -617,6 +618,12 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
           color: _slate,
           title: AppStrings.accountSettings.tr,
           onTap: () => Get.to(() => AccountSettingScreen()),
+        ),
+        _DrawerItem(
+          icon: Icons.palette_rounded,
+          color: _violet,
+          title: 'Background',
+          onTap: () => Get.to(() => const AppBackgroundScreen()),
         ),
         _DrawerItem(
           icon: Icons.notifications_outlined,

@@ -115,7 +115,8 @@ class _HomeMadeProductsViewAllScreenState
                     deleteProductApi: () {},
                     width: itemWidth,
                     isGridShow: true,
-
+                    onUpdatePrice:
+                        earnServiceController.updateProductVariantPrice,
                   );
                 },
               );

@@ -29,7 +29,6 @@ class HmpDiscoverScreen extends StatefulWidget {
 class _HmpDiscoverScreenState extends State<HmpDiscoverScreen> {
   static const String _profileType = 'homeMadeProduct';
   static const Color _primary = AppColors.primaryColor;
-  static const Color _primaryDark = AppColors.blue5CAF;
 
   final controller = getOrPut(
     () => EarnProfilesDiscoverController(profileType: _profileType),
@@ -175,11 +174,14 @@ class _HmpDiscoverScreenState extends State<HmpDiscoverScreen> {
                 headerSliverBuilder: (context, innerBoxIsScrolled) => [
                   SliverToBoxAdapter(
                     child: Container(
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
-                          colors: [_primary, _primaryDark],
+                          colors: [
+                            AppColors.blue5CAF.withValues(alpha: 0.1),
+                            AppColors.blue5CAF.withValues(alpha: 0.8),
+                          ],
                         ),
                       ),
                       child: Column(

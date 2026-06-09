@@ -114,15 +114,26 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
               physics: const AlwaysScrollableScrollPhysics(),
               headerSliverBuilder: (context, innerBoxIsScrolled) => [
                 SliverToBoxAdapter(
-                  child: BannerCarousel(
-                    images: _bannerImages,
-                    onBack: () => Navigator.pop(context),
-                    statusBarHeight: statusBarHeight,
-                    backgroundColor:
-                        AppColors.blue5CAF.withValues(alpha: 0.1),
-                    bottomBorderSide: const BorderSide(
-                      color: AppColors.white,
-                      width: 2,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          AppColors.blue5CAF.withValues(alpha: 0.1),
+                          AppColors.blue5CAF.withValues(alpha: 0.8),
+                        ],
+                      ),
+                    ),
+                    child: BannerCarousel(
+                      images: _bannerImages,
+                      onBack: () => Navigator.pop(context),
+                      statusBarHeight: statusBarHeight,
+                      backgroundColor: Colors.transparent,
+                      bottomBorderSide: const BorderSide(
+                        color: AppColors.white,
+                        width: 2,
+                      ),
                     ),
                   ),
                 ),

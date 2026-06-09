@@ -1,7 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/widgets/app_home_background.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -140,14 +140,7 @@ class _LabHomeScreenV2State extends State<LabHomeScreenV2>
 
   // ─── Background pattern ───
   Widget _buildPatternBackground() {
-    return Positioned.fill(
-      child: Image.asset(
-        AppImageAssets.chatDefaultBg,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) =>
-            Container(color: const Color(0xFFEAF2FB)),
-      ),
-    );
+    return const AppHomeBackground();
   }
 
   // ─── Top bar ───

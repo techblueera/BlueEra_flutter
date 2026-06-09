@@ -25,9 +25,9 @@ class ChatBottomSheet extends StatelessWidget {
         child: Container(
           height: 500,
           clipBehavior: Clip.antiAlias,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: AppColors.appBackgroundColor,
-            borderRadius: BorderRadius.only(
+            borderRadius: const BorderRadius.only(
               topLeft: Radius.circular(40),
               topRight: Radius.circular(40),
             ),

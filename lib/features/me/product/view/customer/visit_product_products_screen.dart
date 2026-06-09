@@ -125,7 +125,7 @@ class _VisitProductProductsScreenState
     } else {
       cartController.addToCart(
         product,
-        businessId: widget.visitBusinessId,
+        userId: widget.visitBusinessId,
         businessName: bDetails?.businessName,
         businessLogo: bDetails?.logo,
         businessAddress: bDetails?.address,

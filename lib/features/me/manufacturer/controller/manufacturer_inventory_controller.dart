@@ -22,7 +22,7 @@ import 'package:BlueEra/features/me/manufacturer/model/manufacturer_category_inv
 // namespace — they conflict with the same names from
 // `product_catalog_response.dart` below.
 import 'package:BlueEra/features/me/product/model/get_product_model.dart'
-    show GetProductData, GetProductModel;
+    show GetProductData, GetProductModel, Variant;
 import 'package:BlueEra/features/me/manufacturer/model/manufacturer_product_catalog_response.dart';
 import 'package:BlueEra/features/me/product/model/product_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/manufacturer/model/manufacturer_product_model.dart';
@@ -995,6 +995,44 @@ class ManufacturerInventoryController extends GetxController {
     } finally {
       isDeleteProductVariantLoading.value = false;
       deleteProductVariantResponse.value = ApiResponse.error('error');
+    }
+  }
+
+  /// Updates a single inventory variant's selling price / mrp / active flag by
+  /// its inventory id. Body is the flat updated fields. Mirrors the product
+  /// service's price-edit flow.
+  Future<bool> updateProductVariantPrice({
+    required String inventoryId,
+    required num sellingPrice,
+    required num mrp,
+    required bool varientIsActive,
+  }) async {
+    try {
+      final res = await ManufacturerProductRepo().updateInventoryVariantRepo(
+        inventoryId: inventoryId,
+        params: {
+          'sellingPrice': sellingPrice,
+          'mrp': mrp,
+          'varientIsActive': varientIsActive,
+        },
+      );
+      if (!res.isSuccess) return false;
+      // Reflect the change in-memory so the card and a re-opened edit sheet
+      // show the new values immediately (avoids a stale/cached refetch).
+      for (final p in allProducts) {
+        for (final v
+            in p.product.sellerClassification?.variants ?? const <Variant>[]) {
+          if (v.inventoryId == inventoryId || v.id == inventoryId) {
+            v.sellingPrice = sellingPrice;
+            v.mrp = mrp;
+            v.variantIsActive = varientIsActive;
+          }
+        }
+      }
+      allProducts.refresh();
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 }

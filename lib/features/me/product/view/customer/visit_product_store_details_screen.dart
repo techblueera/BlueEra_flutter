@@ -29,11 +29,11 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
 class VisitProductStoreDetailsScreen extends StatefulWidget {
-  final String visitBusinessId;
+  final String visitUserId;
 
   const VisitProductStoreDetailsScreen({
     super.key,
-    required this.visitBusinessId,
+    required this.visitUserId,
   });
 
   @override
@@ -63,10 +63,10 @@ class _VisitProductStoreDetailsScreenState
     // track the store-detail view (same pattern as the grocery visit
     // screen).
     viewBusinessDetailsController
-        .viewBusinessProfileById(widget.visitBusinessId);
-    controller.fetchAllProductData(visitBusinessId: widget.visitBusinessId);
+        .viewBusinessProfileById(widget.visitUserId);
+    controller.fetchAllProductData(visitUserId: widget.visitUserId);
     ProfileClickTracker.track(
-      userId: widget.visitBusinessId,
+      userId: widget.visitUserId,
       source: ChatClickSource.storeDetail,
     );
   }
@@ -89,7 +89,7 @@ class _VisitProductStoreDetailsScreenState
     } else {
       cartController.addToCart(
         product,
-        businessId: widget.visitBusinessId,
+        userId: widget.visitUserId,
         businessName: bDetails?.businessName,
         businessLogo: bDetails?.logo,
         businessAddress: bDetails?.address,
@@ -128,12 +128,12 @@ class _VisitProductStoreDetailsScreenState
                     details: details,
                     onRated: () => viewBusinessDetailsController
                         .viewBusinessProfileById(
-                      widget.visitBusinessId,
+                      widget.visitUserId,
                       silent: true,
                     ),
                     onFollowChanged: () => viewBusinessDetailsController
                         .viewBusinessProfileById(
-                      widget.visitBusinessId,
+                      widget.visitUserId,
                       silent: true,
                     ),
                   ),
@@ -284,7 +284,7 @@ class _VisitProductStoreDetailsScreenState
               InkWell(
                 onTap: () => Get.to(
                   () => CustomerAllTopSellingProductsScreen(
-                    visitBusinessId: widget.visitBusinessId,
+                    visitUserId: widget.visitUserId,
                   ),
                 ),
                 child: CustomText(
@@ -414,7 +414,7 @@ class _VisitProductStoreDetailsScreenState
                         Get.to(
                           () => VisitProductProductsScreen(
                             parentCategory: c,
-                            visitBusinessId: widget.visitBusinessId,
+                            visitBusinessId: widget.visitUserId,
                           ),
                         );
                       },
