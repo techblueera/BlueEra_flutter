@@ -295,49 +295,30 @@ class AskHomeServiceMsgCard extends StatelessWidget {
                                     onPressed: () async {
 
                                       final chatViewController = Get.find<ChatViewController>();
-                                      Map<String, dynamic> detas = {
-                                        ApiKeys.user_id: homeServices.providerDetails?.id
-                                      };
-
-                                      Map<String,dynamic>? userDetailsMap=  await chatViewController.checkChatConnection(detas);
-                                      if(userDetailsMap!=null){
-                                        List<Map<String, String>>? urlList;
-                                        if(  homeServices.photos?.isNotEmpty??false){
-                                          urlList= homeServices.photos?.map((e) => {ApiKeys.url: e}).toList()??[];
-                                        }
-
-                                        final conversationId = userDetailsMap[ApiKeys.conversation_id];
-
-                                        final hasConversation = conversationId != null &&
-                                            conversationId.toString().isNotEmpty &&
-                                            conversationId.toString().toLowerCase() != 'null';
-                                        Map<String,dynamic> data={
-                                          ApiKeys.service_id : "${homeServices.id}",
-                                          ApiKeys.price: "${homeServices.priceRange?.min} - ${homeServices.priceRange?.max} per ${homeServices.perUnit ?? ''}",
-                                          ApiKeys.discount: "${(maxDiscount?.amountOff != null)
-                                              ? "${maxDiscount?.amountOff.toString()}% Off"
-                                              : "0% Off"}",
-                                          if(!hasConversation)
-                                            ApiKeys.other_user_id: (userDetailsMap[ApiKeys.other_user_id] ??
-                                                '')
-                                          else
-                                            ApiKeys.conversation_id:(userDetailsMap[ApiKeys.conversation_id] ??
-                                                ''),
-
-                                          ApiKeys.message: "${homeServices.title}",
-                                          ApiKeys.message_type: AppConstants.service,
-                                          ApiKeys.title: "${homeServices.title}" ,
-                                          ApiKeys.sub_category : "${homeServices.subCategory}",
-                                          ApiKeys.variant : "${homeServices.business?.businessName ?? "N/A"}",
-
-                                          ApiKeys.url: urlList??[],
-                                        };
-                                        chatViewController.checkChatConnectionAndOpenChat(
-                                          userId: "${homeServices.providerDetails?.id}",
-                                          shareProductParams: data,
-                                          isWithProductSend: true,
-                                        );
+                                      List<Map<String, String>>? urlList;
+                                      if(  homeServices.photos?.isNotEmpty??false){
+                                        urlList= homeServices.photos?.map((e) => {ApiKeys.url: e}).toList()??[];
                                       }
+
+                                      Map<String,dynamic> data={
+                                        ApiKeys.service_id : "${homeServices.id}",
+                                        ApiKeys.price: "${homeServices.priceRange?.min} - ${homeServices.priceRange?.max} per ${homeServices.perUnit ?? ''}",
+                                        ApiKeys.discount: "${(maxDiscount?.amountOff != null)
+                                            ? "${maxDiscount?.amountOff.toString()}% Off"
+                                            : "0% Off"}",
+                                        ApiKeys.message: "${homeServices.title}",
+                                        ApiKeys.message_type: AppConstants.service,
+                                        ApiKeys.title: "${homeServices.title}" ,
+                                        ApiKeys.sub_category : "${homeServices.subCategory}",
+                                        ApiKeys.variant : "${homeServices.business?.businessName ?? "N/A"}",
+
+                                        ApiKeys.url: urlList??[],
+                                      };
+                                      chatViewController.checkChatConnectionAndOpenChat(
+                                        userId: "${homeServices.providerDetails?.id}",
+                                        shareProductParams: data,
+                                        isWithProductSend: true,
+                                      );
 
                                     },
                                     icon: LocalAssets(

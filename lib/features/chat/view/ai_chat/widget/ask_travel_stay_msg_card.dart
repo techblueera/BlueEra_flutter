@@ -249,47 +249,28 @@ class AskTravelStayMsgCard extends StatelessWidget {
                                   child: TextButton.icon(
                                     onPressed: () async {
                                       final chatViewController = Get.find<ChatViewController>();
-                                      Map<String, dynamic> detas = {
-                                        ApiKeys.user_id: profile?.sId
-                                      };
-
-                                      Map<String,dynamic>? userDetailsMap=  await chatViewController.checkChatConnection(detas);
-                                      if(userDetailsMap!=null){
-                                        List<Map<String, String>>? urlList;
-                                        if( profile?.photos?.isNotEmpty??false){
-                                          urlList=  profile?.photos?.first.imageReferences?.map((e) => {ApiKeys.url: e}).toList()??[];
-                                        }
-
-                                        final conversationId = userDetailsMap[ApiKeys.conversation_id];
-
-                                        final hasConversation = conversationId != null &&
-                                            conversationId.toString().isNotEmpty &&
-                                            conversationId.toString().toLowerCase() != 'null';
-                                        Map<String,dynamic> data={
-                                          ApiKeys.service_id : "${item.businessId}",
-                                          ApiKeys.price: "",
-                                          ApiKeys.discount: "",
-                                          if(!hasConversation)
-                                            ApiKeys.other_user_id: (userDetailsMap[ApiKeys.other_user_id] ??
-                                                '')
-                                          else
-                                            ApiKeys.conversation_id:(userDetailsMap[ApiKeys.conversation_id] ??
-                                                ''),
-
-                                          ApiKeys.message: "${profile?.name}",
-                                          ApiKeys.message_type: AppConstants.service,
-                                          ApiKeys.title: "${profile?.name}" ,
-                                          ApiKeys.sub_category : "${profile?.description}",
-                                          ApiKeys.variant : "",
-
-                                          ApiKeys.url: urlList??[],
-                                        };
-                                        chatViewController.checkChatConnectionAndOpenChat(
-                                          userId: "${profile?.sId}",
-                                          shareProductParams: data,
-                                          isWithProductSend: true,
-                                        );
+                                      List<Map<String, String>>? urlList;
+                                      if( profile?.photos?.isNotEmpty??false){
+                                        urlList=  profile?.photos?.first.imageReferences?.map((e) => {ApiKeys.url: e}).toList()??[];
                                       }
+
+                                      Map<String,dynamic> data={
+                                        ApiKeys.service_id : "${item.businessId}",
+                                        ApiKeys.price: "",
+                                        ApiKeys.discount: "",
+                                        ApiKeys.message: "${profile?.name}",
+                                        ApiKeys.message_type: AppConstants.service,
+                                        ApiKeys.title: "${profile?.name}" ,
+                                        ApiKeys.sub_category : "${profile?.description}",
+                                        ApiKeys.variant : "",
+
+                                        ApiKeys.url: urlList??[],
+                                      };
+                                      chatViewController.checkChatConnectionAndOpenChat(
+                                        userId: "${profile?.sId}",
+                                        shareProductParams: data,
+                                        isWithProductSend: true,
+                                      );
                                     },
                                     icon: LocalAssets(
                                         imagePath: AppIconAssets.chat,

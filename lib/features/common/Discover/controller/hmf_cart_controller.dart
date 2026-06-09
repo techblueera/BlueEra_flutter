@@ -106,6 +106,12 @@ class HmfCartController extends GetxController {
   }
 
   /// Build the order payload from the current cart.
+  ///
+  /// Only `homeMadeFood` + `quantity` are sent per item — the backend reads
+  /// price, seller and pickup location straight off the HomeMadeFood document
+  /// (client prices are not trusted). `discount` is an optional extra (e.g. a
+  /// coupon) subtracted from the server-computed grandTotal; the MRP-vs-selling
+  /// savings is already reflected in sellingPrice, so we don't pass it here.
   Map<String, dynamic> _buildPayload() {
     return {
       'items': lines
@@ -115,7 +121,7 @@ class HmfCartController extends GetxController {
               })
           .toList(),
       'deliveryType': 'self-pickup',
-      'discount': totalSavings,
+      'discount': 0,
     };
   }
 

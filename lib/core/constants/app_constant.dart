@@ -1109,6 +1109,9 @@ class ChatEmitEvents {
   static const foodPickupOrderReady = "foodPickupOrderReady";
   static const newProductPickupOrderReceived = "newProductPickupOrderReceived";
   static const productPickupOrderReady = "productPickupOrderReady";
+  static const newHomeMadeFoodPickupOrderReceived =
+      "newHomeMadeFoodPickupOrderReceived";
+  static const homeMadeFoodPickupOrderReady = "homeMadeFoodPickupOrderReady";
 
   // Signaling events
   static const isTyping = "isTyping";

@@ -25,7 +25,6 @@ import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/api/model/business_user_response_model.dart';
 import '../../../../core/constants/app_enum.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
-import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../common/reel/models/channel_model.dart';
 import '../model/GetParticularReviewListModel.dart';
 import '../model/getAllProductDetailsModel.dart';
@@ -584,21 +583,11 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
         visitedBusinessProfileDetails = ViewBusinessProfileModel.fromJson(data);
         profileVersion.value++;
         // visitedBusinessProfileDetails = visitedBusinessProfileDetails_ as ViewBusinessProfileModel?;
-        final chatViewController = Get.find<ChatViewController>();
-        Map<String, dynamic> detas = {
-          ApiKeys.user_id: visitedBusinessProfileDetails?.data?.userId
-        };
-        Map<String, dynamic>? checkCompleted =
-            await chatViewController.checkChatConnection(detas);
         imagePath?.value = visitedBusinessProfileDetails?.data?.logo ?? "";
         businessDescription.value =
             visitedBusinessProfileDetails?.data?.businessDescription ?? "";
 
-        conversationId.value = checkCompleted?[ApiKeys.conversation_id] ?? '';
-        otherUserId?.value = checkCompleted?[ApiKeys.other_user_id] ?? '';
-        if (checkCompleted != null) {
-          viewBusinessResponseNew = ApiResponse.complete(responseModel);
-        }
+        viewBusinessResponseNew = ApiResponse.complete(responseModel);
         visitingcontroller.isFollow.value =
             visitedBusinessProfileDetails?.data?.is_following ?? false;
         distanceFromKm.value = await getDistanceInKm(

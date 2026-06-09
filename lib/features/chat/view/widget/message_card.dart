@@ -291,6 +291,9 @@ class _MessageCardState extends State<MessageCard>
       case "food_selfpickup":
         messageWidget = FoodSelfPickupMsgCard(message: widget.message, time: time, conversationId: widget.conversationId);
 
+      case "homemade_food_selfpickup":
+        messageWidget = FoodSelfPickupMsgCard(message: widget.message, time: time, conversationId: widget.conversationId, isHomeMade: true);
+
       case "product_selfpickup":
         messageWidget = ProductSelfPickupMsgCard(message: widget.message, time: time, conversationId: widget.conversationId);
 

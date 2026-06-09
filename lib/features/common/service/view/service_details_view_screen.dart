@@ -138,46 +138,27 @@ class ServiceDetailsScreen extends StatelessWidget {
                                 ?.reduce((a, b) => (a.amountOff ?? 0) > (b.amountOff ?? 0) ? a : b);
 
                           final chatViewController = Get.find<ChatViewController>();
-                          Map<String, dynamic> detas = {
-                            ApiKeys.user_id: service.userId
+                          List<Map<String, String>> urlList = service.photos?.map((e) => {ApiKeys.url: e}).toList()??[];
+                          Map<String,dynamic> data={
+                            ApiKeys.service_id : "${service.id}",
+                            ApiKeys.price: "${service.priceRange?.min} - ${service.priceRange?.max} per ${service.perUnit ?? ''}",
+                            ApiKeys.discount: "${(maxDiscount?.amountOff != null)
+                                ? "${maxDiscount?.amountOff.toString()}% Off"
+                                : "0% Off"}",
+                            ApiKeys.message: "${service.title}",
+                            ApiKeys.message_type: AppConstants.service,
+                            ApiKeys.title: service.title,
+                            ApiKeys.sub_category : "${service.business?.categoryOfBusiness?.name ?? "N/A"}",
+                            ApiKeys.variant : "${service.business?.businessName ?? "N/A"}",
+
+                            ApiKeys.url: urlList,
                           };
-
-                          Map<String,dynamic>? userDetailsMap=  await chatViewController.checkChatConnection(detas);
-                          if(userDetailsMap!=null){
-                            List<Map<String, String>> urlList = service.photos?.map((e) => {ApiKeys.url: e}).toList()??[];
-                            final conversationId = userDetailsMap[ApiKeys.conversation_id];
-
-                            final hasConversation = conversationId != null &&
-                                conversationId.toString().isNotEmpty &&
-                                conversationId.toString().toLowerCase() != 'null';
-                            Map<String,dynamic> data={
-                              ApiKeys.service_id : "${service.id}",
-                              ApiKeys.price: "${service.priceRange?.min} - ${service.priceRange?.max} per ${service.perUnit ?? ''}",
-                              ApiKeys.discount: "${(maxDiscount?.amountOff != null)
-                                  ? "${maxDiscount?.amountOff.toString()}% Off"
-                                  : "0% Off"}",
-                              if(!hasConversation)
-                                ApiKeys.other_user_id: (userDetailsMap[ApiKeys.other_user_id] ??
-                                    '')
-                              else
-                                ApiKeys.conversation_id:(userDetailsMap[ApiKeys.conversation_id] ??
-                                    ''),
-
-                              ApiKeys.message: "${service.title}",
-                              ApiKeys.message_type: AppConstants.service,
-                              ApiKeys.title: service.title,
-                              ApiKeys.sub_category : "${service.business?.categoryOfBusiness?.name ?? "N/A"}",
-                              ApiKeys.variant : "${service.business?.businessName ?? "N/A"}",
-
-                              ApiKeys.url: urlList,
-                            };
-                            chatViewController.checkChatConnectionAndOpenChat(
-                              userId: service.userId ?? '',
-                              shareProductParams: data,
-                              isWithProductSend: true,
-                              route: AppConstants.route_discover,
-                            );
-                          }
+                          chatViewController.checkChatConnectionAndOpenChat(
+                            userId: service.userId ?? '',
+                            shareProductParams: data,
+                            isWithProductSend: true,
+                            route: AppConstants.route_discover,
+                          );
 
                         },
                         child: Container(

@@ -243,42 +243,24 @@ class AskInventoryProductMsgCard extends StatelessWidget {
                                   child: TextButton.icon(
                                     onPressed: () async{
                                       final chatViewController = Get.find<ChatViewController>();
-                                      Map<String, dynamic> detas = {
-                                        ApiKeys.user_id: business?.user_id
+                                      List<Map<String, String>>? urlList =
+                                      product?.media.map((e) => {ApiKeys.url: e}).toList();
+                                      Map<String, dynamic> data = {
+                                        ApiKeys.product_id:"${product?.id}",
+                                        ApiKeys.price: "${product?.mrpPerUnit}",
+                                        ApiKeys.discount: "",
+                                        ApiKeys.message:
+                                        "${product?.name}",
+                                        ApiKeys.message_type:AppConstants.product,
+                                        ApiKeys.title: product?.name,
+                                        ApiKeys.mrp :'${product?.mrpPerUnit}',
+                                        ApiKeys.url: urlList,
                                       };
-                                      Map<String,dynamic>? userDetailsMap= await chatViewController.checkChatConnection(detas);
-                                     if(userDetailsMap!=null){
-                                       List<Map<String, String>>? urlList =
-                                       product?.media.map((e) => {ApiKeys.url: e}).toList();
-                                       final conversationId = userDetailsMap[ApiKeys.conversation_id];
-
-                                       final hasConversation = conversationId != null &&
-                                           conversationId.toString().isNotEmpty &&
-                                           conversationId.toString().toLowerCase() != 'null';
-                                       Map<String, dynamic> data = {
-                                         ApiKeys.product_id:"${product?.id}",
-                                         ApiKeys.price: "${product?.mrpPerUnit}",
-                                         ApiKeys.discount: "",
-                                         if (!hasConversation)
-                                           ApiKeys.other_user_id: (userDetailsMap[ApiKeys.other_user_id] ??
-                                               '')
-                                         else
-                                           ApiKeys.conversation_id: (userDetailsMap[ApiKeys.conversation_id] ??
-                                               ''),
-                                         ApiKeys.message:
-                                         "${product?.name}",
-                                         ApiKeys.message_type:AppConstants.product,
-                                         ApiKeys.title: product?.name,
-                                         ApiKeys.mrp :'${product?.mrpPerUnit}',
-                                         ApiKeys.url: urlList,
-                                       };
-                                       chatViewController.checkChatConnectionAndOpenChat(
-                                         userId: business?.user_id ?? '',
-                                         shareProductParams: data,
-                                         isWithProductSend: true,
-                                       );
-                                     }
-
+                                      chatViewController.checkChatConnectionAndOpenChat(
+                                        userId: business?.user_id ?? '',
+                                        shareProductParams: data,
+                                        isWithProductSend: true,
+                                      );
                                     },
                                     icon: LocalAssets(
                                       imagePath: AppIconAssets.chat,

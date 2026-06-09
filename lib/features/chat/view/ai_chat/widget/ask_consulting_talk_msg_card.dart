@@ -293,49 +293,30 @@ class AskConsultingTalkMsgCard extends StatelessWidget {
                                   child: TextButton.icon(
                                     onPressed: () async {
                                       final chatViewController = Get.find<ChatViewController>();
-                                      Map<String, dynamic> detas = {
-                                        ApiKeys.user_id: consultingService.providerDetails?.id
-                                      };
-
-                                      Map<String,dynamic>? userDetailsMap=  await chatViewController.checkChatConnection(detas);
-                                      if(userDetailsMap!=null){
-                                        List<Map<String, String>>? urlList;
-                                        if( consultingService.photos?.isNotEmpty??false){
-                                          urlList= consultingService.photos?.map((e) => {ApiKeys.url: e}).toList()??[];
-                                        }
-
-                                        final conversationId = userDetailsMap[ApiKeys.conversation_id];
-
-                                        final hasConversation = conversationId != null &&
-                                            conversationId.toString().isNotEmpty &&
-                                            conversationId.toString().toLowerCase() != 'null';
-                                        Map<String,dynamic> data={
-                                          ApiKeys.service_id : "${consultingService.id}",
-                                          ApiKeys.price: "₹${consultingService.priceRange?.min} - ₹${consultingService.priceRange?.max}",
-                                          ApiKeys.discount: (maxDiscount?.amountOff != null)
-                                              ? "${maxDiscount?.amountOff.toString()}% ${AppStrings.off.tr}"
-                                              : "0% ${AppStrings.off.tr}",
-                                          if(!hasConversation)
-                                            ApiKeys.other_user_id: (userDetailsMap[ApiKeys.other_user_id] ??
-                                                '')
-                                          else
-                                            ApiKeys.conversation_id:(userDetailsMap[ApiKeys.conversation_id] ??
-                                                ''),
-
-                                          ApiKeys.message: "${consultingService.title }",
-                                          ApiKeys.message_type: AppConstants.service,
-                                          ApiKeys.title: "${consultingService.title}" ,
-                                          ApiKeys.sub_category : "${consultingService.description}",
-                                          ApiKeys.variant : "",
-
-                                          ApiKeys.url: urlList??[],
-                                        };
-                                        chatViewController.checkChatConnectionAndOpenChat(
-                                          userId: "${consultingService.providerDetails?.id}",
-                                          shareProductParams: data,
-                                          isWithProductSend: true,
-                                        );
+                                      List<Map<String, String>>? urlList;
+                                      if( consultingService.photos?.isNotEmpty??false){
+                                        urlList= consultingService.photos?.map((e) => {ApiKeys.url: e}).toList()??[];
                                       }
+
+                                      Map<String,dynamic> data={
+                                        ApiKeys.service_id : "${consultingService.id}",
+                                        ApiKeys.price: "₹${consultingService.priceRange?.min} - ₹${consultingService.priceRange?.max}",
+                                        ApiKeys.discount: (maxDiscount?.amountOff != null)
+                                            ? "${maxDiscount?.amountOff.toString()}% ${AppStrings.off.tr}"
+                                            : "0% ${AppStrings.off.tr}",
+                                        ApiKeys.message: "${consultingService.title }",
+                                        ApiKeys.message_type: AppConstants.service,
+                                        ApiKeys.title: "${consultingService.title}" ,
+                                        ApiKeys.sub_category : "${consultingService.description}",
+                                        ApiKeys.variant : "",
+
+                                        ApiKeys.url: urlList??[],
+                                      };
+                                      chatViewController.checkChatConnectionAndOpenChat(
+                                        userId: "${consultingService.providerDetails?.id}",
+                                        shareProductParams: data,
+                                        isWithProductSend: true,
+                                      );
                                     },
                                     icon: LocalAssets(
                                         imagePath: AppIconAssets.chat,

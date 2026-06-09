@@ -52,6 +52,11 @@ mixin EarnServiceApi {
   /// Place a home made food order. `POST earn-service/homeFoodOrders`.
   final String homeFoodOrders = "earn-service/homeFoodOrders";
 
+  /// Mark a home made food self-pickup order ready (cook side).
+  /// `PUT earn-service/homeFoodOrders/{orderId}/ready`.
+  String homeFoodOrderReady(String orderId) =>
+      'earn-service/homeFoodOrders/$orderId/ready';
+
   /// Place a home made product order. `POST earn-service/homeProductOrders`.
   final String homeProductOrders = "earn-service/homeProductOrders";
 

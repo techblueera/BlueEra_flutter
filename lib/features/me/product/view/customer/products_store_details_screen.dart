@@ -1194,41 +1194,25 @@ class _ProductsStoreDetailsScreenState
       return;
     }
     final chatViewController = Get.find<ChatViewController>();
-    Map<String, dynamic> detas = {
-      ApiKeys.user_id: widget.productStore?.user_id
+    List<Map<String, String>> urlList =
+        product.image.map((e) => {ApiKeys.url: e}).toList();
+    Map<String, dynamic> data = {
+      ApiKeys.product_id: "${product.id}",
+      ApiKeys.price: "${product.price}",
+      ApiKeys.discount: "${product.discount}",
+      ApiKeys.message: "${product.name}",
+      ApiKeys.message_type: AppConstants.product,
+      ApiKeys.title: product.name,
+      ApiKeys.variant: jsonEncode(product.selectedVariants),
+      ApiKeys.mrp: product.mrp,
+      ApiKeys.url: urlList,
     };
-    Map<String, dynamic>? userDetailsMap =
-        await chatViewController.checkChatConnection(detas);
-    if (userDetailsMap != null) {
-      List<Map<String, String>> urlList =
-          product.image.map((e) => {ApiKeys.url: e}).toList();
-      final conversationId = userDetailsMap[ApiKeys.conversation_id];
-      final hasConversation = conversationId != null &&
-          conversationId.toString().isNotEmpty &&
-          conversationId.toString().toLowerCase() != 'null';
-      Map<String, dynamic> data = {
-        ApiKeys.product_id: "${product.id}",
-        ApiKeys.price: "${product.price}",
-        ApiKeys.discount: "${product.discount}",
-        if (!hasConversation)
-          ApiKeys.other_user_id: userDetailsMap[ApiKeys.other_user_id] ?? ''
-        else
-          ApiKeys.conversation_id:
-              userDetailsMap[ApiKeys.conversation_id] ?? '',
-        ApiKeys.message: "${product.name}",
-        ApiKeys.message_type: AppConstants.product,
-        ApiKeys.title: product.name,
-        ApiKeys.variant: jsonEncode(product.selectedVariants),
-        ApiKeys.mrp: product.mrp,
-        ApiKeys.url: urlList,
-      };
-      chatViewController.checkChatConnectionAndOpenChat(
-        userId: widget.productStore?.user_id ?? '',
-        shareProductParams: data,
-        isWithProductSend: true,
-        route: AppConstants.route_discover,
-      );
-    }
+    chatViewController.checkChatConnectionAndOpenChat(
+      userId: widget.productStore?.user_id ?? '',
+      shareProductParams: data,
+      isWithProductSend: true,
+      route: AppConstants.route_discover,
+    );
   }
 
   void showSelectedVariantsDialog(

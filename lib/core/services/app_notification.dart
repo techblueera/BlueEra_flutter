@@ -2226,6 +2226,8 @@ class AppNotificationHandler {
       // Self-pickup order operations
       case 'selfpickup_order':
       case 'selfpickup_order_ready':
+      case 'homemade_food_pickup_order':
+      case 'homemade_food_pickup_order_ready':
         if (data['senderId'] != null) {
           _openChatWithUser(data['senderId']!);
         }
@@ -2450,7 +2452,9 @@ class AppNotificationHandler {
           operation == 'ride_order_accepted' ||
           operation == 'ride_order_created' ||
           operation == 'selfpickup_order' ||
-          operation == 'selfpickup_order_ready') {
+          operation == 'selfpickup_order_ready' ||
+          operation == 'homemade_food_pickup_order' ||
+          operation == 'homemade_food_pickup_order_ready') {
         playNotificationSound = hello_delivery;
       } else {
         playNotificationSound = chatNotificationSound;

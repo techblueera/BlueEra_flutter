@@ -101,6 +101,7 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
           'selfpickup',
           'food_selfpickup',
           'product_selfpickup',
+          'homemade_food_selfpickup',
           'rider_association',
         };
         DateTime? latestRiderTime;

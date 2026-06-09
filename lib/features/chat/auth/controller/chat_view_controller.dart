@@ -54,7 +54,6 @@ import '../model/getMediaMsgCommentsModel.dart' as cmdImport;
 import '../model/getMediaMsgCommentsModel.dart';
 import '../model/group_details_model.dart';
 import '../model/inventory_ask_ai_model.dart';
-import '../model/visit_chat_view_model.dart';
 import '../repo/chat_view_repo.dart';
 import '../socket/ai_socket.dart';
 import '../socket/chat_socket.dart';
@@ -1242,6 +1241,50 @@ class ChatViewController extends GetxController {
               msg.metadata?.orderStatus = true;
               if (msg.metadata?.productPickupOrder != null) {
                 msg.metadata?.productPickupOrder?.isReady = true;
+              }
+              if (msg.metadata?.selfPickupOrder != null) {
+                msg.metadata?.selfPickupOrder?.isReady = true;
+              }
+              break;
+            }
+          }
+          getListOfMessageResponse.value = ApiResponse.complete(currentMessages);
+        }
+      });
+
+      // Home-Made Food Self-Pickup: New order received (cook side)
+      chatSocket.listenEvent(
+          ChatEmitEvents.newHomeMadeFoodPickupOrderReceived, (data) {
+        if (data['message'] != null) {
+          final message = Messages.fromJson(data['message']);
+          final conversationId = message.conversationId ?? '';
+          if (conversationId.isNotEmpty && conversationId == userOpenConversationId.value) {
+            final currentMessages = getListOfMessageResponse.value.data as List<Messages>? ?? [];
+            final exists = currentMessages.any((m) => m.id == message.id);
+            if (!exists) {
+              currentMessages.add(message);
+              getListOfMessageResponse.value = ApiResponse.complete(currentMessages);
+              scrollDown();
+            }
+          }
+          emitEvent(ChatEmitEvents.ChatList, {
+            ApiKeys.page: 1,
+            ApiKeys.per_page_message: 30,
+          });
+        }
+      });
+
+      // Home-Made Food Self-Pickup: Order marked as ready
+      chatSocket.listenEvent(
+          ChatEmitEvents.homeMadeFoodPickupOrderReady, (data) {
+        final messageId = data['messageId']?.toString() ?? '';
+        if (messageId.isNotEmpty) {
+          final currentMessages = getListOfMessageResponse.value.data as List<Messages>? ?? [];
+          for (var msg in currentMessages) {
+            if (msg.id == messageId) {
+              msg.metadata?.orderStatus = true;
+              if (msg.metadata?.homeMadeFoodPickupOrder != null) {
+                msg.metadata?.homeMadeFoodPickupOrder?.isReady = true;
               }
               if (msg.metadata?.selfPickupOrder != null) {
                 msg.metadata?.selfPickupOrder?.isReady = true;
@@ -3278,7 +3321,20 @@ class ChatViewController extends GetxController {
           conversationId, chatPersonUserId, otherUserId, contactName);
 
       if (isWithProductSend == true) {
-        await sendProductMessages(shareProductParams ?? {});
+        // Inject the resolved conversation identifiers here so callers no
+        // longer need a separate checkChatConnection round-trip just to bake
+        // them into shareProductParams. conversationId is already lane-correct
+        // (it was blanked above when the requested route differs from the
+        // backend-reported thread), so a send for a not-yet-existing lane
+        // correctly falls back to other_user_id.
+        final productParams =
+            Map<String, dynamic>.from(shareProductParams ?? {});
+        if (conversationId.isNotEmpty) {
+          productParams[ApiKeys.conversation_id] = conversationId;
+        } else {
+          productParams[ApiKeys.other_user_id] = otherUserId;
+        }
+        await sendProductMessages(productParams);
       }
 
       _navigateToChatScreen(
@@ -3447,26 +3503,6 @@ class ChatViewController extends GetxController {
       }
     }
   }
-  Future<Map<String,dynamic>?> checkChatConnection(Map<String, dynamic> params) async {
-    ResponseModel responseModel =
-        await ChatViewRepo().checkChatConnectionApi(params);
-
-    if (responseModel.isSuccess) {
-      final data = responseModel.response?.data;
-
-      NewConvoContactVisitDetails value =
-          NewConvoContactVisitDetails.fromJson(data);
-      return {
-        ApiKeys.conversation_id:value.data?.conversationId,
-        ApiKeys.other_user_id:value.data?.otherUserId,
-      };
-    } else {
-      commonSnackBar(
-          message: responseModel.message ?? AppStrings.somethingWentWrong);
-      return null;
-    }
-  }
-
   Future<bool> updateMessageApi(
     Map<String, dynamic> params,
   ) async {

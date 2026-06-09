@@ -308,6 +308,8 @@ class _InquiryRideOrderSelectionScreenState
     switch (type) {
       case 'food_selfpickup':
         return 'Food';
+      case 'homemade_food_selfpickup':
+        return 'Home-Made Food';
       case 'product_selfpickup':
         return 'Product';
       case 'selfpickup':
