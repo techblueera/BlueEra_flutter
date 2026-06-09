@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:BlueEra/core/services/app_notification.dart';
+import 'package:BlueEra/core/services/ads/interstitial_ad_manager.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -101,6 +102,18 @@ class AppLifecycleHandler extends WidgetsBindingObserver {
         callController.hideFloatingOverlay();
         // Reset CallActivity flag (activity may have finished)
         CallController.isCallActivityActive = false;
+        // If a call just ended in the CallActivity engine (where the Ads SDK
+        // isn't initialised), it left a cross-isolate flag. Now that the main
+        // app is foreground, show the deferred call-ended interstitial here.
+        CallController.consumePendingCallEndedAd().then((pending) {
+          print('[INTERSTITIAL_AD] main app resumed → pendingCallEndedAd=$pending');
+          if (!pending) return;
+          print(
+              '[INTERSTITIAL_AD] main app resume → showing deferred call-end ad');
+          Future.delayed(const Duration(milliseconds: 400), () {
+            InterstitialAdManager.instance.showInterstitial();
+          });
+        });
         break;
       case AppLifecycleState.detached:
         // App being killed — end call gracefully.

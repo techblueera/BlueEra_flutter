@@ -104,8 +104,15 @@ class RouteConstant {
   // shape today; expected to diverge in future.
   static const String manufacturerScreen = "/ManufacturerScreen";
   static const String manufacturerStoreDetailsScreen = "/ManufacturerStoreDetailsScreen";
-  static const String manufacturerInventoryBusinessCardsScreen = "/ManufacturerInventoryBusinessCardsScreen";
+  // static const String manufacturerInventoryBusinessCardsScreen = "/ManufacturerInventoryBusinessCardsScreen";
   static const String myManufacturerProductsScreen = "/MyManufacturerProductsScreen";
+  // Manufacturer "Create Own" (AI) add-product flow — parallel to the product
+  // AI routes above, driven by ManufacturerProductController.
+  static const String manufacturerAddProductViaAiStep1 = "/ManufacturerAddProductViaAiStep1";
+  static const String manufacturerAddProductViaAiStep2 = "/ManufacturerAddProductViaAiStep2";
+  static const String manufacturerProductPreviewScreen = "/ManufacturerProductPreviewScreen";
+  static const String manufacturerCreateVariantScreen = "/ManufacturerCreateVariantScreen";
+  static const String manufacturerNestedCategoryWithInventoryScreen = "/ManufacturerNestedCategoryWithInventoryScreen";
   static const String foodUploadScreen = "/FoodUploadScreen";
   static const String addFlatRoomRentalServiceScreen = "/AddFlatRoomRentalServiceScreen";
   // static const String personalInformationRidingScreen = "/PersonalInformationRidingScreen";

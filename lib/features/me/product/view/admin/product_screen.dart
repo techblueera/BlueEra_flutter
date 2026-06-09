@@ -6,7 +6,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/widgets/app_home_background.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -28,6 +28,7 @@ import 'package:BlueEra/features/me/product/controller/inventory_controller.dart
 import 'package:BlueEra/features/me/product/model/product_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/product/view/admin/admin_all_top_selling_products_screen.dart';
 import 'package:BlueEra/features/me/product/view/admin/product_home_screen.dart';
+import 'package:BlueEra/features/me/product/view/admin/widget/admin_product_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -765,13 +766,7 @@ class _ProductScreenState extends State<ProductScreen>
   // BACKGROUND
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildPatternBackground() {
-    return Positioned.fill(
-      child: Image.asset(
-        AppImageAssets.chatDefaultBg,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => Container(color: const Color(0xFFEAF2FB)),
-      ),
-    );
+    return const AppHomeBackground();
   }
 
   // TOP BAR â€” glass-morphic chrome mirroring the grocery v2 home:
@@ -1218,11 +1213,7 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
           ),
           SizedBox(height: SizeConfig.size12),
           SizedBox(
-            // Was 290 (sized for the old card with the attribute-chip
-            // row). After that row was removed, the card's natural max
-            // is ~245 (hero 160 + info 60 + paddings/ribbon). 250 keeps
-            // a 5px buffer for descender/line-height variance.
-            height: 250,
+            height: AdminProductCard.gridCardHeight,
             child: Builder(builder: (context) {
               final previewCount = controller.allProducts.length >
                       InventoryController.ownProductsPreviewLimit
@@ -1233,8 +1224,18 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
                 scrollDirection: Axis.horizontal,
                 padding:
                     EdgeInsets.symmetric(horizontal: SizeConfig.size4),
-                itemBuilder: (context, index) =>
-                    _topSellingCard(index, controller.allProducts[index]),
+                itemBuilder: (context, index) => Padding(
+                  padding: EdgeInsets.only(right: SizeConfig.size12),
+                  child: SizedBox(
+                    width: 168,
+                    child: AdminProductCard(
+                      product: controller.allProducts[index],
+                      deleteProductApi: () {},
+                      width: 168,
+                      isGridShow: true,
+                    ),
+                  ),
+                ),
               );
             }),
           ),
@@ -1336,210 +1337,6 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
     );
   }
 
-  Widget _topSellingCard(int index, dynamic product) {
-    final details = product.product.details;
-    final variants = product.product.sellerClassification?.variants ?? [];
-    final img = (details?.media.isNotEmpty ?? false)
-        ? details!.media.first
-        : '';
-    final hasVariants = variants.isNotEmpty;
-    final sellingPrice = hasVariants ? variants[0].sellingPrice : null;
-    final mrp = hasVariants ? variants[0].mrp : null;
-    final discountRaw = hasVariants
-        ? calculateDiscount('${variants[0].sellingPrice}',
-            '${variants[0].mrp}')
-        : 0;
-    final discountPercent = discountRaw.toInt();
-    final rank = index + 1;
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () => Get.to(() => const AdminAllTopSellingProductsScreen()),
-      child: Container(
-        width: 168,
-        margin: const EdgeInsets.only(right: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFE6E8EE), width: 1),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Hero zone brand-tinted backdrop with the photo
-            // centered (BoxFit.contain so product shots never crop).
-            // Discount sticker top-left, rank pill top-right.
-            AspectRatio(
-              aspectRatio: 1.05,
-              child: Stack(
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          AppColors.primaryColor.withValues(alpha: 0.10),
-                          AppColors.primaryColor.withValues(alpha: 0.04),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: SizedBox.expand(
-                      child: img.isNotEmpty
-                          ? CachedNetworkImage(
-                              imageUrl: img,
-                              fit: BoxFit.contain,
-                              placeholder: (_, __) =>
-                                  const SizedBox.shrink(),
-                              errorWidget: (_, __, ___) => LocalAssets(
-                                imagePath: AppIconAssets.place_holder_image,
-                                boxFix: BoxFit.contain,
-                              ),
-                            )
-                          : LocalAssets(
-                              imagePath: AppIconAssets.place_holder_image,
-                              boxFix: BoxFit.contain,
-                            ),
-                    ),
-                  ),
-                  if (discountPercent > 0)
-                    Positioned(
-                      top: 0,
-                      left: 0,
-                      child: ClipRRect(
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(16),
-                          bottomRight: Radius.circular(12),
-                        ),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 6),
-                          decoration: const BoxDecoration(
-                            // Fresh-leaf â†’ deep-produce green pulled
-                            // from AppColors so the sticker reads as
-                            // part of the brand green palette.
-                            gradient: LinearGradient(
-                              begin: Alignment.centerLeft,
-                              end: Alignment.centerRight,
-                              colors: [
-                                AppColors.greenLight,
-                                AppColors.green1A,
-                              ],
-                            ),
-                          ),
-                          child: CustomText(
-                            AppStrings.discountOffFmt
-                                .trParams({'percent': '$discountPercent'}),
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color:
-                              AppColors.primaryColor.withValues(alpha: 0.30),
-                          width: 1,
-                        ),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x14001120),
-                            blurRadius: 4,
-                            offset: Offset(0, 1),
-                          ),
-                        ],
-                      ),
-                      child: CustomText(
-                        '#${rank.toString().padLeft(2, '0')}',
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.primaryColor,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Info zone â€” name + price hierarchy.
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomText(
-                    details?.name ?? '',
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.mainTextColor,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 8),
-                  if (hasVariants)
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.baseline,
-                      textBaseline: TextBaseline.alphabetic,
-                      children: [
-                        CustomText(
-                          '${AppConstants.rupeeSymbol}$sellingPrice',
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.mainTextColor,
-                        ),
-                        const SizedBox(width: 6),
-                        Flexible(
-                          child: CustomText(
-                            '${AppConstants.rupeeSymbol}$mrp',
-                            fontSize: 11,
-                            fontWeight: FontWeight.w400,
-                            color: AppColors.secondaryTextColor,
-                            decoration: TextDecoration.lineThrough,
-                            decorationColor: AppColors.secondaryTextColor,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-                ],
-              ),
-            ),
-            // Brand-blue gradient ribbon â€” section "signature" that
-            // anchors every tile and ties the shelf together.
-            Container(
-              height: 3,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                  colors: [
-                    AppColors.primaryColor.withValues(alpha: 0.55),
-                    AppColors.primaryColor,
-                    AppColors.primaryColor.withValues(alpha: 0.55),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _categoryWithInventoryGrid() {
     final List<ProductCategoryWithInventoryModel> categoryList =
@@ -1711,9 +1508,7 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
   }
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // ORDERS TAB â€” placeholder until product orders ships.
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class _OrdersTabBody extends StatelessWidget {
   const _OrdersTabBody();
 

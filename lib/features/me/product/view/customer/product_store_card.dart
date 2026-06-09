@@ -688,7 +688,7 @@ class ProductStoreCard extends StatelessWidget {
 
   void _openStore() {
     Get.to(() => VisitProductStoreDetailsScreen(
-          visitBusinessId: _store.userId ?? "",
+          visitUserId: _store.userId ?? "",
         ));
   }
 

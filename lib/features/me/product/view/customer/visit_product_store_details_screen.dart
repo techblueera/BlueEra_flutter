@@ -1,7 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -30,27 +29,32 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
 class VisitProductStoreDetailsScreen extends StatefulWidget {
-  final String visitBusinessId;
+  final String visitUserId;
 
   const VisitProductStoreDetailsScreen({
     super.key,
-    required this.visitBusinessId,
+    required this.visitUserId,
   });
 
   @override
-  State<VisitProductStoreDetailsScreen> createState() => _VisitProductStoreDetailsScreenState();
+  State<VisitProductStoreDetailsScreen> createState() =>
+      _VisitProductStoreDetailsScreenState();
 }
 
-class _VisitProductStoreDetailsScreenState extends State<VisitProductStoreDetailsScreen> {
-  final InventoryController controller = getOrPut<InventoryController>(() => InventoryController());
+class _VisitProductStoreDetailsScreenState
+    extends State<VisitProductStoreDetailsScreen> {
+  final InventoryController controller =
+      getOrPut<InventoryController>(() => InventoryController());
   final ViewBusinessDetailsController viewBusinessDetailsController =
-      getOrPut<ViewBusinessDetailsController>(() => ViewBusinessDetailsController());
-  final StoreController storeController = getOrPut<StoreController>(() => StoreController());
+      Get.find<ViewBusinessDetailsController>();
+  final StoreController storeController =
+      getOrPut<StoreController>(() => StoreController());
   // Session cart — registered by the products entry point. `getOrPut`
   // here returns the same instance the cart bar on the entry point is
   // watching, so add/remove on this screen flows through.
   final ProductSelfPickupController cartController =
-      getOrPut<ProductSelfPickupController>(() => ProductSelfPickupController());
+      getOrPut<ProductSelfPickupController>(
+          () => ProductSelfPickupController());
 
   @override
   void initState() {
@@ -58,10 +62,11 @@ class _VisitProductStoreDetailsScreenState extends State<VisitProductStoreDetail
     // Load the visiting business profile + inventory in parallel, and
     // track the store-detail view (same pattern as the grocery visit
     // screen).
-    viewBusinessDetailsController.viewBusinessProfileById(widget.visitBusinessId);
-    controller.fetchAllProductData(visitBusinessId: widget.visitBusinessId);
+    viewBusinessDetailsController
+        .viewBusinessProfileById(widget.visitUserId);
+    controller.fetchAllProductData(visitUserId: widget.visitUserId);
     ProfileClickTracker.track(
-      userId: widget.visitBusinessId,
+      userId: widget.visitUserId,
       source: ChatClickSource.storeDetail,
     );
   }
@@ -77,13 +82,14 @@ class _VisitProductStoreDetailsScreenState extends State<VisitProductStoreDetail
   void _onToggleTopSellingCart(dynamic product) {
     final id = _firstVariantId(product);
     if (id == null) return;
-    final bDetails = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
+    final bDetails =
+        viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
     if (cartController.isVariantInCart(id)) {
       cartController.removeFromCart(product);
     } else {
       cartController.addToCart(
         product,
-        businessId: widget.visitBusinessId,
+        userId: widget.visitUserId,
         businessName: bDetails?.businessName,
         businessLogo: bDetails?.logo,
         businessAddress: bDetails?.address,
@@ -99,134 +105,150 @@ class _VisitProductStoreDetailsScreenState extends State<VisitProductStoreDetail
         fit: StackFit.expand,
         children: [
           SingleChildScrollView(
-            padding: EdgeInsets.symmetric(
-              horizontal: SizeConfig.size8,
-              vertical: SizeConfig.size15,
-            ),
-            child: Column(
-              children: [
-                // ─── 1. Header + Business Stats ───
-                Obx(() {
-                  // Subscribe to silent profile refreshes — bumps on every
-                  // successful fetch so this Obx rebuilds even when the
-                  // loader is skipped.
-                  viewBusinessDetailsController.profileVersion.value;
-                  if (viewBusinessDetailsController.isProfileLoading.value) {
-                    return buildBusinessHeaderSkeleton();
-                  }
-                  final details = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
-                  return Column(
-                    children: [
-                      VisitBusinessCommonHeader(
-                        details: details,
-                        onRated: () => viewBusinessDetailsController.viewBusinessProfileById(
-                          widget.visitBusinessId,
-                          silent: true,
+        padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size8,
+          vertical: SizeConfig.size15,
+        ),
+        child: Column(
+          children: [
+            // ─── 1. Header + Business Stats ───
+            Obx(() {
+              // Subscribe to silent profile refreshes — bumps on every
+              // successful fetch so this Obx rebuilds even when the
+              // loader is skipped.
+              viewBusinessDetailsController.profileVersion.value;
+              if (viewBusinessDetailsController.isProfileLoading.value) {
+                return buildBusinessHeaderSkeleton();
+              }
+              final details = viewBusinessDetailsController
+                  .visitedBusinessProfileDetails?.data;
+              return Column(
+                children: [
+                  VisitBusinessCommonHeader(
+                    details: details,
+                    onRated: () => viewBusinessDetailsController
+                        .viewBusinessProfileById(
+                      widget.visitUserId,
+                      silent: true,
+                    ),
+                    onFollowChanged: () => viewBusinessDetailsController
+                        .viewBusinessProfileById(
+                      widget.visitUserId,
+                      silent: true,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  VisitBusinessStatsCard(details: details),
+                ],
+              );
+            }),
+
+            // ─── 2. Top Selling Products (preview of 20) ───
+            Obx(() {
+              if (controller.ownDraftAndPublicProductResponse.value.status ==
+                  Status.INITIAL) {
+                return Padding(
+                  padding: EdgeInsets.only(top: SizeConfig.paddingXSL),
+                  child: buildHorizontalListSkeleton(),
+                );
+              }
+              return controller.allProducts.isNotEmpty
+                  ? _topSellingProduct()
+                  : const SizedBox.shrink();
+            }),
+
+
+            // ─── 3. Categories ───
+            Obx(() {
+              if (controller.fetchProductCategoryResponse.value.status ==
+                  Status.INITIAL) {
+                return buildCategoryGridSkeleton();
+              }
+              return _categoryWithInventoryWidget();
+            }),
+
+
+            // ─── 4. Live Photos ───
+            Obx(() {
+              if (viewBusinessDetailsController.isProfileLoading.value) {
+                return const SizedBox.shrink();
+              }
+              final details = viewBusinessDetailsController
+                  .visitedBusinessProfileDetails?.data;
+              if (details?.livePhotos != null &&
+                  details!.livePhotos!.any((p) => p.trim().isNotEmpty)) {
+                return Padding(
+                  padding: EdgeInsets.only(top: SizeConfig.paddingM),
+                  child: CustomFormCard(
+                    padding: const EdgeInsets.all(10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const CustomText(
+                          'Live Photos',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
                         ),
-                        onFollowChanged: () => viewBusinessDetailsController.viewBusinessProfileById(
-                          widget.visitBusinessId,
-                          silent: true,
+                        const SizedBox(height: 10),
+                        StoreLivePhotoWidget(
+                          livePhotos: details.livePhotos!
+                              .where((p) => p.trim().isNotEmpty)
+                              .toList(),
+                          natureOfBusiness:
+                              details.subCategoryDetails?.name ??
+                                  details.natureOfBusiness ??
+                                  'OTHER',
+                          onViewFullScreen: ({
+                            required int index,
+                            required List<String> storeImage,
+                            required String natureOfBusiness,
+                          }) {
+                            navigatePushTo(
+                              context,
+                              ImageViewScreen(
+                                appBarTitle: details.businessName ?? '',
+                                subTitle: natureOfBusiness,
+                                imageUrls: storeImage,
+                                initialIndex: index,
+                              ),
+                            );
+                          },
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      VisitBusinessStatsCard(details: details),
-                    ],
-                  );
-                }),
+                      ],
+                    ),
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            }),
 
-                // ─── 2. Top Selling Products (preview of 20) ───
-                Obx(() {
-                  if (controller.ownDraftAndPublicProductResponse.value.status == Status.INITIAL) {
-                    return Padding(
-                      padding: EdgeInsets.only(top: SizeConfig.paddingXSL),
-                      child: buildHorizontalListSkeleton(),
-                    );
-                  }
-                  return controller.allProducts.isNotEmpty ? _topSellingProduct() : const SizedBox.shrink();
-                }),
+            // ─── 5. Contact & Map ───
+            Obx(() {
+              if (viewBusinessDetailsController.isProfileLoading.value) {
+                return const SizedBox.shrink();
+              }
+              final details = viewBusinessDetailsController
+                  .visitedBusinessProfileDetails?.data;
+              return BusinessContactMapCard(
+                businessProfileDetails: details,
+                showEditButton: false,
+              );
+            }),
 
-                // ─── 3. Categories ───
-                Obx(() {
-                  if (controller.fetchProductCategoryResponse.value.status == Status.INITIAL) {
-                    return buildCategoryGridSkeleton();
-                  }
-                  return _categoryWithInventoryWidget();
-                }),
+            // ─── 6. QR Code ───
+            // Obx(() {
+            //   if (viewBusinessDetailsController.isProfileLoading.value) {
+            //     return const SizedBox.shrink();
+            //   }
+            //   final details = viewBusinessDetailsController
+            //       .visitedBusinessProfileDetails?.data;
+            //   return BusinessQrCodeWidget(data: details);
+            // }),
 
-                // ─── 4. Live Photos ───
-                Obx(() {
-                  if (viewBusinessDetailsController.isProfileLoading.value) {
-                    return const SizedBox.shrink();
-                  }
-                  final details = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
-                  if (details?.livePhotos != null && details!.livePhotos!.any((p) => p.trim().isNotEmpty)) {
-                    return Padding(
-                      padding: EdgeInsets.only(top: SizeConfig.paddingM),
-                      child: CustomFormCard(
-                        padding: const EdgeInsets.all(10),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const CustomText(
-                              'Live Photos',
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                            ),
-                            const SizedBox(height: 10),
-                            StoreLivePhotoWidget(
-                              livePhotos: details.livePhotos!.where((p) => p.trim().isNotEmpty).toList(),
-                              natureOfBusiness:
-                                  details.subCategoryDetails?.name ?? details.natureOfBusiness ?? 'OTHER',
-                              onViewFullScreen: ({
-                                required int index,
-                                required List<String> storeImage,
-                                required String natureOfBusiness,
-                              }) {
-                                navigatePushTo(
-                                  context,
-                                  ImageViewScreen(
-                                    appBarTitle: details.businessName ?? '',
-                                    subTitle: natureOfBusiness,
-                                    imageUrls: storeImage,
-                                    initialIndex: index,
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }
-                  return const SizedBox.shrink();
-                }),
-
-                // ─── 5. Contact & Map ───
-                Obx(() {
-                  if (viewBusinessDetailsController.isProfileLoading.value) {
-                    return const SizedBox.shrink();
-                  }
-                  final details = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
-                  return BusinessContactMapCard(
-                    businessProfileDetails: details,
-                    showEditButton: false,
-                  );
-                }),
-
-                // ─── 6. QR Code ───
-                // Obx(() {
-                //   if (viewBusinessDetailsController.isProfileLoading.value) {
-                //     return const SizedBox.shrink();
-                //   }
-                //   final details = viewBusinessDetailsController
-                //       .visitedBusinessProfileDetails?.data;
-                //   return BusinessQrCodeWidget(data: details);
-                // }),
-
-                SizedBox(height: SizeConfig.size100),
-              ],
-            ),
-          ),
+            SizedBox(height: SizeConfig.size100),
+          ],
+        ),
+      ),
           Positioned(
             bottom: 40,
             left: 0,
@@ -262,7 +284,7 @@ class _VisitProductStoreDetailsScreenState extends State<VisitProductStoreDetail
               InkWell(
                 onTap: () => Get.to(
                   () => CustomerAllTopSellingProductsScreen(
-                    visitBusinessId: widget.visitBusinessId,
+                    visitUserId: widget.visitUserId,
                   ),
                 ),
                 child: CustomText(
@@ -280,7 +302,8 @@ class _VisitProductStoreDetailsScreenState extends State<VisitProductStoreDetail
             child: Builder(builder: (context) {
               // Preview only — cap to first 20 items; "View All" opens
               // the paginated grid.
-              final previewCount = controller.allProducts.length > InventoryController.ownProductsPreviewLimit
+              final previewCount = controller.allProducts.length >
+                      InventoryController.ownProductsPreviewLimit
                   ? InventoryController.ownProductsPreviewLimit
                   : controller.allProducts.length;
               return ListView.builder(
@@ -304,20 +327,29 @@ class _VisitProductStoreDetailsScreenState extends State<VisitProductStoreDetail
                           child: ProductTopSellingImage(
                             product: product,
                             cartOverlay: Obx(() {
-                              final cart = cartController.selectedProductVariants;
+                              final cart =
+                                  cartController.selectedProductVariants;
                               // ignore: unused_local_variable
                               final _ = cart.length;
                               final id = _firstVariantId(product);
-                              final added = cartController.isVariantInCart(id);
+                              final added =
+                                  cartController.isVariantInCart(id);
                               return IconButton(
                                 padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-                                onPressed: id == null ? null : () => _onToggleTopSellingCart(product),
+                                constraints: const BoxConstraints(
+                                    minWidth: 28, minHeight: 28),
+                                onPressed: id == null
+                                    ? null
+                                    : () => _onToggleTopSellingCart(
+                                        product),
                                 icon: Container(
                                   padding: const EdgeInsets.all(4),
                                   decoration: BoxDecoration(
-                                    color: added ? AppColors.greenShade : AppColors.blackMite,
-                                    borderRadius: BorderRadius.circular(20),
+                                    color: added
+                                        ? AppColors.greenShade
+                                        : AppColors.blackMite,
+                                    borderRadius:
+                                        BorderRadius.circular(20),
                                   ),
                                   child: Icon(
                                     added ? Icons.check : Icons.add,
@@ -355,7 +387,7 @@ class _VisitProductStoreDetailsScreenState extends State<VisitProductStoreDetail
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CustomText(
-            AppStrings.category.tr,
+            'Category',
             fontSize: SizeConfig.large,
             color: AppColors.mainTextColor,
             fontWeight: FontWeight.w600,
@@ -382,7 +414,7 @@ class _VisitProductStoreDetailsScreenState extends State<VisitProductStoreDetail
                         Get.to(
                           () => VisitProductProductsScreen(
                             parentCategory: c,
-                            visitBusinessId: widget.visitBusinessId,
+                            visitBusinessId: widget.visitUserId,
                           ),
                         );
                       },

@@ -582,6 +582,7 @@ class ProductController extends GetxController{
       if (responseModel.isSuccess) {
         generateAiProductContentResponse.value = ApiResponse.complete(responseModel);
 
+
         final generateAiProductContent = GenerateAiProductContent.fromJson(
           responseModel.response!.data,
         );
@@ -731,18 +732,16 @@ class ProductController extends GetxController{
         params[ApiKeys.variantData] =
             jsonEncode(aiVariantData.map((v) => v.toJson()).toList());
       } else {
-        // Fallback (manual/edit flow with no AI variants): grouped attribute map.
-        final payload = <String, dynamic>{
-          if (selectedColors.isNotEmpty)
-            'color': selectedColors.map((c) => c.toJson()).toList(),
-          ...dynamicAttributes.map(
-            (k, v) => MapEntry(
-              k,
-              v.map((e) => {'properties': e.toString()}).toList(),
-            ),
+        // Fallback (no AI variants): `variantData` must be an ARRAY of variant
+        // objects, so build it from the selected attribute axes via the
+        // Cartesian-product builder instead of a grouped attribute map.
+        params[ApiKeys.variantData] = jsonEncode(
+          _buildVariantDataPayload(
+            allColors: selectedColors.toList(),
+            allDynamicAttributes:
+                dynamicAttributes.map((k, v) => MapEntry(k, v.toList())),
           ),
-        };
-        params[ApiKeys.variantData] = jsonEncode(payload);
+        );
       }
 
       if(providerType == ProviderType.channel){
@@ -1288,6 +1287,51 @@ class ProductController extends GetxController{
         addUpdateProductVariantApiResponse.value =
             ApiResponse.complete(responseModel);
         // Pull the saved variants back from the API and rebuild the axes.
+        await refreshVariantOptionsFromApi();
+        return true;
+      } else {
+        commonSnackBar(message: responseModel.message);
+        addUpdateProductVariantApiResponse.value = ApiResponse.error('error');
+        return false;
+      }
+    } catch (e) {
+      addUpdateProductVariantApiResponse.value = ApiResponse.error('error');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
+    } finally {
+      isAddUpdateProductVariantLoading.value = false;
+    }
+  }
+
+  /// Creates color variants that carry BOTH the color name and its hex code as
+  /// two attributes ([colorKey] → name, [colorCodeKey] → code) in a single
+  /// variant entry. Other attributes stay individual; colors are paired.
+  Future<bool> addColorComboVariantApi({
+    required String colorKey,
+    required String colorCodeKey,
+    required List<Map<String, String>> colors,
+  }) async {
+    if (colors.isEmpty) return false;
+    isAddUpdateProductVariantLoading.value = true;
+
+    try {
+      final variantData = colors
+          .map((c) => {
+                'attributes': {
+                  colorKey: c['name'],
+                  colorCodeKey: c['code'],
+                },
+              })
+          .toList();
+
+      final responseModel = await ProductRepo().addUpdateProductVariantApi(
+        params: {ApiKeys.variantData: variantData},
+        productId: productId ?? '',
+      );
+
+      if (responseModel.isSuccess) {
+        addUpdateProductVariantApiResponse.value =
+            ApiResponse.complete(responseModel);
         await refreshVariantOptionsFromApi();
         return true;
       } else {

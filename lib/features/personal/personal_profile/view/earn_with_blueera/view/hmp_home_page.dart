@@ -137,6 +137,7 @@ class _HomeMadeProductHomePageState extends State<HomeMadeProductHomePage> {
               width: cardWidth,
               isGridShow: true,
               showAttributes: false,
+              onUpdatePrice: earnServiceController.updateProductVariantPrice,
             ),
           );
         },

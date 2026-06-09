@@ -5,11 +5,11 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/me/product/controller/product_controller.dart';
-import 'package:BlueEra/features/me/product/view/admin/widget/add_variant_dialog.dart';
-import 'package:BlueEra/features/me/product/view/admin/widget/color_selection_tile.dart';
-import 'package:BlueEra/features/me/product/view/admin/widget/skip_variant_dialog.dart';
-import 'package:BlueEra/features/me/product/view/admin/widget/submit_varient_dialog.dart';
+import 'package:BlueEra/features/me/manufacturer/controller/manufacturer_product_controller.dart';
+import 'package:BlueEra/features/me/manufacturer/view/admin/widget/manufacturer_add_variant_dialog.dart';
+import 'package:BlueEra/features/me/manufacturer/view/admin/widget/manufacturer_color_selection_tile.dart';
+import 'package:BlueEra/features/me/manufacturer/view/admin/widget/manufacturer_skip_variant_dialog.dart';
+import 'package:BlueEra/features/me/manufacturer/view/admin/widget/manufacturer_submit_variant_dialog.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -18,17 +18,23 @@ import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class CreateVariantScreen extends StatefulWidget {
-  final ProductController controller;
+class ManufacturerCreateVariantScreen extends StatefulWidget {
+  final ManufacturerProductController controller;
   final String id;
   final ProviderType providerType;
-  const CreateVariantScreen({super.key, required this.controller, required this.id, required this.providerType});
+  const ManufacturerCreateVariantScreen(
+      {super.key,
+      required this.controller,
+      required this.id,
+      required this.providerType});
 
   @override
-  State<CreateVariantScreen> createState() => _CreateVariantScreenState();
+  State<ManufacturerCreateVariantScreen> createState() =>
+      _ManufacturerCreateVariantScreenState();
 }
 
-class _CreateVariantScreenState extends State<CreateVariantScreen> {
+class _ManufacturerCreateVariantScreenState
+    extends State<ManufacturerCreateVariantScreen> {
   final Map<int, int> _currentIndices = {};
   final Map<int, CarouselSliderController> _controllers = {};
 
@@ -54,7 +60,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                     }
                     return SizedBox.shrink();
                   }),
-                      
+
                   // Dynamic attributes sections. "Color" + "ColorCode" are
                   // rendered as a single section (swatch + name) instead of two.
                   Obx(() {
@@ -82,7 +88,8 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                           attrs[ccKey]!,
                         ));
                       } else {
-                        attributeWidgets.add(_buildAttributeSection(key, values));
+                        attributeWidgets
+                            .add(_buildAttributeSection(key, values));
                       }
                     });
                     return Column(children: attributeWidgets);
@@ -90,37 +97,38 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
 
                   // Add More Variant Button
                   _buildAddMoreVariantButton(),
-                      
-                  SizedBox(height: SizeConfig.size20), // Extra space for bottom buttons
+
+                  SizedBox(height: SizeConfig.size20),
 
                   // Bottom buttons (fixed at bottom)
                   Obx(() {
-                    final selectedEmpty = widget.controller.selectedVariantValues.isEmpty; // compute reactively if needed
+                    final selectedEmpty =
+                        widget.controller.selectedVariantValues.isEmpty;
                     return Row(
                       children: [
-                        if(widget.controller.listedProducts.isEmpty)
-                        if (selectedEmpty)
-                          Expanded(
-                            child: PositiveCustomBtn(
-                              title: AppStrings.skip,
-                              bgColor: AppColors.white,
-                              borderColor: AppColors.primaryColor,
-                              textColor: AppColors.primaryColor,
-                              radius: 10.0,
-                              onTap: () {
-                                showDialog(
-                                  context: Get.context!,
-                                  barrierDismissible: false,
-                                  builder: (context) => SkipVariantDialog(
-                                    controller: widget.controller,
-                                  ),
-                                );
-                              },
+                        if (widget.controller.listedProducts.isEmpty)
+                          if (selectedEmpty)
+                            Expanded(
+                              child: PositiveCustomBtn(
+                                title: AppStrings.skip,
+                                bgColor: AppColors.white,
+                                borderColor: AppColors.primaryColor,
+                                textColor: AppColors.primaryColor,
+                                radius: 10.0,
+                                onTap: () {
+                                  showDialog(
+                                    context: Get.context!,
+                                    barrierDismissible: false,
+                                    builder: (context) =>
+                                        ManufacturerSkipVariantDialog(
+                                      controller: widget.controller,
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
-                          ),
-                        if (selectedEmpty)
-                          SizedBox(width: SizeConfig.size10),
-                          Expanded(
+                        if (selectedEmpty) SizedBox(width: SizeConfig.size10),
+                        Expanded(
                           child: PositiveCustomBtn(
                             title: AppStrings.next,
                             bgColor: widget.controller.isNextEnabled.value
@@ -135,260 +143,245 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                                 : AppColors.primaryColor,
                             onTap: widget.controller.isNextEnabled.value
                                 ? () {
-                              showDialog(
-                                context: Get.context!,
-                                barrierDismissible: false,
-                                builder: (context) => SubmitVariantDialog(
-                                  controller: widget.controller,
-                                ),
-                              );
-                            }
+                                    showDialog(
+                                      context: Get.context!,
+                                      barrierDismissible: false,
+                                      builder: (context) =>
+                                          ManufacturerSubmitVariantDialog(
+                                        controller: widget.controller,
+                                      ),
+                                    );
+                                  }
                                 : () {
-                              Get.snackbar(
-                                AppStrings.error.tr,
-                                AppStrings.selectVariantPrompt.tr,
-                              );
-                            },
+                                    Get.snackbar(
+                                      AppStrings.error.tr,
+                                      AppStrings.selectVariantPrompt.tr,
+                                    );
+                                  },
                           ),
                         ),
                       ],
                     );
                   })
-
                 ],
               ),
             ),
+            Obx(() => (widget.controller.listedProducts.isNotEmpty)
+                ? CustomFormCard(
+                    margin: EdgeInsets.symmetric(vertical: SizeConfig.size20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomText(
+                          AppStrings.listing,
+                          fontWeight: FontWeight.bold,
+                          fontSize: SizeConfig.large,
+                          color: AppColors.mainTextColor,
+                        ),
+                        SizedBox(height: SizeConfig.size10),
+                        ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: widget.controller.listedProducts.length,
+                          physics: NeverScrollableScrollPhysics(),
+                          padding: EdgeInsets.zero,
+                          itemBuilder: (context, productIndex) {
+                            final product =
+                                widget.controller.listedProducts[productIndex];
 
-             Obx(()=>
-             (widget.controller.listedProducts.isNotEmpty) ?
-             CustomFormCard(
-               margin: EdgeInsets.symmetric(vertical: SizeConfig.size20),
-               child: Column(
-                 crossAxisAlignment: CrossAxisAlignment.start,
-                 children: [
-                   CustomText(
-                     AppStrings.listing,
-                     fontWeight: FontWeight.bold,
-                     fontSize: SizeConfig.large,
-                     color: AppColors.mainTextColor,
-                   ),
-                   SizedBox(height: SizeConfig.size10),
-                   ListView.builder(
-                     shrinkWrap: true,
-                     itemCount: widget.controller.listedProducts.length,
-                     physics: NeverScrollableScrollPhysics(),
-                     padding: EdgeInsets.zero,
-                     itemBuilder: (context, productIndex) {
-                       final product = widget.controller.listedProducts[productIndex];
+                            // init default values
+                            _currentIndices.putIfAbsent(productIndex, () => 0);
+                            _controllers.putIfAbsent(
+                                productIndex, () => CarouselSliderController());
 
-                       // init default values
-                       _currentIndices.putIfAbsent(productIndex, () => 0);
-                       _controllers.putIfAbsent(productIndex, () => CarouselSliderController());
-
-                       return Container(
-                         margin: EdgeInsets.only(bottom: SizeConfig.size15),
-                         decoration: BoxDecoration(
-                             color: AppColors.whiteFE,
-                             borderRadius: BorderRadius.circular(10),
-                           border: Border.all(
-                             color: AppColors.whiteE5,
-                           )
-                         ),
-                         child: Row(
-                           crossAxisAlignment: CrossAxisAlignment.start,
-                           children: [
-
-                             SizedBox(
-                               width: 120,
-                               height: 120,
-                               child: Stack(
-                                 children: [
-                                   CarouselSlider.builder(
-                                     carouselController: _controllers[productIndex],
-                                     itemCount: product.image.length,
-                                     options: CarouselOptions(
-                                       height: 120, 
-                                       viewportFraction: 1.0,
-                                       enlargeCenterPage: false,
-                                       enableInfiniteScroll: false,
-                                       onPageChanged: (index, reason) {
-                                         setState(() {
-                                           _currentIndices[productIndex] = index;
-                                         });
-                                       },
-                                     ),
-                                     itemBuilder: (context, imgIndex, realIdx) {
-                                       return ClipRRect(
-                                         borderRadius: BorderRadius.horizontal(left: Radius.circular(10)),
-                                         child: Image.file(
-                                           File(product.image[imgIndex]),
-                                           width: 120,
-                                           height: 120,
-                                           fit: BoxFit.cover,
-                                         ),
-                                       );
-                                     },
-
-                                   ),
-
-                                   Positioned(
-                                     bottom: 6,
-                                     left: 0,
-                                     right: 0,
-                                     child: product.image.length > 1 ? Row(
-                                       mainAxisAlignment: MainAxisAlignment.center,
-                                       children: List.generate(product.image.length, (dotIndex) {
-                                         final isActive = _currentIndices[productIndex] == dotIndex;
-                                         return AnimatedContainer(
-                                           duration: const Duration(milliseconds: 300),
-                                           margin: const EdgeInsets.symmetric(horizontal: 3.0),
-                                           width: isActive ? 8 : 6,
-                                           height: isActive ? 8 : 6,
-                                           decoration: BoxDecoration(
-                                             color: isActive ? AppColors.primaryColor : Colors.grey,
-                                             shape: BoxShape.circle,
-                                           ),
-                                         );
-                                       }),
-                                     ) : SizedBox(),
-                                   ),
-                                 ],
-                               ),
-                             ),
-
-                             SizedBox(width: 12),
-                             Flexible(
-                               child: Padding(
-                                 padding: const EdgeInsets.symmetric(vertical: 8),
-                                 child: Column(
-                                   crossAxisAlignment: CrossAxisAlignment.start,
-                                   mainAxisAlignment: MainAxisAlignment.start,
-                                   children: [
-                                     CustomText(
-                                       product.name,
-                                       fontWeight: FontWeight.bold,
-                                       fontSize: SizeConfig.large,
-                                       color: AppColors.mainTextColor,
-                                     ),
-                                     SizedBox(height: 8),
-
-                                     Row(
-                                       children: [
-                                         CustomText(
-                                           '₹${product.price}',
-                                           fontWeight: FontWeight.bold,
-                                           fontSize: SizeConfig.large,
-                                           color: AppColors.mainTextColor,
-                                         ),
-                                         SizedBox(width: 8),
-                                         CustomText(
-                                           '₹${product.mrp}',
-                                           fontWeight: FontWeight.bold,
-                                           fontSize: SizeConfig.medium,
-                                           color: AppColors.secondaryTextColor,
-                                           decoration: TextDecoration.lineThrough,
-                                         ),
-                                         SizedBox(width: 8),
-                                         Flexible(
-                                           child: CustomText(
-                                             '${product.discount}% off',
-                                             fontWeight: FontWeight.bold,
-                                             fontSize: SizeConfig.medium,
-                                             color: Colors.green,
-                                           ),
-                                         ),
-                                       ],
-                                     )
-
-                                     // product.discount != null
-                                     //     ? Row(
-                                     //   children: [
-                                     //     CustomText(
-                                     //       '₹${product.price}',
-                                     //       fontWeight: FontWeight.bold,
-                                     //       fontSize: SizeConfig.large,
-                                     //       color: AppColors.mainTextColor,
-                                     //     ),
-                                     //     SizedBox(width: 8),
-                                     //     CustomText(
-                                     //       '₹${product.mrp}',
-                                     //       fontWeight: FontWeight.bold,
-                                     //       fontSize: SizeConfig.medium,
-                                     //       color: AppColors.secondaryTextColor,
-                                     //       decoration: TextDecoration.lineThrough,
-                                     //     ),
-                                     //     SizedBox(width: 8),
-                                     //     CustomText(
-                                     //       '${product.discount}% off',
-                                     //       fontWeight: FontWeight.bold,
-                                     //       fontSize: SizeConfig.medium,
-                                     //       color: Colors.green,
-                                     //     ),
-                                     //   ],
-                                     // ) : Row(
-                                     //   children: [
-                                     //     CustomText(
-                                     //       '₹${product.minPrice}-${product.maxPrice}',
-                                     //       fontWeight: FontWeight.bold,
-                                     //       fontSize: SizeConfig.large,
-                                     //       color: AppColors.secondaryTextColor
-                                     //     )
-                                     //   ],
-                                     // ),
-                                   ],
-                                 ),
-                               ),
-                             ),
-                             Padding(
-                               padding: EdgeInsets.only(top: 8.0),
-                               child: PopupMenuButton<String>(
-                                 padding: EdgeInsets.zero,
-                                 offset: const Offset(-6, 36),
-                                 color: AppColors.white,
-                                 elevation: 8,
-                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                 onSelected: (value) async {
-                                   if (value == 'deleteVariant') {
-                                     widget.controller.listedProducts.removeAt(productIndex);
-                                   }
-                                 },
-                                 icon: Icon(Icons.more_vert, color: AppColors.black),
-                                 itemBuilder: (context) => popupProductListedVariantMenuItems(),
-                               ),
-                             ),
-                             SizedBox(width: 8),
-                           ],
-                         ),
-                       );
-                     },
-                   ),
-
-                   SizedBox(height: SizeConfig.size10),
-                   CustomBtn(
-                     title: widget.controller.isAddProductToInventoryLoading.value
-                         ? null // hide text
-                         : AppStrings.goToProductPage,
-                     bgColor: AppColors.primaryColor,
-                     borderColor: AppColors.primaryColor,
-                     radius: 10.0,
-                     textColor: AppColors.white,
-                     onTap: () {
-                       widget.controller.addProductToInventory(
-                           id: widget.id,
-                           providerType: widget.providerType,
-                           addProductViaAiController: widget.controller,
-                           products: widget.controller.listedProducts,
-                       );
-                     },
-                     isLoading: widget.controller.isAddProductToInventoryLoading.value
-                   )
-                 ],
-               ),
-             )
-                 : SizedBox()
-             )
-
-
+                            return Container(
+                              margin:
+                                  EdgeInsets.only(bottom: SizeConfig.size15),
+                              decoration: BoxDecoration(
+                                  color: AppColors.whiteFE,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: AppColors.whiteE5,
+                                  )),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  SizedBox(
+                                    width: 120,
+                                    height: 120,
+                                    child: Stack(
+                                      children: [
+                                        CarouselSlider.builder(
+                                          carouselController:
+                                              _controllers[productIndex],
+                                          itemCount: product.image.length,
+                                          options: CarouselOptions(
+                                            height: 120,
+                                            viewportFraction: 1.0,
+                                            enlargeCenterPage: false,
+                                            enableInfiniteScroll: false,
+                                            onPageChanged: (index, reason) {
+                                              setState(() {
+                                                _currentIndices[productIndex] =
+                                                    index;
+                                              });
+                                            },
+                                          ),
+                                          itemBuilder:
+                                              (context, imgIndex, realIdx) {
+                                            return ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.horizontal(
+                                                      left: Radius.circular(10)),
+                                              child: Image.file(
+                                                File(product.image[imgIndex]),
+                                                width: 120,
+                                                height: 120,
+                                                fit: BoxFit.cover,
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                        Positioned(
+                                          bottom: 6,
+                                          left: 0,
+                                          right: 0,
+                                          child: product.image.length > 1
+                                              ? Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: List.generate(
+                                                      product.image.length,
+                                                      (dotIndex) {
+                                                    final isActive =
+                                                        _currentIndices[
+                                                                productIndex] ==
+                                                            dotIndex;
+                                                    return AnimatedContainer(
+                                                      duration: const Duration(
+                                                          milliseconds: 300),
+                                                      margin: const EdgeInsets
+                                                          .symmetric(
+                                                          horizontal: 3.0),
+                                                      width: isActive ? 8 : 6,
+                                                      height: isActive ? 8 : 6,
+                                                      decoration: BoxDecoration(
+                                                        color: isActive
+                                                            ? AppColors
+                                                                .primaryColor
+                                                            : Colors.grey,
+                                                        shape: BoxShape.circle,
+                                                      ),
+                                                    );
+                                                  }),
+                                                )
+                                              : SizedBox(),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  SizedBox(width: 12),
+                                  Flexible(
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 8),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          CustomText(
+                                            product.name,
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: SizeConfig.large,
+                                            color: AppColors.mainTextColor,
+                                          ),
+                                          SizedBox(height: 8),
+                                          Row(
+                                            children: [
+                                              CustomText(
+                                                '₹${product.price}',
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: SizeConfig.large,
+                                                color: AppColors.mainTextColor,
+                                              ),
+                                              SizedBox(width: 8),
+                                              CustomText(
+                                                '₹${product.mrp}',
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: SizeConfig.medium,
+                                                color: AppColors
+                                                    .secondaryTextColor,
+                                                decoration:
+                                                    TextDecoration.lineThrough,
+                                              ),
+                                              SizedBox(width: 8),
+                                              Flexible(
+                                                child: CustomText(
+                                                  '${product.discount}% off',
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: SizeConfig.medium,
+                                                  color: Colors.green,
+                                                ),
+                                              ),
+                                            ],
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: EdgeInsets.only(top: 8.0),
+                                    child: PopupMenuButton<String>(
+                                      padding: EdgeInsets.zero,
+                                      offset: const Offset(-6, 36),
+                                      color: AppColors.white,
+                                      elevation: 8,
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(10)),
+                                      onSelected: (value) async {
+                                        if (value == 'deleteVariant') {
+                                          widget.controller.listedProducts
+                                              .removeAt(productIndex);
+                                        }
+                                      },
+                                      icon: Icon(Icons.more_vert,
+                                          color: AppColors.black),
+                                      itemBuilder: (context) =>
+                                          popupProductListedVariantMenuItems(),
+                                    ),
+                                  ),
+                                  SizedBox(width: 8),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                        SizedBox(height: SizeConfig.size10),
+                        CustomBtn(
+                            title: widget
+                                    .controller.isAddProductToInventoryLoading.value
+                                ? null // hide text
+                                : AppStrings.goToProductPage,
+                            bgColor: AppColors.primaryColor,
+                            borderColor: AppColors.primaryColor,
+                            radius: 10.0,
+                            textColor: AppColors.white,
+                            onTap: () {
+                              widget.controller.addProductToInventory(
+                                id: widget.id,
+                                providerType: widget.providerType,
+                                addProductViaAiController: widget.controller,
+                                products: widget.controller.listedProducts,
+                              );
+                            },
+                            isLoading: widget.controller
+                                .isAddProductToInventoryLoading.value)
+                      ],
+                    ),
+                  )
+                : SizedBox())
           ],
         ),
       ),
@@ -435,7 +428,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
 
           // Color grid
           Obx(
-              () => Container(
+            () => Container(
               width: SizeConfig.screenWidth,
               padding: EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -448,47 +441,48 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                 spacing: 12,
                 runSpacing: 12,
                 children: widget.controller.selectedColors.map((color) {
-                  // final isSelected = widget.controller.isValueSelected('color', color.name);
-
                   final isSelected = widget.controller.isValueSelected(
                     'color',
-                    SelectedColor(color.color, color.name),
+                    ManufacturerSelectedColor(color.color, color.name),
                   );
 
                   return InkWell(
-                    // onTap: () => widget.controller.selectVariantValue('color', color.name),
-                    onTap: () => widget.controller.selectVariantValue('color', color),
+                    onTap: () =>
+                        widget.controller.selectVariantValue('color', color),
                     child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        color: isSelected ? AppColors.lightBlue : Colors.transparent,
+                        color: isSelected
+                            ? AppColors.lightBlue
+                            : Colors.transparent,
                         borderRadius: BorderRadius.circular(8),
-                        // border: Border.all(
-                        //   color: isSelected ? AppColors.primaryColor : AppColors.grey9A,
-                        //   width: 1.5,
-                        // ),
                       ),
                       child: Row(
-                        mainAxisSize: MainAxisSize.min, // ensures container wraps content
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           // Checkbox
                           Container(
                             width: 16,
                             height: 16,
                             decoration: BoxDecoration(
-                              color: isSelected ? AppColors.primaryColor : Colors.transparent,
+                              color: isSelected
+                                  ? AppColors.primaryColor
+                                  : Colors.transparent,
                               border: Border.all(
-                                color: isSelected ? AppColors.primaryColor : AppColors.grey9A,
+                                color: isSelected
+                                    ? AppColors.primaryColor
+                                    : AppColors.grey9A,
                                 width: 1.5,
                               ),
                               borderRadius: BorderRadius.circular(2),
                             ),
                             child: isSelected
                                 ? Icon(
-                              Icons.check,
-                              color: Colors.white,
-                              size: 11,
-                            )
+                                    Icons.check,
+                                    color: Colors.white,
+                                    size: 11,
+                                  )
                                 : null,
                           ),
                           SizedBox(width: 6),
@@ -508,7 +502,8 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                             decoration: BoxDecoration(
                               color: color.color,
                               shape: BoxShape.circle,
-                              border: Border.all(color: AppColors.greyE5, width: 1.0),
+                              border: Border.all(
+                                  color: AppColors.greyE5, width: 1.0),
                             ),
                           ),
                         ],
@@ -519,7 +514,6 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
               ),
             ),
           )
-
         ],
       ),
     );
@@ -567,32 +561,36 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
 
           // Attribute values grid
           Obx(
-                () => Container(
-                  width: SizeConfig.screenWidth,
-                  padding: EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    boxShadow: [AppShadows.textFieldShadow],
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.whiteE5),
-                  ),
+            () => Container(
+              width: SizeConfig.screenWidth,
+              padding: EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                boxShadow: [AppShadows.textFieldShadow],
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.whiteE5),
+              ),
               child: Wrap(
-                spacing: 12, // horizontal spacing
-                runSpacing: 12, // vertical spacing
+                spacing: 12,
+                runSpacing: 12,
                 children: values.map((value) {
-                  final isSelected = widget.controller.isValueSelected(attributeKey, value);
+                  final isSelected =
+                      widget.controller.isValueSelected(attributeKey, value);
 
                   return InkWell(
-                    onTap: () => widget.controller.selectVariantValue(attributeKey, value),
+                    onTap: () => widget.controller
+                        .selectVariantValue(attributeKey, value),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        color: isSelected ? AppColors.lightBlue : AppColors.white,
+                        color:
+                            isSelected ? AppColors.lightBlue : AppColors.white,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
-                        mainAxisSize: MainAxisSize.min, // ensures container wraps content
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           // Animated checkbox
                           AnimatedContainer(
@@ -600,25 +598,30 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                             width: 16,
                             height: 16,
                             decoration: BoxDecoration(
-                              color: isSelected ? AppColors.primaryColor : Colors.transparent,
+                              color: isSelected
+                                  ? AppColors.primaryColor
+                                  : Colors.transparent,
                               border: Border.all(
-                                color: isSelected ? AppColors.primaryColor : AppColors.grey9A,
+                                color: isSelected
+                                    ? AppColors.primaryColor
+                                    : AppColors.grey9A,
                                 width: 1.5,
                               ),
                               borderRadius: BorderRadius.circular(2),
                             ),
                             child: isSelected
                                 ? const Icon(
-                              Icons.check,
-                              color: Colors.white,
-                              size: 11,
-                            )
+                                    Icons.check,
+                                    color: Colors.white,
+                                    size: 11,
+                                  )
                                 : null,
                           ),
                           const SizedBox(width: 8),
                           // Text value
                           ConstrainedBox(
-                            constraints: BoxConstraints(maxWidth: SizeConfig.screenWidth / 3),
+                            constraints: BoxConstraints(
+                                maxWidth: SizeConfig.screenWidth / 3),
                             child: Text(
                               value,
                               style: const TextStyle(
@@ -637,8 +640,6 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
               ),
             ),
           )
-
-
         ],
       ),
     );
@@ -808,7 +809,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
       onTap: () {
         showDialog(
           context: Get.context!,
-          builder: (context) => AddVariantDialog(
+          builder: (context) => ManufacturerAddVariantDialog(
             controller: widget.controller,
           ),
         );
@@ -836,7 +837,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
   void _openColorDialog(BuildContext context) {
     // Clone existing selected colors
     final existingColors = widget.controller.selectedColors.toList();
-    final newColors = <SelectedColor>[].obs; // Only new picks
+    final newColors = <ManufacturerSelectedColor>[].obs; // Only new picks
 
     showDialog(
       context: context,
@@ -854,112 +855,114 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  ColorSelectionTile(
+                  ManufacturerColorSelectionTile(
                     controller: widget.controller,
                     onSelectedColor: (color, colorName) {
                       // Only add if not already in existing or new
                       if (!existingColors.any((c) => c.color == color) &&
                           !newColors.any((c) => c.color == color)) {
-                        newColors.add(SelectedColor(color, colorName));
+                        newColors
+                            .add(ManufacturerSelectedColor(color, colorName));
                       }
                     },
                   ),
-
                   Obx(() => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12.0),
-                    child: Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: [
-                        // Existing colors (non-deletable)
-                        ...existingColors.map((c) => Chip(
-                          backgroundColor: AppColors.grey5B.withValues(alpha: 0.3),
-                          label: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: 16,
-                                height: 16,
-                                decoration: BoxDecoration(
-                                  color: c.color,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                      color: Colors.white, width: 1),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                c.name,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.secondaryTextColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        )),
+                        padding: const EdgeInsets.symmetric(vertical: 12.0),
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            // Existing colors (non-deletable)
+                            ...existingColors.map((c) => Chip(
+                                  backgroundColor:
+                                      AppColors.grey5B.withValues(alpha: 0.3),
+                                  label: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        width: 16,
+                                        height: 16,
+                                        decoration: BoxDecoration(
+                                          color: c.color,
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                              color: Colors.white, width: 1),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        c.name,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: AppColors.secondaryTextColor,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )),
 
-                        // New colors (deletable)
-                        ...newColors.map((c) => Chip(
-                          backgroundColor: AppColors.lightBlue,
-                          label: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: 16,
-                                height: 16,
-                                decoration: BoxDecoration(
-                                  color: c.color,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                      color: Colors.white, width: 1),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                c.name,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: AppColors.secondaryTextColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                          deleteIcon: const Icon(
-                            Icons.close,
-                            size: 18,
-                            color: AppColors.mainTextColor,
-                          ),
-                          onDeleted: () => newColors.remove(c),
-                        )),
-                      ],
-                    ),
-                  )),
-
+                            // New colors (deletable)
+                            ...newColors.map((c) => Chip(
+                                  backgroundColor: AppColors.lightBlue,
+                                  label: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        width: 16,
+                                        height: 16,
+                                        decoration: BoxDecoration(
+                                          color: c.color,
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                              color: Colors.white, width: 1),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        c.name,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: AppColors.secondaryTextColor,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  deleteIcon: const Icon(
+                                    Icons.close,
+                                    size: 18,
+                                    color: AppColors.mainTextColor,
+                                  ),
+                                  onDeleted: () => newColors.remove(c),
+                                )),
+                          ],
+                        ),
+                      )),
                   CustomBtn(
                     onTap: () async {
-
                       final allColors = [
                         ...existingColors,
                         ...newColors,
                       ];
 
-                      final success = await widget.controller.addUpdateProductVariantApi(
-                          allColors: allColors,
-                          allDynamicAttributes: widget.controller.dynamicAttributes.map(
+                      final success =
+                          await widget.controller.addUpdateProductVariantApi(
+                              allColors: allColors,
+                              allDynamicAttributes:
+                                  widget.controller.dynamicAttributes.map(
                                 (key, value) => MapEntry(key, value.toList()),
-                          )
-                      );
+                              ));
 
                       if (success) {
                         widget.controller.selectedColors.assignAll(allColors);
                         Get.back();
                       }
                     },
-                    title: widget.controller.isAddUpdateProductVariantLoading.value
+                    title: widget
+                            .controller.isAddUpdateProductVariantLoading.value
                         ? null
                         : AppStrings.save,
-                    isLoading: widget.controller.isAddUpdateProductVariantLoading.value,
+                    isLoading: widget
+                        .controller.isAddUpdateProductVariantLoading.value,
                     bgColor: AppColors.primaryColor,
                     borderColor: AppColors.primaryColor,
                     radius: 10.0,
@@ -981,7 +984,7 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
     String colorKey,
     String colorCodeKey,
   ) {
-    final newColors = <SelectedColor>[].obs;
+    final newColors = <ManufacturerSelectedColor>[].obs;
 
     showDialog(
       context: context,
@@ -1006,11 +1009,12 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                     color: AppColors.mainTextColor,
                   ),
                   SizedBox(height: SizeConfig.size12),
-                  ColorSelectionTile(
+                  ManufacturerColorSelectionTile(
                     controller: widget.controller,
                     onSelectedColor: (color, colorName) {
                       if (!newColors.any((c) => c.color == color)) {
-                        newColors.add(SelectedColor(color, colorName));
+                        newColors
+                            .add(ManufacturerSelectedColor(color, colorName));
                       }
                     },
                   ),
@@ -1099,9 +1103,9 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
   }
 
   void _openDynamicAttributeDialog(
-      BuildContext context,
-      String attributeKey,
-      ) {
+    BuildContext context,
+    String attributeKey,
+  ) {
     final existingValues =
         widget.controller.dynamicAttributes[attributeKey]?.toList() ?? [];
 
@@ -1157,7 +1161,8 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                       padding: const EdgeInsets.fromLTRB(20, 16, 10, 16),
                       decoration: const BoxDecoration(
                         border: Border(
-                          bottom: BorderSide(color: AppColors.greyE5, width: 1),
+                          bottom:
+                              BorderSide(color: AppColors.greyE5, width: 1),
                         ),
                       ),
                       child: Row(
@@ -1167,8 +1172,8 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                             height: 40,
                             alignment: Alignment.center,
                             decoration: BoxDecoration(
-                              color:
-                                  AppColors.primaryColor.withValues(alpha: 0.10),
+                              color: AppColors.primaryColor
+                                  .withValues(alpha: 0.10),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Icon(
@@ -1240,7 +1245,8 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                                     onSubmitted: (_) => addValue(),
                                     textInputAction: TextInputAction.done,
                                     decoration: InputDecoration(
-                                      hintText: "${AppStrings.add} $attributeKey",
+                                      hintText:
+                                          "${AppStrings.add} $attributeKey",
                                       hintStyle: TextStyle(
                                         color: AppColors.grey9B,
                                         fontSize: 14,
@@ -1256,7 +1262,8 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                                 AnimatedSwitcher(
                                   duration: const Duration(milliseconds: 200),
                                   transitionBuilder: (child, anim) =>
-                                      ScaleTransition(scale: anim, child: child),
+                                      ScaleTransition(
+                                          scale: anim, child: child),
                                   child: inputText.trim().isNotEmpty
                                       ? InkWell(
                                           key: ValueKey(
@@ -1291,7 +1298,8 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                                 ...newValues.map(
                                   (val) => _accentValuePill(
                                     val,
-                                    () => setState(() => newValues.remove(val)),
+                                    () =>
+                                        setState(() => newValues.remove(val)),
                                   ),
                                 ),
                               ],
@@ -1313,14 +1321,15 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
                                   return;
                                 }
 
+                                // Send only the added values for this
+                                // attribute; the controller refetches and
+                                // rebuilds the on-screen axes from the API.
                                 final success = await widget.controller
                                     .addAttributeVariantsApi(
                                   attributeKey: attributeKey,
                                   values: List<String>.from(newValues),
                                 );
 
-                                // Display is refreshed from the API by the
-                                // controller on success.
                                 if (success) Get.back();
                               },
                               title: widget.controller
@@ -1346,7 +1355,6 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
       },
     );
   }
-
 
   /// Already-saved value — shown muted with a lock, cannot be removed here.
   Widget _lockedPill(String label) {
@@ -1450,7 +1458,4 @@ class _CreateVariantScreenState extends State<CreateVariantScreen> {
 
     return entries;
   }
-
-
 }
-

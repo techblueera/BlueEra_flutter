@@ -1,12 +1,17 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/price_row.dart';
+import 'package:BlueEra/features/me/manufacturer/controller/manufacturer_inventory_controller.dart';
 import 'package:BlueEra/features/me/manufacturer/controller/manufacturer_product_controller.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/features/me/manufacturer/view/admin/manufacturer_product_preview_screen.dart';
 import 'package:BlueEra/features/me/manufacturer/view/admin/widget/manufacturer_attribute_two_rows.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/product_price_edit_sheet.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -28,6 +33,22 @@ class ManufacturerOwnProductCard extends StatelessWidget {
     this.isGridShow = false,
     this.showAttributes = true,
   });
+
+  static const double _gridNameLineHeight = 1.3;
+  static double get _gridNameBlockHeight =>
+      SizeConfig.medium * _gridNameLineHeight * 2;
+
+  /// Total height of the grid-style card (`isGridShow: true`), derived from its
+  /// content so a horizontal strip and a view-all grid can size cells the same.
+  static double get gridCardHeight {
+    final imageHeight = SizeConfig.size150 - 10;
+    const priceRowHeight = 26.0;
+    return imageHeight +
+        SizeConfig.size10 * 2 +
+        _gridNameBlockHeight +
+        SizeConfig.size5 +
+        priceRowHeight;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -72,19 +93,13 @@ class ManufacturerOwnProductCard extends StatelessWidget {
       }
     }
 
-    calculateDiscount(
-      variants[0].sellingPrice.toString(),
-      variants[0].mrp.toString(),
-    ).toInt();
-
-
     ProductDetails? details = product.product.details;
 
     return GestureDetector(
       onTap: () {
         final productPreviewArgs = mapProductDataToPreviewArgs(product);
         Get.toNamed(
-          RouteHelper.getProductPreviewScreenRoute(),
+          RouteHelper.getManufacturerProductPreviewScreenRoute(),
           arguments: {
             ApiKeys.isUserCanCreateVariants: false,
             ApiKeys.argProductData: productPreviewArgs,
@@ -117,14 +132,12 @@ class ManufacturerOwnProductCard extends StatelessWidget {
                       },
                     ),
                   ),
-                  // Positioned(
-                  //   top: 8,
-                  //   right: 8,
-                  //   child: _buildIconBox(
-                  //     onTap: deleteProductApi,
-                  //     Icon(Icons.more_vert, color: Colors.white, size: 16),
-                  //   ),
-                  // ),
+                  // Owner card — price-edit shortcut.
+                  Positioned(
+                    right: 6,
+                    top: 6,
+                    child: _editButton(context),
+                  ),
                 ],
               ),
             ),
@@ -144,7 +157,7 @@ class ManufacturerOwnProductCard extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     fontSize: SizeConfig.medium,
                     color: AppColors.mainTextColor,
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
 
@@ -290,6 +303,38 @@ class ManufacturerOwnProductCard extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  // Opens the price-edit sheet for this product. Updates go through the
+  // product-service inventory endpoint via ManufacturerInventoryController.
+  void _onEditTap(BuildContext context) {
+    ProductPriceEditSheet.show(
+      context: context,
+      product: product,
+      onUpdate: getOrPut(() => ManufacturerInventoryController())
+          .updateProductVariantPrice,
+    );
+  }
+
+  Widget _editButton(BuildContext context) {
+    return InkWell(
+      onTap: () => _onEditTap(context),
+      child: Container(
+        padding: const EdgeInsets.all(5),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(5),
+          border: Border.all(color: AppColors.primaryColor, width: 1.0),
+        ),
+        child: LocalAssets(
+          imagePath: AppIconAssets.pen_line,
+          imgColor: AppColors.primaryColor,
+          height: 14,
+          width: 14,
+          boxFix: BoxFit.cover,
         ),
       ),
     );

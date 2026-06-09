@@ -458,13 +458,13 @@ class _ProductsStoreDetailsScreenState
         onTap: () {
           final owner = widget.productStore?.sellerClassification?.owner;
           if (owner == null) return;
-          final ownerId = owner.id;
+          final ownerId = widget.productStore?.user_id ?? '';
           final screen = AppConstants.storeFeedScreen;
           final isBusiness = owner.type == ProviderType.business.title;
           debugPrint('owner type -- ${owner.type}');
           debugPrint('id -- ${owner.id}');
           final destination = isBusiness
-              ? VisitProductStoreDetailsScreen(visitBusinessId: ownerId)
+              ? VisitProductStoreDetailsScreen(visitUserId: ownerId)
               : NewVisitProfileScreen(
                   authorId: ownerId, screenFromName: screen);
           Get.to(() => destination);

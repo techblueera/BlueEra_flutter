@@ -159,8 +159,13 @@ class ManufacturerProductSelfPickupController extends GetxController {
       if (qty <= 0) continue;
 
       items.add({
-        'inventory': sc?.id ?? '',
-        'variantId': variant.id,
+        // The order endpoint keys off the per-variant inventory record id,
+        // not the seller-classification id (which is empty here). Fall back to
+        // sc.id only when the variant has no inventory id.
+        'inventory': variant.inventoryId.isNotEmpty
+            ? variant.inventoryId
+            : (sc?.id ?? ''),
+        'productVariant': variant.id,
         'quantity': qty,
         'mrp': variant.mrp.toDouble(),
         'sellingPrice': variant.sellingPrice.toDouble(),

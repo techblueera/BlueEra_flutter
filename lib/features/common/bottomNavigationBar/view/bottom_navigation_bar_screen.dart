@@ -514,6 +514,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
   Widget meScreens() {
     if (isGuestUser()) return GuestDashBoardScreen();
+    // Colour is applied globally via the theme; the banner is painted by each
+    // resolved screen's `_buildPatternBackground()` (shared `AppHomeBackground`
+    // widget) — both driven by [AppBackgroundController]. No wrapper needed.
     if (isBusinessUser()) return resolveBusinessScreen();
     if (isIndividualUser()) return resolveIndividualScreen();
 

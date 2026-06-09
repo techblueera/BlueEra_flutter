@@ -2,10 +2,19 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/earn_service_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+
+/// Saves one variant's price to the inventory endpoint. Each caller supplies
+/// the concrete service (product-service for admin/manufacturer cards,
+/// earn-service for the home-made-product screens) — the sheet stays generic.
+typedef PriceUpdateCallback = Future<bool> Function({
+  required String inventoryId,
+  required num sellingPrice,
+  required num mrp,
+  required bool varientIsActive,
+});
 
 /// Bottom sheet to update sellingPrice + mrp per variant of a product. Each
 /// variant has its own Update button — they're saved independently (the API
@@ -14,7 +23,7 @@ class ProductPriceEditSheet {
   static Future<void> show({
     required BuildContext context,
     required GetProductData product,
-    required EarnServiceController controller,
+    required PriceUpdateCallback onUpdate,
   }) async {
     final classification = product.product.sellerClassification;
     if (classification == null || classification.variants.isEmpty) {
@@ -30,7 +39,7 @@ class ProductPriceEditSheet {
       enableDrag: false,
       builder: (_) => _PriceEditSheetBody(
         product: product,
-        controller: controller,
+        onUpdate: onUpdate,
       ),
     );
   }
@@ -38,11 +47,11 @@ class ProductPriceEditSheet {
 
 class _PriceEditSheetBody extends StatefulWidget {
   final GetProductData product;
-  final EarnServiceController controller;
+  final PriceUpdateCallback onUpdate;
 
   const _PriceEditSheetBody({
     required this.product,
-    required this.controller,
+    required this.onUpdate,
   });
 
   @override
@@ -96,7 +105,7 @@ class _PriceEditSheetBodyState extends State<_PriceEditSheetBody> {
     setState(() => _saving[i] = true);
     final newPrice = num.tryParse(_priceCtrls[i].text.trim()) ?? v.sellingPrice;
     final newMrp = num.tryParse(_mrpCtrls[i].text.trim()) ?? v.mrp;
-    final ok = await widget.controller.updateProductVariantPrice(
+    final ok = await widget.onUpdate(
       inventoryId: inventoryId,
       sellingPrice: newPrice,
       mrp: newMrp,

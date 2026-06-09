@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/controller/app_background_controller.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/services/ads/interstitial_ad_manager.dart';
@@ -560,6 +561,11 @@ Future<void> main() async {
   await localizationService.loadTranslations(savedLangCode);
   Get.addTranslations(localizationService.keys);
   final locale = Locale(savedLangCode);
+
+  /// Reapply the saved app-background colour (if any) before the first frame
+  /// so `AppThemes.light` / `AppColors.appBackgroundColor` reflect it from
+  /// launch. Hive is already initialised above.
+  await AppBackgroundController.preload();
 
   /// Auth + user data (needed to decide which screen to show)
   Get.put(AuthController());

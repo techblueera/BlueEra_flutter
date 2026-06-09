@@ -6,12 +6,12 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/price_row.dart';
+import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/me/product/controller/product_controller.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/features/me/product/view/admin/product_preview_screen.dart';
 import 'package:BlueEra/features/me/product/view/admin/widget/attribute_two_rows.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/product_price_edit_sheet.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/earn_service_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -25,6 +25,11 @@ class AdminProductCard extends StatelessWidget {
   final bool isGridShow;
   final bool showAttributes;
 
+  /// Price-update service for the edit sheet. Defaults to the product-service
+  /// inventory endpoint ([InventoryController]); the home-made-product (earn)
+  /// screens pass [EarnServiceController.updateProductVariantPrice] instead.
+  final PriceUpdateCallback? onUpdatePrice;
+
   const AdminProductCard({
     super.key,
     required this.product,
@@ -32,6 +37,7 @@ class AdminProductCard extends StatelessWidget {
     this.width,
     this.isGridShow = false,
     this.showAttributes = false,
+    this.onUpdatePrice,
   });
 
   // Grid-card name always reserves two lines so cards line up even when a
@@ -97,12 +103,6 @@ class AdminProductCard extends StatelessWidget {
         }
       }
     }
-
-    calculateDiscount(
-      variants[0].sellingPrice.toString(),
-      variants[0].mrp.toString(),
-    ).toInt();
-
 
     ProductDetails? details = product.product.details;
 
@@ -327,13 +327,14 @@ class AdminProductCard extends StatelessWidget {
     );
   }
 
-  // Opens the price-edit sheet for this product, resolving the earn service
+  // Opens the price-edit sheet. Updates go through the product-service
+  // inventory endpoint by default; callers (earn screens) can override.
   void _onEditTap(BuildContext context) {
-    final controller = getOrPut(() => EarnServiceController());
     ProductPriceEditSheet.show(
       context: context,
       product: product,
-      controller: controller,
+      onUpdate: onUpdatePrice ??
+          getOrPut(() => InventoryController()).updateProductVariantPrice,
     );
   }
 
