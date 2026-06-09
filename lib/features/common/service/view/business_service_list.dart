@@ -45,12 +45,18 @@ class _BusinessServiceListState extends State<BusinessServiceList> {
   @override
   void initState() {
     super.initState();
-    _initQueryAndFetch();
+    _buildQueryParams();
+    // Defer the fetch — getBusinessServices() flips `isServiceDataFirstLoading`
+    // and clears `serviceDataList` synchronously, which would notify any Obx
+    // already subscribed in the current build frame ("setState during build").
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      serviceController.getBusinessServices(queryParams);
+    });
     scrollController.addListener(_scrollListener);
   }
 
-  /// Refactored to reuse between initState & didUpdateWidget
-  void _initQueryAndFetch() {
+  void _buildQueryParams() {
     queryParams = {
       ApiKeys.all: false,
       ApiKeys.type: AppConstants.service,
@@ -60,8 +66,6 @@ class _BusinessServiceListState extends State<BusinessServiceList> {
     if (widget.channelId != null) {
       queryParams[ApiKeys.channelId] = widget.channelId;
     }
-
-    serviceController.getBusinessServices(queryParams);
   }
 
   /// Detects changes to providerType / channelId and refreshes data
@@ -74,7 +78,8 @@ class _BusinessServiceListState extends State<BusinessServiceList> {
             oldWidget.channelId != widget.channelId;
 
     if (shouldRefetch) {
-      _initQueryAndFetch();
+      _buildQueryParams();
+      serviceController.getBusinessServices(queryParams);
     }
   }
 
@@ -141,7 +146,7 @@ class _BusinessServiceListState extends State<BusinessServiceList> {
             final totalHorizontalSpacing = (crossAxisCount - 1) * crossSpacing;
             final itemWidth = (constraints.maxWidth - totalHorizontalSpacing) / crossAxisCount;
 
-            final approximateItemHeight = SizeConfig.size250;
+            final approximateItemHeight = SizeConfig.size280;
 
             final childAspectRatio = itemWidth / approximateItemHeight;
 
