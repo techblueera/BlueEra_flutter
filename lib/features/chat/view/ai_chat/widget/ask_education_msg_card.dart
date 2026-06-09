@@ -235,47 +235,28 @@ class AskEducationMsgCard extends StatelessWidget {
                                   child: TextButton.icon(
                                     onPressed: () async {
                                       final chatViewController = Get.find<ChatViewController>();
-                                      Map<String, dynamic> detas = {
-                                        ApiKeys.user_id: institutions.ownerId
-                                      };
-
-                                      Map<String,dynamic>? userDetailsMap=  await chatViewController.checkChatConnection(detas);
-                                      if(userDetailsMap!=null){
-                                        List<Map<String, String>>? urlList;
-                                        if(institutions.gallery?.isNotEmpty??false){
-                                          urlList= institutions.gallery?.map((e) => {ApiKeys.url: e.uploadPhoto??''}).toList()??[];
-                                        }
-
-                                        final conversationId = userDetailsMap[ApiKeys.conversation_id];
-
-                                        final hasConversation = conversationId != null &&
-                                            conversationId.toString().isNotEmpty &&
-                                            conversationId.toString().toLowerCase() != 'null';
-                                        Map<String,dynamic> data={
-                                          ApiKeys.service_id : "${institutions.sId}",
-                                          ApiKeys.price: "",
-                                          ApiKeys.discount: "",
-                                          if(!hasConversation)
-                                            ApiKeys.other_user_id: (userDetailsMap[ApiKeys.other_user_id] ??
-                                                '')
-                                          else
-                                            ApiKeys.conversation_id:(userDetailsMap[ApiKeys.conversation_id] ??
-                                                ''),
-
-                                          ApiKeys.message: "${institutions.name}",
-                                          ApiKeys.message_type: AppConstants.service,
-                                          ApiKeys.title: "${institutions.name}" ,
-                                          ApiKeys.sub_category : "${institutions.description}",
-                                          ApiKeys.variant : "",
-
-                                          ApiKeys.url: urlList??[],
-                                        };
-                                        chatViewController.checkChatConnectionAndOpenChat(
-                                          userId: "${institutions.ownerId}",
-                                          shareProductParams: data,
-                                          isWithProductSend: true,
-                                        );
+                                      List<Map<String, String>>? urlList;
+                                      if(institutions.gallery?.isNotEmpty??false){
+                                        urlList= institutions.gallery?.map((e) => {ApiKeys.url: e.uploadPhoto??''}).toList()??[];
                                       }
+
+                                      Map<String,dynamic> data={
+                                        ApiKeys.service_id : "${institutions.sId}",
+                                        ApiKeys.price: "",
+                                        ApiKeys.discount: "",
+                                        ApiKeys.message: "${institutions.name}",
+                                        ApiKeys.message_type: AppConstants.service,
+                                        ApiKeys.title: "${institutions.name}" ,
+                                        ApiKeys.sub_category : "${institutions.description}",
+                                        ApiKeys.variant : "",
+
+                                        ApiKeys.url: urlList??[],
+                                      };
+                                      chatViewController.checkChatConnectionAndOpenChat(
+                                        userId: "${institutions.ownerId}",
+                                        shareProductParams: data,
+                                        isWithProductSend: true,
+                                      );
 
                                     },
                                     icon: LocalAssets(

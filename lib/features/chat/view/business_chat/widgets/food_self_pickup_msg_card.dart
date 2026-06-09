@@ -18,6 +18,7 @@ import 'package:BlueEra/features/chat/view/widget/component_widgets.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/product_order_booking_rider_main.dart';
 import 'package:BlueEra/features/me/food/repo/food_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/repo/earn_profile_repo.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -37,16 +38,26 @@ import '../../../../../core/api/apiService/api_keys.dart';
 /// Mirrors [SelfPickupMsgCard] (call / payment / ride + packing PDF) but uses
 /// `foodPickupOrderId` / `foodPickupOrder` metadata and routes the
 /// "Mark as Ready" API to the food service.
+///
+/// Reused as-is for the `homemade_food_selfpickup` message type by passing
+/// [isHomeMade] = true — see the home-made-food order integration guide. In
+/// that mode the order is read from `homeMadeFoodPickupOrder` /
+/// `homeMadeFoodPickupOrderId` and "Mark as Ready" routes to the earn service.
 class FoodSelfPickupMsgCard extends StatefulWidget {
   final Messages message;
   final String time;
   final String? conversationId;
+
+  /// When true, render home-made-food copy/icon and mark-ready via the earn
+  /// service (`PUT /homeFoodOrders/:orderId/ready`) instead of the food service.
+  final bool isHomeMade;
 
   const FoodSelfPickupMsgCard({
     super.key,
     required this.message,
     required this.time,
     this.conversationId,
+    this.isHomeMade = false,
   });
 
   @override
@@ -60,6 +71,7 @@ class _FoodSelfPickupMsgCardState extends State<FoodSelfPickupMsgCard> {
   bool get _isMyMessage => widget.message.myMessage ?? false;
 
   SelfPickupOrderModel? get _order =>
+      widget.message.metadata?.homeMadeFoodPickupOrder ??
       widget.message.metadata?.foodPickupOrder ??
       widget.message.metadata?.selfPickupOrder;
 
@@ -696,10 +708,13 @@ class _FoodSelfPickupMsgCardState extends State<FoodSelfPickupMsgCard> {
     }
   }
 
-  /// Mark food order as ready via food-service API
+  /// Mark order as ready. Home-made orders route to the earn service
+  /// (`PUT /homeFoodOrders/:orderId/ready`); food orders to the food service.
   Future<void> _markAsReady() async {
     final orderId = _order?.orderId ??
-        widget.message.metadata?.foodPickupOrderId ??
+        (widget.isHomeMade
+            ? widget.message.metadata?.homeMadeFoodPickupOrderId
+            : widget.message.metadata?.foodPickupOrderId) ??
         '';
 
     if (orderId.isEmpty) {
@@ -710,8 +725,9 @@ class _FoodSelfPickupMsgCardState extends State<FoodSelfPickupMsgCard> {
     setState(() => _isMarkingReady = true);
 
     try {
-      final response =
-          await FoodRepo().markFoodOrderReadyRepo(orderId: orderId);
+      final response = widget.isHomeMade
+          ? await EarnProfileRepo().markHomeFoodOrderReadyRepo(orderId: orderId)
+          : await FoodRepo().markFoodOrderReadyRepo(orderId: orderId);
 
       if (!response.isSuccess) {
         commonSnackBar(
@@ -724,10 +740,13 @@ class _FoodSelfPickupMsgCardState extends State<FoodSelfPickupMsgCard> {
       _order?.isReady = true;
       setState(() {});
 
-      commonSnackBar(message: 'Food order marked as ready for pickup');
-      log('Food self-pickup order $orderId marked as ready');
+      commonSnackBar(
+          message: widget.isHomeMade
+              ? 'Home-made food order marked as ready for pickup'
+              : 'Food order marked as ready for pickup');
+      log('${widget.isHomeMade ? 'Home-made food' : 'Food'} self-pickup order $orderId marked as ready');
     } catch (e) {
-      log('Error marking food order ready: $e');
+      log('Error marking order ready: $e');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       setState(() => _isMarkingReady = false);
@@ -775,15 +794,21 @@ class _FoodSelfPickupMsgCardState extends State<FoodSelfPickupMsgCard> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.restaurant_menu,
-                        size: 28, color: Colors.orange),
+                    Icon(
+                        widget.isHomeMade
+                            ? Icons.soup_kitchen_rounded
+                            : Icons.restaurant_menu,
+                        size: 28,
+                        color: Colors.orange),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           CustomText(
-                            'Food Order',
+                            widget.isHomeMade
+                                ? 'Home-Made Food Order'
+                                : 'Food Order',
                             fontSize: SizeConfig.size14,
                             fontWeight: FontWeight.w600,
                             color: Colors.orange,

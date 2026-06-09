@@ -55,6 +55,19 @@ class EarnProfileRepo extends BaseService {
     );
   }
 
+  /// Mark a home made food self-pickup order as ready (cook/seller side).
+  /// `PUT earn-service/homeFoodOrders/{orderId}/ready`.
+  Future<ResponseModel> markHomeFoodOrderReadyRepo({
+    required String orderId,
+  }) async {
+    return ApiBaseHelper().putHTTP(
+      homeFoodOrderReady(orderId),
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+  }
+
   /// Place a home made product order.
   Future<ResponseModel> placeHomeProductOrder({
     required Map<String, dynamic> params,

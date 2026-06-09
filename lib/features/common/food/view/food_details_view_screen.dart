@@ -160,49 +160,32 @@ class FoodDetailsViewScreen extends StatelessWidget {
                           }
                           final chatViewController =
                               Get.find<ChatViewController>();
-                          Map<String, dynamic> detas = {
-                            ApiKeys.user_id: business?.userId
+                          List<Map<String, String>> urlList =
+                          photos.map((e) => { ApiKeys.url: e}).toList();
+
+                          Map<String, dynamic> data = {
+                            ApiKeys.food_id: item.id.toString(),
+                            ApiKeys.price: productPriceFormat.toString(),
+                            ApiKeys.discount: "",
+                            ApiKeys.message: item.title,
+                            ApiKeys.message_type: AppConstants.food,
+                            ApiKeys.title: item.title,
+                            ApiKeys.veg_type: item.vegType,
+                            ApiKeys.sub_category: item.subCategory,
+                            ApiKeys.calories:
+                            item.nutritionalSummaryPer100g?.caloriesKcal,
+                            ApiKeys.url: urlList,
                           };
 
-                          Map<String,dynamic>? userDetailsMap=  await chatViewController.checkChatConnection(detas);
-                          if(userDetailsMap!=null){
-                            List<Map<String, String>> urlList =
-                            photos.map((e) => { ApiKeys.url: e}).toList();
-                            final conversationId = userDetailsMap[ApiKeys.conversation_id];
+                          chatViewController.isChatFromBusinessProfile(true);
+                          chatViewController.canPopBusiness.value=true;
 
-                            final hasConversation = conversationId != null &&
-                                conversationId.toString().isNotEmpty &&
-                                conversationId.toString().toLowerCase() != 'null';
-
-                            Map<String, dynamic> data = {
-                              ApiKeys.food_id: item.id.toString(),
-                              ApiKeys.price: productPriceFormat.toString(),
-                              ApiKeys.discount: "",
-                              if (hasConversation)
-                                ApiKeys.conversation_id: conversationId
-                              else
-                                ApiKeys.other_user_id:
-                                userDetailsMap[ApiKeys.other_user_id] ?? '',
-                              ApiKeys.message: item.title,
-                              ApiKeys.message_type: AppConstants.food,
-                              ApiKeys.title: item.title,
-                              ApiKeys.veg_type: item.vegType,
-                              ApiKeys.sub_category: item.subCategory,
-                              ApiKeys.calories:
-                              item.nutritionalSummaryPer100g?.caloriesKcal,
-                              ApiKeys.url: urlList,
-                            };
-
-                            chatViewController.isChatFromBusinessProfile(true);
-                            chatViewController.canPopBusiness.value=true;
-
-                            chatViewController.checkChatConnectionAndOpenChat(
-                              userId: business?.userId ?? '',
-                              shareProductParams: data,
-                              isWithProductSend: true,
-                              route: AppConstants.route_discover,
-                            );
-                          }
+                          chatViewController.checkChatConnectionAndOpenChat(
+                            userId: business?.userId ?? '',
+                            shareProductParams: data,
+                            isWithProductSend: true,
+                            route: AppConstants.route_discover,
+                          );
 
                         },
                         child: Container(

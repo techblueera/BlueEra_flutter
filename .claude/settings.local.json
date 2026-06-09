@@ -50,7 +50,8 @@
       "Bash(plutil -p /Users/Mr.bhavesh/Documents/GitHub/BlueEra_flutter/ios/Runner/GoogleService-Info.plist)",
       "Bash(git *)",
       "Bash(echo \"EXIT: $?\")",
-      "Bash(echo \"exit: $?\")"
+      "Bash(echo \"exit: $?\")",
+      "Bash(echo \"exit:$?\")"
     ]
   }
 }
