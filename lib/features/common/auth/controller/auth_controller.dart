@@ -494,30 +494,37 @@ class AuthController extends GetxController {
           // and forget — UI must not block on socket handshake.
           unawaited(ChatSocketService().connectToSocket());
 
-          logs(
-              " ApiKeys.category_Of_Business = ${reqData![ApiKeys.type_of_business]}");
-          logs(
-              " ApiKeys.ApiKeys.sub_category_Of_Business = ${reqData[ApiKeys.sub_category_Of_Business]}");
-          logs(
-              " ApiKeys.category_Of_Business = ${reqData[ApiKeys.category_Of_Business]}");
 
           final typeOfBusiness =
-              reqData[ApiKeys.type_of_business].toString().toUpperCase();
+              reqData?[ApiKeys.type_of_business].toString().toUpperCase();
           final categoryOfBusiness =
-              reqData[ApiKeys.category_Of_Business].toString().toUpperCase();
+              reqData?[ApiKeys.category_Of_Business].toString().toUpperCase();
+          // Build with conditional spreads so null fields are omitted
+          // entirely rather than serialized as JSON `null`. The
+          // create*Profile endpoints below send this as a JSON body
+          // (not multipart), and the backend rejects an explicit null
+          // ("null data can't pass") — e.g. `nature_of_business` is null
+          // for a Service-type business that has no nature of business.
+          // (Multipart requests coerce null → "" so they didn't surface
+          // this, which is why it only reproduced on the JSON path.)
           final reqBody = <String, dynamic>{
-            ApiKeys.business_name: reqData[ApiKeys.business_name],
-            ApiKeys.business_location: reqData[ApiKeys.business_location],
-            ApiKeys.type_of_business: reqData[ApiKeys.type_of_business],
-            ApiKeys.nature_of_business: reqData[ApiKeys.nature_of_business],
+            ApiKeys.business_name: reqData?[ApiKeys.business_name],
+            ApiKeys.business_location: reqData?[ApiKeys.business_location],
+            ApiKeys.type_of_business: reqData?[ApiKeys.type_of_business],
+            if (reqData?[ApiKeys.nature_of_business] != null)
+              ApiKeys.nature_of_business: reqData?[ApiKeys.nature_of_business],
             ApiKeys.date_of_incorporation:
-                reqData[ApiKeys.date_of_incorporation],
+                reqData?[ApiKeys.date_of_incorporation],
             ApiKeys.category_Of_Business:
-                reqData[ApiKeys.category_Of_Business],
-            ApiKeys.sub_category_Of_Business:
-                reqData[ApiKeys.sub_category_Of_Business],
-            ApiKeys.number_of_Employees: reqData[ApiKeys.number_of_Employees],
-            ApiKeys.number_of_branch: reqData[ApiKeys.number_of_branch],
+                reqData?[ApiKeys.category_Of_Business],
+            if (reqData?[ApiKeys.sub_category_Of_Business] != null)
+              ApiKeys.sub_category_Of_Business:
+                  reqData?[ApiKeys.sub_category_Of_Business],
+            if (reqData?[ApiKeys.number_of_Employees] != null)
+              ApiKeys.number_of_Employees:
+                  reqData?[ApiKeys.number_of_Employees],
+            if (reqData?[ApiKeys.number_of_branch] != null)
+              ApiKeys.number_of_branch: reqData?[ApiKeys.number_of_branch],
           };
 
           // Parallelize the slowest network steps so the user reaches
@@ -552,7 +559,7 @@ class AuthController extends GetxController {
               typeOfBusiness == BusinessType.Service.name.toUpperCase()) {
             final controller =
                 getOrPut(() => BusinessProfileFullController());
-            reqBody['profileName'] = reqData[ApiKeys.business_name];
+            reqBody['profileName'] = reqData?[ApiKeys.business_name];
             reqBody['type'] = "other";
             pending.add(
                 controller.createOtherProfileController(reqParm: reqBody));
@@ -560,7 +567,7 @@ class AuthController extends GetxController {
               typeOfBusiness == "BANKING_SECTOR") {
             final controller =
                 getOrPut(() => BusinessProfileFullController());
-            reqBody['profileName'] = reqData[ApiKeys.business_name];
+            reqBody['profileName'] = reqData?[ApiKeys.business_name];
             reqBody['type'] = "finance";
             reqBody['sub_type'] = categoryOfBusiness;
             // reqBody['sub_type'] = typeOfBusiness;
@@ -568,7 +575,7 @@ class AuthController extends GetxController {
                 controller.createOtherProfileController(reqParm: reqBody));
           } else if (typeOfBusiness ==
               BusinessType.Motel.name.toUpperCase()) {
-            pending.add(_createMotelService(reqData));
+            pending.add(_createMotelService(reqData??{}));
           }
 
           await Future.wait(pending);

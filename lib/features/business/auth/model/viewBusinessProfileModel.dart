@@ -94,9 +94,11 @@ class BusinessProfileDetails {
     natureOfBusiness = json['Nature_of_Business']=='false'? '' : json['Nature_of_Business'];
     isActive = json['isActive'];
     businessIsVerified = json['business_isVerified'];
-    livePhotos=json['live_photos'].cast<String>();
-    if (json['live_photos'] != null&&json['live_photos'].isNotEmpty) {
-      livePhotos=json['live_photos'].cast<String>();
+    if (json['live_photos'] != null && json['live_photos'].isNotEmpty) {
+      livePhotos = (json['live_photos'] as List)
+          .where((e) => e != null)
+          .map((e) => e.toString())
+          .toList();
     }
     total_views=json['total_views'];
     total_followers=json['total_followers'];
