@@ -40,7 +40,7 @@ class InterstitialAdManager {
   /// on any device without test-device registration or live-unit fill. Google's
   /// test units serve test ads everywhere with no policy risk.
   /// REVERT to `false` for production (debug→test, release→live).
-  static const bool _forceTestAds = true;
+  static const bool _forceTestAds = false;
 
   String get _adUnitId {
     if (_forceTestAds) {
