@@ -89,8 +89,6 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   if (operation == 'incoming_call') {
     try {
       final data = message.data;
-      final callerName = (data['senderName'] ?? 'Unknown').toString();
-      final callerImage = (data['senderProfileImage'] ?? '').toString();
 
       // Defensive parsing: backend may send payload/callerData as a JSON
       // string OR as an already-decoded Map (depending on FCM path). Either
@@ -111,6 +109,31 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       } else if (callerRaw is Map) {
         callerData = Map<String, dynamic>.from(callerRaw);
       }
+
+      // Resolve the caller's display name / id / image with fallbacks so the
+      // receiver's call screen shows who is calling instead of "Unknown".
+      // Primary keys are the top-level FCM fields; fall back to callerData
+      // (sent for richer caller info) when those are missing.
+      String callerName = (data['senderName'] ?? '').toString();
+      if (callerName.isEmpty) {
+        callerName = (callerData['name'] ??
+                callerData['full_name'] ??
+                callerData['user_name'] ??
+                '')
+            .toString();
+      }
+      if (callerName.isEmpty) callerName = 'Unknown';
+
+      String callerImage = (data['senderProfileImage'] ?? '').toString();
+      if (callerImage.isEmpty) {
+        callerImage = (callerData['profile_image'] ?? '').toString();
+      }
+
+      final senderId = (data['senderId'] ??
+              callerData['_id'] ??
+              callerData['id'] ??
+              '')
+          .toString();
 
       final callType = (payload['call_type'] ?? 'audio_call').toString();
       final callId = (payload['call_id'] ?? '').toString();
@@ -155,11 +178,11 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
       final profileImage = (callerData['profile_image'] ?? '').toString();
       final extras = <String, dynamic>{
-        'senderId': (data['senderId'] ?? '').toString(),
+        'senderId': senderId,
         'conversationId': (data['conversationId'] ?? '').toString(),
         'callType': callType,
         'callerName': callerName,
-        'callerImage': callerImage,
+        'callerImage': callerImage.isNotEmpty ? callerImage : profileImage,
         'callId': callId,
         'roomId': roomId,
         'operation': 'incoming_call',

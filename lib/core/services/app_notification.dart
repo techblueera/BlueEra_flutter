@@ -79,6 +79,9 @@ void onForegroundNotificationResponse(NotificationResponse response) {
       if (Get.isRegistered<CallController>()) {
         final ctrl = Get.find<CallController>();
         ctrl.initStateFromCallKitExtra(data);
+        // Accepted from a background full-screen-intent notification — the user
+        // was outside the app, so call-end should return them to the background.
+        CallController.markEnteredFromBackground();
         ctrl.acceptCall(
           callIdParams: callId,
           roomIdParams: roomId,

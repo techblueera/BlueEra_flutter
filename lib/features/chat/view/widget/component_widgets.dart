@@ -18,7 +18,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/services.dart';
 import 'package:pinput/pinput.dart';
 import '../../auth/controller/call_controller.dart';
-import '../../auth/service/call_activity_service.dart';
 import '../../auth/controller/chat_flag_controller.dart';
 import 'chat_flag_bottom_sheet.dart';
 import '../../../../core/api/apiService/api_keys.dart';
@@ -1273,39 +1272,8 @@ void _initiateCallFromChat({
   required String userName,
   required String userImage,
 }) async {
-  // On Android: launch call in a separate task (WhatsApp-style separate Recent Apps entry)
-  if (Platform.isAndroid) {
-    CallController.isCallActivityActive = true;
-    final launched = await CallActivityService.launchCallActivity(
-      callId: '',
-      roomId: '',
-      conversationId: conversationId ?? '',
-      callType: callType == CallType.video ? 'video' : 'audio',
-      callerName: userName,
-      callerImage: userImage,
-      remoteUserId: otherUserId ?? '',
-      remoteUserName: userName,
-      remoteUserImage: userImage,
-      isCaller: true,
-    );
-    print("launched: $launched");
-    if (launched) {
-      _refreshChatAfterOutgoingCall(conversationId);
-    } else {
-      // Fallback to in-app call if CallActivity launch fails
-      CallController.isCallActivityActive = false;
-      _initiateCallInApp(
-        callType: callType,
-        otherUserId: otherUserId,
-        conversationId: conversationId,
-        userName: userName,
-        userImage: userImage,
-      );
-    }
-    return;
-  }
-
-  // On iOS: use in-app call flow (no separate task support)
+  // Always use the in-app call flow (Android + iOS). We no longer launch a
+  // separate Android CallActivity/task — the call opens in the SAME activity.
   _initiateCallInApp(
     callType: callType,
     otherUserId: otherUserId,
