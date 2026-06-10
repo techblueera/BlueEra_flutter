@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -12,124 +13,20 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class GrocerySelfPickUpCartScreen extends StatefulWidget {
+/// Multi-store grocery cart (Zomato-style). One card per store, each with its
+/// own product list + Checkout button; a "Checkout All" bar appears when there
+/// is more than one store. Each store checks out as its own order.
+class GrocerySelfPickUpCartScreen extends StatelessWidget {
   const GrocerySelfPickUpCartScreen({super.key});
 
-  @override
-  State<GrocerySelfPickUpCartScreen> createState() =>
-      _GrocerySelfPickUpCartScreenState();
-}
+  static const Color _primary = AppColors.primaryColor;
+  static const Color _primaryDeep = AppColors.blue5CAF;
 
-class _GrocerySelfPickUpCartScreenState
-    extends State<GrocerySelfPickUpCartScreen> {
   static const List<Color> _cardColors = [
     Color(0xFFEFF6FF),
     Color(0xFFF6F0FF),
     Color(0xFFFFF5EC),
   ];
-
-  /// Stores the user has opted-into for the order.
-  final RxSet<String> selectedBusinessIds = <String>{}.obs;
-
-  /// Variants the user wants in the order — defaulted to "all" on first
-  /// build, then user can deselect individual rows from the store card.
-  final RxSet<String> selectedVariantIds = <String>{}.obs;
-
-  bool _initialized = false;
-
-  Map<String, List<ProductVariants>> _groupByBusiness(
-      GrocerySelfPickupConsumerController controller) {
-    final Map<String, List<ProductVariants>> grouped = {};
-    for (var variant in controller.selectedGroceriesVariants) {
-      final info = controller.cartBusinessInfo[variant.sId];
-      final businessId = info?['businessId'] ?? 'unknown';
-      grouped.putIfAbsent(businessId, () => []).add(variant);
-    }
-    if (!_initialized && grouped.isNotEmpty) {
-      selectedBusinessIds.addAll(grouped.keys);
-      for (final v in controller.selectedGroceriesVariants) {
-        final id = v.sId;
-        if (id != null) selectedVariantIds.add(id);
-      }
-      _initialized = true;
-    }
-    return grouped;
-  }
-
-  double _calcTotal(List<ProductVariants> items,
-      GrocerySelfPickupConsumerController controller) {
-    double total = 0;
-    for (var v in items) {
-      if (!selectedVariantIds.contains(v.sId)) continue;
-      int qty = controller.getQuantity(v.sId);
-      double sp =
-          double.tryParse(v.pricing?.first.sellingPrice.toString() ?? '0') ?? 0;
-      total += sp * qty;
-    }
-    return total;
-  }
-
-  int _calcItemCount(List<ProductVariants> items,
-      GrocerySelfPickupConsumerController controller) {
-    int count = 0;
-    for (var v in items) {
-      if (!selectedVariantIds.contains(v.sId)) continue;
-      count += controller.getQuantity(v.sId);
-    }
-    return count;
-  }
-
-  /// Average discount % across the store's variants — used by the corner
-  /// ribbon. Variants with no MRP / no selling price are skipped.
-  double _calcAverageDiscount(List<ProductVariants> items) {
-    double total = 0;
-    int count = 0;
-    for (var v in items) {
-      final pricing = v.pricing;
-      if (pricing == null || pricing.isEmpty) continue;
-      final mrp = (pricing.first.mrp ?? 0).toDouble();
-      final sp = (pricing.first.sellingPrice ?? 0).toDouble();
-      if (mrp <= 0 || sp <= 0 || sp >= mrp) continue;
-      total += ((mrp - sp) / mrp) * 100;
-      count++;
-    }
-    return count == 0 ? 0 : total / count;
-  }
-
-  void _toggleVariant(String? id) {
-    if (id == null) return;
-    if (selectedVariantIds.contains(id)) {
-      selectedVariantIds.remove(id);
-    } else {
-      selectedVariantIds.add(id);
-    }
-  }
-
-  /// Strip variants the user has unchecked (per-product OR whole-shop)
-  /// from the controller's cart, then place the order. Without this the
-  /// API would receive every variant in the cart regardless of checkbox
-  /// state.
-  void _placeOrder(GrocerySelfPickupConsumerController controller,
-      Map<String, List<ProductVariants>> grouped) {
-    final toDrop = <ProductVariants>[];
-    for (final entry in grouped.entries) {
-      final shopChecked = selectedBusinessIds.contains(entry.key);
-      for (final v in entry.value) {
-        final variantChecked = selectedVariantIds.contains(v.sId);
-        if (!shopChecked || !variantChecked) toDrop.add(v);
-      }
-    }
-
-    // removeFromCart decrements by 1 per call; loop until qty hits 0 so
-    // the variant is fully evicted before the order goes out.
-    for (final v in toDrop) {
-      while (controller.getQuantity(v.sId) > 0) {
-        controller.removeFromCart(v);
-      }
-    }
-
-    controller.placeBulkGroceryOrderApi();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -146,114 +43,145 @@ class _GrocerySelfPickUpCartScreenState
               color: AppColors.mainTextColor, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
-        title: CustomText(
-          AppStrings.groceryViewSelfPickUp.tr,
-          fontSize: SizeConfig.extraLarge,
-          fontWeight: FontWeight.w700,
-          color: AppColors.mainTextColor,
-        ),
+        title: Obx(() {
+          final _ = controller.selectedGroceriesVariants.length; // subscribe
+          final n = controller.storeCount;
+          return CustomText(
+            n > 1 ? 'Your Carts ($n)' : 'Your Cart',
+            fontSize: SizeConfig.extraLarge,
+            fontWeight: FontWeight.w700,
+            color: AppColors.mainTextColor,
+          );
+        }),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(color: AppColors.appBackgroundColor, height: 1),
         ),
       ),
       body: Obx(() {
-        final variants = controller.selectedGroceriesVariants;
+        // Subscribe to both the item list and quantities so the cards +
+        // per-store totals repaint on every add / remove / +/- tap.
+        final _ = controller.cartQuantities.length;
+        final __ = controller.selectedGroceriesVariants.length;
 
-        if (variants.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.shopping_bag_outlined,
-                    size: 64, color: AppColors.greyCA),
-                const SizedBox(height: 16),
-                CustomText(
-                  AppStrings.groceryViewNoItemsSelfPickup.tr,
-                  fontSize: SizeConfig.large,
-                  color: AppColors.secondaryTextColor,
-                ),
-              ],
-            ),
-          );
-        }
+        if (controller.isEmpty) return _emptyState();
 
-        final grouped = _groupByBusiness(controller);
-        final businessIds = grouped.keys.toList();
-
+        final keys = controller.storeKeys;
         return Column(
           children: [
             Expanded(
               child: ListView.builder(
-                itemCount: businessIds.length,
+                itemCount: keys.length,
                 padding: EdgeInsets.all(SizeConfig.paddingM),
-                itemBuilder: (context, index) {
-                  final businessId = businessIds[index];
-                  final items = grouped[businessId]!;
-                  final businessInfo =
-                      controller.cartBusinessInfo[items.first.sId] ?? {};
-                  final Color bgColor =
-                      _cardColors[index % _cardColors.length];
-
-                  return _StoreCard(
-                    businessName: businessInfo['businessName'] ??
-                        AppStrings.groceryViewUnknownStore.tr,
-                    businessLogo: businessInfo['logo'] ?? '',
-                    businessAddress: businessInfo['address'] ?? '',
-                    items: items,
-                    controller: controller,
-                    bgColor: bgColor,
-                    selectedVariantIds: selectedVariantIds,
-                    onVariantToggle: _toggleVariant,
-                    averageDiscount: _calcAverageDiscount(items),
-                  );
-                },
+                itemBuilder: (context, index) => _StoreCard(
+                  controller: controller,
+                  businessId: keys[index],
+                  bgColor: _cardColors[index % _cardColors.length],
+                ),
               ),
             ),
-            _BottomSummaryBar(
-              grouped: grouped,
-              controller: controller,
-              calcTotal: _calcTotal,
-              calcItemCount: _calcItemCount,
-              selectedBusinessIds: selectedBusinessIds,
-              onPlaceOrder: () => _placeOrder(controller, grouped),
-            ),
+            _PlaceOrderBar(controller: controller),
           ],
         );
       }),
     );
   }
+
+  Widget _emptyState() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.shopping_bag_outlined, size: 64, color: AppColors.greyCA),
+          const SizedBox(height: 16),
+          CustomText(
+            AppStrings.groceryViewNoItemsSelfPickup.tr,
+            fontSize: SizeConfig.large,
+            color: AppColors.secondaryTextColor,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Shared gradient primary checkout button.
+  static Widget checkoutButton({
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(colors: [_primaryDeep, _primary]),
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: _primary.withValues(alpha: 0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: CustomText(
+          label,
+          fontSize: SizeConfig.medium,
+          fontWeight: FontWeight.w800,
+          color: AppColors.white,
+        ),
+      ),
+    );
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════
-//  STORE CARD — header + inline product list
+//  STORE CARD — header + product list + per-store checkout footer
 // ═══════════════════════════════════════════════════════════════════
 
 class _StoreCard extends StatelessWidget {
-  final String businessName;
-  final String businessLogo;
-  final String businessAddress;
-  final List<ProductVariants> items;
   final GrocerySelfPickupConsumerController controller;
+  final String businessId;
   final Color bgColor;
-  final RxSet<String> selectedVariantIds;
-  final void Function(String?) onVariantToggle;
-  final double averageDiscount;
 
   const _StoreCard({
-    required this.businessName,
-    required this.businessLogo,
-    required this.businessAddress,
-    required this.items,
     required this.controller,
+    required this.businessId,
     required this.bgColor,
-    required this.selectedVariantIds,
-    required this.onVariantToggle,
-    required this.averageDiscount,
   });
+
+  Map<String, String> get _info => controller.storeInfoOf(businessId);
+
+  List<ProductVariants> get _items => controller.variantsOf(businessId);
+
+  double _calcAverageDiscount(List<ProductVariants> items) {
+    double total = 0;
+    int count = 0;
+    for (var v in items) {
+      final pricing = v.pricing;
+      if (pricing == null || pricing.isEmpty) continue;
+      final mrp = (pricing.first.mrp ?? 0).toDouble();
+      final sp = (pricing.first.sellingPrice ?? 0).toDouble();
+      if (mrp <= 0 || sp <= 0 || sp >= mrp) continue;
+      total += ((mrp - sp) / mrp) * 100;
+      count++;
+    }
+    return count == 0 ? 0 : total / count;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final items = _items;
+    final businessName =
+        _info['businessName']?.isNotEmpty == true
+            ? _info['businessName']!
+            : AppStrings.groceryViewUnknownStore.tr;
+    final businessLogo = _info['logo'] ?? '';
+    final businessAddress = _info['address'] ?? '';
+    final averageDiscount = _calcAverageDiscount(items);
+
     return Container(
       margin: EdgeInsets.only(bottom: SizeConfig.size12),
       decoration: BoxDecoration(
@@ -266,25 +194,18 @@ class _StoreCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildHeader(),
-            if (businessAddress.isNotEmpty) _buildAddressRow(),
+            _buildHeader(businessName, businessLogo, averageDiscount),
+            if (businessAddress.isNotEmpty) _buildAddressRow(businessAddress),
             ...List.generate(items.length, (i) {
               final v = items[i];
-              // Why: productImage is in a SEPARATE map (cartProductImages),
-              // not inside cartBusinessInfo. Reading it from the right
-              // place is what makes the thumbnail render when the variant
-              // itself has no images attached.
-              final fallbackImage =
-                  controller.cartProductImages[v.sId] ?? '';
+              final fallbackImage = controller.cartProductImages[v.sId] ?? '';
               return _ProductRow(
                 variant: v,
                 fallbackImage: fallbackImage,
                 controller: controller,
-                isSelected: selectedVariantIds.contains(v.sId),
-                onToggle: () => onVariantToggle(v.sId),
               );
             }),
-            const SizedBox(height: 4),
+            const SizedBox(height: 8),
           ],
         ),
       ),
@@ -292,13 +213,8 @@ class _StoreCard extends StatelessWidget {
   }
 
   String? get _distanceLabel {
-    // Compute live distance from the user's current location to the
-    // business lat/lng stashed at add-to-cart time. calculateDistance
-    // returns null when either side is missing/zero.
-    final lat =
-        double.tryParse(businessInfo['lat']?.toString() ?? '') ?? 0.0;
-    final lng =
-        double.tryParse(businessInfo['lng']?.toString() ?? '') ?? 0.0;
+    final lat = double.tryParse(_info['lat'] ?? '') ?? 0.0;
+    final lng = double.tryParse(_info['lng'] ?? '') ?? 0.0;
     if (lat == 0 && lng == 0) return null;
     final km = calculateDistance(lat, lng);
     if (km == null) return null;
@@ -306,36 +222,21 @@ class _StoreCard extends StatelessWidget {
   }
 
   String? get _shopTypeLabel {
-    final raw = (businessInfo['shopType'] ??
-            businessInfo['categoryName'] ??
-            businessInfo['category'] ??
-            businessInfo['natureOfBusiness'])
-        ?.toString();
+    final raw = _info['category'];
     if (raw == null || raw.trim().isEmpty) return null;
     return raw;
   }
 
-  // The card needs the businessInfo map for distance / shop-type lookup;
-  // it lives on the parent Map but we want it accessible in the helpers
-  // without threading another constructor arg. Read it lazily off the
-  // controller using the first variant's sId as the join key (same way
-  // the parent screen does).
-  Map get businessInfo {
-    final id = items.isNotEmpty ? items.first.sId : null;
-    if (id == null) return const {};
-    return controller.cartBusinessInfo[id] ?? const {};
-  }
-
-  Widget _buildHeader() {
+  Widget _buildHeader(String name, String logo, double avgDiscount) {
     final distance = _distanceLabel;
     final shopType = _shopTypeLabel;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 12, 0, 12),
+      padding: const EdgeInsets.fromLTRB(12, 12, 4, 12),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CachedAvatarWidget(
-            imageUrl: businessLogo,
+            imageUrl: logo,
             size: SizeConfig.size40,
             borderColor: Colors.white,
             borderRadius: SizeConfig.size20,
@@ -346,7 +247,7 @@ class _StoreCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  businessName,
+                  name,
                   fontSize: SizeConfig.medium,
                   color: AppColors.mainTextColor,
                   fontWeight: FontWeight.w800,
@@ -369,13 +270,23 @@ class _StoreCard extends StatelessWidget {
               ],
             ),
           ),
-          if (averageDiscount > 0) _DiscountRibbon(percent: averageDiscount),
+          if (avgDiscount > 0) _DiscountRibbon(percent: avgDiscount),
+          // Clear this store's cart.
+          InkWell(
+            onTap: () => controller.clearStore(businessId),
+            borderRadius: BorderRadius.circular(20),
+            child: Padding(
+              padding: const EdgeInsets.all(6),
+              child: Icon(Icons.close_rounded,
+                  size: 18, color: AppColors.secondaryTextColor),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildAddressRow() {
+  Widget _buildAddressRow(String businessAddress) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
       child: Row(
@@ -397,10 +308,10 @@ class _StoreCard extends StatelessWidget {
       ),
     );
   }
+
 }
 
-/// Single-column vertical dashed line — short segments with a gap
-/// between them along the Y-axis, antialiased on a 1-px stroke.
+/// Single-column vertical dashed line.
 class _VerticalDashedLine extends StatelessWidget {
   final double height;
   const _VerticalDashedLine({required this.height});
@@ -469,9 +380,6 @@ class _ShopTypePill extends StatelessWidget {
   }
 }
 
-/// Mirrors the shop-type pill but tinted neutral so the two chips read
-/// as a pair instead of competing for color emphasis. Pin icon + text in
-/// the same secondary-text color the row already uses.
 class _DistancePill extends StatelessWidget {
   final String label;
   const _DistancePill({required this.label});
@@ -483,10 +391,7 @@ class _DistancePill extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: AppColors.greyE5,
-          width: 0.6,
-        ),
+        border: Border.all(color: AppColors.greyE5, width: 0.6),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -508,22 +413,18 @@ class _DistancePill extends StatelessWidget {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-//  PRODUCT ROW
+//  PRODUCT ROW (no checkbox — every item is part of its store's order)
 // ═══════════════════════════════════════════════════════════════════
 
 class _ProductRow extends StatelessWidget {
   final ProductVariants variant;
   final String fallbackImage;
   final GrocerySelfPickupConsumerController controller;
-  final bool isSelected;
-  final VoidCallback onToggle;
 
   const _ProductRow({
     required this.variant,
     required this.fallbackImage,
     required this.controller,
-    required this.isSelected,
-    required this.onToggle,
   });
 
   void _handleRemove(BuildContext context) {
@@ -532,12 +433,9 @@ class _ProductRow extends StatelessWidget {
       controller.removeFromCart(variant);
       return;
     }
-    // qty is about to drop to 0 — confirm with the user before evicting
-    // the variant from the cart.
     Get.dialog(
       Dialog(
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 22, 20, 16),
           child: Column(
@@ -632,140 +530,63 @@ class _ProductRow extends StatelessWidget {
     final pricing = variant.pricing?.first;
     final sellingPrice = pricing?.sellingPrice ?? 0;
     final mrp = pricing?.mrp ?? 0;
-    final hasDiscount =
-        mrp > sellingPrice && mrp != 0 && sellingPrice != 0;
-    final discountPct = hasDiscount
-        ? (((mrp - sellingPrice) / mrp) * 100).round()
-        : 0;
+    final hasDiscount = mrp > sellingPrice && mrp != 0 && sellingPrice != 0;
+    final discountPct =
+        hasDiscount ? (((mrp - sellingPrice) / mrp) * 100).round() : 0;
 
-    // Image source priority: variant.images → fallbackImage (parent
-    // product image stored on cartProductImages) → placeholder.
     final variantImage =
         (variant.images != null && variant.images!.isNotEmpty)
             ? (variant.images!.first.url ?? '')
             : '';
-    final imageUrl =
-        variantImage.isNotEmpty ? variantImage : fallbackImage;
+    final imageUrl = variantImage.isNotEmpty ? variantImage : fallbackImage;
 
-    // Selection paints in three subtle layers — bg wash, border tint,
-    // and a soft primary-tinted shadow — instead of one loud accent.
-    // Animated together so the row breathes when toggled.
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 180),
-      curve: Curves.easeOut,
+    return Container(
       margin: const EdgeInsets.fromLTRB(10, 5, 10, 5),
       padding: const EdgeInsets.fromLTRB(10, 10, 12, 10),
       decoration: BoxDecoration(
-        // Why: alphaBlend onto white so the selection wash stays opaque
-        // — a transparent tint would let the pastel store card bleed
-        // through and muddy the row's whites.
-        color: isSelected
-            ? Color.alphaBlend(
-                AppColors.primaryColor.withValues(alpha: 0.04),
-                AppColors.white,
-              )
-            : AppColors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: isSelected
-              ? AppColors.primaryColor.withValues(alpha: 0.35)
-              : AppColors.greyE5,
-          width: 0.6,
-        ),
-        boxShadow: isSelected
-            ? [
-                BoxShadow(
-                  color: AppColors.primaryColor.withValues(alpha: 0.06),
-                  blurRadius: 10,
-                  offset: const Offset(0, 2),
-                ),
-              ]
-            : null,
+        border: Border.all(color: AppColors.greyE5, width: 0.6),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Checkbox — same custom animated mark used elsewhere on
-          // the screen (kept the InkWell wrapper so only the 18×18
-          // hit zone toggles, matching the original tap behavior).
-          InkWell(
-            onTap: onToggle,
-            borderRadius: BorderRadius.circular(4),
-            child: Padding(
-              padding: const EdgeInsets.all(2),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 160),
-                width: 18,
-                height: 18,
-                decoration: BoxDecoration(
-                  color: isSelected
-                      ? AppColors.primaryColor
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(
-                    color: isSelected
-                        ? AppColors.primaryColor
-                        : AppColors.greyCA,
-                    width: 1.5,
-                  ),
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.greyE5, width: 0.6),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.black.withValues(alpha: 0.04),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
                 ),
-                child: isSelected
-                    ? const Icon(Icons.check_rounded,
-                        size: 13, color: Colors.white)
-                    : null,
-              ),
+              ],
             ),
-          ),
-          const SizedBox(width: 10),
-          // Thumbnail — soft framed box with its own gentle shadow so
-          // it reads as a small product tile rather than a flat crop.
-          // Fades to 55% opacity when unchecked: a glance tells you
-          // which items the order will skip.
-          AnimatedOpacity(
-            duration: const Duration(milliseconds: 200),
-            opacity: isSelected ? 1.0 : 0.55,
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: AppColors.greyE5, width: 0.6),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.black.withValues(alpha: 0.04),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: SizedBox(
-                  width: 54,
-                  height: 54,
-                  child: imageUrl.isEmpty
-                      ? LocalAssets(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: SizedBox(
+                width: 54,
+                height: 54,
+                child: imageUrl.isEmpty
+                    ? LocalAssets(
+                        imagePath: AppIconAssets.place_holder_image,
+                        boxFix: BoxFit.cover,
+                      )
+                    : CachedNetworkImage(
+                        imageUrl: imageUrl,
+                        fit: BoxFit.cover,
+                        placeholder: (_, __) =>
+                            Container(color: Colors.grey.shade200),
+                        errorWidget: (_, __, ___) => LocalAssets(
                           imagePath: AppIconAssets.place_holder_image,
                           boxFix: BoxFit.cover,
-                        )
-                      : CachedNetworkImage(
-                          imageUrl: imageUrl,
-                          fit: BoxFit.cover,
-                          placeholder: (_, __) =>
-                              Container(color: Colors.grey.shade200),
-                          errorWidget: (_, __, ___) => LocalAssets(
-                            imagePath: AppIconAssets.place_holder_image,
-                            boxFix: BoxFit.cover,
-                          ),
                         ),
-                ),
+                      ),
               ),
             ),
           ),
           const SizedBox(width: 12),
-          // Title + meta. Two clean tiers: variant name (bumped to
-          // weight 700 for presence), then a "qty · ₹X/unit" caption
-          // separated by a typographic middle dot — replaces the
-          // 0.6×10 pixel divider, which read as a stray artifact at
-          // small sizes.
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -817,17 +638,8 @@ class _ProductRow extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 10),
-          // Vertical dashed divider — kept as the screen's signature
-          // aesthetic. Slightly taller (60) so it spans the
-          // price → discount → stepper trio cleanly when a discount
-          // chip is present.
           const _VerticalDashedLine(height: 60),
           const SizedBox(width: 10),
-          // Right column: selling price (dominant), strikethrough MRP
-          // + lime "% off" chip below it (only when discounted), and
-          // the qty stepper at the bottom. The chip uses the same
-          // green family as the store card's discount ribbon so the
-          // savings story stays color-consistent across the screen.
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -870,9 +682,6 @@ class _ProductRow extends StatelessWidget {
                 ),
               ],
               const SizedBox(height: 6),
-              // Why: Obx so the quantity number repaints when add/remove
-              // mutates controller.cartQuantities — without this the
-              // stepper text stays frozen at the build-time value.
               Obx(() => _QtyStepper(
                     quantity: controller.getQuantity(variant.sId),
                     onAdd: () => controller.addToCart(variant),
@@ -903,13 +712,6 @@ class _QtyStepper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Sized for in-row presence: 34×34 tap targets and 16-px icons
-    // with a weight-800 qty number. Light primary wash — no border,
-    // no shadow — so the stepper sits inside the row as a tinted
-    // control rather than a floating elevated box. The +/- glyphs
-    // render in primaryColor; the minus glyph flips to a red delete
-    // icon at qty 1 so the destructive transition is telegraphed
-    // before the confirm dialog opens.
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(10),
@@ -927,17 +729,13 @@ class _QtyStepper extends StatelessWidget {
               child: Center(
                 child: Icon(
                   quantity == 1 ? Icons.delete_outline : Icons.remove,
-                  color: quantity == 1
-                      ? AppColors.red
-                      : AppColors.primaryColor,
+                  color:
+                      quantity == 1 ? AppColors.red : AppColors.primaryColor,
                   size: 16,
                 ),
               ),
             ),
           ),
-          // Number lane — minWidth 22 so the stepper doesn't shimmy
-          // horizontally when the qty crosses 9 → 10 (single → double
-          // digit). Centered glyph keeps the layout symmetric.
           Container(
             constraints: const BoxConstraints(minWidth: 22),
             alignment: Alignment.center,
@@ -955,11 +753,7 @@ class _QtyStepper extends StatelessWidget {
               width: 34,
               height: 34,
               child: Center(
-                child: Icon(
-                  Icons.add,
-                  size: 16,
-                  color: AppColors.primaryColor,
-                ),
+                child: Icon(Icons.add, size: 16, color: AppColors.primaryColor),
               ),
             ),
           ),
@@ -980,35 +774,24 @@ class _DiscountRibbon extends StatelessWidget {
   String get _label {
     final clamped = percent > 99 ? 99 : percent;
     final isWhole = clamped == clamped.roundToDouble();
-    return isWhole
-        ? clamped.toStringAsFixed(0)
-        : clamped.toStringAsFixed(1);
+    return isWhole ? clamped.toStringAsFixed(0) : clamped.toStringAsFixed(1);
   }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(right: 10),
+      padding: const EdgeInsets.only(right: 4),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          // Why: radial gradient (lime center → deep-green edge) gives
-          // the badge the "stamped" feel from the mockup, and the 2px
-          // yellow ring frames it like a sticker on the card corner.
           gradient: const RadialGradient(
             center: Alignment(-0.2, -0.4),
             radius: 1.1,
-            // Why: prior #EEFB7E center read too acidic; #B5D147 is the
-            // same lime family but a touch darker so the white text /
-            // yellow border don't fight it for contrast.
             colors: [Color(0xFFB5D147), Color(0xFF0D8A47)],
             stops: [0.0, 1.0],
           ),
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: const Color(0xFFFFD83D),
-            width: 2,
-          ),
+          border: Border.all(color: const Color(0xFFFFD83D), width: 2),
           boxShadow: [
             BoxShadow(
               color: const Color(0xFF15A352).withValues(alpha: 0.28),
@@ -1021,8 +804,6 @@ class _DiscountRibbon extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // "20% Off" laid out as a single row so the % and word read
-            // together — matches the mockup's hierarchy.
             Row(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.end,
@@ -1071,48 +852,22 @@ class _DiscountRibbon extends StatelessWidget {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-//  BOTTOM SUMMARY BAR (per-shop checkboxes + grand total + Place Order)
+//  PLACE ORDER BAR — single checkout for the whole cart (all stores).
+//  Uses the original bulk-order call, which posts every item and then
+//  lands on the Chats → Inquiry tab.
 // ═══════════════════════════════════════════════════════════════════
 
-class _BottomSummaryBar extends StatelessWidget {
-  final Map<String, List<ProductVariants>> grouped;
+class _PlaceOrderBar extends StatelessWidget {
   final GrocerySelfPickupConsumerController controller;
-  final double Function(List<ProductVariants>,
-      GrocerySelfPickupConsumerController) calcTotal;
-  final int Function(List<ProductVariants>,
-      GrocerySelfPickupConsumerController) calcItemCount;
-  final RxSet<String> selectedBusinessIds;
-  final VoidCallback onPlaceOrder;
-
-  const _BottomSummaryBar({
-    required this.grouped,
-    required this.controller,
-    required this.calcTotal,
-    required this.calcItemCount,
-    required this.selectedBusinessIds,
-    required this.onPlaceOrder,
-  });
+  const _PlaceOrderBar({required this.controller});
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      // Force subscription to qty changes — calcTotal reads cartQuantities
-      // indirectly via getQuantity, but touching the map's length here
-      // guarantees this Obx rebuilds on every +/− tap.
-      // ignore: unused_local_variable
-      final _ = controller.cartQuantities.length;
-      double grandTotal = 0;
-      int grandItemCount = 0;
-      int selectedShopCount = 0;
-
-      for (var entry in grouped.entries) {
-        if (selectedBusinessIds.contains(entry.key)) {
-          grandTotal += calcTotal(entry.value, controller);
-          grandItemCount += calcItemCount(entry.value, controller);
-          selectedShopCount++;
-        }
-      }
-
+      final _ = controller.cartQuantities.length; // subscribe
+      final total = controller.totalSellingPrice;
+      final items = controller.totalItemsCount;
+      final stores = controller.storeCount;
       return Container(
         decoration: BoxDecoration(
           color: AppColors.white,
@@ -1123,154 +878,43 @@ class _BottomSummaryBar extends StatelessWidget {
               offset: const Offset(0, -4),
             ),
           ],
-          borderRadius:
-              const BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: SafeArea(
           top: false,
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+            child: Row(
               children: [
-                ...grouped.entries.map((entry) {
-                  final businessId = entry.key;
-                  final items = entry.value;
-                  final businessInfo =
-                      controller.cartBusinessInfo[items.first.sId] ?? {};
-                  final shopName = businessInfo['businessName'] ??
-                      AppStrings.groceryViewUnknownStore.tr;
-                  final shopTotal = calcTotal(items, controller);
-                  final shopItems = calcItemCount(items, controller);
-                  final isChecked =
-                      selectedBusinessIds.contains(businessId);
-
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: InkWell(
-                      onTap: () {
-                        if (isChecked) {
-                          selectedBusinessIds.remove(businessId);
-                        } else {
-                          selectedBusinessIds.add(businessId);
-                        }
-                      },
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: Checkbox(
-                              value: isChecked,
-                              onChanged: (val) {
-                                if (val == true) {
-                                  selectedBusinessIds.add(businessId);
-                                } else {
-                                  selectedBusinessIds.remove(businessId);
-                                }
-                              },
-                              activeColor: AppColors.primaryColor,
-                              checkColor: AppColors.white,
-                              materialTapTargetSize:
-                                  MaterialTapTargetSize.shrinkWrap,
-                              visualDensity: VisualDensity.compact,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: CustomText(
-                              '$shopName ($shopItems ${shopItems == 1 ? AppStrings.groceryViewItemLabel.tr : AppStrings.groceryViewItemsLabel.tr})',
-                              fontSize: SizeConfig.small,
-                              color: isChecked
-                                  ? AppColors.primaryColor
-                                  : AppColors.greyCA,
-                              fontWeight: FontWeight.w600,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          CustomText(
-                            '₹${shopTotal.toStringAsFixed(2)}',
-                            fontSize: SizeConfig.small,
-                            color: isChecked
-                                ? AppColors.mainTextColor
-                                : AppColors.greyCA,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        stores > 1
+                            ? '$items ${items == 1 ? 'item' : 'items'} · $stores stores'
+                            : '$items ${items == 1 ? 'item' : 'items'}',
+                        fontSize: SizeConfig.small,
+                        color: AppColors.secondaryTextColor,
+                        fontWeight: FontWeight.w500,
                       ),
-                    ),
-                  );
-                }),
-                const Divider(height: 16, color: AppColors.greyE5),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CustomText(
-                            '$selectedShopCount ${selectedShopCount == 1 ? AppStrings.groceryViewShopLabel.tr : AppStrings.groceryViewShopsLabel.tr} | $grandItemCount ${grandItemCount == 1 ? AppStrings.groceryViewProductLabel.tr : AppStrings.groceryViewProductsLabel.tr}',
-                            fontSize: SizeConfig.small,
-                            color: AppColors.secondaryTextColor,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          const SizedBox(height: 2),
-                          CustomText(
-                            '₹${grandTotal.toStringAsFixed(2)}',
-                            fontSize: SizeConfig.extraLarge,
-                            color: AppColors.mainTextColor,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ],
+                      const SizedBox(height: 2),
+                      CustomText(
+                        '${AppConstants.rupeeSymbol}${total.toStringAsFixed(2)}',
+                        fontSize: SizeConfig.extraLarge,
+                        color: AppColors.mainTextColor,
+                        fontWeight: FontWeight.w800,
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      // Why: gate on grandItemCount (counts only variants
-                      // whose shop AND variant checkbox are both on),
-                      // not selectedShopCount. So a single-shop cart with
-                      // every product unchecked correctly disables the
-                      // button, while multi-shop carts stay actionable
-                      // as long as ANY shop still has checked items.
-                      child: Builder(builder: (_) {
-                        final canOrder = grandItemCount > 0;
-                        return InkWell(
-                          onTap: canOrder ? onPlaceOrder : null,
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 14),
-                            decoration: BoxDecoration(
-                              color: canOrder
-                                  ? AppColors.primaryColor
-                                  : AppColors.greyCA,
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: canOrder
-                                  ? [
-                                      BoxShadow(
-                                        color: AppColors.primaryColor
-                                            .withValues(alpha: 0.3),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 3),
-                                      ),
-                                    ]
-                                  : [],
-                            ),
-                            alignment: Alignment.center,
-                            child: CustomText(
-                              AppStrings.groceryViewPlaceOrder.tr,
-                              fontSize: SizeConfig.medium,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.white,
-                            ),
-                          ),
-                        );
-                      }),
-                    ),
-                  ],
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  flex: 2,
+                  child: GrocerySelfPickUpCartScreen.checkoutButton(
+                    label: AppStrings.groceryViewPlaceOrder.tr,
+                    onTap: controller.placeBulkGroceryOrderApi,
+                  ),
                 ),
               ],
             ),
