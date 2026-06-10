@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/model/earn_profile_model.dart';
 
 class FoodItemModel {
   final String? id;
@@ -6,6 +7,11 @@ class FoodItemModel {
   /// Owning user (kitchen) id. Populated by the consumer listing API so the
   /// discover screen can resolve the item's store. Null on the owner side.
   final String? userId;
+
+  /// Kitchen/store profile that owns this item, nested by the consumer
+  /// listing API so the discover card can show the store and open it without
+  /// a second fetch. Null on the owner side / on older payloads.
+  final EarnProfileModel? earnProfile;
   final FoodCategoryType categoryType;
   final String foodName;
   final String? imagePath;
@@ -22,6 +28,7 @@ class FoodItemModel {
   const FoodItemModel({
     this.id,
     this.userId,
+    this.earnProfile,
     required this.categoryType,
     this.foodName = '',
     this.imagePath,
@@ -53,6 +60,9 @@ class FoodItemModel {
     return FoodItemModel(
       id: json['_id'],
       userId: json['userId']?.toString(),
+      earnProfile: json['earnProfile'] is Map<String, dynamic>
+          ? EarnProfileModel.fromJson(json['earnProfile'] as Map<String, dynamic>)
+          : null,
       categoryType: type,
       foodName: json['foodName'] ?? '',
       images: List<String>.from(json['images'] ?? []),
@@ -96,6 +106,8 @@ class FoodItemModel {
   }) {
     return FoodItemModel(
       id: id ?? this.id,
+      userId: this.userId,
+      earnProfile: this.earnProfile,
       categoryType: categoryType,
       foodName: itemName ?? this.foodName,
       imagePath: imagePath ?? this.imagePath,

@@ -115,10 +115,7 @@ class _HmpDiscoverScreenState extends State<HmpDiscoverScreen> {
                     child: ElevatedButton(
                       onPressed: () {
                         Get.back();
-                        final seller = cartController.store.value;
-                        if (seller != null) {
-                          Get.to(() => HmpCartScreen(store: seller));
-                        }
+                        Get.to(() => const HmpCartScreen());
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _primary,
@@ -228,17 +225,16 @@ class _HmpDiscoverScreenState extends State<HmpDiscoverScreen> {
       final _ = cartController.quantities.length; // subscribe to changes
       if (cartController.isEmpty) return const SizedBox.shrink();
       final count = cartController.totalItems;
-      final seller = cartController.store.value;
+      final stores = cartController.storeCount;
       return Center(
         child: FloatingCartWidget(
           itemCount: count,
           displayImages: cartController.previewImages,
-          cartLabel: 'View Cart',
-          itemLabel:
-              '$count ${count == 1 ? 'item' : 'items'}  •  ${AppConstants.rupeeSymbol}${cartController.totalPrice.toStringAsFixed(0)}',
-          onTap: seller == null
-              ? () {}
-              : () => Get.to(() => HmpCartScreen(store: seller)),
+          cartLabel: stores > 1 ? 'View Carts' : 'View Cart',
+          itemLabel: stores > 1
+              ? '$stores sellers  •  $count ${count == 1 ? 'item' : 'items'}'
+              : '$count ${count == 1 ? 'item' : 'items'}  •  ${AppConstants.rupeeSymbol}${cartController.totalPrice.toStringAsFixed(0)}',
+          onTap: () => Get.to(() => const HmpCartScreen()),
         ),
       );
     });

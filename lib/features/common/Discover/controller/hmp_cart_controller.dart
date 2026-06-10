@@ -12,25 +12,34 @@ import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueer
 import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:get/get.dart';
 
-/// Shared cart for the home made product flow. Registered once at the list
-/// screen (the flow entry) so the floating cart bar on both the list and the
-/// store details screen — plus the cart page — all observe the same instance.
-/// A cart belongs to a single seller ([store]); placing an order POSTs to
-/// `earn-service/homeProductOrders` then opens the chat.
+/// Shared **multi-store** cart for the home made product flow (Zomato-style).
+///
+/// Registered once at the list screen so the floating cart bar (list + store
+/// details) and the cart page all observe the same instance. Items added from
+/// different sellers stack into separate per-store carts; the user can check
+/// out one seller ([placeOrderForStore]) or all of them ([placeAllOrders]).
 class HmpCartController extends GetxController {
   final _repo = ProductRepo();
 
-  /// The seller the current cart belongs to (set when the first item is
-  /// added). Null when the cart is empty.
-  final Rxn<EarnProfileModel> store = Rxn<EarnProfileModel>();
-
-  /// product id -> quantity (reactive source of truth).
+  /// product id -> quantity. Single reactive source of truth across all
+  /// stores — every per-store getter derives from this.
   final RxMap<String, int> quantities = <String, int>{}.obs;
 
-  /// product id -> model (plain lookup; reactivity is driven by [quantities]).
+  /// product id -> model.
   final Map<String, GetProductData> _itemById = {};
 
+  /// product id -> store key.
+  final Map<String, String> _itemStore = {};
+
+  /// store key -> store (insertion order preserved → stable card order).
+  final Map<String, EarnProfileModel> _storeById = {};
+
+  /// Store key currently being checked out (per-store button spinner); empty
+  /// when idle, [_allKey] while "Checkout All" runs.
+  final RxString placingKey = ''.obs;
   final RxBool isPlacingOrder = false.obs;
+
+  static const String _allKey = '__all__';
 
   // ── Field helpers off a [GetProductData] ──
   static String idOf(GetProductData p) => p.product.details?.id ?? '';
@@ -59,19 +68,19 @@ class HmpCartController extends GetxController {
     return mrp.toDouble();
   }
 
-  int qty(String? id) => id == null ? 0 : (quantities[id] ?? 0);
+  /// Stable key for a store — its earn-profile id, falling back to userId.
+  String storeKeyOf(EarnProfileModel s) => s.id ?? s.userId ?? '';
 
-  /// Whether [fromStore] differs from the seller the cart already holds.
-  bool isDifferentStore(EarnProfileModel fromStore) =>
-      quantities.isNotEmpty &&
-      store.value != null &&
-      store.value!.id != fromStore.id;
+  int qty(String? id) => id == null ? 0 : (quantities[id] ?? 0);
 
   void add(GetProductData item, EarnProfileModel fromStore) {
     final id = idOf(item);
     if (id.isEmpty) return;
-    store.value = fromStore;
+    final key = storeKeyOf(fromStore);
+    if (key.isEmpty) return;
+    _storeById[key] = fromStore;
     _itemById[id] = item;
+    _itemStore[id] = key;
     quantities[id] = (quantities[id] ?? 0) + 1;
   }
 
@@ -81,111 +90,158 @@ class HmpCartController extends GetxController {
     final current = quantities[id] ?? 0;
     if (current <= 1) {
       quantities.remove(id);
+      final key = _itemStore.remove(id);
       _itemById.remove(id);
+      if (key != null && !_itemStore.values.contains(key)) {
+        _storeById.remove(key);
+      }
     } else {
       quantities[id] = current - 1;
     }
-    if (quantities.isEmpty) store.value = null;
   }
 
-  List<GetProductData> get lines => quantities.keys
+  // ── Per-store views ───────────────────────────────────────────────────────
+
+  /// Store keys that currently hold at least one item, in add order.
+  List<String> get storeKeys =>
+      _storeById.keys.where((k) => _itemStore.values.contains(k)).toList();
+
+  int get storeCount => storeKeys.length;
+
+  EarnProfileModel? storeOf(String key) => _storeById[key];
+
+  List<GetProductData> linesOf(String key) => quantities.keys
+      .where((id) => _itemStore[id] == key)
       .map((id) => _itemById[id])
       .whereType<GetProductData>()
       .toList();
 
-  bool get isEmpty => quantities.isEmpty;
-
-  int get totalItems => quantities.values.fold(0, (sum, q) => sum + q);
-
-  double get totalPrice {
-    double total = 0;
+  int itemCountOf(String key) {
+    int c = 0;
     quantities.forEach((id, q) {
-      final item = _itemById[id];
-      if (item != null) total += sellingPriceOf(item) * q;
+      if (_itemStore[id] == key) c += q;
     });
-    return total;
+    return c;
   }
 
-  double get totalMrp {
-    double total = 0;
+  double priceOf(String key) {
+    double t = 0;
     quantities.forEach((id, q) {
       final item = _itemById[id];
-      if (item == null) return;
+      if (item != null && _itemStore[id] == key) t += sellingPriceOf(item) * q;
+    });
+    return t;
+  }
+
+  double _storeMrp(String key) {
+    double t = 0;
+    quantities.forEach((id, q) {
+      final item = _itemById[id];
+      if (item == null || _itemStore[id] != key) return;
       final mrp = mrpOf(item);
       final sp = sellingPriceOf(item);
-      total += (mrp > 0 ? mrp : sp) * q;
+      t += (mrp > 0 ? mrp : sp) * q;
     });
-    return total;
+    return t;
   }
 
-  double get totalSavings {
-    final s = totalMrp - totalPrice;
+  double savingsOf(String key) {
+    final s = _storeMrp(key) - priceOf(key);
     return s > 0 ? s : 0;
   }
 
-  List<String?> get previewImages => lines.take(3).map(imageOf).toList();
+  List<String?> previewImagesOf(String key) =>
+      linesOf(key).take(3).map(imageOf).toList();
+
+  // ── Aggregate (all stores) ────────────────────────────────────────────────
+
+  bool get isEmpty => quantities.isEmpty;
+
+  int get totalItems => quantities.values.fold(0, (s, q) => s + q);
+
+  double get totalPrice {
+    double t = 0;
+    quantities.forEach((id, q) {
+      final item = _itemById[id];
+      if (item != null) t += sellingPriceOf(item) * q;
+    });
+    return t;
+  }
+
+  List<String?> get previewImages => quantities.keys.take(3).map((id) {
+        final it = _itemById[id];
+        return it == null ? null : imageOf(it);
+      }).toList();
+
+  // ── Mutations ─────────────────────────────────────────────────────────────
+
+  /// Remove a single store's cart entirely (the × on a cart card).
+  void clearStore(String key) {
+    final ids = quantities.keys.where((id) => _itemStore[id] == key).toList();
+    for (final id in ids) {
+      quantities.remove(id);
+      _itemById.remove(id);
+      _itemStore.remove(id);
+    }
+    _storeById.remove(key);
+  }
 
   void clear() {
     quantities.clear();
     _itemById.clear();
-    store.value = null;
+    _itemStore.clear();
+    _storeById.clear();
   }
 
-  /// Build the order payload from the current cart — one entry per line with
-  /// the variant's inventory id + variant id, quantity and prices.
-  Map<String, dynamic> _buildPayload() {
-    return {
-      'items': lines.map((item) {
-        final v = _variantOf(item);
-        return {
-          'inventory': v?.inventoryId ?? '',
-          'productVariant': v?.id ?? '',
-          'quantity': qty(idOf(item)),
-          'mrp': mrpOf(item),
-          'sellingPrice': sellingPriceOf(item),
-        };
-      }).toList(),
-      'deliveryType': 'self-pickup',
-      'discount': 0,
-    };
-  }
+  // ── Checkout ──────────────────────────────────────────────────────────────
 
-  /// Place the order, clear the path back to the home shell, then open the
-  /// chat with the seller.
-  Future<void> placeOrder() async {
-    final seller = store.value;
-    if (isEmpty || seller == null || isPlacingOrder.value) return;
+  Map<String, dynamic> _payloadFor(String key) => {
+        'items': linesOf(key).map((item) {
+          final v = _variantOf(item);
+          return {
+            'inventory': v?.inventoryId ?? '',
+            'productVariant': v?.id ?? '',
+            'quantity': qty(idOf(item)),
+            'mrp': mrpOf(item),
+            'sellingPrice': sellingPriceOf(item),
+          };
+        }).toList(),
+        'deliveryType': 'self-pickup',
+        'discount': 0,
+      };
+
+  /// Place the order for one seller, drop its cart, return to the home shell,
+  /// then open the chat with that seller.
+  Future<void> placeOrderForStore(String key) async {
+    final seller = _storeById[key];
+    if (seller == null || linesOf(key).isEmpty || isPlacingOrder.value) {
+      return;
+    }
     try {
       isPlacingOrder.value = true;
+      placingKey.value = key;
       AppLoader.show();
 
+      final summary = linesOf(key)
+          .map((e) => '${nameOf(e)} x${qty(idOf(e))}')
+          .join(', ');
+      final total = priceOf(key);
+
       final response =
-          await _repo.placeProductOrderRepo(params: _buildPayload());
+          await _repo.placeProductOrderRepo(params: _payloadFor(key));
+      AppLoader.hide();
 
       if (!response.isSuccess) {
-        AppLoader.hide();
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
         return;
       }
 
-      AppLoader.hide();
+      clearStore(key);
 
-      // Capture the order summary before clearing the cart.
-      final summary =
-          lines.map((e) => '${nameOf(e)} x${qty(idOf(e))}').join(', ');
-      final total = totalPrice;
-
-      clear();
-
-      // Clear the navigation path back to the bottom nav so the store /
-      // cart screens are gone — backing out of the chat lands the user on
-      // the home shell, not the (now-ordered) store details.
       Get.until((route) =>
           route.settings.name == RouteConstant.BottomNavigationBarScreen);
 
-      // Open the chat with the seller so the buyer can coordinate pickup /
-      // delivery — same lane the store's chat icon opens.
       final chatViewController = getOrPut(() => ChatViewController());
       chatViewController.checkChatConnectionAndOpenChat(
         userId: seller.userId ?? '',
@@ -201,6 +257,47 @@ class HmpCartController extends GetxController {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       isPlacingOrder.value = false;
+      placingKey.value = '';
+    }
+  }
+
+  /// Place an order for every seller cart, then return to the home shell.
+  Future<void> placeAllOrders() async {
+    if (isEmpty || isPlacingOrder.value) return;
+    try {
+      isPlacingOrder.value = true;
+      placingKey.value = _allKey;
+      AppLoader.show();
+
+      final keys = storeKeys;
+      int placed = 0;
+      for (final key in keys) {
+        final response =
+            await _repo.placeProductOrderRepo(params: _payloadFor(key));
+        if (response.isSuccess) placed++;
+      }
+      AppLoader.hide();
+
+      if (placed == 0) {
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+        return;
+      }
+
+      clear();
+      Get.until((route) =>
+          route.settings.name == RouteConstant.BottomNavigationBarScreen);
+      commonSnackBar(
+        message: placed == keys.length
+            ? 'Orders placed successfully'
+            : '$placed of ${keys.length} orders placed',
+      );
+    } catch (e) {
+      AppLoader.hide();
+      log('Error placing all home product orders: $e');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      isPlacingOrder.value = false;
+      placingKey.value = '';
     }
   }
 }

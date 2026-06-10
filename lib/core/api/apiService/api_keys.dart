@@ -755,6 +755,7 @@ class ApiKeys {
   static const accountNumber = 'accountNumber';
   static const upiDetails = 'upiDetails';
   static const upiId = 'upiId';
+  static const mobileNumber = 'mobileNumber';
   static const group_cover_image = 'group_cover_image';
   static const call_type = 'call_type';
   static const reminderTime = 'reminderTime';

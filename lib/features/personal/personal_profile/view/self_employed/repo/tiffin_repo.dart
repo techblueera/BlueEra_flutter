@@ -15,6 +15,17 @@ class TiffinRepo extends BaseService{
     return response;
   }
 
+  /// Consumer: fetch a specific store's tiffins by its owner [userId]
+  /// (`earn-service/tiffins/user/{userId}`).
+  Future<ResponseModel> fetchTiffinsByUser({required String userId}) async {
+    return ApiBaseHelper().getHTTP(
+      tiffinsByUser(userId),
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+  }
+
   Future<ResponseModel> createMeal({required Map<String, dynamic> data}) async {
     final response = await ApiBaseHelper().postHTTP(
       tiffins,

@@ -13,6 +13,10 @@ class AddBankAccountController extends GetxController {
   final TextEditingController bankHolderNameController = TextEditingController();
   final TextEditingController upiIdController = TextEditingController();
   final TextEditingController bankNameController = TextEditingController();
+
+  /// Mobile number linked to a UPI — shown in place of the bank-name field on
+  /// the UPI form and sent as `upiDetails.mobileNumber`.
+  final TextEditingController linkedMobileController = TextEditingController();
   final TextEditingController accountNumberController = TextEditingController();
   final TextEditingController ifscCodeController = TextEditingController();
   AddAccountResponseModalClass? addAccountResponseModalClass;
@@ -45,6 +49,7 @@ class AddBankAccountController extends GetxController {
     bankNameController.dispose();
     accountNumberController.dispose();
     ifscCodeController.dispose();
+    linkedMobileController.dispose();
     super.onClose();
   }
 
@@ -75,6 +80,16 @@ class AddBankAccountController extends GetxController {
       return AppStrings.invalidUpiId.tr;
     }
     isUpiValidate.value = true;
+    return null;
+  }
+
+  /// Validates the UPI-linked mobile number — required, exactly 10 digits.
+  String? validateLinkedMobile(String? value) {
+    final v = (value ?? '').trim();
+    if (v.isEmpty) return AppStrings.mobileIsRequired.tr;
+    if (!RegExp(r'^[6-9]\d{9}$').hasMatch(v)) {
+      return AppStrings.enterValidPhoneNumber.tr;
+    }
     return null;
   }
 
@@ -133,6 +148,7 @@ class AddBankAccountController extends GetxController {
     ifscCodeController.clear();
     bankHolderNameController.clear();
     upiIdController.clear();
+    linkedMobileController.clear();
   }
 
   Future<void> AddUpiApi() async {
@@ -147,7 +163,7 @@ class AddBankAccountController extends GetxController {
         ApiKeys.methodType: "UPI",
         ApiKeys.upiDetails: {
           ApiKeys.upiId: upiIdController.text,
-          ApiKeys.bankName:  bankNameController.text
+          ApiKeys.mobileNumber: linkedMobileController.text.trim(),
         },
         ApiKeys.isDefault:  false
       }

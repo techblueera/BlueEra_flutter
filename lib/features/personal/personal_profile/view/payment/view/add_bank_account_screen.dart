@@ -77,32 +77,32 @@ class AddBankAccountScreen extends StatelessWidget {
                         ),
                         SizedBox(height: SizeConfig.paddingM),
 
-                        /// Bank Name Field
-                        CustomText(
-                          AppStrings.bankName,
-                          fontSize: SizeConfig.small,
-                          fontWeight: FontWeight.w400,
-                          color: AppColors.mainTextColor,
-                        ),
-                        SizedBox(height: SizeConfig.size8),
-                        CommonTextField(
-                          textEditController: controller.bankNameController,
-                          hintText: AppStrings.bankNameHint.tr,
-                          keyBoardType: TextInputType.text,
-                          validator: ValidationMethod.validateBankName,
-                          maxLength: AppConstants.inputCharterLimit20,
-                          contentPadding: EdgeInsets.symmetric(
-                            horizontal: SizeConfig.size16,
-                            vertical: SizeConfig.size12,
-                          ),
-                          inputFormatters: [
-                            FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s.&-]')),
-                          ],
-                        ),
-                        SizedBox(height: SizeConfig.paddingM),
                         if(controller.selectedBankAccountType.value == "Bank Account")
                           Column(crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              /// Bank Name Field
+                              CustomText(
+                                AppStrings.bankName,
+                                fontSize: SizeConfig.small,
+                                fontWeight: FontWeight.w400,
+                                color: AppColors.mainTextColor,
+                              ),
+                              SizedBox(height: SizeConfig.size8),
+                              CommonTextField(
+                                textEditController: controller.bankNameController,
+                                hintText: AppStrings.bankNameHint.tr,
+                                keyBoardType: TextInputType.text,
+                                validator: ValidationMethod.validateBankName,
+                                maxLength: AppConstants.inputCharterLimit20,
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: SizeConfig.size16,
+                                  vertical: SizeConfig.size12,
+                                ),
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s.&-]')),
+                                ],
+                              ),
+                              SizedBox(height: SizeConfig.paddingM),
                               CustomText(
                                 AppStrings.bankHolderName,
                                 fontSize: SizeConfig.small,
@@ -174,6 +174,58 @@ class AddBankAccountScreen extends StatelessWidget {
                         if(controller.selectedBankAccountType.value =="UPI")
                           Column(crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              /// Link Mobile Number to UPI — shown in place of
+                              /// the bank-name field on the UPI form.
+                              CustomText(
+                                AppStrings.linkMobileNumberToUpi,
+                                fontSize: SizeConfig.small,
+                                fontWeight: FontWeight.w400,
+                                color: AppColors.mainTextColor,
+                              ),
+                              SizedBox(height: SizeConfig.size8),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  /// Fixed country code.
+                                  Container(
+                                    height: SizeConfig.size45,
+                                    width: SizeConfig.size57,
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                        color: AppColors.greyE5,
+                                        width: 1,
+                                      ),
+                                      color: AppColors.white,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: CustomText(
+                                      "+91",
+                                      fontSize: SizeConfig.large,
+                                    ),
+                                  ),
+                                  SizedBox(width: SizeConfig.size10),
+                                  Expanded(
+                                    child: CommonTextField(
+                                      textEditController:
+                                          controller.linkedMobileController,
+                                      hintText: AppStrings.linkMobileNumberHint,
+                                      keyBoardType: TextInputType.number,
+                                      validator: controller.validateLinkedMobile,
+                                      inputLength: 10,
+                                      maxLength: 10,
+                                      contentPadding: EdgeInsets.symmetric(
+                                        horizontal: SizeConfig.size16,
+                                        vertical: SizeConfig.size12,
+                                      ),
+                                      inputFormatters: [
+                                        FilteringTextInputFormatter.digitsOnly,
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: SizeConfig.paddingM),
                               CustomText(
                                 AppStrings.upiId,
                                 fontSize: SizeConfig.small,

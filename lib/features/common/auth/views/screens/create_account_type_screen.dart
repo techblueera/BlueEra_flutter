@@ -207,6 +207,12 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
                   width: double.infinity,
                   color: const Color(0xFFF1F5FB),
                   child: Obx(() {
+                    // Subscribe to every onboarding bucket so the silent
+                    // network refresh repaints the category grid even on the
+                    // cache-hit path (where isInitialCategoriesLoading never
+                    // flips again). The grid items are read across a build
+                    // boundary, so this explicit read is what registers the dep.
+                    authController.onboardingBucketsWatch;
                     if (authController.isInitialCategoriesLoading.value) {
                       return const Center(child: CircularProgressIndicator());
                     }

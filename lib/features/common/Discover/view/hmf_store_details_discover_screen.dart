@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -31,9 +32,11 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 class HmfStoreDetailsDiscoverScreen extends StatefulWidget {
-  final EarnProfileModel store;
+  /// Store owner user id — drives both the home-foods (profile + items) and
+  /// tiffins calls (backend resolves the store by userId).
+  final String userId;
 
-  const HmfStoreDetailsDiscoverScreen({super.key, required this.store});
+  const HmfStoreDetailsDiscoverScreen({super.key, required this.userId});
 
   @override
   State<HmfStoreDetailsDiscoverScreen> createState() =>
@@ -46,12 +49,15 @@ class _HmfStoreDetailsDiscoverScreenState
   static const Color _primary = AppColors.primaryColor; // 0xFF0086FF
   static const Color _placeholderBg = AppColors.blue5CFF; // 0xFFEBF5FF
 
-  EarnProfileModel get store => widget.store;
-
   late final HmfStoreDetailsController controller = getOrPut(
-    () => HmfStoreDetailsController(profileId: store.id ?? ''),
-    tag: store.id ?? store.userId ?? '',
+    () => HmfStoreDetailsController(userId: widget.userId),
+    tag: widget.userId,
   );
+
+  /// The loaded store profile. Only read inside the loaded subtree — `build`
+  /// gates on a non-null store before any of these helpers run, so the `!`
+  /// is safe.
+  EarnProfileModel get store => controller.store.value!;
 
   // Shared cart for the whole home made food flow (registered at the list
   // screen) — found here so adds survive coming back to the list.
@@ -74,7 +80,7 @@ class _HmfStoreDetailsDiscoverScreenState
     // Track the profile visit (fire-and-forget). Home-made-food profiles are
     // individual accounts, so fall back to userId when the business id is
     // absent — same key the chat tracker / chat open uses for this store.
-    final id = (store.id ?? store.userId ?? '').trim();
+    final id = widget.userId.trim();
     if (id.isNotEmpty) {
       ProfileClickTracker.track(
         userId: id,
@@ -87,8 +93,7 @@ class _HmfStoreDetailsDiscoverScreenState
   void dispose() {
     // Only the details controller is scoped to this screen. The cart
     // controller is shared with the list screen and cleaned up there.
-    deleteIfRegistered<HmfStoreDetailsController>(
-        tag: store.id ?? store.userId ?? '');
+    deleteIfRegistered<HmfStoreDetailsController>(tag: widget.userId);
     super.dispose();
   }
 
@@ -101,40 +106,211 @@ class _HmfStoreDetailsDiscoverScreenState
       ),
       child: Scaffold(
         backgroundColor: AppColors.appBackgroundColor,
-        body: Stack(
-          children: [
-            SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 96),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHero(),
-                  _buildIdentity(),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildTiffinSection(),
-                        _buildMenu(),
-                        _buildGallery(),
-                        _buildTestimonials(),
-                        _buildContactCard(),
-                        const SizedBox(height: 10),
-                      ],
+        // The home-foods call returns the store profile + items; gate the whole
+        // screen on the profile. While it loads → shimmer skeleton; if it fails
+        // (profile still null) → store error. Per-section APIs (tiffins, menu)
+        // self-hide on failure instead of erroring the whole screen.
+        body: Obx(() {
+          if (controller.store.value == null) {
+            return controller.isFoodLoading.value
+                ? _buildStoreShimmer()
+                : _buildStoreError();
+          }
+          return Stack(
+            children: [
+              SingleChildScrollView(
+                padding: const EdgeInsets.only(bottom: 96),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHero(),
+                    _buildIdentity(),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildTiffinSection(),
+                          _buildMenu(),
+                          _buildGallery(),
+                          _buildTestimonials(),
+                          _buildContactCard(),
+                          const SizedBox(height: 10),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: SafeArea(child: _buildCartBar()),
+              ),
+            ],
+          );
+        }),
+      ),
+    );
+  }
+
+  // ── Loading skeleton (shimmer) — mirrors the real store layout ───────────
+  Widget _buildStoreShimmer() {
+    final statusBar = MediaQuery.of(context).padding.top;
+    Widget block(double h, {double? w, double r = 10}) =>
+        shimmerContainer(height: h, width: w, radius: r);
+
+    return Stack(
+      children: [
+        SingleChildScrollView(
+          physics: const NeverScrollableScrollPhysics(),
+          child: buildLoadingShimmer(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Hero cover
+                block(200 + statusBar, r: 0),
+                const SizedBox(height: 16),
+                // Identity: logo + name lines, location bar, feature row
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          block(62, w: 62, r: 31),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                block(20, w: 180),
+                                const SizedBox(height: 8),
+                                block(14, w: 120),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      block(42, r: 10), // location bar
+                      const SizedBox(height: 14),
+                      block(66, r: 12), // feature row
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 18),
+                // Menu: heading + tab pills + 2-col card grid
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      block(18, w: 150),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          block(30, w: 72, r: 20),
+                          const SizedBox(width: 8),
+                          block(30, w: 72, r: 20),
+                          const SizedBox(width: 8),
+                          block(30, w: 72, r: 20),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          const spacing = 12.0;
+                          final cardWidth =
+                              (constraints.maxWidth - spacing) / 2;
+                          return Wrap(
+                            spacing: spacing,
+                            runSpacing: spacing,
+                            children: List.generate(
+                              4,
+                              (_) => SizedBox(
+                                width: cardWidth,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    block(94, r: 12),
+                                    const SizedBox(height: 8),
+                                    block(12, w: cardWidth * 0.7),
+                                    const SizedBox(height: 6),
+                                    block(12, w: cardWidth * 0.4),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
             ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: SafeArea(child: _buildCartBar()),
-            ),
-          ],
+          ),
         ),
+        _backButtonOverlay(statusBar),
+      ],
+    );
+  }
+
+  // ── Store error — only when the home-foods (profile) call fails ──────────
+  Widget _buildStoreError() {
+    final statusBar = MediaQuery.of(context).padding.top;
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.storefront_outlined,
+                    size: 48, color: AppColors.secondaryTextColor),
+                const SizedBox(height: 12),
+                CustomText(
+                  AppStrings.somethingWentWrong,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.secondaryTextColor,
+                ),
+                const SizedBox(height: 14),
+                GestureDetector(
+                  onTap: controller.fetchFoodItems,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 22, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: _primary,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: CustomText('Retry',
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        _backButtonOverlay(statusBar),
+      ],
+    );
+  }
+
+  Widget _backButtonOverlay(double statusBar) {
+    return Positioned(
+      top: statusBar + 8,
+      left: 8,
+      child: IconButton(
+        icon: Icon(Icons.arrow_back_rounded, color: AppColors.mainTextColor),
+        onPressed: () => Navigator.of(context).pop(),
       ),
     );
   }
@@ -153,7 +329,7 @@ class _HmfStoreDetailsDiscoverScreenState
           cartLabel: 'View Cart',
           itemLabel:
               '$count ${count == 1 ? 'item' : 'items'}  •  ${AppConstants.rupeeSymbol}${cartController.totalPrice.toStringAsFixed(0)}',
-          onTap: () => Get.to(() => HmfCartScreen(store: store)),
+          onTap: () => Get.to(() => const HmfCartScreen()),
         ),
       );
     });
@@ -1061,84 +1237,10 @@ class _HmfStoreDetailsDiscoverScreenState
     return '${((m - s) / m * 100).round()}% Off';
   }
 
+  // Multi-store cart: items from different kitchens stack into separate carts
+  // (Zomato-style), so adding never prompts to replace another kitchen's cart.
   void _onAddTap(FoodItemModel item) {
-    if (cartController.isDifferentStore(store)) {
-      _confirmReplaceCart(item);
-    } else {
-      cartController.add(item, store);
-    }
-  }
-
-  void _confirmReplaceCart(FoodItemModel item) {
-    final otherName =
-        cartController.store.value?.serviceName ?? 'another kitchen';
-    Get.dialog(
-      Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 22, 20, 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CustomText(
-                'Start a new cart?',
-                fontSize: SizeConfig.large,
-                fontWeight: FontWeight.w800,
-                color: AppColors.mainTextColor,
-              ),
-              const SizedBox(height: 10),
-              CustomText(
-                'Your cart already has items from "$otherName". Ordering from here will clear it.',
-                fontSize: SizeConfig.small,
-                fontWeight: FontWeight.w500,
-                color: AppColors.secondaryTextColor,
-              ),
-              const SizedBox(height: 18),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Get.back(),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: AppColors.greyE5),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
-                      ),
-                      child: CustomText('Cancel',
-                          color: AppColors.secondaryTextColor,
-                          fontSize: SizeConfig.small,
-                          fontWeight: FontWeight.w700),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Get.back();
-                        cartController.clear();
-                        cartController.add(item, store);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _primary,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
-                      ),
-                      child: CustomText('Start New',
-                          color: AppColors.white,
-                          fontSize: SizeConfig.small,
-                          fontWeight: FontWeight.w800),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    cartController.add(item, store);
   }
 
   // Blue "+" on the image; expands to a − qty + stepper once added.

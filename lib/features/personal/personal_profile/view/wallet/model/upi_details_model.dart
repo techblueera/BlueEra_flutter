@@ -86,15 +86,21 @@ class UpiDetails {
   final String? upiId;
   final String? bankName;
 
+  /// Mobile number linked to this UPI (collected on the add-UPI form in place
+  /// of bank name).
+  final String? mobileNumber;
+
   UpiDetails({
     this.upiId,
     this.bankName,
+    this.mobileNumber,
   });
 
   factory UpiDetails.fromJson(Map<String, dynamic> json) {
     return UpiDetails(
       upiId: json['upiId'] as String?,
       bankName: json['bankName'] as String?,
+      mobileNumber: json['mobileNumber'] as String?,
     );
   }
 
@@ -102,6 +108,7 @@ class UpiDetails {
     return {
       "upiId": upiId,
       "bankName": bankName,
+      "mobileNumber": mobileNumber,
     };
   }
 }

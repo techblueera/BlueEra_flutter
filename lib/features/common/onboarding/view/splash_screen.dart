@@ -79,7 +79,7 @@ class _SplashScreenState extends State<SplashScreen> {
         } else {
           Navigator.of(context).pushNamedAndRemoveUntil(
             RouteHelper.getBottomNavigationBarScreenRoute(),
-            arguments: {ApiKeys.initialIndex: 0},
+            arguments: {ApiKeys.initialIndex: 1},
             (Route<dynamic> route) => false,
           );
         }
@@ -148,7 +148,7 @@ class _SplashScreenState extends State<SplashScreen> {
             Navigator.of(context).pushNamedAndRemoveUntil(
               RouteHelper.getBottomNavigationBarScreenRoute(),
               arguments: {
-                ApiKeys.initialIndex: 0,
+                ApiKeys.initialIndex: 1,
                 if (sharedMedia != null) 'sharedMedia': sharedMedia,
               },
               (Route<dynamic> route) => false,

@@ -113,10 +113,7 @@ class _HmfStoreDiscoverScreenState extends State<HmfStoreDiscoverScreen> {
                     child: ElevatedButton(
                       onPressed: () {
                         Get.back();
-                        final kitchen = cartController.store.value;
-                        if (kitchen != null) {
-                          Get.to(() => HmfCartScreen(store: kitchen));
-                        }
+                        Get.to(() => const HmfCartScreen());
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _primary,
@@ -230,7 +227,8 @@ class _HmfStoreDiscoverScreenState extends State<HmfStoreDiscoverScreen> {
             footerLabel: 'View Kitchen Menu',
             emptyMessage: 'No home made food kitchens found nearby.',
             bottomPadding: 96,
-            onStoreTap: (store) => Get.to(() => HmfStoreDetailsDiscoverScreen(store: store)),
+            onStoreTap: (store) => Get.to(
+                () => HmfStoreDetailsDiscoverScreen(userId: store.userId ?? '')),
           ),
         ),
       ],
@@ -376,17 +374,16 @@ class _HmfStoreDiscoverScreenState extends State<HmfStoreDiscoverScreen> {
       final _ = cartController.quantities.length; // subscribe to changes
       if (cartController.isEmpty) return const SizedBox.shrink();
       final count = cartController.totalItems;
-      final kitchen = cartController.store.value;
+      final stores = cartController.storeCount;
       return Center(
         child: FloatingCartWidget(
           itemCount: count,
           displayImages: cartController.previewImages,
-          cartLabel: 'View Cart',
-          itemLabel:
-              '$count ${count == 1 ? 'item' : 'items'}  •  ${AppConstants.rupeeSymbol}${cartController.totalPrice.toStringAsFixed(0)}',
-          onTap: kitchen == null
-              ? () {}
-              : () => Get.to(() => HmfCartScreen(store: kitchen)),
+          cartLabel: stores > 1 ? 'View Carts' : 'View Cart',
+          itemLabel: stores > 1
+              ? '$stores kitchens  •  $count ${count == 1 ? 'item' : 'items'}'
+              : '$count ${count == 1 ? 'item' : 'items'}  •  ${AppConstants.rupeeSymbol}${cartController.totalPrice.toStringAsFixed(0)}',
+          onTap: () => Get.to(() => const HmfCartScreen()),
         ),
       );
     });

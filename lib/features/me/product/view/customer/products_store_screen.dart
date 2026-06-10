@@ -15,7 +15,6 @@ import 'package:BlueEra/features/me/product/view/customer/product_store_card.dar
 import 'package:BlueEra/features/me/product/controller/product_selfpickup_controller.dart';
 import 'package:BlueEra/features/me/product/view/customer/product_self_pickup_cart_screen.dart';
 import 'package:BlueEra/features/me/product/view/customer/widget/product_self_pickup_cart.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:flutter/material.dart';
@@ -93,18 +92,27 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
       Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(
-          padding: const EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.error_rounded, color: Colors.red, size: 80),
-              const SizedBox(height: 20),
+              Icon(Icons.remove_shopping_cart_rounded,
+                  color: AppColors.primaryColor, size: 56),
+              const SizedBox(height: 16),
+              CustomText(
+                'Leave without ordering?',
+                fontSize: SizeConfig.large,
+                fontWeight: FontWeight.w800,
+                color: AppColors.mainTextColor,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
               CustomText(
                 AppStrings.placeOrderCartWarning.tr,
-                textAlign: TextAlign.center,
-                fontSize: 16,
+                fontSize: SizeConfig.small,
                 fontWeight: FontWeight.w500,
-                color: AppColors.mainTextColor,
+                color: AppColors.secondaryTextColor,
+                textAlign: TextAlign.center,
               ),
               const SizedBox(height: 20),
               Row(
@@ -117,7 +125,7 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
                         Get.back();
                       },
                       style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Colors.grey.shade300),
+                        side: BorderSide(color: AppColors.greyE5),
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
@@ -125,21 +133,31 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
                       child: CustomText(
                         "skip".tr,
                         color: AppColors.secondaryTextColor,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     flex: 2,
-                    child: CustomBtn(
-                      title: AppStrings.placeOrder.tr,
-                      bgColor: AppColors.primaryColor,
-                      onTap: () {
+                    child: ElevatedButton(
+                      onPressed: () {
                         Get.back();
                         onPlaceOrder();
                       },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: CustomText(
+                        AppStrings.placeOrder.tr,
+                        color: AppColors.white,
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w800,
+                      ),
                     ),
                   ),
                 ],
