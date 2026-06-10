@@ -88,9 +88,9 @@ class DiscoverController extends GetxController {
   Rx<DiscoverFilter> selectedDiscoverFilter = DiscoverFilter.home.obs;
 
   Rx<OnboardingCategoryModel?> selectedEarnServiceData =
-      Rx<OnboardingCategoryModel?>(null);
+  Rx<OnboardingCategoryModel?>(null);
   Rx<OnboardingCategoryModel?> selectedProfConsServiceData =
-      Rx<OnboardingCategoryModel?>(null);
+  Rx<OnboardingCategoryModel?>(null);
   RxInt selectedTabIndex = 0.obs;
   final List<CategoryFilter> filters = CategoryFilter.values;
   Rx<CategoryFilter> selectedFilter = CategoryFilter.nearest.obs;
@@ -167,20 +167,20 @@ class DiscoverController extends GetxController {
   RxInt fareCallTotalRiders = 0.obs;
   RxString fareCallCurrentRiderId = ''.obs;
   Rxn<Map<String, dynamic>> fareCallAcceptedRiderInfo =
-      Rxn<Map<String, dynamic>>();
+  Rxn<Map<String, dynamic>>();
   RxString fareCallAcceptedRiderId = ''.obs;
   RxString fareCallPickupOtp = ''.obs;
   RxBool isFareCallRideStarted = false.obs;
   Rxn<Map<String, dynamic>> fareCallRideStartedData =
-      Rxn<Map<String, dynamic>>();
+  Rxn<Map<String, dynamic>>();
   RxBool isFareCallRideCompleted = false.obs;
   Rxn<Map<String, dynamic>> fareCallRideCompletedData =
-      Rxn<Map<String, dynamic>>();
+  Rxn<Map<String, dynamic>>();
 
   Rx<RiderUser> selectedRider = RiderUser().obs;
   RxList<RiderUser> selectedRiders = <RiderUser>[].obs;
   Rxn<OnboardingCategoryModel> selectedStayCategory =
-      Rxn<OnboardingCategoryModel>();
+  Rxn<OnboardingCategoryModel>();
   RxString selectedParcelCategory = "Document".obs;
   final receiversNameController = TextEditingController();
   final receiversNumberController = TextEditingController();
@@ -232,12 +232,12 @@ class DiscoverController extends GetxController {
 
   /// Consultant Service
   Rx<OnboardingCategoryModel?> selectedProfessionalConsultantData =
-      Rx<OnboardingCategoryModel?>(null);
+  Rx<OnboardingCategoryModel?>(null);
   Rx<OnboardingCategoryModel?> selectedEducationServiceData =
-      Rx<OnboardingCategoryModel?>(null);
+  Rx<OnboardingCategoryModel?>(null);
 
   Rx<OnboardingCategoryModel?> selectedFoodServiceData =
-      Rx<OnboardingCategoryModel?>(null);
+  Rx<OnboardingCategoryModel?>(null);
 
   /// Products
   RxList<GetProductData> productDataList = <GetProductData>[].obs;
@@ -316,9 +316,9 @@ class DiscoverController extends GetxController {
   ///GET STORE PRODUCT ONLY....
   Future<void> getAllProductNearBy(
       {ProviderType? providerType,
-      String? productCategory,
-      bool isLoadMore = false,
-      String? query}) async {
+        String? productCategory,
+        bool isLoadMore = false,
+        String? query}) async {
     if (isLoadMore) {
       if (isProductDataLoadingMore.value || !productDataHasMore) return;
       isProductDataLoadingMore.value = true;
@@ -363,21 +363,21 @@ class DiscoverController extends GetxController {
       final response;
       if (query != null) {
         response =
-            await StoreRepo().productSearchFilterRepo(queryParams: queryParams);
+        await StoreRepo().productSearchFilterRepo(queryParams: queryParams);
       } else {
         if (productCategory != null) {
           response =
-              await StoreRepo().productFilterRepo(queryParams: queryParams);
+          await StoreRepo().productFilterRepo(queryParams: queryParams);
         } else {
           response =
-              await StoreRepo().homePageProductRepo(queryParams: queryParams);
+          await StoreRepo().homePageProductRepo(queryParams: queryParams);
         }
       }
 
       if (response.isSuccess) {
         productsResponse.value = ApiResponse.complete(response);
         final getOwnProductModel =
-            GetProductModel.fromJson(response.response?.data);
+        GetProductModel.fromJson(response.response?.data);
 
         final List<GetProductData> newData = getOwnProductModel.data;
 
@@ -414,8 +414,8 @@ class DiscoverController extends GetxController {
   /// fetch Earn service
   Future<void> fetchEarnServices(
       {required String earnServiceType,
-      required String subType,
-      bool isLoadMore = false}) async {
+        required String subType,
+        bool isLoadMore = false}) async {
     if (isLoadMore) {
       if (isEarnServiceLoadingMore.value || !hasMoreEarnServiceData) {
         return;
@@ -445,14 +445,14 @@ class DiscoverController extends GetxController {
     }
 
     ResponseModel response =
-        await DiscoverRepo().fetchSelfWorkServices(queryParams: queryParams);
+    await DiscoverRepo().fetchSelfWorkServices(queryParams: queryParams);
 
     try {
       if (response.isSuccess) {
         selfProfessionServiceResponse.value = ApiResponse.complete(response);
 
         final responseModel =
-            ServiceModelResponse.fromJson(response.response?.data);
+        ServiceModelResponse.fromJson(response.response?.data);
 
         List<ServiceData> tempNewItems = [];
 
@@ -537,14 +537,14 @@ class DiscoverController extends GetxController {
 
     try {
       final response =
-          await DiscoverRepo().fetchSelfWorkServices(queryParams: queryParams);
+      await DiscoverRepo().fetchSelfWorkServices(queryParams: queryParams);
       if (!response.isSuccess) {
         earnServiceMapResponse.value =
             ApiResponse.error(response.message ?? 'error');
         return;
       }
       final responseModel =
-          ServiceModelResponse.fromJson(response.response?.data);
+      ServiceModelResponse.fromJson(response.response?.data);
       final all = <ServiceData>[];
       for (final service in responseModel.services ?? []) {
         if (service.data != null) {
@@ -579,7 +579,7 @@ class DiscoverController extends GetxController {
       if (response.isSuccess) {
         // foodRestaurantServiceResponse.value = ApiResponse.complete(response);
         final responseModel =
-            FoodRestaurantServiceModel.fromJson(response.response?.data);
+        FoodRestaurantServiceModel.fromJson(response.response?.data);
 
         List<FoodData> tempNewItems = responseModel.data ?? [];
         if (tempNewItems.length < limit) {
@@ -649,11 +649,11 @@ class DiscoverController extends GetxController {
 
       if (response.isSuccess) {
         final responseModel =
-            BusinessFilterResModel.fromJson(response.response?.data);
+        BusinessFilterResModel.fromJson(response.response?.data);
 
         final List<BusinessFilterData> rawItems = responseModel.data ?? [];
         final List<SchoolDetailsData> tempNewItems =
-            rawItems.map((b) => b.toSchoolDetail()).toList();
+        rawItems.map((b) => b.toSchoolDetail()).toList();
 
         // Pagination: prefer the server's totalPages signal when available,
         // and fall back to the page-size heuristic used elsewhere in this
@@ -716,7 +716,7 @@ class DiscoverController extends GetxController {
       if (response.isSuccess) {
         profConProfessionServiceResponse.value = ApiResponse.complete(response);
         final responseModel =
-            ProfessionalConsResModel.fromJson(response.response?.data);
+        ProfessionalConsResModel.fromJson(response.response?.data);
 
         List<ProfessionalConsData> tempNewItems = responseModel.data ?? [];
         if (tempNewItems.length < limit) {
@@ -910,8 +910,8 @@ class DiscoverController extends GetxController {
         ApiKeys.tripType: selectedRideType.value == AppConstants.oneWay
             ? "oneWay"
             : selectedRideType.value == AppConstants.roundTrip
-                ? "roundTrip"
-                : "sharing",
+            ? "roundTrip"
+            : "sharing",
       if (selectedHorizontalTab.value == 1)
         ApiKeys.orderForWhom: selectedBookingFor.value == AppConstants.mySelf
             ? "myself"
@@ -1025,14 +1025,14 @@ class DiscoverController extends GetxController {
       print('[FARE_CALL_QUEUE] ride:started → $data');
       isFareCallRideStarted.value = true;
       fareCallRideStartedData.value =
-          data != null ? Map<String, dynamic>.from(data) : null;
+      data != null ? Map<String, dynamic>.from(data) : null;
     });
 
     socket.listenEvent('ride:completed', (data) {
       print('[FARE_CALL_QUEUE] ✅ ride:completed RECEIVED from backend → $data');
       isFareCallRideCompleted.value = true;
       fareCallRideCompletedData.value =
-          data != null ? Map<String, dynamic>.from(data) : null;
+      data != null ? Map<String, dynamic>.from(data) : null;
 
       // Clear the floating overlay and its ride data
       if (Get.isRegistered<RideNavigationOverlayController>()) {
@@ -1046,7 +1046,7 @@ class DiscoverController extends GetxController {
   Future<void> cancelFareCallQueue() async {
     if (fareCallOrderId.value.isEmpty) return;
     final response =
-        await MakeOrderRepo().cancelFareCallQueueApi(fareCallOrderId.value);
+    await MakeOrderRepo().cancelFareCallQueueApi(fareCallOrderId.value);
     if (response.isSuccess) {
       isFareCallInProgress.value = false;
       commonSnackBar(message: 'Ride request cancelled');
@@ -1094,7 +1094,7 @@ class DiscoverController extends GetxController {
     };
     try {
       final response =
-          await DiscoverRepo().getRentalService(queryParams: queryParams);
+      await DiscoverRepo().getRentalService(queryParams: queryParams);
       if (!response.isSuccess) {
         staysMapResponse.value = ApiResponse.error(response.message ?? 'error');
         return;
@@ -1112,13 +1112,14 @@ class DiscoverController extends GetxController {
   Future<void> fetchAllHotelsForMap({required String category}) async {
     staysMapResponse.value = ApiResponse.initial('Initial');
     final queryParams = <String, dynamic>{
-      ApiKeys.category: category,
+      "categoryOfBusiness":category,
+      // ApiKeys.category: category,
       ApiKeys.page: 1,
       ApiKeys.limit: 1000,
     };
     try {
       final response =
-          await DiscoverRepo().fetchHotelSearchRepo(queryParams: queryParams);
+      await DiscoverRepo().fetchHotelSearchRepo(queryParams: queryParams);
       if (!response.isSuccess) {
         staysMapResponse.value = ApiResponse.error(response.message ?? 'error');
         return;
@@ -1134,7 +1135,7 @@ class DiscoverController extends GetxController {
 
   Future<void> fetchRentalServices(
       {required RentalServiceType rentalServiceType,
-      bool isLoadMore = false}) async {
+        bool isLoadMore = false}) async {
     try {
       if (isLoadMore) {
         log('more rental data -- $hasMoreRentalServiceData');
@@ -1166,7 +1167,7 @@ class DiscoverController extends GetxController {
         rentalServiceResponse.value = ApiResponse.complete(response);
 
         final responseModel =
-            RentalServiceResponse.fromJson(response.response!.data);
+        RentalServiceResponse.fromJson(response.response!.data);
 
         final List<RentalServiceData> tempNewItems = responseModel.data ?? [];
 
@@ -1220,7 +1221,9 @@ class DiscoverController extends GetxController {
       }
 
       Map<String, dynamic> queryParams = {
-        ApiKeys.category: category,
+        "categoryOfBusiness":category,
+
+        // ApiKeys.category: category,
         ApiKeys.page: rentalServicePage,
         ApiKeys.limit: limit,
       };
@@ -1233,7 +1236,7 @@ class DiscoverController extends GetxController {
         rentalServiceResponse.value = ApiResponse.complete(response);
 
         final responseModel =
-            HotelSearchModelResponse.fromJson(response.response!.data);
+        HotelSearchModelResponse.fromJson(response.response!.data);
 
         final List<HotelServiceData> tempNewItems = responseModel.data ?? [];
 

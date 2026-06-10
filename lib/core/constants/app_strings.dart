@@ -6877,4 +6877,8 @@ class AppStrings {
   /// the bottom-right "View on map" CTA on the inline map preview.
   static const String selectLocationPill = "selectLocationPill";
   static const String viewOnMap = "viewOnMap";
+  static const financeService = "financeService";
+  static const ourOrganisation = "ourOrganisation";
+  static const ourTeam = "ourTeam";
+  static const blogs = "blogs";
 }

@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/common/Discover/controller/finance_discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/finance_search_res_model.dart';
@@ -24,16 +25,31 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
   final controller = Get.find<FinanceDiscoverController>();
 
   @override
+  void initState() {
+    super.initState();
+    // The list screen seeds selectedDetail with the lightweight search item.
+    // Fetch the full profile so management / staff / gallery / contactUs etc.
+    // are populated. selectedDetail is updated in place when it arrives.
+    final id = controller.selectedDetail.value?.id;
+    if (id != null && id.isNotEmpty) {
+      controller.fetchDetail(id);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.whiteE5,
       appBar: CommonBackAppBar(
-        title: 'Finance Service',
+        title: AppStrings.financeService.tr,
       ),
       body: Obx(() {
         final data = controller.selectedDetail.value;
         if (data == null) {
-          return const Center(child: CustomText("No Data Found"));
+          if (controller.isDetailLoading.value) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          return Center(child: CustomText(AppStrings.noDataFound.tr));
         }
         return CustomScrollView(
           slivers: [
@@ -42,14 +58,14 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
             SliverToBoxAdapter(
               child: Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10),
+                const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // About / Description
                     if (data.description?.isNotEmpty ?? false)
                       _buildSection(
-                        title: 'About',
+                        title: AppStrings.aboutLabel.tr,
                         child: CustomText(
                           data.description!,
                           fontSize: 13,
@@ -61,35 +77,42 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
                     if (data.aboutOrganisation != null &&
                         data.aboutOrganisation!.isNotEmpty)
                       _buildSection(
-                        title: 'Our Organisation',
+                        title: AppStrings.ourOrganisation.tr,
                         child: _buildOrganisationList(data.aboutOrganisation!),
+                      ),
+
+                    // Management
+                    if (data.management != null && data.management!.isNotEmpty)
+                      _buildSection(
+                        title: AppStrings.managementLabel.tr,
+                        child: _buildManagementList(data.management!),
                       ),
 
                     // Staff
                     if (data.staff != null && data.staff!.isNotEmpty)
                       _buildSection(
-                        title: 'Our Team',
+                        title: AppStrings.ourTeam.tr,
                         child: _buildStaffList(data.staff!),
                       ),
 
                     // Blogs
                     if (data.blogs != null && data.blogs!.isNotEmpty)
                       _buildSection(
-                        title: 'Blogs',
+                        title: AppStrings.blogs.tr,
                         child: _buildBlogsList(data.blogs!),
                       ),
 
                     // Gallery
                     if (data.gallery != null && data.gallery!.isNotEmpty)
                       _buildSection(
-                        title: 'Gallery',
+                        title: AppStrings.gallery.tr,
                         child: _buildGallery(data.gallery!),
                       ),
 
                     // Contact Us
                     if (data.contactUs != null && data.contactUs!.isNotEmpty)
                       _buildSection(
-                        title: 'Contact Us',
+                        title: AppStrings.contactUs.tr,
                         child: _buildContactUs(data.contactUs!),
                       ),
 
@@ -101,10 +124,10 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
                         child: BusinessLocationWidget(
                           locationText: data.location?.name,
                           latitude: double.tryParse(
-                                  data.location!.coordinates![0].toString()) ??
+                              data.location!.coordinates![0].toString()) ??
                               0.0,
                           longitude: double.tryParse(
-                                  data.location!.coordinates![1].toString()) ??
+                              data.location!.coordinates![1].toString()) ??
                               0.0,
                           businessName: data.profileName ?? "",
                           padding: 10,
@@ -133,18 +156,18 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
           color: AppColors.primaryColor.withValues(alpha: 0.1),
           child: (data.coverUrl?.isNotEmpty ?? false)
               ? CachedNetworkImage(
-                  imageUrl: data.coverUrl!,
-                  fit: BoxFit.cover,
-                  errorWidget: (_, __, ___) => Container(
-                    color: AppColors.primaryColor.withValues(alpha: 0.1),
-                    child: Icon(Icons.business,
-                        size: 60, color: AppColors.primaryColor),
-                  ),
-                )
+            imageUrl: data.coverUrl!,
+            fit: BoxFit.cover,
+            errorWidget: (_, __, ___) => Container(
+              color: AppColors.primaryColor.withValues(alpha: 0.1),
+              child: Icon(Icons.business,
+                  size: 60, color: AppColors.primaryColor),
+            ),
+          )
               : Center(
-                  child: Icon(Icons.business,
-                      size: 60, color: AppColors.primaryColor),
-                ),
+            child: Icon(Icons.business,
+                size: 60, color: AppColors.primaryColor),
+          ),
         ),
         // Profile info overlay
         Container(
@@ -173,13 +196,13 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
                     color: AppColors.white,
                     child: (data.logoUrl?.isNotEmpty ?? false)
                         ? CachedNetworkImage(
-                            imageUrl: data.logoUrl!,
-                            fit: BoxFit.cover,
-                            errorWidget: (_, __, ___) => LocalAssets(
-                                imagePath: AppIconAssets.place_holder_image),
-                          )
+                      imageUrl: data.logoUrl!,
+                      fit: BoxFit.cover,
+                      errorWidget: (_, __, ___) => LocalAssets(
+                          imagePath: AppIconAssets.place_holder_image),
+                    )
                         : LocalAssets(
-                            imagePath: AppIconAssets.place_holder_image),
+                        imagePath: AppIconAssets.place_holder_image),
                   ),
                 ),
               ),
@@ -189,7 +212,7 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CustomText(
-                      data.profileName ?? 'Unknown',
+                      data.profileName ?? AppStrings.unknown.tr,
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
                       color: AppColors.mainTextColor,
@@ -202,7 +225,7 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
                             horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
                           color:
-                              AppColors.primaryColor.withValues(alpha: 0.1),
+                          AppColors.primaryColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: CustomText(
@@ -391,6 +414,85 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
           );
         },
       ),
+    );
+  }
+
+  Widget _buildManagementList(List<FinanceManagement> members) {
+    return Column(
+      children: members.map((m) {
+        return Container(
+          margin: const EdgeInsets.only(bottom: 10),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            border: Border.all(color: AppColors.whiteE5),
+            borderRadius: BorderRadius.circular(10),
+            color: Colors.white,
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: CachedNetworkImage(
+                  imageUrl: m.imageUrl ?? "",
+                  height: 64,
+                  width: 64,
+                  fit: BoxFit.cover,
+                  errorWidget: (_, __, ___) => Container(
+                    height: 64,
+                    width: 64,
+                    color: Colors.grey[300],
+                    child: Icon(Icons.person,
+                        color: AppColors.secondaryTextColor),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(
+                      m.name ?? "",
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: AppColors.mainTextColor,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if ((m.position ?? '').isNotEmpty ||
+                        (m.qualification ?? '').isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: CustomText(
+                          [m.position, m.qualification]
+                              .where((e) => (e ?? '').isNotEmpty)
+                              .join(' • '),
+                          fontSize: 12,
+                          color: AppColors.primaryColor,
+                          fontWeight: FontWeight.w600,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    if ((m.message ?? '').isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: CustomText(
+                          m.message!,
+                          fontSize: 12,
+                          color: AppColors.secondaryTextColor,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 
