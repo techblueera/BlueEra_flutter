@@ -30,7 +30,6 @@ import '../model/call_models.dart';
 import '../repo/call_repo.dart';
 import '../repo/make_order_repo.dart';
 import '../service/call_activity_service.dart';
-import '../service/call_pip_service.dart';
 import '../service/overlay_service.dart';
 import '../service/socket_keep_alive_service.dart';
 import '../socket/chat_socket.dart';
@@ -257,20 +256,6 @@ class CallController extends GetxController {
   /// Whether this session was a call-only cold start (used to navigate to home on call end)
   static bool _coldStartCall = false;
 
-  /// True when the active call was accepted from OUTSIDE the app — a background
-  /// CallKit accept or a background notification accept — rather than from the
-  /// in-app foreground UI. On call end we send the app back to the background
-  /// (instead of navigating into the app) so the user returns to whatever they
-  /// were doing, matching WhatsApp. Distinct from [_coldStartCall], which is the
-  /// killed-state cold start that finishes the task entirely.
-  static bool _enteredFromBackground = false;
-
-  /// Flag the active call as accepted from a background entry point (CallKit /
-  /// notification). Called from the accept handlers before [acceptCall].
-  static void markEnteredFromBackground() {
-    _enteredFromBackground = true;
-  }
-
   /// True when this CallController runs inside CallActivity's separate Flutter engine.
   /// Prevents _navigateBackFromCallScreen from trying app routes that don't exist.
   static bool isCallActivityEngine = false;
@@ -308,7 +293,6 @@ class CallController extends GetxController {
   /// Reset cold-start state when call accept fails (e.g. call expired / 404).
   /// Prevents the app from staying stuck on CallRoomScreen.
   static void _resetColdStartIfNeeded() {
-    _enteredFromBackground = false;
     if (_coldStartCall) {
       _coldStartCall = false;
       launchedForCall.value = false;
@@ -783,12 +767,13 @@ class CallController extends GetxController {
     // same CallActivityRoomScreen (route_helper.dart:2135-2142), so this only
     // swaps the route name and hands us a FRESH widget — which clears the
     // screen's stuck local `_isAccepting` spinner and renders the active-call
-    // layout straight from callStatus=accepting. Applies to both platforms now
-    // that Android also handles the call in-app (no separate CallActivity).
-    // Killed-state accepts (currentRoute != '/IncomingCallScreen') rely on the
+    // layout straight from callStatus=accepting. Scoped to iOS + foreground:
+    // Android main-engine launches a separate CallActivity below, and
+    // killed-state accepts (currentRoute != '/IncomingCallScreen') rely on the
     // native CallKit UI. The later same-guarded Get.offNamed at the
     // post-API point is now a no-op fallback (route is already /CallRoomScreen).
-    if (!isFareCall.value &&
+    if (Platform.isIOS &&
+        !isFareCall.value &&
         Get.currentRoute == '/IncomingCallScreen') {
       Get.offNamed('/CallRoomScreen');
     }
@@ -814,9 +799,9 @@ class CallController extends GetxController {
     // member, so the server's room filter drops it. Joining early puts iOS in
     // the room before the offer dispatches; _handleRemoteOffer buffers into
     // _pendingOffer (status == accepting), and the later branch consumes it
-    // once media is ready. Applies to both platforms now that Android handles
-    // the call in-app in the main engine (same as iOS); kept off for fare-calls.
-    if (!isFareCall.value && savedRoomId.isNotEmpty) {
+    // once media is ready. Scoped to iOS (+ non-fare) to keep the change
+    // zero-risk on Android / CallActivity / fare-call paths.
+    if (Platform.isIOS && !isFareCall.value && savedRoomId.isNotEmpty) {
       try {
         if (!_socket.isConnected) {
           _socket.connectToSocket();
@@ -895,11 +880,35 @@ class CallController extends GetxController {
       cancelIncomingCallLocalNotification(savedCallId);
     }
 
-    // --- In-app call: handle WebRTC in the main engine (Android + iOS) ---
-    // Previously Android launched a separate CallActivity (a second Flutter
-    // engine) to handle the call, which opened a new activity/screen. We now
-    // handle the accepted call in-app in the SAME activity, exactly like iOS,
-    // so no new screen activity is launched for audio or video calls.
+    // --- Android main engine: launch CallActivity to handle WebRTC ---
+    // Skip CallActivity for fare calls — manage calling in-app instead
+    if (Platform.isAndroid && !isCallActivityEngine && !isFareCall.value) {
+      isCallActivityActive = true;
+      await CallActivityService.launchCallActivity(
+        callId: savedCallId,
+        roomId: savedRoomId,
+        conversationId: conversationId.value,
+        callType: callType.value == CallType.video ? 'video' : 'audio',
+        callerName: callerName.value,
+        callerImage: callerImage.value,
+        remoteUserId: savedRemoteUserId ?? '',
+        remoteUserName: remoteUserName.value,
+        remoteUserImage: remoteUserImage.value,
+        isCaller: false,
+        isGroupCall: isGroupCall.value,
+        iceServers: jsonEncode(iceServersJson),
+      );
+      // Light reset — only clear main-engine UI state. Keep isCallActivityActive
+      // true so we don't process duplicate socket events while CallActivity runs.
+      // Do NOT call _cleanup() here — it clears isCallActivityActive and stops
+      // the socket keep-alive, which can cause the socket to disconnect while
+      // the call is still active in CallActivity.
+      _resetState();
+      _navigateBackFromCallScreen();
+      return true;
+    }
+
+    // --- CallActivity engine (or iOS): handle WebRTC here ---
     // print('[CALL_DEBUG] acceptCall → handling WebRTC in-process (iOS or CallActivity)');
     // ice_servers can be a Map {'iceServers': [...]} or a raw List [...]
     if (iceServersJson is List) {
@@ -917,22 +926,16 @@ class CallController extends GetxController {
 
     callStatus.value = CallStatus.connecting;
 
-    // Navigate to the active call UI in the SAME activity. Without this the
-    // incoming screen stays on its "Connecting…" loader even after the peer
-    // connection reaches Connected (its _isAccepting flag only clears on
-    // failure). Two entry paths:
-    //  • Foreground accept → currentRoute is '/IncomingCallScreen' (or already
-    //    swapped to '/CallRoomScreen' by the early-accept nav above) → replace.
-    //  • Background/killed accept from the native CallKit UI → currentRoute is
-    //    some other screen (home, chat, …) → push the call screen so the user
-    //    lands on the active call instead of a backgrounded callless app.
-    if (!isFareCall.value) {
-      final route = Get.currentRoute;
-      if (route == '/IncomingCallScreen') {
-        Get.offNamed('/CallRoomScreen');
-      } else if (route != '/CallRoomScreen') {
-        Get.toNamed('/CallRoomScreen');
-      }
+    // Navigate off the IncomingCallScreen to the active call UI. Without this,
+    // iOS stays on IncomingCallScreen forever showing its "Connecting…" loader
+    // even after the peer connection reaches Connected — because the screen's
+    // _isAccepting flag only clears on accept failure.
+    // NOTE: On iOS the early-accept navigation above already swapped to
+    // /CallRoomScreen, so this guard is false there and this is now a no-op
+    // fallback. It still fires for the CallActivity-engine path that reaches
+    // here from /IncomingCallScreen without the iOS early nav.
+    if (!isFareCall.value && Get.currentRoute == '/IncomingCallScreen') {
+      Get.offNamed('/CallRoomScreen');
     }
 
     // Ensure socket is connected and wait for it (killed-state accept may
@@ -1409,10 +1412,6 @@ class CallController extends GetxController {
     // Fare-call: don't dismiss CallKit (none shown) and don't pop fare-call screens
     if (isFareCall.value) {
       print('[FARE_CALL] _handleCallCancelled → cleaning up without navigating');
-      // Consume entry-mode flags (this branch doesn't navigate) so they can't
-      // leak into the next regular call.
-      _coldStartCall = false;
-      _enteredFromBackground = false;
       _leaveRoomAndCleanup();
       return;
     }
@@ -1474,11 +1473,6 @@ class CallController extends GetxController {
     if (isFareCall.value) {
       print('[FARE_CALL] _handleCallEnded → cleaning up without navigating');
       _showCallEndedInterstitial();
-      // Fare branch returns without navigating, so consume the entry-mode flags
-      // here too — otherwise a background/cold-start fare accept would leak them
-      // into the next regular call (which would then wrongly finish the task).
-      _coldStartCall = false;
-      _enteredFromBackground = false;
       _leaveRoomAndCleanup();
       return;
     }
@@ -1600,67 +1594,20 @@ class CallController extends GetxController {
     // In CallActivity engine, the wrapper handles activity finish — skip Flutter navigation
     if (isCallActivityEngine) return;
 
-    // Consume the entry-mode flags up front. They are set BEFORE accept (by
-    // markColdStartCall / markEnteredFromBackground) and _cleanup no longer
-    // clears them — so this is the single place that reads and resets them.
-    // Reading them here (rather than relying on _cleanup) is essential: the
-    // teardown handlers call _leaveRoomAndCleanup() BEFORE this method, so any
-    // reset done in cleanup would wipe the flags before we could act on them.
-    final wasColdStart = _coldStartCall;
-    final wasFromBackground = _enteredFromBackground;
-    _coldStartCall = false;
-    _enteredFromBackground = false;
-
-    final route = Get.currentRoute;
-    if (kDebugMode) {
-      print('_navigateBackFromCallScreen: currentRoute=$route, '
-          'coldStart=$wasColdStart, fromBackground=$wasFromBackground');
-    }
-
-    bool isCallRoute(String r) =>
-        r == '/CallRoomScreen' ||
-        r == '/ActiveCallScreen' ||
-        r == '/OutgoingCallScreen' ||
-        r == '/IncomingCallScreen' ||
-        r == '/IncomingRiderOrderScreen';
-
-    if (wasColdStart) {
-      // App was launched ONLY for this call (killed state). It never finished
-      // its normal init (splash was skipped), so navigating into
-      // '/BottomNavigationBarScreen' lands on a stuck splash. On Android, tear
-      // the task down instead — the call window closes, the user returns to
-      // their previous app, and the NEXT launch is a clean cold start. We keep
-      // launchedForCall=true until the task is actually removed so the home
-      // Obx doesn't flash the splash underneath during the teardown delay.
-      if (Platform.isAndroid) {
-        // Delay briefly so the call:leave-room emit / cleanup can flush before
-        // the process task is removed.
-        Future.delayed(const Duration(milliseconds: 300), () {
-          CallPipService.finishAndRemoveTask();
-        });
-        return;
-      }
-      // iOS can't self-finish — fall back to home navigation.
+    if (_coldStartCall) {
+      // App was launched only for this call — go to home screen
+      _coldStartCall = false;
       launchedForCall.value = false;
       Get.offAllNamed('/BottomNavigationBarScreen');
       return;
     }
-
-    // Normal session from here — make sure the cold-start home gate is off.
-    launchedForCall.value = false;
-
-    if (wasFromBackground && Platform.isAndroid) {
-      // Call was accepted from a background notification / CallKit while the app
-      // was not in the foreground. Pop the call route (so reopening the app
-      // shows the screen beneath) and send the app to the background — the user
-      // returns to whatever they were doing instead of being dumped into the
-      // app. The app keeps running so its session survives.
-      if (isCallRoute(route)) Get.back();
-      CallPipService.moveAppToBackground();
-      return;
-    }
-
-    if (isCallRoute(route)) {
+    final route = Get.currentRoute;
+    if (kDebugMode) print('_navigateBackFromCallScreen: currentRoute=$route');
+    if (route == '/CallRoomScreen' ||
+        route == '/ActiveCallScreen' ||
+        route == '/OutgoingCallScreen' ||
+        route == '/IncomingCallScreen' ||
+        route == '/IncomingRiderOrderScreen') {
       Get.back();
     }
     // Note: FareCallQueueScreen manages its own lifecycle via DiscoverController
@@ -3150,12 +3097,8 @@ class CallController extends GetxController {
     // --- 10. Reset static flags so the next call starts with a clean slate ---
     isCallActivityActive = false;
     _killedStateAcceptHandled = false;
-    // NOTE: _coldStartCall, _enteredFromBackground and launchedForCall are NOT
-    // reset here. Teardown handlers call _leaveRoomAndCleanup() (→ this method)
-    // BEFORE _navigateBackFromCallScreen(), so clearing them here would wipe
-    // them before navigation can decide how to leave the call (finish the task
-    // / move to background / pop). _navigateBackFromCallScreen() is their sole
-    // consumer; _resetColdStartIfNeeded() clears them on accept failure.
+    _coldStartCall = false;
+    launchedForCall.value = false;
 
     // --- 11. Reset all observable state ---
     _resetState();
@@ -3347,11 +3290,6 @@ class CallController extends GetxController {
           }
           initStateFromCallKitExtra(extra);
 
-          // Accepting from the CallKit UI means the user was outside the app
-          // (lock screen / another app). Flag it so call-end returns them to
-          // the background instead of into the app.
-          markEnteredFromBackground();
-
           // For fare-calls: navigate to rider order screen instead of normal call
           if (isFareCall.value) {
             if (Get.currentRoute != '/IncomingRiderOrderScreen') {
@@ -3398,70 +3336,53 @@ class CallController extends GetxController {
     });
   }
 
-  /// Initialize call state from CallKit/notification extra data (push calls).
+  /// Initialize call state from CallKit extra data (for push notification calls)
   void initStateFromCallKitExtra(Map<String, dynamic> extra) {
     if (callStatus.value != CallStatus.idle || extra.isEmpty) return;
 
-    // These come from the push notification payload passed via
-    // showIncomingCallLocalNotification / showFlutterCallNotification.
-    final senderId = (extra['senderId'] ?? '').toString();
-    final convId = (extra['conversationId'] ?? '').toString();
-    final callTypeStr = (extra['callType'] ?? '').toString();
-
-    // IMPORTANT: populate the caller's display info and call identifiers
-    // REGARDLESS of whether senderId is present. Previously this whole block
-    // was gated on a non-empty senderId, so a killed/background push that
-    // omitted senderId left callerName empty and the receiver's call screen
-    // showed "Unknown". Only _remoteUserId genuinely depends on senderId.
-    callType.value =
-        callTypeStr == 'video_call' ? CallType.video : CallType.audio;
-    conversationId.value = convId;
-    isCaller.value = false;
-    callStatus.value = CallStatus.ringing;
-
-    // Set the name/image only when provided so we never overwrite a value a
-    // prior socket event may already have populated with an empty string.
-    final name = (extra['callerName'] ?? '').toString();
-    final image = (extra['callerImage'] ?? '').toString();
-    if (name.isNotEmpty) {
-      callerName.value = name;
-      remoteUserName.value = name;
-    }
-    if (image.isNotEmpty) {
-      callerImage.value = image;
-      remoteUserImage.value = image;
-    }
-
-    // Set callId and roomId from push notification data (critical for acceptCall API)
-    if (extra['callId'] != null && extra['callId'].toString().isNotEmpty) {
-      callId.value = extra['callId'].toString();
-    }
-    if (extra['roomId'] != null && extra['roomId'].toString().isNotEmpty) {
-      roomId.value = extra['roomId'].toString();
-    }
+    // These come from the push notification payload passed via showFlutterCallNotification
+    final senderId = extra['senderId'] ?? '';
+    final convId = extra['conversationId'] ?? '';
+    final callTypeStr = extra['callType'] ?? '';
 
     if (senderId.isNotEmpty) {
       _remoteUserId = senderId;
-    }
+      callType.value =
+          callTypeStr == 'video_call' ? CallType.video : CallType.audio;
+      conversationId.value = convId;
+      isCaller.value = false;
+      callStatus.value = CallStatus.ringing;
+      callerName.value = extra['callerName'] ?? '';
+      callerImage.value = extra['callerImage'] ?? '';
+      remoteUserName.value = callerName.value;
+      remoteUserImage.value = callerImage.value;
 
-    // Detect fare-call from push notification extra
-    if (extra['isFareCall'] == 'true') {
-      isFareCall.value = true;
-      fareCallOrderId.value = extra['fareCallOrderId'] ?? '';
-      try {
-        final rideJson = extra['fareCallRideDetails'];
-        if (rideJson is String && rideJson.isNotEmpty) {
-          fareCallRideDetails.value =
-              Map<String, dynamic>.from(jsonDecode(rideJson));
-        }
-      } catch (_) {}
-      // print('[FARE_CALL] Detected fare-call from push notification, orderId=${fareCallOrderId.value}');
-    }
+      // Set callId and roomId from push notification data (critical for acceptCall API)
+      if (extra['callId'] != null && extra['callId'].toString().isNotEmpty) {
+        callId.value = extra['callId'];
+      }
+      if (extra['roomId'] != null && extra['roomId'].toString().isNotEmpty) {
+        roomId.value = extra['roomId'];
+      }
 
-    // Connect socket if not connected (app may have been in background)
-    _socket = ChatSocketService();
-    if (!_socket.isConnected) {
-      _socket.connectToSocket();
+      // Detect fare-call from push notification extra
+      if (extra['isFareCall'] == 'true') {
+        isFareCall.value = true;
+        fareCallOrderId.value = extra['fareCallOrderId'] ?? '';
+        try {
+          final rideJson = extra['fareCallRideDetails'];
+          if (rideJson is String && rideJson.isNotEmpty) {
+            fareCallRideDetails.value = Map<String, dynamic>.from(jsonDecode(rideJson));
+          }
+        } catch (_) {}
+        // print('[FARE_CALL] Detected fare-call from push notification, orderId=${fareCallOrderId.value}');
+      }
+
+      // Connect socket if not connected (app may have been in background)
+      _socket = ChatSocketService();
+      if (!_socket.isConnected) {
+        _socket.connectToSocket();
+      }
     }
   }
 }
