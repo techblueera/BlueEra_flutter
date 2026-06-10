@@ -2333,6 +2333,9 @@ class CallController extends GetxController {
     }
     remoteRenderers[peerId]!.srcObject = stream;
     remoteStreams[peerId] = stream;
+    // The track may arrive after the route was already chosen — re-apply the
+    // gain so the speaker/earpiece volume matches the current route.
+    _applyRouteVolume(currentAudioRoute.value);
   }
 
   // ==================== MEDIA CONTROLS ====================
@@ -2414,6 +2417,11 @@ class CallController extends GetxController {
     isSpeakerOn.value = route == AudioRoute.speaker;
     isBluetoothOn.value = route == AudioRoute.bluetooth;
 
+    // Boost the remote playback gain on the loudspeaker (phone held away from
+    // the ear) and keep it low on the earpiece / headsets (held close to the
+    // ear) so neither is uncomfortable.
+    _applyRouteVolume(route);
+
     try {
       if (Platform.isAndroid) {
         // AudioSwitch routes by type name: bluetooth | wired-headset | speaker | earpiece.
@@ -2436,6 +2444,27 @@ class CallController extends GetxController {
       }
     } catch (e) {
       if (kDebugMode) print('selectAudioRoute($route) failed: $e');
+    }
+  }
+
+  /// WebRTC remote-audio gain (0–10, 1.0 = normal). Loudspeaker is across the
+  /// room, so it gets a boosted gain; the earpiece and headsets sit on/near the
+  /// ear, so they stay quiet.
+  static const double _speakerVolume = 8.0;
+  static const double _earpieceVolume = 1.0;
+
+  /// Apply the per-route playback gain to every remote audio track.
+  void _applyRouteVolume(AudioRoute route) {
+    final volume =
+        route == AudioRoute.speaker ? _speakerVolume : _earpieceVolume;
+    for (final stream in remoteStreams.values) {
+      for (final track in stream.getAudioTracks()) {
+        try {
+          Helper.setVolume(volume, track);
+        } catch (e) {
+          if (kDebugMode) print('_applyRouteVolume failed: $e');
+        }
+      }
     }
   }
 

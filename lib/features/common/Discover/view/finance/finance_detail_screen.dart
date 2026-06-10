@@ -58,7 +58,7 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
             SliverToBoxAdapter(
               child: Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10),
+                const EdgeInsets.symmetric(horizontal: 12.0, vertical: 10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -124,10 +124,10 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
                         child: BusinessLocationWidget(
                           locationText: data.location?.name,
                           latitude: double.tryParse(
-                                  data.location!.coordinates![0].toString()) ??
+                              data.location!.coordinates![0].toString()) ??
                               0.0,
                           longitude: double.tryParse(
-                                  data.location!.coordinates![1].toString()) ??
+                              data.location!.coordinates![1].toString()) ??
                               0.0,
                           businessName: data.profileName ?? "",
                           padding: 10,
@@ -156,18 +156,18 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
           color: AppColors.primaryColor.withValues(alpha: 0.1),
           child: (data.coverUrl?.isNotEmpty ?? false)
               ? CachedNetworkImage(
-                  imageUrl: data.coverUrl!,
-                  fit: BoxFit.cover,
-                  errorWidget: (_, __, ___) => Container(
-                    color: AppColors.primaryColor.withValues(alpha: 0.1),
-                    child: Icon(Icons.business,
-                        size: 60, color: AppColors.primaryColor),
-                  ),
-                )
+            imageUrl: data.coverUrl!,
+            fit: BoxFit.cover,
+            errorWidget: (_, __, ___) => Container(
+              color: AppColors.primaryColor.withValues(alpha: 0.1),
+              child: Icon(Icons.business,
+                  size: 60, color: AppColors.primaryColor),
+            ),
+          )
               : Center(
-                  child: Icon(Icons.business,
-                      size: 60, color: AppColors.primaryColor),
-                ),
+            child: Icon(Icons.business,
+                size: 60, color: AppColors.primaryColor),
+          ),
         ),
         // Profile info overlay
         Container(
@@ -196,13 +196,13 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
                     color: AppColors.white,
                     child: (data.logoUrl?.isNotEmpty ?? false)
                         ? CachedNetworkImage(
-                            imageUrl: data.logoUrl!,
-                            fit: BoxFit.cover,
-                            errorWidget: (_, __, ___) => LocalAssets(
-                                imagePath: AppIconAssets.place_holder_image),
-                          )
+                      imageUrl: data.logoUrl!,
+                      fit: BoxFit.cover,
+                      errorWidget: (_, __, ___) => LocalAssets(
+                          imagePath: AppIconAssets.place_holder_image),
+                    )
                         : LocalAssets(
-                            imagePath: AppIconAssets.place_holder_image),
+                        imagePath: AppIconAssets.place_holder_image),
                   ),
                 ),
               ),
@@ -225,7 +225,7 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
                             horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
                           color:
-                              AppColors.primaryColor.withValues(alpha: 0.1),
+                          AppColors.primaryColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: CustomText(

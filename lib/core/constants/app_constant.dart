@@ -2484,7 +2484,6 @@ final List<OnboardingCategoryModel> stayItemsCategories = [
   OnboardingCategoryModel(
       name: 'Hotel Stay',
       slugId: "HOTELS_RESORT",
-      // slugId: "HOTEL",
       // slugId: HOTELS_RESORT,
       icon: AppImageAssets.hotelStay,
       colorCode: Color(0xFFEBF5FF),

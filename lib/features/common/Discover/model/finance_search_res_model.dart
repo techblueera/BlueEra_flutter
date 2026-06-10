@@ -79,7 +79,7 @@ class FinanceBusinessItem {
     location = json['location'] != null
         ? FinanceLocation.fromJson(json['location'])
         : FinanceLocation.fromBusinessLocation(
-            profile?['business_location'] ?? json['business_location']);
+        profile?['business_location'] ?? json['business_location']);
     if (json['contactUs'] != null) {
       contactUs = <FinanceContactUs>[];
       json['contactUs'].forEach((v) {
