@@ -1,4 +1,10 @@
 {
+  "managementLabel": "ನಿರ್ವಹಣೆ",
+  "financeService": "ಹಣಕಾಸು ಸೇವೆ",
+  "ourOrganisation": "ನಮ್ಮ ಸಂಸ್ಥೆ",
+  "ourTeam": "ನಮ್ಮ ತಂಡ",
+  "blogs": "ಬ್ಲಾಗ್‌ಗಳು",
+  "aboutLabel": "ಕುರಿತು",
   " pDFUploaded": "PDF ಅಪ್‌ಲೋಡ್ ಮಾಡಲಾಗಿದೆ",
   " uploadRequiredDocs": "ಅಗತ್ಯವಾದ ದಾಖಲೆಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಿ",
   " vehicleType": "ವಾಹನ ಪ್ರಕಾರ",
