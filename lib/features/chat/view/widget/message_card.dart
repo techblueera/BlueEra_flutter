@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
@@ -11,6 +12,7 @@ import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/features/chat/auth/model/user_by_phone_model.dart';
+import 'package:BlueEra/features/chat/auth/service/call_activity_service.dart';
 import 'package:BlueEra/features/chat/auth/model/symbol_details_model.dart';
 import 'package:BlueEra/features/chat/view/widget/video_and_image_card_widget.dart';
 import 'package:BlueEra/features/common/food/view/food_details_view_screen.dart';
@@ -2068,7 +2070,29 @@ class _MessageCardState extends State<MessageCard>
         user.name.isNotEmpty ? user.name : fallbackName;
     final targetUserImage = user.profileImage ?? '';
 
-    // Always place the call in-app (same activity) — no separate CallActivity.
+    if (Platform.isAndroid) {
+      CallController.isCallActivityActive = true;
+      CallActivityService.launchCallActivity(
+        callId: '',
+        roomId: '',
+        conversationId: '',
+        callType: 'audio',
+        callerName: targetUserName,
+        callerImage: targetUserImage,
+        remoteUserId: targetUserId,
+        remoteUserName: targetUserName,
+        remoteUserImage: targetUserImage,
+        isCaller: true,
+      ).then((launched) {
+        if (!launched) {
+          CallController.isCallActivityActive = false;
+          _initiateContactCallInApp(
+              targetUserId, targetUserName, targetUserImage);
+        }
+      });
+      return;
+    }
+
     _initiateContactCallInApp(targetUserId, targetUserName, targetUserImage);
   }
 

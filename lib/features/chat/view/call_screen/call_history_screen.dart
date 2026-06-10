@@ -1,3 +1,4 @@
+import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -9,6 +10,7 @@ import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/GetChatListModel.dart';
 import 'package:BlueEra/features/chat/auth/model/call_models.dart';
+import 'package:BlueEra/features/chat/auth/service/call_activity_service.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
@@ -132,7 +134,27 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
     final userImage = chat?.sender?.profileImage ?? '';
     final conversationId = call.conversationId;
 
-    // Always place the call in-app (same activity) — no separate CallActivity.
+    if (Platform.isAndroid) {
+      CallController.isCallActivityActive = true;
+      final launched = await CallActivityService.launchCallActivity(
+        callId: '',
+        roomId: '',
+        conversationId: conversationId,
+        callType: type == CallType.video ? 'video' : 'audio',
+        callerName: userName,
+        callerImage: userImage,
+        remoteUserId: otherUserId,
+        remoteUserName: userName,
+        remoteUserImage: userImage,
+        isCaller: true,
+      );
+      if (launched) {
+        _refreshChatAfterOutgoingCall(conversationId);
+        return;
+      }
+      CallController.isCallActivityActive = false;
+    }
+
     final success = await _callController.initiateCall(
       type: type,
       otherUserId: otherUserId,

@@ -7,7 +7,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.res.Configuration
 import android.content.pm.ShortcutInfo
 import android.content.pm.ShortcutManager
 import android.graphics.Bitmap
@@ -46,8 +45,6 @@ class MainActivity: FlutterActivity() {
     private val CHANNEL = "com.vahcare.lab/pip"
     private val ACTION_COMPLETE_RIDE = "ACTION_COMPLETE_RIDE"
     private var isPipEnabled = false
-    // Retained so we can push PiP-mode changes back to Flutter (in-app call flow).
-    private var pipChannel: MethodChannel? = null
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -244,8 +241,7 @@ class MainActivity: FlutterActivity() {
             registerReceiver(pipReceiver, filter, Context.RECEIVER_EXPORTED)
         }
 
-        pipChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
-        pipChannel?.setMethodCallHandler { call, result ->
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL).setMethodCallHandler { call, result ->
             when (call.method) {
                 "updatePipStatus" -> {
                     isPipEnabled = call.argument<Boolean>("isEnabled") ?: false
@@ -258,36 +254,6 @@ class MainActivity: FlutterActivity() {
                 "isInPipMode" -> {
                     val inPip = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) isInPictureInPictureMode else false
                     result.success(inPip)
-                }
-                // Called when a call ends while the app is in PiP. Android has no
-                // direct "leave PiP to fullscreen" API for a single-activity app,
-                // so we move the task to the background — the PiP window closes
-                // and the user returns to whatever they were doing (WhatsApp-style).
-                // The app stays alive; reopening it shows the post-call screen.
-                "exitPip" -> {
-                    val inPip = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) isInPictureInPictureMode else false
-                    if (inPip) moveTaskToBack(false)
-                    result.success(inPip)
-                }
-                // Send the whole app task to the background (does NOT kill it).
-                // Used when a call accepted from a background notification ends —
-                // the user returns to whatever they were doing; the app keeps
-                // running so its session/socket survive (WhatsApp-style).
-                "moveToBack" -> {
-                    moveTaskToBack(true)
-                    result.success(true)
-                }
-                // Finish and remove the task from Recents. Used when the app was
-                // cold-started ONLY to handle an incoming call (killed state):
-                // navigating into the half-initialized app lands on a stuck
-                // splash, so we tear the task down for a clean relaunch next time.
-                "finishAndRemoveTask" -> {
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                        finishAndRemoveTask()
-                    } else {
-                        finish()
-                    }
-                    result.success(true)
                 }
                 else -> result.notImplemented()
             }
@@ -422,17 +388,6 @@ class MainActivity: FlutterActivity() {
 
             enterPictureInPictureMode(params)
         }
-    }
-
-    // Notify Flutter when the app enters/leaves PiP so the in-app call screen
-    // can swap to its compact PiP layout (and back). Without this the call
-    // screen never learns it is in PiP and renders the full UI squished.
-    override fun onPictureInPictureModeChanged(
-        isInPictureInPictureMode: Boolean,
-        newConfig: Configuration
-    ) {
-        super.onPictureInPictureModeChanged(isInPictureInPictureMode, newConfig)
-        pipChannel?.invokeMethod("onPipModeChanged", isInPictureInPictureMode)
     }
 
     override fun onDestroy() {
