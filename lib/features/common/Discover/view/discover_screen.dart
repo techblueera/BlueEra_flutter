@@ -124,6 +124,12 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     return SliverToBoxAdapter(
       child: Obx(() {
         final auth = Get.find<AuthController>();
+        // Subscribe to every onboarding bucket so the silent network refresh
+        // repaints these cards even when `isInitialCategoriesLoading` has
+        // already settled to false (cache-hit path) — the section card
+        // widgets below read the buckets in their own build methods, across a
+        // boundary this parent Obx can't see into.
+        auth.onboardingBucketsWatch;
         if (auth.isInitialCategoriesLoading.value || !_locationResolved) {
           return const _DiscoverSectionsShimmer();
         }

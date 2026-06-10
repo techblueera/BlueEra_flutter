@@ -565,7 +565,7 @@ class _HmpStoreDetailsDiscoverScreenState
           cartLabel: 'View Cart',
           itemLabel:
               '$count ${count == 1 ? 'item' : 'items'}  •  ${AppConstants.rupeeSymbol}${cartController.totalPrice.toStringAsFixed(0)}',
-          onTap: () => Get.to(() => HmpCartScreen(store: store)),
+          onTap: () => Get.to(() => const HmpCartScreen()),
         ),
       );
     });
@@ -676,84 +676,10 @@ class _HmpStoreDetailsDiscoverScreenState
     );
   }
 
+  // Multi-store cart: items from different sellers stack into separate carts
+  // (Zomato-style), so adding never prompts to replace another seller's cart.
   void _onAddTap(GetProductData item) {
-    if (cartController.isDifferentStore(store)) {
-      _confirmReplaceCart(item);
-    } else {
-      cartController.add(item, store);
-    }
-  }
-
-  void _confirmReplaceCart(GetProductData item) {
-    final otherName =
-        cartController.store.value?.serviceName ?? 'another seller';
-    Get.dialog(
-      Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 22, 20, 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              CustomText(
-                'Start a new cart?',
-                fontSize: SizeConfig.large,
-                fontWeight: FontWeight.w800,
-                color: AppColors.mainTextColor,
-              ),
-              const SizedBox(height: 10),
-              CustomText(
-                'Your cart already has items from "$otherName". Ordering from here will clear it.',
-                fontSize: SizeConfig.small,
-                fontWeight: FontWeight.w500,
-                color: AppColors.secondaryTextColor,
-              ),
-              const SizedBox(height: 18),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => Get.back(),
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: AppColors.greyE5),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
-                      ),
-                      child: CustomText('Cancel',
-                          color: AppColors.secondaryTextColor,
-                          fontSize: SizeConfig.small,
-                          fontWeight: FontWeight.w700),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Get.back();
-                        cartController.clear();
-                        cartController.add(item, store);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _primary,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10)),
-                      ),
-                      child: CustomText('Start New',
-                          color: AppColors.white,
-                          fontSize: SizeConfig.small,
-                          fontWeight: FontWeight.w800),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    cartController.add(item, store);
   }
 
   // Blue "+" on the image; expands to a − qty + stepper once added.

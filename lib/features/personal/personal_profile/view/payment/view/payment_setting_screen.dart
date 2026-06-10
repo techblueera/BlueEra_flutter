@@ -281,6 +281,7 @@ class _PaymentSettingScreenState extends State<PaymentSettingScreen> {
       ...controller.upiListModel.value.data?.map((e) => _upiCard(
             upiId: e.upiDetails?.upiId ?? '',
             bankName: e.upiDetails?.bankName ?? '',
+            mobileNumber: e.upiDetails?.mobileNumber ?? '',
             onTapDefault: () {},
             onViewQr: () => showUpiQrDialog(
               upiId: e.upiDetails?.upiId ?? '',
@@ -297,9 +298,15 @@ class _PaymentSettingScreenState extends State<PaymentSettingScreen> {
   Widget _upiCard({
     required String upiId,
     required String bankName,
+    required String mobileNumber,
     required VoidCallback onTapDefault,
     required VoidCallback onViewQr,
   }) {
+    // New UPIs store a linked mobile number in place of bank name; fall back to
+    // bankName (older records) then a generic label.
+    final title = mobileNumber.isNotEmpty
+        ? mobileNumber
+        : (bankName.isNotEmpty ? bankName : AppStrings.upiId);
     return Container(
       margin: EdgeInsets.only(bottom: SizeConfig.size16),
       padding: EdgeInsets.all(SizeConfig.size14),
@@ -333,7 +340,7 @@ class _PaymentSettingScreenState extends State<PaymentSettingScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CustomText(
-                      bankName.isNotEmpty ? bankName : AppStrings.upiId,
+                      title,
                       fontSize: SizeConfig.size16,
                       fontWeight: FontWeight.w500,
                     ),

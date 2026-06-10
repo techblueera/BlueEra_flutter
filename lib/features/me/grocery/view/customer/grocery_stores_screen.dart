@@ -521,52 +521,54 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
   void showCartWarningDialog({required VoidCallback onPlaceOrder}) {
     Get.dialog(
       Dialog(
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         child: Padding(
-          padding: const EdgeInsets.all(20.0),
+          padding: const EdgeInsets.all(20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
-                Icons.error_rounded,
-                color: Colors.red,
-                size: 100,
+              Icon(Icons.remove_shopping_cart_rounded,
+                  color: AppColors.primaryColor, size: 56),
+              const SizedBox(height: 16),
+              CustomText(
+                'Leave without ordering?',
+                fontSize: SizeConfig.large,
+                fontWeight: FontWeight.w800,
+                color: AppColors.mainTextColor,
+                textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 8),
               CustomText(
                 AppStrings.groceryCartWarningMessage,
-                textAlign: TextAlign.center,
-                fontSize: 18,
+                fontSize: SizeConfig.small,
                 fontWeight: FontWeight.w500,
-                color: AppColors.mainTextColor,
+                color: AppColors.secondaryTextColor,
+                textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
               Row(
                 children: [
                   Expanded(
-                    flex: 1,
                     child: OutlinedButton(
                       onPressed: () {
                         Get.back();
                         Get.back();
                       },
                       style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Colors.grey.shade300),
-                        padding:
-                            const EdgeInsets.symmetric(vertical: 15),
+                        side: BorderSide(color: AppColors.greyE5),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
                       ),
                       child: CustomText(
                         AppStrings.skip,
                         color: AppColors.secondaryTextColor,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 15),
+                  const SizedBox(width: 12),
                   Expanded(
                     flex: 2,
                     child: ElevatedButton(
@@ -575,17 +577,16 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                         onPlaceOrder();
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        padding:
-                            const EdgeInsets.symmetric(vertical: 15),
+                        backgroundColor: AppColors.primaryColor,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
                       ),
                       child: CustomText(
                         AppStrings.groceryPlaceOrderBtn,
                         color: AppColors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                   ),

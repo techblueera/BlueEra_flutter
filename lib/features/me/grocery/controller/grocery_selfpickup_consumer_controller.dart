@@ -244,4 +244,110 @@ class GrocerySelfPickupConsumerController extends GetxController {
     // }
   }
 
+  // ═══════════════════════════════════════════════════════════════════════
+  //  MULTI-STORE (Zomato-style) — items from different grocery stores stack
+  //  into separate per-store carts; the user checks out one store or all.
+  //  Built on top of the existing maps (cartBusinessInfo carries the store).
+  // ═══════════════════════════════════════════════════════════════════════
+
+  bool get isEmpty => selectedGroceriesVariants.isEmpty;
+
+  String? _businessIdOf(ProductVariants v) =>
+      cartBusinessInfo[v.sId]?['businessId'];
+
+  /// Distinct business ids currently in the cart, in first-added order.
+  List<String> get storeKeys {
+    final seen = <String>[];
+    for (final v in selectedGroceriesVariants) {
+      final bid = _businessIdOf(v);
+      if (bid != null && bid.isNotEmpty && !seen.contains(bid)) seen.add(bid);
+    }
+    return seen;
+  }
+
+  int get storeCount => storeKeys.length;
+
+  /// Store metadata map ({businessName, logo, address, lat, lng, category})
+  /// for a business id, read off any of its variants.
+  Map<String, String> storeInfoOf(String businessId) {
+    for (final v in selectedGroceriesVariants) {
+      final info = cartBusinessInfo[v.sId];
+      if (info != null && info['businessId'] == businessId) return info;
+    }
+    return const {};
+  }
+
+  List<ProductVariants> variantsOf(String businessId) => selectedGroceriesVariants
+      .where((v) => _businessIdOf(v) == businessId)
+      .toList();
+
+  int itemCountOf(String businessId) {
+    int c = 0;
+    for (final v in variantsOf(businessId)) {
+      c += cartQuantities[v.sId] ?? 0;
+    }
+    return c;
+  }
+
+  double _spOf(ProductVariants v) =>
+      double.tryParse(v.pricing?.first.sellingPrice.toString() ?? '0') ?? 0;
+  double _mrpOf(ProductVariants v) =>
+      double.tryParse(v.pricing?.first.mrp.toString() ?? '0') ?? 0;
+
+  double subtotalOf(String businessId) {
+    double t = 0;
+    for (final v in variantsOf(businessId)) {
+      t += _spOf(v) * (cartQuantities[v.sId] ?? 0);
+    }
+    return t;
+  }
+
+  double savingsOf(String businessId) {
+    double mrp = 0, sp = 0;
+    for (final v in variantsOf(businessId)) {
+      final q = cartQuantities[v.sId] ?? 0;
+      final m = _mrpOf(v);
+      final s = _spOf(v);
+      mrp += (m > 0 ? m : s) * q;
+      sp += s * q;
+    }
+    final diff = mrp - sp;
+    return diff > 0 ? diff : 0;
+  }
+
+  String? imageOf(ProductVariants v) {
+    if (v.images?.isNotEmpty ?? false) {
+      final url = v.images!.first.url;
+      if (url != null && url.isNotEmpty) return url;
+    }
+    final fb = cartProductImages[v.sId];
+    return (fb != null && fb.isNotEmpty) ? fb : null;
+  }
+
+  List<String?> previewImagesOf(String businessId) =>
+      variantsOf(businessId).take(3).map(imageOf).toList();
+
+  /// Drop one store's cart entirely (the × on a cart card).
+  void clearStore(String businessId) {
+    final ids =
+        variantsOf(businessId).map((v) => v.sId).whereType<String>().toSet();
+    for (final id in ids) {
+      cartQuantities.remove(id);
+      cartProductIds.remove(id);
+      cartInventoryIds.remove(id);
+      cartBusinessInfo.remove(id);
+      cartProductImages.remove(id);
+    }
+    selectedGroceriesVariants.removeWhere((v) => ids.contains(v.sId));
+  }
+
+  void clearAll() {
+    selectedGroceriesVariants.clear();
+    cartQuantities.clear();
+    cartProductIds.clear();
+    cartInventoryIds.clear();
+    cartBusinessInfo.clear();
+    cartProductImages.clear();
+  }
+
 }

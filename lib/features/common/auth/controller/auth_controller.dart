@@ -1063,9 +1063,11 @@ class AuthController extends GetxController {
         cachedProfessions != null && cachedProfessions.isNotEmpty;
 
     if (hasCachedBusiness) {
+      // log('from business cache');
       updateBusinessCategoriesFromApi(cachedBusiness);
     }
     if (hasCachedProfessions) {
+      // log('from individual cache');
       updateIndividualCategoriesFromApi(cachedProfessions);
     }
 
@@ -1096,10 +1098,13 @@ class AuthController extends GetxController {
     }
   }
 
-  List<ProfessionTypeData> individualOnboardingSocialProfileList = [];
-  List<ProfessionTypeData> individualOnboardingGigWorkList = [];
-  List<ProfessionTypeData> individualOnboardingSkillWorkList = [];
-  List<ProfessionTypeData> individualOnboardingConsultationList = [];
+  // Reactive buckets: mutating them (via `assignAll` in the update methods
+  // below) notifies any `Obx` that reads them — including on the *silent*
+  // network refresh — with no manual change-counter to keep in sync.
+  final RxList<ProfessionTypeData> individualOnboardingSocialProfileList = <ProfessionTypeData>[].obs;
+  final RxList<ProfessionTypeData> individualOnboardingGigWorkList = <ProfessionTypeData>[].obs;
+  final RxList<ProfessionTypeData> individualOnboardingSkillWorkList = <ProfessionTypeData>[].obs;
+  final RxList<ProfessionTypeData> individualOnboardingConsultationList = <ProfessionTypeData>[].obs;
 
   /// Derived flat master list of profession types — concatenates the four
   /// onboarding buckets (which are the source of truth). Exposed as a
@@ -1149,10 +1154,14 @@ class AuthController extends GetxController {
 
   void updateIndividualCategoriesFromApi(
       List<ProfessionTypeData> categoryData) {
-    individualOnboardingSocialProfileList.clear();
-    individualOnboardingGigWorkList.clear();
-    individualOnboardingSkillWorkList.clear();
-    individualOnboardingConsultationList.clear();
+    // Accumulate into local lists, then push each bucket once via `assignAll`.
+    // assignAll replaces the contents and emits a single change notification,
+    // so reactive consumers repaint exactly once per bucket (vs. one per
+    // clear()/add() if we mutated the RxLists in place).
+    final social = <ProfessionTypeData>[];
+    final gig = <ProfessionTypeData>[];
+    final skill = <ProfessionTypeData>[];
+    final consult = <ProfessionTypeData>[];
 
     for (var apiCategory in categoryData) {
       final String apiType = apiCategory.profileType ?? "";
@@ -1162,37 +1171,66 @@ class AuthController extends GetxController {
         case 'Social Profile':
           apiCategory.individualProfileType =
               IndividualProfileType.SOCIAL_PROFILE;
-          individualOnboardingSocialProfileList.add(apiCategory);
+          social.add(apiCategory);
           break;
         case 'GigWork':
           apiCategory.individualProfileType = IndividualProfileType.GIG_WORKER;
-          individualOnboardingGigWorkList.add(apiCategory);
+          gig.add(apiCategory);
           break;
         case 'Self Employed':
           apiCategory.individualProfileType =
               IndividualProfileType.SELF_EMPLOYED;
-          individualOnboardingSkillWorkList.add(apiCategory);
+          skill.add(apiCategory);
           break;
         case 'Professional':
           apiCategory.individualProfileType =
               IndividualProfileType.PROFESSIONAL;
-          individualOnboardingConsultationList.add(apiCategory);
+          consult.add(apiCategory);
           break;
       }
     }
+
+    individualOnboardingSocialProfileList.assignAll(social);
+    individualOnboardingGigWorkList.assignAll(gig);
+    individualOnboardingSkillWorkList.assignAll(skill);
+    individualOnboardingConsultationList.assignAll(consult);
   }
 
   RxBool isAllBusinessCategoriesLoading = false.obs;
-  List<CategoryData> businessOnboardingServicesCategories = [];
-  List<CategoryData> businessOnboardingProductsCategories = [];
-  List<CategoryData> businessOnboardingGroceriesCategories = [];
-  List<CategoryData> businessOnboardingFoodsCategories = [];
-  List<CategoryData> businessOnboardingManufacturingCategories = [];
-  List<CategoryData> businessOnboardingAutomotiveServicesCategories = [];
-  List<CategoryData> businessOnboardingHealthcareSectorsCategories = [];
-  List<CategoryData> businessOnboardingHospitalityStayCategories = [];
-  List<CategoryData> businessOnboardingEducationTrainingCategories = [];
-  List<CategoryData> businessOnboardingFinancialSectorsCategories = [];
+  // Reactive buckets — see the profession buckets above for the rationale.
+  final RxList<CategoryData> businessOnboardingServicesCategories = <CategoryData>[].obs;
+  final RxList<CategoryData> businessOnboardingProductsCategories = <CategoryData>[].obs;
+  final RxList<CategoryData> businessOnboardingGroceriesCategories = <CategoryData>[].obs;
+  final RxList<CategoryData> businessOnboardingFoodsCategories = <CategoryData>[].obs;
+  final RxList<CategoryData> businessOnboardingManufacturingCategories = <CategoryData>[].obs;
+  final RxList<CategoryData> businessOnboardingAutomotiveServicesCategories = <CategoryData>[].obs;
+  final RxList<CategoryData> businessOnboardingHealthcareSectorsCategories = <CategoryData>[].obs;
+  final RxList<CategoryData> businessOnboardingHospitalityStayCategories = <CategoryData>[].obs;
+  final RxList<CategoryData> businessOnboardingEducationTrainingCategories = <CategoryData>[].obs;
+  final RxList<CategoryData> businessOnboardingFinancialSectorsCategories = <CategoryData>[].obs;
+
+  /// Read inside an `Obx` to subscribe to *any* onboarding-bucket change —
+  /// initial cache load or silent network refresh — when the actual bucket
+  /// reads happen in child widgets across a build boundary (e.g. Discover's
+  /// section cards, which the parent `Obx` can't see into). The returned
+  /// count exists only to give the closure a value to read; the point is the
+  /// reactive subscription that reading every bucket establishes. `assignAll`
+  /// fires that subscription even when a refresh returns the same item count.
+  int get onboardingBucketsWatch =>
+      businessOnboardingServicesCategories.length +
+      businessOnboardingProductsCategories.length +
+      businessOnboardingGroceriesCategories.length +
+      businessOnboardingFoodsCategories.length +
+      businessOnboardingManufacturingCategories.length +
+      businessOnboardingAutomotiveServicesCategories.length +
+      businessOnboardingHealthcareSectorsCategories.length +
+      businessOnboardingHospitalityStayCategories.length +
+      businessOnboardingEducationTrainingCategories.length +
+      businessOnboardingFinancialSectorsCategories.length +
+      individualOnboardingSocialProfileList.length +
+      individualOnboardingGigWorkList.length +
+      individualOnboardingSkillWorkList.length +
+      individualOnboardingConsultationList.length;
 
   /// Network-level fetch for the master business-category list. Private —
   /// callers outside this controller MUST go through
@@ -1225,16 +1263,18 @@ class AuthController extends GetxController {
   }
 
   void updateBusinessCategoriesFromApi(List<CategoryData> categoryData) {
-    businessOnboardingServicesCategories.clear();
-    businessOnboardingProductsCategories.clear();
-    businessOnboardingGroceriesCategories.clear();
-    businessOnboardingFoodsCategories.clear();
-    businessOnboardingManufacturingCategories.clear();
-    businessOnboardingAutomotiveServicesCategories.clear();
-    businessOnboardingHealthcareSectorsCategories.clear();
-    businessOnboardingHospitalityStayCategories.clear();
-    businessOnboardingEducationTrainingCategories.clear();
-    businessOnboardingFinancialSectorsCategories.clear();
+    // Accumulate locally, then push each bucket once via `assignAll` (single
+    // change notification per bucket — see `updateIndividualCategoriesFromApi`).
+    final services = <CategoryData>[];
+    final products = <CategoryData>[];
+    final groceries = <CategoryData>[];
+    final foods = <CategoryData>[];
+    final manufacturing = <CategoryData>[];
+    final automotive = <CategoryData>[];
+    final healthcare = <CategoryData>[];
+    final hospitality = <CategoryData>[];
+    final education = <CategoryData>[];
+    final finance = <CategoryData>[];
 
     for (var apiCategory in categoryData) {
       final String apiType = apiCategory.type ?? "";
@@ -1243,46 +1283,57 @@ class AuthController extends GetxController {
       switch (apiType) {
         case 'Service':
           apiCategory.businessType = BusinessType.Service;
-          businessOnboardingServicesCategories.add(apiCategory);
+          services.add(apiCategory);
           break;
         case 'Product':
           apiCategory.businessType = BusinessType.Product;
-          businessOnboardingProductsCategories.add(apiCategory);
+          products.add(apiCategory);
           break;
         case 'Grocery':
           apiCategory.businessType = BusinessType.Grocery;
-          businessOnboardingGroceriesCategories.add(apiCategory);
+          groceries.add(apiCategory);
           break;
         case 'Food':
           apiCategory.businessType = BusinessType.Food;
-          businessOnboardingFoodsCategories.add(apiCategory);
+          foods.add(apiCategory);
           break;
         case 'Manufacturing':
           apiCategory.businessType = BusinessType.Manufacturing;
-          businessOnboardingManufacturingCategories.add(apiCategory);
+          manufacturing.add(apiCategory);
           break;
         case 'Automotive':
           apiCategory.businessType = BusinessType.Automotive;
-          businessOnboardingAutomotiveServicesCategories.add(apiCategory);
+          automotive.add(apiCategory);
           break;
         case 'Healthcare':
           apiCategory.businessType = BusinessType.Healthcare;
-          businessOnboardingHealthcareSectorsCategories.add(apiCategory);
+          healthcare.add(apiCategory);
           break;
         case 'Motel':
           apiCategory.businessType = BusinessType.Motel;
-          businessOnboardingHospitalityStayCategories.add(apiCategory);
+          hospitality.add(apiCategory);
           break;
         case 'Siksha':
           apiCategory.businessType = BusinessType.Siksha;
-          businessOnboardingEducationTrainingCategories.add(apiCategory);
+          education.add(apiCategory);
           break;
         case 'Finance':
           apiCategory.businessType = BusinessType.Finance;
-          businessOnboardingFinancialSectorsCategories.add(apiCategory);
+          finance.add(apiCategory);
           break;
       }
     }
+
+    businessOnboardingServicesCategories.assignAll(services);
+    businessOnboardingProductsCategories.assignAll(products);
+    businessOnboardingGroceriesCategories.assignAll(groceries);
+    businessOnboardingFoodsCategories.assignAll(foods);
+    businessOnboardingManufacturingCategories.assignAll(manufacturing);
+    businessOnboardingAutomotiveServicesCategories.assignAll(automotive);
+    businessOnboardingHealthcareSectorsCategories.assignAll(healthcare);
+    businessOnboardingHospitalityStayCategories.assignAll(hospitality);
+    businessOnboardingEducationTrainingCategories.assignAll(education);
+    businessOnboardingFinancialSectorsCategories.assignAll(finance);
   }
 
   // void debugPrintBusinessCategories() {

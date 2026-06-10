@@ -41,6 +41,12 @@ mixin EarnServiceApi {
   final String homeFood = "earn-service/homeFood";
   final String homeFoodByUserId = "earn-service/homeFood/user/$userId";
 
+  /// Per-store (consumer-side) tiffins — same path but for an arbitrary
+  /// store's [storeUserId], not the logged-in user. The store details screen
+  /// keys everything off the store's userId.
+  String tiffinsByUser(String storeUserId) =>
+      'earn-service/tiffins/user/$storeUserId';
+
   /// Earn Profiles
   final String earnProfiles = "earn-service/earn-profiles";
 

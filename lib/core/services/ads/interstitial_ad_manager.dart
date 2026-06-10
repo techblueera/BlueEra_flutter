@@ -5,17 +5,6 @@ import 'package:BlueEra/env.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-/// Loads and shows full-screen AdMob interstitials.
-///
-/// A single interstitial is preloaded and kept ready; calling
-/// [showInterstitial] displays it (when one is loaded) and then preloads the
-/// next. Everything is best-effort and fire-and-forget — load/show failures
-/// are swallowed so an ad can never block an app flow (notably the
-/// end-of-call teardown that triggers it).
-///
-/// Platform-specific ad-unit ids come from [Env] (obfuscated `.env`). The
-/// AdMob *App ID* is configured natively (AndroidManifest.xml +
-/// ios/Runner/Info.plist), not here.
 class InterstitialAdManager {
   InterstitialAdManager._();
 

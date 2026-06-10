@@ -144,6 +144,8 @@ class AppStrings {
   static const add = "add";
   static const upiIdRequired = "upiIdRequired";
   static const invalidUpiId = "invalidUpiId";
+  static const linkMobileNumberToUpi = "Link Mobile Number to UPI";
+  static const linkMobileNumberHint = "Enter mobile number linked to UPI";
   static const pleaseSelectAccountType = "pleaseSelectAccountType";
   static const bankAddedSuccessfully = "bankAddedSuccessfully";
   static const failedToAddAccount = "failedToAddAccount";
