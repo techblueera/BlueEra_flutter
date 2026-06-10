@@ -153,6 +153,13 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
     // Watch call status changes
     _callStatusWorker = ever(controller.callStatus, (status) {
       if (!mounted) return;
+      // If the call ends while the screen is in PiP, close the PiP window so the
+      // user isn't left staring at a tiny floating window of the post-call
+      // screen. exitPipMode() is native-guarded (no-op when not in PiP).
+      if ((status == CallStatus.idle || status == CallStatus.ended) &&
+          _isInPipMode) {
+        CallPipService.exitPipMode();
+      }
       if (status == CallStatus.idle ||
           status == CallStatus.connecting ||
           status == CallStatus.connected ||

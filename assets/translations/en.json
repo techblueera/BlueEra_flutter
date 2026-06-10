@@ -1,4 +1,8 @@
 {
+  "financeService": "Finance Service",
+  "ourOrganisation": "Our Organisation",
+  "ourTeam": "Our Team",
+  "blogs": "Blogs",
   "languageCode": "en",
   "newKey": "New Value",
   "anotherKey": "Another Value",

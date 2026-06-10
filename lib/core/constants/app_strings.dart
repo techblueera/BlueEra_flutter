@@ -467,6 +467,12 @@ class AppStrings {
   static const managementLabel = "managementLabel";
   static const staffsLabel = "staffsLabel";
   static const officeFacility = "officeFacility";
+
+  // FinanceDetailScreen
+  static const financeService = "financeService";
+  static const ourOrganisation = "ourOrganisation";
+  static const ourTeam = "ourTeam";
+  static const blogs = "blogs";
   // SchoolHomeScreenV2 / SchoolAcademicsTabV2
   static const addCoursesCta = "addCoursesCta";
   // VehicleHomeScreenV2

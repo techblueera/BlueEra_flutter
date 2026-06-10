@@ -1,4 +1,10 @@
 {
+  "managementLabel": "நிர்வாகம்",
+  "financeService": "நிதி சேவை",
+  "ourOrganisation": "எங்கள் நிறுவனம்",
+  "ourTeam": "எங்கள் குழு",
+  "blogs": "வலைப்பதிவுகள்",
+  "aboutLabel": "பற்றி",
   " pDFUploaded": "PDF பதிவேற்றப்பட்டது",
   " uploadRequiredDocs": "தேவையான ஆவணங்களை பதிவேற்றவும்",
   " vehicleType": " வாகன வகை",

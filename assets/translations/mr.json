@@ -1,4 +1,10 @@
 {
+  "managementLabel": "व्यवस्थापन",
+  "financeService": "वित्त सेवा",
+  "ourOrganisation": "आमची संस्था",
+  "ourTeam": "आमची टीम",
+  "blogs": "ब्लॉग",
+  "aboutLabel": "विषयी",
   " pDFUploaded": "PDF अपलोड केले",
   " uploadRequiredDocs": "आवश्यक दस्तऐवज अपलोड करा",
   " vehicleType": "वाहन प्रकार",

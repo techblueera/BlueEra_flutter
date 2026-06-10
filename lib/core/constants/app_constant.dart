@@ -2483,14 +2483,15 @@ final List<PropertyTileData> propertyDiscoverTiles = [
 final List<OnboardingCategoryModel> stayItemsCategories = [
   OnboardingCategoryModel(
       name: 'Hotel Stay',
-      slugId: "HOTEL",
+      slugId: "HOTELS_RESORT",
+      // slugId: "HOTEL",
       // slugId: HOTELS_RESORT,
       icon: AppImageAssets.hotelStay,
       colorCode: Color(0xFFEBF5FF),
       subtitle: "Premium Rooms",
       accountType: AppConstants.business),
   OnboardingCategoryModel(
-      name: 'Home Stay',
+      name: 'Economic Stay',
       slugId: ECONOMIC_STAYS,
       icon: AppImageAssets.economyStay,
       colorCode: Color(0xFFE6FAF3),

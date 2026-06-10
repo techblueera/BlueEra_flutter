@@ -1112,7 +1112,8 @@ class DiscoverController extends GetxController {
   Future<void> fetchAllHotelsForMap({required String category}) async {
     staysMapResponse.value = ApiResponse.initial('Initial');
     final queryParams = <String, dynamic>{
-      ApiKeys.category: category,
+      "categoryOfBusiness":category,
+      // ApiKeys.category: category,
       ApiKeys.page: 1,
       ApiKeys.limit: 1000,
     };
@@ -1220,7 +1221,9 @@ class DiscoverController extends GetxController {
       }
 
       Map<String, dynamic> queryParams = {
-        ApiKeys.category: category,
+        "categoryOfBusiness":category,
+
+        // ApiKeys.category: category,
         ApiKeys.page: rentalServicePage,
         ApiKeys.limit: limit,
       };

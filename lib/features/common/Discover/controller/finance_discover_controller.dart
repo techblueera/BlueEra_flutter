@@ -12,9 +12,41 @@ class FinanceDiscoverController extends GetxController {
   final error = ''.obs;
   final selectedCategory = ''.obs;
   final selectedDetail = Rx<FinanceBusinessItem?>(null);
+  final isDetailLoading = false.obs;
+  final detailError = ''.obs;
 
   int _page = 1;
   final int _limit = 10;
+
+  /// Fetch the full business profile (rich detail: profile, management,
+  /// staff, gallery, contactUs, etc.) and replace [selectedDetail] with it.
+  /// The list screen seeds [selectedDetail] with the lightweight search item
+  /// first, so the screen shows immediately and refreshes when this completes.
+  Future<void> fetchDetail(String id) async {
+    if (id.isEmpty) return;
+    try {
+      isDetailLoading.value = true;
+      detailError.value = '';
+      final ResponseModel res = await ApiBaseHelper().getHTTP(
+        "other-service/business-profile/$id/full",
+        onError: (e) {},
+        onSuccess: (data) {},
+      );
+      if (res.isSuccess) {
+        final data = res.response?.data['data'];
+        if (data != null) {
+          selectedDetail.value =
+              FinanceBusinessItem.fromJson(Map<String, dynamic>.from(data));
+        }
+      } else {
+        detailError.value = res.message ?? AppStrings.somethingWentWrong;
+      }
+    } catch (e) {
+      detailError.value = e.toString();
+    } finally {
+      isDetailLoading.value = false;
+    }
+  }
 
   Future<void> fetchInitial(String category) async {
     profiles.clear();
