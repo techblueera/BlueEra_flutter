@@ -31,6 +31,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
+import 'package:BlueEra/widgets/visit_business_common_header.dart';
 // import 'package:BlueEra/widgets/visit_business_common_header.dart';
 import 'package:BlueEra/widgets/visit_business_stats_card.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -145,19 +146,19 @@ class _VisitFoodStoreDetailsScreenState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 /// Profile Header (Read-Only)
-                // VisitBusinessCommonHeader(
-                //   details: details,
-                //   onRated: () => viewBusinessDetailsController
-                //       .viewBusinessProfileById(
-                //     widget.visitBusinessId,
-                //     silent: true,
-                //   ),
-                //   onFollowChanged: () => viewBusinessDetailsController
-                //       .viewBusinessProfileById(
-                //     widget.visitBusinessId,
-                //     silent: true,
-                //   ),
-                // ),
+                VisitBusinessCommonHeader(
+                  details: details,
+                  onRated: () => viewBusinessDetailsController
+                      .viewBusinessProfileById(
+                    widget.visitBusinessId,
+                    silent: true,
+                  ),
+                  onFollowChanged: () => viewBusinessDetailsController
+                      .viewBusinessProfileById(
+                    widget.visitBusinessId,
+                    silent: true,
+                  ),
+                ),
 
                 /// Business Stats
                 const SizedBox(height: 10),

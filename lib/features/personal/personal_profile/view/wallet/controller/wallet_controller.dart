@@ -191,11 +191,15 @@ class WalletController extends GetxController {
 
   /// Fetches BOTH bank accounts and UPI IDs so the payment-settings screen can
   /// list every saved withdrawal method.
-  Future<void> getAllWithdrawalMethods() async {
-    isMethodsLoading.value = true;
+  ///
+  /// [showLoader] drives the full-screen spinner — `true` for the initial load,
+  /// `false` for the silent re-fetch after an edit/delete/set-default so the
+  /// list updates in place without blanking the whole screen.
+  Future<void> getAllWithdrawalMethods({bool showLoader = true}) async {
+    if (showLoader) isMethodsLoading.value = true;
     await getWalletWithdrawalMethod(params: {ApiKeys.methodType: "BANK"});
     await getWalletWithdrawalMethod(params: {ApiKeys.methodType: "UPI"});
-    isMethodsLoading.value = false;
+    if (showLoader) isMethodsLoading.value = false;
   }
 
   Future<void> getWalletWithdrawalMethod({required Map<String, dynamic> params}) async {
@@ -226,6 +230,100 @@ class WalletController extends GetxController {
           message:  AppStrings.somethingWentWrong);
       walletWithdrawalMethodResponse.value=ApiResponse.error(AppStrings.somethingWentWrong);
 
+    }
+  }
+
+  // ── Withdrawal method actions (delete / edit / set-default) ──────────────
+
+  /// Delete a saved bank/UPI withdrawal method, then refresh the list.
+  Future<void> deleteWithdrawalMethod(String id) async {
+    try {
+      final ResponseModel response =
+          await _walletRepo.deleteWithdrawalMethod(id: id);
+      if (response.isSuccess) {
+        commonSnackBar(
+            message: response.message ?? "Method removed successfully.");
+        await getAllWithdrawalMethods(showLoader: false);
+      } else {
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+
+  /// Edit an existing UPI method.
+  Future<void> updateUpiMethod({
+    required String id,
+    required String upiId,
+    required String mobileNumber,
+  }) {
+    return _updateWithdrawalMethod(id, {
+      ApiKeys.upiDetails: {
+        ApiKeys.upiId: upiId.trim(),
+        ApiKeys.mobileNumber: mobileNumber.trim(),
+      }
+    });
+  }
+
+  /// Edit an existing bank method.
+  Future<void> updateBankMethod({
+    required String id,
+    required String holderName,
+    required String accountNo,
+    required String ifscCode,
+    required String bankName,
+  }) {
+    return _updateWithdrawalMethod(id, {
+      ApiKeys.bankDetails: {
+        ApiKeys.holderName: holderName.trim(),
+        ApiKeys.accountNo: accountNo.trim(),
+        ApiKeys.ifscCode: ifscCode.trim(),
+        ApiKeys.bankName: bankName.trim(),
+      }
+    });
+  }
+
+  /// Mark a method as the default payout destination via the dedicated
+  /// PATCH …/withdrawal-methods/set-default/{id} endpoint.
+  Future<void> setDefaultWithdrawalMethod(String id) async {
+    try {
+      final ResponseModel response =
+          await _walletRepo.setDefaultWithdrawalMethod(id: id);
+      if (response.isSuccess) {
+        commonSnackBar(message: response.message ?? "Set as default");
+        await getAllWithdrawalMethods(showLoader: false);
+      } else {
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+
+  /// Shared PUT handler for edits; refreshes the list silently on success.
+  Future<void> _updateWithdrawalMethod(
+    String id,
+    Map<String, dynamic> params, {
+    String? successMessage,
+  }) async {
+    try {
+      final ResponseModel response =
+          await _walletRepo.updateWithdrawalMethod(id: id, params: params);
+      if (response.isSuccess) {
+        commonSnackBar(
+            message: successMessage ??
+                response.message ??
+                "Updated successfully");
+        await getAllWithdrawalMethods(showLoader: false);
+      } else {
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
     }
   }
 

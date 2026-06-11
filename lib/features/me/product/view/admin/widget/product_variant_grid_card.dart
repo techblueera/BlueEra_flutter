@@ -136,13 +136,20 @@ class ProductVariantGridCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CustomText(
-                    product.name,
-                    fontSize: SizeConfig.small,
-                    maxLines: 1,
-                    color: AppColors.mainTextColor,
-                    overflow: TextOverflow.ellipsis,
-                    fontWeight: FontWeight.w600,
+                  // Always reserve two lines of height so every card is the
+                  // same height regardless of name length — a one-line name
+                  // simply leaves the second line empty.
+                  SizedBox(
+                    height: SizeConfig.small * 1.3 * 2,
+                    child: CustomText(
+                      product.name,
+                      fontSize: SizeConfig.small,
+                      height: 1.3,
+                      maxLines: 2,
+                      color: AppColors.mainTextColor,
+                      overflow: TextOverflow.ellipsis,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   SizedBox(height: SizeConfig.size6),
                   PriceRow(

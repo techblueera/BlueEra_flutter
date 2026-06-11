@@ -22,6 +22,7 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
+import 'package:BlueEra/widgets/visit_business_common_header.dart';
 // import 'package:BlueEra/widgets/visit_business_common_header.dart';
 import 'package:BlueEra/widgets/visit_business_stats_card.dart';
 import 'package:flutter/material.dart';
@@ -124,19 +125,19 @@ class _VisitProductStoreDetailsScreenState
                   .visitedBusinessProfileDetails?.data;
               return Column(
                 children: [
-                  // VisitBusinessCommonHeader(
-                  //   details: details,
-                  //   onRated: () => viewBusinessDetailsController
-                  //       .viewBusinessProfileById(
-                  //     widget.visitUserId,
-                  //     silent: true,
-                  //   ),
-                  //   onFollowChanged: () => viewBusinessDetailsController
-                  //       .viewBusinessProfileById(
-                  //     widget.visitUserId,
-                  //     silent: true,
-                  //   ),
-                  // ),
+                  VisitBusinessCommonHeader(
+                    details: details,
+                    onRated: () => viewBusinessDetailsController
+                        .viewBusinessProfileById(
+                      widget.visitUserId,
+                      silent: true,
+                    ),
+                    onFollowChanged: () => viewBusinessDetailsController
+                        .viewBusinessProfileById(
+                      widget.visitUserId,
+                      silent: true,
+                    ),
+                  ),
                   const SizedBox(height: 10),
                   VisitBusinessStatsCard(details: details),
                 ],
@@ -267,7 +268,6 @@ class _VisitProductStoreDetailsScreenState
     return CustomFormCard(
       padding: EdgeInsets.all(SizeConfig.size10),
       margin: EdgeInsets.only(top: SizeConfig.paddingXSL),
-      color: AppColors.primaryColor.withValues(alpha: 0.1),
       child: Column(
         children: [
           Row(
@@ -316,7 +316,7 @@ class _VisitProductStoreDetailsScreenState
                     width: SizeConfig.size160,
                     margin: const EdgeInsets.only(right: 8.0),
                     decoration: BoxDecoration(
-                      color: AppColors.white,
+                      // color: AppColors.whiteEE,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Column(

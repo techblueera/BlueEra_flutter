@@ -37,6 +37,43 @@ class WalletRepo extends BaseService {
     return response;
   }
 
+  /// DELETE wallet-service/withdrawal-methods/{id}
+  Future<ResponseModel> deleteWithdrawalMethod({required String id}) async {
+    final response = await ApiBaseHelper().deleteHTTP(
+      "$walletWithdrawalMethod/$id",
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  /// PUT wallet-service/withdrawal-methods/{id} — edits the bank/UPI details.
+  Future<ResponseModel> updateWithdrawalMethod({
+    required String id,
+    required Map<String, dynamic> params,
+  }) async {
+    final response = await ApiBaseHelper().putHTTP(
+      "$walletWithdrawalMethod/$id",
+      params: params,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  /// PATCH wallet-service/withdrawal-methods/set-default/{id}
+  /// `showProgress: false` — set-default updates the list in place, no global
+  /// blocking dialog / full-screen spinner.
+  Future<ResponseModel> setDefaultWithdrawalMethod({required String id}) async {
+    final response = await ApiBaseHelper().patchHTTP(
+      "$walletWithdrawalMethod/set-default/$id",
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   Future<ResponseModel> walletTransactionApi({
     String? status,
     String? type,

@@ -29,6 +29,7 @@ class HiveServices{
   static const String _savedGroceryNestedCategoryBox = 'savedGroceryNestedCategoryBox';
   static const String _savedMedicalNestedCategoryBox = 'savedMedicalNestedCategoryBox';
   static const String _savedProductNestedCategoryBox = 'savedProductNestedCategoryBox';
+  static const String _savedFoodNestedCategoryBox = 'savedFoodNestedCategoryBox';
 
   /// Initialize Hive boxes
   static Future<void> init() async {
@@ -45,6 +46,7 @@ class HiveServices{
     await Hive.openBox(_savedGroceryNestedCategoryBox);
     await Hive.openBox(_savedMedicalNestedCategoryBox);
     await Hive.openBox(_savedProductNestedCategoryBox);
+    await Hive.openBox(_savedFoodNestedCategoryBox);
   }
 
   static List<String> get allBoxNames => [
@@ -61,7 +63,51 @@ class HiveServices{
     _savedGroceryNestedCategoryBox,
     _savedMedicalNestedCategoryBox,
     _savedProductNestedCategoryBox,
+    _savedFoodNestedCategoryBox,
   ];
+
+  // ── Category-tree caches (raw JSON) ──────────────────────────────────────
+  // The super/nested category endpoints return a potentially large tree.
+  // We store the RAW decoded list (un-parsed) so the caller can rebuild the
+  // model graph on a background isolate via `compute`, keeping the UI thread
+  // free. Keyed per-feature; a single fixed key holds the super-category list.
+
+  Future<void> _putRawList(String boxName, String key, List<dynamic> raw) async {
+    try {
+      final box = Hive.isBoxOpen(boxName)
+          ? Hive.box(boxName)
+          : await Hive.openBox(boxName);
+      await box.put(key, raw);
+    } catch (e) {
+      log('Hive _putRawList($boxName/$key) error: $e');
+    }
+  }
+
+  List<dynamic>? _getRawList(String boxName, String key) {
+    try {
+      if (!Hive.isBoxOpen(boxName)) return null;
+      final data = Hive.box(boxName).get(key);
+      return data is List ? data : null;
+    } catch (e) {
+      log('Hive _getRawList($boxName/$key) error: $e');
+      return null;
+    }
+  }
+
+  Future<void> saveFoodSuperCategoriesRaw(List<dynamic> raw) =>
+      _putRawList(_savedFoodNestedCategoryBox, 'foodSuper', raw);
+  List<dynamic>? getFoodSuperCategoriesRaw() =>
+      _getRawList(_savedFoodNestedCategoryBox, 'foodSuper');
+
+  Future<void> saveGrocerySuperCategoriesRaw(List<dynamic> raw) =>
+      _putRawList(_savedGroceryNestedCategoryBox, 'grocerySuper', raw);
+  List<dynamic>? getGrocerySuperCategoriesRaw() =>
+      _getRawList(_savedGroceryNestedCategoryBox, 'grocerySuper');
+
+  Future<void> saveProductSuperCategoriesRaw(List<dynamic> raw) =>
+      _putRawList(_savedProductNestedCategoryBox, 'productSuperRaw', raw);
+  List<dynamic>? getProductSuperCategoriesRaw() =>
+      _getRawList(_savedProductNestedCategoryBox, 'productSuperRaw');
 
   bool isPostSaved(String id) {
     if (!Hive.isBoxOpen(_savedPosts)) return false;

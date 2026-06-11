@@ -28,6 +28,7 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
+import 'package:BlueEra/widgets/visit_business_common_header.dart';
 // import 'package:BlueEra/widgets/visit_business_common_header.dart';
 import 'package:BlueEra/widgets/visit_business_stats_card.dart';
 import 'package:flutter/material.dart';
@@ -102,19 +103,19 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
                   final details = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
                   return Column(
                     children: [
-                      // VisitBusinessCommonHeader(
-                      //   details: details,
-                      //   onRated: () => viewBusinessDetailsController
-                      //       .viewBusinessProfileById(
-                      //     widget.visitBusinessId,
-                      //     silent: true,
-                      //   ),
-                      //   onFollowChanged: () => viewBusinessDetailsController
-                      //       .viewBusinessProfileById(
-                      //     widget.visitBusinessId,
-                      //     silent: true,
-                      //   ),
-                      // ),
+                      VisitBusinessCommonHeader(
+                        details: details,
+                        onRated: () => viewBusinessDetailsController
+                            .viewBusinessProfileById(
+                          widget.visitBusinessId,
+                          silent: true,
+                        ),
+                        onFollowChanged: () => viewBusinessDetailsController
+                            .viewBusinessProfileById(
+                          widget.visitBusinessId,
+                          silent: true,
+                        ),
+                      ),
                       const SizedBox(height: 10),
                       VisitBusinessStatsCard(details: details),
                     ],

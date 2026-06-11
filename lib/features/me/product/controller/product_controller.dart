@@ -28,6 +28,7 @@ import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:dio/dio.dart' as dio;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http_parser/http_parser.dart';
@@ -123,6 +124,17 @@ class ProductMoreDetails {
     'title': title,
     'details': details,
   };
+}
+
+/// Top-level so it can run in a background isolate via [compute]. The
+/// `jsonDecode(jsonEncode())` round-trip normalises types so the same parser
+/// works for both fresh Dio maps and Hive-restored maps (cache + network).
+List<ProductNestedCategoryResponse> _parseProductNestedCategories(
+    List<dynamic> raw) {
+  return raw
+      .map((e) => ProductNestedCategoryResponse.fromJson(
+          jsonDecode(jsonEncode(e)) as Map<String, dynamic>))
+      .toList();
 }
 
 class ProductController extends GetxController{
@@ -1477,40 +1489,64 @@ class ProductController extends GetxController{
     }
   }
 
+  /// Fetch the product super-category list.
+  ///
+  /// Cache-first (no `groceryCatKey`): the last saved tree is shown instantly
+  /// while a fresh copy is fetched silently. The tree is parsed off the UI
+  /// isolate via [compute] so a large response can't freeze the shimmer /
+  /// starve frames (the BLASTBufferQueue buffer-starvation seen on the food
+  /// category screen).
   Future<void> fetchProductsNestedCategory({String? groceryCatKey}) async {
+    final bool isSuper = groceryCatKey == null;
     try {
       nestedProductCategoryResponse.value = ApiResponse.initial('Initial');
       productsNestedCategoryList.clear();
 
-      if (groceryCatKey == null) {
-        final cached = HiveServices().getProductNestedCategories();
-        if (cached != null && cached.isNotEmpty) {
-          productsNestedCategoryList.assignAll(cached);
-          nestedProductCategoryResponse.value = ApiResponse.complete();
+      // 1) Cache-first (super-category list only).
+      if (isSuper) {
+        final cachedRaw = HiveServices().getProductSuperCategoriesRaw();
+        if (cachedRaw != null && cachedRaw.isNotEmpty) {
+          final cached =
+              await compute(_parseProductNestedCategories, cachedRaw);
+          if (cached.isNotEmpty) {
+            productsNestedCategoryList.assignAll(cached);
+            nestedProductCategoryResponse.value = ApiResponse.complete();
+          }
         }
       }
 
+      // 2) Silent network refresh.
       Map<String, dynamic> queryParams = {};
-      if(groceryCatKey!=null) queryParams[ApiKeys.categoryKey] = groceryCatKey;
+      if (groceryCatKey != null) queryParams[ApiKeys.categoryKey] = groceryCatKey;
 
-      ResponseModel responseModel = await ProductRepo().productNestedCategoryRepo(
-          queryParams: queryParams
-      );
+      ResponseModel responseModel = await ProductRepo()
+          .productNestedCategoryRepo(queryParams: queryParams);
       if (responseModel.isSuccess) {
-        nestedProductCategoryResponse.value = ApiResponse.complete(responseModel);
-        productsNestedCategoryList.value = (responseModel.response?.data ?? [])
-            .map<ProductNestedCategoryResponse>((e) => ProductNestedCategoryResponse.fromJson(e))
-            .toList();
-        if (groceryCatKey == null && productsNestedCategoryList.isNotEmpty) {
-          await HiveServices()
-              .saveProductNestedCategories(productsNestedCategoryList);
+        final List<dynamic> rawList = (responseModel.response?.data is List)
+            ? responseModel.response!.data as List
+            : const [];
+        final parsed = rawList.isEmpty
+            ? <ProductNestedCategoryResponse>[]
+            : await compute(_parseProductNestedCategories, rawList);
+
+        productsNestedCategoryList.assignAll(parsed);
+        nestedProductCategoryResponse.value =
+            ApiResponse.complete(responseModel);
+
+        if (isSuper && rawList.isNotEmpty) {
+          await HiveServices().saveProductSuperCategoriesRaw(rawList);
         }
       } else if (productsNestedCategoryList.isEmpty) {
+        // Only surface an error when there's no cached data on screen.
         nestedProductCategoryResponse.value = ApiResponse.error('error');
       }
     } catch (e, s) {
       log('stack trace -- $s');
-      nestedProductCategoryResponse.value = ApiResponse.error('error');
+      if (productsNestedCategoryList.isEmpty) {
+        try {
+          nestedProductCategoryResponse.value = ApiResponse.error('error');
+        } catch (_) {}
+      }
     }
   }
 
