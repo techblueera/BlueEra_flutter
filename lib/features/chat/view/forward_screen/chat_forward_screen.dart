@@ -8,6 +8,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:share_handler/share_handler.dart';
 import '../../../../core/api/apiService/api_keys.dart';
+import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_icon_assets.dart';
 
@@ -17,6 +18,9 @@ import '../../../../widgets/custom_text_cm.dart';
 import '../../../common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
+import '../../auth/model/GetChatListModel.dart';
+import '../business_chat/business_chat_list.dart';
+import '../widget/component_widgets.dart';
 import '../add_symbol/add_symbol_screen.dart';
 import '../personal_chat/personal_chat_list.dart';
 
@@ -38,11 +42,35 @@ class _ChatForwardScreenState extends State<ChatForwardScreen> {
  bool _isSending = false;
   final bottomBarController = getOrPut(() => BottomBarController());
 
+  // Inline local search of the conversations shown on this screen.
+  bool _isSearching = false;
+  final TextEditingController _searchCtrl = TextEditingController();
+  String _query = '';
+
   @override
   void initState() {
     super.initState();
     chatViewController.selectedUserIds.clear();
     chatViewController.selectedChatList.clear();
+    // Make sure the business chat list is available so the "Recent Inquiry"
+    // section can show the latest 4 business conversations.
+    if (chatViewController.businessChatListResponse.value.status !=
+        Status.COMPLETE) {
+      chatViewController.emitEvent(
+          ChatEmitEvents.ChatList, {ApiKeys.type: "business"});
+    }
+    // Personal chats power the recent list + local search results.
+    if (chatViewController.personalChatListResponse.value.status !=
+        Status.COMPLETE) {
+      chatViewController.emitEvent(
+          ChatEmitEvents.ChatList, {ApiKeys.type: "personal"});
+    }
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
   }
 
   Widget build(BuildContext context) {
@@ -52,6 +80,15 @@ class _ChatForwardScreenState extends State<ChatForwardScreen> {
         isShadowShow: false,
         title: AppStrings.forwardTo.tr,
         isForwardUi: true,
+        onForwardSearchTap: () {
+          setState(() {
+            _isSearching = !_isSearching;
+            if (!_isSearching) {
+              _searchCtrl.clear();
+              _query = '';
+            }
+          });
+        },
       ),
       // AppBar(
       //   elevation: 0,
@@ -70,11 +107,15 @@ class _ChatForwardScreenState extends State<ChatForwardScreen> {
       // ),
       body: Column(
         children: [
+          if (_isSearching) _searchField(),
           Expanded(
             child: SingleChildScrollView(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+              child: _isSearching
+                  ? _searchResults()
+                  : Column(crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _topOptions(),
+                  _recentInquiries(),
                   _sectionTitle(AppStrings.recentChatsLabel.tr),
                   PersonalChatsList(isForwardUI: true,hideAiChats: true,),
                 ],
@@ -86,6 +127,100 @@ class _ChatForwardScreenState extends State<ChatForwardScreen> {
           }),
         ],
       ),
+    );
+  }
+
+  /// Inline search box shown under the app bar when the search icon is tapped.
+  Widget _searchField() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      child: TextField(
+        controller: _searchCtrl,
+        autofocus: true,
+        onChanged: (v) => setState(() => _query = v.trim().toLowerCase()),
+        decoration: InputDecoration(
+          hintText: AppStrings.searchConversations.tr,
+          prefixIcon: const Icon(Icons.search, color: Colors.grey),
+          suffixIcon: _query.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.close, color: Colors.grey),
+                  onPressed: () => setState(() {
+                    _searchCtrl.clear();
+                    _query = '';
+                  }),
+                )
+              : null,
+          isDense: true,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Local search results: business "inquiry" + personal conversations on this
+  /// screen, deduped by conversation and filtered by name. Each row stays
+  /// selectable for forwarding.
+  Widget _searchResults() {
+    final theme = Theme.of(context);
+    final business =
+        (chatViewController.getBusinessChatListModel?.value.chatList ?? [])
+            .where((c) => c != null && bucketChat(c) == ChatBucket.chats);
+    final personal =
+        chatViewController.getPersonalChatListModel?.value.chatList ?? [];
+
+    // Combine + dedup by conversationId (business inquiries first).
+    final seen = <String>{};
+    final combined = <ChatList?>[];
+    for (final c in [...business, ...personal]) {
+      final id = c?.conversationId ?? '';
+      if (id.isEmpty || seen.contains(id)) continue;
+      seen.add(id);
+      combined.add(c);
+    }
+
+    final results = _query.isEmpty
+        ? combined
+        : combined.where((c) {
+            final name = (c?.sender?.name ?? c?.groupName ?? '').toLowerCase();
+            return name.contains(_query);
+          }).toList();
+
+    if (results.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
+        child: Center(
+          child: CustomText(
+            AppStrings.noChatsFound.tr,
+            color: Colors.grey,
+            fontSize: 14,
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      padding: EdgeInsets.zero,
+      itemCount: results.length,
+      itemBuilder: (context, i) {
+        final chat = results[i];
+        return ChatListTile(
+          onSelect: () => setState(() {}),
+          type: chat?.sender?.accountType ?? AppConstants.individual,
+          index: i,
+          chatViewController: chatViewController,
+          chat: chat,
+          theme: theme,
+          isForwardUI: true,
+          showFlagBadge: true,
+          context: context,
+        );
+      },
     );
   }
 
@@ -101,6 +236,56 @@ class _ChatForwardScreenState extends State<ChatForwardScreen> {
         const Divider(height: 1),
       ],
     );
+  }
+
+  /// Latest 4 business conversations ("Recent Inquiry"), shown above the
+  /// regular recent chats. Reuses [ChatListTile] in forward mode so each row
+  /// is selectable for forwarding just like the recent chats below.
+  Widget _recentInquiries() {
+    return Obx(() {
+      if (chatViewController.businessChatListResponse.value.status !=
+          Status.COMPLETE) {
+        return const SizedBox.shrink();
+      }
+      final all =
+          chatViewController.getBusinessChatListModel?.value.chatList ?? [];
+      // Same "chats" bucket the business list shows (excludes the seller's
+      // own "me" orders), capped at the latest 4.
+      final inquiries = all
+          .where((c) => c != null && bucketChat(c) == ChatBucket.chats)
+          .take(4)
+          .toList();
+      if (inquiries.isEmpty) return const SizedBox.shrink();
+
+      final theme = Theme.of(context);
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _sectionTitle(AppStrings.recentInquiryLabel.tr),
+          ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: EdgeInsets.zero,
+            itemCount: inquiries.length,
+            itemBuilder: (context, i) {
+              final chat = inquiries[i];
+              return ChatListTile(
+                onSelect: () => setState(() {}),
+                type: chat?.sender?.accountType ?? AppConstants.business,
+                index: i,
+                chatViewController: chatViewController,
+                chat: chat,
+                theme: theme,
+                isForwardUI: true,
+                showFlagBadge: true,
+                context: context,
+              );
+            },
+          ),
+          const Divider(height: 1),
+        ],
+      );
+    });
   }
 
   Widget _sectionTitle(String title) {

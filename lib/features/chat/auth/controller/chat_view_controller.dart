@@ -1477,6 +1477,24 @@ class ChatViewController extends GetxController {
     }
   }
 
+  /// Updates the approval status of a payment-screenshot image message locally
+  /// ([status] = 'approved' | 'rejected'). Patches the in-memory message,
+  /// refreshes the list, and re-persists the conversation to Hive so the
+  /// decision survives a reopen. No backend call — approvals are local.
+  Future<void> updatePaymentApprovalStatus(
+      Messages message, String status) async {
+    message.metadata ??= MessageMetadata();
+    message.metadata!.isPaymentScreenshot = true;
+    message.metadata!.approvalStatus = status;
+    getListOfMessageResponse.value =
+        ApiResponse.complete(getListOfMessageData);
+    final convId = message.conversationId ?? '';
+    if (convId.isNotEmpty && getListOfMessageData != null) {
+      await localStorageHelper.saveMessagesByConversationId(
+          convId, getListOfMessageData!);
+    }
+  }
+
   /// Re-send locally queued pending messages for a conversation. Typically
   /// called when the user reopens a chat that had messages stuck in pending
   /// (e.g. media that couldn't be uploaded last time). Text-like messages
@@ -3843,6 +3861,7 @@ class ChatViewController extends GetxController {
     required String messageType,
     bool? isPendingMessage,
     String? messageId,
+    Map<String, dynamic>? metadata,
   }) async {
     try {
       VideoUploadProgress.value = "0";
@@ -3909,6 +3928,7 @@ class ChatViewController extends GetxController {
           ApiKeys.conversation_id: conversationId,
         if (commands != null) ApiKeys.message: commands,
         ApiKeys.message_type: messageType,
+        if (metadata != null) ApiKeys.metadata: metadata,
         ApiKeys.url: urlList,
       };
       attachRouteParam(messagePayload);
@@ -3983,6 +4003,17 @@ class ChatViewController extends GetxController {
 
         final data = responseModel.response?.data;
         Messages? message = Messages.fromJson(data['data']);
+        // Payment-screenshot approval is managed locally: the server may not
+        // echo our metadata, so carry the flag from the send params onto the
+        // local message copy that gets rendered + persisted to Hive.
+        final sentMeta = params[ApiKeys.metadata];
+        if (sentMeta is Map && sentMeta['is_payment_screenshot'] == true) {
+          message.metadata ??= MessageMetadata();
+          message.metadata!.isPaymentScreenshot = true;
+          message.metadata!.approvalStatus = message.metadata!.approvalStatus ??
+              sentMeta['approval_status']?.toString() ??
+              'pending';
+        }
         if (message.subType != "comment") {
           if (message.status != null) {
             readMessageStatus.value = message.status!;

@@ -5205,6 +5205,8 @@ class AppStrings {
   ///CHAT VIEW SCREENS
   static const String forwardTo = "forwardTo";
   static const String recentChatsLabel = "recentChatsLabel";
+  static const String recentInquiryLabel = "recentInquiryLabel";
+  static const String searchConversations = "searchConversations";
   static const String mySymbolLabel = "mySymbolLabel";
   static const String myContactsPlus = "myContactsPlus";
   static const String privateGroupLabel = "privateGroupLabel";

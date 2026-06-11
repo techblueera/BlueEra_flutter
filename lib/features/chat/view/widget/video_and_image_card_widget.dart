@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/features/chat/view/widget/video_type_message_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -287,78 +288,215 @@ class _VideoAndImageCardWidgetState extends State<VideoAndImageCardWidget> {
         url: path.url ?? '',
         height: 250, width: 252, fit: BoxFit.cover);
 
-    return GestureDetector(
+    final bool isPaymentShot =
+        message.metadata?.isPaymentScreenshot == true;
+
+    final imageBubble = GestureDetector(
       onTap: () => _openFullScreen([path], 0),
-      child: Align(
-        alignment:
-            isReceiveMsg ? Alignment.centerLeft : Alignment.centerRight,
-        child: Stack(
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
+      child: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                    color: isReceiveMsg
+                        ? chatThemeController.receiveMessageBgColor.value
+                        : chatThemeController.myMessageBgColor.value,
+                    width: 2)),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: MediaDownloadOverlay(
+                url: path.url ?? '',
+                messageType: 'image',
+                fileName: path.name,
+                width: 252,
+                height: 250,
+                isReceived: isReceiveMsg,
+                openOnTap: false,
+                child: imageWidget,
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 2,
+            left: !isReceiveMsg ? 2 : null,
+            right: isReceiveMsg ? 2 : null,
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                (message.message != null && message.message != '')
+                    ? Container(
+                  decoration: BoxDecoration(
                       color: isReceiveMsg
                           ? chatThemeController.receiveMessageBgColor.value
                           : chatThemeController.myMessageBgColor.value,
-                      width: 2)),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: MediaDownloadOverlay(
-                  url: path.url ?? '',
-                  messageType: 'image',
-                  fileName: path.name,
-                  width: 252,
-                  height: 250,
-                  isReceived: isReceiveMsg,
-                  openOnTap: false,
-                  child: imageWidget,
-                ),
+                      borderRadius: const BorderRadius.only(
+                        topRight: Radius.circular(10),
+                      )
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 10, vertical: 5),
+                  child: CustomText("${message.message}",
+                    fontWeight: FontWeight.w500,
+                    color: isReceiveMsg ? Colors.black87 : Colors.white,
+                    fontSize: 14,
+                  ),
+                )
+                    : const SizedBox(),
+                ReactionInfoWidget(message: message,
+                  time: time,
+                  userId: widget.userId.toString(),
+                  conversation: widget.conversationId.toString(),),
+              ],
+            ),
+          ),
+          Positioned(
+            bottom: 26,
+            right: !isReceiveMsg ? 12 : null,
+            left: isReceiveMsg ? 12 : null,
+            child: Text(time,
+                style: const TextStyle(color: Colors.white, fontSize: 10)),
+          )
+        ],
+      ),
+    );
+
+    return Align(
+      alignment: isReceiveMsg ? Alignment.centerLeft : Alignment.centerRight,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment:
+            isReceiveMsg ? CrossAxisAlignment.start : CrossAxisAlignment.end,
+        children: [
+          imageBubble,
+          if (isPaymentShot) _buildApprovalFooter(message, isReceiveMsg),
+        ],
+      ),
+    );
+  }
+
+  /// Footer shown under a payment-screenshot image bubble.
+  /// - Sender (buyer): a "Waiting for approval" / Approved / Rejected tag.
+  /// - Receiver (shop owner): Approve / Reject buttons while pending, then the
+  ///   resulting status tag.
+  Widget _buildApprovalFooter(Messages message, bool isReceiveMsg) {
+    final status = message.metadata?.approvalStatus ?? 'pending';
+
+    if (isReceiveMsg && status == 'pending') {
+      return Container(
+        width: 256,
+        margin: const EdgeInsets.only(top: 4),
+        child: Row(
+          children: [
+            Expanded(
+              child: _approvalActionButton(
+                label: 'Reject',
+                icon: Icons.close_rounded,
+                color: AppColors.red00,
+                filled: false,
+                onTap: () => _handleApproval(message, 'rejected'),
               ),
             ),
-            Positioned(
-              bottom: 2,
-              left: !isReceiveMsg ? 2 : null,
-              right: isReceiveMsg ? 2 : null,
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  (message.message != null && message.message != '')
-                      ? Container(
-                    decoration: BoxDecoration(
-                        color: isReceiveMsg
-                            ? chatThemeController.receiveMessageBgColor.value
-                            : chatThemeController.myMessageBgColor.value,
-                        borderRadius: const BorderRadius.only(
-                          topRight: Radius.circular(10),
-                        )
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 5),
-                    child: CustomText("${message.message}",
-                      fontWeight: FontWeight.w500,
-                      color: isReceiveMsg ? Colors.black87 : Colors.white,
-                      fontSize: 14,
-                    ),
-                  )
-                      : const SizedBox(),
-                  ReactionInfoWidget(message: message,
-                    time: time,
-                    userId: widget.userId.toString(),
-                    conversation: widget.conversationId.toString(),),
-                ],
+            const SizedBox(width: 8),
+            Expanded(
+              child: _approvalActionButton(
+                label: 'Approve',
+                icon: Icons.check_rounded,
+                color: AppColors.green1A,
+                filled: true,
+                onTap: () => _handleApproval(message, 'approved'),
               ),
             ),
-            Positioned(
-              bottom: 26,
-              right: !isReceiveMsg ? 12 : null,
-              left: isReceiveMsg ? 12 : null,
-              child: Text(time,
-                  style: const TextStyle(color: Colors.white, fontSize: 10)),
-            )
+          ],
+        ),
+      );
+    }
+
+    return _buildStatusTag(status);
+  }
+
+  Widget _buildStatusTag(String status) {
+    late final Color color;
+    late final IconData icon;
+    late final String label;
+    switch (status) {
+      case 'approved':
+        color = AppColors.green1A;
+        icon = Icons.check_circle_rounded;
+        label = 'Approved';
+        break;
+      case 'rejected':
+        color = AppColors.red00;
+        icon = Icons.cancel_rounded;
+        label = 'Rejected';
+        break;
+      default:
+        color = AppColors.orange;
+        icon = Icons.hourglass_top_rounded;
+        label = 'Waiting for approval';
+    }
+    return Container(
+      width: 256,
+      margin: const EdgeInsets.only(top: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 6),
+          CustomText(
+            label,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: color,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _approvalActionButton({
+    required String label,
+    required IconData icon,
+    required Color color,
+    required bool filled,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(8),
+      onTap: onTap,
+      child: Container(
+        height: 36,
+        decoration: BoxDecoration(
+          color: filled ? color : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: color),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 16, color: filled ? Colors.white : color),
+            const SizedBox(width: 4),
+            CustomText(
+              label,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: filled ? Colors.white : color,
+            ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _handleApproval(Messages message, String status) async {
+    await Get.find<ChatViewController>()
+        .updatePaymentApprovalStatus(message, status);
+    if (mounted) setState(() {});
   }
 
   Widget _buildMediaGrid(List<MessageMediaUrl> paths, String time,

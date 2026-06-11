@@ -21,6 +21,10 @@ class UpiPaymentController extends GetxController {
   /// fetched / when the user has none configured.
   final RxnString upiId = RxnString();
 
+  /// The conversation person's mobile number. Null when the backend returns
+  /// `mobileNumber: null` — in that case the sheet hides the mobile row.
+  final RxnString mobileNumber = RxnString();
+
   /// Error message when the fetch fails (null while loading / on success).
   final RxnString errorMessage = RxnString();
 
@@ -48,6 +52,12 @@ class UpiPaymentController extends GetxController {
         upiData.value = response.data;
         final id = (response.data is Map) ? response.data['upiId'] : null;
         upiId.value = (id is String && id.isNotEmpty) ? id : null;
+        final mobile =
+            (response.data is Map) ? response.data['mobileNumber'] : null;
+        mobileNumber.value =
+            (mobile != null && mobile.toString().isNotEmpty)
+                ? mobile.toString()
+                : null;
         if (upiId.value == null) {
           errorMessage.value = 'No UPI ID found for this user';
         }

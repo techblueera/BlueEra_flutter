@@ -95,6 +95,7 @@ class ApiKeys {
   static const request_by = 'request_by';
   static const conversation_id = 'conversation_id';
   static const message_type = 'message_type';
+  static const metadata = 'metadata';
   static const page = 'page';
   static const per_page_message = 'per_page_message';
   static const videoPath = 'videoPath';

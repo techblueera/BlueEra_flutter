@@ -1111,6 +1111,7 @@ class _FoodSelfPickupMsgCardState extends State<FoodSelfPickupMsgCard> {
                       ? widget.message.metadata?.homeMadeFoodPickupOrderId
                       : widget.message.metadata?.foodPickupOrderId),
               userId: _conversationPersonId,
+              conversationId: widget.conversationId,
             ),
           ),
           _orderActionButton(

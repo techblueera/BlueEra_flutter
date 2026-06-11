@@ -1138,6 +1138,7 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
               data: widget.message.metadata?.selfPickupOrder?.orderId ??
                   widget.message.metadata?.selfpickupOrderId,
               userId: _conversationPersonId,
+              conversationId: widget.conversationId,
             ),
           ),
           _orderActionButton(

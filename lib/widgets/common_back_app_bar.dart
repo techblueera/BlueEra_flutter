@@ -128,7 +128,8 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
       this.showElevation,
       this.categoryId,
       this.isCustomTitleWidget,
-      this.isForwardUi});
+      this.isForwardUi,
+      this.onForwardSearchTap});
 
   // final AppBar? appBar;
   final String? title;
@@ -225,6 +226,11 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String? transactionFilterSelectedValue;
   final Function(String? value)? transactionFilterOnTap;
   final bool? isForwardUi;
+
+  /// Forward screen's search icon handler. When provided, the search icon runs
+  /// this instead of navigating to the contacts list — used to drive an inline
+  /// local search of the on-screen conversations.
+  final OnTab? onForwardSearchTap;
 
   @override
   Widget build(BuildContext context) {
@@ -1099,19 +1105,16 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
           ),
 
         if (isForwardUi ?? false)
-          Row(
-            children: [
-              Icon(Icons.person_add_alt, color: Colors.black),
-              SizedBox(width: 16),
-              InkWell(
-                  onTap: () {
-                    Get.to(() => BeAvailableContactsList(
-                          isFromForwardMessage: true,
-                        ));
-                  },
-                  child: Icon(Icons.search, color: Colors.black)),
-              SizedBox(width: 12),
-            ],
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: InkWell(
+                onTap: onForwardSearchTap ??
+                    () {
+                      Get.to(() => BeAvailableContactsList(
+                            isFromForwardMessage: true,
+                          ));
+                    },
+                child: Icon(Icons.search, color: Colors.black)),
           ),
       ],
       bottom: bottomWidget,

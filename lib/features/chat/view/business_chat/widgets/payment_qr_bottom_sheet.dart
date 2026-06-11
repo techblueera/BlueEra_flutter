@@ -1,18 +1,23 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/services/upi_payment_service.dart';
+import 'package:BlueEra/core/services/chat_media_compression_service.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/upi_payment_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:gal/gal.dart';
 import 'package:get/get.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -25,13 +30,16 @@ import 'package:qr_flutter/qr_flutter.dart';
 /// `wallet-service/wallet/user/{userId}/upi` on open and logs the response so
 /// the QR can be built from the person's real UPI details.
 ///
-/// [payeeVpa] / [payeeName] / [amount] are forwarded to the UPI apps when the
-/// user taps "Make Payment". They default to placeholder merchant values —
-/// pass the real ones once the backend exposes them.
+/// [payeeVpa] / [payeeName] / [amount] are placeholder merchant values used
+/// when building the QR if the backend hasn't exposed the real ones.
+///
+/// [conversationId] is required for the "Upload Screenshot" action — the picked
+/// payment screenshot is sent as an image message into that conversation.
 Future<void> showPaymentQrBottomSheet(
   BuildContext context, {
   String? data,
   String? userId,
+  String? conversationId,
   String payeeVpa = 'merchant@upi',
   String payeeName = 'My Business',
   String amount = '100.00',
@@ -43,6 +51,7 @@ Future<void> showPaymentQrBottomSheet(
     builder: (_) => _PaymentQrSheet(
       qrData: data,
       userId: userId,
+      conversationId: conversationId,
       payeeVpa: payeeVpa,
       payeeName: payeeName,
       amount: amount,
@@ -53,6 +62,7 @@ Future<void> showPaymentQrBottomSheet(
 class _PaymentQrSheet extends StatefulWidget {
   final String? qrData;
   final String? userId;
+  final String? conversationId;
   final String payeeVpa;
   final String payeeName;
   final String amount;
@@ -60,6 +70,7 @@ class _PaymentQrSheet extends StatefulWidget {
   const _PaymentQrSheet({
     this.qrData,
     this.userId,
+    this.conversationId,
     required this.payeeVpa,
     required this.payeeName,
     required this.amount,
@@ -69,19 +80,37 @@ class _PaymentQrSheet extends StatefulWidget {
   State<_PaymentQrSheet> createState() => _PaymentQrSheetState();
 }
 
-class _PaymentQrSheetState extends State<_PaymentQrSheet> {
+class _PaymentQrSheetState extends State<_PaymentQrSheet>
+    with SingleTickerProviderStateMixin {
   final GlobalKey _repaintKey = GlobalKey();
   final RxBool _isSaving = false.obs;
   final UpiPaymentController _upiController = UpiPaymentController();
 
+  // Drives the blinking copy button.
+  late final AnimationController _blinkController;
+  late final Animation<double> _blink;
+
   @override
   void initState() {
     super.initState();
+    _blinkController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    )..repeat(reverse: true);
+    _blink = Tween<double>(begin: 1.0, end: 0.35).animate(
+      CurvedAnimation(parent: _blinkController, curve: Curves.easeInOut),
+    );
     // Fetch the conversation person's UPI details so the QR reflects the
     // real payee. Response is logged inside the controller.
     if ((widget.userId ?? '').isNotEmpty) {
       _upiController.fetchUserUpi(widget.userId!);
     }
+  }
+
+  @override
+  void dispose() {
+    _blinkController.dispose();
+    super.dispose();
   }
 
   /// The payee UPI id (VPA) to render/pay to. Prefers the fetched value;
@@ -205,12 +234,15 @@ class _PaymentQrSheetState extends State<_PaymentQrSheet> {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    CustomText(
-                      vpa,
-                      fontSize: SizeConfig.size13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.mainTextColor,
-                    ),
+                    _copyableBox(vpa, copiedLabel: 'UPI ID copied'),
+                    // Show the mobile number only when the backend provides one.
+                    if ((_upiController.mobileNumber.value ?? '').isNotEmpty) ...[
+                      const SizedBox(height: 10),
+                      _copyableBox(
+                        _upiController.mobileNumber.value!,
+                        copiedLabel: 'Mobile number copied',
+                      ),
+                    ],
                   ],
                 );
               }),
@@ -231,11 +263,11 @@ class _PaymentQrSheetState extends State<_PaymentQrSheet> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: _actionButton(
-                      icon: Icons.payment_rounded,
-                      label: 'Make Payment',
+                      icon: Icons.upload_file_rounded,
+                      label: 'Upload Screenshot',
                       isBusy: false,
                       filled: true,
-                      onTap: _makePayment,
+                      onTap: _uploadPaymentScreenshot,
                     ),
                   ),
                 ],
@@ -245,6 +277,64 @@ class _PaymentQrSheetState extends State<_PaymentQrSheet> {
         ),
       ),
     );
+  }
+
+  /// A value (UPI id or mobile number) shown inside a bordered box with a
+  /// prominent, blinking blue copy button. Tapping anywhere on the box copies
+  /// [value] to the clipboard and shows [copiedLabel] as a confirmation.
+  Widget _copyableBox(String value, {required String copiedLabel}) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: () => _copyValue(value, copiedLabel),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(14, 10, 10, 10),
+          decoration: BoxDecoration(
+            color: AppColors.primaryColor.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: AppColors.primaryColor.withValues(alpha: 0.4),
+              width: 1.2,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: CustomText(
+                  value,
+                  fontSize: SizeConfig.size14,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.mainTextColor,
+                ),
+              ),
+              const SizedBox(width: 10),
+              FadeTransition(
+                opacity: _blink,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: const BoxDecoration(
+                    color: AppColors.primaryColor,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.copy_rounded,
+                    size: 22,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _copyValue(String value, String copiedLabel) async {
+    await Clipboard.setData(ClipboardData(text: value));
+    commonSnackBar(message: copiedLabel);
   }
 
   Widget _actionButton({
@@ -418,34 +508,65 @@ class _PaymentQrSheetState extends State<_PaymentQrSheet> {
     }
   }
 
-  /// Opens PhonePe (or the system UPI chooser if PhonePe isn't installed) on
-  /// its amount-entry screen, prefilled with the conversation person's UPI id.
-  /// Amount is left blank so the payer types it in the app.
-  Future<void> _makePayment() async {
-    final vpa = _effectiveVpa;
-    if (vpa == null || vpa.isEmpty) {
-      commonSnackBar(message: 'UPI ID not available');
+  /// Lets the user choose Camera or Gallery for the payment screenshot, then
+  /// sends the picked image as a message into the current conversation.
+  Future<void> _uploadPaymentScreenshot() async {
+    if ((widget.conversationId ?? '').isEmpty) {
+      commonSnackBar(message: 'Unable to send screenshot');
       return;
     }
 
-    final result = await UpiPaymentService.instance.payWithPhonePeOrChooser(
-      payeeVpa: vpa,
-      payeeName: widget.payeeName,
-      amount: null, // no amount → app shows its amount-entry page
-      transactionNote: _note,
-      transactionRef: widget.qrData,
+    PhotoPickerService.showSourceChooserDialog(
+      context,
+      'Upload Payment Screenshot',
+      onCamera: () {
+        Navigator.pop(context); // close the chooser
+        _pickAndSendScreenshot(ImageSource.camera);
+      },
+      onGallery: () {
+        Navigator.pop(context); // close the chooser
+        _pickAndSendScreenshot(ImageSource.gallery);
+      },
     );
+  }
 
-    switch (result) {
-      case UpiLaunchResult.appNotInstalled:
-        commonSnackBar(message: 'No UPI app found');
-        break;
-      case UpiLaunchResult.failed:
-        commonSnackBar(message: 'Could not open the payment app');
-        break;
-      case UpiLaunchResult.launched:
-        // url_launcher can't report the transaction outcome — nothing to do.
-        break;
-    }
+  /// Picks an image from [source] and sends it as an image message. The QR
+  /// sheet closes as soon as a file is picked so the uploading card shows in
+  /// the chat.
+  Future<void> _pickAndSendScreenshot(ImageSource source) async {
+    final XFile? picked = await ImagePicker().pickImage(source: source);
+    if (picked == null) return;
+
+    if (!mounted) return;
+    Navigator.pop(context); // close the QR sheet
+
+    // Compress before upload (~80% size reduction), mirroring the chat input
+    // image flow, then route through the presigned-URL upload pipeline.
+    final File original = File(picked.path);
+    final File toSend =
+        (await ChatMediaCompressionService.compressImage(original)) ?? original;
+
+    final fileInfo = getFileInfo(toSend);
+    final uploadParams = {
+      ApiKeys.fileName: [fileInfo['fileName']],
+      ApiKeys.fileType: [fileInfo['mimeType']],
+    };
+
+    final chatViewController = Get.find<ChatViewController>();
+    await chatViewController.generateUploadUrlsApi(
+      params: uploadParams,
+      listFile: [toSend],
+      userId: [widget.userId ?? ''],
+      conversationId: widget.conversationId,
+      commands: _note,
+      messageType: 'image',
+      // Marks this image as a payment proof so the chat bubble renders the
+      // "Waiting for approval" tag (sender) / Approve-Reject buttons (shop
+      // owner). Approval is managed locally.
+      metadata: const {
+        'is_payment_screenshot': true,
+        'approval_status': 'pending',
+      },
+    );
   }
 }

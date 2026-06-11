@@ -434,6 +434,13 @@ class MessageMetadata {
   String? symbolId;
   SymbolDetailsModel? symbol;
 
+  // Payment-screenshot approval (managed locally — see payment QR flow).
+  // [isPaymentScreenshot] marks an image message as a payment proof so the
+  // bubble shows the approval UI. [approvalStatus] is 'pending' | 'approved'
+  // | 'rejected'.
+  bool? isPaymentScreenshot;
+  String? approvalStatus;
+
   MessageMetadata({
     this.foodId,
     this.productId,
@@ -471,6 +478,8 @@ class MessageMetadata {
     this.callTime,
     this.symbolId,
     this.symbol,
+    this.isPaymentScreenshot,
+    this.approvalStatus,
   });
 
   factory MessageMetadata.fromJson(Map<String, dynamic> json) {
@@ -530,6 +539,10 @@ class MessageMetadata {
           ? SymbolDetailsModel.fromJson(
               Map<String, dynamic>.from(json['symbol']))
           : null,
+      isPaymentScreenshot: json['is_payment_screenshot'] is bool
+          ? json['is_payment_screenshot']
+          : null,
+      approvalStatus: json['approval_status']?.toString(),
     );
   }
 
@@ -567,6 +580,8 @@ class MessageMetadata {
       'call_time': callTime,
       'symbol_id': symbolId,
       'symbol': symbol?.toJson(),
+      'is_payment_screenshot': isPaymentScreenshot,
+      'approval_status': approvalStatus,
     };
   }
 }
