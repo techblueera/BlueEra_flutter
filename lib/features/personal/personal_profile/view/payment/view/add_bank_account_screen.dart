@@ -17,11 +17,23 @@ import 'package:get/get.dart';
 import '../controller/add_bank_account_controller.dart';
 import '../widget/upi_qr_widget.dart';
 
-class AddBankAccountScreen extends StatelessWidget {
-  AddBankAccountScreen({super.key});
+class AddBankAccountScreen extends StatefulWidget {
+  const AddBankAccountScreen({super.key});
 
+  @override
+  State<AddBankAccountScreen> createState() => _AddBankAccountScreenState();
+}
+
+class _AddBankAccountScreenState extends State<AddBankAccountScreen> {
   final controller = getOrPut(() => AddBankAccountController());
 
+  @override
+  void dispose() {
+    // Drop the controller so the next open starts at the initial level — no
+    // stale UPI/Bank selection or QR preview carried over from last time.
+    deleteIfRegistered<AddBankAccountController>();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {

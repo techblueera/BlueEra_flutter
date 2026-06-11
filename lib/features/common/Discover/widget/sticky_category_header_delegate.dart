@@ -102,12 +102,13 @@ class StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
 
     return ClipRect(
       child: BackdropFilter(
-        // iOS-style glass: blur whatever scroll content sits behind the
-        // header. When callers pass a fully opaque [backgroundGradient]
-        // the blur is masked; with a translucent gradient the frosted
-        // look shows through.
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: DecoratedBox(
+        // Light glass blur. A FIXED opaque base colour sits below the gradient
+        // so the header keeps its original look and does NOT depend on the
+        // app-wide background (banner/colour) now painted behind every screen.
+        filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+        child: ColoredBox(
+          color: AppColors.appBackgroundColorDefault,
+          child: DecoratedBox(
       decoration: BoxDecoration(gradient: backgroundGradient),
       child: Material(
       type: MaterialType.transparency,
@@ -314,6 +315,7 @@ class StickyCategoryHeaderDelegate extends SliverPersistentHeaderDelegate {
         ),
       ),
       ),
+        ),
         ),
       ),
     );

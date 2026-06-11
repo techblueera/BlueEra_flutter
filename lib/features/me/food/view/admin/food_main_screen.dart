@@ -767,14 +767,14 @@ class _FoodMainScreenState extends State<FoodMainScreen>
   List<Widget> _buildOverviewSlivers() {
     return [
       BusinessJoinedProfileCard(businessController: _businessController),
-      SizedBox(height: SizeConfig.size12),
+      SizedBox(height: SizeConfig.size10),
       _buildLivePhotosSection(),
-      SizedBox(height: SizeConfig.size12),
+      SizedBox(height: SizeConfig.size10),
       Padding(
         padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
         child: const BusinessDescriptionCard(),
       ),
-      SizedBox(height: SizeConfig.size12),
+      SizedBox(height: SizeConfig.size10),
       Padding(
         padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
         child: Obx(() {

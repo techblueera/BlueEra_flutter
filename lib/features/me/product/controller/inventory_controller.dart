@@ -27,6 +27,7 @@ import 'package:BlueEra/features/me/product/model/product_catalog_response.dart'
 import 'package:BlueEra/features/me/product/model/product_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/product/model/product_model.dart';
 import 'package:BlueEra/features/me/product/model/product_snap_search_response.dart';
+import 'package:BlueEra/features/me/product/controller/product_controller.dart';
 import 'package:BlueEra/features/me/product/repo/product_repo.dart';
 import 'package:BlueEra/features/me/product/view/admin/product_variant_dialog.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
@@ -97,6 +98,11 @@ class InventoryController extends GetxController {
 
   final variantSelection = <String, bool>{}.obs;
   final variantSellingPrice = <String, String>{}.obs;
+
+  /// User-overridden MRP per variant id. The base [Variant.mrp] is immutable
+  /// (final), so an edited MRP is held here and takes precedence over the
+  /// API default in display, totals and the publish payload.
+  final variantMrp = <String, String>{}.obs;
   RxList<SelectedVariant> selectedVariantsList = <SelectedVariant>[].obs;
 
   final viewProfileController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
@@ -160,6 +166,28 @@ class InventoryController extends GetxController {
   void updateSellingPrice(String id, String value) {
     variantSellingPrice[id] = value;
     refresh();
+  }
+
+  /// Override the MRP for a variant. Empty/whitespace clears the override and
+  /// falls back to the API default.
+  void updateMrp(String id, String value) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) {
+      variantMrp.remove(id);
+    } else {
+      variantMrp[id] = trimmed;
+    }
+    refresh();
+  }
+
+  /// Effective MRP for a variant id — overridden value when present, else the
+  /// immutable API default.
+  double effectiveMrp(SelectedVariant row) {
+    final overridden = variantMrp[row.id];
+    if (overridden != null && overridden.trim().isNotEmpty) {
+      return double.tryParse(overridden) ?? row.variant.mrp;
+    }
+    return row.variant.mrp;
   }
 
 
@@ -521,6 +549,7 @@ class InventoryController extends GetxController {
     _searchDebounce = Timer(const Duration(milliseconds: 500), () {
       variantSelection.clear();
       variantSellingPrice.clear();
+      variantMrp.clear();
       showErrorBanner.value = false;
       if (query.trim().isEmpty) {
         clearSearch();
@@ -549,7 +578,7 @@ class InventoryController extends GetxController {
       }
 
       Map<String, dynamic> params = {
-        ApiKeys.key: keyword,
+        ApiKeys.searchTerm: keyword,
         ApiKeys.page: page,
         ApiKeys.limit: limit,
       };
@@ -758,6 +787,11 @@ class InventoryController extends GetxController {
       if (responseModel.isSuccess) {
         cloneVariantProductResponse.value = ApiResponse.complete(responseModel);
         productDataNeedsRefresh = true;
+        // Wipe the cart after a successful publish. The InventoryController is
+        // permanent, so without this the selected variants (and the floating
+        // cart that reads `selectedVariantsList`) survive the publish and
+        // reappear when the merchant returns to the add-product screen.
+        _clearPublishCart();
         if((providerType==ProviderType.business)){
           navigateToProductSection();
         }else{
@@ -792,6 +826,22 @@ class InventoryController extends GetxController {
       searchProductResponse.value = ApiResponse.error('error');
     }finally{
       cloneProductVariantLoading.value = false;
+    }
+  }
+
+  /// Clear every piece of cart/selection state after a successful publish so
+  /// nothing leaks into the next add-product session: the selected-variant
+  /// list (floating cart), the selection flags, and the MRP / selling-price
+  /// overrides. Also clears the sibling [ProductController.selectedProducts]
+  /// which backs the review/publish screen.
+  void _clearPublishCart() {
+    selectedVariantsList.clear();
+    variantSelection.clear();
+    variantSellingPrice.clear();
+    variantMrp.clear();
+    showErrorBanner.value = false;
+    if (Get.isRegistered<ProductController>()) {
+      Get.find<ProductController>().selectedProducts.clear();
     }
   }
 
@@ -921,6 +971,10 @@ class InventoryController extends GetxController {
         final sellingPrice =
             double.tryParse(sellingPriceStr ?? '') ?? variant.sellingPrice;
 
+        // User-entered MRP → fallback to API default MRP.
+        final mrpStr = variantMrp[variantId];
+        final mrp = double.tryParse(mrpStr ?? '') ?? variant.mrp;
+
         payload.add({
           "ownerType": providerType.title,
           "productVariant": variantId,
@@ -929,7 +983,7 @@ class InventoryController extends GetxController {
           "batches": [
             {
               "quantity": _resolveVariantQuantity(variant),
-              "mrp": variant.mrp,
+              "mrp": mrp,
               "sellingPrice": sellingPrice,
             }
           ],

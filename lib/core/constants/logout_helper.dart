@@ -6,7 +6,10 @@ import 'package:BlueEra/core/controller/app_background_controller.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/language_localization_service/language_controller_new.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/address_cache_service.dart';
 import 'package:BlueEra/core/services/business_profile_cache.dart';
+import 'package:BlueEra/core/services/hive_services.dart';
+import 'package:BlueEra/core/services/home_cache_service.dart';
 import 'package:BlueEra/core/services/personal_profile_cache.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
@@ -113,6 +116,27 @@ class LogoutHelper {
       final dir = await getApplicationDocumentsDirectory();
       if (dir.existsSync()) await dir.delete(recursive: true);
     } catch (_) {}
+
+    // `Hive.deleteFromDisk()` closes AND deletes every box, and the directory
+    // delete above removes the storage folder. Without reopening, the next
+    // login in the SAME app session (no restart) throws
+    //   HiveError: Box not found. Did you forget to call Hive.openBox()?
+    // on every cached read (business categories, professions, home feed,
+    // address…). Recreate the storage dir and reopen exactly the boxes that
+    // `main()` opens at startup so the fresh session is fully functional.
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      if (!dir.existsSync()) await dir.create(recursive: true);
+      await Future.wait<void>([
+        HiveServices.init(),
+        HomeCacheService.init(),
+        AddressCacheService.init(),
+        AppBackgroundController.preload(),
+        Hive.openBox('languageBox'),
+        Hive.openBox('localizationBox'),
+      ]);
+    } catch (_) {}
+
     // Hive on disk is wiped above, but the live app-background statics would
     // linger until restart — reset them so the next user starts on defaults.
     AppBackgroundController.resetInMemory();

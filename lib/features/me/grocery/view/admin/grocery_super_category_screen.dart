@@ -55,123 +55,123 @@ class _GrocerySuperCategoryScreenState extends State<GrocerySuperCategoryScreen>
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size8,
-          vertical: SizeConfig.size15,
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-
+      // Lazy CustomScrollView: the category grid is a SliverMasonryGrid that
+      // builds only the cards currently on screen, so the screen can't
+      // ANR-crash no matter how many categories the API returns.
+      body: SafeArea(
+        child: Obx(() {
+          final resp = controller.fetchNestedGroceryCategoryResponse.value;
+          final categories = controller.grocerySuperCategoryList;
+          return CustomScrollView(
+            slivers: [
               // ── Snap-search suggestion (conditional) ─────────────────
-              if (widget.isAvailBulkUpload) ...[
-                CustomFormCard(
-                  padding: EdgeInsets.all(SizeConfig.size10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CustomText(
-                        AppStrings.groceryViewUploadBulkProducts.tr,
-                        fontSize: SizeConfig.large,
-                        color: AppColors.mainTextColor,
-                        fontWeight: FontWeight.w600,
+              if (widget.isAvailBulkUpload)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(SizeConfig.size8,
+                        SizeConfig.size15, SizeConfig.size8, SizeConfig.paddingXSL),
+                    child: CustomFormCard(
+                      padding: EdgeInsets.all(SizeConfig.size10),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CustomText(
+                            AppStrings.groceryViewUploadBulkProducts.tr,
+                            fontSize: SizeConfig.large,
+                            color: AppColors.mainTextColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          SizedBox(height: SizeConfig.paddingXSL),
+                          _snapSearchSuggestion(
+                            onTap: () => Get.toNamed(
+                              RouteHelper.getAddGrocerySnapSearchScreenRoute(),
+                            ),
+                          ),
+                        ],
                       ),
-                      SizedBox(height: SizeConfig.paddingXSL),
-                      _snapSearchSuggestion(
-                        onTap: () => Get.toNamed(
-                          RouteHelper.getAddGrocerySnapSearchScreenRoute(),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
-                SizedBox(height: SizeConfig.paddingXSL),
-              ],
-
-              // ── Category Grid (dynamic from API) ────────────────────────
-              CustomFormCard(
-                padding: EdgeInsets.all(SizeConfig.size10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CustomText(
-                      AppStrings.groceryViewCategory.tr,
-                      fontSize: SizeConfig.large,
-                      color: AppColors.mainTextColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    SizedBox(height: SizeConfig.paddingXSL),
-
-                    Obx(() {
-                      // ── Loading state ──
-                      if (controller.fetchNestedGroceryCategoryResponse.value.status == Status.INITIAL) {
-                        return buildCategoryGridSkeleton();
-                      }
-
-                      // ── Error state ──
-                      if (controller.fetchNestedGroceryCategoryResponse.value ==
-                          Status.ERROR) {
-                        return Center(
-                            child: Padding(
-                              padding: EdgeInsets.symmetric(vertical: 10.0),
-                              child: CustomText(AppStrings.somethingWentWrong),
-                            ));
-                      }
-
-                      // ── Empty state ──
-                      if (controller.grocerySuperCategoryList.isEmpty) {
-                        return Center(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 32),
-                            child: Text(AppStrings.groceryViewNoCategoriesFound.tr),
-                          ),
-                        );
-                      }
-
-                      // ── Populated grid ──
-                      return MasonryGridView.count(
-                        shrinkWrap: true,
-                        primary: false,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: controller.grocerySuperCategoryList.length,
-                        crossAxisCount: 3,
-                        crossAxisSpacing: 6,
-                        mainAxisSpacing: 6,
-                        padding: EdgeInsets.zero,
-                        itemBuilder: (context, index) {
-                          final category =
-                          controller.grocerySuperCategoryList[index];
-
-                          return CommonServiceCard<GroceryNestedCategoryModel>(
-                            service: category,
-                            getName: (item) => item.name ?? '',
-                            getIcon: (item) => item.image ?? '',
-                            iconHeight: SizeConfig.size60,
-                            boxShadow: [],
-                            onTap: (item) {
-                              Get.toNamed(
-                                RouteHelper.getGroceryNestedCategoryScreenRoute(),
-                                arguments: {
-                                  // ApiKeys.argMyGrocery: true,
-                                  ApiKeys.argArrGrocerySuperCategory:
-                                  controller.grocerySuperCategoryList
-                                      .toList(),
-                                  ApiKeys.argArrGroceryCatKey: item.key,
-                                  ApiKeys.argArrGroceryCatName: item.name,
-                                },
-                              );
-                            },
-                          );
-                        },
-                      );
-                    }),
-                  ],
+              // ── Category title ──────────────────────────────────────────
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(
+                      SizeConfig.size8,
+                      widget.isAvailBulkUpload ? 0 : SizeConfig.size15,
+                      SizeConfig.size8,
+                      SizeConfig.paddingXSL),
+                  child: CustomText(
+                    AppStrings.groceryViewCategory.tr,
+                    fontSize: SizeConfig.large,
+                    color: AppColors.mainTextColor,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
+              // ── Category grid (lazy) / states ───────────────────────────
+              _categorySliver(resp, categories),
+              SliverToBoxAdapter(child: SizedBox(height: SizeConfig.size15)),
             ],
+          );
+        }),
+      ),
+    );
+  }
+
+  /// Category grid as a LAZY sliver (builds only visible cards) plus the
+  /// loading / error / empty states.
+  Widget _categorySliver(
+      ApiResponse resp, List<GroceryNestedCategoryModel> categories) {
+    if (resp.status == Status.INITIAL) {
+      return SliverToBoxAdapter(child: buildCategoryGridSkeleton());
+    }
+    if (resp.status == Status.ERROR) {
+      return SliverToBoxAdapter(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10.0),
+            child: CustomText(AppStrings.somethingWentWrong),
           ),
         ),
+      );
+    }
+    if (categories.isEmpty) {
+      return SliverToBoxAdapter(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 32),
+            child: Text(AppStrings.groceryViewNoCategoriesFound.tr),
+          ),
+        ),
+      );
+    }
+    return SliverPadding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+      sliver: SliverMasonryGrid.count(
+        crossAxisCount: 3,
+        mainAxisSpacing: 6,
+        crossAxisSpacing: 6,
+        childCount: categories.length,
+        itemBuilder: (context, index) {
+          final category = categories[index];
+          return CommonServiceCard<GroceryNestedCategoryModel>(
+            service: category,
+            getName: (item) => item.name ?? '',
+            getIcon: (item) => item.image ?? '',
+            iconHeight: SizeConfig.size60,
+            boxShadow: const [],
+            onTap: (item) {
+              Get.toNamed(
+                RouteHelper.getGroceryNestedCategoryScreenRoute(),
+                arguments: {
+                  ApiKeys.argArrGrocerySuperCategory: categories.toList(),
+                  ApiKeys.argArrGroceryCatKey: item.key,
+                  ApiKeys.argArrGroceryCatName: item.name,
+                },
+              );
+            },
+          );
+        },
       ),
     );
   }

@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -21,9 +23,23 @@ import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:dio/dio.dart' as dio;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
+
+/// Top-level so it can run in a background isolate via [compute]. Builds the
+/// root food categories (with their nested `children`) for the drill-down.
+///
+/// The `jsonDecode(jsonEncode())` round-trip normalises types so the same
+/// parser serves both fresh Dio maps and Hive-restored maps (cache + network).
+List<GroceryNestedCategoryModel> _parseFoodNestedCategories(
+    List<dynamic> raw) {
+  return raw
+      .map((e) => GroceryNestedCategoryModel.fromJson(
+          jsonDecode(jsonEncode(e)) as Map<String, dynamic>))
+      .toList();
+}
 
 class FoodServiceController extends GetxController {
   Rx<ApiResponse> getFoodCategoryResponse = ApiResponse.initial('Initial').obs;
@@ -188,17 +204,64 @@ class FoodServiceController extends GetxController {
   }
 
   Future<void> getFoodNestedCategoryApi() async {
-    getFoodCategoryResponse.value = ApiResponse.initial("Initial");
-    ResponseModel response = await FoodRepo().getFoodNestedCategoryRepo();
-    if (response.isSuccess) {
-      List rawList = response.response?.data['data'];
-      foodNestedCateList.value =
-          rawList.map((e) => GroceryNestedCategoryModel.fromJson(e)).toList();
-      getFoodCategoryResponse.value = ApiResponse.complete(foodNestedCateList);
-    } else {
-      commonSnackBar(message: AppStrings.somethingWentWrong);
-      getFoodCategoryResponse.value =
-          ApiResponse.error(AppStrings.somethingWentWrong);
+    try {
+      getFoodCategoryResponse.value = ApiResponse.initial("Initial");
+
+      // 1) Cache-first — show the last-saved categories instantly while the
+      //    network call refreshes them in the background. Parsing happens off
+      //    the UI isolate via `compute`.
+      final cachedRaw = HiveServices().getFoodSuperCategoriesRaw();
+      if (cachedRaw != null && cachedRaw.isNotEmpty) {
+        final cached = await compute(_parseFoodNestedCategories, cachedRaw);
+        if (cached.isNotEmpty) {
+          foodNestedCateList.assignAll(cached);
+          getFoodCategoryResponse.value =
+              ApiResponse.complete(foodNestedCateList);
+        }
+      }
+
+      // 2) Silent refresh from the network.
+      final ResponseModel response =
+          await FoodRepo().getFoodNestedCategoryRepo();
+
+      if (response.isSuccess) {
+        final data = response.response?.data;
+        // Null-safe extraction — a missing/!List `data` previously threw
+        // here, leaving the status at "Initial" so the shimmer span forever.
+        final List<dynamic> rawList = (data is Map && data['data'] is List)
+            ? data['data'] as List
+            : const [];
+
+        // Parse the categories off the UI isolate so a large response can't
+        // freeze the shimmer; the screen renders them lazily either way.
+        final parsed = rawList.isEmpty
+            ? <GroceryNestedCategoryModel>[]
+            : await compute(_parseFoodNestedCategories, rawList);
+
+        foodNestedCateList.assignAll(parsed);
+        getFoodCategoryResponse.value =
+            ApiResponse.complete(foodNestedCateList);
+
+        // Persist the fresh tree for the next cold start.
+        if (rawList.isNotEmpty) {
+          await HiveServices().saveFoodSuperCategoriesRaw(rawList);
+        }
+      } else if (foodNestedCateList.isEmpty) {
+        // Only surface an error when we have no cached data to fall back on.
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+        getFoodCategoryResponse.value =
+            ApiResponse.error(AppStrings.somethingWentWrong);
+      }
+    } catch (e, s) {
+      // Catch parse/network failures so the screen can't get stuck on the
+      // shimmer and an unhandled async error can't crash on navigation.
+      log('getFoodNestedCategoryApi error: $e\n$s');
+      if (foodNestedCateList.isEmpty) {
+        try {
+          getFoodCategoryResponse.value =
+              ApiResponse.error(AppStrings.somethingWentWrong);
+        } catch (_) {}
+      }
     }
   }
 

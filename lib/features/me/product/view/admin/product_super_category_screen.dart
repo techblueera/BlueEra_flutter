@@ -20,24 +20,42 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
-class ProductSuperCategoryScreen extends StatelessWidget {
+class ProductSuperCategoryScreen extends StatefulWidget {
   final String? ownerID;
   final ProviderType? providerType;
 
-  ProductSuperCategoryScreen({
+  const ProductSuperCategoryScreen({
     super.key,
     this.ownerID,
     this.providerType,
   });
 
+  @override
+  State<ProductSuperCategoryScreen> createState() =>
+      _ProductSuperCategoryScreenState();
+}
+
+class _ProductSuperCategoryScreenState
+    extends State<ProductSuperCategoryScreen> {
   final controller = getOrPut(() => ProductController());
 
   @override
-  Widget build(BuildContext context) {
+  void initState() {
+    super.initState();
+    // Fetch ONCE on entry — not in build(). build() re-runs on every
+    // keyboard open/close (the root MediaQuery viewInsets change rebuilds
+    // every mounted route, including this one when it sits under the
+    // add-variant dialog), and an unguarded call here hammered
+    // `categories/nested` on each toggle.
+    if (widget.ownerID != null) controller.ownerID = widget.ownerID;
+    if (widget.providerType != null) {
+      controller.ownerProviderType = widget.providerType;
+    }
     controller.fetchProductsNestedCategory();
-    if (ownerID != null) controller.ownerID = ownerID;
-    if (providerType != null) controller.ownerProviderType = providerType;
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
         title: AppStrings.addProducts,
@@ -45,115 +63,124 @@ class ProductSuperCategoryScreen extends StatelessWidget {
           providerType: ProviderType.business,
         ),
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size8,
-          vertical: SizeConfig.size15,
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-
+      // Lazy CustomScrollView: the category grid is a SliverMasonryGrid that
+      // builds only the cards currently on screen, so the screen can't
+      // ANR-crash no matter how many categories the API returns.
+      body: SafeArea(
+        child: Obx(() {
+          final resp = controller.nestedProductCategoryResponse.value;
+          final categories = controller.productsNestedCategoryList;
+          return CustomScrollView(
+            slivers: [
               // ── Snap-search suggestion ─────────────────────────────
-              CustomFormCard(
-                padding: EdgeInsets.all(SizeConfig.size10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CustomText(
-                      'Add Products',
-                      fontSize: SizeConfig.large,
-                      color: AppColors.mainTextColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    SizedBox(height: SizeConfig.paddingXSL),
-                    _snapSearchSuggestion(
-                      onTap: () => Get.toNamed(
-                        RouteHelper.getAddProductTextOrSnapScreenRoute(),
-                        arguments: {
-                          ApiKeys.id: controller.ownerID,
-                          ApiKeys.providerType: controller.ownerProviderType,
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: SizeConfig.paddingXSL),
-
-              // ── Category Grid (dynamic from API) ──────────────────
-              CustomFormCard(
-                padding: EdgeInsets.all(SizeConfig.size10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CustomText(
-                      'Category',
-                      fontSize: SizeConfig.large,
-                      color: AppColors.mainTextColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    SizedBox(height: SizeConfig.paddingXSL),
-
-                    Obx(() {
-                      if (controller.productsNestedCategoryList.isNotEmpty) {
-                        return MasonryGridView.count(
-                        shrinkWrap: true,
-                        primary: false,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: controller.productsNestedCategoryList.length,
-                        crossAxisCount: 3,
-                        crossAxisSpacing: 6,
-                        mainAxisSpacing: 6,
-                        padding: EdgeInsets.zero,
-                        itemBuilder: (context, index) {
-                          final category = controller.productsNestedCategoryList[index];
-
-                          return CommonServiceCard<ProductNestedCategoryResponse>(
-                            service: category,
-                            getName: (item) => item.name ?? '',
-                            getIcon: (item) => item.image ?? '',
-                            iconHeight: SizeConfig.size60,
-                            boxShadow: [],
-                            onTap: (item) {
-                              Get.toNamed(
-                                RouteHelper
-                                    .getProductNestedCategoryScreenRoute(),
-                                arguments: {
-                                  ApiKeys.argArrProductSuperCategory: controller.productsNestedCategoryList.toList(),
-                                  ApiKeys.argArrProductCatId: item.sId,
-                                  ApiKeys.argArrProductCatName: item.name,
-                                },
-                              );
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(SizeConfig.size8,
+                      SizeConfig.size15, SizeConfig.size8, SizeConfig.paddingXSL),
+                  child: CustomFormCard(
+                    padding: EdgeInsets.all(SizeConfig.size10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomText(
+                          'Add Products',
+                          fontSize: SizeConfig.large,
+                          color: AppColors.mainTextColor,
+                          fontWeight: FontWeight.w600,
+                        ),
+                        SizedBox(height: SizeConfig.paddingXSL),
+                        _snapSearchSuggestion(
+                          onTap: () => Get.toNamed(
+                            RouteHelper.getAddProductTextOrSnapScreenRoute(),
+                            arguments: {
+                              ApiKeys.id: controller.ownerID,
+                              ApiKeys.providerType:
+                                  controller.ownerProviderType,
                             },
-                          );
-                        },
-                      );
-                      } else if (controller.nestedProductCategoryResponse.value.status == Status.ERROR) {
-                        return Center(
-                          child: Padding(
-                            padding: EdgeInsets.only(top: 10),
-                            child: CustomText(AppStrings.somethingWentWrong),
                           ),
-                        );
-                      } else if (controller.nestedProductCategoryResponse.value.status == Status.COMPLETE) {
-                        return Center(
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(vertical: 32),
-                            child: CustomText('No categories found.'),
-                          ),
-                        );
-                      }
-                      return buildCategoryGridSkeleton();
-                    }),
-                  ],
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
+              // ── Category title ──────────────────────────────────────────
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(SizeConfig.size8, 0,
+                      SizeConfig.size8, SizeConfig.paddingXSL),
+                  child: CustomText(
+                    'Category',
+                    fontSize: SizeConfig.large,
+                    color: AppColors.mainTextColor,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              // ── Category grid (lazy) / states ───────────────────────────
+              _categorySliver(resp, categories),
+              SliverToBoxAdapter(child: SizedBox(height: SizeConfig.size15)),
             ],
-          ),
-        ),
+          );
+        }),
       ),
     );
+  }
+
+  /// Category grid as a LAZY sliver (builds only visible cards) plus the
+  /// error / empty / loading states.
+  Widget _categorySliver(
+      ApiResponse resp, List<ProductNestedCategoryResponse> categories) {
+    if (categories.isNotEmpty) {
+      return SliverPadding(
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+        sliver: SliverMasonryGrid.count(
+          crossAxisCount: 3,
+          mainAxisSpacing: 6,
+          crossAxisSpacing: 6,
+          childCount: categories.length,
+          itemBuilder: (context, index) {
+            final category = categories[index];
+            return CommonServiceCard<ProductNestedCategoryResponse>(
+              service: category,
+              getName: (item) => item.name ?? '',
+              getIcon: (item) => item.image ?? '',
+              iconHeight: SizeConfig.size60,
+              boxShadow: const [],
+              onTap: (item) {
+                Get.toNamed(
+                  RouteHelper.getProductNestedCategoryScreenRoute(),
+                  arguments: {
+                    ApiKeys.argArrProductSuperCategory: categories.toList(),
+                    ApiKeys.argArrProductCatId: item.sId,
+                    ApiKeys.argArrProductCatName: item.name,
+                  },
+                );
+              },
+            );
+          },
+        ),
+      );
+    } else if (resp.status == Status.ERROR) {
+      return SliverToBoxAdapter(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: CustomText(AppStrings.somethingWentWrong),
+          ),
+        ),
+      );
+    } else if (resp.status == Status.COMPLETE) {
+      return SliverToBoxAdapter(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 32),
+            child: CustomText('No categories found.'),
+          ),
+        ),
+      );
+    }
+    return SliverToBoxAdapter(child: buildCategoryGridSkeleton());
   }
 
   Widget _snapSearchSuggestion({required VoidCallback onTap}) {

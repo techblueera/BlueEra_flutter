@@ -133,8 +133,12 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
               ));
         },
         child: Container(
-          // color: AppColors.white,
-          color: AppColors.appBackgroundColor,
+          // MUST be transparent — NOT AppColors.appBackgroundColor. The single
+          // active background (banner image OR colour) is painted app-wide by
+          // AppHomeBackground; a solid colour here would cover the banner and
+          // only ever show the colour. Transparent lets the real background show
+          // in the gaps/margins around each post; FeedCardWidget stays white.
+          color: Colors.transparent,
           padding: EdgeInsetsDirectional.all(5),
           // margin: EdgeInsetsDirectional.all(5),
           // margin: EdgeInsetsDirectional.only(top: 8),

@@ -18,9 +18,21 @@ class FeedCardWidget extends StatelessWidget {
           left: horizontalPadding ?? SizeConfig.paddingXS,
           right: horizontalPadding ?? SizeConfig.paddingXS
       ),
+      // Clip content to the rounded corners and add a hairline border + soft
+      // shadow so the white card keeps crisp, defined edges on ANY background —
+      // the app-wide banner/colour now shows in the gaps around it.
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
           color: AppColors.white,
-          borderRadius: BorderRadius.circular(20)
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.greyE5, width: 1),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ]
       ),
       child: childWidget,
     );

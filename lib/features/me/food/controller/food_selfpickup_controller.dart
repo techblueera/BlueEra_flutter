@@ -160,6 +160,58 @@ class FoodSelfPickupController extends GetxController {
     return count;
   }
 
+  // ═══════════════════════════════════════════════════════════════════════
+  //  MULTI-STORE (Zomato-style) — items from different restaurants stack
+  //  into separate per-store carts; the floating cart previews them and the
+  //  user checks out from the cart screen. Built on top of cartBusinessInfo.
+  // ═══════════════════════════════════════════════════════════════════════
+
+  bool get isEmpty => selectedFoodVariants.isEmpty;
+
+  String? _businessIdOf(FoodVariants v) =>
+      cartBusinessInfo[v.id]?['businessId'];
+
+  /// Distinct business ids currently in the cart, in first-added order.
+  List<String> get storeKeys {
+    final seen = <String>[];
+    for (final v in selectedFoodVariants) {
+      final bid = _businessIdOf(v);
+      if (bid != null && bid.isNotEmpty && !seen.contains(bid)) seen.add(bid);
+    }
+    return seen;
+  }
+
+  int get storeCount => storeKeys.length;
+
+  /// Store metadata map ({businessName, logo, address}) for a business id,
+  /// read off any of its variants.
+  Map<String, String> storeInfoOf(String businessId) {
+    for (final v in selectedFoodVariants) {
+      final info = cartBusinessInfo[v.id];
+      if (info != null && info['businessId'] == businessId) return info;
+    }
+    return const {};
+  }
+
+  List<FoodVariants> variantsOf(String businessId) => selectedFoodVariants
+      .where((v) => _businessIdOf(v) == businessId)
+      .toList();
+
+  int itemCountOf(String businessId) {
+    int c = 0;
+    for (final v in variantsOf(businessId)) {
+      c += cartQuantities[v.id] ?? 0;
+    }
+    return c;
+  }
+
+  /// Variant thumbnail — food variants carry no image of their own, so this
+  /// reads the per-variant product image captured when it was added.
+  String? imageOf(FoodVariants v) {
+    final fb = cartProductImages[v.id];
+    return (fb != null && fb.isNotEmpty) ? fb : null;
+  }
+
   /// Level-1 category id (left sidebar selection).
   var selectedCategoryId = ''.obs;
 

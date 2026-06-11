@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
+import 'package:path_provider/path_provider.dart';
 
 /// Drives the single, app-wide background.
 ///
@@ -56,6 +59,13 @@ class AppBackgroundController extends GetxController {
     [Color(0xFFE8EAF6), 'Periwinkle'],
     [Color(0xFFECEFF1), 'Cloud'],
     [Color(0xFFFFEBEE), 'Blush'],
+    // Darker "lighter-dark" tones — white cards pop nicely on these.
+    [Color(0xFF37474F), 'Slate'],
+    [Color(0xFF2C3E50), 'Navy'],
+    [Color(0xFF4E4A59), 'Charcoal'],
+    [Color(0xFF3E4A3D), 'Forest'],
+    [Color(0xFF5D4954), 'Plum'],
+    [Color(0xFF4A3B33), 'Mocha'],
   ];
 
   /// Banner images offered on the picker. `{asset, name}`.
@@ -63,8 +73,32 @@ class AppBackgroundController extends GetxController {
     {'asset': AppImageAssets.chatDefaultBg, 'name': 'Default'},
     {'asset': AppImageAssets.chatBgLight, 'name': 'Light'},
     {'asset': AppImageAssets.chatBgBlueShade, 'name': 'Blue'},
-    {'asset': AppImageAssets.shopBanner, 'name': 'Shop'},
+    // {'asset': AppImageAssets.shopBanner, 'name': 'Shop'},
   ];
+
+  /// A bundled asset banner (vs a user-picked gallery file). Asset paths begin
+  /// with `assets/`; gallery files are absolute paths. Drives whether
+  /// `AppHomeBackground` uses `Image.asset` or `Image.file`.
+  static bool bannerIsAsset(String banner) => banner.startsWith('assets');
+
+  /// Copy a picked gallery image into app storage so it survives restarts
+  /// (picker temp files get cleared) and a fresh path defeats the image cache.
+  /// Removes any previous custom background first, then returns the stable path.
+  static Future<String> persistPickedBanner(String srcPath) async {
+    final dir = await getApplicationDocumentsDirectory();
+    for (final f in dir.listSync()) {
+      if (f is File && f.uri.pathSegments.last.startsWith('app_bg_custom_')) {
+        try {
+          f.deleteSync();
+        } catch (_) {}
+      }
+    }
+    final ext = srcPath.contains('.') ? srcPath.split('.').last : 'jpg';
+    final stamp = DateTime.now().millisecondsSinceEpoch;
+    final dest = '${dir.path}/app_bg_custom_$stamp.$ext';
+    await File(srcPath).copy(dest);
+    return dest;
+  }
 
   @override
   void onInit() {

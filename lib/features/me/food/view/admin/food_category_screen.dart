@@ -44,183 +44,203 @@ class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
       appBar: CommonBackAppBar(
         title: AppStrings.foodFoodItemsLabel.tr,
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size8,
-          vertical: SizeConfig.size15
-        ),
-        child: SafeArea(
-          child: Column(
-            children: [
-
-              CustomFormCard(
-                padding: EdgeInsets.all(SizeConfig.size10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _title(AppStrings.foodUploadBulkProduct.tr),
-                    SizedBox(height: SizeConfig.paddingXSL),
-                    _snapSearchSuggestion(
-                      onTap: () => Get.toNamed(
-                        RouteHelper.getAddFoodSnapSearchScreenRoute(),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              Obx(() {
-                if (foodServiceController.getFoodCategoryResponse.value.status ==
-                    Status.COMPLETE) {
-                  if (foodServiceController.foodNestedCateList.isNotEmpty) {
-                    return CustomFormCard(
-                      padding: EdgeInsets.all(SizeConfig.size10),
-                      margin: EdgeInsets.only(top: SizeConfig.size10),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _title(AppStrings.category.tr),
-                          SizedBox(height: SizeConfig.paddingXSL),
-                          MasonryGridView.count(
-                            crossAxisCount: 3,
-                            crossAxisSpacing: 6,
-                            mainAxisSpacing: 6,
-                            // padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-                            itemCount: foodServiceController.foodNestedCateList.length,
-                            shrinkWrap: true,
-                            primary: false,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemBuilder: (context, index) {
-                              final item = foodServiceController.foodNestedCateList[index];
-                              return CommonServiceCard<GroceryNestedCategoryModel>(
-                                service: item,
-                                getName: (item) => item.name??'',
-                                  getIcon: (item) =>  item.image??'',
-                                // getIcon: (item) => "${AppConstants.baseFoodAssetsPath}${item.key ?? " "}.svg",
-                                iconHeight: SizeConfig.size60,
-                                boxShadow: [],
-                                onTap: (item) {
-                                  foodServiceController.selectedFoodTypeID.value =
-                                      item.sId ?? "";
-
-                                  // Action for item tap
-                                  Get.toNamed(RouteHelper.getProductSelectionScreenRoute(),
-                                  arguments: {
-                                    ApiKeys.argCategoryData: item
-                                  });
-                                },
-                              );
-
-                            },
-                          ),
-                        ],
-                      ),
-                    );
-                  } else {
-                    return Center(
-                        child: Padding(
-                          padding: EdgeInsets.only(top: 10),
-                          child: CustomText(AppStrings.noDataFound),
-                        ));
-                  }
-                } else if (foodServiceController.getFoodCategoryResponse.value.status ==
-                    Status.ERROR) {
-                  return Center(
-                      child: Padding(
-                      padding: EdgeInsets.only(top: 10),
-                      child: CustomText(AppStrings.somethingWentWrong),
-                  ));
-                }
-                return buildCategoryGridSkeleton();
-              }),
-
-              CustomFormCard(
-                  padding: EdgeInsets.all(SizeConfig.size10),
-                  margin: EdgeInsets.only(top: SizeConfig.size10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _title(AppStrings.foodRestaurantSpecial.tr),
-                      SizedBox(height: SizeConfig.paddingXSL),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(10.0),
-                        child: SizedBox(
-                          height: SizeConfig.size170,
-                          width: double.infinity,
-                          child: Stack(
-                            children: [
-                              LocalAssets(
-                                  imagePath: AppImageAssets.foodDummyImage,
-                                  height: SizeConfig.size170,
-                                  width: double.infinity,
-                                  boxFix: BoxFit.cover,
-                              ),
-                              Positioned(
-                                bottom: 0,
-                                left: 0,
-                                right: 0,
-                                child: Container(
-                                  height: SizeConfig.size80,
-                                  decoration: BoxDecoration(
-                                    color: AppColors.black.withValues(alpha: 0.6),
-                                    borderRadius: BorderRadius.vertical(bottom: Radius.circular(10.0))
-                                  ),
-                                  padding: EdgeInsets.symmetric(horizontal: 10.0),
-                                  alignment: Alignment.center,
-                                  child: Container(
-                                    padding: EdgeInsets.symmetric(
-                                      vertical: 10.0,
-                                      horizontal: 14.0,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.white,
-                                      borderRadius: BorderRadius.circular(10.0)
-                                    ),
-                                    child: Row(
-                                      crossAxisAlignment: CrossAxisAlignment.center,
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        LocalAssets(
-                                            imagePath: "${AppConstants.baseFoodAssetsPath}restaurant_special.svg",
-                                            height: SizeConfig.size22,
-                                            width: SizeConfig.size22,
-                                        ),
-                                        SizedBox(width: SizeConfig.paddingXSL),
-                                        CustomText(
-                                            AppStrings.foodCreateRestaurantSpecial.tr,
-                                            fontSize: SizeConfig.small,
-                                            color: AppColors.secondaryTextColor,
-                                            fontWeight: FontWeight.w400
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
+      // Lazy CustomScrollView: the category grid is a SliverMasonryGrid that
+      // builds ONLY the cards currently on screen. This makes the screen
+      // crash-proof regardless of how many categories the API returns (the
+      // food `categories/tree` endpoint can return ~1.7k roots of bad data).
+      body: SafeArea(
+        child: Obx(() {
+          final status =
+              foodServiceController.getFoodCategoryResponse.value.status;
+          final categories = foodServiceController.foodNestedCateList;
+          return CustomScrollView(
+            slivers: [
+              // Snap-search card
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(SizeConfig.size8,
+                      SizeConfig.size15, SizeConfig.size8, 0),
+                  child: CustomFormCard(
+                    padding: EdgeInsets.all(SizeConfig.size10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _title(AppStrings.foodUploadBulkProduct.tr),
+                        SizedBox(height: SizeConfig.paddingXSL),
+                        _snapSearchSuggestion(
+                          onTap: () => Get.toNamed(
+                            RouteHelper.getAddFoodSnapSearchScreenRoute(),
                           ),
                         ),
-                      )
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              // Category title
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(SizeConfig.size8,
+                      SizeConfig.size12, SizeConfig.size8, SizeConfig.paddingXSL),
+                  child: _title(AppStrings.category.tr),
+                ),
+              ),
+              // Category grid (lazy) / states
+              _categorySliver(status, categories),
+              // Restaurant special + create-manually + bottom spacing
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(SizeConfig.size8,
+                      SizeConfig.size10, SizeConfig.size8, SizeConfig.size80),
+                  child: Column(
+                    children: [
+                      _restaurantSpecialCard(),
+                      SizedBox(height: SizeConfig.paddingXSL),
+                      CustomBtn(
+                        onTap: () {},
+                        title: AppStrings.foodCreateManually.tr,
+                        borderColor: AppColors.primaryColor,
+                        bgColor:
+                            AppColors.primaryColor.withValues(alpha: 0.1),
+                        textColor: AppColors.primaryColor,
+                        radius: 10.0,
+                      ),
                     ],
-                  )
+                  ),
+                ),
               ),
-
-              SizedBox(height: SizeConfig.paddingXSL),
-
-              CustomBtn(
-                  onTap: (){},
-                  title: AppStrings.foodCreateManually.tr,
-                  borderColor: AppColors.primaryColor,
-                  bgColor: AppColors.primaryColor.withValues(alpha: 0.1),
-                  textColor: AppColors.primaryColor,
-                  radius: 10.0,
-              ),
-
-              SizedBox(height: SizeConfig.size80),
-
             ],
+          );
+        }),
+      ),
+    );
+  }
+
+  /// Category grid as a LAZY sliver (builds only visible cards) plus the
+  /// loading / error / empty states.
+  Widget _categorySliver(
+      Status? status, List<GroceryNestedCategoryModel> categories) {
+    if (status == Status.COMPLETE) {
+      if (categories.isEmpty) {
+        return SliverToBoxAdapter(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: CustomText(AppStrings.noDataFound),
+            ),
+          ),
+        );
+      }
+      return SliverPadding(
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+        sliver: SliverMasonryGrid.count(
+          crossAxisCount: 3,
+          mainAxisSpacing: 6,
+          crossAxisSpacing: 6,
+          childCount: categories.length,
+          itemBuilder: (context, index) {
+            final item = categories[index];
+            return CommonServiceCard<GroceryNestedCategoryModel>(
+              service: item,
+              getName: (item) => item.name ?? '',
+              getIcon: (item) => item.image ?? '',
+              iconHeight: SizeConfig.size60,
+              boxShadow: const [],
+              onTap: (item) {
+                foodServiceController.selectedFoodTypeID.value =
+                    item.sId ?? "";
+                Get.toNamed(
+                  RouteHelper.getProductSelectionScreenRoute(),
+                  arguments: {ApiKeys.argCategoryData: item},
+                );
+              },
+            );
+          },
+        ),
+      );
+    } else if (status == Status.ERROR) {
+      return SliverToBoxAdapter(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 10),
+            child: CustomText(AppStrings.somethingWentWrong),
           ),
         ),
+      );
+    }
+    return SliverToBoxAdapter(child: buildCategoryGridSkeleton());
+  }
+
+  Widget _restaurantSpecialCard() {
+    return CustomFormCard(
+      padding: EdgeInsets.all(SizeConfig.size10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _title(AppStrings.foodRestaurantSpecial.tr),
+          SizedBox(height: SizeConfig.paddingXSL),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10.0),
+            child: SizedBox(
+              height: SizeConfig.size170,
+              width: double.infinity,
+              child: Stack(
+                children: [
+                  LocalAssets(
+                    imagePath: AppImageAssets.foodDummyImage,
+                    height: SizeConfig.size170,
+                    width: double.infinity,
+                    boxFix: BoxFit.cover,
+                  ),
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      height: SizeConfig.size80,
+                      decoration: BoxDecoration(
+                        color: AppColors.black.withValues(alpha: 0.6),
+                        borderRadius: BorderRadius.vertical(
+                            bottom: Radius.circular(10.0)),
+                      ),
+                      padding: EdgeInsets.symmetric(horizontal: 10.0),
+                      alignment: Alignment.center,
+                      child: Container(
+                        padding: EdgeInsets.symmetric(
+                          vertical: 10.0,
+                          horizontal: 14.0,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.white,
+                          borderRadius: BorderRadius.circular(10.0),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            LocalAssets(
+                              imagePath:
+                                  "${AppConstants.baseFoodAssetsPath}restaurant_special.svg",
+                              height: SizeConfig.size22,
+                              width: SizeConfig.size22,
+                            ),
+                            SizedBox(width: SizeConfig.paddingXSL),
+                            CustomText(
+                              AppStrings.foodCreateRestaurantSpecial.tr,
+                              fontSize: SizeConfig.small,
+                              color: AppColors.secondaryTextColor,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+        ],
       ),
     );
   }

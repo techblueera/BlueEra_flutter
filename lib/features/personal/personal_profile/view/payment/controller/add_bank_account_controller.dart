@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment/model/add_account_modal.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment/repo/payment_repo.dart';
+import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -110,6 +111,7 @@ class AddBankAccountController extends GetxController {
     }
 
     isLoading.value = true;
+    AppLoader.show(message: "Adding bank account…");
 
     try {
       ResponseModel response = await PaymentRepo().postAddAccount(params:
@@ -125,23 +127,25 @@ class AddBankAccountController extends GetxController {
           ApiKeys.isDefault:  isDefault.value
         }
       );
+      AppLoader.hide();
+      isLoading.value = false;
       if (response.isSuccess) {
         commonSnackBar(message: response.message??AppStrings.bankAddedSuccessfully.tr);
-        isLoading.value = false;
         clearForm();
-        Get.back();
+        // Return `true` so the caller knows something was actually added and
+        // only then re-fetches the list (not on every back-press).
+        Get.back(result: true);
       }else{
+        // Keep the entered details so the user can fix + retry.
         commonSnackBar(message: response.message??AppStrings.somethingWentWrong);
-        isLoading.value = false;
-        clearForm();
-
       }
     } catch (e) {
-      commonSnackBar(message: AppStrings.failedToAddAccount.tr);
+      AppLoader.hide();
       isLoading.value = false;
-      clearForm();
+      commonSnackBar(message: AppStrings.failedToAddAccount.tr);
     }
   }
+
   void clearForm(){
     bankNameController.clear();
     accountNumberController.clear();
@@ -149,6 +153,12 @@ class AddBankAccountController extends GetxController {
     bankHolderNameController.clear();
     upiIdController.clear();
     linkedMobileController.clear();
+    // Reset the selection + live-QR state so re-opening the screen starts at
+    // the initial level (no UPI/Bank section pre-expanded, no QR pre-shown).
+    selectedBankAccountType.value = 'Select Account';
+    upiInput.value = '';
+    isUpiValidate.value = true;
+    isupdate.value = false;
   }
 
   Future<void> AddUpiApi() async {
@@ -156,6 +166,7 @@ class AddBankAccountController extends GetxController {
       return;
     }
     isLoading.value = true;
+    AppLoader.show(message: "Adding UPI…");
     try {
       ResponseModel response = await PaymentRepo().postAddAccount(params:
       {
@@ -168,24 +179,19 @@ class AddBankAccountController extends GetxController {
         ApiKeys.isDefault:  false
       }
       );
+      AppLoader.hide();
+      isLoading.value = false;
       if (response.isSuccess) {
         commonSnackBar(message: response.message??AppStrings.bankAddedSuccessfully.tr);
-        isLoading.value = false;
         clearForm();
-        Get.back();
+        Get.back(result: true);
       }else{
         commonSnackBar(message: response.message??AppStrings.somethingWentWrong);
-        isLoading.value = false;
-        clearForm();
       }
     } catch (e) {
+      AppLoader.hide();
+      isLoading.value = false;
       commonSnackBar(message: AppStrings.somethingWentWrong);
-      isLoading.value = false;
-      clearForm();
-    } finally {
-      isLoading.value = false;
-      isLoading.value = false;
-      clearForm();
     }
   }
 

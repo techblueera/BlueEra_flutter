@@ -1,8 +1,13 @@
+import 'dart:io';
+import 'dart:ui' as ui;
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/controller/app_background_controller.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -37,6 +42,22 @@ class _AppBackgroundScreenState extends State<AppBackgroundScreen> {
     ctrl.applyBackground(color: _bgColor, asset: _bannerAsset);
     commonSnackBar(message: 'Background applied');
     Get.back();
+  }
+
+  /// Pick a photo from the gallery, persist it to app storage, and select it
+  /// as the (custom) banner. Drops any colour selection — banner wins.
+  Future<void> _pickFromGallery() async {
+    final path = await PhotoPickerService.pickSinglePhoto(
+      context,
+      'Choose background',
+      isOnlyCamera: false,
+      isGallery: true,
+      cropAspectRatio: CropAspectRatio(width: 9, height: 16),
+    );
+    if (path == null || path.isEmpty) return;
+    final stable = await AppBackgroundController.persistPickedBanner(path);
+    if (!mounted) return;
+    setState(() => _bannerAsset = stable);
   }
 
   /// Reset BOTH settings to the app defaults immediately (and persist).
@@ -225,13 +246,23 @@ class _AppBackgroundScreenState extends State<AppBackgroundScreen> {
     );
   }
 
-  /// Preview mirrors the home page: banner image if one is chosen, else the
-  /// background colour.
+  /// Preview mirrors the home page: a preset banner shown plain, a gallery photo
+  /// lightly blurred + frosted (glassmorphic), else the background colour.
   Widget _previewBackground() {
-    if (_bannerAsset.isNotEmpty) {
+    if (_bannerAsset.isEmpty) return Container(color: _bgColor);
+    if (AppBackgroundController.bannerIsAsset(_bannerAsset)) {
       return Image.asset(_bannerAsset, fit: BoxFit.cover);
     }
-    return Container(color: _bgColor);
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Image.file(File(_bannerAsset), fit: BoxFit.cover),
+        BackdropFilter(
+          filter: ui.ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+          child: Container(color: Colors.white.withValues(alpha: 0.10)),
+        ),
+      ],
+    );
   }
 
   // ── Color grid ──
@@ -307,7 +338,8 @@ class _AppBackgroundScreenState extends State<AppBackgroundScreen> {
       height: 130,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: banners.length + 1,
+        // None + predefined banners + Gallery (pick from photos).
+        itemCount: banners.length + 2,
         separatorBuilder: (_, __) => const SizedBox(width: 12),
         itemBuilder: (context, index) {
           if (index == 0) {
@@ -335,6 +367,11 @@ class _AppBackgroundScreenState extends State<AppBackgroundScreen> {
                 ],
               ),
             );
+          }
+          // Gallery tile (last): pick a photo; shows the picked image when one
+          // is the active (custom) banner.
+          if (index == banners.length + 1) {
+            return _galleryTile();
           }
           final banner = banners[index - 1];
           final asset = banner['asset']!;
@@ -393,6 +430,84 @@ class _AppBackgroundScreenState extends State<AppBackgroundScreen> {
           );
         },
       ),
+    );
+  }
+
+  /// "Gallery" tile — pick a photo as the background. When a user-picked image
+  /// is the active banner, the tile shows that image (tap to re-pick).
+  Widget _galleryTile() {
+    final hasCustom = _bannerAsset.isNotEmpty &&
+        !AppBackgroundController.bannerIsAsset(_bannerAsset);
+    return _bannerTile(
+      isSelected: hasCustom,
+      onTap: _pickFromGallery,
+      child: hasCustom
+          ? Stack(
+              fit: StackFit.expand,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: Image.file(File(_bannerAsset), fit: BoxFit.cover),
+                ),
+                Positioned(
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                        colors: [
+                          Colors.black.withValues(alpha: 0.5),
+                          Colors.transparent,
+                        ],
+                      ),
+                      borderRadius: const BorderRadius.vertical(
+                          bottom: Radius.circular(14)),
+                    ),
+                    child: const Center(
+                      child: CustomText('Gallery',
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 6,
+                  right: 6,
+                  child: Container(
+                    padding: const EdgeInsets.all(3),
+                    decoration: const BoxDecoration(
+                        color: AppColors.primaryColor, shape: BoxShape.circle),
+                    child:
+                        const Icon(Icons.check, color: Colors.white, size: 12),
+                  ),
+                ),
+              ],
+            )
+          : Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor.withValues(alpha: 0.08),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.photo_library_outlined,
+                      color: AppColors.primaryColor, size: 20),
+                ),
+                const SizedBox(height: 6),
+                const CustomText('Gallery',
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.grayText),
+              ],
+            ),
     );
   }
 

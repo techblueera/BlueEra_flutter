@@ -10,6 +10,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_business_products_model.dart';
@@ -23,8 +24,20 @@ import 'package:BlueEra/features/me/grocery/view/admin/edit_grocery_varient_dial
 import 'package:BlueEra/features/me/grocery/view/admin/grocery_varient_dialog.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:dio/dio.dart' as dio;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+/// Top-level so it can run in a background isolate via [compute]. The
+/// `jsonDecode(jsonEncode())` round-trip normalises types so the same parser
+/// works for both fresh Dio maps and Hive-restored maps (cache + network).
+List<GroceryNestedCategoryModel> _parseGroceryNestedCategories(
+    List<dynamic> raw) {
+  return raw
+      .map((e) => GroceryNestedCategoryModel.fromJson(
+          jsonDecode(jsonEncode(e)) as Map<String, dynamic>))
+      .toList();
+}
 
 class PriceResult {
   final String sellingRange;
@@ -972,37 +985,63 @@ class GroceryController extends GetxController {
   /// Fetch Grocery Products
   RxList<GroceryNestedCategoryModel> grocerySuperCategoryList = <GroceryNestedCategoryModel>[].obs;
 
-  /// Fetch Grocery Nested Categories
+  /// Fetch Grocery Nested Categories.
+  ///
+  /// Cache-first for the super-category list (no `groceryCatKey`): the last
+  /// saved tree is shown instantly while a fresh copy is fetched silently in
+  /// the background. The tree is parsed off the UI isolate via [compute] so a
+  /// large response can't freeze the shimmer / starve frames.
   Future<void> fetchGroceryNestedCategory({String? groceryCatKey}) async {
+    final bool isSuper = groceryCatKey == null;
     try {
       fetchNestedGroceryCategoryResponse.value = ApiResponse.initial('Initial');
       grocerySuperCategoryList.clear();
 
-      // final cachedData = await HiveServices().getGroceryNestedCategories(groceryCatKey);
-      // if (cachedData != null && cachedData.isNotEmpty) {
-      //   groceryNestedCategoryLoading.value = false;
-      //   groceryNestedCategoryList.assignAll(cachedData);
-      //   return;
-      // }
+      // 1) Cache-first (super-category list only).
+      if (isSuper) {
+        final cachedRaw = HiveServices().getGrocerySuperCategoriesRaw();
+        if (cachedRaw != null && cachedRaw.isNotEmpty) {
+          final cached =
+              await compute(_parseGroceryNestedCategories, cachedRaw);
+          if (cached.isNotEmpty) {
+            grocerySuperCategoryList.assignAll(cached);
+            fetchNestedGroceryCategoryResponse.value = ApiResponse.complete();
+          }
+        }
+      }
 
+      // 2) Silent network refresh.
       Map<String, dynamic> queryParams = {};
-      if(groceryCatKey!=null) queryParams[ApiKeys.categoryKey] = groceryCatKey;
+      if (groceryCatKey != null) queryParams[ApiKeys.categoryKey] = groceryCatKey;
 
-      ResponseModel responseModel = await GroceryRepo().fetchGroceryNestedCategoryRepo(
-          queryParams: queryParams
-      );
+      ResponseModel responseModel = await GroceryRepo()
+          .fetchGroceryNestedCategoryRepo(queryParams: queryParams);
       if (responseModel.isSuccess) {
-        fetchNestedGroceryCategoryResponse.value = ApiResponse.complete(responseModel);
-        grocerySuperCategoryList.value = (responseModel.response?.data ?? [])
-            .map<GroceryNestedCategoryModel>((e) => GroceryNestedCategoryModel.fromJson(e))
-            .toList();
-        // await HiveServices().saveGroceryNestedCategories(groceryCatKey, groceryNestedCategoryList);
-      } else {
+        final List<dynamic> rawList = (responseModel.response?.data is List)
+            ? responseModel.response!.data as List
+            : const [];
+        final parsed = rawList.isEmpty
+            ? <GroceryNestedCategoryModel>[]
+            : await compute(_parseGroceryNestedCategories, rawList);
+
+        grocerySuperCategoryList.assignAll(parsed);
+        fetchNestedGroceryCategoryResponse.value =
+            ApiResponse.complete(responseModel);
+
+        if (isSuper && rawList.isNotEmpty) {
+          await HiveServices().saveGrocerySuperCategoriesRaw(rawList);
+        }
+      } else if (grocerySuperCategoryList.isEmpty) {
+        // Only surface an error when there's no cached data on screen.
         fetchNestedGroceryCategoryResponse.value = ApiResponse.error('error');
       }
     } catch (e, s) {
       log('stack trace -- $s');
-      fetchNestedGroceryCategoryResponse.value = ApiResponse.error('error');
+      if (grocerySuperCategoryList.isEmpty) {
+        try {
+          fetchNestedGroceryCategoryResponse.value = ApiResponse.error('error');
+        } catch (_) {}
+      }
     }
   }
 
