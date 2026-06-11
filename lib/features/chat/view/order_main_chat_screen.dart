@@ -213,7 +213,10 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
                 ),
                 Expanded(
                   child: Container(
-                    color: AppColors.white,
+                    // Transparent so the app-wide background (banner/colour)
+                    // shows behind the Social/Community feed, same as the Me tab.
+                    // The feed's own post cards stay opaque.
+                    color: Colors.transparent,
                     child: TabBarView(
                       controller: chatViewController.chatMainTabController,
                       children: [

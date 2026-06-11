@@ -549,7 +549,7 @@ class InventoryController extends GetxController {
       }
 
       Map<String, dynamic> params = {
-        ApiKeys.key: keyword,
+        ApiKeys.searchTerm: keyword,
         ApiKeys.page: page,
         ApiKeys.limit: limit,
       };

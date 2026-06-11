@@ -146,6 +146,68 @@ class ProductSelfPickupController extends GetxController {
     return count;
   }
 
+  // ═══════════════════════════════════════════════════════════════════════
+  //  MULTI-STORE (Zomato-style) — products from different stores stack into
+  //  separate per-store carts; the floating cart previews them and the user
+  //  checks out from the cart screen. Built on top of cartBusinessInfo.
+  // ═══════════════════════════════════════════════════════════════════════
+
+  bool get isEmpty => selectedProductVariants.isEmpty;
+
+  String? _businessIdOf(GetProductData p) =>
+      cartBusinessInfo[_variantIdOf(p)]?['businessId'];
+
+  /// Distinct business ids currently in the cart, in first-added order.
+  List<String> get storeKeys {
+    final seen = <String>[];
+    for (final p in selectedProductVariants) {
+      final bid = _businessIdOf(p);
+      if (bid != null && bid.isNotEmpty && !seen.contains(bid)) seen.add(bid);
+    }
+    return seen;
+  }
+
+  int get storeCount => storeKeys.length;
+
+  /// Store metadata map ({businessName, logo, address}) for a business id,
+  /// read off any of its products.
+  Map<String, String> storeInfoOf(String businessId) {
+    for (final p in selectedProductVariants) {
+      final info = cartBusinessInfo[_variantIdOf(p)];
+      if (info != null && info['businessId'] == businessId) return info;
+    }
+    return const {};
+  }
+
+  List<GetProductData> variantsOf(String businessId) => selectedProductVariants
+      .where((p) => _businessIdOf(p) == businessId)
+      .toList();
+
+  int itemCountOf(String businessId) {
+    int c = 0;
+    for (final p in variantsOf(businessId)) {
+      c += cartQuantities[_variantIdOf(p)] ?? 0;
+    }
+    return c;
+  }
+
+  /// Product thumbnail — prefers the product-level media, then falls back to
+  /// the first variant's media.
+  String? imageOf(GetProductData p) {
+    final media = p.product.details?.media;
+    if (media != null && media.isNotEmpty && media.first.isNotEmpty) {
+      return media.first;
+    }
+    final variants = p.product.sellerClassification?.variants;
+    if (variants != null && variants.isNotEmpty) {
+      final variantMedia = variants.first.mediaRelatedToVariant;
+      if (variantMedia.isNotEmpty && variantMedia.first.isNotEmpty) {
+        return variantMedia.first;
+      }
+    }
+    return null;
+  }
+
   /// Build order payload per the integration guide.
   List<Map<String, dynamic>> buildBulkOrderItems() {
     final items = <Map<String, dynamic>>[];
