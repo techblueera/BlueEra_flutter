@@ -1,5 +1,4 @@
 import 'package:BlueEra/core/api/model/service_option_model.dart';
-import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -90,7 +89,7 @@ class _UpdateJobSeekerScreenState extends State<UpdateJobSeekerScreen> {
       appBar: CommonBackAppBar(
         title: AppStrings.jobPortfolioResume.tr,
       ),
-      backgroundColor: AppColors.appBackgroundColor,
+      backgroundColor: Colors.transparent,
       body: SingleChildScrollView(
         child: Column(
           children: [

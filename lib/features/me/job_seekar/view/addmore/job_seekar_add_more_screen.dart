@@ -1,5 +1,4 @@
 import 'package:BlueEra/core/api/model/service_option_model.dart';
-import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -47,7 +46,7 @@ class _AddMoreJobSeekerScreenState extends State<AddMoreJobSeekerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.appBackgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: CommonBackAppBar(
         title: AppStrings.addMore.tr,
       ),

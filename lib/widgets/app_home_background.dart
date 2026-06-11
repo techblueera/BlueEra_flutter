@@ -1,23 +1,19 @@
-import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/controller/app_background_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// Shared, reactive home-page background for the profile / home ("me" tab)
-/// screens. Drop-in replacement for the old per-screen `_buildPatternBackground`
-/// (which hard-coded `AppImageAssets.chatDefaultBg`).
+/// The single, app-wide background. Painted ONCE as the bottom layer of
+/// `GetMaterialApp.builder`, behind every screen. Scaffolds are transparent
+/// app-wide (theme `scaffoldBackgroundColor`), so this shows through every
+/// screen; content (cards, bubbles, forms) stays opaque on top.
 ///
-/// Returns a [Positioned.fill] so it can sit directly as the bottom layer of a
-/// screen's `Stack` — same contract the old method had. It rebuilds whenever
-/// the user changes their banner in [AppBackgroundController], so banner updates
-/// take effect immediately.
+/// Returns a [Positioned.fill] so it sits directly inside the builder's
+/// [Stack]. Reactive to [AppBackgroundController] — changing the colour or the
+/// banner repaints instantly, no theme rebuild needed:
 ///
 ///  - A banner is selected → that image (BoxFit.cover).
-///  - No banner ('')        → the chosen app background colour
-///                            ([AppColors.appBackgroundColor]), so the colour
-///                            setting is visible and the two settings stay
-///                            independent.
+///  - No banner ('')        → the chosen background colour ([ctrl.bgColor]).
 class AppHomeBackground extends StatelessWidget {
   const AppHomeBackground({super.key});
 
@@ -27,15 +23,15 @@ class AppHomeBackground extends StatelessWidget {
     return Positioned.fill(
       child: Obx(() {
         final asset = ctrl.bannerAsset.value;
+        final color = ctrl.bgColor.value;
         if (asset.isNotEmpty) {
           return Image.asset(
             asset,
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) =>
-                Container(color: AppColors.appBackgroundColor),
+            errorBuilder: (_, __, ___) => Container(color: color),
           );
         }
-        return Container(color: AppColors.appBackgroundColor);
+        return Container(color: color);
       }),
     );
   }

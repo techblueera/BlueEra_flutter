@@ -104,7 +104,7 @@ class _BusinessServiceListState extends State<BusinessServiceList> {
     if (!widget.showScaffold) return body;
 
     return Scaffold(
-      backgroundColor: AppColors.appBackgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: CommonBackAppBar(title: AppStrings.service.tr),
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: AppColors.primaryColor,

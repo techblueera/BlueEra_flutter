@@ -28,7 +28,7 @@ import '../../../personal/personal_profile/view/wallet/wallet_screen.dart';
 import '../../../personal/personal_profile/view/widget/changes_languages_screen.dart';
 import '../../auth/controller/auth_controller.dart';
 import '../../connect/view/connect_main_page.dart';
-import '../view/app_background_screen.dart';
+import 'package:BlueEra/core/theme/app_background_screen.dart';
 import '../view/saved_feed_screen.dart';
 
 /// Editorial profile drawer — frosted-glass shell over an aurora hero

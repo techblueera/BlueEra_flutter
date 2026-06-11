@@ -97,7 +97,7 @@ class _HomeServiceDiscoverDetailsScreenState
         statusBarIconBrightness: Brightness.light,
       ),
       child: Scaffold(
-        backgroundColor: AppColors.appBackgroundColor,
+        backgroundColor: Colors.transparent,
         body: NotificationListener<ScrollNotification>(
           onNotification: _onScrollNotification,
           child: SingleChildScrollView(

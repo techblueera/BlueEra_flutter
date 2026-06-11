@@ -91,7 +91,7 @@ class _AllOfferDishScreenState extends State<AllOfferDishScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.appBackgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: CommonBackAppBar(
         appBarColor: AppColors.white,
         title: AppStrings.foodOfferDishDiscount.tr,

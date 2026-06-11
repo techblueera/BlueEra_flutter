@@ -53,10 +53,11 @@ class AppThemes {
   //   ),
   // );
 
-  // A getter (not a cached `final`) so each read re-evaluates
-  // `AppColors.appBackgroundColor`. The "Background" picker mutates that field
-  // and calls `Get.changeTheme(AppThemes.light)` to repaint the scaffold
-  // background app-wide.
+  // Scaffolds are TRANSPARENT app-wide: the single active background (colour or
+  // banner image) is painted once behind every screen by `AppHomeBackground` in
+  // `GetMaterialApp.builder`, driven reactively by `AppBackgroundController`.
+  // Content (cards, bubbles, forms) stays opaque on top; the background shows
+  // through their margins/gaps. See `AppHomeBackground`.
   static ThemeData get light => ThemeData(
     hoverColor: Colors.grey,
     fontFamily: AppConstants.OpenSans,
@@ -70,7 +71,7 @@ class AppThemes {
         systemNavigationBarIconBrightness: Brightness.dark, // Bottom nav icons
      ),
     ),
-    scaffoldBackgroundColor: AppColors.appBackgroundColor,
+    scaffoldBackgroundColor: Colors.transparent,
     colorScheme: ColorScheme.dark(
       primary: AppColors.primaryColor,
       onSurface: AppColors.black,

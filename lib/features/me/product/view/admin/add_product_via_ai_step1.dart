@@ -57,7 +57,7 @@ class _AddProductViaAiStep1State extends State<AddProductViaAiStep1> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.appBackgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: CommonBackAppBar(
           title: AppStrings.addProductViaAI,
       ),

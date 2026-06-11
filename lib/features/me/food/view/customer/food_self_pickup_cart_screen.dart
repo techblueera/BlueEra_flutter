@@ -143,7 +143,7 @@ class _FoodSelfPickUpCartScreenState extends State<FoodSelfPickUpCartScreen> {
     final controller = Get.find<FoodSelfPickupController>();
 
     return Scaffold(
-      backgroundColor: AppColors.appBackgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: AppColors.white,
         surfaceTintColor: AppColors.white,

@@ -41,7 +41,7 @@ class DiscoverSchoolHomeScreen extends StatelessWidget {
       final data = schoolAboutUsController.schoolDetailsData?.value;
 
       return Scaffold(
-        backgroundColor: AppColors.appBackgroundColor,
+        backgroundColor: Colors.transparent,
         appBar: CommonBackAppBar(
           title: AppStrings.school,
         ),

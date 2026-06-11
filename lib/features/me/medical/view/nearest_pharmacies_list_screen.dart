@@ -41,7 +41,7 @@ class _NearestPharmaciesListScreenState
   Widget build(BuildContext context) {
     SizeConfig.init(context);
     return Material(
-      color: AppColors.appBackgroundColor,
+      color: Colors.transparent,
       child: Obx(() {
         if (controller.isLoading.value) {
           return const Center(

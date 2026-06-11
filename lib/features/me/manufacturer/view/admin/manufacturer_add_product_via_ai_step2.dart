@@ -152,7 +152,7 @@ class _ManufacturerAddProductViaAiStep2State
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.appBackgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: CommonBackAppBar(
         title: AppStrings.addProductViaAI,
       ),

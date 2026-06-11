@@ -140,7 +140,7 @@ class _AllVehicleServiceScreenState extends State<AllVehicleServiceScreen> {
         statusBarBrightness: Brightness.dark,
       ),
       child: Scaffold(
-        backgroundColor: AppColors.appBackgroundColor,
+        backgroundColor: Colors.transparent,
         body: Stack(
           children: [
             CustomScrollView(

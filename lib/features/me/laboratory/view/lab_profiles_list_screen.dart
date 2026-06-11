@@ -43,7 +43,7 @@ class _LabProfilesListScreenState extends State<LabProfilesListScreen> {
   Widget build(BuildContext context) {
     SizeConfig.init(context);
     return Material(
-      color: AppColors.appBackgroundColor,
+      color: Colors.transparent,
       child: Obx(() {
         if (controller.isLoading.value && controller.pharmacies.isEmpty) {
           return const Center(

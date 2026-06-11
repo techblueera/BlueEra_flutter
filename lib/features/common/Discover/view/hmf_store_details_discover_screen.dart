@@ -105,7 +105,7 @@ class _HmfStoreDetailsDiscoverScreenState
         statusBarIconBrightness: Brightness.light,
       ),
       child: Scaffold(
-        backgroundColor: AppColors.appBackgroundColor,
+        backgroundColor: Colors.transparent,
         // The home-foods call returns the store profile + items; gate the whole
         // screen on the profile. While it loads → shimmer skeleton; if it fails
         // (profile still null) → store error. Per-section APIs (tiffins, menu)

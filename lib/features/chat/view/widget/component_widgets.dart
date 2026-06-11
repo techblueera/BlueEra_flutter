@@ -2406,7 +2406,7 @@ void showMessageEditDialog(String userId,
       insetPadding: EdgeInsets.symmetric(vertical: SizeConfig.size12),
       // Reduced outer spacing
       contentPadding: EdgeInsets.only(bottom: SizeConfig.size10),
-      backgroundColor: AppColors.appBackgroundColor,
+      backgroundColor: Colors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),

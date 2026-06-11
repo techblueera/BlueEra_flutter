@@ -63,7 +63,7 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
         statusBarBrightness: Brightness.dark,
       ),
       child: Scaffold(
-        backgroundColor: AppColors.appBackgroundColor,
+        backgroundColor: Colors.transparent,
         body: Stack(
           children: [
             NestedScrollView(

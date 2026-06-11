@@ -33,7 +33,7 @@ class GrocerySelfPickUpCartScreen extends StatelessWidget {
     final controller = Get.find<GrocerySelfPickupConsumerController>();
 
     return Scaffold(
-      backgroundColor: AppColors.appBackgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: AppColors.white,
         surfaceTintColor: AppColors.white,

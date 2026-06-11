@@ -113,7 +113,7 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
         statusBarBrightness: Brightness.dark,
       ),
       child: Scaffold(
-        backgroundColor: AppColors.appBackgroundColor,
+        backgroundColor: Colors.transparent,
         floatingActionButton: isIndividualUser()
             ? AnimatedSlide(
           duration: const Duration(milliseconds: 300),

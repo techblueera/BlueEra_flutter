@@ -158,7 +158,7 @@ class _ProductSelfPickUpCartScreenState
     final controller = Get.find<ManufacturerProductSelfPickupController>();
 
     return Scaffold(
-      backgroundColor: AppColors.appBackgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: AppColors.white,
         surfaceTintColor: AppColors.white,

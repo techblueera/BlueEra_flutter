@@ -5,7 +5,6 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/widgets/app_home_background.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -131,7 +130,6 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
         top: false,
         child: Stack(
           children: [
-            _buildPatternBackground(),
             // Tab labels are reactive (first label flips Order/Document with
             // the rider's verification status), so the scaffold is rebuilt
             // inside an Obx.
@@ -182,11 +180,6 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
         children: children,
       ),
     );
-  }
-
-  // BACKGROUND
-  Widget _buildPatternBackground() {
-    return const AppHomeBackground();
   }
 
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

@@ -45,7 +45,7 @@ class SelfEmployeeViewScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.appBackgroundColor,
+      backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
       body: Stack(
         children: [

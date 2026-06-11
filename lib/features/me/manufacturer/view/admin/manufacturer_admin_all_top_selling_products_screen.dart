@@ -58,7 +58,7 @@ class _AdminAllTopSellingProductsScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.appBackgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: CommonBackAppBar(
         appBarColor: AppColors.white,
         title: 'Top Selling Products',

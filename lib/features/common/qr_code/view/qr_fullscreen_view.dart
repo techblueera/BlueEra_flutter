@@ -38,7 +38,7 @@ class QrFullScreenView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.appBackgroundColor,
+      backgroundColor: Colors.transparent,
     appBar: CommonBackAppBar(title: AppStrings.myQrCode.tr,),
 
       body: Column(

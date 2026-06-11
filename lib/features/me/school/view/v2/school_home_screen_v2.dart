@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/widgets/app_home_background.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
@@ -108,7 +107,6 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2>
         top: false,
         child: Stack(
           children: [
-            _buildPatternBackground(),
             HomeTabScaffold(
               controller: _tabController,
               tabLabels: _tabs,
@@ -129,10 +127,6 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2>
         ),
       ),
     );
-  }
-
-  Widget _buildPatternBackground() {
-    return const AppHomeBackground();
   }
 
 

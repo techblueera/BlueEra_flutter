@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/controller/app_background_controller.dart';
+import 'package:BlueEra/widgets/app_home_background.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/services/ads/interstitial_ad_manager.dart';
@@ -948,6 +949,10 @@ class _MyAppState extends State<MyApp> {
         builder: (context, child) {
           return Stack(
             children: [
+// App-wide background: the active banner image painted behind EVERY screen.
+// Scaffolds go transparent while a banner is active (AppColors.scaffoldBackgroundColor),
+// so this shows through app-wide; in colour mode scaffolds stay opaque and this is hidden.
+              const AppHomeBackground(),
 // Safe null handling:
               if (child != null) child,
               const GlobalMessage(),

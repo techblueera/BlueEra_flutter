@@ -60,7 +60,7 @@ class _AddServicesScreenState extends State<AddServicesScreenNew> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.appBackgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: CommonBackAppBar(
         title: addServiceController.serviceNameCtrl.text.isEmpty
             ? AppStrings.service

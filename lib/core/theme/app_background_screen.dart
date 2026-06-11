@@ -6,10 +6,10 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// Lets the user theme the profile / home ("me" tab) pages with TWO
-/// independent settings: a background colour (applied app-wide via the theme)
-/// and a home-page banner image. Picking one never clears the other. Held as
-/// draft state and committed (persisted) on Apply.
+/// Lets the user theme the profile / home ("me" tab) pages with ONE active
+/// background at a time: either a background colour (applied app-wide via the
+/// theme) OR a home-page banner image — never both. Picking a colour clears the
+/// banner and vice-versa. Held as draft state and committed (persisted) on Apply.
 class AppBackgroundScreen extends StatefulWidget {
   const AppBackgroundScreen({super.key});
 
@@ -21,7 +21,7 @@ class _AppBackgroundScreenState extends State<AppBackgroundScreen> {
   final AppBackgroundController ctrl =
       getOrPut(() => AppBackgroundController(), permanent: true);
 
-  // ── Draft state (color + banner are independent) ──
+  // ── Draft state (color XOR banner — only one is ever active) ──
   late Color _bgColor;
   late String _bannerAsset;
 
@@ -33,9 +33,8 @@ class _AppBackgroundScreenState extends State<AppBackgroundScreen> {
   }
 
   void _apply() {
-    // Both are applied independently.
-    ctrl.applyColor(_bgColor);
-    ctrl.applyBanner(_bannerAsset);
+    // Exactly one background is committed: banner if chosen, else colour.
+    ctrl.applyBackground(color: _bgColor, asset: _bannerAsset);
     commonSnackBar(message: 'Background applied');
     Get.back();
   }
@@ -72,8 +71,8 @@ class _AppBackgroundScreenState extends State<AppBackgroundScreen> {
                   _sectionTitle(icon: Icons.wallpaper_rounded, title: 'Banner'),
                   const SizedBox(height: 6),
                   const CustomText(
-                    'Banner shows on your home page. Pick "None" to show just '
-                    'the background colour.',
+                    'Choosing a banner replaces the background colour. Pick '
+                    '"None" to use a colour instead.',
                     fontSize: 11.5,
                     color: AppColors.grayText,
                     maxLines: 2,
@@ -244,10 +243,16 @@ class _AppBackgroundScreenState extends State<AppBackgroundScreen> {
         children: AppBackgroundController.colorOptions.map((entry) {
           final color = entry[0] as Color;
           final name = entry[1] as String;
-          // ignore: deprecated_member_use
-          final isSelected = _bgColor.value == color.value;
+          // Highlighted only when colour is the active background (no banner).
+          final isSelected = _bannerAsset.isEmpty &&
+              // ignore: deprecated_member_use
+              _bgColor.value == color.value;
+          // Picking a colour makes it the single background → drop any banner.
           return GestureDetector(
-            onTap: () => setState(() => _bgColor = color),
+            onTap: () => setState(() {
+              _bgColor = color;
+              _bannerAsset = '';
+            }),
             child: Column(
               children: [
                 AnimatedContainer(

@@ -84,7 +84,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      backgroundColor: AppColors.appBackgroundColor,
+      backgroundColor: Colors.transparent,
       body: Obx(() {
         final state = _ctrl.vehicleDetailState.value;
         final v = _ctrl.selectedVehicle.value;

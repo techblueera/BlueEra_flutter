@@ -93,7 +93,7 @@ class _HmpStoreDetailsDiscoverScreenState
         statusBarIconBrightness: Brightness.light,
       ),
       child: Scaffold(
-        backgroundColor: AppColors.appBackgroundColor,
+        backgroundColor: Colors.transparent,
         body: Stack(
           children: [
             NotificationListener<ScrollNotification>(

@@ -5,7 +5,6 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/widgets/app_home_background.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -147,7 +146,6 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
         top: false,
         child: Stack(
           children: [
-            _buildPatternBackground(),
             // Tab labels are reactive (first label flips Document/My Order
             // with the partner's verification status), so the scaffold is
             // rebuilt inside an Obx.
@@ -198,13 +196,6 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
         children: children,
       ),
     );
-  }
-
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // BACKGROUND
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  Widget _buildPatternBackground() {
-    return const AppHomeBackground();
   }
 
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -273,47 +264,6 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
   }
 */
 
-  Widget _circleIconButton({
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      customBorder: const CircleBorder(),
-      child: Container(
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: Color(0x1A000000),
-              blurRadius: 3,
-              offset: Offset(0, -1),
-            ),
-          ],
-        ),
-        child: ClipPath(
-          clipper: const ShapeBorderClipper(shape: CircleBorder()),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-            child: Container(
-              height: SizeConfig.size36,
-              width: SizeConfig.size36,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white,
-                border: Border.all(
-                  color: const Color(0xFFC9CDD5),
-                  width: 1,
-                ),
-              ),
-              child: Icon(icon,
-                  size: 20, color: AppColors.secondaryTextColor),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 /*
 
   Widget _goLivePill() {

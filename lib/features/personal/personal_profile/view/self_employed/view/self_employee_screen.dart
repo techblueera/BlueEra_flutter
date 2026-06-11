@@ -6,7 +6,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/widgets/app_home_background.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -140,7 +139,6 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
         top: false,
         child: Stack(
           children: [
-            _buildPatternBackground(),
             HomeTabScaffold(
               controller: _tabController,
               tabLabels: _tabs,
@@ -162,11 +160,6 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
         ),
       ),
     );
-  }
-
-  // BACKGROUND
-  Widget _buildPatternBackground() {
-    return const AppHomeBackground();
   }
 
   // TOP BAR â€” glassmorphic strip:

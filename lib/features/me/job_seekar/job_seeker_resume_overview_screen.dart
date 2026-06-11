@@ -59,7 +59,7 @@ class _JobSeekerResumeOverviewScreenState
       appBar: CommonBackAppBar(
         title: AppStrings.myPortfolioResume.tr,
       ),
-      backgroundColor: AppColors.appBackgroundColor,
+      backgroundColor: Colors.transparent,
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding:

@@ -191,7 +191,7 @@ class _AllTopSellingGroceryProductsScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.appBackgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: CommonBackAppBar(
         appBarColor: AppColors.white,
         title: AppStrings.groceryViewTopSellingProducts.tr,

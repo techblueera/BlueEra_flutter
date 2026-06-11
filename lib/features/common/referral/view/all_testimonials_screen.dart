@@ -54,7 +54,7 @@ class _AllTestimonialsScreenState extends State<AllTestimonialsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.appBackgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: CommonBackAppBar(
         title: 'All Testimonials',
         isShadowShow: false,

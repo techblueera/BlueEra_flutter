@@ -57,7 +57,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.appBackgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: CommonBackAppBar(title: AppStrings.service),
       bottomNavigationBar: _buildBottomBar(),
       body: SafeArea(

@@ -43,7 +43,7 @@
 //   @override
 //   Widget build(BuildContext context) {
 //     return Scaffold(
-//       backgroundColor: AppColors.appBackgroundColor,
+//       backgroundColor: Colors.transparent,
 //       appBar: const CommonBackAppBar(title: 'Add Store'),
 //       body: Padding(
 //         padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),

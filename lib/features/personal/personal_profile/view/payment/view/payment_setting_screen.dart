@@ -30,7 +30,7 @@ class _PaymentSettingScreenState extends State<PaymentSettingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.appBackgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: const CommonBackAppBar(
         title: AppStrings.paymentSetting,
         isLeading: true,

@@ -5,7 +5,6 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/widgets/app_home_background.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -132,7 +131,6 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2>
         top: false,
         child: Stack(
           children: [
-            _buildPatternBackground(),
             HomeTabScaffold(
               controller: _tabController,
               tabLabels: _tabs,
@@ -181,11 +179,6 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2>
             )
           : null,
     );
-  }
-
-  // ─── Background pattern ─────────────────────────────────────────
-  Widget _buildPatternBackground() {
-    return const AppHomeBackground();
   }
 
   // ─── Top bar (gradient, mirrors lab_home_screen_v2) ─────────────

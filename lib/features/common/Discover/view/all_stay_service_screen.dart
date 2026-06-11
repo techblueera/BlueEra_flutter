@@ -115,7 +115,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
         statusBarBrightness: Brightness.dark,
       ),
       child: Scaffold(
-        backgroundColor: AppColors.appBackgroundColor,
+        backgroundColor: Colors.transparent,
         // Tab-aware "Add ___" CTA. Reactive to `selectedStayCategory` so
         // the label/icon/route flip as the user moves between sticky
         // tabs. Only shown for individual rental categories — hotel /

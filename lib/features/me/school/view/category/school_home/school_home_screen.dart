@@ -27,7 +27,7 @@ class SchoolHomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.appBackgroundColor,
+      color: Colors.transparent,
       child: RefreshIndicator(onRefresh: () async {
         await schoolAboutUsController.getSchoolByIdController();
       }, child: Obx(() {

@@ -28,7 +28,7 @@ class ServiceProviderDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.appBackgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: CommonBackAppBar(
         title: service.profession ?? AppStrings.serviceDetails,
       ),

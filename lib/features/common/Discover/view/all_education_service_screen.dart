@@ -87,7 +87,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
         statusBarBrightness: Brightness.dark,
       ),
       child: Scaffold(
-        backgroundColor: AppColors.appBackgroundColor,
+        backgroundColor: Colors.transparent,
         body: Stack(
           children: [
             CustomScrollView(

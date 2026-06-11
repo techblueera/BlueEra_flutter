@@ -1,7 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/widgets/app_home_background.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -80,7 +79,6 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView> {
           top: false,
           child: Stack(
             children: [
-              _buildPatternBackground(),
               CustomScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
@@ -102,11 +100,6 @@ class _EarnServiceDashboardViewState extends State<EarnServiceDashboardView> {
         ),
       ),
     );
-  }
-
-  // BACKGROUND
-  Widget _buildPatternBackground() {
-    return const AppHomeBackground();
   }
 
   // Back button overlaid on the cover image, sitting in the status-bar

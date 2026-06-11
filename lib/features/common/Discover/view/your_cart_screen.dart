@@ -98,7 +98,7 @@
 //   @override
 //   Widget build(BuildContext context) {
 //     return Scaffold(
-//       backgroundColor: AppColors.appBackgroundColor,
+//       backgroundColor: Colors.transparent,
 //       appBar: AppBar(
 //         backgroundColor: AppColors.white,
 //         surfaceTintColor: AppColors.white,

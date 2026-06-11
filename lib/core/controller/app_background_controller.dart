@@ -1,27 +1,32 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
-import 'package:BlueEra/core/theme/themes.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 
-/// Background customisation for the profile / home ("me" tab) pages.
+/// Drives the single, app-wide background.
 ///
-/// Two INDEPENDENT settings — changing one never clears the other:
+/// Scaffolds are transparent app-wide (theme `scaffoldBackgroundColor`), and
+/// `AppHomeBackground` in `GetMaterialApp.builder` paints ONE background behind
+/// every screen, reactively from this controller's observables. No theme
+/// rebuild is needed — mutating [bgColor] / [bannerAsset] repaints instantly.
 ///
-///  - [bgColor]    → the app background colour. Recolours
-///                   [AppColors.appBackgroundColor] + the theme's
-///                   `scaffoldBackgroundColor` app-wide.
-///  - [bannerAsset]→ the home-page banner image painted by each resolved
-///                   screen's `_buildPatternBackground()` (via the shared
-///                   `AppHomeBackground` widget). Empty string = no banner, so
-///                   the home page shows [bgColor] instead.
+/// MUTUALLY EXCLUSIVE — only ONE background is ever active:
+///
+///  - [bgColor]    → the app background colour.
+///  - [bannerAsset]→ the app background banner image.
+///
+/// Invariant: a non-empty [bannerAsset] means the banner IS the background and
+/// [bgColor] is forced back to default (so it never competes); an empty
+/// [bannerAsset] means [bgColor] is the background. Picking one clears the
+/// other — see [applyBackground]. [AppColors.appBackgroundColor] mirrors
+/// [bgColor] for the handful of widgets that still read the colour directly.
 ///
 /// Persistence: every change is saved to the [_boxName] Hive box and reapplied
-/// on next launch ([preload] for colour before first frame, [_load] for the
-/// reactive state). On logout / data-clear the box is wiped by
+/// on next launch ([preload] before first frame, [_load] for the reactive
+/// state). On logout / data-clear the box is wiped by
 /// `LogoutHelper.clearAllLocalData()`, which also calls [resetInMemory] so the
-/// live statics fall back to defaults without a restart.
+/// live state falls back to defaults without a restart.
 class AppBackgroundController extends GetxController {
   /// The app background colour. Defaults to [AppColors.appBackgroundColorDefault].
   final Rx<Color> bgColor = const Color(0xFFE0E6F3).obs;
@@ -77,9 +82,9 @@ class AppBackgroundController extends GetxController {
     bannerAsset.value = box.get('bannerAsset', defaultValue: '') ?? '';
   }
 
-  /// Reapply the persisted colour to [AppColors.appBackgroundColor] BEFORE the
-  /// first frame so a saved colour is themed from launch. Call from `main()`
-  /// after `Hive.initFlutter()`.
+  /// Mirror the persisted colour into [AppColors.appBackgroundColor] BEFORE the
+  /// first frame, for the few widgets that read the colour directly. Call from
+  /// `main()` after `Hive.initFlutter()`.
   static Future<void> preload() async {
     final box = await Hive.openBox<String>(_boxName);
     final colorValue = int.tryParse(box.get('bgColor', defaultValue: '') ?? '');
@@ -93,36 +98,33 @@ class AppBackgroundController extends GetxController {
     await box.put('bannerAsset', bannerAsset.value);
   }
 
-  /// Apply a solid colour. Recolours [AppColors.appBackgroundColor] and the
-  /// theme's `scaffoldBackgroundColor` app-wide (so every screen reading them
-  /// updates), then persists. Independent of [bannerAsset].
-  void applyColor(Color color) {
-    bgColor.value = color;
-    AppColors.appBackgroundColor = color;
-    Get.changeTheme(AppThemes.light);
-    _save();
-  }
-
-  /// Apply a home-page banner (or '' for none) and persist. Independent of
-  /// [bgColor] — selecting a banner never changes the colour.
-  void applyBanner(String asset) {
+  /// Commit the single active background. EXACTLY ONE wins:
+  ///
+  ///  - [asset] non-empty → that banner becomes the background and [bgColor] is
+  ///    forced back to default, so the colour never competes with it.
+  ///  - [asset] empty      → [color] becomes the background.
+  ///
+  /// `AppHomeBackground` repaints reactively from [bgColor] / [bannerAsset]; no
+  /// theme rebuild is needed. The choice is persisted.
+  void applyBackground({required Color color, required String asset}) {
     bannerAsset.value = asset;
+    bgColor.value =
+        asset.isEmpty ? color : AppColors.appBackgroundColorDefault;
+    AppColors.appBackgroundColor = bgColor.value;
     _save();
   }
 
-  /// Reset BOTH settings to defaults: default colour app-wide + no banner.
+  /// Reset BOTH settings to defaults: default colour + no banner.
   void resetAll() {
     bgColor.value = AppColors.appBackgroundColorDefault;
     bannerAsset.value = '';
     AppColors.appBackgroundColor = AppColors.appBackgroundColorDefault;
-    Get.changeTheme(AppThemes.light);
     _save();
   }
 
   /// Reset the LIVE (in-memory) background to defaults — for logout / data
-  /// clear, where the Hive box is wiped on disk but the static colour would
-  /// otherwise linger until the next restart. Safe with no registered
-  /// instance.
+  /// clear, where the Hive box is wiped on disk but the live state would
+  /// otherwise linger until the next restart. Safe with no registered instance.
   static void resetInMemory() {
     AppColors.appBackgroundColor = AppColors.appBackgroundColorDefault;
     if (Get.isRegistered<AppBackgroundController>()) {
@@ -130,6 +132,5 @@ class AppBackgroundController extends GetxController {
       c.bgColor.value = AppColors.appBackgroundColorDefault;
       c.bannerAsset.value = '';
     }
-    Get.changeTheme(AppThemes.light);
   }
 }

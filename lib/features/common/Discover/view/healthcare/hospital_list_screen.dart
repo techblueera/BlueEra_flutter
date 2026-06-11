@@ -60,7 +60,7 @@ class _HospitalListScreenState extends State<HospitalListScreen> {
   Widget build(BuildContext context) {
     SizeConfig.init(context);
     return Material(
-      color: AppColors.appBackgroundColor,
+      color: Colors.transparent,
       child: Obx(() {
         if (controller.isLoading.value && controller.profiles.isEmpty) {
           // One Shimmer drives all skeleton cards. Per-card shimmers flooded

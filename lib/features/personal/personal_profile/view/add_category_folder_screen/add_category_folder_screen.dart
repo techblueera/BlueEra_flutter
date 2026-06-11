@@ -17,7 +17,7 @@ class AddCategoryFolderScreen extends StatelessWidget {
     final controller = Get.put(AddCategoryFolderScreenController());
     
     return Scaffold(
-      backgroundColor: AppColors.appBackgroundColor,
+      backgroundColor: Colors.transparent,
       resizeToAvoidBottomInset: true,
       body: SafeArea(
         child: Column(

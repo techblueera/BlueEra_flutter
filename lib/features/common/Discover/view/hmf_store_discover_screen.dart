@@ -161,7 +161,7 @@ class _HmfStoreDiscoverScreenState extends State<HmfStoreDiscoverScreen> {
           statusBarBrightness: Brightness.dark,
         ),
         child: Scaffold(
-          backgroundColor: AppColors.appBackgroundColor,
+          backgroundColor: Colors.transparent,
           body: Stack(
             children: [
               NestedScrollView(

@@ -35,7 +35,7 @@ class DiscoverProfessionalsViewScreen extends StatelessWidget {
     final data = professionalConsData;
 
     return Scaffold(
-      backgroundColor: AppColors.appBackgroundColor,
+      backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
       bottomNavigationBar: _buildBottomBar(data),
       body: SingleChildScrollView(

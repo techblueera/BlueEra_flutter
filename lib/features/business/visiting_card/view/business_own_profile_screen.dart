@@ -55,7 +55,7 @@ class _BusinessOwnProfileScreenState extends State<BusinessOwnProfileScreen> {
         return false;
       },
       child: Scaffold(
-        backgroundColor: AppColors.appBackgroundColor,
+        backgroundColor: Colors.transparent,
         appBar: CommonBackAppBar(
           isLeading: true,
           isLogout: true,

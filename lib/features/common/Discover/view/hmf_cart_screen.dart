@@ -30,7 +30,7 @@ class HmfCartScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final controller = _controller;
     return Scaffold(
-      backgroundColor: AppColors.appBackgroundColor,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: AppColors.white,
         surfaceTintColor: AppColors.white,

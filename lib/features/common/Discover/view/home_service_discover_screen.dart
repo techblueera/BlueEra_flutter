@@ -64,7 +64,7 @@ class _HomeServiceDiscoverScreenState extends State<HomeServiceDiscoverScreen> {
         statusBarBrightness: Brightness.dark,
       ),
       child: Scaffold(
-        backgroundColor: AppColors.appBackgroundColor,
+        backgroundColor: Colors.transparent,
         body: NestedScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           headerSliverBuilder: (context, innerBoxIsScrolled) => [

@@ -88,7 +88,7 @@ class _VehicleListingScreenState extends State<VehicleListingScreen> {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
-        backgroundColor: AppColors.appBackgroundColor,
+        backgroundColor: Colors.transparent,
         appBar: AppBar(
           backgroundColor: const Color(0xFF1E88FF),
           foregroundColor: Colors.white,
