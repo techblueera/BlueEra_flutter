@@ -242,7 +242,7 @@ class AuthController extends GetxController {
               navigatedAway = true;
               Get.offNamedUntil(
                 RouteHelper.getBottomNavigationBarScreenRoute(),
-                    (route) => false,
+                (route) => false,
                 // Land on the Discover tab (index 1) after login, same as the
                 // individual branch below.
                 arguments: {ApiKeys.initialIndex: 1},
@@ -276,14 +276,13 @@ class AuthController extends GetxController {
               // OTP screen's dim overlay until the prefs are populated.
               // PersonalProfileCache makes this near-instant on subsequent
               // logins.
-              final personalController = Get.put(
-                  ViewPersonalDetailsController(),
-                  permanent: true);
+              final personalController =
+                  Get.put(ViewPersonalDetailsController(), permanent: true);
               await personalController.viewPersonalProfile();
               navigatedAway = true;
               Get.offNamedUntil(
                 RouteHelper.getBottomNavigationBarScreenRoute(),
-                    (route) => false,
+                (route) => false,
                 arguments: {ApiKeys.initialIndex: 1},
               );
             }
@@ -367,8 +366,8 @@ class AuthController extends GetxController {
       if (!response.isSuccess) {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
-        addUserResponse.value =
-            ApiResponse.error(response.message ?? AppStrings.somethingWentWrong);
+        addUserResponse.value = ApiResponse.error(
+            response.message ?? AppStrings.somethingWentWrong);
         return;
       }
 
@@ -419,13 +418,13 @@ class AuthController extends GetxController {
           "address": reqData?['address'],
         };
         pending.add(controller.createServiceController(reqParm: data));
-      }
-      else if (reqData?['profileType'] == SELF_EMPLOYED) {
+      } else if (reqData?['profileType'] == SELF_EMPLOYED) {
         final controller = getOrPut(() => SelfWorkServiceController());
         controller.professionCategory = reqData?['profession'];
         pending.add(controller.createMinimalEarnService(
           serviceSubType: 'selfWork',
-          professionCategoryOverride: controller.professionCategory?.toUpperCase(),
+          professionCategoryOverride:
+              controller.professionCategory?.toUpperCase(),
         ));
       }
       await Future.wait(pending);
@@ -474,10 +473,9 @@ class AuthController extends GetxController {
       ResponseModel response = await AuthRepo().updateBusinessAccountUserRepo(
           bodyRequest: reqData, showProgress: false);
       if (response.isSuccess) {
-        final upgraded = BusinessUserResponseModel.fromJson(
-            response.response?.data ?? {});
+        final upgraded =
+            BusinessUserResponseModel.fromJson(response.response?.data ?? {});
         if (upgraded.status ?? false) {
-
           await SharedPreferenceUtils.setSecureValue(
               SharedPreferenceUtils.accountType, AppConstants.business);
           await SharedPreferenceUtils.setSecureValue(
@@ -493,7 +491,6 @@ class AuthController extends GetxController {
           // socket so call/chat events flow without an app restart. Fire
           // and forget — UI must not block on socket handshake.
           unawaited(ChatSocketService().connectToSocket());
-
 
           final typeOfBusiness =
               reqData?[ApiKeys.type_of_business].toString().toUpperCase();
@@ -557,25 +554,30 @@ class AuthController extends GetxController {
                 .createHospitalServiceController(reqData: reqBody));
           } else if (categoryOfBusiness == "SUPPORT_SERVICES" ||
               typeOfBusiness == BusinessType.Service.name.toUpperCase()) {
-            final controller =
-                getOrPut(() => BusinessProfileFullController());
+            final controller = getOrPut(() => BusinessProfileFullController());
             reqBody['profileName'] = reqData?[ApiKeys.business_name];
             reqBody['type'] = "other";
-            pending.add(
-                controller.createOtherProfileController(reqParm: reqBody));
+            pending
+                .add(controller.createOtherProfileController(reqParm: reqBody));
           } else if (typeOfBusiness == "FINANCE" ||
               typeOfBusiness == "BANKING_SECTOR") {
-            final controller =
-                getOrPut(() => BusinessProfileFullController());
+            final controller = getOrPut(() => BusinessProfileFullController());
             reqBody['profileName'] = reqData?[ApiKeys.business_name];
             reqBody['type'] = "finance";
             reqBody['sub_type'] = categoryOfBusiness;
             // reqBody['sub_type'] = typeOfBusiness;
-            pending.add(
-                controller.createOtherProfileController(reqParm: reqBody));
-          } else if (typeOfBusiness ==
-              BusinessType.Motel.name.toUpperCase()) {
-            pending.add(_createMotelService(reqData??{}));
+            pending
+                .add(controller.createOtherProfileController(reqParm: reqBody));
+          } else if (typeOfBusiness == BusinessType.Motel.name.toUpperCase()) {
+            // await SharedPreferenceUtils.setSecureValue(
+            //     SharedPreferenceUtils.businessCategory, categoryOfBusiness);
+            // businessCategoryGlobal = await SharedPreferenceUtils.getSecureValue(
+            //     SharedPreferenceUtils.businessCategory) ??
+            //     "";
+            logs("categoryOfBusiness= ${categoryOfBusiness}");
+            reqBody['category'] =  categoryOfBusiness;
+
+            pending.add(_createMotelService(reqData ?? {}));
           }
 
           await Future.wait(pending);
@@ -661,12 +663,8 @@ class AuthController extends GetxController {
         "type": "Point",
         "coordinates": [lat, lon]
       },
-      "bus_station_location": {
-        "name": "",
-        "type": "Point",
-        "coordinates": []
-      },
-      "category": businessCategoryGlobal,
+      "bus_station_location": {"name": "", "type": "Point", "coordinates": []},
+      "category": reqData["category_Of_Business"],
     });
   }
 
@@ -931,8 +929,8 @@ class AuthController extends GetxController {
       } else {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
-        createGuestProfileResponse.value =
-            ApiResponse.error(response.message ?? AppStrings.somethingWentWrong);
+        createGuestProfileResponse.value = ApiResponse.error(
+            response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       createGuestProfileResponse.value = ApiResponse.error('error');
@@ -1058,7 +1056,8 @@ class AuthController extends GetxController {
     final cachedBusiness = hive.getAllCategories();
     final cachedProfessions = hive.getAllProfessions();
 
-    final hasCachedBusiness = cachedBusiness != null && cachedBusiness.isNotEmpty;
+    final hasCachedBusiness =
+        cachedBusiness != null && cachedBusiness.isNotEmpty;
     final hasCachedProfessions =
         cachedProfessions != null && cachedProfessions.isNotEmpty;
 
@@ -1101,10 +1100,14 @@ class AuthController extends GetxController {
   // Reactive buckets: mutating them (via `assignAll` in the update methods
   // below) notifies any `Obx` that reads them — including on the *silent*
   // network refresh — with no manual change-counter to keep in sync.
-  final RxList<ProfessionTypeData> individualOnboardingSocialProfileList = <ProfessionTypeData>[].obs;
-  final RxList<ProfessionTypeData> individualOnboardingGigWorkList = <ProfessionTypeData>[].obs;
-  final RxList<ProfessionTypeData> individualOnboardingSkillWorkList = <ProfessionTypeData>[].obs;
-  final RxList<ProfessionTypeData> individualOnboardingConsultationList = <ProfessionTypeData>[].obs;
+  final RxList<ProfessionTypeData> individualOnboardingSocialProfileList =
+      <ProfessionTypeData>[].obs;
+  final RxList<ProfessionTypeData> individualOnboardingGigWorkList =
+      <ProfessionTypeData>[].obs;
+  final RxList<ProfessionTypeData> individualOnboardingSkillWorkList =
+      <ProfessionTypeData>[].obs;
+  final RxList<ProfessionTypeData> individualOnboardingConsultationList =
+      <ProfessionTypeData>[].obs;
 
   /// Derived flat master list of profession types — concatenates the four
   /// onboarding buckets (which are the source of truth). Exposed as a
@@ -1135,8 +1138,7 @@ class AuthController extends GetxController {
         // bucketing call below is the source of truth, and the
         // `professionTypeDataList` getter on this controller derives a
         // flat list from those buckets when consumers need one.
-        final professions =
-            PersonalProfessionModel.fromJson(data).data ?? [];
+        final professions = PersonalProfessionModel.fromJson(data).data ?? [];
         // Persist BEFORE bucketing so each item's `individualProfileType`
         // enum is still null at serialize time — bucketing sets that
         // enum, and enums don't round-trip through jsonEncode.
@@ -1197,17 +1199,28 @@ class AuthController extends GetxController {
   }
 
   RxBool isAllBusinessCategoriesLoading = false.obs;
+
   // Reactive buckets — see the profession buckets above for the rationale.
-  final RxList<CategoryData> businessOnboardingServicesCategories = <CategoryData>[].obs;
-  final RxList<CategoryData> businessOnboardingProductsCategories = <CategoryData>[].obs;
-  final RxList<CategoryData> businessOnboardingGroceriesCategories = <CategoryData>[].obs;
-  final RxList<CategoryData> businessOnboardingFoodsCategories = <CategoryData>[].obs;
-  final RxList<CategoryData> businessOnboardingManufacturingCategories = <CategoryData>[].obs;
-  final RxList<CategoryData> businessOnboardingAutomotiveServicesCategories = <CategoryData>[].obs;
-  final RxList<CategoryData> businessOnboardingHealthcareSectorsCategories = <CategoryData>[].obs;
-  final RxList<CategoryData> businessOnboardingHospitalityStayCategories = <CategoryData>[].obs;
-  final RxList<CategoryData> businessOnboardingEducationTrainingCategories = <CategoryData>[].obs;
-  final RxList<CategoryData> businessOnboardingFinancialSectorsCategories = <CategoryData>[].obs;
+  final RxList<CategoryData> businessOnboardingServicesCategories =
+      <CategoryData>[].obs;
+  final RxList<CategoryData> businessOnboardingProductsCategories =
+      <CategoryData>[].obs;
+  final RxList<CategoryData> businessOnboardingGroceriesCategories =
+      <CategoryData>[].obs;
+  final RxList<CategoryData> businessOnboardingFoodsCategories =
+      <CategoryData>[].obs;
+  final RxList<CategoryData> businessOnboardingManufacturingCategories =
+      <CategoryData>[].obs;
+  final RxList<CategoryData> businessOnboardingAutomotiveServicesCategories =
+      <CategoryData>[].obs;
+  final RxList<CategoryData> businessOnboardingHealthcareSectorsCategories =
+      <CategoryData>[].obs;
+  final RxList<CategoryData> businessOnboardingHospitalityStayCategories =
+      <CategoryData>[].obs;
+  final RxList<CategoryData> businessOnboardingEducationTrainingCategories =
+      <CategoryData>[].obs;
+  final RxList<CategoryData> businessOnboardingFinancialSectorsCategories =
+      <CategoryData>[].obs;
 
   /// Read inside an `Obx` to subscribe to *any* onboarding-bucket change —
   /// initial cache load or silent network refresh — when the actual bucket
@@ -1336,38 +1349,37 @@ class AuthController extends GetxController {
     businessOnboardingFinancialSectorsCategories.assignAll(finance);
   }
 
-  // void debugPrintBusinessCategories() {
-  //   if (kDebugMode) {
-  //     final categoryGroups = {
-  //       'Services': businessOnboardingServicesCategories,
-  //       'Products': businessOnboardingProductsCategories,
-  //       'Groceries': businessOnboardingGroceriesCategories,
-  //       'Foods': businessOnboardingFoodsCategories,
-  //       'Manufacturing': businessOnboardingManufacturingCategories,
-  //       'Automotive': businessOnboardingAutomotiveServicesCategories,
-  //       'Healthcare': businessOnboardingHealthcareSectorsCategories,
-  //       'Hospitality': businessOnboardingHospitalityStayCategories,
-  //       'Education': businessOnboardingEducationTrainingCategories,
-  //       'Finance': businessOnboardingFinancialSectorsCategories,
-  //     };
-  //
-  //     log('=== BUSINESS CATEGORIES DEBUG START ===', name: 'CategorySync');
-  //
-  //     categoryGroups.forEach((name, list) {
-  //       if (list.isNotEmpty) {
-  //         log('--- $name (${list.length} items) ---', name: 'CategorySync');
-  //         for (var item in list) {
-  //           // Replace 'name' with whatever property identifies your CategoryData
-  //           log('  ID: ${item.id} | Title: ${item.name} | Tag Id: ${item.tagId}',
-  //               name: 'CategorySync');
-  //         }
-  //       } else {
-  //         log('--- $name (Empty) ---', name: 'CategorySync');
-  //       }
-  //     });
-  //
-  //     log('=== BUSINESS CATEGORIES DEBUG END ===', name: 'CategorySync');
-  //   }
-  // }
-
+// void debugPrintBusinessCategories() {
+//   if (kDebugMode) {
+//     final categoryGroups = {
+//       'Services': businessOnboardingServicesCategories,
+//       'Products': businessOnboardingProductsCategories,
+//       'Groceries': businessOnboardingGroceriesCategories,
+//       'Foods': businessOnboardingFoodsCategories,
+//       'Manufacturing': businessOnboardingManufacturingCategories,
+//       'Automotive': businessOnboardingAutomotiveServicesCategories,
+//       'Healthcare': businessOnboardingHealthcareSectorsCategories,
+//       'Hospitality': businessOnboardingHospitalityStayCategories,
+//       'Education': businessOnboardingEducationTrainingCategories,
+//       'Finance': businessOnboardingFinancialSectorsCategories,
+//     };
+//
+//     log('=== BUSINESS CATEGORIES DEBUG START ===', name: 'CategorySync');
+//
+//     categoryGroups.forEach((name, list) {
+//       if (list.isNotEmpty) {
+//         log('--- $name (${list.length} items) ---', name: 'CategorySync');
+//         for (var item in list) {
+//           // Replace 'name' with whatever property identifies your CategoryData
+//           log('  ID: ${item.id} | Title: ${item.name} | Tag Id: ${item.tagId}',
+//               name: 'CategorySync');
+//         }
+//       } else {
+//         log('--- $name (Empty) ---', name: 'CategorySync');
+//       }
+//     });
+//
+//     log('=== BUSINESS CATEGORIES DEBUG END ===', name: 'CategorySync');
+//   }
+// }
 }

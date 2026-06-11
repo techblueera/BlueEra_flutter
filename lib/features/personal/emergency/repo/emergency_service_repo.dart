@@ -10,6 +10,14 @@ class EmergencyServiceRepo extends BaseService {
     );
   }
 
+  /// Fetch a specific emergency profile by id (deep-link / scanned QR view).
+  Future<ResponseModel> getEmergencyProfileById(String id) async {
+    return await ApiBaseHelper().getHTTP(
+      emergencyProfileById(id),
+      showProgress: false,
+    );
+  }
+
   Future<ResponseModel> submitBasicInfo({required Map<String, dynamic> body}) async {
     final res = await ApiBaseHelper().postHTTP(
       emergencyBasicInfo,
@@ -28,6 +36,16 @@ class EmergencyServiceRepo extends BaseService {
       onSuccess: (data) {},
     );
     return res;
+  }
+
+  Future<ResponseModel> updateEmergencyContact(
+      {required String id, required Map<String, dynamic> body}) async {
+    return await ApiBaseHelper().putHTTP(
+      emergencyUpdateContact(id),
+      params: body,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
   }
 
   Future<ResponseModel> submitPrivacyAlerts({required Map<String, dynamic> body}) async {

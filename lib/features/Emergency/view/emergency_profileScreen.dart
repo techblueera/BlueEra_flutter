@@ -1,11 +1,14 @@
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:get/get.dart';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/features/personal/emergency/view/emergency_basic_info_screen.dart';
 import '../controller/emergency_profile_controller.dart';
 import '../model/emergency_profile_model.dart';
+import 'emergency_contact_edit_screen.dart';
 
 const kBlue = AppColors.kBlue;
 const kBlueDark = AppColors.kBlueDark;
@@ -21,15 +24,33 @@ const kRed = AppColors.kRed;
 // ─────────────────────────────────────────────
 // MAIN SCREEN
 // ─────────────────────────────────────────────
-class EmergencyProfileScreen1 extends StatelessWidget {
-  EmergencyProfileScreen1({super.key});
+class EmergencyProfileScreen1 extends StatefulWidget {
+  /// Optional profile id from a scanned QR / `emergency.beapp.in/<id>` deep
+  /// link. Null → show the logged-in user's own emergency profile.
+  final String? profileId;
 
-  final _controller = Get.put(EmergencyProfileController());
+  const EmergencyProfileScreen1({super.key, this.profileId});
+
+  @override
+  State<EmergencyProfileScreen1> createState() =>
+      _EmergencyProfileScreen1State();
+}
+
+class _EmergencyProfileScreen1State extends State<EmergencyProfileScreen1> {
+  late final EmergencyProfileViewController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller =
+        Get.put(EmergencyProfileViewController(profileId: widget.profileId));
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kBg,
+      appBar: CommonBackAppBar(title: "",),
       body: SafeArea(
         child: Obx(() {
           if (_controller.profileResponse.value.status == Status.LOADING) {
@@ -49,7 +70,7 @@ class EmergencyProfileScreen1 extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const _AppBar(),
+                _AppBar(showEdit: _controller.isOwnProfile),
                 _ProfileHeader(basicInfo: data.basicInfo),
                 const SizedBox(height: 20),
                 if (data.basicInfo != null) ...[
@@ -60,9 +81,12 @@ class EmergencyProfileScreen1 extends StatelessWidget {
                   _MedicalInfoCard(basicInfo: data.basicInfo),
                   const SizedBox(height: 12),
                 ],
-                _EmergencyContactsCard(contacts: data.emergencyContacts),
-                const SizedBox(height: 12),
-                const _GetAppBanner(),
+                _EmergencyContactsCard(
+                  contacts: data.emergencyContacts,
+                  showEdit: _controller.isOwnProfile,
+                ),
+                // const SizedBox(height: 12),
+                // const _GetAppBanner(),
                 const SizedBox(height: 28),
               ],
             ),
@@ -77,7 +101,8 @@ class EmergencyProfileScreen1 extends StatelessWidget {
 // APP BAR
 // ─────────────────────────────────────────────
 class _AppBar extends StatelessWidget {
-  const _AppBar();
+  final bool showEdit;
+  const _AppBar({this.showEdit = true});
 
   @override
   Widget build(BuildContext context) {
@@ -123,6 +148,42 @@ class _AppBar extends StatelessWidget {
               ),
             ],
           ),
+          const Spacer(),
+          // Edit info → opens the basic-info edit flow, refreshes on return.
+          // Only shown when viewing your own profile (not a deep-linked one).
+          if (showEdit)
+            GestureDetector(
+              onTap: () {
+                Get.to(() => const EmergencyBasicInfoScreen())?.then((_) {
+                  Get.find<EmergencyProfileViewController>()
+                      .getEmergencyProfile1();
+                });
+              },
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: kBlueLight,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFFBFDBFE)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(Icons.edit_outlined, color: kBlue, size: 16),
+                    SizedBox(width: 6),
+                    Text(
+                      'Edit',
+                      style: TextStyle(
+                        color: kBlue,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -163,23 +224,27 @@ class _ProfileHeader extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 16),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF111827),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF111827),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 3),
-                  const Text(
-                    'Emergency Profile',
-                    style: TextStyle(fontSize: 14, color: kGrey),
-                  ),
-                ],
+                    const SizedBox(height: 3),
+                    const Text(
+                      'Emergency Profile',
+                      style: TextStyle(fontSize: 14, color: kGrey),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -418,7 +483,8 @@ class _MedicalInfoCard extends StatelessWidget {
 // ─────────────────────────────────────────────
 class _EmergencyContactsCard extends StatelessWidget {
   final List<EmergencyContacts>? contacts;
-  const _EmergencyContactsCard({this.contacts});
+  final bool showEdit;
+  const _EmergencyContactsCard({this.contacts, this.showEdit = true});
 
   Future<void> _callNumber(String number) async {
     final uri = Uri(scheme: 'tel', path: number);
@@ -484,6 +550,35 @@ class _EmergencyContactsCard extends StatelessWidget {
                       ],
                     ),
                   ),
+                  // Edit icon → opens edit screen, refreshes on success.
+                  // Hidden when viewing a deep-linked (read-only) profile.
+                  if (showEdit)
+                    GestureDetector(
+                      onTap: () async {
+                        final result = await Get.to(
+                          () => EmergencyContactEditScreen(contact: contact),
+                        );
+                        if (result == true) {
+                          Get.find<EmergencyProfileViewController>()
+                              .getEmergencyProfile1();
+                        }
+                      },
+                      child: Container(
+                        width: 42,
+                        height: 42,
+                        margin: const EdgeInsets.only(right: 10),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFF3F4F6),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: const Color(0xFFE5E7EB)),
+                        ),
+                        child: const Icon(
+                          Icons.edit_outlined,
+                          color: kGrey,
+                          size: 19,
+                        ),
+                      ),
+                    ),
                   // Call icon → opens dial pad
                   if (contact.mobileNumber != null &&
                       contact.mobileNumber!.isNotEmpty)

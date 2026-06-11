@@ -9,6 +9,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/Emergency/view/emergency_profileScreen.dart';
 import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
 import 'package:BlueEra/features/common/onboarding/view/select_language_screen.dart';
 import 'package:BlueEra/features/me/product/view/admin/share_product_screen.dart';
@@ -214,6 +215,21 @@ class _SplashScreenState extends State<SplashScreen> {
       final referral = uri.queryParameters['referralCode'];
       if (referral != null && referral.trim().isNotEmpty) {
         await SharedPreferenceUtils.saveDeferredReferralCode(referral);
+      }
+
+      // Emergency profile QR / sticker links use a dedicated host:
+      //   https://emergency.beapp.in/<profileId>
+      // The viewer is typically a responder, not the owner, so open the
+      // read-only profile view for that explicit id.
+      if (uri.host == 'emergency.beapp.in') {
+        final emergencyId =
+            uri.pathSegments.isNotEmpty ? uri.pathSegments.last : '';
+        if (emergencyId.isNotEmpty && _isValidMongoId(emergencyId)) {
+          Get.to(() => EmergencyProfileScreen1(profileId: emergencyId));
+        } else {
+          logs('Invalid emergency profile id in deep link: $emergencyId');
+        }
+        return;
       }
 
       final segments = uri.pathSegments; // e.g., [app, post, 123]
