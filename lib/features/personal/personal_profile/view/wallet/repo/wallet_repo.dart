@@ -37,6 +37,18 @@ class WalletRepo extends BaseService {
     return response;
   }
 
+  /// Fetch a user's UPI details — `wallet-service/wallet/user/{userId}/upi`.
+  /// Used to build the pay-to QR for the conversation person.
+  Future<ResponseModel> getUserUpiRepo({required String userId}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      getUserUpiApi(userId),
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   Future<ResponseModel> walletTransactionApi({
     String? status,
     String? type,

@@ -238,6 +238,7 @@ class _ContactsPageState extends State<ContactsPage> {
             _fetchAndUploadContacts(forceRefresh: true);
           },
         ),
+        backgroundColor: AppColors.white,
         body: Column(
           children: [
             Padding(

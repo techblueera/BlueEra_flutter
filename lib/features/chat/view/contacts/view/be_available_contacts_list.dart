@@ -233,6 +233,7 @@ class _BeAvailableContactsListState extends State<BeAvailableContactsList> {
             }
           },
         ),
+        backgroundColor: AppColors.white,
         body: Column(
           children: [
             Padding(

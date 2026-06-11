@@ -23,6 +23,7 @@ import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart
 import 'package:BlueEra/features/chat/view/order_main_chat_screen.dart';
 import 'package:BlueEra/features/chat/view/widget/component_widgets.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/ride_drop_location_sheet.dart';
+import 'package:BlueEra/features/chat/view/business_chat/widgets/payment_qr_bottom_sheet.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
@@ -56,6 +57,14 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
   bool _isGeneratingPdf = false;
 
   bool get _isMyMessage => widget.message.myMessage ?? false;
+
+  /// Id of the conversation person (the other party in this chat) — used to
+  /// fetch their UPI for the payment QR. Falls back to the message sender.
+  String? get _conversationPersonId =>
+      (Get.isRegistered<ChatViewController>()
+          ? Get.find<ChatViewController>().currentChatOtherUserId
+          : null) ??
+      widget.message.sender?.id;
 
   bool get _isReady =>
       widget.message.metadata?.selfPickupOrder?.isReady ??
@@ -1123,8 +1132,13 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
             icon: Icons.account_balance_wallet_outlined,
             label: 'Payment',
             color: AppColors.primaryColor,
-            // TODO: wire to the payment flow.
-            onTap: () => commonSnackBar(message: 'Coming soon....'),
+            // Shows the payment QR bottom sheet (dummy QR + download/share).
+            onTap: () => showPaymentQrBottomSheet(
+              context,
+              data: widget.message.metadata?.selfPickupOrder?.orderId ??
+                  widget.message.metadata?.selfpickupOrderId,
+              userId: _conversationPersonId,
+            ),
           ),
           _orderActionButton(
             icon: Icons.two_wheeler,

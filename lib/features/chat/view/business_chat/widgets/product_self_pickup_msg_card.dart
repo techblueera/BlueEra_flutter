@@ -14,6 +14,7 @@ import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/features/chat/auth/model/saved_address_model.dart';
 import 'package:BlueEra/features/chat/auth/model/self_pickup_order_model.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/ride_drop_location_sheet.dart';
+import 'package:BlueEra/features/chat/view/business_chat/widgets/payment_qr_bottom_sheet.dart';
 import 'package:BlueEra/features/chat/view/order_main_chat_screen.dart';
 import 'package:BlueEra/features/chat/view/widget/component_widgets.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
@@ -60,6 +61,14 @@ class _ProductSelfPickupMsgCardState extends State<ProductSelfPickupMsgCard> {
   bool _isGeneratingPdf = false;
 
   bool get _isMyMessage => widget.message.myMessage ?? false;
+
+  /// Id of the conversation person (the other party in this chat) — used to
+  /// fetch their UPI for the payment QR. Falls back to the message sender.
+  String? get _conversationPersonId =>
+      (Get.isRegistered<ChatViewController>()
+          ? Get.find<ChatViewController>().currentChatOtherUserId
+          : null) ??
+      widget.message.sender?.id;
 
   SelfPickupOrderModel? get _order =>
       widget.message.metadata?.productPickupOrder ??
@@ -1081,7 +1090,13 @@ class _ProductSelfPickupMsgCardState extends State<ProductSelfPickupMsgCard> {
             icon: Icons.account_balance_wallet_outlined,
             label: 'Payment',
             color: AppColors.primaryColor,
-            onTap: () => commonSnackBar(message: 'Coming soon....'),
+            // Shows the payment QR bottom sheet (dummy QR + download/share).
+            onTap: () => showPaymentQrBottomSheet(
+              context,
+              data: _order?.orderId ??
+                  widget.message.metadata?.productPickupOrderId,
+              userId: _conversationPersonId,
+            ),
           ),
           _orderActionButton(
             icon: Icons.two_wheeler,

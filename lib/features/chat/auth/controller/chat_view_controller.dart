@@ -323,6 +323,11 @@ class ChatViewController extends GetxController {
   static const int _messagePageStep = 30;
   // Cached params so loadMoreMessages can rebuild the exact emit payload.
   String? _currentChatOtherUserId;
+
+  /// The id of the person currently being chatted with (the conversation
+  /// person), independent of message direction. Used e.g. to fetch their UPI
+  /// details for the payment QR.
+  String? get currentChatOtherUserId => _currentChatOtherUserId;
   String? _currentChatName;
   String? _currentChatUserIdForOnline;
 
