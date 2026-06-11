@@ -762,6 +762,7 @@ enum PostCreationMenu {
   symbol,
   poll,
   // photos,
+  reel,
   jobPost;
   // travel;
 }

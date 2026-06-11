@@ -32,6 +32,10 @@ mixin VideoServiceApi {
   String videos(String videoId) => "video-service/videos/$videoId";
   String videosMetaData(String videoId) => "video-service/videos/$videoId";
 
+  /// Trending/"hot" videos. `type` is `short` (reels) or `long`.
+  /// Returns a flat `data: Video[]` array (no author/channel resolution).
+  String hotVideos(String type) => "video-service/videos/hot/$type";
+
   final String deleteVideoServiceCommentById = 'video-service/comments/';
   final String videoUploadStatus = 'video-service/videos/upload-status';
   final String adminVideos = 'video-service/admin-videos';

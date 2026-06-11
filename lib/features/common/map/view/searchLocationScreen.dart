@@ -45,7 +45,13 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
     super.initState();
     checkPermissionAndSetData();
     _loadRecentSearches();
-    authController.isSearchOpen.value = true;
+    // Defer flipping the observable to after the first frame: an Obx up in
+    // main.dart's Stack listens to `isSearchOpen`, so setting it synchronously
+    // during initState marks that Obx dirty mid-build → "setState() called
+    // during build".
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) authController.isSearchOpen.value = true;
+    });
     searchController.addListener(() {
       _onSearchChanged(searchController.text);
     });

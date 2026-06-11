@@ -30,10 +30,11 @@ class PopupMenuBuilders {
       PostCreationMenu.message,
       PostCreationMenu.symbol,
       PostCreationMenu.poll,
-      // PostCreationMenu.photos,
-      // if (isBusiness || channelId.isNotEmpty) PostCreationMenu.videos,
+      if (!isBusiness) PostCreationMenu.reel,
 
-      /// for individual user if user has channel then only video section will shown
+      /// Reel/short upload — available to business accounts and to individual
+      /// users who already created a channel (matches the old `videos` gate).
+      if (isBusiness || channelId.isNotEmpty) PostCreationMenu.reel,
       if (isBusiness) PostCreationMenu.jobPost,
       // PostCreationMenu.place,
       // PostCreationMenu.travel,
@@ -45,7 +46,7 @@ class PopupMenuBuilders {
       PostCreationMenu.symbol: "assets/icons/add_symbol_color.png",
       PostCreationMenu.poll: AppIconAssets.qa_ask_questionOutlinedIcon,
       // PostCreationMenu.photos: AppIconAssets.photosOutlinedIcon,
-      // PostCreationMenu.videos: AppIconAssets.videoOutlinedIcon,
+      PostCreationMenu.reel: AppIconAssets.video_outline,
       PostCreationMenu.jobPost: AppIconAssets.uilSuitcaseOutlinedIcon,
       // PostCreationMenu.place: AppIconAssets.locationOutlineIconGreyIcon,
       // PostCreationMenu.travel: AppIconAssets.travelOutlinedIcon,
@@ -56,6 +57,7 @@ class PopupMenuBuilders {
       PostCreationMenu.poll: AppStrings.poll,
       PostCreationMenu.symbol: AppStrings.symbol,
       // PostCreationMenu.photos: AppStrings.symbol,
+      PostCreationMenu.reel: 'Reel',
       PostCreationMenu.jobPost: AppStrings.jobPost,
       // PostCreationMenu.travel: AppStrings.travel,
     };
@@ -70,7 +72,11 @@ class PopupMenuBuilders {
           value: menu,
           child: Row(
             children: [
-              LocalAssets(imagePath: iconMap[menu]!,width: 25,height: 25,),
+              LocalAssets(
+                imagePath: iconMap[menu]!,
+                width: 25,
+                height: 25,
+              ),
               SizedBox(width: SizeConfig.size5),
               CustomText(
                 titleMap[menu]!,
@@ -285,16 +291,48 @@ class PopupMenuBuilders {
 
   static List<PopupMenuEntry<String>> popupMenuChatCardItems() {
     final items = <Map<String, dynamic>>[
-      {"id": "ADD_SYMBOL", 'title': "Add Symbol", 'icon': Icons.add_circle_outline},
+      {
+        "id": "ADD_SYMBOL",
+        'title': "Add Symbol",
+        'icon': Icons.add_circle_outline
+      },
       {"id": "VIEW_SYMBOL", 'title': "View Symbol", 'icon': Icons.auto_awesome},
-      {"id": "CREATE_GROUP", 'title': AppStrings.createGroup, 'icon': Icons.group_add},
-      {"id": "BACKGROUND", 'title': AppStrings.background, 'icon': Icons.wallpaper},
-      {"id": "LOCK_CHAT", 'title': AppStrings.lockChat, 'icon': Icons.lock_outline},
+      {
+        "id": "CREATE_GROUP",
+        'title': AppStrings.createGroup,
+        'icon': Icons.group_add
+      },
+      {
+        "id": "BACKGROUND",
+        'title': AppStrings.background,
+        'icon': Icons.wallpaper
+      },
+      {
+        "id": "LOCK_CHAT",
+        'title': AppStrings.lockChat,
+        'icon': Icons.lock_outline
+      },
       {"id": "LINKED_DEVICE", 'title': "Linked Device", 'icon': Icons.devices},
-      {"id": "NOTIFICATION", 'title': "Notification", 'icon': Icons.notifications_outlined},
-      {"id": "INVITE_FRIEND", 'title': "Invite Friend", 'icon': Icons.person_add_alt_1_outlined},
-      {"id": "WALLET", 'title': "Wallet", 'icon': Icons.account_balance_wallet_outlined},
-      {"id": "PRIVATE_ROOM", 'title': "Private Room", 'icon': Icons.meeting_room_outlined},
+      {
+        "id": "NOTIFICATION",
+        'title': "Notification",
+        'icon': Icons.notifications_outlined
+      },
+      {
+        "id": "INVITE_FRIEND",
+        'title': "Invite Friend",
+        'icon': Icons.person_add_alt_1_outlined
+      },
+      {
+        "id": "WALLET",
+        'title': "Wallet",
+        'icon': Icons.account_balance_wallet_outlined
+      },
+      {
+        "id": "PRIVATE_ROOM",
+        'title': "Private Room",
+        'icon': Icons.meeting_room_outlined
+      },
     ];
 
     final List<PopupMenuEntry<String>> entries = [];
@@ -547,7 +585,7 @@ class PopupMenuBuilders {
 
   static List<PopupMenuEntry<String>> popPupMenuForAiChat() {
     final items = <Map<String, dynamic>>[
-        {'title':"Change Profile", "slud_id": 'change_profile'},
+      {'title': "Change Profile", "slud_id": 'change_profile'},
     ];
 
     final List<PopupMenuEntry<String>> entries = [];
@@ -593,11 +631,17 @@ class PopupMenuBuilders {
       {
         'title': isMuted ? 'Unmute' : 'Mute',
         'slud_id': 'mute',
-        'icon': isMuted ? Icons.notifications_off : Icons.notifications_active_outlined,
+        'icon': isMuted
+            ? Icons.notifications_off
+            : Icons.notifications_active_outlined,
       },
       {'title': 'Language', 'slud_id': 'language', 'icon': Icons.language},
       {'title': 'Clear Chat', 'slud_id': 'clear', 'icon': Icons.delete_outline},
-      {'title': 'Background', 'slud_id': 'background', 'icon': Icons.wallpaper_outlined},
+      {
+        'title': 'Background',
+        'slud_id': 'background',
+        'icon': Icons.wallpaper_outlined
+      },
     ];
 
     final List<PopupMenuEntry<String>> entries = [];
@@ -865,7 +909,11 @@ class PopupMenuBuilders {
 
   static List<PopupMenuEntry<String>> photoPostMenuItems() {
     final items = <Map<String, dynamic>>[
-      {'id': "Square", 'title': AppStrings.square, 'icon': Icons.square_outlined},
+      {
+        'id': "Square",
+        'title': AppStrings.square,
+        'icon': Icons.square_outlined
+      },
       {
         'id': "Portrait",
         'title': AppStrings.portrait,

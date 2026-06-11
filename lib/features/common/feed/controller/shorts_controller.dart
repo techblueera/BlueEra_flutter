@@ -101,11 +101,8 @@ class ShortsController extends GetxController{
           
           // Fetch fresh data in background
           _fetchShortsInBackground(queryParams: {
-            ApiKeys.type: 'short',
             ApiKeys.page: trendingVideoFeedCurrentPage.toString(),
             ApiKeys.limit: limit,
-            ApiKeys.userId: userId,
-            ApiKeys.refresh: refresh,
           });
           return;
         } else {
@@ -119,25 +116,34 @@ class ShortsController extends GetxController{
     try {
       trendingVideoFeedIsLoadingMore.value = true;
 
-      final queryParams = {
-        ApiKeys.type: 'short',
-        ApiKeys.page: trendingVideoFeedCurrentPage.toString(),
-        ApiKeys.limit: limit, // or whatever your backend supports
-        ApiKeys.userId: userId
-      };
-
       ResponseModel response;
-      if(query.isEmpty){
-        queryParams[ApiKeys.refresh] = refresh;
-        response = await FeedRepo().getAllFeedTrending(queryParams: queryParams);
-      }else{
-        queryParams[ApiKeys.query] = query;
-        response = await FeedRepo().videosFeedSearch(queryParams: queryParams);
+      final bool isHot = query.isEmpty;
+      if (isHot) {
+        // Reels come from the trending "hot" endpoint: GET /videos/hot/short.
+        // It accepts only page + limit (type is in the path) and returns a
+        // flat Video[] — parsed via VideoResponse.fromHotJson below.
+        response = await FeedRepo().getHotVideos(
+          type: 'short',
+          queryParams: {
+            ApiKeys.page: trendingVideoFeedCurrentPage.toString(),
+            ApiKeys.limit: limit,
+          },
+        );
+      } else {
+        response = await FeedRepo().videosFeedSearch(queryParams: {
+          ApiKeys.type: 'short',
+          ApiKeys.page: trendingVideoFeedCurrentPage.toString(),
+          ApiKeys.limit: limit,
+          ApiKeys.userId: userId,
+          ApiKeys.query: query,
+        });
       }
 
       if (response.isSuccess) {
         trendingShortsResponse = ApiResponse.complete(response);
-        final videoFeedModelResponse = VideoResponse.fromJson(response.response?.data);
+        final videoFeedModelResponse = isHot
+            ? VideoResponse.fromHotJson(response.response?.data)
+            : VideoResponse.fromJson(response.response?.data);
 
         final videos = videoFeedModelResponse.data?.videos ?? [];
 
@@ -177,10 +183,13 @@ class ShortsController extends GetxController{
   /// Fetch shorts in background for cache updates
   Future<void> _fetchShortsInBackground({required Map<String, dynamic> queryParams}) async {
     try {
-      ResponseModel response = await FeedRepo().getAllFeedTrending(queryParams: queryParams);
-      
+      ResponseModel response = await FeedRepo().getHotVideos(
+        type: 'short',
+        queryParams: queryParams,
+      );
+
       if (response.isSuccess) {
-        final videoFeedModelResponse = VideoResponse.fromJson(response.response?.data);
+        final videoFeedModelResponse = VideoResponse.fromHotJson(response.response?.data);
         final videos = videoFeedModelResponse.data?.videos ?? [];
         
         if (videos.isNotEmpty) {

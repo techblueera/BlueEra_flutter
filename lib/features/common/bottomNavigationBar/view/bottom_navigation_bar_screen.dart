@@ -15,6 +15,7 @@ import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/core/services/chat_media_storage_service.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/chat/view/order_main_chat_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
@@ -56,7 +57,7 @@ import '../../../chat/auth/controller/call_controller.dart';
 import '../../../chat/auth/controller/chat_theme_controller.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../chat/view/forward_screen/chat_forward_screen.dart';
-import '../../../chat/view/order_main_chat_screen.dart';
+import 'package:BlueEra/features/common/reel/view/shorts/reels_tab_screen.dart';
 import '../../delivery_partner/controller/delivery_partner_orders_controller.dart';
 import '../../delivery_partner/controller/pip_floating_page_controller.dart';
 
@@ -458,24 +459,11 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                             currentIndex: bottomBarController.currentIndex.value,
                             showShadow: true,
                             onTap: (index) async {
-                              // Tabs: 0=Me, 1=Discover, 2=Connect, 3=Order.
+                              // Tabs: 0=Me, 1=Discover, 2=Chat, 3=Reels.
                               // Location is fetched at app start (and on resume via
                               // AppLifecycleHandler), so tab changes no longer gate
                               // on lat/lng — gating blocked navigation when the
                               // first-launch fetch hadn't completed yet.
-
-                              /// Order/Chat (3) prompts for notification permission
-                              /// but no longer blocks navigation if the user skips —
-                              /// the prompt itself surfaces a follow-up warning.
-                              if (index == 3) {
-                                await AppNotificationHandler().checkNotificationPermission();
-                                if (chatViewController.chatMainTabController != null &&
-                                    chatViewController.chatMainTabController?.index != 0) {
-                                  chatViewController.onSelectChatTab(0);
-                                }
-                                chatViewController.emitEvent(
-                                    ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.personal_Chat_Type});
-                              }
                               bottomBarController.onChangeIndex(index);
                             },
                             chatNotificationCount: chatNotificationCount,
@@ -505,6 +493,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       case 2:
         return const ConnectMainPage();
       case 3:
+        // return const ReelsTabScreen();
+
       default:
         return const OrderMainChatScreen();
     }

@@ -10,6 +10,7 @@ import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
 import 'package:BlueEra/features/chat/view/personal_chat/chat_requests_screen.dart';
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_screen.dart';
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
+import 'package:BlueEra/features/common/reel/view/shorts/reels_tab_screen.dart';
 import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/post_via_dialog.dart';
@@ -36,6 +37,7 @@ class OrderMainChatScreen extends StatefulWidget {
     this.isNewGroupUI,
     this.isForwardUI = false,
   });
+
   final bool? isForwardUI;
   final bool? isNewGroupUI;
 
@@ -45,10 +47,11 @@ class OrderMainChatScreen extends StatefulWidget {
 
 class _OrderMainChatScreenState extends State<OrderMainChatScreen>
     with SingleTickerProviderStateMixin {
-   ChatViewController  chatViewController = getOrPut(() => ChatViewController());
-   ChatThemeController chatThemeController = getOrPut(() => ChatThemeController());
+  ChatViewController chatViewController = getOrPut(() => ChatViewController());
+  ChatThemeController chatThemeController =
+      getOrPut(() => ChatThemeController());
 
-   final addSymbolController = getOrPut(() => AddChatSymbolController());
+  final addSymbolController = getOrPut(() => AddChatSymbolController());
   final bottomBarController = getOrPut(() => BottomBarController());
 
   /// Drives the collapsing search header. The Social/Community TabBar stays
@@ -91,9 +94,7 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
 
   @override
   void initState() {
-
     super.initState();
-
 
     getOrPut(() => ChatFlagController());
     getOrPut(() => ChatPinArchiveController());
@@ -101,11 +102,11 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
     if (widget.isForwardUI != null && (widget.isForwardUI ?? false)) {
       chatViewController.selectedUserIds.clear();
     }
-    // Leads tab is commented out — clamp any persisted index to the new range.
+    // Three tabs: Social, Community, Reels — clamp any persisted index to range.
     final rawIndex = chatViewController.selectedChatTabIndex.value;
-    final pendingIndex = (rawIndex >= 0 && rawIndex < 2) ? rawIndex : 0;
+    final pendingIndex = (rawIndex >= 0 && rawIndex < 3) ? rawIndex : 0;
     chatViewController.chatMainTabController = TabController(
-      length: 2,
+      length: 3,
       vsync: this,
       initialIndex: pendingIndex,
     );
@@ -129,10 +130,10 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
 
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () async{
-        if(chatViewController.chatMainTabController?.index==0){
+      onWillPop: () async {
+        if (chatViewController.chatMainTabController?.index == 0) {
           bottomBarController.onChangeIndex(0);
-        }else{
+        } else {
           chatViewController.chatMainTabController?.animateTo(0);
         }
         return false;
@@ -161,151 +162,159 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
             child: NotificationListener<ScrollNotification>(
               onNotification: _onScrollNotification,
               child: Column(
-              children: [
-                // Collapsing search-bar header — kept outside the tab
-                // scrollables so it can't get "stuck" in a half-collapsed
-                // state. Hides on a sustained scroll-down and returns on the
-                // first upward scroll; the Social/Community TabBar below stays
-                // pinned at the top throughout.
-                AnimatedSize(
-                  duration: const Duration(milliseconds: 250),
-                  curve: Curves.easeInOut,
-                  alignment: Alignment.topCenter,
-                  child: _isSearchVisible
-                      ? Container(
-                          width: double.infinity,
-                          color: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 12),
-                          child: _buildHeader(context),
-                        )
-                      : const SizedBox(width: double.infinity),
-                ),
-                Container(
-                  color: Colors.white,
-                  child: TabBar(
-                    onTap: (index) {
-                      // Reveal the search header again when switching tabs.
-                      if (!_isSearchVisible) {
-                        setState(() => _isSearchVisible = true);
-                        _scrollAccumulator = 0;
-                      }
-                      if (widget.isNewGroupUI != null &&
-                          widget.isNewGroupUI == true) {
-                        if (chatViewController.selectedChatList.isNotEmpty) {
-                          commonSnackBar(
-                              message: AppStrings.cantSelectBothChatTypes.tr);
-                          chatViewController.selectedUserIds.clear();
-                        }
-                      }
-                    },
-                    controller: chatViewController.chatMainTabController,
-                    labelColor: Colors.black,
-                    padding: EdgeInsets.zero,
-                    labelPadding: const EdgeInsets.symmetric(horizontal: 12),
-                    unselectedLabelColor: Colors.black54,
-                    indicatorColor: Colors.lightBlue,
-                    tabs: [
-                      Tab(text: AppStrings.social.tr),
-                      Tab(text: AppStrings.community.tr),
-                    ],
+                children: [
+                  // Collapsing search-bar header — kept outside the tab
+                  // scrollables so it can't get "stuck" in a half-collapsed
+                  // state. Hides on a sustained scroll-down and returns on the
+                  // first upward scroll; the Social/Community TabBar below stays
+                  // pinned at the top throughout.
+                  AnimatedSize(
+                    duration: const Duration(milliseconds: 250),
+                    curve: Curves.easeInOut,
+                    alignment: Alignment.topCenter,
+                    child: _isSearchVisible
+                        ? Container(
+                            width: double.infinity,
+                            color: Colors.white,
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
+                            child: _buildHeader(context),
+                          )
+                        : const SizedBox(width: double.infinity),
                   ),
-                ),
-                Expanded(
-                  child: Container(
-                    color: AppColors.white,
-                    child: TabBarView(
+                  Container(
+                    color: Colors.white,
+                    child: TabBar(
+                      onTap: (index) {
+                        // Reveal the search header again when switching tabs.
+                        if (!_isSearchVisible) {
+                          setState(() => _isSearchVisible = true);
+                          _scrollAccumulator = 0;
+                        }
+                        if (widget.isNewGroupUI != null &&
+                            widget.isNewGroupUI == true) {
+                          if (chatViewController.selectedChatList.isNotEmpty) {
+                            commonSnackBar(
+                                message: AppStrings.cantSelectBothChatTypes.tr);
+                            chatViewController.selectedUserIds.clear();
+                          }
+                        }
+                      },
                       controller: chatViewController.chatMainTabController,
-                      children: [
-                        HomeFeedScreenNew(
-                          key: const ValueKey('orderMain_feed_social'),
-                          postFilterType: PostType.all,
-                          headerHeight: 0,
-                          isInParentScroll: false,
-                        ),
-                        ChannelFeedScreen(
-                          key: const ValueKey('orderMain_feed_community'),
-                          headerHeight: 0,
-                        ),
+                      labelColor: Colors.black,
+                      padding: EdgeInsets.zero,
+                      labelPadding: const EdgeInsets.symmetric(horizontal: 12),
+                      unselectedLabelColor: Colors.black54,
+                      indicatorColor: Colors.lightBlue,
+                      tabs: [
+                        Tab(text: AppStrings.social.tr),
+                        Tab(text: AppStrings.community.tr),
+                        Tab(text: "Reels"),
                       ],
                     ),
                   ),
-                ),
-                (widget.isForwardUI != null && (widget.isForwardUI ?? false))
-                    ?
-                    Obx(() {
-                      return InkWell(
-                        onTap: (chatViewController.selectedUserIds.isNotEmpty)
-                            ? () async
-                        {
-                          if (widget.isNewGroupUI != null &&
-                              (widget.isNewGroupUI ?? false)) {
-                            // Navigator.push(
-                            //     context,
-                            //     MaterialPageRoute(
-                            //         builder: (context) => AddNewGroupPage(selectedUserIds: se,)));
-                          } else {
-                            Map<String, dynamic> data = {
-                              ApiKeys.forward_id:
-                              chatThemeController.selectedMessageIds,
-                              ApiKeys.forward_to_conversations:
-                              chatViewController.selectedUserIds,
-                              // ApiKeys.additional_message: "${widget.message?.messageType}"
-                              // ApiKeys.additional_message: "${widget.message?.messageType}"
-                            };
-
-                            bool value = await chatViewController
-                                .forwardMessageApi(data);
-
-                            if (value) {
-                              chatViewController.emitEvent(
-                                  ChatEmitEvents.ChatList,
-                                  {ApiKeys.type: AppConstants.personal_Chat_Type});
-                              Navigator.pop(context);
-                              Navigator.pop(context);
-                            }
-                          }
-                        }
-                            : null,
-                        child: Container(
-                          padding: EdgeInsets.all(14),
-                          margin: EdgeInsets.symmetric(horizontal: 14),
-                          decoration: BoxDecoration(
-                              color: chatViewController.selectedUserIds.isNotEmpty
-                                  ? AppColors.primaryColor
-                                  : chatThemeController.myMessageBgColor.value,
-                              borderRadius: BorderRadius.circular(10)),
-                          child: Row(mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              CustomText(
-                                (widget.isNewGroupUI != null &&
-                                    (widget.isNewGroupUI ?? false))
-                                    ? ""
-                                    : "${chatViewController.selectedUserIds.length} ${AppStrings.forward.tr}",
-                                color: Colors.white,
-                              ),
-                              const SizedBox(
-                                width: 6,
-                              ),
-                              (widget.isNewGroupUI != null &&
-                                  (widget.isNewGroupUI ?? false))
-                                  ? Icon(
-                                Icons.arrow_right_alt,
-                                size: 26,
-                                color: Colors.white,
-                              )
-                                  : SvgPicture.asset(
-                                  height: 18,
-                                  width: 18,
-                                  AppIconAssets.send_message_chat),
-                            ],
+                  Expanded(
+                    child: Container(
+                      color: AppColors.white,
+                      child: TabBarView(
+                        controller: chatViewController.chatMainTabController,
+                        children: [
+                          HomeFeedScreenNew(
+                            key: const ValueKey('orderMain_feed_social'),
+                            postFilterType: PostType.all,
+                            headerHeight: 0,
+                            isInParentScroll: false,
                           ),
-                        ),
-                      );
-                    })
-                        : SizedBox()
-              ],
-            ),
+                          ChannelFeedScreen(
+                            key: const ValueKey('orderMain_feed_community'),
+                            headerHeight: 0,
+                          ),
+                          ReelsTabScreen(
+                            key: const ValueKey('reels_tab_screen'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  (widget.isForwardUI != null && (widget.isForwardUI ?? false))
+                      ? Obx(() {
+                          return InkWell(
+                            onTap: (chatViewController
+                                    .selectedUserIds.isNotEmpty)
+                                ? () async {
+                                    if (widget.isNewGroupUI != null &&
+                                        (widget.isNewGroupUI ?? false)) {
+                                      // Navigator.push(
+                                      //     context,
+                                      //     MaterialPageRoute(
+                                      //         builder: (context) => AddNewGroupPage(selectedUserIds: se,)));
+                                    } else {
+                                      Map<String, dynamic> data = {
+                                        ApiKeys.forward_id: chatThemeController
+                                            .selectedMessageIds,
+                                        ApiKeys.forward_to_conversations:
+                                            chatViewController.selectedUserIds,
+                                        // ApiKeys.additional_message: "${widget.message?.messageType}"
+                                        // ApiKeys.additional_message: "${widget.message?.messageType}"
+                                      };
+
+                                      bool value = await chatViewController
+                                          .forwardMessageApi(data);
+
+                                      if (value) {
+                                        chatViewController.emitEvent(
+                                            ChatEmitEvents.ChatList, {
+                                          ApiKeys.type:
+                                              AppConstants.personal_Chat_Type
+                                        });
+                                        Navigator.pop(context);
+                                        Navigator.pop(context);
+                                      }
+                                    }
+                                  }
+                                : null,
+                            child: Container(
+                              padding: EdgeInsets.all(14),
+                              margin: EdgeInsets.symmetric(horizontal: 14),
+                              decoration: BoxDecoration(
+                                  color: chatViewController
+                                          .selectedUserIds.isNotEmpty
+                                      ? AppColors.primaryColor
+                                      : chatThemeController
+                                          .myMessageBgColor.value,
+                                  borderRadius: BorderRadius.circular(10)),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  CustomText(
+                                    (widget.isNewGroupUI != null &&
+                                            (widget.isNewGroupUI ?? false))
+                                        ? ""
+                                        : "${chatViewController.selectedUserIds.length} ${AppStrings.forward.tr}",
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(
+                                    width: 6,
+                                  ),
+                                  (widget.isNewGroupUI != null &&
+                                          (widget.isNewGroupUI ?? false))
+                                      ? Icon(
+                                          Icons.arrow_right_alt,
+                                          size: 26,
+                                          color: Colors.white,
+                                        )
+                                      : SvgPicture.asset(
+                                          height: 18,
+                                          width: 18,
+                                          AppIconAssets.send_message_chat),
+                                ],
+                              ),
+                            ),
+                          );
+                        })
+                      : SizedBox()
+                ],
+              ),
             ),
           ),
         ),
@@ -430,7 +439,8 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
             if (isGuestUser()) {
               createProfileScreen();
             } else if (value == PostCreationMenu.message ||
-                value == PostCreationMenu.poll) {
+                value == PostCreationMenu.poll ||
+                value == PostCreationMenu.reel) {
               postVia(context, value);
             } else if (value == PostCreationMenu.jobPost) {
               Get.toNamed(
@@ -471,9 +481,9 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
     );
   }
 
-  // Profile drawer methods moved to ConnectMainPage. Kept here as a
-  // reference in case we need to restore the in-screen drawer.
-  /*
+// Profile drawer methods moved to ConnectMainPage. Kept here as a
+// reference in case we need to restore the in-screen drawer.
+/*
   void _openProfileDrawer(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final authController = Get.find<AuthController>();

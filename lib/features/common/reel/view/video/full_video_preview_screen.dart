@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/reel/view/channel/reel_upload_details_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:flutter/material.dart';
@@ -149,6 +150,18 @@ class _FullVideoPreviewState extends State<FullVideoPreview> with RouteAware {
             right: SizeConfig.size20,
             child: CustomBtn(
               onTap: () async {
+                // Shorts must be portrait. Block landscape/square videos with a
+                // clear error instead of silently uploading a mis-oriented short.
+                final videoSize = _controller?.value.size;
+                if (videoType == Video.short &&
+                    videoSize != null &&
+                    videoSize.width > videoSize.height) {
+                  commonSnackBar(
+                    message:
+                        "Please upload a portrait video for shorts (height must be greater than width).",
+                  );
+                  return;
+                }
                 if (videoType == Video.short && (_videoDuration?.inSeconds ?? 0) > 600) {
                   await showCommonDialog(
                     context: context,
