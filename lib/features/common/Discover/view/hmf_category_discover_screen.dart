@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/controller/hmf_cart_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/hmf_consumer_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/hmf_cart_screen.dart';
@@ -22,6 +23,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/floating_cart_widget.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -497,7 +499,11 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
       cookingMethod: meal.cookingMethod,
       startTime: meal.startTime,
       endTime: meal.endTime,
-      storeName: meal.centerName,
+      storeName: meal.storeName,
+      storeLogo: meal.storeLogo,
+      address: meal.address,
+      lat: meal.lat ?? meal.storeLat,
+      lng: meal.lng ?? meal.storeLng,
     );
   }
 
@@ -533,8 +539,9 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
       cookingMethod: item.cookingMethod,
       storeName: kitchen?.serviceName ?? '',
       storeLogo: kitchen?.serviceLogo,
-      homeDelivery: kitchen?.homeDelivery ?? false,
       address: kitchen?.address ?? '',
+      lat: item.lat ?? kitchen?.latitude,
+      lng: item.lng ?? kitchen?.longitude,
     );
   }
 
@@ -555,8 +562,9 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
     String? endTime,
     String storeName = '',
     String? storeLogo,
-    bool homeDelivery = false,
     String address = '',
+    double? lat,
+    double? lng,
   }) {
     final hasTime =
         (startTime?.isNotEmpty ?? false) && (endTime?.isNotEmpty ?? false);
@@ -564,154 +572,274 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
 
     return _foodCardShell(
       onTap: onTap,
-      child: Row(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Left: details column ──
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (foodType.isNotEmpty) ...[
-                  _vegLabel(foodType),
-                  const SizedBox(height: 6),
-                ],
-                CustomText(
-                  name,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w800,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  color: AppColors.mainTextColor,
-                ),
-                const SizedBox(height: 6),
-                Wrap(
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  spacing: 6,
-                  runSpacing: 4,
+          // ── Top: image (left) + details (right) — white ──
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _foodImage(imageUrl, foodType),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CustomText(
-                      '${AppConstants.rupeeSymbol}$sellingPrice',
-                      fontSize: 16,
+                      name,
+                      fontSize: 15,
                       fontWeight: FontWeight.w800,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       color: AppColors.mainTextColor,
                     ),
-                    if (mrpPrice.isNotEmpty)
-                      CustomText(
-                        '${AppConstants.rupeeSymbol}$mrpPrice',
-                        fontSize: 11.5,
-                        color: AppColors.secondaryTextColor,
-                        decoration: TextDecoration.lineThrough,
-                        decorationColor: AppColors.secondaryTextColor,
+                    if (address.isNotEmpty) ...[
+                      const SizedBox(height: 3),
+                      Row(
+                        children: [
+                          Icon(Icons.location_on_rounded,
+                              size: 12, color: AppColors.greyAF),
+                          const SizedBox(width: 2),
+                          Expanded(
+                            child: CustomText(
+                              address,
+                              fontSize: 11.5,
+                              color: AppColors.secondaryTextColor,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
-                    if (showDiscount) DiscountBadge(discountText: discount),
+                    ],
+                    if (cookingMethod.isNotEmpty || hasTime) ...[
+                      const SizedBox(height: 8),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
+                        children: [
+                          if (cookingMethod.isNotEmpty)
+                            FoodTypeOrCookingMethod(
+                              label: cookingMethod,
+                              icon: AppIconAssets.boiled,
+                            ),
+                          if (hasTime)
+                            FoodTypeOrCookingMethod(
+                              label: '$startTime - $endTime',
+                              icon: AppIconAssets.storeWatch,
+                            ),
+                        ],
+                      ),
+                    ],
+                    const SizedBox(height: 8),
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 6,
+                      runSpacing: 4,
+                      children: [
+                        CustomText(
+                          '${AppConstants.rupeeSymbol}$sellingPrice',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.mainTextColor,
+                        ),
+                        if (mrpPrice.isNotEmpty)
+                          CustomText(
+                            '${AppConstants.rupeeSymbol}$mrpPrice',
+                            fontSize: 11.5,
+                            color: AppColors.secondaryTextColor,
+                            decoration: TextDecoration.lineThrough,
+                            decorationColor: AppColors.secondaryTextColor,
+                          ),
+                        if (showDiscount) DiscountBadge(discountText: discount),
+                      ],
+                    ),
                   ],
                 ),
-                if (cookingMethod.isNotEmpty || hasTime) ...[
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 6,
-                    runSpacing: 4,
-                    children: [
-                      if (cookingMethod.isNotEmpty)
-                        FoodTypeOrCookingMethod(
-                          label: cookingMethod,
-                          icon: AppIconAssets.boiled,
-                        ),
-                      if (hasTime)
-                        FoodTypeOrCookingMethod(
-                          label: '$startTime - $endTime',
-                          icon: AppIconAssets.storeWatch,
-                        ),
-                    ],
-                  ),
-                ],
-                if (storeName.isNotEmpty) ...[
-                  const SizedBox(height: 9),
-                  _storeLine(storeName, storeLogo, homeDelivery),
-                ],
-                if (address.isNotEmpty) ...[
-                  const SizedBox(height: 5),
-                  _addressRow(address),
-                ],
-              ],
+              ),
+            ],
+          ),
+          ),
+          // ── Footer band (lighter grey, full width) ──
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF5F6F8),
+              border: Border(
+                top: BorderSide(
+                    color: AppColors.greyE5.withValues(alpha: 0.8)),
+              ),
+            ),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            child: _cardFooter(
+              onTap: onTap,
+              storeName: storeName,
+              storeLogo: storeLogo,
+              lat: lat,
+              lng: lng,
             ),
           ),
-          const SizedBox(width: 12),
-          // ── Right: food image ──
-          _foodImage(imageUrl),
         ],
       ),
     );
   }
 
-  /// Clean rounded food image on the right of the card.
-  Widget _foodImage(String? imageUrl) {
-    const double size = 112;
+  // ── Footer row: avatar + name + distance on the left, a chat icon and a
+  //    "View Profile" button on the right. ──
+  Widget _cardFooter({
+    required VoidCallback onTap,
+    required String storeName,
+    String? storeLogo,
+    double? lat,
+    double? lng,
+  }) {
+    return Row(
+      children: [
+        _kitchenAvatar(storeLogo, size: 34),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CustomText(
+                storeName.isNotEmpty ? storeName : 'Kitchen',
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: AppColors.mainTextColor,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 2),
+              _distanceLine(lat, lng),
+            ],
+          ),
+        ),
+        const SizedBox(width: 8),
+        _chatButton(onTap),
+        const SizedBox(width: 8),
+        _viewProfileButton(onTap),
+      ],
+    );
+  }
+
+  /// "X km Away" when we have coordinates + the user's location, else nothing
+  /// (the address is shown under the title).
+  Widget _distanceLine(double? lat, double? lng) {
+    final hasLoc = lat != null && lng != null && !(lat == 0.0 && lng == 0.0);
+    if (!hasLoc) return const SizedBox.shrink();
+    final km = calculateDistanceKm(
+        LocationService.lat, LocationService.lng, lat, lng);
+    return Row(
+      children: [
+        const Icon(Icons.location_on_rounded, size: 13, color: _primary),
+        const SizedBox(width: 3),
+        Flexible(
+          child: CustomText(
+            '${km.toStringAsFixed(1)} km Away',
+            fontSize: 11.5,
+            fontWeight: FontWeight.w600,
+            color: _primary,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Chat button — local `chat` asset on a white, 8-radius box with a light
+  /// grey icon tint.
+  Widget _chatButton(VoidCallback onTap) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          width: 38,
+          height: 38,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: AppColors.greyE5),
+          ),
+          child: LocalAssets(
+            imagePath: AppIconAssets.chat,
+            height: 18,
+            width: 18,
+            boxFix: BoxFit.contain,
+            imgColor: AppColors.greyAF,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _viewProfileButton(VoidCallback onTap) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+          decoration: BoxDecoration(
+            color: _primary,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: CustomText(
+            'View Profile',
+            fontSize: 12.5,
+            fontWeight: FontWeight.w800,
+            color: AppColors.white,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Square food image on the LEFT of the card, with the veg/non-veg marker
+  /// overlaid on the top-left corner (matches the reference design).
+  Widget _foodImage(String? imageUrl, String foodType) {
+    const double size = 96;
     return ClipRRect(
       borderRadius: BorderRadius.circular(14),
       child: SizedBox(
         width: size,
         height: size,
-        child: imageUrl != null
-            ? CachedNetworkImage(
-                imageUrl: imageUrl,
-                fit: BoxFit.cover,
-                placeholder: (_, __) =>
-                    Container(color: AppColors.greyE5.withValues(alpha: 0.5)),
-                errorWidget: (_, __, ___) => _placeholderIcon(),
-              )
-            : _placeholderIcon(),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            imageUrl != null
+                ? CachedNetworkImage(
+                    imageUrl: imageUrl,
+                    fit: BoxFit.cover,
+                    placeholder: (_, __) => Container(
+                        color: AppColors.greyE5.withValues(alpha: 0.5)),
+                    errorWidget: (_, __, ___) => _placeholderIcon(),
+                  )
+                : _placeholderIcon(),
+            if (foodType.isNotEmpty)
+              Positioned(
+                top: 6,
+                left: 6,
+                child: Container(
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: _vegMarker(_vegColor(foodType), size: 12),
+                ),
+              ),
+          ],
+        ),
       ),
-    );
-  }
-
-  /// Inline store line (logo + name, optional delivery glyph). Non-interactive
-  /// on its own — the whole card handles the tap to open the store.
-  Widget _storeLine(String name, String? logoUrl, bool homeDelivery) {
-    const green = Color(0xFF1E7D34);
-    return Row(
-      children: [
-        _kitchenAvatar(logoUrl, size: 18),
-        const SizedBox(width: 6),
-        Flexible(
-          child: CustomText(
-            name,
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            color: _primaryDeep,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-        if (homeDelivery) ...[
-          const SizedBox(width: 6),
-          const Icon(Icons.delivery_dining_rounded, size: 15, color: green),
-        ],
-      ],
-    );
-  }
-
-  /// Single-line address row with a location pin, shown under the food meta
-  /// when the nested kitchen profile carries an address.
-  Widget _addressRow(String address) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(Icons.location_on_rounded,
-            size: 13, color: AppColors.secondaryTextColor),
-        const SizedBox(width: 3),
-        Expanded(
-          child: CustomText(
-            address,
-            fontSize: 11.5,
-            fontWeight: FontWeight.w500,
-            color: AppColors.secondaryTextColor,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ),
-      ],
     );
   }
 
@@ -739,7 +867,9 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          child: Padding(padding: const EdgeInsets.all(12), child: child),
+          // Padding is applied per-section now (top is white, the footer is a
+          // full-width lighter-grey band), so the shell adds none itself.
+          child: child,
         ),
       ),
     );
@@ -811,25 +941,6 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
           decoration: BoxDecoration(color: color, shape: BoxShape.circle),
         ),
       ),
-    );
-  }
-
-  /// Veg / non-veg marker with its label — the first line of the food card.
-  Widget _vegLabel(String foodType) {
-    final color = _vegColor(foodType);
-    final isVeg = !foodType.toLowerCase().contains('non');
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _vegMarker(color, size: 14),
-        const SizedBox(width: 5),
-        CustomText(
-          isVeg ? 'Veg' : 'Non-Veg',
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          color: color,
-        ),
-      ],
     );
   }
 

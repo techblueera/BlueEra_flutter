@@ -15,7 +15,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/core/services/google_image_search_service.dart';
+import 'package:BlueEra/core/services/serper_image_search_service.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/features/me/product/model/generate_ai_product_content.dart';
 import 'package:BlueEra/features/me/product/model/product_catalog_response.dart';
@@ -378,7 +378,8 @@ class ProductController extends GetxController{
     }
   }
 
-  /// Searches Google for product images using the entered name/brand.
+  /// Searches the web (via Serper.dev) for product images using the entered
+  /// name/brand.
   ///
   /// Returns the image URLs to show in a picker. Returns an empty list (and
   /// surfaces a snackbar) when the name is empty, the search isn't configured,
@@ -392,22 +393,22 @@ class ProductController extends GetxController{
 
     AppLoader.show(message: 'Searching images...');
     try {
-      // Keys are served at runtime (not bundled in .env) — fetch & cache once.
+      // Key is served at runtime (not bundled in .env) — fetch & cache once.
       await ensureImageSearchConfigured();
-      if (!GoogleImageSearchService.isConfigured) {
+      if (!SerperImageSearchService.isConfigured) {
         commonSnackBar(message: 'Image search is not set up yet');
         return const [];
       }
 
-      final results = await GoogleImageSearchService.search(query);
+      final results = await SerperImageSearchService.search(query);
       if (results.isEmpty) {
         commonSnackBar(message: 'No images found. Try a different name');
       }
       return results;
-    } on GoogleImageQuotaException catch (e) {
+    } on SerperImageQuotaException catch (e) {
       commonSnackBar(message: e.message);
       return const [];
-    } on GoogleImageUnavailableException catch (e) {
+    } on SerperImageUnavailableException catch (e) {
       commonSnackBar(message: e.message);
       return const [];
     } finally {
@@ -415,28 +416,26 @@ class ProductController extends GetxController{
     }
   }
 
-  /// Fetches the Google Custom Search keys (api key + cx) from
-  /// `product-service/api/products/fe/ai-keys` and hands them to
-  /// [GoogleImageSearchService]. No-ops once already configured. Safe to call
+  /// Fetches the Serper API key from
+  /// `product-service/api/products/fe/ai-keys` and hands it to
+  /// [SerperImageSearchService]. No-ops once already configured. Safe to call
   /// on screen open to prefetch so the first image search is instant.
   Future<void> ensureImageSearchConfigured() async {
-    if (GoogleImageSearchService.isConfigured) return;
+    if (SerperImageSearchService.isConfigured) return;
     try {
       final response = await ProductRepo().getProductAiKeysRepo();
       if (response.isSuccess) {
-        // Keys come at the top level of the body (no `data` wrapper), so read
-        // the raw response rather than ResponseModel.data (which digs into
-        // `['data']`).
+        // The ai-keys endpoint carries the Serper key in `apiKey` (the legacy
+        // field name kept from the Google integration); `cxKey` is unused for
+        // Serper. A future `serperKey` field, if added, takes precedence.
         final body = response.response?.data;
         if (body is Map) {
-          GoogleImageSearchService.configure(
-            apiKey: body['apiKey']?.toString(),
-            cx: body['cxKey']?.toString(),
-          );
+          final serperKey = (body['serperKey'] ?? body['apiKey'])?.toString();
+          SerperImageSearchService.configure(apiKey: serperKey);
         }
       }
     } catch (e) {
-      debugPrint('searchGoogleImagesStep1 ai-keys fetch error: $e');
+      debugPrint('ensureImageSearchConfigured ai-keys fetch error: $e');
     }
   }
 
@@ -449,7 +448,7 @@ class ProductController extends GetxController{
     }
     AppLoader.show(message: 'Adding image...');
     try {
-      final path = await GoogleImageSearchService.downloadToTemp(url);
+      final path = await SerperImageSearchService.downloadToTemp(url);
       if (path == null) {
         commonSnackBar(message: 'Could not add image. Try another');
         return;

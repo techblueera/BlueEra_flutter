@@ -65,6 +65,15 @@ class ConsumerTiffinItem {
   final double? lng;
   final String? createdAt;
 
+  /// Store/kitchen details — sourced from the nested `earnProfile` object.
+  final String storeName;
+  final String address;
+  final String? storeLogo;
+  final bool homeDelivery;
+  final bool monthlyPayment;
+  final double? storeLat;
+  final double? storeLng;
+
   const ConsumerTiffinItem({
     this.id,
     this.userId,
@@ -82,6 +91,13 @@ class ConsumerTiffinItem {
     this.lat,
     this.lng,
     this.createdAt,
+    this.storeName = '',
+    this.address = '',
+    this.storeLogo,
+    this.homeDelivery = false,
+    this.monthlyPayment = false,
+    this.storeLat,
+    this.storeLng,
   });
 
   String? get imageUrl => images.isNotEmpty ? images.first : null;
@@ -89,12 +105,17 @@ class ConsumerTiffinItem {
   factory ConsumerTiffinItem.fromJson(Map<String, dynamic> json) {
     final coords = json['location']?['coordinates'] as List?;
 
+    // Store/kitchen info lives in the nested `earnProfile` object.
+    final earnProfile = json['earnProfile'] as Map<String, dynamic>?;
+    final storeCoords = earnProfile?['location']?['coordinates'] as List?;
+    final serviceName = earnProfile?['serviceName'] ?? json['centerName'] ?? '';
+
     return ConsumerTiffinItem(
       id: json['_id'],
       userId: json['userId'],
       mealType: MealType.fromKey(json['tiffinKey']),
       tiffinName: json['tiffinName'] ?? '',
-      centerName: json['centerName'] ?? '',
+      centerName: serviceName,
       mrpPrice: '${json['mrp'] ?? ''}',
       sellingPrice: '${json['sellingPrice'] ?? ''}',
       foodType: json['foodType'] ?? '',
@@ -110,6 +131,17 @@ class ConsumerTiffinItem {
           ? (coords[1] as num?)?.toDouble()
           : null,
       createdAt: json['createdAt'],
+      storeName: serviceName,
+      address: earnProfile?['address'] ?? '',
+      storeLogo: earnProfile?['serviceLogo'],
+      homeDelivery: earnProfile?['homeDelivery'] ?? false,
+      monthlyPayment: earnProfile?['monthlyPayment'] ?? false,
+      storeLng: storeCoords != null && storeCoords.isNotEmpty
+          ? (storeCoords[0] as num?)?.toDouble()
+          : null,
+      storeLat: storeCoords != null && storeCoords.length > 1
+          ? (storeCoords[1] as num?)?.toDouble()
+          : null,
     );
   }
 }
