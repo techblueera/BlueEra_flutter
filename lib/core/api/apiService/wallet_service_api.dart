@@ -21,6 +21,11 @@ mixin WalletServiceApi {
 
   final String walletPendingReferral = 'wallet-service/wallet/pending-referral';
 
+  /// UPI details of a given user — used to render a pay-to QR for the
+  /// conversation person. e.g. `wallet-service/wallet/user/<id>/upi`.
+  String getUserUpiApi(String userId) =>
+      'wallet-service/wallet/user/$userId/upi';
+
   // final String  joinAsBdm= 'wallet-service/bdm';
   final String getBdm = 'wallet-service/bdm';
   // final String  saveNewReferralCode= 'wallet-service/referral/save';
