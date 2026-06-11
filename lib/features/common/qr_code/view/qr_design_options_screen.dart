@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/features/Emergency/view/emergency_profileScreen.dart';
 import 'package:BlueEra/features/common/qr_code/model/qr_design_model.dart';
 import 'package:BlueEra/features/common/qr_code/view/qr_design_card_widget.dart';
 import 'package:BlueEra/features/common/qr_code/view/qr_fullscreen_view.dart';
@@ -20,22 +21,40 @@ class QrDesignOptionsScreen extends StatelessWidget {
     final designs = QrDesignModel.designs;
     return Scaffold(
       backgroundColor: AppColors.white,
-appBar: CommonBackAppBar(title: AppStrings.qrStickerDesigns.tr,),
-      // appBar: AppBar(
-      //   backgroundColor: AppColors.white,
-      //   elevation: 0,
-      //   leading: IconButton(
-      //     icon: const Icon(Icons.arrow_back, color: AppColors.black),
-      //     onPressed: () => Navigator.pop(context),
-      //   ),
-      //   title: const CustomText(
-      //     'QR Sticker Designs',
-      //     fontSize: 16,
-      //     fontWeight: FontWeight.w600,
-      //     color: AppColors.mainTextColor,
-      //   ),
-      //   centerTitle: false,
-      // ),
+      appBar: CommonBackAppBar(
+        title: AppStrings.qrStickerDesigns.tr,
+        buildCustomActionWidget: () => Padding(
+          padding: const EdgeInsets.only(right: 12),
+          child: InkWell(
+            onTap: () => Get.to(() => EmergencyProfileScreen1()),
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.primaryColor),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.person_outline,
+                      size: 16, color: AppColors.primaryColor),
+                  const SizedBox(width: 6),
+                  Text(
+                    AppStrings.viewProfile.tr,
+                    style: TextStyle(
+                      color: AppColors.primaryColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: GridView.builder(

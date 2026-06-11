@@ -261,7 +261,13 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   void _getAllCategories() {
-    Get.find<AuthController>().loadCategoriesCacheFirstThenRefresh();
+    // Defer to after the first frame: the cache-first path applies cached
+    // categories synchronously via `assignAll` on observable lists, which
+    // would notify an `Obx` mid-build and throw "markNeedsBuild called
+    // during build" if invoked straight from initState.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Get.find<AuthController>().loadCategoriesCacheFirstThenRefresh();
+    });
   }
 
   void _initializeControllers() {

@@ -2483,38 +2483,37 @@ final List<PropertyTileData> propertyDiscoverTiles = [
 final List<OnboardingCategoryModel> stayItemsCategories = [
   OnboardingCategoryModel(
       name: 'Hotel Stay',
-      slugId: "HOTELS_RESORT",
-      // slugId: HOTELS_RESORT,
+      slugId: "HOTELS_RESORTS",
       icon: AppImageAssets.hotelStay,
       colorCode: Color(0xFFEBF5FF),
       subtitle: "Premium Rooms",
       accountType: AppConstants.business),
   OnboardingCategoryModel(
       name: 'Economic Stay',
-      slugId: ECONOMIC_STAYS,
+      slugId: "ECONOMIC_STAY",
       icon: AppImageAssets.economyStay,
       colorCode: Color(0xFFE6FAF3),
       subtitle: "Cozy & local",
       accountType: AppConstants.business),
   OnboardingCategoryModel(
       name: 'Hostels & PG',
-      slugId: HOSTELS_PAYING_GUEST,
+      slugId: "HOSTELS_PG",
       icon: AppImageAssets.hostelsAndPG,
       colorCode: Color(0xFFFFE8E8),
       subtitle: "Long term stay",
       accountType: AppConstants.business),
   OnboardingCategoryModel(
       name: 'Functions & Vacation',
-      slugId: FUNCTIONS_VACATION,
+      slugId: "FUNCTIONS_VACATION",
       icon: AppImageAssets.functionsVacation,
       colorCode: Color(0xFFFFF2E3),
       subtitle: "Function Hall",
       accountType: AppConstants.business),
-  // OnboardingCategoryModel(
-  //     name: 'Alternative Stays',
-  //     slugId: ALTERNATIVE_STAYS,
-  //     icon: AppImageAssets.alternative_stays,
-  //     accountType: AppConstants.business),
+  OnboardingCategoryModel(
+      name: 'Alternative Stays',
+      slugId: "ALTERNATE_STAY",
+      icon: AppImageAssets.hostelsAndPG,
+      accountType: AppConstants.business),
   // OnboardingCategoryModel(
   //     name: 'Celebration\n& Event',
   //     slugId: CELEBRATION_EVENT_SERVICES,
