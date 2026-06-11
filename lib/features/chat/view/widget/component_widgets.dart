@@ -361,19 +361,16 @@ Widget  ChatListTile({
     }
   }
 
-  // Inquiry tab: a conversation created within the last 4 hours is flagged
-  // "New" below the time, regardless of unread / last-message state.
+  // Inquiry tab: a conversation whose last message arrived within the last
+  // 4 hours is flagged "New" below the time, regardless of unread state.
   bool isRecentlyCreated = false;
-  if (showNewIfRecentlyCreated) {
-    final createdRaw = chat?.createdAt ?? '';
-    if (createdRaw.isNotEmpty) {
-      try {
-        final createdAt = DateTime.parse(createdRaw).toLocal();
-        final diff = DateTime.now().difference(createdAt);
-        isRecentlyCreated = !diff.isNegative && diff.inMinutes < 240;
-      } catch (_) {
-        isRecentlyCreated = false;
-      }
+  if (showNewIfRecentlyCreated && updatedAt.isNotEmpty) {
+    try {
+      final lastMessageAt = DateTime.parse(updatedAt).toLocal();
+      final diff = DateTime.now().difference(lastMessageAt);
+      isRecentlyCreated = !diff.isNegative && diff.inMinutes < 240;
+    } catch (_) {
+      isRecentlyCreated = false;
     }
   }
 
