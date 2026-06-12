@@ -32,26 +32,37 @@ import '../widget/component_widgets.dart';
 ///             so existing call-sites/switches stay valid)
 enum ChatBucket { chats, me, skip }
 
-/// Single source of truth for routing one chat row — the Dart twin of the
-/// backend `bucketChat` spec. Uses ONLY `is_order` + `business_owner_user_id`
-/// (the legacy `i_own_business` flag is intentionally ignored). Works the same
-/// for REST list rows and socket `chatListItem`s since both carry these fields.
+/// Single source of truth for routing one order/enquiry row — the Dart twin
+/// of the backend routing spec. An order/enquiry I *receive* (someone ordered
+/// from / enquired to my business) goes to my "Me" section; one I *placed*
+/// (I'm the buyer/enquirer) goes to the Chat/Inquiry tab.
 ///
-///   is_order && business_owner_user_id == me  → [ChatBucket.me]    (receiver/seller)
-///   is_order && business_owner_user_id != me  → [ChatBucket.chats]  (orderer/buyer)
-///   !is_order                                 → [ChatBucket.chats]  (normal chat)
+///   is_order && I am the receiver  → [ChatBucket.me]    (seller/provider)
+///   is_order && I am the sender    → [ChatBucket.chats]  (buyer/enquirer)
+///   !is_order                      → [ChatBucket.chats]  (normal chat)
+///
+/// "Am I the receiver?" is decided from two signals, in priority order:
+///   1. `business_owner_user_id == me` — authoritative, but the chat-list
+///      socket rows leave it `null` (it only arrives on socket *update*
+///      payloads), so it's used only when actually present.
+///   2. `i_own_business == true` — the flag the chat-list rows DO carry:
+///      `true` = someone ordered from / enquired to MY business (receiver),
+///      `false` = I placed the order/enquiry (sender). This is the field the
+///      real payload routes on.
 ///
 /// `me` is the logged-in user's id (`userId`).
 ChatBucket bucketChat(ChatList chat) {
   final isOrder = chat.isOrder == true;
-  final iAmOwner =
-      (chat.businessOwnerUserId ?? '').toString() == userId.toString();
+  if (!isOrder) return ChatBucket.chats;
 
-  // Order / discover chat that I own → my "Me" section (I'm the receiver).
-  if (isOrder && iAmOwner) return ChatBucket.me;
+  final ownerId = (chat.businessOwnerUserId ?? '').toString();
+  final bool iAmReceiver = ownerId.isNotEmpty
+      ? ownerId == userId.toString()
+      : chat.iOwnBusiness == true;
 
-  // Buyer side of an order, or any non-order chat → the Chat tab.
-  return ChatBucket.chats;
+  // I received this order/enquiry → my "Me" section; otherwise I placed it →
+  // the Chat/Inquiry tab.
+  return iAmReceiver ? ChatBucket.me : ChatBucket.chats;
 }
 
 /// Date-range presets surfaced as filter chips above the list when

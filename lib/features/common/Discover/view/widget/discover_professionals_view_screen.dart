@@ -4,9 +4,9 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart';
+import 'package:BlueEra/features/common/Discover/widget/profession_enquiry_sheet.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/portfolio_project_card_widget.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -37,7 +37,7 @@ class DiscoverProfessionalsViewScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
-      bottomNavigationBar: _buildBottomBar(data),
+      bottomNavigationBar: _buildBottomBar(context, data),
       body: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
@@ -67,7 +67,7 @@ class DiscoverProfessionalsViewScreen extends StatelessWidget {
     );
   }
 
-  Widget? _buildBottomBar(ProfessionalConsData data) {
+  Widget? _buildBottomBar(BuildContext context, ProfessionalConsData data) {
     if (data.userId == userId) return null;
     return Container(
       // Soft shadow that throws upward — visually lifts the bar off the
@@ -108,7 +108,7 @@ class DiscoverProfessionalsViewScreen extends StatelessWidget {
             SizedBox(width: SizeConfig.paddingS),
             Expanded(
               child: PositiveCustomBtn(
-                onTap: () => commonSnackBar(message: AppStrings.comingSoonLabel.tr),
+                onTap: () => ProfessionEnquirySheet.open(context, data),
                 title: AppStrings.bookInquiryLabel.tr,
               ),
             ),
