@@ -836,75 +836,11 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
     return [
       ProfileStatisticsScreen(userId: userId),
       SizedBox(height: SizeConfig.size12),
-      _earnStatPlaceholder('Home Made Food Statistics'),
-      _earnStatPlaceholder('Home Made Products Statistics'),
-      _earnStatPlaceholder('Home Service Statistics'),
+      // Only renders stat cards for the earn profiles the user actually has
+      // (nothing if none). Shared with the other individual dashboards.
+      const EarnStatSections(),
       SizedBox(height: SizeConfig.size16),
     ];
-  }
-
-  // Per-earn-type statistics shown below the main chat-click analytics.
-  // Labeled placeholders for now — real data will be wired in later.
-  Widget _earnStatPlaceholder(String title) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFEDEFF4), width: 1),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x14001120),
-              blurRadius: 14,
-              offset: Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 4,
-                  height: 18,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        AppColors.primaryColor,
-                        AppColors.primaryColor.withValues(alpha: 0.45),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                ),
-                SizedBox(width: SizeConfig.size10),
-                Expanded(
-                  child: CustomText(
-                    title,
-                    fontSize: SizeConfig.large,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.mainTextColor,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: SizeConfig.size10),
-            CustomText(
-              'Statistics coming soon',
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: AppColors.secondaryTextColor,
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   // OVERVIEW TAB â€” refined editorial identity dossier:

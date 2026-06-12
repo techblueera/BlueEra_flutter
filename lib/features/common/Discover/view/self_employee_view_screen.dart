@@ -2,11 +2,9 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
+import 'package:BlueEra/features/common/Discover/widget/service_enquiry_sheet.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_rating_row.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -842,7 +840,7 @@ class SelfEmployeeViewScreen extends StatelessWidget {
             SizedBox(width: SizeConfig.size12),
             Expanded(
               child: GestureDetector(
-                onTap: _onRequestBooking,
+                onTap: () => ServiceEnquirySheet.open(context, service),
                 child: Container(
                   height: 52,
                   decoration: BoxDecoration(
@@ -859,11 +857,11 @@ class SelfEmployeeViewScreen extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.event_available_rounded,
+                      const Icon(Icons.chat_outlined,
                           color: Colors.white, size: 19),
                       SizedBox(width: SizeConfig.size8),
                       CustomText(
-                        AppStrings.requestBooking.tr,
+                        AppStrings.enquire.tr,
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
@@ -876,28 +874,6 @@ class SelfEmployeeViewScreen extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-
-  void _onRequestBooking() {
-    final targetUserId = service.id ?? '';
-    if (targetUserId.isEmpty) return;
-    final chatViewController = getOrPut(() => ChatViewController());
-
-    final senderName = userNameGlobal.trim();
-    final providerName = (service.name ?? '').trim();
-    final introBody = providerName.isEmpty
-        ? AppStrings.inquiryGenericBody.tr
-        : AppStrings.inquiryProviderBodyFmt.trParams({'provider': providerName});
-    final prefill = senderName.isEmpty
-        ? AppStrings.inquiryHiPrefixFmt.trParams({'body': introBody})
-        : AppStrings.inquiryHiWithSenderFmt
-            .trParams({'sender': senderName, 'body': introBody});
-
-    chatViewController.checkChatConnectionAndOpenChat(
-      userId: targetUserId,
-      prefilledMessage: prefill,
-      route: AppConstants.route_discover,
     );
   }
 

@@ -11,6 +11,7 @@ import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/discover_professionals_view_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
 import 'package:BlueEra/features/common/Discover/widget/filter_capsule.dart';
+import 'package:BlueEra/features/common/Discover/widget/profession_enquiry_sheet.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
@@ -32,22 +33,22 @@ import 'package:get/get.dart';
 
 import '../../../chat/auth/controller/chat_view_controller.dart';
 
-class AllProfessionConsultantScreen extends StatefulWidget {
+class ProfessionConsultantDiscoverScreen extends StatefulWidget {
   final List<ProfessionTypeData> professionalConsultantCategories;
   final ProfessionTypeData? selectedProfessionConsultantData;
 
-  const AllProfessionConsultantScreen(
+  const ProfessionConsultantDiscoverScreen(
       {super.key,
       required this.professionalConsultantCategories,
       this.selectedProfessionConsultantData});
 
   @override
-  State<AllProfessionConsultantScreen> createState() =>
-      _AllProfessionConsultantScreenState();
+  State<ProfessionConsultantDiscoverScreen> createState() =>
+      _ProfessionConsultantDiscoverScreenState();
 }
 
-class _AllProfessionConsultantScreenState
-    extends State<AllProfessionConsultantScreen> {
+class _ProfessionConsultantDiscoverScreenState
+    extends State<ProfessionConsultantDiscoverScreen> {
   final controller = getOrPut(() => DiscoverController());
   late List<ProfessionTypeData> _professionalConsultantCategories;
 
@@ -603,15 +604,7 @@ class _AllProfessionConsultantScreenState
                   child: _filledButton(
                     label: AppStrings.enquire.tr,
                     icon: Icons.chat_outlined,
-                    onTap: () {
-                      final targetUserId = service.userId ?? '';
-                      if (targetUserId.isEmpty) return;
-                      final chatViewController =
-                          getOrPut(() => ChatViewController());
-                      chatViewController.checkChatConnectionAndOpenChat(
-                          userId: targetUserId,
-                          route: AppConstants.route_discover);
-                    },
+                    onTap: () => ProfessionEnquirySheet.open(context, service),
                   ),
                 ),
               ],

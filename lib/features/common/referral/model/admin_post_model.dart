@@ -140,6 +140,9 @@ class AdminPost {
     if (p.contains('instagram')) return 'instagram';
     if (p.contains('youtube')) return 'youtube';
     if (p.contains('twitter') || p == 'x') return 'twitter';
+    if (p.contains('facebook') || p == 'fb' || p.contains('fb-')) {
+      return 'facebook';
+    }
 
     final url = externalLink.toLowerCase();
     if (url.contains('instagram.com')) return 'instagram';
@@ -147,10 +150,35 @@ class AdminPost {
       return 'youtube';
     }
     if (url.contains('twitter.com') || url.contains('x.com')) return 'twitter';
+    if (url.contains('facebook.com') ||
+        url.contains('fb.watch') ||
+        url.contains('fb.com')) {
+      return 'facebook';
+    }
 
     final t = title.toLowerCase().trim();
-    if (t == 'instagram' || t == 'youtube' || t == 'twitter') return t;
+    if (t == 'instagram' || t == 'youtube' || t == 'twitter' || t == 'facebook') {
+      return t;
+    }
     return 'unknown';
+  }
+
+  /// Standard display name for the post's platform — one of Instagram /
+  /// YouTube / Twitter / Facebook (empty when unknown). Used for the
+  /// provider chip instead of the raw scraper `extractor` name.
+  String get platformLabel {
+    switch (platformKey) {
+      case 'instagram':
+        return 'Instagram';
+      case 'youtube':
+        return 'YouTube';
+      case 'twitter':
+        return 'Twitter';
+      case 'facebook':
+        return 'Facebook';
+      default:
+        return '';
+    }
   }
 
   bool get isInstagram => platformKey == 'instagram';

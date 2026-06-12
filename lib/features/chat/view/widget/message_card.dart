@@ -45,6 +45,7 @@ import '../business_chat/widgets/rider_request_msg_card.dart';
 import '../business_chat/widgets/self_pickup_msg_card.dart';
 import '../business_chat/widgets/food_self_pickup_msg_card.dart';
 import '../business_chat/widgets/product_self_pickup_msg_card.dart';
+import '../business_chat/widgets/service_enquiry_msg_card.dart';
 import '../media_view_page/medias_slider_page.dart';
 import '../symbol_view/symbol_view_images.dart';
 import '../orders_chat/widget/order_common_widgets.dart';
@@ -296,6 +297,9 @@ class _MessageCardState extends State<MessageCard>
 
       case "product_selfpickup":
         messageWidget = ProductSelfPickupMsgCard(message: widget.message, time: time, conversationId: widget.conversationId);
+
+      case "service_enquiry":
+        messageWidget = ServiceEnquiryMsgCard(message: widget.message, time: time, conversationId: widget.conversationId);
 
       case "rider_association":
         messageWidget = RiderAssociationMsgCard(message: widget.message, time: time);

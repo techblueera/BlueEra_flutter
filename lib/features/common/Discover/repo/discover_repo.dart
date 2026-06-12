@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:dio/dio.dart';
 
 class DiscoverRepo extends BaseService {
 
@@ -14,6 +17,94 @@ class DiscoverRepo extends BaseService {
       onSuccess: (data) {},
     );
     return response;
+  }
+
+  /// POST: Raise a service enquiry from the Discover self-profession card.
+  /// The backend creates the enquiry, the in-chat `service_enquiry` card and
+  /// emits `newServiceEnquiryReceived` to the provider.
+  ///
+  /// No photos → plain JSON body. With photos → `multipart/form-data` where the
+  /// whole [params] body is sent as a JSON string under `payload` and the
+  /// images are sent under `photos`. See docs/backend/service-enquiry-api.md.
+  Future<ResponseModel> sendServiceEnquiry({
+    required Map<String, dynamic> params,
+    List<String> photoPaths = const [],
+  }) async {
+    if (photoPaths.isEmpty) {
+      return ApiBaseHelper().postHTTP(
+        serviceEnquiries,
+        params: params,
+        showProgress: false,
+        onError: (error) {},
+        onSuccess: (data) {},
+      );
+    }
+
+    final files = <MultipartFile>[];
+    for (final path in photoPaths) {
+      files.add(await MultipartFile.fromFile(path));
+    }
+    final multipartParams = <String, dynamic>{
+      'payload': jsonEncode(params),
+      'photos': files,
+    };
+    return ApiBaseHelper().postHTTP(
+      serviceEnquiries,
+      params: multipartParams,
+      isMultipart: true,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+  }
+
+  /// PUT: Provider accepts / declines a service enquiry. Emits
+  /// `serviceEnquiryStatusUpdated` to both parties.
+  Future<ResponseModel> updateServiceEnquiryStatus({
+    required String enquiryId,
+    required Map<String, dynamic> params,
+  }) async {
+    final response = await ApiBaseHelper().putHTTP(
+      serviceEnquiryStatus(enquiryId),
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  /// GET the predefined option catalog for a profession [professionCategory]
+  /// (e.g. ELECTRICIAN), filtered by the `segment` query param (serviceTypes /
+  /// typesOfWork / workCategories / servicesOffered …). Backs the dynamic,
+  /// profession-based options in the enquiry sheet. Endpoint inherited from
+  /// `EarnServiceApi` via [BaseService].
+  Future<ResponseModel> fetchPredefinedCategory({
+    required String professionCategory,
+    required Map<String, dynamic> queryParams,
+  }) async {
+    return ApiBaseHelper().getHTTP(
+      predefinedServiceCategory(professionCategory),
+      params: queryParams,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+  }
+
+  /// GET the predefined "services offered" catalog for a professional
+  /// consultant's profession [professionSlug] (e.g. ADVOCATE). Backs the
+  /// dynamic options in the consultant enquiry sheet. Endpoint inherited from
+  /// `EarnServiceApi` via [BaseService].
+  Future<ResponseModel> fetchPredefinedProfession({
+    required String professionSlug,
+  }) async {
+    return ApiBaseHelper().getHTTP(
+      predefinedProfessionServices(professionSlug),
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
   }
 
   /// GET RENTAL SERVICES

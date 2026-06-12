@@ -1173,6 +1173,50 @@ class ChatViewController extends GetxController {
         }
       });
 
+      // Service Enquiry: New enquiry received (provider side)
+      chatSocket.listenEvent(ChatEmitEvents.newServiceEnquiryReceived, (data) {
+        if (data['message'] != null) {
+          final message = Messages.fromJson(data['message']);
+          final conversationId = message.conversationId ?? '';
+          if (conversationId.isNotEmpty &&
+              conversationId == userOpenConversationId.value) {
+            final currentMessages =
+                getListOfMessageResponse.value.data as List<Messages>? ?? [];
+            final exists = currentMessages.any((m) => m.id == message.id);
+            if (!exists) {
+              currentMessages.add(message);
+              getListOfMessageResponse.value =
+                  ApiResponse.complete(currentMessages);
+              scrollDown();
+            }
+          }
+          // Refresh chat list
+          emitEvent(ChatEmitEvents.ChatList, {
+            ApiKeys.page: 1,
+            ApiKeys.per_page_message: 30,
+          });
+        }
+      });
+
+      // Service Enquiry: provider accepted / declined → update the card status
+      chatSocket.listenEvent(ChatEmitEvents.serviceEnquiryStatusUpdated,
+          (data) {
+        final messageId = data['messageId']?.toString() ?? '';
+        final status = data['status']?.toString();
+        if (messageId.isNotEmpty && status != null) {
+          final currentMessages =
+              getListOfMessageResponse.value.data as List<Messages>? ?? [];
+          for (var msg in currentMessages) {
+            if (msg.id == messageId) {
+              msg.metadata?.serviceEnquiry?.status = status;
+              break;
+            }
+          }
+          getListOfMessageResponse.value =
+              ApiResponse.complete(currentMessages);
+        }
+      });
+
       // Food Self-Pickup: New order received (restaurant side)
       chatSocket.listenEvent(ChatEmitEvents.newFoodPickupOrderReceived, (data) {
         if (data['message'] != null) {

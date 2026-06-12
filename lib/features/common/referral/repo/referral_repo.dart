@@ -107,6 +107,7 @@ class ReferralRepoNew extends BaseService {
       'instagram' => 'Instagram reel preview',
       'youtube' => 'YouTube video preview',
       'twitter' => 'Twitter post preview',
+      'facebook' => 'Facebook post preview',
       _ => 'Link preview',
     };
     return {
@@ -131,6 +132,12 @@ class ReferralRepoNew extends BaseService {
     }
     if (lower.contains('twitter.com') || lower.contains('x.com')) {
       return 'twitter';
+    }
+    if (lower.contains('facebook.com') ||
+        lower.contains('fb.watch') ||
+        lower.contains('fb.com') ||
+        lower.contains('fb.me')) {
+      return 'facebook';
     }
     return 'unknown';
   }

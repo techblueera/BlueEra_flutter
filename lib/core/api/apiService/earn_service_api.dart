@@ -29,6 +29,15 @@ mixin EarnServiceApi {
   final String professionalsPortfolio = 'earn-service/professional/portfolio';
   final String professionalSearch = 'earn-service/professional/search';
 
+  /// Service enquiry raised from the Discover self-profession "Enquire" form.
+  /// `POST` creates the enquiry AND (server-side) the in-chat enquiry card +
+  /// `newServiceEnquiryReceived` socket emit. The status `PUT` lets the
+  /// provider accept / decline, emitting `serviceEnquiryStatusUpdated`.
+  /// See docs/backend/service-enquiry-api.md for the full contract.
+  final String serviceEnquiries = 'earn-service/service-enquiries';
+  String serviceEnquiryStatus(String enquiryId) =>
+      'earn-service/service-enquiries/$enquiryId/status';
+
   String predefinedServiceCategory(String category) =>
       'earn-service/predefined/$category';
   String predefinedProfessionServices(String professionSlugId) =>

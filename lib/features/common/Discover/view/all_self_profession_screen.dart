@@ -5,7 +5,6 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
-import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_map_widgets.dart';
 import 'package:BlueEra/features/common/Discover/widget/filter_capsule.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
@@ -13,6 +12,7 @@ import 'package:BlueEra/features/common/Discover/model/service_model_response.da
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
 import 'package:BlueEra/features/common/Discover/view/self_employee_view_screen.dart';
+import 'package:BlueEra/features/common/Discover/widget/service_enquiry_sheet.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
@@ -514,7 +514,6 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
         (service.bio ?? '').split('\n').firstWhere((s) => s.trim().isNotEmpty,
             orElse: () => '');
 
-    final rating = service.rating ?? 0;
     final priceData = service.priceData;
     final isRange = priceData?.effectiveIsRange ?? false;
     final priceMin = priceData?.effectiveMin ?? 0;
@@ -529,9 +528,11 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
         .toList();
     final profileImage = service.profileImage ?? '';
 
-    // ─── Spec-strip value formatters ──────────────────────────────
-    final ratingStr =
-        rating == 0 ? '—' : rating.toDouble().toStringAsFixed(1);
+    // Combined service list shown on the card — "Services Offered" merged
+    // with "Types of Work" (deduped, case-insensitive).
+    final services = _combinedServices(service);
+
+    // ─── 3-column spec-strip values (PRICE / NEAR / HOURS) — rating dropped.
     final priceStr = priceMin == 0
         ? '—'
         : (isRange
@@ -540,8 +541,8 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
     final distStr = distance == 0
         ? '—'
         : '${distance < 10 ? distance.toStringAsFixed(1) : distance.toStringAsFixed(0)} km';
-    // Compact hours: "9:00 AM - 6:00 PM" → "9AM-6PM" so the narrow
-    // spec column doesn't FittedBox down to an unreadable size.
+    // Compact hours: "9:00 AM - 6:00 PM" → "9AM-6PM" so the narrow spec
+    // column doesn't FittedBox down to an unreadable size.
     String compactTime(String t) {
       final m = RegExp(r'(\d+):(\d+)\s*(AM|PM)', caseSensitive: false)
           .firstMatch(t.trim());
@@ -675,18 +676,27 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
               ),
             ],
 
+            // ─── Services strip (offered + types of work) ─────────
+            if (services.isNotEmpty) ...[
+              SizedBox(height: SizeConfig.size12),
+              Container(height: 1, color: const Color(0xFFEDEFF4)),
+              SizedBox(height: SizeConfig.size12),
+              _servicesStrip(services),
+            ],
+
+            // ─── 3-column spec strip (PRICE / NEAR / HOURS) ───────
             SizedBox(height: SizeConfig.size12),
             Container(height: 1, color: const Color(0xFFEDEFF4)),
             SizedBox(height: SizeConfig.size12),
-
-            // ─── 4-column spec strip ──────────────────────────────
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(child: _specColumn(AppStrings.specLabelRating.tr, ratingStr)),
-                Expanded(child: _specColumn(AppStrings.specLabelPrice.tr, priceStr)),
-                Expanded(child: _specColumn(AppStrings.specLabelNear.tr, distStr)),
-                Expanded(child: _specColumn(AppStrings.specLabelHours.tr, hoursStr)),
+                Expanded(
+                    child: _specColumn(AppStrings.specLabelPrice.tr, priceStr)),
+                Expanded(
+                    child: _specColumn(AppStrings.specLabelNear.tr, distStr)),
+                Expanded(
+                    child: _specColumn(AppStrings.specLabelHours.tr, hoursStr)),
               ],
             ),
 
@@ -775,15 +785,7 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
                   child: _filledButton(
                     label: AppStrings.enquire.tr,
                     icon: Icons.chat_outlined,
-                    onTap: () {
-                      final targetUserId = service.id ?? '';
-                      if (targetUserId.isEmpty) return;
-                      final chatViewController =
-                          getOrPut(() => ChatViewController());
-                      chatViewController.checkChatConnectionAndOpenChat(
-                          userId: targetUserId,
-                          route: AppConstants.route_discover);
-                    },
+                    onTap: () => ServiceEnquirySheet.open(context, service),
                   ),
                 ),
               ],
@@ -794,9 +796,61 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
     );
   }
 
-  /// Single column of the 4-column spec strip — label on top in
-  /// uppercase eyebrow style, value below in body weight with tabular
-  /// figures so digit columns align across rows.
+  /// Merges the provider's `serviceOffered` + `typesOfWork` into a single
+  /// deduped (case-insensitive) list, preserving first-seen order. This is
+  /// the "services which we are having" set rendered on the card.
+  List<String> _combinedServices(ServiceData service) {
+    final out = <String>[];
+    final seen = <String>{};
+    final raw = <String>[
+      ...?service.service?.serviceOffered,
+      ...?service.service?.typesOfWork,
+    ];
+    for (final item in raw) {
+      final t = item.trim();
+      if (t.isEmpty) continue;
+      final key = t.toLowerCase();
+      if (seen.add(key)) out.add(t);
+    }
+    return out;
+  }
+
+  /// Wrapped chip strip of the provider's services. Shows up to [maxChips]
+  /// chips; any overflow collapses into a muted "+N more" pill so providers
+  /// with long service lists don't blow out the card height.
+  Widget _servicesStrip(List<String> services) {
+    const maxChips = 6;
+    final visible = services.take(maxChips).toList();
+    final overflow = services.length - visible.length;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          'SERVICES',
+          style: TextStyle(
+            fontFamily: AppConstants.OpenSans,
+            fontSize: 9,
+            fontWeight: FontWeight.w800,
+            color: AppColors.secondaryTextColor,
+            letterSpacing: 1.2,
+          ),
+        ),
+        SizedBox(height: SizeConfig.size8),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: [
+            ...visible.map((s) => _serviceChip(s)),
+            if (overflow > 0) _serviceChip('+$overflow more', muted: true),
+          ],
+        ),
+      ],
+    );
+  }
+
+  /// Single column of the spec strip — uppercase eyebrow label on top, value
+  /// below in body weight with tabular figures so digit columns align.
   Widget _specColumn(String label, String value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -829,6 +883,28 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _serviceChip(String label, {bool muted = false}) {
+    final fg = muted ? AppColors.secondaryTextColor : AppColors.primaryColor;
+    final bg = muted
+        ? AppColors.greyE5.withValues(alpha: 0.4)
+        : AppColors.primaryColor.withValues(alpha: 0.08);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: fg.withValues(alpha: 0.25), width: 0.8),
+      ),
+      child: CustomText(
+        label,
+        fontSize: 11,
+        fontWeight: FontWeight.w700,
+        color: fg,
+        maxLines: 1,
+      ),
     );
   }
 

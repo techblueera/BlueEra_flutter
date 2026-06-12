@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:BlueEra/features/chat/auth/model/payment_success_model.dart';
 import 'package:BlueEra/features/chat/auth/model/replyParantMessage.dart';
 import 'package:BlueEra/features/chat/auth/model/self_pickup_order_model.dart';
+import 'package:BlueEra/features/chat/auth/model/service_enquiry_model.dart';
 import 'package:BlueEra/features/chat/auth/model/symbol_details_model.dart';
 
 import 'Conversation.dart';
@@ -423,6 +424,10 @@ class MessageMetadata {
   String? riderAssociationId;
   RiderAssociationMetadata? riderAssociation;
 
+  // Service enquiry (Discover self-profession → chat)
+  String? serviceEnquiryId;
+  ServiceEnquiryModel? serviceEnquiry;
+
   // Call-related fields
   String? callId;
   String? roomId;
@@ -471,6 +476,8 @@ class MessageMetadata {
     this.homeMadeFoodPickupOrder,
     this.riderAssociationId,
     this.riderAssociation,
+    this.serviceEnquiryId,
+    this.serviceEnquiry,
     this.callId,
     this.roomId,
     this.otherUserId,
@@ -529,6 +536,20 @@ class MessageMetadata {
           ? RiderAssociationMetadata.fromJson(
               Map<String, dynamic>.from(json['riderAssociation']))
           : null,
+      serviceEnquiryId:
+          (json['serviceEnquiryId'] ?? json['service_enquiry_id'])?.toString(),
+      // Prefer a dedicated `serviceEnquiry` object; fall back to the generic
+      // `order` envelope when an enquiry id is present (mirrors the pickup
+      // metadata pattern above).
+      serviceEnquiry: json['serviceEnquiry'] is Map
+          ? ServiceEnquiryModel.fromJson(
+              Map<String, dynamic>.from(json['serviceEnquiry']))
+          : ((json['order'] is Map &&
+                  (json['serviceEnquiryId'] ?? json['service_enquiry_id']) !=
+                      null)
+              ? ServiceEnquiryModel.fromJson(
+                  Map<String, dynamic>.from(json['order']))
+              : null),
       callId: json['call_id']?.toString(),
       roomId: json['room_id']?.toString(),
       otherUserId: json['other_user_id']?.toString(),
@@ -573,6 +594,8 @@ class MessageMetadata {
       'homeMadeFoodPickupOrderId': homeMadeFoodPickupOrderId,
       'riderAssociationId': riderAssociationId,
       'riderAssociation': riderAssociation?.toJson(),
+      'serviceEnquiryId': serviceEnquiryId,
+      'serviceEnquiry': serviceEnquiry?.toJson(),
       'call_id': callId,
       'room_id': roomId,
       'other_user_id': otherUserId,

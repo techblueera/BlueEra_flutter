@@ -35,7 +35,10 @@ class AppBackgroundController extends GetxController {
   final Rx<Color> bgColor = const Color(0xFFE0E6F3).obs;
 
   /// Home-page banner image asset, or '' for none (→ show [bgColor]).
-  final RxString bannerAsset = ''.obs;
+  /// Defaults to the "Blue" banner on a fresh install (before the user has
+  /// saved any choice). Once the user picks "None"/a colour, '' is persisted
+  /// and respected — see [_load].
+  final RxString bannerAsset = AppImageAssets.chatBgBlueShade.obs;
 
   static const String _boxName = 'app_background_settings';
 
@@ -68,11 +71,12 @@ class AppBackgroundController extends GetxController {
     [Color(0xFF4A3B33), 'Mocha'],
   ];
 
-  /// Banner images offered on the picker. `{asset, name}`.
+  /// Banner images offered on the picker. `{asset, name}`. The first entry is
+  /// the app's default banner.
   static const List<Map<String, String>> bannerOptions = [
+    {'asset': AppImageAssets.chatBgBlueShade, 'name': 'Blue'},
     {'asset': AppImageAssets.chatDefaultBg, 'name': 'Default'},
     {'asset': AppImageAssets.chatBgLight, 'name': 'Light'},
-    {'asset': AppImageAssets.chatBgBlueShade, 'name': 'Blue'},
     // {'asset': AppImageAssets.shopBanner, 'name': 'Shop'},
   ];
 
@@ -113,7 +117,13 @@ class AppBackgroundController extends GetxController {
       bgColor.value = Color(colorValue);
       AppColors.appBackgroundColor = bgColor.value;
     }
-    bannerAsset.value = box.get('bannerAsset', defaultValue: '') ?? '';
+    // Only override the default banner when a choice was actually saved before
+    // (key present). A fresh install keeps the default "Blue" banner; an
+    // explicit "None"/colour persists '' and is honoured here.
+    final savedBanner = box.get('bannerAsset');
+    if (savedBanner != null) {
+      bannerAsset.value = savedBanner;
+    }
   }
 
   /// Mirror the persisted colour into [AppColors.appBackgroundColor] BEFORE the
@@ -148,10 +158,10 @@ class AppBackgroundController extends GetxController {
     _save();
   }
 
-  /// Reset BOTH settings to defaults: default colour + no banner.
+  /// Reset to the app default background: the "Blue" banner.
   void resetAll() {
     bgColor.value = AppColors.appBackgroundColorDefault;
-    bannerAsset.value = '';
+    bannerAsset.value = AppImageAssets.chatBgBlueShade;
     AppColors.appBackgroundColor = AppColors.appBackgroundColorDefault;
     _save();
   }
@@ -164,7 +174,7 @@ class AppBackgroundController extends GetxController {
     if (Get.isRegistered<AppBackgroundController>()) {
       final c = Get.find<AppBackgroundController>();
       c.bgColor.value = AppColors.appBackgroundColorDefault;
-      c.bannerAsset.value = '';
+      c.bannerAsset.value = AppImageAssets.chatBgBlueShade;
     }
   }
 }

@@ -514,25 +514,36 @@ class _EarnStoreCardsState extends State<EarnStoreCards> {
 }
 
 /// Per-earn-type statistics shown below the main analytics in each
-/// individual-profile dashboard's Statics tab. Labeled placeholders for
-/// now — real data will be wired in later.
+/// individual-profile dashboard's Statics tab. Only the earn flavours the
+/// user has actually created a profile for are shown (keyed off
+/// [ViewPersonalDetailsController.earnProfileType]); if they have none, this
+/// renders nothing. Labeled placeholders for now — real data wired later.
 class EarnStatSections extends StatelessWidget {
   const EarnStatSections({super.key});
 
-  static const List<String> _titles = [
-    'Home Made Food Statistics',
-    'Home Made Products Statistics',
-    'Home Service Statistics',
+  // (earnProfileType key, display title) per earn flavour, in display order.
+  static const List<({String type, String title})> _sections = [
+    (type: 'homeMadeFood', title: 'Home Made Food Statistics'),
+    (type: 'homeMadeProduct', title: 'Home Made Products Statistics'),
+    (type: 'homeService', title: 'Home Service Statistics'),
   ];
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        for (final title in _titles) _section(title),
-      ],
-    );
+    if (!Get.isRegistered<ViewPersonalDetailsController>()) {
+      return const SizedBox.shrink();
+    }
+    final viewCtrl = Get.find<ViewPersonalDetailsController>();
+    return Obx(() {
+      final ownedTypes = viewCtrl.earnProfileType;
+      final visible =
+          _sections.where((s) => ownedTypes.contains(s.type)).toList();
+      if (visible.isEmpty) return const SizedBox.shrink();
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [for (final s in visible) _section(s.title)],
+      );
+    });
   }
 
   Widget _section(String title) {

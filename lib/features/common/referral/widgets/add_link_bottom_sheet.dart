@@ -53,6 +53,12 @@ class _AddSocialLinkSheetState extends State<AddSocialLinkSheet> {
       brand: Color(0xFF1DA1F2),
     ),
     _PlatformOption(
+      key: 'facebook',
+      label: 'Facebook',
+      icon: Icons.facebook,
+      brand: Color(0xFF1877F2),
+    ),
+    _PlatformOption(
       key: 'youtube',
       label: 'YouTube',
       icon: Icons.play_circle_fill,
@@ -293,15 +299,25 @@ class _AddSocialLinkSheetState extends State<AddSocialLinkSheet> {
     );
   }
 
-  // ── Three platform chips ───────────────────────────────────────────
+  // ── Platform chips ─────────────────────────────────────────────────
+  // Lays out as a single row when the chips fit comfortably (≥76px each),
+  // otherwise wraps to a 2-up grid so labels don't get squeezed.
   Widget _platformRow() {
-    return Row(
-      children: [
-        for (int i = 0; i < _platforms.length; i++) ...[
-          if (i > 0) const SizedBox(width: 10),
-          Expanded(child: _platformChip(_platforms[i])),
-        ],
-      ],
+    const spacing = 10.0;
+    return LayoutBuilder(
+      builder: (context, c) {
+        final fourUp = (c.maxWidth - spacing * (_platforms.length - 1)) /
+            _platforms.length;
+        final itemWidth = fourUp >= 76 ? fourUp : (c.maxWidth - spacing) / 2;
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: [
+            for (final opt in _platforms)
+              SizedBox(width: itemWidth, child: _platformChip(opt)),
+          ],
+        );
+      },
     );
   }
 
@@ -446,8 +462,8 @@ class _AddSocialLinkSheetState extends State<AddSocialLinkSheet> {
           'like a ${_labelFor(_detectedFromUrl)} link. Switch the '
           'platform above or paste a ${_labelFor(_platform)} URL.';
     } else if (_hasUnsupportedUrl) {
-      message = "We can only add Instagram, X / Twitter or YouTube "
-          "links right now.";
+      message = "We can only add Instagram, X / Twitter, Facebook or "
+          "YouTube links right now.";
     }
     return AnimatedSize(
       duration: const Duration(milliseconds: 180),

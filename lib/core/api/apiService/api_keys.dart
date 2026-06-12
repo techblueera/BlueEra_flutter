@@ -567,6 +567,10 @@ class ApiKeys {
   static const is_default = 'is_default';
   static const zip_code = 'zip_code';
   static const note = 'note';
+  // Service-enquiry (Discover self-profession → chat) request keys.
+  static const services = 'services';
+  static const provider_id = 'provider_id';
+  static const enquiry_id = 'enquiry_id';
   static const house_no = 'house_no';
   static const street = 'street';
   static const key = 'key';

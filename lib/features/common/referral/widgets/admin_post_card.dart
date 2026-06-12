@@ -266,6 +266,7 @@ class _AdminPostCardState extends State<AdminPostCard> {
                       ],
                     ),
                   ),
+                _statsRow(),
                 if (widget.post.displayDescription.isNotEmpty)
                   CustomText(
                     widget.post.displayDescription,
@@ -304,6 +305,56 @@ class _AdminPostCardState extends State<AdminPostCard> {
         ],
       ),
     );
+  }
+
+  /// Engagement metrics row — views / likes / comments from the scraped
+  /// metadata. Each metric is shown only when present and > 0 (a platform that
+  /// doesn't expose a count leaves it null/0, so we skip it). Hidden entirely
+  /// when no metric is available.
+  Widget _statsRow() {
+    final m = widget.post.metadata;
+    if (m == null) return const SizedBox.shrink();
+
+    final chips = <Widget>[];
+    void add(IconData icon, num? count) {
+      final c = count?.toInt() ?? 0;
+      if (c <= 0) return;
+      if (chips.isNotEmpty) chips.add(const SizedBox(width: 14));
+      chips.add(Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: AppColors.secondaryTextColor),
+          const SizedBox(width: 4),
+          CustomText(
+            _formatCount(c),
+            fontSize: SizeConfig.small,
+            fontWeight: FontWeight.w600,
+            color: AppColors.secondaryTextColor,
+          ),
+        ],
+      ));
+    }
+
+    add(Icons.visibility_outlined, m.viewCount);
+    add(Icons.favorite_border_rounded, m.likeCount);
+    add(Icons.mode_comment_outlined, m.commentCount);
+
+    if (chips.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(children: chips),
+    );
+  }
+
+  /// Compact count formatting: 1394 → "1.4K", 88303 → "88.3K", 2_000_000 → "2M".
+  String _formatCount(int n) {
+    if (n >= 1000000) {
+      return '${(n / 1000000).toStringAsFixed(n % 1000000 == 0 ? 0 : 1)}M';
+    }
+    if (n >= 1000) {
+      return '${(n / 1000).toStringAsFixed(n % 1000 == 0 ? 0 : 1)}K';
+    }
+    return '$n';
   }
 
   /// Fallback card for an Instagram post the backend couldn't resolve
@@ -712,13 +763,13 @@ class _AdminPostCardState extends State<AdminPostCard> {
   /// Twitter). Adopts the platform's brand color so the user spots
   /// where the content originated at a glance.
   Widget _buildExternalProviderChip() {
-    final extractor = widget.post.metadata?.extractor ?? '';
-    final provider = widget.post.metadata?.provider ?? '';
-    final label =
-        extractor.isNotEmpty ? extractor : provider.toUpperCase();
+    // Always show the standard platform name (Instagram / YouTube / Twitter /
+    // Facebook) — never the raw scraper extractor (microlink / fb-og / …).
+    final platform = widget.post.platformKey;
+    final label = widget.post.platformLabel;
     if (label.isEmpty) return const SizedBox.shrink();
-    final brand = _brandColorFor(provider.isEmpty ? extractor : provider);
-    final icon = _brandIconFor(provider.isEmpty ? extractor : provider);
+    final brand = _brandColorFor(platform);
+    final icon = _brandIconFor(platform);
     return Positioned(
       top: 10,
       left: 10,
@@ -765,6 +816,8 @@ class _AdminPostCardState extends State<AdminPostCard> {
       case 'twitter':
       case 'x':
         return const Color(0xFF1DA1F2);
+      case 'facebook':
+        return const Color(0xFF1877F2);
       default:
         return AppColors.primaryColor;
     }
@@ -779,6 +832,8 @@ class _AdminPostCardState extends State<AdminPostCard> {
       case 'twitter':
       case 'x':
         return Icons.alternate_email;
+      case 'facebook':
+        return Icons.facebook;
       default:
         return Icons.link_rounded;
     }

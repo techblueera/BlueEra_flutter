@@ -35,7 +35,7 @@ import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
 import 'package:BlueEra/features/me/food/controller/restaurant_controller.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/features/me/food/view/admin/discount_food_products_screen.dart';
-import 'package:BlueEra/features/me/food/view/admin/food_category_screen.dart';
+import 'package:BlueEra/features/me/food/view/admin/food_category_menu_screen.dart';
 import 'package:BlueEra/features/me/food/view/admin/my_food_product_screen.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_variant_sheet.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';

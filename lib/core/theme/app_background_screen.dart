@@ -65,7 +65,7 @@ class _AppBackgroundScreenState extends State<AppBackgroundScreen> {
     ctrl.resetAll();
     setState(() {
       _bgColor = ctrl.bgColor.value;
-      _bannerAsset = '';
+      _bannerAsset = ctrl.bannerAsset.value;
     });
     commonSnackBar(message: 'Background reset to default');
   }
