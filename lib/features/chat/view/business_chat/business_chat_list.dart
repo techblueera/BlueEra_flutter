@@ -187,11 +187,19 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
                   AppStrings.reminderTab.tr,
                   AppStrings.flaggedTab.tr,
                   AppStrings.recordsTab.tr,
+                  AppStrings.historyTab.tr,
                 ],
                 selectedIndex:
                 chatViewController.businessChatTabSelectedIndex.value,
                 onTabSelected: (index, val) {
                   chatViewController.businessChatTabSelectedIndex.value = index;
+                  // History is a separate server bucket — fetch it on demand
+                  // when the tab is opened (the Business tab's own emit never
+                  // carries `history` rows). Index 5 == History.
+                  if (index == 5) {
+                    chatViewController.emitEvent(ChatEmitEvents.ChatList,
+                        {ApiKeys.type: AppConstants.history_Chat_Type});
+                  }
                 },
                 labelBuilder: (value) => value,
               ),
@@ -208,7 +216,11 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
                     BusinessFlagChatList(
                         isInParentScroll: widget.isInParentScroll)
                   else if (chatViewController.businessChatTabSelectedIndex.value == 4)
-                      _buildArchiveTab(),
+                      _buildArchiveTab()
+                    else if (chatViewController.businessChatTabSelectedIndex.value == 5)
+                        widget.isInParentScroll
+                            ? _historyChatListWidget(theme)
+                            : Expanded(child: _historyChatListWidget(theme)),
             ],
           ),
         );
@@ -241,6 +253,138 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
           ),
         );
       }
+    });
+  }
+
+  /// The Business "History" sub-tab. Renders the `type:"history"` bucket —
+  /// business conversations the server has aged out (12h after creation) —
+  /// using the same [ChatListTile] rows as the main list. No AI/Records top
+  /// rows: History is a flat archive of past order/business threads. Tapping a
+  /// row opens the conversation normally (replies stay in History; the backend
+  /// never resurfaces it into Business).
+  Widget _historyChatListWidget(ThemeData theme) {
+    return Obx(() {
+      final status = chatViewController.historyChatListResponse.value.status;
+
+      List<ChatList?> chatList =
+          chatViewController.getHistoryChatListModel?.value.chatList ?? [];
+
+      final archivedIds = pinArchiveController.businessArchivedIds;
+      final lockedIds = lockController.businessLockedIds;
+
+      // Mirror the Business list: drop archived + PIN-locked conversations.
+      chatList = chatList
+          .where((chat) =>
+              chat == null || !archivedIds.contains(chat.conversationId))
+          .where((chat) =>
+              chat == null || !lockedIds.contains(chat.conversationId))
+          .toList();
+
+      // Same buyer/seller bucketing as the Business tab so the consumer view
+      // shows the buyer-side history and the provider view (excludeSenderId)
+      // shows the seller's "me" history. Pickers see everything.
+      final isPicker =
+          (widget.isForwardUI ?? false) || (widget.isNewGroupUI ?? false);
+      if (widget.onlySenderId != null) {
+        chatList = chatList
+            .where((c) =>
+                (c?.lastMessageSenderId ?? '') == widget.onlySenderId)
+            .toList();
+      } else if (widget.excludeSenderId != null) {
+        chatList = chatList
+            .where((c) => c != null && bucketChat(c) == ChatBucket.me)
+            .toList();
+      } else if (!isPicker) {
+        chatList = chatList
+            .where((c) => c != null && bucketChat(c) == ChatBucket.chats)
+            .toList();
+      }
+
+      // First open with nothing cached yet → spinner while the socket replies.
+      if (chatList.isEmpty && status != Status.COMPLETE) {
+        return const Padding(
+          padding: EdgeInsets.symmetric(vertical: 38),
+          child: Center(
+            child: SizedBox(
+              height: 22,
+              width: 22,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          ),
+        );
+      }
+
+      if (chatList.isEmpty) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 38),
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.history, size: 48, color: Colors.grey.shade400),
+                const SizedBox(height: 10),
+                CustomText(
+                  AppStrings.noHistoryChats.tr,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey.shade600,
+                ),
+              ],
+            ),
+          ),
+        );
+      }
+
+      final listBody = Container(
+        margin: EdgeInsets.only(bottom: SizeConfig.size70),
+        child: ListView.builder(
+          itemCount: chatList.length,
+          shrinkWrap: true,
+          padding: EdgeInsets.zero,
+          physics: widget.isInParentScroll
+              ? const NeverScrollableScrollPhysics()
+              : null,
+          itemBuilder: (context, index) {
+            final chat = chatList[index];
+            final isInSelectionMode =
+                chatViewController.isChatListSelectionMode.value;
+            final isChatSelected = chatViewController.selectedConversationIds
+                .contains(chat?.conversationId ?? '');
+
+            return ChatListTile(
+              isFromGroupSelect: widget.isNewGroupUI,
+              onLongPress: () {
+                if (!isInSelectionMode) {
+                  chatViewController.isChatListSelectionMode.value = true;
+                  chatViewController.toggleChatListSelection(chat);
+                  setState(() {});
+                }
+              },
+              isChatListSelected: isChatSelected,
+              onSelect: () => setState(() {}),
+              type: chat?.sender?.accountType ?? AppConstants.business,
+              index: index,
+              chatViewController: chatViewController,
+              chat: chat,
+              theme: theme,
+              isForwardUI: widget.isForwardUI,
+              showFlagBadge: true,
+              context: context,
+            );
+          },
+        ),
+      );
+
+      // Pull-to-refresh re-fetches the history bucket. Skip the RefreshIndicator
+      // in parent-scroll mode (the outer scrollable owns the gesture there).
+      if (widget.isInParentScroll) return listBody;
+      return RefreshIndicator(
+        onRefresh: () async {
+          chatViewController.emitEvent(ChatEmitEvents.ChatList,
+              {ApiKeys.type: AppConstants.history_Chat_Type});
+        },
+        child: listBody,
+      );
     });
   }
 

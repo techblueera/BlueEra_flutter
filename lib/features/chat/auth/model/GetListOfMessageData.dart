@@ -446,6 +446,14 @@ class MessageMetadata {
   bool? isPaymentScreenshot;
   String? approvalStatus;
 
+  // Payment-QR transaction fields (message_type 'payment_transaction'). A
+  // transaction is recorded against a registered Payment QR; the screenshot
+  // lives in [Messages.url]. See payment-qr-integration-guide.md.
+  String? paymentQrId;
+  String? payeeUserId;
+  String? utrNo;
+  num? amount;
+
   MessageMetadata({
     this.foodId,
     this.productId,
@@ -487,6 +495,10 @@ class MessageMetadata {
     this.symbol,
     this.isPaymentScreenshot,
     this.approvalStatus,
+    this.paymentQrId,
+    this.payeeUserId,
+    this.utrNo,
+    this.amount,
   });
 
   factory MessageMetadata.fromJson(Map<String, dynamic> json) {
@@ -564,6 +576,12 @@ class MessageMetadata {
           ? json['is_payment_screenshot']
           : null,
       approvalStatus: json['approval_status']?.toString(),
+      paymentQrId: json['payment_qr_id']?.toString(),
+      payeeUserId: json['payee_user_id']?.toString(),
+      utrNo: json['utr_no']?.toString(),
+      amount: json['amount'] is num
+          ? json['amount']
+          : num.tryParse('${json['amount']}'),
     );
   }
 
@@ -605,6 +623,10 @@ class MessageMetadata {
       'symbol': symbol?.toJson(),
       'is_payment_screenshot': isPaymentScreenshot,
       'approval_status': approvalStatus,
+      'payment_qr_id': paymentQrId,
+      'payee_user_id': payeeUserId,
+      'utr_no': utrNo,
+      'amount': amount,
     };
   }
 }

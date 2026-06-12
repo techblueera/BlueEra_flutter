@@ -154,6 +154,9 @@ class AppConstants {
 
   static const String personal_Chat_Type = 'personal';
   static const String business_Chat_Type = 'business';
+  // Business conversations auto-move here 12h after creation (server sweep).
+  // Same payload shape as `business`; fetched as its own ChatList bucket.
+  static const String history_Chat_Type = 'history';
 
   /// Values for the optional `route` send-message param. The backend maps
   /// `contact -> personal` and `discover -> business` conversation lanes,
@@ -1118,6 +1121,10 @@ class ChatEmitEvents {
   // when the provider accepts / declines.
   static const newServiceEnquiryReceived = "newServiceEnquiryReceived";
   static const serviceEnquiryStatusUpdated = "serviceEnquiryStatusUpdated";
+
+  // Emitted to a Payment QR's owner when a payer records a payment against it.
+  // See payment-qr-integration-guide.md §Realtime.
+  static const paymentReceived = "payment:received";
 
   // Signaling events
   static const isTyping = "isTyping";

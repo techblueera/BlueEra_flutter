@@ -1,27 +1,24 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/features/chat/view/business_chat/widgets/business_chat_foods.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/business_chat_products.dart';
-import 'package:BlueEra/features/chat/view/business_chat/widgets/business_chat_services.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_constant.dart';
-import '../../../../core/constants/app_enum.dart';
 import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../core/services/notification_utils.dart';
 import '../../../common/bottomNavigationBar/controller/bottom_bar_controller.dart';
-import '../../../common/feed/view/feed_screen.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
 import '../widget/chat_input_box.dart';
 import '../widget/component_widgets.dart';
 import '../widget/message_card.dart';
+import 'widgets/payment_qr_bottom_sheet.dart';
 
 class BusinessChatScreenUpdated extends StatefulWidget {
   BusinessChatScreenUpdated(
@@ -205,7 +202,10 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated>
                           height: 42,
                           padding: EdgeInsets.only(left: 10, right: 6),
                           margin: EdgeInsets.only(top: 8, bottom: 4),
-                          child: ListView.separated(
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: ListView.separated(
                             scrollDirection: Axis.horizontal,
                             itemCount: chatViewController.tabs.length,
                             separatorBuilder: (_, __) => SizedBox(width: 6),
@@ -218,6 +218,34 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated>
                                   onTap: () {
                                     chatViewController
                                         .changeBusinessInsideTab(index);
+                                    // History is a separate server bucket —
+                                    // fetch it; the History tab then opens that
+                                    // aged-out conversation as a chat thread.
+                                    if (index ==
+                                        chatViewController.historyTabIndex) {
+                                      chatViewController.emitEvent(
+                                          ChatEmitEvents.ChatList, {
+                                        ApiKeys.type:
+                                            AppConstants.history_Chat_Type
+                                      });
+                                    } else if (index == 0) {
+                                      // Back to the live Chat tab: restore the
+                                      // discover send-route and reload the
+                                      // current conversation (History may have
+                                      // swapped the open conversation to an
+                                      // aged-out thread).
+                                      chatViewController.activeRoute =
+                                          AppConstants.route_discover;
+                                      final id = widget.conversationId ?? '';
+                                      if (id.isNotEmpty &&
+                                          chatViewController.userOpenConversationId
+                                                  .value !=
+                                              id) {
+                                        chatViewController.listenUserNewMessages(
+                                            userId: widget.userId ?? '',
+                                            conversationId: id);
+                                      }
+                                    }
                                   },
                                   child: Container(
                                     margin: EdgeInsets.symmetric(
@@ -250,6 +278,9 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated>
                                 );
                               });
                             },
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         if (chatViewController.businessTabIndexSelected == 0)
@@ -324,7 +355,7 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated>
                                   ),
                           )
                         else if (chatViewController.businessTabIndexSelected ==
-                            1)
+                            chatViewController.productsTabIndex)
                           Expanded(child:
                               LayoutBuilder(builder: (context, constraints) {
                             return ConstrainedBox(
@@ -341,65 +372,31 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated>
                                 ));
                           }))
                         else if (chatViewController.businessTabIndexSelected ==
-                            2)
-                          Expanded(child:
-                              LayoutBuilder(builder: (context, constraints) {
-                            return ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  minHeight: constraints.maxHeight,
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.only(
-                                      left: 8, right: 8, bottom: 0),
-                                  child: BusinessChatFoods(
-                                    businessId: widget.userId ?? '',
-                                    conversationId: '${widget.conversationId}',
-                                  ),
-                                ));
-                          }))
-                        else if (chatViewController.businessTabIndexSelected ==
-                            3)
-                          Expanded(child:
-                              LayoutBuilder(builder: (context, constraints) {
-                            return ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  minHeight: constraints.maxHeight,
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.only(
-                                      left: 8, right: 8, bottom: 0),
-                                  child: BusinessChatServices(
-                                    businessId: widget.userId ?? '',
-                                  ),
-                                ));
-                          }))
-                        else if (chatViewController.businessTabIndexSelected ==
-                            4)
+                            chatViewController.paymentsTabIndex)
+                          // Pay this business: their QR code, copyable UPI id +
+                          // linked mobile number, Download-QR and Upload-payment-
+                          // screenshot actions (shared with the payment sheet).
                           Expanded(
-                            child:
-                                LayoutBuilder(builder: (context, constraints) {
-                              return ConstrainedBox(
-                                  constraints: BoxConstraints(
-                                    minHeight: constraints.maxHeight,
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(bottom: 0),
-                                    child: FeedScreen(
-                                        key: ValueKey(
-                                            'feedScreen_user_posts_${widget.userId}'),
-                                        postFilterType: PostType.otherPosts,
-                                        isInParentScroll: false,
-                                        bottomPaddingChannel: 20,
-                                        id: widget.userId),
-                                  ));
-                            }),
+                            child: SingleChildScrollView(
+                              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                              child: PaymentQrPanel(
+                                embedded: true,
+                                userId: widget.userId,
+                                conversationId: widget.conversationId,
+                                payeeName: widget.name ?? 'My Business',
+                              ),
+                            ),
                           )
                         else if (chatViewController.businessTabIndexSelected ==
-                            5)
+                            chatViewController.historyTabIndex)
+                          Expanded(
+                              child: _buildHistoryThread(context, messages))
+                        else if (chatViewController.businessTabIndexSelected ==
+                            chatViewController.ourViewTabIndex)
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 38.0),
                             child: Center(
-                              child: CustomText(AppStrings.noReviewsFound),
+                              child: CustomText("Coming Soon"),
                             ),
                           )
                         else
@@ -409,17 +406,23 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated>
                               child: CustomText("Coming Soon"),
                             ),
                           ),
-                        if (chatViewController.businessTabIndexSelected == 0)
+                        // Input bar shows on the live Chat tab and on the
+                        // History tab once its aged-out thread is loaded — so a
+                        // reply lands back in that History conversation.
+                        if (_showChatInput)
                           SizedBox(
                             height: SizeConfig.size6,
                           ),
-                        if (chatViewController.businessTabIndexSelected == 0)
+                        if (_showChatInput)
                           ChatInputBar(
-                            isInitialMessage: widget.isInitialMessage,
+                            isInitialMessage:
+                                _onHistoryThread ? false : widget.isInitialMessage,
                             userId: widget.userId ?? '',
-                            conversationId: widget.conversationId ?? '',
+                            conversationId: _onHistoryThread
+                                ? (_historyConversationId() ?? '')
+                                : (widget.conversationId ?? ''),
                           ),
-                        if (chatViewController.businessTabIndexSelected == 0)
+                        if (_showChatInput)
                           SizedBox(height: SizeConfig.size14)
                         else
                           SizedBox(height: SizeConfig.size6)
@@ -448,6 +451,135 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated>
         );
       }),
     );
+  }
+
+  /// Conversation id of the aged-out (`type:"history"`) thread with *this*
+  /// business. History rows preserve the same participant fields as Business
+  /// rows, so match on the other participant's id / businessId or the seller's
+  /// owner id. Returns the most recent match (the list is already ordered by
+  /// recency), or `null` when there is no history with this business yet.
+  String? _historyConversationId() {
+    final all =
+        chatViewController.getHistoryChatListModel?.value.chatList ?? [];
+    final businessId = widget.userId ?? '';
+    for (final c in all) {
+      if (c == null) continue;
+      if (c.sender?.id == businessId ||
+          c.sender?.businessId == businessId ||
+          c.businessOwnerUserId == businessId) {
+        final id = c.conversationId ?? '';
+        if (id.isNotEmpty) return id;
+      }
+    }
+    return null;
+  }
+
+  /// True when the History tab is selected AND its aged-out conversation has
+  /// been loaded into the shared message Rx (so the thread + input render).
+  bool get _onHistoryThread {
+    if (chatViewController.businessTabIndexSelected.value !=
+        chatViewController.historyTabIndex) {
+      return false;
+    }
+    final histId = _historyConversationId();
+    return histId != null &&
+        histId.isNotEmpty &&
+        chatViewController.userOpenConversationId.value == histId;
+  }
+
+  /// Whether to show the chat input bar — the live Chat tab, or the History
+  /// tab once its thread is loaded.
+  bool get _showChatInput =>
+      chatViewController.businessTabIndexSelected.value == 0 ||
+      _onHistoryThread;
+
+  Widget _historyLoader() => const Center(
+        child: SizedBox(
+          height: 22,
+          width: 22,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+
+  Widget _historyEmpty() => Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.history, size: 48, color: Colors.grey.shade400),
+            const SizedBox(height: 10),
+            CustomText(
+              AppStrings.noHistoryChats.tr,
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey.shade600,
+            ),
+          ],
+        ),
+      );
+
+  /// The "History" sub-tab — shows the aged-out (`type:"history"`) conversation
+  /// with this business directly as a chat thread (not a list). The aged-out
+  /// conversation is made the open conversation so its messages load into the
+  /// shared message Rx, then rendered with [MessageCard] exactly like the live
+  /// Chat tab. Replying (via the input bar) lands back in this History thread.
+  Widget _buildHistoryThread(BuildContext context, List<Messages> messages) {
+    return Obx(() {
+      final status = chatViewController.historyChatListResponse.value.status;
+      final histConvId = _historyConversationId();
+
+      if (histConvId == null || histConvId.isEmpty) {
+        return status != Status.COMPLETE ? _historyLoader() : _historyEmpty();
+      }
+
+      // Swap the open conversation to the history thread so its messages stream
+      // into `getListOfMessageData` (the same source the Chat tab renders).
+      if (chatViewController.userOpenConversationId.value != histConvId) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          if (chatViewController.businessTabIndexSelected.value ==
+                  chatViewController.historyTabIndex &&
+              chatViewController.userOpenConversationId.value != histConvId) {
+            // Reply into the existing thread — no discover/create route.
+            chatViewController.activeRoute = null;
+            chatViewController.listenUserNewMessages(
+                userId: widget.userId ?? '', conversationId: histConvId);
+            // Pull this thread's messages from the server (mirrors the
+            // lifecycle-resume fetch), so the History thread populates even
+            // when nothing is cached locally.
+            chatViewController.emitEvent(ChatEmitEvents.messageReceived, {
+              ApiKeys.conversation_id: histConvId,
+              ApiKeys.page: 1,
+              ApiKeys.is_online_user: chatViewController.userOpenUserId.value,
+              ApiKeys.per_page_message: 30,
+            });
+          }
+        });
+        return _historyLoader();
+      }
+
+      if (messages.isEmpty) return _historyEmpty();
+
+      return ListView.builder(
+        controller: chatViewController.scrollController,
+        reverse: true,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        itemCount: messages.length,
+        itemBuilder: (context, index) {
+          final message = messages[messages.length - 1 - index];
+          return MessageCard(
+            message: message,
+            isInitialMessage: false,
+            conversationId: histConvId,
+            userId: widget.userId,
+            name: widget.name,
+            contactNo: widget.contactNo,
+            profileImage: widget.profileImage,
+            conversationName: widget.name,
+            conversationProfileImage: widget.profileImage,
+          );
+        },
+      );
+    });
   }
 
 }

@@ -81,4 +81,23 @@ mixin ChatServiceApi {
   final String setReminder = 'chat-service/reminders/set-reminder';
   //gst
   final String getGst = 'chat-service/reminders/set-reminder';
+
+  // ── Payment QR & Transactions ────────────────────────────────────────────
+  // See lib/docs/payment-qr-integration-guide.md. A user registers a UPI
+  // payment QR (`paymentQr`); payers record payments against it as
+  // transactions (`paymentQrTransactions`). Both QR image and screenshot use
+  // the existing S3 presigned upload flow (`generateUploadUrls`).
+  final String paymentQr = 'chat-service/payment-qr';
+  final String paymentQrTransactions = 'chat-service/payment-qr/transactions';
+  final String paymentQrTransactionsReceived =
+      'chat-service/payment-qr/transactions/received';
+  String paymentQrById(String id) => 'chat-service/payment-qr/$id';
+  String paymentQrTransactionsForQr(String id) =>
+      'chat-service/payment-qr/$id/transactions';
+
+  // Resolve the QR registered by a given owner so a payer can record a payment
+  // against it. NOTE: not documented in payment-qr-integration-guide.md (which
+  // only lists *your own* QRs) — assumed endpoint, TODO: confirm with backend.
+  String paymentQrByUser(String userId) =>
+      'chat-service/payment-qr/user/$userId';
 }
