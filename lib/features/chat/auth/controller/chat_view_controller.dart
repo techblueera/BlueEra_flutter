@@ -55,6 +55,7 @@ import '../model/getMediaMsgCommentsModel.dart';
 import '../model/group_details_model.dart';
 import '../model/inventory_ask_ai_model.dart';
 import '../repo/chat_view_repo.dart';
+import 'payment_qr_controller.dart';
 import '../socket/ai_socket.dart';
 import '../socket/chat_socket.dart';
 import '../socket/live_location_track_socket.dart';
@@ -63,6 +64,9 @@ class ChatViewController extends GetxController {
   Rx<ApiResponse> chatMessageResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> personalChatListResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> businessChatListResponse = ApiResponse.initial('Initial').obs;
+  // Conversations the server has aged out of `business` into `history` (12h
+  // after creation). Fetched via ChatList { type: "history" }.
+  Rx<ApiResponse> historyChatListResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> groupChatListResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> orderChatListResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getListOfMessageResponse = ApiResponse.initial('Initial').obs;
@@ -264,6 +268,10 @@ class ChatViewController extends GetxController {
   Rx<GetChatListModel>? getPersonalChatListModel = GetChatListModel().obs;
   Rx<GetChatListModel>? getOrderChatListModel = GetChatListModel().obs;
   Rx<GetChatListModel>? getBusinessChatListModel = GetChatListModel().obs;
+  // History bucket — business conversations older than 12h. Same payload
+  // shape as [getBusinessChatListModel]; rendered in the Business "History"
+  // sub-tab.
+  Rx<GetChatListModel>? getHistoryChatListModel = GetChatListModel().obs;
 
   /// Type of the most recent `ChatList` socket emit (`personal` |
   /// `business` | `order` | `group`). Used as a fallback when the server
@@ -420,13 +428,24 @@ class ChatViewController extends GetxController {
   final RxInt selectedDays = 1.obs;
   final List<String> tabs = [
     'Chat',
+    'History',
     'Products',
-    'Foods',
-    'Services',
-    'Post',
-    'Reviews',
-    'Others'
+    'Ourview',
+    'Payments'
   ];
+
+  /// Index of the "Payments" (payments-received) tab in [tabs].
+  int get paymentsTabIndex => tabs.indexOf('Payments');
+
+  /// Index of the "History" tab in [tabs] — aged-out (`type:"history"`)
+  /// business threads with the currently-open business.
+  int get historyTabIndex => tabs.indexOf('History');
+
+  /// Index of the "Products" tab in [tabs].
+  int get productsTabIndex => tabs.indexOf('Products');
+
+  /// Index of the "Ourview" tab in [tabs].
+  int get ourViewTabIndex => tabs.indexOf('Ourview');
 
 
   String productInitialMessage = 'Looking for the right product? Find TVs, refrigerators, washing machines & smartphones. Browse kitchen appliances, home essentials, electronics & gifts. All from trusted sellers near you. Just tell me what you’re looking for, and I’ll take care of the rest.';
@@ -871,6 +890,16 @@ class ChatViewController extends GetxController {
       chatSocket.listenEvent(ChatEmitEvents.messageViewed, (data) {
         getMediaMsgCommentsModel?.value =
             GetMediaMsgCommentsModel.fromJson(data);
+      });
+
+      // Payment QR: a payer recorded a payment against one of my QRs. Route to
+      // the PaymentQrController so the "Payments received" tab refreshes and an
+      // incoming payment card is injected into the open conversation.
+      chatSocket.listenEvent(ChatEmitEvents.paymentReceived, (data) {
+        final controller = Get.isRegistered<PaymentQrController>()
+            ? Get.find<PaymentQrController>()
+            : Get.put(PaymentQrController(), permanent: true);
+        controller.handlePaymentReceived(data);
       });
       chatSocket.listenEvent(ChatEmitEvents.messageReceived, (data) async {
           final parsedData = GetListOfMessageData.fromJson(data);
@@ -1321,6 +1350,23 @@ class ChatViewController extends GetxController {
     businessTabIndexSelected.value = index;
   }
 
+  /// Appends a locally-constructed [message] to the open conversation and
+  /// refreshes the list. Used by features (e.g. Payment QR) that render a chat
+  /// card immediately after a REST/socket action without a round-trip send.
+  /// De-dupes by id so a socket echo of an already-injected row is ignored.
+  void appendLocalMessage(Messages message) {
+    final list = getListOfMessageData;
+    if (list == null) {
+      getListOfMessageResponse.value =
+          ApiResponse.complete(<Messages>[message]);
+    } else {
+      if (message.id != null && list.any((m) => m.id == message.id)) return;
+      list.add(message);
+      getListOfMessageResponse.value = ApiResponse.complete(list);
+    }
+    scrollDown();
+  }
+
   void setReplyMessage(Messages? message) {
     replyMessage?.value = message;
   }
@@ -1361,6 +1407,9 @@ class ChatViewController extends GetxController {
     if (chatListModel.type == AppConstants.business_Chat_Type) {
       getBusinessChatListModel?.value = chatListModel;
       businessChatListResponse.value = ApiResponse.complete(chatListModel);
+    } else if (chatListModel.type == AppConstants.history_Chat_Type) {
+      getHistoryChatListModel?.value = chatListModel;
+      historyChatListResponse.value = ApiResponse.complete(chatListModel);
     } else if (chatListModel.type == AppConstants.personal_Chat_Type) {
       getPersonalChatListModel?.value = chatListModel;
       personalChatListResponse.value = ApiResponse.complete(chatListModel);

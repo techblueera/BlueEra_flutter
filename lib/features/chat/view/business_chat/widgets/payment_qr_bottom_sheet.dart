@@ -4,13 +4,12 @@ import 'dart:ui' as ui;
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/services/chat_media_compression_service.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
-import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/chat/auth/controller/payment_qr_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/upi_payment_controller.dart';
+import 'package:BlueEra/features/chat/auth/model/payment_qr_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -86,6 +85,12 @@ class _PaymentQrSheetState extends State<_PaymentQrSheet>
   final RxBool _isSaving = false.obs;
   final UpiPaymentController _upiController = UpiPaymentController();
 
+  // Payment QR / transaction recording (see payment-qr-integration-guide.md).
+  final PaymentQrController _paymentQrController =
+      getOrPut(() => PaymentQrController());
+  final TextEditingController _utrCtrl = TextEditingController();
+  final TextEditingController _amountCtrl = TextEditingController();
+
   // Drives the blinking copy button.
   late final AnimationController _blinkController;
   late final Animation<double> _blink;
@@ -104,12 +109,22 @@ class _PaymentQrSheetState extends State<_PaymentQrSheet>
     // real payee. Response is logged inside the controller.
     if ((widget.userId ?? '').isNotEmpty) {
       _upiController.fetchUserUpi(widget.userId!);
+      // Resolve the receiver's registered Payment QR id up-front so recording
+      // a transaction is instant. Best-effort — re-resolved on submit if null.
+      _paymentQrController.fetchPayeeQr(widget.userId!);
+    }
+    // Prefill the amount from the caller (e.g. order total); the payer can edit.
+    final initialAmount = num.tryParse(widget.amount);
+    if (initialAmount != null && initialAmount > 0) {
+      _amountCtrl.text = widget.amount;
     }
   }
 
   @override
   void dispose() {
     _blinkController.dispose();
+    _utrCtrl.dispose();
+    _amountCtrl.dispose();
     super.dispose();
   }
 
@@ -246,9 +261,28 @@ class _PaymentQrSheetState extends State<_PaymentQrSheet>
                   ],
                 );
               }),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
-              // Download / Share actions
+              // ── Record payment (guide: POST /payment-qr/transactions) ──────
+              // After paying via their UPI app, the payer enters the UTR/ref
+              // number + amount, then uploads the screenshot.
+              _paymentField(
+                controller: _utrCtrl,
+                hint: 'UTR / Reference number',
+                keyboardType: TextInputType.text,
+                icon: Icons.confirmation_number_outlined,
+              ),
+              const SizedBox(height: 10),
+              _paymentField(
+                controller: _amountCtrl,
+                hint: 'Amount paid (₹)',
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                icon: Icons.currency_rupee_rounded,
+              ),
+              const SizedBox(height: 20),
+
+              // Download QR / Record payment actions
               Row(
                 children: [
                   Expanded(
@@ -262,18 +296,56 @@ class _PaymentQrSheetState extends State<_PaymentQrSheet>
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: _actionButton(
-                      icon: Icons.upload_file_rounded,
-                      label: 'Upload Screenshot',
-                      isBusy: false,
-                      filled: true,
-                      onTap: _uploadPaymentScreenshot,
-                    ),
+                    child: Obx(() => _actionButton(
+                          icon: Icons.upload_file_rounded,
+                          label: 'Record Payment',
+                          isBusy: _paymentQrController.isRecording.value ||
+                              _paymentQrController.isLoadingPartnerQr.value,
+                          filled: true,
+                          onTap: _recordPayment,
+                        )),
                   ),
                 ],
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  /// A bordered text field used for the UTR and amount inputs.
+  Widget _paymentField({
+    required TextEditingController controller,
+    required String hint,
+    required TextInputType keyboardType,
+    required IconData icon,
+  }) {
+    return TextField(
+      controller: controller,
+      keyboardType: keyboardType,
+      style: TextStyle(
+        fontSize: SizeConfig.size14,
+        fontWeight: FontWeight.w600,
+        color: AppColors.mainTextColor,
+      ),
+      decoration: InputDecoration(
+        hintText: hint,
+        prefixIcon: Icon(icon, size: 20, color: AppColors.primaryColor),
+        isDense: true,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: AppColors.greyE5),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: AppColors.greyE5),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.primaryColor),
         ),
       ),
     );
@@ -508,65 +580,69 @@ class _PaymentQrSheetState extends State<_PaymentQrSheet>
     }
   }
 
-  /// Lets the user choose Camera or Gallery for the payment screenshot, then
-  /// sends the picked image as a message into the current conversation.
-  Future<void> _uploadPaymentScreenshot() async {
+  /// Records a payment per the guide (POST /payment-qr/transactions): validates
+  /// UTR + amount, resolves the receiver's payment_qr_id, then lets the payer
+  /// pick a screenshot which is uploaded (S3 presigned) and submitted.
+  Future<void> _recordPayment() async {
+    final utr = _utrCtrl.text.trim();
+    final amount = num.tryParse(_amountCtrl.text.trim()) ?? 0;
+
+    if (utr.isEmpty) {
+      commonSnackBar(message: 'Enter the UTR / reference number');
+      return;
+    }
+    if (amount <= 0) {
+      commonSnackBar(message: 'Enter a valid amount');
+      return;
+    }
     if ((widget.conversationId ?? '').isEmpty) {
-      commonSnackBar(message: 'Unable to send screenshot');
+      commonSnackBar(message: 'Unable to record payment');
       return;
     }
 
+    // Resolve the receiver's registered Payment QR id (cached on open).
+    PaymentQr? qr = _paymentQrController.partnerQr.value;
+    qr ??= await _paymentQrController.fetchPayeeQr(widget.userId ?? '');
+    final qrId = qr?.id;
+    if (qrId == null || qrId.isEmpty) {
+      commonSnackBar(
+          message: 'Receiver has not set up a Payment QR yet');
+      return;
+    }
+
+    if (!mounted) return;
     PhotoPickerService.showSourceChooserDialog(
       context,
       'Upload Payment Screenshot',
       onCamera: () {
         Navigator.pop(context); // close the chooser
-        _pickAndSendScreenshot(ImageSource.camera);
+        _pickAndRecord(ImageSource.camera, qrId, utr, amount);
       },
       onGallery: () {
         Navigator.pop(context); // close the chooser
-        _pickAndSendScreenshot(ImageSource.gallery);
+        _pickAndRecord(ImageSource.gallery, qrId, utr, amount);
       },
     );
   }
 
-  /// Picks an image from [source] and sends it as an image message. The QR
-  /// sheet closes as soon as a file is picked so the uploading card shows in
-  /// the chat.
-  Future<void> _pickAndSendScreenshot(ImageSource source) async {
+  /// Picks the screenshot from [source] and records the transaction. The QR
+  /// sheet closes as soon as a file is picked; [PaymentQrController.recordPayment]
+  /// handles compression, S3 upload, the POST, and injecting the
+  /// `payment_transaction` card into the chat.
+  Future<void> _pickAndRecord(
+      ImageSource source, String qrId, String utr, num amount) async {
     final XFile? picked = await ImagePicker().pickImage(source: source);
     if (picked == null) return;
 
     if (!mounted) return;
     Navigator.pop(context); // close the QR sheet
 
-    // Compress before upload (~80% size reduction), mirroring the chat input
-    // image flow, then route through the presigned-URL upload pipeline.
-    final File original = File(picked.path);
-    final File toSend =
-        (await ChatMediaCompressionService.compressImage(original)) ?? original;
-
-    final fileInfo = getFileInfo(toSend);
-    final uploadParams = {
-      ApiKeys.fileName: [fileInfo['fileName']],
-      ApiKeys.fileType: [fileInfo['mimeType']],
-    };
-
-    final chatViewController = Get.find<ChatViewController>();
-    await chatViewController.generateUploadUrlsApi(
-      params: uploadParams,
-      listFile: [toSend],
-      userId: [widget.userId ?? ''],
+    await _paymentQrController.recordPayment(
+      paymentQrId: qrId,
+      utrNo: utr,
+      amount: amount,
+      screenshot: File(picked.path),
       conversationId: widget.conversationId,
-      commands: _note,
-      messageType: 'image',
-      // Marks this image as a payment proof so the chat bubble renders the
-      // "Waiting for approval" tag (sender) / Approve-Reject buttons (shop
-      // owner). Approval is managed locally.
-      metadata: const {
-        'is_payment_screenshot': true,
-        'approval_status': 'pending',
-      },
     );
   }
 }

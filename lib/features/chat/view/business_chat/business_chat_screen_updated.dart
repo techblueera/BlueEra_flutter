@@ -1,27 +1,25 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/features/chat/view/business_chat/widgets/business_chat_foods.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/business_chat_products.dart';
-import 'package:BlueEra/features/chat/view/business_chat/widgets/business_chat_services.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/app_constant.dart';
-import '../../../../core/constants/app_enum.dart';
 import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/size_config.dart';
 import '../../../../core/services/notification_utils.dart';
 import '../../../common/bottomNavigationBar/controller/bottom_bar_controller.dart';
-import '../../../common/feed/view/feed_screen.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
+import '../../auth/controller/payment_qr_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
 import '../widget/chat_input_box.dart';
 import '../widget/component_widgets.dart';
 import '../widget/message_card.dart';
+import 'widgets/payments_received_tab.dart';
 
 class BusinessChatScreenUpdated extends StatefulWidget {
   BusinessChatScreenUpdated(
@@ -56,6 +54,7 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated>
   final chatViewController = getOrPut(() => ChatViewController());
   final bottomBarController = getOrPut(() => BottomBarController());
   final chatThemeController = getOrPut(() => ChatThemeController());
+  final paymentQrController = getOrPut(() => PaymentQrController());
 
   final TextEditingController editingController = TextEditingController();
 
@@ -205,7 +204,10 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated>
                           height: 42,
                           padding: EdgeInsets.only(left: 10, right: 6),
                           margin: EdgeInsets.only(top: 8, bottom: 4),
-                          child: ListView.separated(
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: ListView.separated(
                             scrollDirection: Axis.horizontal,
                             itemCount: chatViewController.tabs.length,
                             separatorBuilder: (_, __) => SizedBox(width: 6),
@@ -218,6 +220,40 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated>
                                   onTap: () {
                                     chatViewController
                                         .changeBusinessInsideTab(index);
+                                    if (index ==
+                                        chatViewController.paymentsTabIndex) {
+                                      paymentQrController
+                                          .loadReceivedTransactions(
+                                              reset: true);
+                                    }
+                                    // History is a separate server bucket —
+                                    // fetch it; the History tab then opens that
+                                    // aged-out conversation as a chat thread.
+                                    if (index ==
+                                        chatViewController.historyTabIndex) {
+                                      chatViewController.emitEvent(
+                                          ChatEmitEvents.ChatList, {
+                                        ApiKeys.type:
+                                            AppConstants.history_Chat_Type
+                                      });
+                                    } else if (index == 0) {
+                                      // Back to the live Chat tab: restore the
+                                      // discover send-route and reload the
+                                      // current conversation (History may have
+                                      // swapped the open conversation to an
+                                      // aged-out thread).
+                                      chatViewController.activeRoute =
+                                          AppConstants.route_discover;
+                                      final id = widget.conversationId ?? '';
+                                      if (id.isNotEmpty &&
+                                          chatViewController.userOpenConversationId
+                                                  .value !=
+                                              id) {
+                                        chatViewController.listenUserNewMessages(
+                                            userId: widget.userId ?? '',
+                                            conversationId: id);
+                                      }
+                                    }
                                   },
                                   child: Container(
                                     margin: EdgeInsets.symmetric(
@@ -250,6 +286,9 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated>
                                 );
                               });
                             },
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         if (chatViewController.businessTabIndexSelected == 0)
@@ -324,7 +363,7 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated>
                                   ),
                           )
                         else if (chatViewController.businessTabIndexSelected ==
-                            1)
+                            chatViewController.productsTabIndex)
                           Expanded(child:
                               LayoutBuilder(builder: (context, constraints) {
                             return ConstrainedBox(
@@ -341,65 +380,26 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated>
                                 ));
                           }))
                         else if (chatViewController.businessTabIndexSelected ==
-                            2)
-                          Expanded(child:
-                              LayoutBuilder(builder: (context, constraints) {
-                            return ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  minHeight: constraints.maxHeight,
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.only(
-                                      left: 8, right: 8, bottom: 0),
-                                  child: BusinessChatFoods(
-                                    businessId: widget.userId ?? '',
-                                    conversationId: '${widget.conversationId}',
-                                  ),
-                                ));
-                          }))
-                        else if (chatViewController.businessTabIndexSelected ==
-                            3)
-                          Expanded(child:
-                              LayoutBuilder(builder: (context, constraints) {
-                            return ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  minHeight: constraints.maxHeight,
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.only(
-                                      left: 8, right: 8, bottom: 0),
-                                  child: BusinessChatServices(
-                                    businessId: widget.userId ?? '',
-                                  ),
-                                ));
-                          }))
-                        else if (chatViewController.businessTabIndexSelected ==
-                            4)
+                            chatViewController.paymentsTabIndex)
                           Expanded(
-                            child:
-                                LayoutBuilder(builder: (context, constraints) {
-                              return ConstrainedBox(
-                                  constraints: BoxConstraints(
-                                    minHeight: constraints.maxHeight,
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(bottom: 0),
-                                    child: FeedScreen(
-                                        key: ValueKey(
-                                            'feedScreen_user_posts_${widget.userId}'),
-                                        postFilterType: PostType.otherPosts,
-                                        isInParentScroll: false,
-                                        bottomPaddingChannel: 20,
-                                        id: widget.userId),
-                                  ));
-                            }),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10),
+                              child: PaymentsReceivedTab(
+                                controller: paymentQrController,
+                              ),
+                            ),
                           )
                         else if (chatViewController.businessTabIndexSelected ==
-                            5)
+                            chatViewController.historyTabIndex)
+                          Expanded(
+                              child: _buildHistoryThread(context, messages))
+                        else if (chatViewController.businessTabIndexSelected ==
+                            chatViewController.ourViewTabIndex)
                           Padding(
                             padding: const EdgeInsets.symmetric(vertical: 38.0),
                             child: Center(
-                              child: CustomText(AppStrings.noReviewsFound),
+                              child: CustomText("Coming Soon"),
                             ),
                           )
                         else
@@ -409,17 +409,23 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated>
                               child: CustomText("Coming Soon"),
                             ),
                           ),
-                        if (chatViewController.businessTabIndexSelected == 0)
+                        // Input bar shows on the live Chat tab and on the
+                        // History tab once its aged-out thread is loaded — so a
+                        // reply lands back in that History conversation.
+                        if (_showChatInput)
                           SizedBox(
                             height: SizeConfig.size6,
                           ),
-                        if (chatViewController.businessTabIndexSelected == 0)
+                        if (_showChatInput)
                           ChatInputBar(
-                            isInitialMessage: widget.isInitialMessage,
+                            isInitialMessage:
+                                _onHistoryThread ? false : widget.isInitialMessage,
                             userId: widget.userId ?? '',
-                            conversationId: widget.conversationId ?? '',
+                            conversationId: _onHistoryThread
+                                ? (_historyConversationId() ?? '')
+                                : (widget.conversationId ?? ''),
                           ),
-                        if (chatViewController.businessTabIndexSelected == 0)
+                        if (_showChatInput)
                           SizedBox(height: SizeConfig.size14)
                         else
                           SizedBox(height: SizeConfig.size6)
@@ -448,6 +454,85 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated>
         );
       }),
     );
+  }
+
+  /// The "History" sub-tab inside a business conversation. Lists the aged-out
+  /// (`type:"history"`) threads with *this* business — a pair accumulates a
+  /// fresh thread per order, and each ages into History 12h after creation, so
+  /// this is the running record of past conversations with the business.
+  /// Tapping a row opens that history thread (replies stay in History).
+  Widget _buildHistoryTab(BuildContext context) {
+    final theme = Theme.of(context);
+    return Obx(() {
+      final status = chatViewController.historyChatListResponse.value.status;
+
+      final all =
+          chatViewController.getHistoryChatListModel?.value.chatList ?? [];
+      final businessId = widget.userId ?? '';
+
+      // Scope to threads with the currently-open business. History rows
+      // preserve the same participant fields as Business rows, so match on the
+      // other participant's id / businessId or the seller's owner id.
+      final chatList = all.where((c) {
+        if (c == null) return false;
+        return c.sender?.id == businessId ||
+            c.sender?.businessId == businessId ||
+            c.businessOwnerUserId == businessId;
+      }).toList();
+
+      if (chatList.isEmpty && status != Status.COMPLETE) {
+        return const Center(
+          child: SizedBox(
+            height: 22,
+            width: 22,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        );
+      }
+
+      if (chatList.isEmpty) {
+        return Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.history, size: 48, color: Colors.grey.shade400),
+              const SizedBox(height: 10),
+              CustomText(
+                AppStrings.noHistoryChats.tr,
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey.shade600,
+              ),
+            ],
+          ),
+        );
+      }
+
+      return RefreshIndicator(
+        onRefresh: () async {
+          chatViewController.emitEvent(ChatEmitEvents.ChatList,
+              {ApiKeys.type: AppConstants.history_Chat_Type});
+        },
+        child: ListView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          itemCount: chatList.length,
+          itemBuilder: (context, index) {
+            final chat = chatList[index];
+            return ChatListTile(
+              onSelect: () {},
+              type: chat?.sender?.accountType ?? AppConstants.business,
+              context: context,
+              isForwardUI: false,
+              index: index,
+              chatViewController: chatViewController,
+              chat: chat,
+              theme: theme,
+              showFlagBadge: true,
+            );
+          },
+        ),
+      );
+    });
   }
 
 }

@@ -5253,6 +5253,8 @@ class AppStrings {
   static const String groupTab = "groupTab";
   static const String flaggedTab = "flaggedTab";
   static const String recordsTab = "recordsTab";
+  static const String historyTab = "historyTab";
+  static const String noHistoryChats = "noHistoryChats";
   static const String recordsLabel = "recordsLabel";
   static const String filterLabel = "filterLabel";
   static const String productLabel = "productLabel";
