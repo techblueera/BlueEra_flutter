@@ -329,7 +329,7 @@ class _VehicleContactFormSheetState extends State<VehicleContactFormSheet> {
                 keyBoardType: TextInputType.phone,
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'[0-9+\-\s()]')),
-                  LengthLimitingTextInputFormatter(20),
+                  LengthLimitingTextInputFormatter(10),
                 ],
                 onChange: (_) => _validate(),
               ),
@@ -342,7 +342,7 @@ class _VehicleContactFormSheetState extends State<VehicleContactFormSheet> {
                 keyBoardType: TextInputType.phone,
                 inputFormatters: [
                   FilteringTextInputFormatter.allow(RegExp(r'[0-9+\-\s()]')),
-                  LengthLimitingTextInputFormatter(20),
+                  LengthLimitingTextInputFormatter(10),
                 ],
                 onChange: (_) => _validate(),
               ),
