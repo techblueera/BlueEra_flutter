@@ -47,39 +47,77 @@ Future<void> showPaymentQrBottomSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (_) => _PaymentQrSheet(
-      qrData: data,
-      userId: userId,
-      conversationId: conversationId,
-      payeeVpa: payeeVpa,
-      payeeName: payeeName,
-      amount: amount,
+    builder: (_) => Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Drag handle
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              PaymentQrPanel(
+                qrData: data,
+                userId: userId,
+                conversationId: conversationId,
+                payeeVpa: payeeVpa,
+                payeeName: payeeName,
+                amount: amount,
+              ),
+            ],
+          ),
+        ),
+      ),
     ),
   );
 }
 
-class _PaymentQrSheet extends StatefulWidget {
+/// The reusable payment-details panel: payee QR code, copyable UPI id +
+/// linked mobile number, a Download-QR action and an Upload-screenshot
+/// (record payment) action. Used both inside [showPaymentQrBottomSheet] and
+/// embedded directly under the chat's Payment tab.
+///
+/// Set [embedded] when rendering inline (e.g. inside a tab) so the
+/// record-payment flow does NOT pop a route on completion — there's no sheet
+/// to dismiss in that case.
+class PaymentQrPanel extends StatefulWidget {
   final String? qrData;
   final String? userId;
   final String? conversationId;
   final String payeeVpa;
   final String payeeName;
   final String amount;
+  final bool embedded;
 
-  const _PaymentQrSheet({
+  const PaymentQrPanel({
+    super.key,
     this.qrData,
     this.userId,
     this.conversationId,
-    required this.payeeVpa,
-    required this.payeeName,
-    required this.amount,
+    this.payeeVpa = 'merchant@upi',
+    this.payeeName = 'My Business',
+    this.amount = '0',
+    this.embedded = false,
   });
 
   @override
-  State<_PaymentQrSheet> createState() => _PaymentQrSheetState();
+  State<PaymentQrPanel> createState() => _PaymentQrPanelState();
 }
 
-class _PaymentQrSheetState extends State<_PaymentQrSheet>
+class _PaymentQrPanelState extends State<PaymentQrPanel>
     with SingleTickerProviderStateMixin {
   final GlobalKey _repaintKey = GlobalKey();
   final RxBool _isSaving = false.obs;
@@ -158,28 +196,9 @@ class _PaymentQrSheetState extends State<_PaymentQrSheet>
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-          child: Column(
+    return Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Drag handle
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              const SizedBox(height: 16),
               CustomText(
                 'Scan to Pay',
                 fontSize: SizeConfig.size16,
@@ -298,7 +317,7 @@ class _PaymentQrSheetState extends State<_PaymentQrSheet>
                   Expanded(
                     child: Obx(() => _actionButton(
                           icon: Icons.upload_file_rounded,
-                          label: 'Record Payment',
+                          label: 'Upload Screenshot',
                           isBusy: _paymentQrController.isRecording.value ||
                               _paymentQrController.isLoadingPartnerQr.value,
                           filled: true,
@@ -308,9 +327,6 @@ class _PaymentQrSheetState extends State<_PaymentQrSheet>
                 ],
               ),
             ],
-          ),
-        ),
-      ),
     );
   }
 
@@ -635,7 +651,9 @@ class _PaymentQrSheetState extends State<_PaymentQrSheet>
     if (picked == null) return;
 
     if (!mounted) return;
-    Navigator.pop(context); // close the QR sheet
+    // Close the QR sheet only when shown as a modal. Embedded under the
+    // Payment tab there is no sheet route to pop.
+    if (!widget.embedded) Navigator.pop(context);
 
     await _paymentQrController.recordPayment(
       paymentQrId: qrId,
