@@ -6,6 +6,8 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/vehicle/controller/vehicle_controller.dart';
 import 'package:BlueEra/features/me/vehicle/model/vehicle_models.dart';
+import 'package:BlueEra/widgets/commom_textfield.dart';
+import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -57,18 +59,29 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
   late final TextEditingController _descCtrl;
   late final TextEditingController _brandCtrl;
   late final TextEditingController _modelCtrl;
-  late final TextEditingController _yearCtrl;
   late final TextEditingController _colorCtrl;
   late final TextEditingController _regCtrl;
   late final TextEditingController _seatsCtrl;
   late final TextEditingController _mileageCtrl;
   late final TextEditingController _priceCtrl;
-  // Stable controller for sub-category — the previous version recreated
-  // a TextEditingController on every build, which silently lost the
-  // user's cursor position whenever any other field caused a setState.
-  late final TextEditingController _subCategoryCtrl;
 
+  // Category / sub-category are picked from the server taxonomy
+  // (`GET /vehicles/types`) via CommonDropdownDialog, so they're held as
+  // wire-value strings rather than free text. `_subCategory` is reset to
+  // null whenever `_category` changes so a stale child can never be sent.
   String? _category;
+  String? _subCategory;
+  // CommonDropdownDialog has no FormField hook, so its validation is
+  // surfaced manually through its `errorText` — set in [_submit].
+  String? _categoryError;
+  String? _subCategoryError;
+
+  // Manufacturing year — picked from a dropdown of the last 40 years
+  // (current year first), so it's held as an int rather than free text.
+  int? _year;
+  // The selectable year range, built once in initState.
+  late final List<int> _years;
+
   VehicleFuelType? _fuel;
   VehicleTransmission? _transmission;
 
@@ -85,7 +98,6 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
     _descCtrl = TextEditingController(text: v?.description ?? '');
     _brandCtrl = TextEditingController(text: v?.brand ?? '');
     _modelCtrl = TextEditingController(text: v?.model ?? '');
-    _yearCtrl = TextEditingController(text: v?.year?.toString() ?? '');
     _colorCtrl = TextEditingController(text: v?.color ?? '');
     _regCtrl = TextEditingController(text: v?.registrationNo ?? '');
     _seatsCtrl =
@@ -93,8 +105,12 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
     _mileageCtrl = TextEditingController(text: v?.mileage ?? '');
     _priceCtrl =
         TextEditingController(text: v?.price?.toStringAsFixed(0) ?? '');
-    _subCategoryCtrl = TextEditingController(text: v?.subCategory ?? '');
     _category = v?.category;
+    _subCategory = v?.subCategory;
+    _year = v?.year;
+    // Last 40 years, current year first (e.g. 2026 … 1987).
+    final currentYear = DateTime.now().year;
+    _years = List<int>.generate(40, (i) => currentYear - i);
     _fuel = v?.fuelType;
     _transmission = v?.transmission;
     // Populate the type picker from `GET /vehicles/types` (cached in the
@@ -109,13 +125,11 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
       _descCtrl,
       _brandCtrl,
       _modelCtrl,
-      _yearCtrl,
       _colorCtrl,
       _regCtrl,
       _seatsCtrl,
       _mileageCtrl,
       _priceCtrl,
-      _subCategoryCtrl,
     ]) {
       c.dispose();
     }
@@ -129,18 +143,6 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
 
   String? _vName(String? v) =>
       (v == null || v.trim().isEmpty) ? AppStrings.nameRequiredErr.tr : null;
-
-  String? _vYear(String? v) {
-    if (v == null || v.trim().isEmpty) return null;
-    final n = int.tryParse(v.trim());
-    final maxYear = DateTime.now().year + 1;
-    if (n == null) return AppStrings.enterValidYearErr.tr;
-    if (n < 1900 || n > maxYear) {
-      return AppStrings.yearRangeErrFmt
-          .trParams({'maxYear': '$maxYear'});
-    }
-    return null;
-  }
 
   String? _vSeats(String? v) {
     if (v == null || v.trim().isEmpty) return null;
@@ -172,17 +174,38 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
   }
 
   void _submit() {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
+    final formOk = _formKey.currentState?.validate() ?? false;
+    // CommonDropdownDialog isn't a FormField, so validate the taxonomy
+    // selection by hand: a parent category is required, and when that
+    // parent has children a sub-category must be chosen too.
+    final parent = _ctrl.vehicleTypes
+        .firstWhereOrNull((t) => t.value == _category);
+    String? catErr;
+    String? subErr;
+    if (_category == null || _category!.isEmpty) {
+      catErr = AppStrings.selectCategory.tr;
+    } else if ((parent?.hasChildren ?? false) &&
+        (_subCategory == null || _subCategory!.isEmpty)) {
+      subErr = AppStrings.selectSubCategory.tr;
+    }
+    if (catErr != null || subErr != null) {
+      setState(() {
+        _categoryError = catErr;
+        _subCategoryError = subErr;
+      });
+      return;
+    }
+    if (!formOk) return;
     final draft = Vehicle(
       name: _nameCtrl.text.trim(),
       description: _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
       category: _category,
-      subCategory: _subCategoryCtrl.text.trim().isEmpty
+      subCategory: (_subCategory == null || _subCategory!.isEmpty)
           ? null
-          : _subCategoryCtrl.text.trim(),
+          : _subCategory,
       brand: _brandCtrl.text.trim().isEmpty ? null : _brandCtrl.text.trim(),
       model: _modelCtrl.text.trim().isEmpty ? null : _modelCtrl.text.trim(),
-      year: int.tryParse(_yearCtrl.text.trim()),
+      year: _year,
       color: _colorCtrl.text.trim().isEmpty ? null : _colorCtrl.text.trim(),
       registrationNo:
           _regCtrl.text.trim().isEmpty ? null : _regCtrl.text.trim(),
@@ -259,16 +282,7 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
                         label: AppStrings.description.tr,
                         maxLines: 3,
                       ),
-                      Row(children: [
-                        Expanded(child: _categoryDropdown()),
-                        SizedBox(width: SizeConfig.size10),
-                        Expanded(
-                          child: _field(
-                            controller: _subCategoryCtrl,
-                            label: AppStrings.subCategoryLabel.tr,
-                          ),
-                        ),
-                      ]),
+                      _categorySection(),
                       Row(children: [
                         Expanded(
                           child: _field(
@@ -286,15 +300,14 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
                       ]),
                       Row(children: [
                         Expanded(
-                          child: _field(
-                            controller: _yearCtrl,
-                            label: AppStrings.yearLabel.tr,
-                            keyboardType: TextInputType.number,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                              LengthLimitingTextInputFormatter(4),
-                            ],
-                            validator: _vYear,
+                          child: CommonDropdownDialog<int>(
+                            items: _years,
+                            selectedValue: _year,
+                            dialogTitle: AppStrings.yearLabel.tr,
+                            title: AppStrings.yearLabel.tr,
+                            hintText: AppStrings.yearLabel.tr,
+                            displayValue: (y) => y.toString(),
+                            onChanged: (y) => setState(() => _year = y),
                           ),
                         ),
                         SizedBox(width: SizeConfig.size10),
@@ -321,25 +334,27 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
                       _label(AppStrings.specsLabel.tr),
                       Row(children: [
                         Expanded(
-                          child: _dropdown<VehicleFuelType>(
-                            label: AppStrings.fuelLabel.tr,
-                            value: _fuel,
+                          child: CommonDropdownDialog<VehicleFuelType>(
                             items: VehicleFuelType.values,
+                            selectedValue: _fuel,
+                            dialogTitle: AppStrings.fuelLabel.tr,
+                            title: AppStrings.fuelLabel.tr,
+                            hintText: AppStrings.fuelLabel.tr,
+                            displayValue: (e) => e.wire,
                             onChanged: (v) => setState(() => _fuel = v),
-                            itemLabel: (e) =>
-                                e.toString().split('.').last.toUpperCase(),
                           ),
                         ),
                         SizedBox(width: SizeConfig.size10),
                         Expanded(
-                          child: _dropdown<VehicleTransmission>(
-                            label: AppStrings.transmissionLabel.tr,
-                            value: _transmission,
+                          child: CommonDropdownDialog<VehicleTransmission>(
                             items: VehicleTransmission.values,
+                            selectedValue: _transmission,
+                            dialogTitle: AppStrings.transmissionLabel.tr,
+                            title: AppStrings.transmissionLabel.tr,
+                            hintText: AppStrings.transmissionLabel.tr,
+                            displayValue: (e) => e.wire,
                             onChanged: (v) =>
                                 setState(() => _transmission = v),
-                            itemLabel: (e) =>
-                                e.toString().split('.').last.toUpperCase(),
                           ),
                         ),
                       ]),
@@ -663,91 +678,83 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
   }) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: SizeConfig.size6),
-      child: TextFormField(
-        controller: controller,
-        maxLines: maxLines,
-        keyboardType: keyboardType,
+      // Reuse the app-wide CommonTextField so these inputs match every
+      // other form in the app (shadow, radius, tap-outside dismiss, etc.).
+      // Validation is preserved per field: a custom `validator` is passed
+      // straight through, and when a field has none we set
+      // `isValidate: false` so CommonTextField's built-in "required"
+      // fallback never fires — keeping the optional fields optional.
+      child: CommonTextField(
+        textEditController: controller,
+        title: label,
+        maxLine: maxLines,
+        minLines: maxLines > 1 ? 1 : null,
+        keyBoardType: keyboardType,
         validator: validator,
-        onChanged: onChanged,
+        isValidate: validator != null,
+        isOptionalFiled: validator == null,
+        onChange: onChanged,
         inputFormatters: inputFormatters,
         textInputAction: textInputAction,
-        textCapitalization: textCapitalization,
-        decoration: InputDecoration(
-          labelText: label,
-          isDense: true,
-          filled: true,
-          fillColor: Colors.white,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-        ),
+        isCapitalize: textCapitalization == TextCapitalization.characters,
       ),
     );
   }
 
-  /// Category picker driven by `GET /vehicles/types`. Reactive on the
-  /// controller's taxonomy so it fills in the moment the API resolves.
-  /// While the taxonomy is loading (or if it fails) we fall back to the
-  /// canonical wire values so the field is never empty. Unknown server
-  /// categories are normalized to `OTHER`, so an edit value that's no
-  /// longer in the list is surfaced as an extra option to avoid the
-  /// `DropdownButtonFormField` value-not-in-items assertion.
-  Widget _categoryDropdown() {
-    const fallback = <String>[
-      'CAR',
-      'BIKE',
-      'SCOOTER',
-      'TRUCK',
-      'AUTO',
-      'BUS',
-      'OTHER',
-    ];
+  /// Parent-category + sub-category pickers driven by
+  /// `GET /vehicles/types`. Both use the app's CommonDropdownDialog and
+  /// are reactive on the controller's taxonomy so they fill in the
+  /// moment the API resolves. Picking a parent resets the sub-category
+  /// (and clears both error labels). The sub-category dialog is only
+  /// rendered when the selected parent actually has children — flat
+  /// categories show just the parent picker.
+  Widget _categorySection() {
     return Obx(() {
-      final loaded = _ctrl.vehicleTypes;
-      final values = loaded.isNotEmpty
-          ? loaded.map((t) => t.value).toList()
-          : List<String>.from(fallback);
-      if (_category != null &&
-          _category!.isNotEmpty &&
-          !values.contains(_category)) {
-        values.insert(0, _category!);
-      }
-      return _dropdown<String>(
-        label: AppStrings.category.tr,
-        value: _category,
-        items: values,
-        onChanged: (v) => setState(() => _category = v),
-        itemLabel: (v) => _ctrl.labelForCategory(v),
+      final types = _ctrl.vehicleTypes;
+      final parent = types.firstWhereOrNull((t) => t.value == _category);
+      final children = parent?.children ?? const <VehicleType>[];
+      final sub = children.firstWhereOrNull((c) => c.value == _subCategory);
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(height: SizeConfig.size6),
+          CommonDropdownDialog<VehicleType>(
+            items: types,
+            selectedValue: parent,
+            dialogTitle: AppStrings.category.tr,
+            title: AppStrings.selectCategory.tr,
+            hintText: AppStrings.selectCategory.tr,
+            displayValue: (t) => t.label,
+            errorText: _categoryError,
+            onChanged: (t) => setState(() {
+              _category = t?.value;
+              // Parent changed → any previously-picked child is invalid.
+              _subCategory = null;
+              _categoryError = null;
+              _subCategoryError = null;
+            }),
+          ),
+          if (children.isNotEmpty) ...[
+            SizedBox(height: SizeConfig.size12),
+            CommonDropdownDialog<VehicleType>(
+              items: children,
+              selectedValue: sub,
+              dialogTitle: AppStrings.subCategoryLabel.tr,
+              title: AppStrings.selectSubCategory.tr,
+              hintText: AppStrings.selectSubCategory.tr,
+              displayValue: (t) => t.label,
+              errorText: _subCategoryError,
+              onChanged: (t) => setState(() {
+                _subCategory = t?.value;
+                _subCategoryError = null;
+              }),
+            ),
+          ],
+        ],
       );
     });
   }
 
-  Widget _dropdown<T>({
-    required String label,
-    required T? value,
-    required List<T> items,
-    required ValueChanged<T?> onChanged,
-    String Function(T)? itemLabel,
-  }) {
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: SizeConfig.size6),
-      child: DropdownButtonFormField<T>(
-        initialValue: value,
-        items: items
-            .map((e) => DropdownMenuItem<T>(
-                  value: e,
-                  child: Text(itemLabel?.call(e) ?? e.toString()),
-                ))
-            .toList(),
-        onChanged: onChanged,
-        decoration: InputDecoration(
-          labelText: label,
-          isDense: true,
-          filled: true,
-          fillColor: Colors.white,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-        ),
-      ),
-    );
-  }
 }
 
 /// Inline TextInputFormatter that upper-cases incoming text. Used for

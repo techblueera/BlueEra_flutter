@@ -412,7 +412,11 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     } catch (e, st) {
       log('[CALL_DEBUG] bg handler missed_call error: $e\n$st');
     }
-    return;
+    // call_cancelled = caller aborted before answer → no banner.
+    // missed_call = receiver never answered → fall through to the generic
+    // data-only renderer below so the "Missed call from X" banner is posted.
+    if (operation == 'call_cancelled') return;
+    // (no return here for missed_call — continue to renderer below)
   }
 
   try {

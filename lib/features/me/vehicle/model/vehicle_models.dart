@@ -105,18 +105,31 @@ class VehicleType {
   final String value; // wire value, e.g. "CAR" — sent as `category`
   final String label; // display label, e.g. "Car"
   final String? icon; // optional icon key, e.g. "car"
+  // Nested sub-types returned under `children` (e.g. PASSENGER →
+  // [PASSENGER_2W, PASSENGER_4W]). Parsed recursively so the taxonomy
+  // can be arbitrarily deep; the form currently surfaces the top level
+  // as the parent category and its immediate `children` as the
+  // sub-category options.
+  final List<VehicleType> children;
 
   VehicleType({
     required this.value,
     required this.label,
     this.icon,
+    this.children = const [],
   });
 
   factory VehicleType.fromJson(Map<String, dynamic> j) => VehicleType(
         value: (j['value'] ?? '') as String,
         label: (j['label'] ?? (j['value'] ?? '')) as String,
         icon: j['icon'] as String?,
+        children: ((j['children'] as List?) ?? const [])
+            .whereType<Map>()
+            .map((m) => VehicleType.fromJson(Map<String, dynamic>.from(m)))
+            .toList(),
       );
+
+  bool get hasChildren => children.isNotEmpty;
 }
 
 class Vehicle {
