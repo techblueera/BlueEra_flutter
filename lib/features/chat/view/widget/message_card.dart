@@ -2131,6 +2131,13 @@ class _MessageCardState extends State<MessageCard>
       final dateTime = DateTime.parse(isoDateString).toLocal();
       final now = DateTime.now();
 
+      // Treat anything within the last 12 hours as "Today" even when it has
+      // crossed the calendar-day boundary (e.g. an 11pm message viewed at 9am).
+      final diff = now.difference(dateTime);
+      if (!diff.isNegative && diff.inHours < 12) {
+        return 'Today';
+      }
+
       final today = DateTime(now.year, now.month, now.day);
       final messageDay = DateTime(dateTime.year, dateTime.month, dateTime.day);
 
