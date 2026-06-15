@@ -169,6 +169,17 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
     if (chatViewController.canPopBusiness.value) {
       chatViewController.canPopBusiness.value = false;
     }
+
+    // The All tab now renders the History bucket beneath the live chats, so
+    // prefetch it here (the live Business emit never carries history rows, and
+    // it was previously only fetched when the History tab was tapped). Skip for
+    // pickers, which keep the flat list with no history section.
+    final isPicker =
+        (widget.isForwardUI ?? false) || (widget.isNewGroupUI ?? false);
+    if (!isPicker) {
+      chatViewController.emitEvent(ChatEmitEvents.ChatList,
+          {ApiKeys.type: AppConstants.history_Chat_Type});
+    }
   }
 
   @override
@@ -273,43 +284,48 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
   /// rows: History is a flat archive of past order/business threads. Tapping a
   /// row opens the conversation normally (replies stay in History; the backend
   /// never resurfaces it into Business).
+  /// Filtered History bucket — archived + PIN-locked dropped, then the same
+  /// buyer/seller bucketing as the Business list (consumer sees buyer-side
+  /// history; provider `excludeSenderId` sees the seller's "me" history;
+  /// pickers see everything). Shared by the History sub-tab and the All tab's
+  /// inline History section.
+  List<ChatList?> _filteredHistoryList() {
+    List<ChatList?> chatList =
+        chatViewController.getHistoryChatListModel?.value.chatList ?? [];
+
+    final archivedIds = pinArchiveController.businessArchivedIds;
+    final lockedIds = lockController.businessLockedIds;
+
+    chatList = chatList
+        .where((chat) =>
+            chat == null || !archivedIds.contains(chat.conversationId))
+        .where((chat) =>
+            chat == null || !lockedIds.contains(chat.conversationId))
+        .toList();
+
+    final isPicker =
+        (widget.isForwardUI ?? false) || (widget.isNewGroupUI ?? false);
+    if (widget.onlySenderId != null) {
+      chatList = chatList
+          .where((c) => (c?.lastMessageSenderId ?? '') == widget.onlySenderId)
+          .toList();
+    } else if (widget.excludeSenderId != null) {
+      chatList = chatList
+          .where((c) => c != null && bucketChat(c) == ChatBucket.me)
+          .toList();
+    } else if (!isPicker) {
+      chatList = chatList
+          .where((c) => c != null && bucketChat(c) == ChatBucket.chats)
+          .toList();
+    }
+    return chatList;
+  }
+
   Widget _historyChatListWidget(ThemeData theme) {
     return Obx(() {
       final status = chatViewController.historyChatListResponse.value.status;
 
-      List<ChatList?> chatList =
-          chatViewController.getHistoryChatListModel?.value.chatList ?? [];
-
-      final archivedIds = pinArchiveController.businessArchivedIds;
-      final lockedIds = lockController.businessLockedIds;
-
-      // Mirror the Business list: drop archived + PIN-locked conversations.
-      chatList = chatList
-          .where((chat) =>
-              chat == null || !archivedIds.contains(chat.conversationId))
-          .where((chat) =>
-              chat == null || !lockedIds.contains(chat.conversationId))
-          .toList();
-
-      // Same buyer/seller bucketing as the Business tab so the consumer view
-      // shows the buyer-side history and the provider view (excludeSenderId)
-      // shows the seller's "me" history. Pickers see everything.
-      final isPicker =
-          (widget.isForwardUI ?? false) || (widget.isNewGroupUI ?? false);
-      if (widget.onlySenderId != null) {
-        chatList = chatList
-            .where((c) =>
-                (c?.lastMessageSenderId ?? '') == widget.onlySenderId)
-            .toList();
-      } else if (widget.excludeSenderId != null) {
-        chatList = chatList
-            .where((c) => c != null && bucketChat(c) == ChatBucket.me)
-            .toList();
-      } else if (!isPicker) {
-        chatList = chatList
-            .where((c) => c != null && bucketChat(c) == ChatBucket.chats)
-            .toList();
-      }
+      List<ChatList?> chatList = _filteredHistoryList();
 
       // First open with nothing cached yet → spinner while the socket replies.
       if (chatList.isEmpty && status != Status.COMPLETE) {
@@ -356,32 +372,7 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
               ? const NeverScrollableScrollPhysics()
               : null,
           itemBuilder: (context, index) {
-            final chat = chatList[index];
-            final isInSelectionMode =
-                chatViewController.isChatListSelectionMode.value;
-            final isChatSelected = chatViewController.selectedConversationIds
-                .contains(chat?.conversationId ?? '');
-
-            return ChatListTile(
-              isFromGroupSelect: widget.isNewGroupUI,
-              onLongPress: () {
-                if (!isInSelectionMode) {
-                  chatViewController.isChatListSelectionMode.value = true;
-                  chatViewController.toggleChatListSelection(chat);
-                  setState(() {});
-                }
-              },
-              isChatListSelected: isChatSelected,
-              onSelect: () => setState(() {}),
-              type: chat?.sender?.accountType ?? AppConstants.business,
-              index: index,
-              chatViewController: chatViewController,
-              chat: chat,
-              theme: theme,
-              isForwardUI: widget.isForwardUI,
-              showFlagBadge: true,
-              context: context,
-            );
+            return _buildHistoryChatTile(chatList[index], index, theme);
           },
         ),
       );
@@ -509,10 +500,26 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
     final aiOffset = 1; // always show AI chat
     final topRowCount = recordsOffset + aiOffset;
 
+    // Merge the History bucket into the All tab: the live chats render under a
+    // "Today" heading, followed by the aged-out conversations (the History
+    // sub-tab's list) under a "History" heading. Pickers (forward / group-add)
+    // keep the flat list — no section headers and no history.
+    final showSections = !isPicker;
+    final List<ChatList?> historyList =
+        showSections ? _filteredHistoryList() : const <ChatList?>[];
+    final showTodayHeader = showSections && chatList.isNotEmpty;
+    final showHistoryHeader = showSections && historyList.isNotEmpty;
+
+    final itemCount = topRowCount +
+        (showTodayHeader ? 1 : 0) +
+        chatList.length +
+        (showHistoryHeader ? 1 : 0) +
+        historyList.length;
+
     final listBody = Container(
       margin: EdgeInsets.only(bottom: SizeConfig.size70),
       child:  ListView.builder(
-        itemCount: chatList.length + topRowCount,
+        itemCount: itemCount,
         shrinkWrap: true,
         padding: EdgeInsets.zero,
         physics: widget.isInParentScroll
@@ -525,7 +532,8 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
           }
 
           // AI chat right after Records row
-          if (index == recordsOffset) {
+          int i = index - recordsOffset;
+          if (i == 0) {
             final chat = ChatViewController.businessAiChatModule;
             final isInSelectionMode =
                 chatViewController.isChatListSelectionMode.value;
@@ -568,40 +576,29 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
               context: context,
             );
           }
+          // i now indexes into [Today?, current…, History?, history…]
+          i -= aiOffset;
 
-          final chatIndex = index - topRowCount;
-          final chat = chatList[chatIndex];
-          final isInSelectionMode =
-              chatViewController.isChatListSelectionMode.value;
-          final isChatSelected = chatViewController
-              .selectedConversationIds
-              .contains(chat?.conversationId ?? '');
-          final isPinned =
-          pinnedIds.contains(chat?.conversationId);
+          // "Today" heading above the live chat list.
+          if (showTodayHeader) {
+            if (i == 0) return _buildSectionHeader(AppStrings.todayLabel.tr);
+            i -= 1;
+          }
 
-          return ChatListTile(
-            isFromGroupSelect: widget.isNewGroupUI,
-            onLongPress: () {
-              if (!isInSelectionMode) {
-                chatViewController.isChatListSelectionMode.value =
-                true;
-                chatViewController.toggleChatListSelection(chat);
-                setState(() {});
-              }
-            },
-            isChatListSelected: isChatSelected,
-            isPinned: isPinned,
-            onSelect: () => setState(() {}),
-            type: chat?.sender?.accountType ?? AppConstants.business,
-            index: chatIndex,
-            chatViewController: chatViewController,
-            chat: chat,
-            theme: theme,
-            isForwardUI: widget.isForwardUI,
-            showFlagBadge: true,
-            showNewIfRecentlyCreated: widget.showNewIfRecentlyCreated,
-            context: context,
-          );
+          // Live (current) chats.
+          if (i < chatList.length) {
+            return _buildCurrentChatTile(chatList[i], i, theme);
+          }
+          i -= chatList.length;
+
+          // "History" heading above the aged-out conversations.
+          if (showHistoryHeader) {
+            if (i == 0) return _buildSectionHeader(AppStrings.historyTab.tr);
+            i -= 1;
+          }
+
+          // Aged-out (History bucket) chats.
+          return _buildHistoryChatTile(historyList[i], i, theme);
         },
       ),
     );
@@ -829,6 +826,83 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
           ],
         ],
       ),
+    );
+  }
+
+  /// Section heading ("Today" / "History") shown inside the All tab's merged
+  /// list to separate the live chats from the aged-out History bucket.
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+      child: CustomText(
+        title,
+        fontSize: 13,
+        fontWeight: FontWeight.w700,
+        color: Colors.grey.shade600,
+      ),
+    );
+  }
+
+  /// A live ("Today") chat row — carries the pinned highlight and the optional
+  /// "New" badge, matching the original All-tab list behaviour.
+  Widget _buildCurrentChatTile(ChatList? chat, int chatIndex, ThemeData theme) {
+    final isInSelectionMode = chatViewController.isChatListSelectionMode.value;
+    final isChatSelected = chatViewController.selectedConversationIds
+        .contains(chat?.conversationId ?? '');
+    final isPinned =
+        pinArchiveController.businessPinnedIds.contains(chat?.conversationId);
+
+    return ChatListTile(
+      isFromGroupSelect: widget.isNewGroupUI,
+      onLongPress: () {
+        if (!isInSelectionMode) {
+          chatViewController.isChatListSelectionMode.value = true;
+          chatViewController.toggleChatListSelection(chat);
+          setState(() {});
+        }
+      },
+      isChatListSelected: isChatSelected,
+      isPinned: isPinned,
+      onSelect: () => setState(() {}),
+      type: chat?.sender?.accountType ?? AppConstants.business,
+      index: chatIndex,
+      chatViewController: chatViewController,
+      chat: chat,
+      theme: theme,
+      isForwardUI: widget.isForwardUI,
+      showFlagBadge: true,
+      showNewIfRecentlyCreated: widget.showNewIfRecentlyCreated,
+      context: context,
+    );
+  }
+
+  /// A History ("aged-out") chat row — same tile as the live list minus the
+  /// pinned / "New" affordances (history is a flat archive). Shared by the
+  /// History sub-tab and the All tab's inline History section.
+  Widget _buildHistoryChatTile(ChatList? chat, int index, ThemeData theme) {
+    final isInSelectionMode = chatViewController.isChatListSelectionMode.value;
+    final isChatSelected = chatViewController.selectedConversationIds
+        .contains(chat?.conversationId ?? '');
+
+    return ChatListTile(
+      isFromGroupSelect: widget.isNewGroupUI,
+      onLongPress: () {
+        if (!isInSelectionMode) {
+          chatViewController.isChatListSelectionMode.value = true;
+          chatViewController.toggleChatListSelection(chat);
+          setState(() {});
+        }
+      },
+      isChatListSelected: isChatSelected,
+      onSelect: () => setState(() {}),
+      type: chat?.sender?.accountType ?? AppConstants.business,
+      index: index,
+      chatViewController: chatViewController,
+      chat: chat,
+      theme: theme,
+      isForwardUI: widget.isForwardUI,
+      showFlagBadge: true,
+      context: context,
     );
   }
 
