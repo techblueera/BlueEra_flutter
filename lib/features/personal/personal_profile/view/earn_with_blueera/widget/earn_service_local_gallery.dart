@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -22,15 +23,19 @@ import 'package:get/get.dart';
 class EarnServiceLocalGallery extends StatelessWidget {
   final RxList<String> images;
   final VoidCallback onAddImage;
-  final String emptyTitle;
-  final String addButtonLabel;
+
+  /// Optional overrides. When null, the localized defaults
+  /// ([AppStrings.youHaveNotPostPhotoGallery] / [AppStrings.uploadPhotoTitle])
+  /// are used — resolved at build time so they react to locale.
+  final String? emptyTitle;
+  final String? addButtonLabel;
 
   const EarnServiceLocalGallery({
     super.key,
     required this.images,
     required this.onAddImage,
-    this.emptyTitle = 'You Have Not Post Photo In Your\nGallery',
-    this.addButtonLabel = 'Upload Photo',
+    this.emptyTitle,
+    this.addButtonLabel,
   });
 
   @override
@@ -39,7 +44,7 @@ class EarnServiceLocalGallery extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CustomText(
-          'Gallery',
+          AppStrings.gallery.tr,
           fontSize: SizeConfig.large,
           fontWeight: FontWeight.w600,
           color: AppColors.mainTextColor,
@@ -96,7 +101,7 @@ class EarnServiceLocalGallery extends StatelessWidget {
                 ),
                 SizedBox(height: 6),
                 CustomText(
-                  emptyTitle,
+                  emptyTitle ?? AppStrings.youHaveNotPostPhotoGallery.tr,
                   fontSize: SizeConfig.small,
                   fontWeight: FontWeight.w600,
                   color: AppColors.white,
@@ -261,7 +266,7 @@ class EarnServiceLocalGallery extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
       ),
       child: CustomText(
-        addButtonLabel,
+        addButtonLabel ?? AppStrings.uploadPhotoTitle.tr,
         fontSize: SizeConfig.medium,
         fontWeight: FontWeight.w600,
         color: AppColors.white,

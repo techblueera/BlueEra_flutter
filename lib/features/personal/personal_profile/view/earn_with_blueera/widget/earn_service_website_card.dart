@@ -84,7 +84,7 @@ class EarnServiceWebsiteCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: CustomText(
-                    'Update',
+                    AppStrings.update.tr,
                     fontSize: SizeConfig.extraSmall,
                     color: AppColors.primaryColor,
                     fontWeight: FontWeight.w600,
@@ -123,7 +123,7 @@ class EarnServiceWebsiteCard extends StatelessWidget {
               ),
               SizedBox(height: SizeConfig.size15),
               CustomText(
-                'Add Website',
+                AppStrings.addWebsite.tr,
                 fontSize: SizeConfig.large,
                 color: AppColors.primaryColor,
                 fontWeight: FontWeight.w600,
@@ -169,24 +169,24 @@ class EarnServiceWebsiteCard extends StatelessWidget {
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
-                    CustomText('Update Website',
+                  children: [
+                    CustomText(AppStrings.updateWebsite.tr,
                         fontSize: 18, fontWeight: FontWeight.w600),
-                    CloseButton(),
+                    const CloseButton(),
                   ],
                 ),
                 const SizedBox(height: 20),
                 HttpsTextField(
                   controller: websiteCtrl,
-                  title: 'Website URL',
-                  hintText: 'e.g. https://www.example.com',
+                  title: AppStrings.websiteUrl.tr,
+                  hintText: AppStrings.egWebsiteUrl.tr,
                   isUrlValidate: true,
                 ),
                 const SizedBox(height: 24),
                 CustomBtn(
                   radius: 10,
                   bgColor: AppColors.primaryColor,
-                  title: AppStrings.save,
+                  title: AppStrings.save.tr,
                   onTap: () async {
                     final error = ValidationMethod.urlValidation(
                         websiteCtrl.text.trim());

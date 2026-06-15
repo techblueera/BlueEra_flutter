@@ -1,9 +1,11 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class EarnServiceTestimonialCard extends StatelessWidget {
   final List<TestimonialItem> testimonials;
@@ -24,7 +26,7 @@ class EarnServiceTestimonialCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CustomText(
-            'Testimonials',
+            AppStrings.testimonials.tr,
             fontSize: 20,
             fontWeight: FontWeight.bold,
             color: AppColors.mainTextColor,

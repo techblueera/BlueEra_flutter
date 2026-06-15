@@ -198,6 +198,10 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
     if (!formOk) return;
     final draft = Vehicle(
       name: _nameCtrl.text.trim(),
+      // Preserve the listing's (immutable) condition so toCreateJson
+      // emits the correct flow-specific block on edit — without it,
+      // USED-only fields like color / registration_no would be dropped.
+      condition: widget.initial?.condition,
       description: _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
       category: _category,
       subCategory: (_subCategory == null || _subCategory!.isEmpty)

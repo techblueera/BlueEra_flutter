@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/earn_profile_controller.dart';
@@ -31,11 +32,11 @@ class EarnServiceStats extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildStat(
-                        label: 'Views',
+                        label: AppStrings.views.tr,
                         value: _formatCount(profile?.totalViews)),
                     SizedBox(height: SizeConfig.size8),
                     _buildStat(
-                        label: 'Inquiries',
+                        label: AppStrings.inquiriesLabel.tr,
                         value: _formatCount(profile?.totalInquiries)),
                   ],
                 ),
@@ -46,11 +47,11 @@ class EarnServiceStats extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildStat(
-                        label: 'Followers',
+                        label: AppStrings.followers.tr,
                         value: _formatCount(profile?.totalFollowers)),
                     SizedBox(height: SizeConfig.size8),
                     _buildStat(
-                        label: 'Following',
+                        label: AppStrings.following.tr,
                         value: _formatCount(profile?.totalFollowing)),
                   ],
                 ),
@@ -62,7 +63,7 @@ class EarnServiceStats extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     CustomText(
-                      'Joined',
+                      AppStrings.joinedLabel.tr,
                       fontSize: SizeConfig.small,
                       fontWeight: FontWeight.w600,
                       color: AppColors.mainTextColor,

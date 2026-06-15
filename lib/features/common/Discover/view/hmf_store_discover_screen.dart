@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/controller/hmf_cart_controller.dart';
@@ -71,7 +72,7 @@ class _HmfStoreDiscoverScreenState extends State<HmfStoreDiscoverScreen> {
                   color: _primary, size: 56),
               const SizedBox(height: 16),
               CustomText(
-                'Leave without ordering?',
+                AppStrings.leaveWithoutOrdering.tr,
                 fontSize: SizeConfig.large,
                 fontWeight: FontWeight.w800,
                 color: AppColors.mainTextColor,
@@ -79,7 +80,7 @@ class _HmfStoreDiscoverScreenState extends State<HmfStoreDiscoverScreen> {
               ),
               const SizedBox(height: 8),
               CustomText(
-                'Your cart will be cleared if you go back.',
+                AppStrings.cartWillBeCleared.tr,
                 fontSize: SizeConfig.small,
                 fontWeight: FontWeight.w500,
                 color: AppColors.secondaryTextColor,
@@ -101,7 +102,7 @@ class _HmfStoreDiscoverScreenState extends State<HmfStoreDiscoverScreen> {
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: CustomText('Leave',
+                      child: CustomText(AppStrings.leaveLabel.tr,
                           color: AppColors.secondaryTextColor,
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w700),
@@ -121,7 +122,7 @@ class _HmfStoreDiscoverScreenState extends State<HmfStoreDiscoverScreen> {
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: CustomText('View Cart',
+                      child: CustomText(AppStrings.viewCart.tr,
                           color: AppColors.white,
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w800),
@@ -224,8 +225,8 @@ class _HmfStoreDiscoverScreenState extends State<HmfStoreDiscoverScreen> {
         Expanded(
           child: EarnProfileStoreList(
             controller: controller,
-            footerLabel: 'View Kitchen Menu',
-            emptyMessage: 'No home made food kitchens found nearby.',
+            footerLabel: AppStrings.viewKitchenMenu.tr,
+            emptyMessage: AppStrings.noHomeMadeFoodKitchens.tr,
             bottomPadding: 96,
             onStoreTap: (store) => Get.to(
                 () => HmfStoreDetailsDiscoverScreen(userId: store.userId ?? '')),
@@ -283,7 +284,7 @@ class _HmfStoreDiscoverScreenState extends State<HmfStoreDiscoverScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         CustomText(
-                          'Add Your Own Home Made Food',
+                          AppStrings.addYourOwnHomeMadeFood.tr,
                           fontSize: 14.5,
                           fontWeight: FontWeight.w800,
                           color: AppColors.mainTextColor,
@@ -292,7 +293,7 @@ class _HmfStoreDiscoverScreenState extends State<HmfStoreDiscoverScreen> {
                         ),
                         const SizedBox(height: 2),
                         CustomText(
-                          'Start your home kitchen & reach nearby foodies',
+                          AppStrings.startYourHomeKitchen.tr,
                           fontSize: 11.5,
                           fontWeight: FontWeight.w500,
                           color: AppColors.secondaryTextColor,
@@ -349,7 +350,7 @@ class _HmfStoreDiscoverScreenState extends State<HmfStoreDiscoverScreen> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           CustomText(
-            'Home Kitchens Near You',
+            AppStrings.homeKitchensNearYou.tr,
             fontSize: 17,
             fontWeight: FontWeight.w800,
             color: AppColors.mainTextColor,
@@ -379,10 +380,10 @@ class _HmfStoreDiscoverScreenState extends State<HmfStoreDiscoverScreen> {
         child: FloatingCartWidget(
           itemCount: count,
           displayImages: cartController.previewImages,
-          cartLabel: stores > 1 ? 'View Carts' : 'View Cart',
+          cartLabel: stores > 1 ? AppStrings.viewCarts.tr : AppStrings.viewCart.tr,
           itemLabel: stores > 1
-              ? '$stores kitchens  •  $count ${count == 1 ? 'item' : 'items'}'
-              : '$count ${count == 1 ? 'item' : 'items'}  •  ${AppConstants.rupeeSymbol}${cartController.totalPrice.toStringAsFixed(0)}',
+              ? '$stores ${AppStrings.kitchensLabel.tr}  •  $count ${count == 1 ? AppStrings.itemLabel.tr : AppStrings.itemsLabel.tr}'
+              : '$count ${count == 1 ? AppStrings.itemLabel.tr : AppStrings.itemsLabel.tr}  •  ${AppConstants.rupeeSymbol}${cartController.totalPrice.toStringAsFixed(0)}',
           onTap: () => Get.to(() => const HmfCartScreen()),
         ),
       );

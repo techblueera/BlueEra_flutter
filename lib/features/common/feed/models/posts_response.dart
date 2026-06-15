@@ -55,6 +55,7 @@ class Post {
   final String? title;
   final String? subTitle;
   final String? type;
+  final String? post_via;
   final String? natureOfPost;
   final String? referenceLink;
    int? commentsCount;
@@ -85,10 +86,12 @@ class Post {
   final Post? children_post;
   final num? media_height;
   final num? media_width;
+  final String? channelName;
 
   Post({
     required this.id,
     this.message,
+    this.channelName,
     this.is_reposted,
     this.children_post,
     this.location,
@@ -101,6 +104,7 @@ class Post {
     this.referenceLink,
     this.commentsCount,
     this.likesCount,
+    this.post_via,
     this.repostCount,
     this.viewsCount,
     this.sharesCount,
@@ -129,12 +133,14 @@ class Post {
   factory Post.fromJson(Map<String, dynamic> json) {
     return Post(
       id: json['_id']?? json['id'] ?? ""??"",
+      channelName: json['channelName'],
       is_reposted: json['is_reposted'],
       message: json['message'],
       // location: json['location'],
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
       title: json['title'],
+      post_via: json['post_via'],
       subTitle: json['sub_title'],
       type: json['type'],
       natureOfPost: json['nature_of_post'],
@@ -183,10 +189,12 @@ class Post {
     return {
       '_id': id,
       // '_id': id,
+      'channelName': channelName,
       'message': message,
       'is_reposted': is_reposted,
       'location': location,
       'latitude': latitude,
+      'post_via': post_via,
       'longitude': longitude,
       'title': title,
       'sub_title': subTitle,
@@ -226,6 +234,8 @@ class Post {
   Post copyWith({
     String? id,
     String? message,
+    String? channelName,
+    String? post_via,
     String? location,
     double? latitude,
     double? longitude,
@@ -263,6 +273,8 @@ class Post {
     return Post(
       id: id ?? this.id,
       message: message ?? this.message,
+      channelName: channelName ?? this.channelName,
+      post_via: post_via ?? this.post_via,
       is_reposted: is_reposted ?? this.is_reposted,
       location: location ?? this.location,
       latitude: latitude ?? this.latitude,
@@ -289,6 +301,8 @@ class Post {
       user: user ?? this.user,
       isPostSavedLocal: isPostSavedLocal ?? this.isPostSavedLocal,
       song: song ?? this.song,
+      videoUrl: videoUrl ?? this.videoUrl,
+      duration: duration ?? this.duration,
       thumbnail: thumbnail ?? this.thumbnail,
       channel: channel ?? this.channel,
       children_post: children_post ?? this.children_post,
@@ -508,58 +522,6 @@ class SubCategoryDetails {
     );
   }
 }
-
-// class LocationMetadata {
-//   final double? lat;
-//   final double? long;
-//   final String? state;
-//   final String? distance;
-//   final String? name;
-//
-//   LocationMetadata({
-//     this.lat,
-//     this.long,
-//     this.state,
-//     this.distance,
-//     this.name,
-//   });
-//
-//   factory LocationMetadata.fromJson(Map<String, dynamic> json) {
-//     return LocationMetadata(
-//       lat: (json['lat'] as num?)?.toDouble(),
-//       long: (json['long'] as num?)?.toDouble(),
-//       state: json['state'],
-//       distance: json['distance'],
-//       name: json['name'],
-//     );
-//   }
-//
-//   Map<String, dynamic> toJson() {
-//     return {
-//       'lat': lat,
-//       'long': long,
-//       'state': state,
-//       'distance': distance,
-//       'name': name,
-//     };
-//   }
-//
-//   LocationMetadata copyWith({
-//     double? lat,
-//     double? long,
-//     String? state,
-//     String? distance,
-//     String? name,
-//   }) {
-//     return LocationMetadata(
-//       lat: lat ?? this.lat,
-//       long: long ?? this.long,
-//       state: state ?? this.state,
-//       distance: distance ?? this.distance,
-//       name: name ?? this.name,
-//     );
-//   }
-// }
 
 class Pagination {
   final int? page;

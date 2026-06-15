@@ -1,10 +1,12 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 /// Saves one variant's price to the inventory endpoint. Each caller supplies
 /// the concrete service (product-service for admin/manufacturer cards,
@@ -27,7 +29,7 @@ class ProductPriceEditSheet {
   }) async {
     final classification = product.product.sellerClassification;
     if (classification == null || classification.variants.isEmpty) {
-      commonSnackBar(message: 'No variants to edit');
+      commonSnackBar(message: AppStrings.noVariantsToEdit.tr);
       return;
     }
 
@@ -99,7 +101,7 @@ class _PriceEditSheetBodyState extends State<_PriceEditSheetBody> {
     // variant `_id`; fall back to the variant id only if it's missing.
     final inventoryId = v.inventoryId.isNotEmpty ? v.inventoryId : v.id;
     if (inventoryId.isEmpty) {
-      commonSnackBar(message: 'This variant can\'t be updated');
+      commonSnackBar(message: AppStrings.variantCannotBeUpdated.tr);
       return;
     }
     setState(() => _saving[i] = true);
@@ -113,7 +115,7 @@ class _PriceEditSheetBodyState extends State<_PriceEditSheetBody> {
     );
     if (!mounted) return;
     setState(() => _saving[i] = false);
-    commonSnackBar(message: ok ? 'Updated' : 'Update failed');
+    commonSnackBar(message: ok ? AppStrings.updatedLabel.tr : AppStrings.updateFailed.tr);
   }
 
   @override
@@ -141,10 +143,10 @@ class _PriceEditSheetBodyState extends State<_PriceEditSheetBody> {
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: const [
-                  CustomText('Update Price',
+                children: [
+                  CustomText(AppStrings.updatePrice.tr,
                       fontSize: 18, fontWeight: FontWeight.w600),
-                  CloseButton(),
+                  const CloseButton(),
                 ],
               ),
               CustomText(
@@ -178,7 +180,7 @@ class _PriceEditSheetBodyState extends State<_PriceEditSheetBody> {
                             Expanded(
                               child: CommonTextField(
                                 textEditController: _priceCtrls[i],
-                                title: 'Selling Price',
+                                title: AppStrings.sellingPriceLabel.tr,
                                 hintText: '0',
                                 keyBoardType: TextInputType.number,
                               ),
@@ -187,7 +189,7 @@ class _PriceEditSheetBodyState extends State<_PriceEditSheetBody> {
                             Expanded(
                               child: CommonTextField(
                                 textEditController: _mrpCtrls[i],
-                                title: 'MRP',
+                                title: AppStrings.mrpLabel.tr,
                                 hintText: '0',
                                 keyBoardType: TextInputType.number,
                               ),
@@ -235,7 +237,7 @@ class _PriceEditSheetBodyState extends State<_PriceEditSheetBody> {
                 ),
               )
             : CustomText(
-                'Update',
+                AppStrings.update.tr,
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
                 color: Colors.white,
@@ -253,7 +255,7 @@ class _PriceEditSheetBodyState extends State<_PriceEditSheetBody> {
     if (attrLabel != null) return attrLabel;
     final productName = widget.product.product.details?.name.trim() ?? '';
     if (productName.isNotEmpty) return productName;
-    return 'Variant ${index + 1}';
+    return '${AppStrings.variantLabel.tr} ${index + 1}';
   }
 
   static String? _attributesLabel(Variant v) {

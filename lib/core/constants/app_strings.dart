@@ -6935,4 +6935,213 @@ class AppStrings {
   static const String selectLocationPill = "selectLocationPill";
   static const String viewOnMap = "viewOnMap";
 
+  /// Self-employed profession service screen
+  /// (self_profession_service_screen.dart) — section titles, empty-state
+  /// hints, gallery prompts, update-sheet labels and field hints.
+  static const String serviceType = "serviceType";
+  static const String months = "months";
+  static const String feeType = "feeType";
+  static const String serviceTypesHeader = "serviceTypesHeader";
+  static const String pickServicesYouOffer = "pickServicesYouOffer";
+  static const String pickServicesForCustomers = "pickServicesForCustomers";
+  static const String addSkillsYouSpecialiseIn = "addSkillsYouSpecialiseIn";
+  static const String listInstallationsYouHandle = "listInstallationsYouHandle";
+  static const String pickCategoriesMatchWork = "pickCategoriesMatchWork";
+  static const String tellCustomersWhyChooseYou = "tellCustomersWhyChooseYou";
+  static const String minMaxCaption = "minMaxCaption";
+  static const String showcaseCraftSubtitle = "showcaseCraftSubtitle";
+  static const String galleryMaxPhotos = "galleryMaxPhotos";
+  static const String createEarnServiceProfileTitle = "createEarnServiceProfileTitle";
+  static const String createEarnServiceProfileSubtitle = "createEarnServiceProfileSubtitle";
+  static const String creating = "creating";
+  static const String egOneYear = "egOneYear";
+  static const String egThreeMonths = "egThreeMonths";
+  static const String egMinPrice = "egMinPrice";
+  static const String egMaxPrice = "egMaxPrice";
+  static const String serviceDescriptionFieldHint = "serviceDescriptionFieldHint";
+
+  /// Availability schedule card (availability_schedule_card.dart) —
+  /// weekly working-hours grid + empty-state CTA.
+  static const String closed = "closed";
+  static const String setYourWorkingHours = "setYourWorkingHours";
+  static const String tellClientsAvailability = "tellClientsAvailability";
+
+  /// Earn / Discover home-made-food flow — gallery widget, store-section
+  /// cards (earn_store_section.dart) and the HMF discover screens.
+  static const String youHaveNotPostPhotoGallery = "youHaveNotPostPhotoGallery";
+  static const String homeService = "homeService";
+  static const String offerHomeServices = "offerHomeServices";
+  static const String sellHomeMadeProducts = "sellHomeMadeProducts";
+  static const String sellTiffinsHomeDishes = "sellTiffinsHomeDishes";
+  static const String homeDelivery = "homeDelivery";
+  static const String monthlyPayment = "monthlyPayment";
+  static const String vegFood = "vegFood";
+  static const String nonVeg = "nonVeg";
+  static const String openDashboard = "openDashboard";
+  static const String kmAwayUpper = "kmAwayUpper";
+  static const String kmAwayLower = "kmAwayLower";
+  static const String percentOff = "percentOff";
+  static const String statisticsComingSoon = "statisticsComingSoon";
+  static const String homeMadeFoodStatistics = "homeMadeFoodStatistics";
+  static const String homeMadeProductsStatistics = "homeMadeProductsStatistics";
+  static const String homeServiceStatistics = "homeServiceStatistics";
+  static const String leaveWithoutOrdering = "leaveWithoutOrdering";
+  static const String cartWillBeCleared = "cartWillBeCleared";
+  static const String leaveLabel = "leaveLabel";
+  static const String viewCart = "viewCart";
+  static const String viewCarts = "viewCarts";
+  static const String storeDetailsNotAvailable = "storeDetailsNotAvailable";
+  static const String noTiffinItemsFound = "noTiffinItemsFound";
+  static const String noItemsFoundHere = "noItemsFoundHere";
+  static const String kitchenLabel = "kitchenLabel";
+  static const String kitchensLabel = "kitchensLabel";
+  static const String itemLabel = "itemLabel";
+  static const String itemsLabel = "itemsLabel";
+  static const String viewKitchenMenu = "viewKitchenMenu";
+  static const String noHomeMadeFoodKitchens = "noHomeMadeFoodKitchens";
+  static const String addYourOwnHomeMadeFood = "addYourOwnHomeMadeFood";
+  static const String startYourHomeKitchen = "startYourHomeKitchen";
+  static const String homeKitchensNearYou = "homeKitchensNearYou";
+  static const String tiffinCategory = "tiffinCategory";
+  static const String bakeryCategory = "bakeryCategory";
+  static const String sweetsCategory = "sweetsCategory";
+  static const String namkeenCategory = "namkeenCategory";
+  static const String picklesCategory = "picklesCategory";
+  static const String breakFast = "breakFast";
+
+  /// Home-made-food dashboard (hmf_home_page.dart) — blurred demo-card
+  /// placeholder text shown behind the "Add" overlay.
+  static const String dummyTiffinDish = "dummyTiffinDish";
+  static const String dummyPickleDish = "dummyPickleDish";
+  static const String boiledLabel = "boiledLabel";
+  static const String tiffinLunchLabel = "tiffinLunchLabel";
+
+  /// Earn-service widgets (contact/header/stats/testimonial/website/price)
+  /// and the in-chat service-enquiry card.
+  static const String updateContactInfo = "updateContactInfo";
+  static const String egPlot71 = "egPlot71";
+  static const String alternatePhone = "alternatePhone";
+  static const String addType = "addType";
+  static const String selectType = "selectType";
+  static const String pleaseSelectType = "pleaseSelectType";
+  static const String typeOfWork = "typeOfWork";
+  static const String requestType = "requestType";
+  static const String photoLabel = "photoLabel";
+  static const String photosLabel = "photosLabel";
+  static const String customRequest = "customRequest";
+  static const String serviceEnquiry = "serviceEnquiry";
+  static const String noteLabel = "noteLabel";
+  static const String enquiryAccepted = "enquiryAccepted";
+  static const String enquiryDeclined = "enquiryDeclined";
+  static const String waitingForResponse = "waitingForResponse";
+  static const String acceptedStatus = "acceptedStatus";
+  static const String declinedStatus = "declinedStatus";
+  static const String pendingStatus = "pendingStatus";
+  static const String inquiriesLabel = "inquiriesLabel";
+  static const String addWebsite = "addWebsite";
+  static const String updateWebsite = "updateWebsite";
+  static const String websiteUrl = "websiteUrl";
+  static const String egWebsiteUrl = "egWebsiteUrl";
+  static const String noVariantsToEdit = "noVariantsToEdit";
+  static const String variantCannotBeUpdated = "variantCannotBeUpdated";
+  static const String updatedLabel = "updatedLabel";
+  static const String updatePrice = "updatePrice";
+  static const String sellingPriceLabel = "sellingPriceLabel";
+  static const String mrpLabel = "mrpLabel";
+  static const String variantLabel = "variantLabel";
+
+  // ─── Add-vehicle flow (NEW / USED) ─────────────────────────────────
+  static const String addVehicleTitle = "addVehicleTitle";
+  static const String chooseVehicleConditionPrompt =
+      "chooseVehicleConditionPrompt";
+  static const String newVehicleOption = "newVehicleOption";
+  static const String newVehicleOptionDesc = "newVehicleOptionDesc";
+  static const String usedVehicleOption = "usedVehicleOption";
+  static const String usedVehicleOptionDesc = "usedVehicleOptionDesc";
+
+  // Step titles
+  static const String selectVehicleTitle = "selectVehicleTitle";
+  static const String specificationsOffersTitle = "specificationsOffersTitle";
+  static const String photosLocationContactTitle =
+      "photosLocationContactTitle";
+  static const String vehicleInformationTitle = "vehicleInformationTitle";
+  static const String vehicleDetailsTitle = "vehicleDetailsTitle";
+
+  // Section + field labels
+  static const String mainCategoryLabel = "mainCategoryLabel";
+  static const String vehicleCategoryLabel = "vehicleCategoryLabel";
+  static const String vehicleTypeLabel = "vehicleTypeLabel";
+  static const String availabilityFieldLabel = "availabilityFieldLabel";
+  static const String deliveryTimeFieldLabel = "deliveryTimeFieldLabel";
+  static const String vehiclePricingLabel = "vehiclePricingLabel";
+  static const String exShowroomPriceLabel = "exShowroomPriceLabel";
+  static const String onRoadPriceLabel = "onRoadPriceLabel";
+  static const String emiAvailableLabel = "emiAvailableLabel";
+  static const String downPaymentLabel = "downPaymentLabel";
+  static const String monthlyEmiLabel = "monthlyEmiLabel";
+  static const String vehicleInformationLabel = "vehicleInformationLabel";
+  static const String fuelTypeLabel = "fuelTypeLabel";
+  static const String engineCapacityLabel = "engineCapacityLabel";
+  static const String describeSellingLabel = "describeSellingLabel";
+  static const String specialOffersLabel = "specialOffersLabel";
+  static const String uploadPhotosVideosLabel = "uploadPhotosVideosLabel";
+  static const String uploadPhotosLabel = "uploadPhotosLabel";
+  static const String uploadVideoLabel = "uploadVideoLabel";
+  static const String areaLocalityLabel = "areaLocalityLabel";
+  static const String pinCodeLabel = "pinCodeLabel";
+  static const String sellerContactDetailsLabel = "sellerContactDetailsLabel";
+  static const String sellerNameLabel = "sellerNameLabel";
+  static const String mobileNumberLabel = "mobileNumberLabel";
+  static const String submitListingLabel = "submitListingLabel";
+  static const String manufacturingYearLabel = "manufacturingYearLabel";
+  static const String registrationYearLabel = "registrationYearLabel";
+  static const String registrationNumberLabel = "registrationNumberLabel";
+  static const String ownershipLabel = "ownershipLabel";
+  static const String conditionGradeLabel = "conditionGradeLabel";
+  static const String expectedPriceLabel = "expectedPriceLabel";
+  static const String negotiableLabel = "negotiableLabel";
+  static const String kilometresDrivenLabel = "kilometresDrivenLabel";
+  static const String insuranceValidTillLabel = "insuranceValidTillLabel";
+  static const String rcAvailableLabel = "rcAvailableLabel";
+  static const String pollutionCertificateLabel = "pollutionCertificateLabel";
+  static const String serviceHistoryLabel = "serviceHistoryLabel";
+
+  // Hints
+  static const String priceHintExample = "priceHintExample";
+  static const String selectTransmissionHint = "selectTransmissionHint";
+  static const String engineCapacityHint = "engineCapacityHint";
+  static const String mileageHintExample = "mileageHintExample";
+  static const String kmDrivenHint = "kmDrivenHint";
+  static const String describeHint = "describeHint";
+  static const String variantHintExample = "variantHintExample";
+  static const String registrationNumberHint = "registrationNumberHint";
+  static const String areaHintExample = "areaHintExample";
+  static const String pinCodeHintExample = "pinCodeHintExample";
+  static const String sellerNameHintExample = "sellerNameHintExample";
+  static const String selectHint = "selectHint";
+  static const String selectDateHint = "selectDateHint";
+
+  // Validation
+  static const String selectMainCategoryErr = "selectMainCategoryErr";
+  static const String selectVehicleCategoryErr = "selectVehicleCategoryErr";
+  static const String selectVehicleTypeErr = "selectVehicleTypeErr";
+  static const String selectAvailabilityErr = "selectAvailabilityErr";
+  static const String selectDeliveryTimeErr = "selectDeliveryTimeErr";
+  static const String exShowroomPriceRequiredErr = "exShowroomPriceRequiredErr";
+  static const String downPaymentRequiredErr = "downPaymentRequiredErr";
+  static const String monthlyEmiRequiredErr = "monthlyEmiRequiredErr";
+  static const String manufacturingYearRequiredErr =
+      "manufacturingYearRequiredErr";
+  static const String registrationYearRequiredErr =
+      "registrationYearRequiredErr";
+  static const String registrationNumberRequiredErr =
+      "registrationNumberRequiredErr";
+  static const String selectOwnershipErr = "selectOwnershipErr";
+  static const String selectConditionGradeErr = "selectConditionGradeErr";
+  static const String expectedPriceRequiredErr = "expectedPriceRequiredErr";
+  static const String kmDrivenRequiredErr = "kmDrivenRequiredErr";
+  static const String enterValidNumberErr = "enterValidNumberErr";
+  static const String sellerNameRequiredErr = "sellerNameRequiredErr";
+  static const String mobileNumberRequiredErr = "mobileNumberRequiredErr";
+
 }

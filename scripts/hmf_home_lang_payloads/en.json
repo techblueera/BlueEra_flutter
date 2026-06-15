@@ -1,0 +1,23 @@
+{
+  "add": "Add",
+  "bakery": "Bakery",
+  "boiledLabel": "Boiled",
+  "breakFastSlot": "Break-Fast",
+  "dummyPickleDish": "Kerala Style Mango Pickle...",
+  "dummyTiffinDish": "2 Idli + Sambar + Chutney",
+  "edit": "Edit",
+  "eveningTiffinDinner": "Evening Tiffin / Dinner",
+  "homeMadeFoodSection": "Home Made Food",
+  "liveLabel": "Live",
+  "morningTiffinLunch": "Morning Tiffin / Lunch",
+  "namkeensLabel": "Namkeens",
+  "picklesLabel": "Pickles",
+  "servedPrefix": "Served",
+  "slotTimingBreakfast": "6AM - 10AM",
+  "slotTimingDinner": "5PM - 10PM",
+  "slotTimingLunch": "7AM - 2PM",
+  "sweets": "Sweets",
+  "tiffin": "Tiffin",
+  "tiffinLunchLabel": "Tiffin/Lunch",
+  "uploadPhotoTitle": "Upload Photo"
+}

@@ -25,6 +25,16 @@ class VehicleController extends GetxController {
   final RxList<VehicleType> vehicleTypes = <VehicleType>[].obs;
   final Rx<ApiResponse> vehicleTypesState = ApiResponse.initial().obs;
 
+  // ─── Upload-form pickers (condition + detail option sets) ─────────
+  // Populated from `GET /vehicles/conditions` and `GET /vehicles/options`
+  // — server-controlled, never hardcoded. Cached after first load.
+  final RxList<VehicleOption> vehicleConditions = <VehicleOption>[].obs;
+  final Rxn<VehicleOptionSets> optionSets = Rxn<VehicleOptionSets>();
+
+  // Seller contact pre-fill (the caller's own name / mobile).
+  final RxString sellerDefaultName = ''.obs;
+  final RxString sellerDefaultMobile = ''.obs;
+
   // ─── Owner-side state (Me-tab) ────────────────────────────────────
   final RxList<Vehicle> myVehicles = <Vehicle>[].obs;
   final Rx<ApiResponse> myVehiclesState = ApiResponse.initial().obs;
@@ -86,6 +96,44 @@ class VehicleController extends GetxController {
     } catch (e) {
       vehicleTypesState.value = ApiResponse.error(e.toString());
     }
+  }
+
+  /// Load the NEW / USED condition picker. Cached.
+  Future<void> fetchConditions({bool force = false}) async {
+    if (!force && vehicleConditions.isNotEmpty) return;
+    try {
+      final res = await _repo.listConditions();
+      if (res.isSuccess) {
+        vehicleConditions.value =
+            VehicleOption.listFrom(res.response?.data?['conditions']);
+      }
+    } catch (_) {}
+  }
+
+  /// Load all listing-detail option sets in one call. Cached.
+  Future<void> fetchOptions({bool force = false}) async {
+    if (!force && optionSets.value != null) return;
+    try {
+      final res = await _repo.listOptions();
+      if (res.isSuccess) {
+        optionSets.value = VehicleOptionSets.fromJson(
+          Map<String, dynamic>.from(res.response?.data ?? const {}),
+        );
+      }
+    } catch (_) {}
+  }
+
+  /// Pre-fill the seller contact fields from the caller's profile.
+  Future<void> fetchSellerDefaults() async {
+    try {
+      final res = await _repo.getSellerDefaults();
+      if (res.isSuccess) {
+        sellerDefaultName.value =
+            (res.response?.data?['seller_name'] ?? '').toString();
+        sellerDefaultMobile.value =
+            (res.response?.data?['seller_mobile'] ?? '').toString();
+      }
+    } catch (_) {}
   }
 
   /// Resolve a category `value` (e.g. `"CAR"`) to its display label
@@ -150,47 +198,44 @@ class VehicleController extends GetxController {
     }
   }
 
-  /// Create a new vehicle. Uploads any local-file cover/images first
-  /// via the presigned PUT flow, then POSTs the JSON payload.
+  /// Create a new vehicle. Uploads any local-file cover/images/videos
+  /// first via the presigned PUT flow, then POSTs the JSON payload.
+  ///
+  /// The full [draft] is serialised via `toCreateJson()` so every
+  /// condition-specific field (NEW or USED) flows through unchanged;
+  /// only the media URLs are injected here after upload.
   Future<Vehicle?> createVehicle({
     required Vehicle draft,
     File? coverImageFile,
     List<File> imageFiles = const [],
+    List<File> videoFiles = const [],
   }) async {
     isSavingVehicle.value = true;
     try {
-      String? coverUrl = draft.coverImage;
-      if (coverImageFile != null) {
-        coverUrl = await uploadFile(coverImageFile);
-      }
-
       final imageUrls = <String>[...draft.images];
       for (final f in imageFiles) {
         final url = await uploadFile(f);
         if (url != null) imageUrls.add(url);
       }
 
-      final body = Vehicle(
-        name: draft.name,
-        description: draft.description,
-        category: draft.category,
-        subCategory: draft.subCategory,
-        brand: draft.brand,
-        model: draft.model,
-        year: draft.year,
-        color: draft.color,
-        registrationNo: draft.registrationNo,
-        fuelType: draft.fuelType,
-        transmission: draft.transmission,
-        seatingCapacity: draft.seatingCapacity,
-        mileage: draft.mileage,
-        price: draft.price,
-        currency: draft.currency,
-        location: draft.location,
-        coverImage: coverUrl,
-        images: imageUrls,
-        businessId: draft.businessId,
-      ).toCreateJson();
+      final videoUrls = <String>[...draft.videos];
+      for (final f in videoFiles) {
+        final url = await uploadFile(f);
+        if (url != null) videoUrls.add(url);
+      }
+
+      // Cover: an explicit pick wins; otherwise fall back to the first
+      // uploaded photo so every listing has a thumbnail.
+      String? coverUrl = draft.coverImage;
+      if (coverImageFile != null) {
+        coverUrl = await uploadFile(coverImageFile);
+      }
+      coverUrl ??= imageUrls.isNotEmpty ? imageUrls.first : null;
+
+      final body = draft.toCreateJson();
+      if (coverUrl != null) body['cover_image'] = coverUrl;
+      if (imageUrls.isNotEmpty) body['images'] = imageUrls;
+      if (videoUrls.isNotEmpty) body['videos'] = videoUrls;
 
       final res = await _repo.createVehicle(body: body);
       if (res.isSuccess) {

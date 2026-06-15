@@ -7,6 +7,11 @@ mixin VehicleServiceApi {
   // Public + owner vehicle CRUD
   // Canonical, server-controlled type taxonomy (drives the type picker).
   final String vehicleTypes = 'vehicle-service/vehicles/types';
+  // Condition (NEW/USED) + listing-detail option pickers + seller pre-fill.
+  final String vehicleConditions = 'vehicle-service/vehicles/conditions';
+  final String vehicleOptions = 'vehicle-service/vehicles/options';
+  final String vehicleSellerDefaults =
+      'vehicle-service/vehicles/seller-defaults';
   final String vehiclesList = 'vehicle-service/vehicles';
   String vehicleById(String id) => 'vehicle-service/vehicles/get/$id';
   final String vehiclesCreate = 'vehicle-service/vehicles/create';

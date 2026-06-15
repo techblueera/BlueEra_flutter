@@ -27,6 +27,39 @@ class VehicleRepo extends BaseService {
     );
   }
 
+  /// GET /vehicles/conditions — public. NEW / USED picker options.
+  Future<ResponseModel> listConditions({bool showProgress = false}) async {
+    return ApiBaseHelper().getHTTP(
+      vehicleConditions,
+      showProgress: showProgress,
+      onSuccess: (_) {},
+      onError: (_) {},
+    );
+  }
+
+  /// GET /vehicles/options — public. Every non-taxonomy picker in one
+  /// call (availability, delivery_time, special_offers, ownership,
+  /// condition_grade).
+  Future<ResponseModel> listOptions({bool showProgress = false}) async {
+    return ApiBaseHelper().getHTTP(
+      vehicleOptions,
+      showProgress: showProgress,
+      onSuccess: (_) {},
+      onError: (_) {},
+    );
+  }
+
+  /// GET /vehicles/seller-defaults — auth. Pre-fills seller_name /
+  /// seller_mobile from the caller's own profile.
+  Future<ResponseModel> getSellerDefaults({bool showProgress = false}) async {
+    return ApiBaseHelper().getHTTP(
+      vehicleSellerDefaults,
+      showProgress: showProgress,
+      onSuccess: (_) {},
+      onError: (_) {},
+    );
+  }
+
   /// GET /vehicles  — public, paginated, filterable.
   Future<ResponseModel> listVehicles({
     String? category,

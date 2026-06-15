@@ -56,7 +56,7 @@ class _HomeProfileScreenState extends State<HomeProfileScreen> {
   Future<void> _pickLogo() async {
     final path = await CommonImageUploadTile.pickImage(
       context: context,
-      title: AppStrings.yourBusinessLogo,
+      title: AppStrings.yourBusinessLogo.tr,
     );
     if (path != null) {
       _logoFile.value = File(path);
@@ -66,7 +66,7 @@ class _HomeProfileScreenState extends State<HomeProfileScreen> {
   Future<void> _pickGalleryImage() async {
     final path = await CommonImageUploadTile.pickImage(
       context: context,
-      title: AppStrings.uploadPhotoTitle,
+      title: AppStrings.uploadPhotoTitle.tr,
     );
     if (path != null) {
       _galleryImages.add(path);
@@ -111,7 +111,7 @@ class _HomeProfileScreenState extends State<HomeProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(title: AppStrings.homeMadeProductSection),
+      appBar: CommonBackAppBar(title: AppStrings.homeMadeProductSection.tr),
       bottomNavigationBar: _buildActionButtons(),
       body: SingleChildScrollView(
         padding: EdgeInsets.symmetric(
@@ -130,23 +130,23 @@ class _HomeProfileScreenState extends State<HomeProfileScreen> {
 
                 CommonTextField(
                   textEditController: _nameController,
-                  title: AppStrings.yourBusinessName,
-                  hintText: AppStrings.egSangitaHandicraft,
+                  title: AppStrings.yourBusinessName.tr,
+                  hintText: AppStrings.egSangitaHandicraft.tr,
                   isValidate: true,
                 ),
                 SizedBox(height: SizeConfig.size16),
 
                 CommonTextField(
                   textEditController: _houseNumberController,
-                  title: AppStrings.houseNumberLabel,
-                  hintText: AppStrings.egMG12,
+                  title: AppStrings.houseNumberLabel.tr,
+                  hintText: AppStrings.egMG12.tr,
                 ),
                 SizedBox(height: SizeConfig.size16),
 
                 CommonLocationSearchField(
                   controller: _addressController,
-                  title: AppStrings.addressLabel,
-                  hintText: AppStrings.egLucknowUtterPradesh,
+                  title: AppStrings.addressLabel.tr,
+                  hintText: AppStrings.egLucknowUtterPradesh.tr,
                   isShowLeading: false,
                   onSelected: (placeId, lat, lng, address) {
                     debugPrint(
@@ -181,7 +181,7 @@ class _HomeProfileScreenState extends State<HomeProfileScreen> {
                 SizedBox(height: SizeConfig.size20),
 
                 _buildToggleRow(
-                  label: AppStrings.doYouProvideHomeDelivery,
+                  label: AppStrings.doYouProvideHomeDelivery.tr,
                   value: _homeDelivery,
                   onChanged: (v) => setState(() => _homeDelivery = v),
                 ),
@@ -235,14 +235,14 @@ class _HomeProfileScreenState extends State<HomeProfileScreen> {
               ),
               SizedBox(height: SizeConfig.size8),
               CustomText(
-                AppStrings.yourBusinessLogo,
+                AppStrings.yourBusinessLogo.tr,
                 fontSize: SizeConfig.medium,
                 fontWeight: FontWeight.w500,
                 color: AppColors.mainTextColor,
               ),
               SizedBox(height: 2),
               CustomText(
-                AppStrings.addYourBrandLogoOrProfilePicture,
+                AppStrings.addYourBrandLogoOrProfilePicture.tr,
                 fontSize: SizeConfig.small,
                 color: AppColors.secondaryTextColor,
               ),
@@ -258,7 +258,7 @@ class _HomeProfileScreenState extends State<HomeProfileScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CustomText(
-          AppStrings.alternateContactNoOptional,
+          AppStrings.alternateContactNoOptional.tr,
           fontSize: SizeConfig.medium,
           fontWeight: FontWeight.w500,
           color: AppColors.mainTextColor,
@@ -382,7 +382,7 @@ class _HomeProfileScreenState extends State<HomeProfileScreen> {
             Expanded(
               child: CustomBtn(
                 onTap: () => Navigator.of(context).pop(),
-                title: AppStrings.cancel,
+                title: AppStrings.cancel.tr,
                 bgColor: AppColors.white,
                 textColor: AppColors.primaryColor,
                 borderColor: AppColors.primaryColor,
@@ -393,7 +393,7 @@ class _HomeProfileScreenState extends State<HomeProfileScreen> {
             Expanded(
               child: CustomBtn(
                 onTap: _onCreate,
-                title: AppStrings.create,
+                title: AppStrings.create.tr,
                 bgColor: AppColors.primaryColor,
                 textColor: AppColors.white,
                 radius: 10.0,

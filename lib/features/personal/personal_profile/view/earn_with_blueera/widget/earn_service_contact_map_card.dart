@@ -147,7 +147,7 @@ class EarnServiceContactMapCard extends StatelessWidget {
     final type = profile?.profileType ?? '';
     if (type.isEmpty) {
       return CustomText(
-        'N/A',
+        AppStrings.na.tr,
         color: AppColors.secondaryTextColor,
         fontSize: SizeConfig.medium,
       );
@@ -183,11 +183,11 @@ class EarnServiceContactMapCard extends StatelessWidget {
   String _profileTypeLabel(String raw) {
     switch (raw) {
       case 'homeMadeFood':
-        return 'Home Made Food';
+        return AppStrings.homeMadeFoodSection.tr;
       case 'homeMadeProduct':
-        return 'Home Made Product';
+        return AppStrings.homeMadeProductSection.tr;
       case 'homeService':
-        return 'Home Service';
+        return AppStrings.homeService.tr;
       default:
         return raw;
     }
@@ -233,10 +233,10 @@ class EarnServiceContactMapCard extends StatelessWidget {
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: const [
-                    CustomText('Update Contact Info',
+                  children: [
+                    CustomText(AppStrings.updateContactInfo.tr,
                         fontSize: 18, fontWeight: FontWeight.w600),
-                    CloseButton(),
+                    const CloseButton(),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -262,15 +262,15 @@ class EarnServiceContactMapCard extends StatelessWidget {
                 CommonTextField(
                   textEditController: addressCtrl,
                   maxLine: 3,
-                  title: AppStrings.fullBusinessAddress,
-                  hintText: AppStrings.addressHint,
+                  title: AppStrings.fullBusinessAddress.tr,
+                  hintText: AppStrings.addressHint.tr,
                   isValidate: true,
                 ),
                 SizedBox(height: SizeConfig.size16),
                 CommonTextField(
                   textEditController: houseCtrl,
-                  title: 'House Number',
-                  hintText: 'e.g. Plot 71',
+                  title: AppStrings.houseNumberLabel.tr,
+                  hintText: AppStrings.egPlot71.tr,
                   isValidate: false,
                 ),
                 SizedBox(height: SizeConfig.size16),
@@ -278,7 +278,7 @@ class EarnServiceContactMapCard extends StatelessWidget {
                   textEditController: phoneCtrl,
                   keyBoardType: TextInputType.phone,
                   maxLength: 10,
-                  title: 'Alternate Phone',
+                  title: AppStrings.alternatePhone.tr,
                   hintText: '1234567890',
                   isValidate: false,
                 ),
@@ -286,7 +286,7 @@ class EarnServiceContactMapCard extends StatelessWidget {
                 CommonTextField(
                   textEditController: emailCtrl,
                   keyBoardType: TextInputType.emailAddress,
-                  title: 'Email',
+                  title: AppStrings.email.tr,
                   hintText: 'name@example.com',
                   isValidate: false,
                 ),
@@ -294,7 +294,7 @@ class EarnServiceContactMapCard extends StatelessWidget {
                 CustomBtn(
                   radius: 10,
                   bgColor: AppColors.primaryColor,
-                  title: AppStrings.save,
+                  title: AppStrings.save.tr,
                   onTap: () async {
                     if (addressCtrl.text.trim().isEmpty) {
                       commonSnackBar(

@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/popup_menu_builders.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -30,6 +31,13 @@ class PostAuthorHeader extends StatelessWidget {
   final String? postedAgo;
   final bool? isRepost;
 
+  /// Channel name coming from the channel screen (channel feed context).
+  /// When the post is created via channel this takes priority over the
+  /// per-post [Post.channelName] so the channel feed always shows the
+  /// correct channel name. Null in the global feed, where we fall back
+  /// to the per-post value.
+  final String? channelName;
+
   const PostAuthorHeader({
     super.key,
     required this.post,
@@ -39,10 +47,14 @@ class PostAuthorHeader extends StatelessWidget {
     this.onTapOptions,
     this.postedAgo,
     this.isRepost = false,
+    this.channelName,
   });
 
   @override
   Widget build(BuildContext context) {
+    logs(" post?.post_via ${post?.post_via} | passedChannelName $channelName"
+        " | post.channel?.name ${post?.channel?.name}"
+        " | post.channelName ${post?.channelName}");
     String name =
         (post?.user?.accountType?.toUpperCase() == AppConstants.individual)
             ? post?.user?.name ?? 'User'
@@ -105,7 +117,12 @@ class PostAuthorHeader extends StatelessWidget {
               },
               child: ChannelProfileHeader(
                   imageUrl: post?.user?.profileImage ?? '',
-                  title: '$name',
+                  title: post?.post_via == "channel"
+                      ? (channelName ??
+                          post?.channel?.name ??
+                          post?.channelName ??
+                          '$name')
+                      : '$name',
                   userName: '${post?.user?.username}',
                   subtitle: designation != "null" ? designation : 'OTHERS',
                   avatarSize: SizeConfig.size42,
@@ -132,8 +149,9 @@ class PostAuthorHeader extends StatelessWidget {
                       onTapFunction(valueData: value, contextBuild: context);
                     },
                     icon: LocalAssets(imagePath: AppIconAssets.more_vertical),
-                    itemBuilder: (context) => PopupMenuBuilders.popupMenuVisitProfileActionItems(
-                        isSavePost: (post?.isPostSavedLocal ?? false)),
+                    itemBuilder: (context) =>
+                        PopupMenuBuilders.popupMenuVisitProfileActionItems(
+                            isSavePost: (post?.isPostSavedLocal ?? false)),
                   ),
                 )
               else

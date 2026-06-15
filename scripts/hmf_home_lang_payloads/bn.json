@@ -1,0 +1,23 @@
+{
+  "add": "যোগ করুন",
+  "bakery": "বেকারি",
+  "boiledLabel": "সিদ্ধ",
+  "breakFastSlot": "প্রাতরাশ",
+  "dummyPickleDish": "কেরালা স্টাইল আমের আচার...",
+  "dummyTiffinDish": "২ ইডলি + সাম্বার + চাটনি",
+  "edit": "এডিট",
+  "eveningTiffinDinner": "সন্ধ্যার টিফিন / ডিনার",
+  "homeMadeFoodSection": "ঘরে তৈরি খাবার",
+  "liveLabel": "লাইভ",
+  "morningTiffinLunch": "সকালের টিফিন / লাঞ্চ",
+  "namkeensLabel": "নমকিন",
+  "picklesLabel": "আচার",
+  "servedPrefix": "পরিবেশিত",
+  "slotTimingBreakfast": "6AM - 10AM",
+  "slotTimingDinner": "5PM - 10PM",
+  "slotTimingLunch": "7AM - 2PM",
+  "sweets": "মিষ্টি",
+  "tiffin": "টিফিন",
+  "tiffinLunchLabel": "টিফিন/লাঞ্চ",
+  "uploadPhotoTitle": "ছবি আপলোড করুন"
+}

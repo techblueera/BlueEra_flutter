@@ -206,7 +206,7 @@ class _EarnStoreCardsState extends State<EarnStoreCards> {
                       const Icon(Icons.add_rounded,
                           size: 15, color: Colors.white),
                       const SizedBox(width: 3),
-                      CustomText('Add',
+                      CustomText(AppStrings.add.tr,
                           fontSize: 12,
                           fontWeight: FontWeight.w800,
                           color: Colors.white),
@@ -356,7 +356,7 @@ class _EarnStoreCardsState extends State<EarnStoreCards> {
                   Icon(Icons.location_on_rounded,
                       size: 13, color: AppColors.primaryColor),
                   const SizedBox(width: 3),
-                  CustomText('${km.toStringAsFixed(0)}KM Away',
+                  CustomText('${km.toStringAsFixed(0)}${AppStrings.kmAwayUpper.tr}',
                       fontSize: 11.5,
                       fontWeight: FontWeight.w700,
                       color: AppColors.primaryColor),
@@ -402,22 +402,22 @@ class _EarnStoreCardsState extends State<EarnStoreCards> {
           children: [
             Expanded(
               child: _featureCol(
-                  Icons.delivery_dining_rounded, 'Home Delivery', dark),
+                  Icons.delivery_dining_rounded, AppStrings.homeDelivery.tr, dark),
             ),
             _vDivider(),
             Expanded(
               child: _featureCol(
-                  Icons.currency_rupee_rounded, 'Monthly Payment', dark),
+                  Icons.currency_rupee_rounded, AppStrings.monthlyPayment.tr, dark),
             ),
             _vDivider(),
             Expanded(
               child: hasDiet
                   ? _featureCol(
                       Icons.check_box_rounded,
-                      isVeg ? 'Veg Food' : 'Non-Veg',
+                      isVeg ? AppStrings.vegFood.tr : AppStrings.nonVeg.tr,
                       dietColor,
                     )
-                  : _featureCol(Icons.verified_rounded, 'Verified',
+                  : _featureCol(Icons.verified_rounded, AppStrings.verified.tr,
                       AppColors.primaryColor),
             ),
           ],
@@ -468,7 +468,7 @@ class _EarnStoreCardsState extends State<EarnStoreCards> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CustomText('Open Dashboard',
+          CustomText(AppStrings.openDashboard.tr,
               fontSize: 13,
               fontWeight: FontWeight.w800,
               color: Colors.white,
@@ -488,20 +488,20 @@ class _EarnStoreCardsState extends State<EarnStoreCards> {
       case 'homeService':
         return (
           icon: Icons.home_repair_service_rounded,
-          title: 'Home Service',
-          subtitle: 'Offer home services',
+          title: AppStrings.homeService.tr,
+          subtitle: AppStrings.offerHomeServices.tr,
         );
       case 'homeMadeProduct':
         return (
           icon: Icons.shopping_bag_rounded,
-          title: 'Home Made Product',
-          subtitle: 'Sell your home-made products',
+          title: AppStrings.homeMadeProductSection.tr,
+          subtitle: AppStrings.sellHomeMadeProducts.tr,
         );
       case 'homeMadeFood':
         return (
           icon: Icons.soup_kitchen_rounded,
-          title: 'Home Made Food',
-          subtitle: 'Sell tiffins & home-made dishes',
+          title: AppStrings.homeMadeFoodSection.tr,
+          subtitle: AppStrings.sellTiffinsHomeDishes.tr,
         );
       default:
         return (
@@ -522,10 +522,12 @@ class EarnStatSections extends StatelessWidget {
   const EarnStatSections({super.key});
 
   // (earnProfileType key, display title) per earn flavour, in display order.
+  // `title` holds the AppStrings key; it is `.tr`-resolved in [_section] so
+  // the list can stay `const` while the label still localizes.
   static const List<({String type, String title})> _sections = [
-    (type: 'homeMadeFood', title: 'Home Made Food Statistics'),
-    (type: 'homeMadeProduct', title: 'Home Made Products Statistics'),
-    (type: 'homeService', title: 'Home Service Statistics'),
+    (type: 'homeMadeFood', title: AppStrings.homeMadeFoodStatistics),
+    (type: 'homeMadeProduct', title: AppStrings.homeMadeProductsStatistics),
+    (type: 'homeService', title: AppStrings.homeServiceStatistics),
   ];
 
   @override
@@ -587,7 +589,7 @@ class EarnStatSections extends StatelessWidget {
                 SizedBox(width: SizeConfig.size10),
                 Expanded(
                   child: CustomText(
-                    title,
+                    title.tr,
                     fontSize: SizeConfig.large,
                     fontWeight: FontWeight.w800,
                     color: AppColors.mainTextColor,
@@ -597,7 +599,7 @@ class EarnStatSections extends StatelessWidget {
             ),
             SizedBox(height: SizeConfig.size10),
             CustomText(
-              'Statistics coming soon',
+              AppStrings.statisticsComingSoon.tr,
               fontSize: 12,
               fontWeight: FontWeight.w500,
               color: AppColors.secondaryTextColor,

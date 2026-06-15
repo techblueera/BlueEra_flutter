@@ -112,9 +112,9 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
       }
 
       return _section(
-        AppStrings.tiffin,
+        AppStrings.tiffin.tr,
         SizedBox(
-          height: 290,
+          height: 300,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             itemCount: _tiffinSlots.length,
@@ -128,9 +128,9 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
 
   Widget _buildTiffinShimmer() {
     return _section(
-      AppStrings.tiffin,
+      AppStrings.tiffin.tr,
       SizedBox(
-        height: 290,
+        height: 300,
         child: buildLoadingShimmer(
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
@@ -262,13 +262,13 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
                               (meal.selectedStartTime.isNotEmpty &&
                                       meal.selectedEndTime.isNotEmpty)
                                   ? '${meal.selectedStartTime} - ${meal.selectedEndTime}'
-                                  : slot.timing,
+                                  : slot.timing.tr,
                               fontSize: SizeConfig.small,
                               color: AppColors.secondaryTextColor,
                             ),
                             SizedBox(height: 2),
                             CustomText(
-                              slot.title,
+                              slot.title.tr,
                               fontSize: SizeConfig.medium,
                               fontWeight: FontWeight.w700,
                               color: AppColors.primaryColor,
@@ -290,7 +290,7 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            CustomText(AppStrings.liveLabel,
+                            CustomText(AppStrings.liveLabel.tr,
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.secondaryTextColor),
@@ -312,7 +312,7 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
                   CustomText(
                     meal.tiffinName.isNotEmpty
                         ? meal.tiffinName
-                        : '2 Idli + Sambar + Chutney',
+                        : AppStrings.dummyTiffinDish.tr,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: AppColors.mainTextColor,
@@ -367,7 +367,7 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
                           TiffinBottomSheet.show(context, true);
                         },
                         icon: AppIconAssets.pen_line,
-                        label: AppStrings.edit,
+                        label: AppStrings.edit.tr,
                       ),
                     ],
                   ),
@@ -450,7 +450,7 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
                     TiffinBottomSheet.show(context, false);
                   },
                   icon: AppIconAssets.add,
-                  label: AppStrings.add,
+                  label: AppStrings.add.tr,
                 ),
               ),
             ),
@@ -520,7 +520,7 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
                                 fontSize: SizeConfig.small,
                                 color: AppColors.secondaryTextColor),
                             SizedBox(height: 2),
-                            CustomText(slot.title,
+                            CustomText(slot.title.tr,
                                 fontSize: SizeConfig.medium,
                                 fontWeight: FontWeight.w700,
                                 color: AppColors.primaryColor,
@@ -532,7 +532,7 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
                     ],
                   ),
                   SizedBox(height: 6),
-                  CustomText('2 Idli + Sambar + Chutney',
+                  CustomText(AppStrings.dummyTiffinDish.tr,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                       color: AppColors.mainTextColor,
@@ -545,10 +545,10 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
                     crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
                       FoodTypeOrCookingMethod(
-                        label: 'Boiled',
+                        label: AppStrings.boiledLabel.tr,
                         icon: AppIconAssets.boiled,
                       ),
-                      FoodTypeOrCookingMethod(label: 'Tiffin/Lunch'),
+                      FoodTypeOrCookingMethod(label: AppStrings.tiffinLunchLabel.tr),
                     ],
                   ),
                   SizedBox(height: 8),
@@ -592,7 +592,7 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
       }
 
       return _section(
-        AppStrings.homeMadeFoodSection,
+        AppStrings.homeMadeFoodSection.tr,
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -607,7 +607,7 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
 
   Widget _buildHomeMadeFoodShimmer() {
     return _section(
-      AppStrings.homeMadeFoodSection,
+      AppStrings.homeMadeFoodSection.tr,
       buildLoadingShimmer(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -654,7 +654,7 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
     return Obx(() => HorizontalTabSelector<({FoodCategoryType type, String title})>(
           tabs: _foodCategories,
           selectedIndex: _selectedFoodTab.value,
-          labelBuilder: (cat) => cat.title,
+          labelBuilder: (cat) => cat.title.tr,
           horizontalPadding: 16,
           verticalPadding: 6,
           horizontalMargin: 0,
@@ -872,7 +872,7 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CustomText('Kerala Style Mango Pickle...',
+                CustomText(AppStrings.dummyPickleDish.tr,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: AppColors.secondaryTextColor,
@@ -920,7 +920,7 @@ class _HomeMadeFoodHomePageState extends State<HomeMadeFoodHomePage> {
   Future<void> _pickAndUploadGalleryImage() async {
     final path = await CommonImageUploadTile.pickImage(
       context: context,
-      title: AppStrings.uploadPhotoTitle,
+      title: AppStrings.uploadPhotoTitle.tr,
     );
     if (path == null || path.isEmpty) return;
     await earnProfileController.addGalleryImage(File(path));

@@ -654,12 +654,13 @@ class _ChannelScreenState extends State<ChannelScreen>
           horizontalPaddingChannel: 20,
           postFilterType: PostType.latest,
           // postFilterType: _getPostType(),
+          channelName: channelController.channelData.value?.name,
           isInParentScroll: true,
         );
       case ChannelTab.saved:
-        return Text('coming soon..');
+        return Center(child: CustomText('coming soon..'));
       case ChannelTab.statistics:
-        return Text('coming soon...');
+        return Center(child: CustomText('coming soon..'));
       case ChannelTab.product:
         return ChannelProductListing(
           channelController: channelController,

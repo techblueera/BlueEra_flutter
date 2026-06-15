@@ -32,6 +32,10 @@ class FeedScreen extends StatefulWidget {
   final double? horizontalPaddingChannel;
   final bool isInParentScroll;
 
+  /// Channel name from the channel screen, shown on posts created via
+  /// channel in the channel feed. Null for the global feed.
+  final String? channelName;
+
   const FeedScreen({
     super.key,
     required this.postFilterType,
@@ -42,6 +46,7 @@ class FeedScreen extends StatefulWidget {
     this.bottomPaddingChannel,
     this.horizontalPaddingChannel,
     this.isInParentScroll = false,
+    this.channelName,
   });
 
   @override
@@ -168,6 +173,7 @@ class _FeedScreenState extends State<FeedScreen> {
         postFilteredType: widget.postFilterType,
         bottomPadding: widget.bottomPaddingChannel,
         horizontalPadding: widget.horizontalPaddingChannel,
+        channelName: widget.channelName,
       ),
     );
   }
@@ -243,7 +249,8 @@ class _FeedScreenState extends State<FeedScreen> {
                 );
               }
               return content;
-            } else if (feedController.postsResponse.value.status == Status.ERROR) {
+            }
+            else if (feedController.postsResponse.value.status == Status.ERROR) {
               return LoadErrorWidget(
                 errorMessage: AppStrings.failedToLoadPosts.tr,
                 onRetry: () {
@@ -935,6 +942,7 @@ class _FeedScreenState extends State<FeedScreen> {
         postFilteredType: widget.postFilterType,
         bottomPadding: widget.bottomPaddingChannel,
         horizontalPadding: widget.horizontalPaddingChannel,
+        channelName: widget.channelName,
       ),
     );
   }

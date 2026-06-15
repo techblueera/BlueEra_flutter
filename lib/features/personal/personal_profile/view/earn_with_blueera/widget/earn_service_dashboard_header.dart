@@ -210,7 +210,7 @@ class EarnServiceDashboardHeader extends StatelessWidget {
           if (createdAt.isNotEmpty) ...[
             const SizedBox(height: 2),
             CustomText(
-              'Joined ${_formatJoinedDate(createdAt)}',
+              '${AppStrings.joinedLabel.tr} ${_formatJoinedDate(createdAt)}',
               fontSize: SizeConfig.small,
               color: AppColors.secondaryTextColor,
               fontWeight: FontWeight.w400,
@@ -247,7 +247,7 @@ class EarnServiceDashboardHeader extends StatelessWidget {
                   const SizedBox(width: 6),
                   _buildInlineAdd(
                     icon: Icons.restaurant_outlined,
-                    label: 'Add Type',
+                    label: AppStrings.addType.tr,
                     onTap: () => _openDietaryTypeSheet(context),
                   ),
                 ],
@@ -260,7 +260,7 @@ class EarnServiceDashboardHeader extends StatelessWidget {
               _infoRow(
                 Icons.location_on_outlined,
                 distance != null
-                    ? '${distance.toStringAsFixed(2)} KM • $address'
+                    ? '${distance.toStringAsFixed(2)} ${AppStrings.kmLabel.tr} • $address'
                     : address,
               ),
               if (email.isNotEmpty || phone.isNotEmpty)
@@ -350,13 +350,28 @@ class EarnServiceDashboardHeader extends StatelessWidget {
   String _profileTypeLabel(String raw) {
     switch (raw) {
       case 'homeMadeFood':
-        return 'Home Made Food';
+        return AppStrings.homeMadeFoodSection.tr;
       case 'homeMadeProduct':
-        return 'Home Made Product';
+        return AppStrings.homeMadeProductSection.tr;
       case 'homeService':
-        return 'Home Service';
+        return AppStrings.homeService.tr;
       default:
         return raw;
+    }
+  }
+
+  /// Localized display label for a dietary option, keeping the stored value
+  /// (`Veg` / `Non-Veg` / `Both`) English for the API.
+  String _dietLabel(String option) {
+    switch (option) {
+      case 'Veg':
+        return AppStrings.vegLabel.tr;
+      case 'Non-Veg':
+        return AppStrings.nonVeg.tr;
+      case 'Both':
+        return AppStrings.both.tr;
+      default:
+        return option;
     }
   }
 
@@ -420,7 +435,7 @@ class EarnServiceDashboardHeader extends StatelessWidget {
         AppStrings.editCoverPicture.tr,
       ).catchError((_) => null);
       if (path == null || path.isEmpty) {
-        commonSnackBar(message: AppStrings.noImageSelected);
+        commonSnackBar(message: AppStrings.noImageSelected.tr);
         return;
       }
       final file = File(path);
@@ -434,7 +449,7 @@ class EarnServiceDashboardHeader extends StatelessWidget {
         file: File(compressed?.path ?? path),
       );
     } catch (_) {
-      commonSnackBar(message: AppStrings.updatePictureFailed);
+      commonSnackBar(message: AppStrings.updatePictureFailed.tr);
     }
   }
 
@@ -468,10 +483,10 @@ class EarnServiceDashboardHeader extends StatelessWidget {
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                CustomText('Select Type',
+              children: [
+                CustomText(AppStrings.selectType.tr,
                     fontSize: 18, fontWeight: FontWeight.w600),
-                CloseButton(),
+                const CloseButton(),
               ],
             ),
             const SizedBox(height: 16),
@@ -520,7 +535,7 @@ class EarnServiceDashboardHeader extends StatelessWidget {
                             FoodTypeIndicator(isVegetarian: isVeg, size: 6),
                           const SizedBox(width: 10),
                           Expanded(
-                            child: CustomText(option,
+                            child: CustomText(_dietLabel(option),
                                 fontSize: 14, fontWeight: FontWeight.w500),
                           ),
                           Icon(
@@ -542,10 +557,10 @@ class EarnServiceDashboardHeader extends StatelessWidget {
             CustomBtn(
               radius: 10,
               bgColor: AppColors.primaryColor,
-              title: AppStrings.save,
+              title: AppStrings.save.tr,
               onTap: () async {
                 if (selectedType.value.isEmpty) {
-                  commonSnackBar(message: 'Please select a type');
+                  commonSnackBar(message: AppStrings.pleaseSelectType.tr);
                   return;
                 }
                 final ok = await controller

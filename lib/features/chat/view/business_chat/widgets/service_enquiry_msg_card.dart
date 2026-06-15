@@ -1,6 +1,8 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:get/get.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/features/chat/auth/model/service_enquiry_model.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
@@ -57,11 +59,11 @@ class _ServiceEnquiryMsgCardState extends State<ServiceEnquiryMsgCard> {
       if (list.isNotEmpty) out.add(MapEntry(title, list));
     }
 
-    add('Service Type', e?.serviceType);
-    add('Type of Work', e?.typesOfWork);
-    add('Work Categories', e?.workCategories);
-    add('Services Offered', e?.servicesOffered);
-    add('Request Type', e?.requestType);
+    add(AppStrings.serviceType.tr, e?.serviceType);
+    add(AppStrings.typeOfWork.tr, e?.typesOfWork);
+    add(AppStrings.workCategories.tr, e?.workCategories);
+    add(AppStrings.servicesOffered.tr, e?.servicesOffered);
+    add(AppStrings.requestType.tr, e?.requestType);
     return out;
   }
 
@@ -74,12 +76,14 @@ class _ServiceEnquiryMsgCardState extends State<ServiceEnquiryMsgCard> {
   String get _subtitle {
     final parts = <String>[];
     if (_totalCount > 0) {
-      parts.add('$_totalCount ${_totalCount == 1 ? 'item' : 'items'}');
+      parts.add(
+          '$_totalCount ${_totalCount == 1 ? AppStrings.itemLabel.tr : AppStrings.itemsLabel.tr}');
     }
     if (_photos.isNotEmpty) {
-      parts.add('${_photos.length} ${_photos.length == 1 ? 'photo' : 'photos'}');
+      parts.add(
+          '${_photos.length} ${_photos.length == 1 ? AppStrings.photoLabel.tr : AppStrings.photosLabel.tr}');
     }
-    return parts.isEmpty ? 'Custom request' : parts.join(' · ');
+    return parts.isEmpty ? AppStrings.customRequest.tr : parts.join(' · ');
   }
 
   Future<void> _updateStatus(String status) async {
@@ -164,7 +168,7 @@ class _ServiceEnquiryMsgCardState extends State<ServiceEnquiryMsgCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  'Service Enquiry',
+                  AppStrings.serviceEnquiry.tr,
                   fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: AppColors.mainTextColor,
@@ -249,7 +253,7 @@ class _ServiceEnquiryMsgCardState extends State<ServiceEnquiryMsgCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _eyebrow('Note'),
+          _eyebrow(AppStrings.noteLabel.tr),
           const SizedBox(height: 4),
           CustomText(
             _note,
@@ -292,7 +296,7 @@ class _ServiceEnquiryMsgCardState extends State<ServiceEnquiryMsgCard> {
                 color: c, size: 16),
             const SizedBox(width: 6),
             CustomText(
-              accepted ? 'Enquiry Accepted' : 'Enquiry Declined',
+              accepted ? AppStrings.enquiryAccepted.tr : AppStrings.enquiryDeclined.tr,
               fontSize: 12.5,
               fontWeight: FontWeight.w700,
               color: c,
@@ -338,7 +342,7 @@ class _ServiceEnquiryMsgCardState extends State<ServiceEnquiryMsgCard> {
           ),
           const SizedBox(width: 7),
           CustomText(
-            'Waiting for response',
+            AppStrings.waitingForResponse.tr,
             fontSize: 12.5,
             fontWeight: FontWeight.w700,
             color: Colors.orange,
@@ -359,13 +363,13 @@ class _ServiceEnquiryMsgCardState extends State<ServiceEnquiryMsgCard> {
           gradient: const LinearGradient(colors: [_accentDeep, _accent]),
           borderRadius: BorderRadius.circular(10),
         ),
-        child: const Row(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.check_rounded, size: 15, color: Colors.white),
-            SizedBox(width: 5),
-            Text('Accept',
-                style: TextStyle(
+            const Icon(Icons.check_rounded, size: 15, color: Colors.white),
+            const SizedBox(width: 5),
+            Text(AppStrings.acceptLabel.tr,
+                style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: Colors.white)),
@@ -388,13 +392,13 @@ class _ServiceEnquiryMsgCardState extends State<ServiceEnquiryMsgCard> {
           border:
               Border.all(color: Colors.red.withValues(alpha: 0.55), width: 1.1),
         ),
-        child: const Row(
+        child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.close_rounded, size: 15, color: Colors.red),
-            SizedBox(width: 5),
-            Text('Decline',
-                style: TextStyle(
+            const Icon(Icons.close_rounded, size: 15, color: Colors.red),
+            const SizedBox(width: 5),
+            Text(AppStrings.declineLabel.tr,
+                style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: Colors.red)),
@@ -423,10 +427,10 @@ class _ServiceEnquiryMsgCardState extends State<ServiceEnquiryMsgCard> {
 
   Widget _buildStatusBadge() {
     final (String label, Color color) = _isAccepted
-        ? ('Accepted', Colors.green)
+        ? (AppStrings.acceptedStatus.tr, Colors.green)
         : _isDeclined
-            ? ('Declined', Colors.red)
-            : ('Pending', Colors.orange);
+            ? (AppStrings.declinedStatus.tr, Colors.red)
+            : (AppStrings.pendingStatus.tr, Colors.orange);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(

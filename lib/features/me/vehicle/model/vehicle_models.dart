@@ -132,32 +132,138 @@ class VehicleType {
   bool get hasChildren => children.isNotEmpty;
 }
 
+/// The two upload flows. `condition` on the wire is the string `NEW` /
+/// `USED`; these constants keep the branching readable and avoid stray
+/// string literals across the UI.
+class VehicleCondition {
+  VehicleCondition._();
+  static const String isNew = 'NEW';
+  static const String used = 'USED';
+}
+
+/// A single server-controlled picker option (`{ value, label, icon }`)
+/// returned by `GET /vehicles/conditions` and `GET /vehicles/options`.
+/// The chosen [value] is what gets sent on create; [label] is shown.
+class VehicleOption {
+  final String value;
+  final String label;
+  final String? icon;
+
+  VehicleOption({required this.value, required this.label, this.icon});
+
+  factory VehicleOption.fromJson(Map<String, dynamic> j) => VehicleOption(
+        value: (j['value'] ?? '') as String,
+        label: (j['label'] ?? (j['value'] ?? '')) as String,
+        icon: j['icon'] as String?,
+      );
+
+  static List<VehicleOption> listFrom(dynamic raw) =>
+      ((raw as List?) ?? const [])
+          .whereType<Map>()
+          .map((m) => VehicleOption.fromJson(Map<String, dynamic>.from(m)))
+          .toList();
+}
+
+/// Parsed payload of `GET /vehicles/options` — every non-taxonomy
+/// picker the upload form needs, in one object. Empty lists are a safe
+/// default so the form still renders if the call hasn't resolved.
+class VehicleOptionSets {
+  final List<VehicleOption> availability; // NEW
+  final List<VehicleOption> deliveryTime; // NEW
+  final List<VehicleOption> specialOffers; // NEW (multi-select)
+  final List<VehicleOption> ownership; // USED
+  final List<VehicleOption> conditionGrade; // USED
+
+  VehicleOptionSets({
+    this.availability = const [],
+    this.deliveryTime = const [],
+    this.specialOffers = const [],
+    this.ownership = const [],
+    this.conditionGrade = const [],
+  });
+
+  factory VehicleOptionSets.fromJson(Map<String, dynamic> j) {
+    final o = (j['options'] is Map)
+        ? Map<String, dynamic>.from(j['options'] as Map)
+        : j;
+    return VehicleOptionSets(
+      availability: VehicleOption.listFrom(o['availability']),
+      deliveryTime: VehicleOption.listFrom(o['delivery_time']),
+      specialOffers: VehicleOption.listFrom(o['special_offers']),
+      ownership: VehicleOption.listFrom(o['ownership']),
+      conditionGrade: VehicleOption.listFrom(o['condition_grade']),
+    );
+  }
+}
+
 class Vehicle {
   final String? id;
   final String? userId;
   final String? businessId;
   final String name;
   final String? description;
-  final String? category; // e.g. CAR / BIKE / TRUCK
-  final String? subCategory; // e.g. SUV / Sedan
+  final String? category; // L1 — PASSENGER / COMMERCIAL
+  final String? subCategory; // L2 — e.g. PASSENGER_2W
+  final String? type; // L3 — concrete leaf, e.g. MOTORCYCLE
+  final String? condition; // NEW / USED
   final String? brand;
   final String? model;
+  final String? variant;
   final int? year;
-  final String? color;
-  final String? registrationNo;
+  final String? color; // USED
+  final String? registrationNo; // USED
   final VehicleFuelType? fuelType;
   final VehicleTransmission? transmission;
   final int? seatingCapacity;
+  final int? engineCapacityCc;
   final String? mileage;
   final double? price;
   final String? currency;
   final VehicleLocation? location;
   final String? coverImage;
   final List<String> images;
+  final List<String> videos;
+  final String? sellerName;
+  final String? sellerMobile;
+
+  // ─── NEW-flow detail fields ──────────────────────────────────────
+  final String? availability;
+  final String? deliveryTime;
+  final double? exShowroomPrice;
+  final double? onRoadPrice;
+  final bool? emiAvailable;
+  final double? downPayment;
+  final double? monthlyEmi;
+  final List<String> specialOffers;
+
+  // ─── USED-flow detail fields ─────────────────────────────────────
+  final int? manufacturingYear;
+  final int? registrationYear;
+  final String? ownership;
+  final String? conditionGrade;
+  final double? expectedPrice;
+  final bool? isNegotiable;
+  final int? kmDriven;
+  final DateTime? insuranceValidTill;
+  final bool? rcAvailable;
+  final bool? pollutionCertificate;
+  final bool? serviceHistory;
+
   final bool? isActive;
   final bool? isVerified;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+
+  // ─── Display labels (decorated by server on reads) ───────────────
+  final String? categoryLabel;
+  final String? subCategoryLabel;
+  final String? typeLabel;
+  final String? conditionLabel;
+  final String? availabilityLabel;
+  final String? deliveryTimeLabel;
+  final String? ownershipLabel;
+  final String? conditionGradeLabel;
+  final List<String> specialOffersLabels;
 
   /// Owner profile when hydrated by the server (gRPC enrichment).
   final Map<String, dynamic>? user;
@@ -171,27 +277,65 @@ class Vehicle {
     this.description,
     this.category,
     this.subCategory,
+    this.type,
+    this.condition,
     this.brand,
     this.model,
+    this.variant,
     this.year,
     this.color,
     this.registrationNo,
     this.fuelType,
     this.transmission,
     this.seatingCapacity,
+    this.engineCapacityCc,
     this.mileage,
     this.price,
     this.currency,
     this.location,
     this.coverImage,
     this.images = const [],
+    this.videos = const [],
+    this.sellerName,
+    this.sellerMobile,
+    this.availability,
+    this.deliveryTime,
+    this.exShowroomPrice,
+    this.onRoadPrice,
+    this.emiAvailable,
+    this.downPayment,
+    this.monthlyEmi,
+    this.specialOffers = const [],
+    this.manufacturingYear,
+    this.registrationYear,
+    this.ownership,
+    this.conditionGrade,
+    this.expectedPrice,
+    this.isNegotiable,
+    this.kmDriven,
+    this.insuranceValidTill,
+    this.rcAvailable,
+    this.pollutionCertificate,
+    this.serviceHistory,
     this.isActive,
     this.isVerified,
     this.createdAt,
     this.updatedAt,
+    this.categoryLabel,
+    this.subCategoryLabel,
+    this.typeLabel,
+    this.conditionLabel,
+    this.availabilityLabel,
+    this.deliveryTimeLabel,
+    this.ownershipLabel,
+    this.conditionGradeLabel,
+    this.specialOffersLabels = const [],
     this.user,
     this.business,
   });
+
+  bool get isUsed => (condition ?? '').toUpperCase() == VehicleCondition.used;
+  bool get isNew => (condition ?? '').toUpperCase() == VehicleCondition.isNew;
 
   factory Vehicle.fromJson(Map<String, dynamic> j) => Vehicle(
         id: j['_id'] as String?,
@@ -201,8 +345,11 @@ class Vehicle {
         description: j['description'] as String?,
         category: j['category'] as String?,
         subCategory: j['sub_category'] as String?,
+        type: j['type'] as String?,
+        condition: j['condition'] as String?,
         brand: j['brand'] as String?,
         model: j['model'] as String?,
+        variant: j['variant'] as String?,
         year: (j['year'] as num?)?.toInt(),
         color: j['color'] as String?,
         registrationNo: j['registration_no'] as String?,
@@ -210,6 +357,7 @@ class Vehicle {
         transmission:
             VehicleTransmissionWire.parse(j['transmission'] as String?),
         seatingCapacity: (j['seating_capacity'] as num?)?.toInt(),
+        engineCapacityCc: (j['engine_capacity_cc'] as num?)?.toInt(),
         mileage: j['mileage'] as String?,
         price: (j['price'] as num?)?.toDouble(),
         currency: j['currency'] as String?,
@@ -220,10 +368,47 @@ class Vehicle {
         coverImage: j['cover_image'] as String?,
         images:
             ((j['images'] as List?) ?? const []).whereType<String>().toList(),
+        videos:
+            ((j['videos'] as List?) ?? const []).whereType<String>().toList(),
+        sellerName: j['seller_name'] as String?,
+        sellerMobile: j['seller_mobile'] as String?,
+        availability: j['availability'] as String?,
+        deliveryTime: j['delivery_time'] as String?,
+        exShowroomPrice: (j['ex_showroom_price'] as num?)?.toDouble(),
+        onRoadPrice: (j['on_road_price'] as num?)?.toDouble(),
+        emiAvailable: j['emi_available'] as bool?,
+        downPayment: (j['down_payment'] as num?)?.toDouble(),
+        monthlyEmi: (j['monthly_emi'] as num?)?.toDouble(),
+        specialOffers: ((j['special_offers'] as List?) ?? const [])
+            .whereType<String>()
+            .toList(),
+        manufacturingYear: (j['manufacturing_year'] as num?)?.toInt(),
+        registrationYear: (j['registration_year'] as num?)?.toInt(),
+        ownership: j['ownership'] as String?,
+        conditionGrade: j['condition_grade'] as String?,
+        expectedPrice: (j['expected_price'] as num?)?.toDouble(),
+        isNegotiable: j['is_negotiable'] as bool?,
+        kmDriven: (j['km_driven'] as num?)?.toInt(),
+        insuranceValidTill:
+            DateTime.tryParse(j['insurance_valid_till']?.toString() ?? ''),
+        rcAvailable: j['rc_available'] as bool?,
+        pollutionCertificate: j['pollution_certificate'] as bool?,
+        serviceHistory: j['service_history'] as bool?,
         isActive: j['is_active'] as bool?,
         isVerified: j['is_verified'] as bool?,
         createdAt: DateTime.tryParse(j['created_at']?.toString() ?? ''),
         updatedAt: DateTime.tryParse(j['updated_at']?.toString() ?? ''),
+        categoryLabel: j['category_label'] as String?,
+        subCategoryLabel: j['sub_category_label'] as String?,
+        typeLabel: j['type_label'] as String?,
+        conditionLabel: j['condition_label'] as String?,
+        availabilityLabel: j['availability_label'] as String?,
+        deliveryTimeLabel: j['delivery_time_label'] as String?,
+        ownershipLabel: j['ownership_label'] as String?,
+        conditionGradeLabel: j['condition_grade_label'] as String?,
+        specialOffersLabels: ((j['special_offers_labels'] as List?) ?? const [])
+            .whereType<String>()
+            .toList(),
         user: j['user'] is Map
             ? Map<String, dynamic>.from(j['user'] as Map)
             : null,
@@ -232,28 +417,75 @@ class Vehicle {
             : null,
       );
 
-  /// Wire payload for create / update — only sends provided keys.
-  Map<String, dynamic> toCreateJson() => {
-        'name': name,
-        if (description != null) 'description': description,
-        if (category != null) 'category': category,
-        if (subCategory != null) 'sub_category': subCategory,
-        if (brand != null) 'brand': brand,
-        if (model != null) 'model': model,
-        if (year != null) 'year': year,
+  /// Wire payload for create / update.
+  ///
+  /// Only provided keys are emitted, and the flow-specific blocks are
+  /// gated on [condition] so a NEW listing never carries used-only data
+  /// (and vice-versa) — the server rejects cross-flow fields with 400.
+  /// `registration_no` and `color` are USED-only, so they live in the
+  /// USED block rather than the shared base.
+  Map<String, dynamic> toCreateJson() {
+    final body = <String, dynamic>{
+      'name': name,
+      if (description != null) 'description': description,
+      if (category != null) 'category': category,
+      if (subCategory != null) 'sub_category': subCategory,
+      if (type != null) 'type': type,
+      if (condition != null) 'condition': condition,
+      if (brand != null) 'brand': brand,
+      if (model != null) 'model': model,
+      if (variant != null) 'variant': variant,
+      if (year != null) 'year': year,
+      if (fuelType != null) 'fuel_type': fuelType!.wire,
+      if (transmission != null) 'transmission': transmission!.wire,
+      if (seatingCapacity != null) 'seating_capacity': seatingCapacity,
+      if (engineCapacityCc != null) 'engine_capacity_cc': engineCapacityCc,
+      if (mileage != null) 'mileage': mileage,
+      if (price != null) 'price': price,
+      if (currency != null) 'currency': currency,
+      if (location != null) 'location': location!.toJson(),
+      if (coverImage != null) 'cover_image': coverImage,
+      if (images.isNotEmpty) 'images': images,
+      if (videos.isNotEmpty) 'videos': videos,
+      if (sellerName != null) 'seller_name': sellerName,
+      if (sellerMobile != null) 'seller_mobile': sellerMobile,
+      if (businessId != null) 'business_id': businessId,
+    };
+
+    if (isUsed) {
+      body.addAll({
         if (color != null) 'color': color,
         if (registrationNo != null) 'registration_no': registrationNo,
-        if (fuelType != null) 'fuel_type': fuelType!.wire,
-        if (transmission != null) 'transmission': transmission!.wire,
-        if (seatingCapacity != null) 'seating_capacity': seatingCapacity,
-        if (mileage != null) 'mileage': mileage,
-        if (price != null) 'price': price,
-        if (currency != null) 'currency': currency,
-        if (location != null) 'location': location!.toJson(),
-        if (coverImage != null) 'cover_image': coverImage,
-        if (images.isNotEmpty) 'images': images,
-        if (businessId != null) 'business_id': businessId,
-      };
+        if (manufacturingYear != null) 'manufacturing_year': manufacturingYear,
+        if (registrationYear != null) 'registration_year': registrationYear,
+        if (ownership != null) 'ownership': ownership,
+        if (conditionGrade != null) 'condition_grade': conditionGrade,
+        if (expectedPrice != null) 'expected_price': expectedPrice,
+        if (isNegotiable != null) 'is_negotiable': isNegotiable,
+        if (kmDriven != null) 'km_driven': kmDriven,
+        if (insuranceValidTill != null)
+          'insurance_valid_till': insuranceValidTill!.toUtc().toIso8601String(),
+        if (rcAvailable != null) 'rc_available': rcAvailable,
+        if (pollutionCertificate != null)
+          'pollution_certificate': pollutionCertificate,
+        if (serviceHistory != null) 'service_history': serviceHistory,
+      });
+    } else if (isNew) {
+      body.addAll({
+        if (availability != null) 'availability': availability,
+        if (deliveryTime != null) 'delivery_time': deliveryTime,
+        if (exShowroomPrice != null) 'ex_showroom_price': exShowroomPrice,
+        if (onRoadPrice != null) 'on_road_price': onRoadPrice,
+        if (emiAvailable != null) 'emi_available': emiAvailable,
+        if (emiAvailable == true && downPayment != null)
+          'down_payment': downPayment,
+        if (emiAvailable == true && monthlyEmi != null)
+          'monthly_emi': monthlyEmi,
+        if (specialOffers.isNotEmpty) 'special_offers': specialOffers,
+      });
+    }
+    return body;
+  }
 }
 
 class PaginatedVehicles {

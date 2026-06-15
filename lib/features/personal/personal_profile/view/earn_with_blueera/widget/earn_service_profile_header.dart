@@ -207,7 +207,7 @@ class EarnServiceProfileHeader extends StatelessWidget {
                 const SizedBox(width: 6),
                 _buildInlineAdd(
                   icon: Icons.restaurant_outlined,
-                  label: 'Add Type',
+                  label: AppStrings.addType.tr,
                   onTap: () => _openDietaryTypeSheet(context),
                 ),
               ],
@@ -244,7 +244,7 @@ class EarnServiceProfileHeader extends StatelessWidget {
                 size: 14, color: AppColors.primaryColor),
             const SizedBox(width: 5),
             CustomText(
-              '${distance?.toStringAsFixed(2) ?? '--'} KM',
+              '${distance?.toStringAsFixed(2) ?? '--'} ${AppStrings.kmLabel.tr}',
               fontSize: 11,
               fontWeight: FontWeight.w700,
               color: AppColors.primaryColor,
@@ -344,13 +344,28 @@ class EarnServiceProfileHeader extends StatelessWidget {
   String _profileTypeLabel(String raw) {
     switch (raw) {
       case 'homeMadeFood':
-        return 'Home Made Food';
+        return AppStrings.homeMadeFoodSection.tr;
       case 'homeMadeProduct':
-        return 'Home Made Product';
+        return AppStrings.homeMadeProductSection.tr;
       case 'homeService':
-        return 'Home Service';
+        return AppStrings.homeService.tr;
       default:
         return raw;
+    }
+  }
+
+  /// Localized display label for a dietary option, keeping the stored value
+  /// (`Veg` / `Non-Veg` / `Both`) English for the API.
+  String _dietLabel(String option) {
+    switch (option) {
+      case 'Veg':
+        return AppStrings.vegLabel.tr;
+      case 'Non-Veg':
+        return AppStrings.nonVeg.tr;
+      case 'Both':
+        return AppStrings.both.tr;
+      default:
+        return option;
     }
   }
 
@@ -374,7 +389,7 @@ class EarnServiceProfileHeader extends StatelessWidget {
         AppStrings.editCoverPicture.tr,
       ).catchError((_) => null);
       if (path == null || path.isEmpty) {
-        commonSnackBar(message: AppStrings.noImageSelected);
+        commonSnackBar(message: AppStrings.noImageSelected.tr);
         return;
       }
       final file = File(path);
@@ -388,7 +403,7 @@ class EarnServiceProfileHeader extends StatelessWidget {
         file: File(compressed?.path ?? path),
       );
     } catch (_) {
-      commonSnackBar(message: AppStrings.updatePictureFailed);
+      commonSnackBar(message: AppStrings.updatePictureFailed.tr);
     }
   }
 
@@ -422,10 +437,10 @@ class EarnServiceProfileHeader extends StatelessWidget {
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: const [
-                CustomText('Select Type',
+              children: [
+                CustomText(AppStrings.selectType.tr,
                     fontSize: 18, fontWeight: FontWeight.w600),
-                CloseButton(),
+                const CloseButton(),
               ],
             ),
             const SizedBox(height: 16),
@@ -476,7 +491,7 @@ class EarnServiceProfileHeader extends StatelessWidget {
                                 isVegetarian: isVeg, size: 6),
                           const SizedBox(width: 10),
                           Expanded(
-                            child: CustomText(option,
+                            child: CustomText(_dietLabel(option),
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500),
                           ),
@@ -500,10 +515,10 @@ class EarnServiceProfileHeader extends StatelessWidget {
             CustomBtn(
               radius: 10,
               bgColor: AppColors.primaryColor,
-              title: AppStrings.save,
+              title: AppStrings.save.tr,
               onTap: () async {
                 if (selectedType.value.isEmpty) {
-                  commonSnackBar(message: 'Please select a type');
+                  commonSnackBar(message: AppStrings.pleaseSelectType.tr);
                   return;
                 }
                 final ok = await controller.patchEarnProfile({

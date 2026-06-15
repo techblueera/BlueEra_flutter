@@ -1,0 +1,13 @@
+{
+  "monday": "सोमवार",
+  "tuesday": "मंगळवार",
+  "wednesday": "बुधवार",
+  "thursday": "गुरुवार",
+  "friday": "शुक्रवार",
+  "saturday": "शनिवार",
+  "sunday": "रविवार",
+  "add": "अॅड",
+  "closed": "बंद",
+  "setYourWorkingHours": "तुमचे कामाचे तास सेट करा",
+  "tellClientsAvailability": "ग्राहकांना सांगा की तुम्ही कधी उपलब्ध आहात जेणेकरून बुकिंग योग्य वेळी येईल."
+}

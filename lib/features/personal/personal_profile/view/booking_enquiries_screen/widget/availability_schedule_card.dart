@@ -3,8 +3,10 @@ import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:get/get.dart';
 
 /// Renders a weekly schedule the same way [_buildTimingsSection] /
 /// [_buildTimingsGrid] do on `professionals_service_screen.dart`:
@@ -69,14 +71,14 @@ class AvailabilityScheduleCard extends StatelessWidget {
           final isOpen = entry?.isOpen ?? false;
           final text = isOpen
               ? "${_formatTime(entry?.start)} - ${_formatTime(entry?.end)}"
-              : "Closed";
+              : AppStrings.closed.tr;
           return Padding(
             padding: EdgeInsets.symmetric(vertical: SizeConfig.size4),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 CustomText(
-                  day,
+                  _dayLabel(day),
                   fontSize: SizeConfig.medium,
                   fontWeight: FontWeight.w500,
                   color: AppColors.mainTextColor,
@@ -144,24 +146,20 @@ class AvailabilityScheduleCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      'Set your working hours',
-                      style: TextStyle(
+                    CustomText(
+                      AppStrings.setYourWorkingHours.tr,
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
                         color: AppColors.mainTextColor,
                         letterSpacing: -0.1,
-                      ),
                     ),
                     const SizedBox(height: 3),
-                    Text(
-                      "Tell clients when you're available so bookings come at the right time.",
-                      style: TextStyle(
+                    CustomText(
+                      AppStrings.tellClientsAvailability.tr,
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                         color: AppColors.secondaryTextColor,
                         height: 1.4,
-                      ),
                     ),
                   ],
                 ),
@@ -184,17 +182,16 @@ class AvailabilityScheduleCard extends StatelessWidget {
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
-                    children: const [
-                      Icon(Icons.add_rounded, size: 14, color: Colors.white),
-                      SizedBox(width: 4),
-                      Text(
-                        'Add',
-                        style: TextStyle(
+                    children: [
+                      const Icon(Icons.add_rounded,
+                          size: 14, color: Colors.white),
+                      const SizedBox(width: 4),
+                      CustomText(
+                        AppStrings.add.tr,
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
                           color: Colors.white,
                           letterSpacing: 0.3,
-                        ),
                       ),
                     ],
                   ),
@@ -205,6 +202,22 @@ class AvailabilityScheduleCard extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Maps the canonical English day (used as the schedule lookup key)
+  /// to its localized label for display. The keys in [_allDays] stay
+  /// English so the [byDay] map / API mapping logic is unaffected.
+  String _dayLabel(String day) {
+    const labels = {
+      'Monday': AppStrings.monday,
+      'Tuesday': AppStrings.tuesday,
+      'Wednesday': AppStrings.wednesday,
+      'Thursday': AppStrings.thursday,
+      'Friday': AppStrings.friday,
+      'Saturday': AppStrings.saturday,
+      'Sunday': AppStrings.sunday,
+    };
+    return (labels[day] ?? day).tr;
   }
 
   String? _mapApiDayToUiDay(String apiDay) {

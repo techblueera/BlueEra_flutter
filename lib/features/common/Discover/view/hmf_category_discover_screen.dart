@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -47,18 +48,21 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
   // observes the same instance the store details screen adds to.
   final cartController = getOrPut(() => HmfCartController());
 
+  // `name` is the stable English id (used for sticky-header matching and the
+  // controller's category lookup); `labelKey` is the AppStrings key shown to
+  // the user, resolved with `.tr` at render time.
   static final List<_FoodCategory> _categories = [
-    _FoodCategory('Tiffin', AppIconAssets.morningLunchIcon),
-    _FoodCategory('Bakery', AppIconAssets.bakeryIcon),
-    _FoodCategory('Sweets', AppIconAssets.sweetsIcon),
-    _FoodCategory('Namkeen', AppIconAssets.namkeenIcon),
-    _FoodCategory('Pickles', AppIconAssets.picklesIcon),
+    _FoodCategory('Tiffin', AppStrings.tiffinCategory, AppIconAssets.morningLunchIcon),
+    _FoodCategory('Bakery', AppStrings.bakeryCategory, AppIconAssets.bakeryIcon),
+    _FoodCategory('Sweets', AppStrings.sweetsCategory, AppIconAssets.sweetsIcon),
+    _FoodCategory('Namkeen', AppStrings.namkeenCategory, AppIconAssets.namkeenIcon),
+    _FoodCategory('Pickles', AppStrings.picklesCategory, AppIconAssets.picklesIcon),
   ];
 
   final List<String> _tiffinFilterTabs = [
-    'Break-Fast',
-    'Morning Tiffin / Lunch',
-    'Evening Tiffin / Dinner',
+    AppStrings.breakFast.tr,
+    AppStrings.morningTiffinLunch.tr,
+    AppStrings.eveningTiffinDinner.tr,
   ];
 
   final List<String> _bannerImages = const [
@@ -115,7 +119,7 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
                   color: _primary, size: 56),
               const SizedBox(height: 16),
               CustomText(
-                'Leave without ordering?',
+                AppStrings.leaveWithoutOrdering.tr,
                 fontSize: SizeConfig.large,
                 fontWeight: FontWeight.w800,
                 color: AppColors.mainTextColor,
@@ -123,7 +127,7 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
               ),
               const SizedBox(height: 8),
               CustomText(
-                'Your cart will be cleared if you go back.',
+                AppStrings.cartWillBeCleared.tr,
                 fontSize: SizeConfig.small,
                 fontWeight: FontWeight.w500,
                 color: AppColors.secondaryTextColor,
@@ -145,7 +149,7 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: CustomText('Leave',
+                      child: CustomText(AppStrings.leaveLabel.tr,
                           color: AppColors.secondaryTextColor,
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w700),
@@ -165,7 +169,7 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12)),
                       ),
-                      child: CustomText('View Cart',
+                      child: CustomText(AppStrings.viewCart.tr,
                           color: AppColors.white,
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w800),
@@ -233,7 +237,7 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
                     singleLineLabel: true,
                     categories: _categories.map((c) => StickyCategory(
                       id: c.name,
-                      name: c.name,
+                      name: c.labelKey.tr,
                       imageUrl: c.icon,
                     )).toList(),
                     selectedId: _categories[controller.selectedCategoryIndex.value].name,
@@ -303,10 +307,10 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
         child: FloatingCartWidget(
           itemCount: count,
           displayImages: cartController.previewImages,
-          cartLabel: stores > 1 ? 'View Carts' : 'View Cart',
+          cartLabel: stores > 1 ? AppStrings.viewCarts.tr : AppStrings.viewCart.tr,
           itemLabel: stores > 1
-              ? '$stores kitchens  •  $count ${count == 1 ? 'item' : 'items'}'
-              : '$count ${count == 1 ? 'item' : 'items'}  •  ${AppConstants.rupeeSymbol}${cartController.totalPrice.toStringAsFixed(0)}',
+              ? '$stores ${AppStrings.kitchensLabel.tr}  •  $count ${count == 1 ? AppStrings.itemLabel.tr : AppStrings.itemsLabel.tr}'
+              : '$count ${count == 1 ? AppStrings.itemLabel.tr : AppStrings.itemsLabel.tr}  •  ${AppConstants.rupeeSymbol}${cartController.totalPrice.toStringAsFixed(0)}',
           onTap: () => Get.to(() => const HmfCartScreen()),
         ),
       );
@@ -317,7 +321,7 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
   // resolves the store (home-foods + tiffins) by userId.
   void _openStore(String? userId) {
     if (userId == null || userId.isEmpty) {
-      commonSnackBar(message: 'Store details not available');
+      commonSnackBar(message: AppStrings.storeDetailsNotAvailable.tr);
       return;
     }
     Get.to(() => HmfStoreDetailsDiscoverScreen(userId: userId));
@@ -381,7 +385,7 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
                   color: Colors.white, size: 18),
               const SizedBox(width: 8),
               CustomText(
-                'Post Food',
+                AppStrings.postFood.tr,
                 fontSize: 14,
                 fontWeight: FontWeight.w800,
                 color: AppColors.white,
@@ -420,7 +424,7 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
           return _loader();
         }
         if (controller.tiffinList.isEmpty) {
-          return _emptyState('No tiffin items found yet.');
+          return _emptyState(AppStrings.noTiffinItemsFound.tr);
         }
         return _buildTiffinList();
       } else {
@@ -428,7 +432,7 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
           return _loader();
         }
         if (controller.homeFoodList.isEmpty) {
-          return _emptyState('No items found here yet.');
+          return _emptyState(AppStrings.noItemsFoundHere.tr);
         }
         return _buildFoodList();
       }
@@ -495,7 +499,7 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
       name: meal.tiffinName,
       sellingPrice: meal.sellingPrice,
       mrpPrice: meal.mrpPrice,
-      discount: '$discount'.startsWith('0') ? '' : '$discount% Off',
+      discount: '$discount'.startsWith('0') ? '' : '$discount${AppStrings.percentOff.tr}',
       cookingMethod: meal.cookingMethod,
       startTime: meal.startTime,
       endTime: meal.endTime,
@@ -706,7 +710,7 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CustomText(
-                storeName.isNotEmpty ? storeName : 'Kitchen',
+                storeName.isNotEmpty ? storeName : AppStrings.kitchenLabel.tr,
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
                 color: AppColors.mainTextColor,
@@ -739,7 +743,7 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
         const SizedBox(width: 3),
         Flexible(
           child: CustomText(
-            '${km.toStringAsFixed(1)} km Away',
+            '${km.toStringAsFixed(1)} ${AppStrings.kmAwayLower.tr}',
             fontSize: 11.5,
             fontWeight: FontWeight.w600,
             color: _primary,
@@ -793,7 +797,7 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
             borderRadius: BorderRadius.circular(8),
           ),
           child: CustomText(
-            'View Profile',
+            AppStrings.viewProfile.tr,
             fontSize: 12.5,
             fontWeight: FontWeight.w800,
             color: AppColors.white,
@@ -948,6 +952,7 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
 
 class _FoodCategory {
   final String name;
+  final String labelKey;
   final String icon;
-  const _FoodCategory(this.name, this.icon);
+  const _FoodCategory(this.name, this.labelKey, this.icon);
 }

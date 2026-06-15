@@ -34,6 +34,10 @@ class FeedCard extends StatefulWidget {
   final bool? isRepost;
   final VoidCallback? likeFeed;
 
+  /// Channel name passed from the channel feed (channel screen). Used to
+  /// show the channel name on posts created via channel.
+  final String? channelName;
+
   const FeedCard(
       {super.key,
       required this.post,
@@ -44,7 +48,8 @@ class FeedCard extends StatefulWidget {
       this.bottomPadding,
       this.likeFeed,
       this.isFromDetailsScreen = false,
-      this.isRepost = false});
+      this.isRepost = false,
+      this.channelName});
 
   @override
   State<FeedCard> createState() => _FeedCardState();
@@ -113,6 +118,7 @@ class _FeedCardState extends State<FeedCard> {
 
   Widget buildPostWidget() {
     FeedType? feedType = FeedType.fromValue(_post?.type?.toUpperCase());
+    logs("widget.postFilteredType= ${widget.postFilteredType}");
     switch (feedType) {
       case FeedType.messagePost || FeedType.photoPost:
         return widget.postFilteredType == PostType.otherChannelPosts
@@ -145,6 +151,7 @@ class _FeedCardState extends State<FeedCard> {
                   child: PostAuthorHeader(
                     post: _post,
                     isRepost: widget.isRepost,
+                    channelName: widget.channelName,
                     authorId: _post?.user?.id ?? '0',postedAgo: _post?.createdAt.toString(),
                     postType: widget.postFilteredType,
                     onTapAvatar: _shouldShowProfileNavigation()
@@ -188,6 +195,7 @@ class _FeedCardState extends State<FeedCard> {
               ? () => SizedBox.shrink()
               : () => PostAuthorHeader(
                     post: _post,
+                    channelName: widget.channelName,
                     authorId: _post?.user?.id ?? '0',
                     postType: widget.postFilteredType,
                     onTapAvatar: _shouldShowProfileNavigation()

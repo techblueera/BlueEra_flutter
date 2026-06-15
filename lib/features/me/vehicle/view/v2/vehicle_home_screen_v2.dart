@@ -15,6 +15,8 @@ import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/me/vehicle/controller/vehicle_controller.dart';
 import 'package:BlueEra/features/me/vehicle/model/vehicle_models.dart';
+import 'package:BlueEra/features/me/vehicle/view/add_vehicle/add_vehicle_condition_dialog.dart';
+import 'package:BlueEra/features/me/vehicle/view/add_vehicle/add_vehicle_flow_screen.dart';
 import 'package:BlueEra/features/me/vehicle/view/widgets/vehicle_card.dart';
 import 'package:BlueEra/features/me/vehicle/view/widgets/vehicle_contact_form_sheet.dart';
 import 'package:BlueEra/features/me/vehicle/view/widgets/vehicle_form_sheet.dart';
@@ -320,18 +322,19 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2>
   // so long forms scroll comfortably and the keyboard never collapses
   // the form on small devices.
   Future<void> _onAddVehicle() async {
-    final result = await Navigator.of(context).push<VehicleFormResult>(
+    // Step 1 — ask whether the vehicle is NEW or USED, then route into
+    // the matching 3-page upload flow (the flow owns the create call).
+    final condition = await showVehicleConditionDialog(context);
+    if (condition == null || !mounted) return;
+    final created = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
-        builder: (_) => const VehicleFormSheet(),
+        builder: (_) => AddVehicleFlowScreen(condition: condition),
         fullscreenDialog: true,
       ),
     );
-    if (result == null) return;
-    await _ctrl.createVehicle(
-      draft: result.draft,
-      coverImageFile: result.coverFile,
-      imageFiles: result.imageFiles,
-    );
+    if (created == true) {
+      await _ctrl.fetchMyVehicles(showProgress: false);
+    }
   }
 
   Future<void> _onEditVehicle(Vehicle v) async {
