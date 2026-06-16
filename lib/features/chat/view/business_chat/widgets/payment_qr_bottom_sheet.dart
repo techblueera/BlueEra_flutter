@@ -5,11 +5,9 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
-import 'package:BlueEra/features/chat/auth/controller/payment_qr_controller.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/upi_payment_controller.dart';
-import 'package:BlueEra/features/chat/auth/model/payment_qr_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -47,37 +45,46 @@ Future<void> showPaymentQrBottomSheet(
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (_) => Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Drag handle
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
-                ),
+    builder: (ctx) => Padding(
+      // Lift the whole sheet above the keyboard so the amount field stays
+      // visible while typing.
+      padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+      child: Container(
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: SafeArea(
+          top: false,
+          // Scrollable so the tall QR content never overflows once the
+          // keyboard shrinks the available height.
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Drag handle
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  PaymentQrPanel(
+                    qrData: data,
+                    userId: userId,
+                    conversationId: conversationId,
+                    payeeVpa: payeeVpa,
+                    payeeName: payeeName,
+                    amount: amount,
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              PaymentQrPanel(
-                qrData: data,
-                userId: userId,
-                conversationId: conversationId,
-                payeeVpa: payeeVpa,
-                payeeName: payeeName,
-                amount: amount,
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -123,10 +130,9 @@ class _PaymentQrPanelState extends State<PaymentQrPanel>
   final RxBool _isSaving = false.obs;
   final UpiPaymentController _upiController = UpiPaymentController();
 
-  // Payment QR / transaction recording (see payment-qr-integration-guide.md).
-  final PaymentQrController _paymentQrController =
-      getOrPut(() => PaymentQrController());
-  final TextEditingController _utrCtrl = TextEditingController();
+  // The chat controller owns the screenshot send (see
+  // image-is-payment-flutter-integration-guide.md).
+  final ChatViewController _chatController = Get.find<ChatViewController>();
   final TextEditingController _amountCtrl = TextEditingController();
 
   // Drives the blinking copy button.
@@ -147,9 +153,6 @@ class _PaymentQrPanelState extends State<PaymentQrPanel>
     // real payee. Response is logged inside the controller.
     if ((widget.userId ?? '').isNotEmpty) {
       _upiController.fetchUserUpi(widget.userId!);
-      // Resolve the receiver's registered Payment QR id up-front so recording
-      // a transaction is instant. Best-effort — re-resolved on submit if null.
-      _paymentQrController.fetchPayeeQr(widget.userId!);
     }
     // Prefill the amount from the caller (e.g. order total); the payer can edit.
     final initialAmount = num.tryParse(widget.amount);
@@ -161,7 +164,6 @@ class _PaymentQrPanelState extends State<PaymentQrPanel>
   @override
   void dispose() {
     _blinkController.dispose();
-    _utrCtrl.dispose();
     _amountCtrl.dispose();
     super.dispose();
   }
@@ -282,26 +284,23 @@ class _PaymentQrPanelState extends State<PaymentQrPanel>
               }),
               const SizedBox(height: 20),
 
-              // ── Record payment (guide: POST /payment-qr/transactions) ──────
-              // After paying via their UPI app, the payer enters the UTR/ref
-              // number + amount, then uploads the screenshot.
-              _paymentField(
-                controller: _utrCtrl,
-                hint: 'UTR / Reference number',
-                keyboardType: TextInputType.text,
-                icon: Icons.confirmation_number_outlined,
-              ),
-              const SizedBox(height: 10),
+              // ── Upload payment screenshot (guide: is_payment image msg) ────
+              // After paying via their UPI app, the payer optionally notes the
+              // amount, then uploads the screenshot which is sent into the chat
+              // as a payment message awaiting the owner's approval.
               _paymentField(
                 controller: _amountCtrl,
                 hint: 'Amount paid (₹)',
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
                 icon: Icons.currency_rupee_rounded,
+                // Only digits + a single decimal point, max 6 digits before
+                // the decimal and up to 2 after (e.g. 999999.99).
+                inputFormatters: [_AmountInputFormatter()],
               ),
               const SizedBox(height: 20),
 
-              // Download QR / Record payment actions
+              // Download QR / Upload-screenshot actions
               Row(
                 children: [
                   Expanded(
@@ -318,8 +317,7 @@ class _PaymentQrPanelState extends State<PaymentQrPanel>
                     child: Obx(() => _actionButton(
                           icon: Icons.upload_file_rounded,
                           label: 'Upload Screenshot',
-                          isBusy: _paymentQrController.isRecording.value ||
-                              _paymentQrController.isLoadingPartnerQr.value,
+                          isBusy: _chatController.isSending.value,
                           filled: true,
                           onTap: _recordPayment,
                         )),
@@ -330,16 +328,18 @@ class _PaymentQrPanelState extends State<PaymentQrPanel>
     );
   }
 
-  /// A bordered text field used for the UTR and amount inputs.
+  /// A bordered text field used for the amount input.
   Widget _paymentField({
     required TextEditingController controller,
     required String hint,
     required TextInputType keyboardType,
     required IconData icon,
+    List<TextInputFormatter>? inputFormatters,
   }) {
     return TextField(
       controller: controller,
       keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
       style: TextStyle(
         fontSize: SizeConfig.size14,
         fontWeight: FontWeight.w600,
@@ -596,33 +596,24 @@ class _PaymentQrPanelState extends State<PaymentQrPanel>
     }
   }
 
-  /// Records a payment per the guide (POST /payment-qr/transactions): validates
-  /// UTR + amount, resolves the receiver's payment_qr_id, then lets the payer
-  /// pick a screenshot which is uploaded (S3 presigned) and submitted.
+  /// Lets the payer pick a payment screenshot which is then sent into the chat
+  /// as an `is_payment` image message awaiting the owner's approval (see
+  /// image-is-payment-flutter-integration-guide.md).
   Future<void> _recordPayment() async {
-    final utr = _utrCtrl.text.trim();
-    final amount = num.tryParse(_amountCtrl.text.trim()) ?? 0;
-
-    if (utr.isEmpty) {
-      commonSnackBar(message: 'Enter the UTR / reference number');
-      return;
-    }
-    if (amount <= 0) {
-      commonSnackBar(message: 'Enter a valid amount');
-      return;
-    }
     if ((widget.conversationId ?? '').isEmpty) {
-      commonSnackBar(message: 'Unable to record payment');
+      commonSnackBar(message: 'Unable to send payment screenshot');
       return;
     }
 
-    // Resolve the receiver's registered Payment QR id (cached on open).
-    PaymentQr? qr = _paymentQrController.partnerQr.value;
-    qr ??= await _paymentQrController.fetchPayeeQr(widget.userId ?? '');
-    final qrId = qr?.id;
-    if (qrId == null || qrId.isEmpty) {
-      commonSnackBar(
-          message: 'Receiver has not set up a Payment QR yet');
+    // Amount is required before uploading the screenshot.
+    final amount = _amountCtrl.text.trim();
+    if (amount.isEmpty) {
+      commonSnackBar(message: 'Enter the amount paid');
+      return;
+    }
+    final parsed = num.tryParse(amount);
+    if (parsed == null || parsed <= 0) {
+      commonSnackBar(message: 'Enter a valid amount');
       return;
     }
 
@@ -632,21 +623,26 @@ class _PaymentQrPanelState extends State<PaymentQrPanel>
       'Upload Payment Screenshot',
       onCamera: () {
         Navigator.pop(context); // close the chooser
-        _pickAndRecord(ImageSource.camera, qrId, utr, amount);
+        _pickAndSend(ImageSource.camera);
       },
       onGallery: () {
         Navigator.pop(context); // close the chooser
-        _pickAndRecord(ImageSource.gallery, qrId, utr, amount);
+        _pickAndSend(ImageSource.gallery);
       },
     );
   }
 
-  /// Picks the screenshot from [source] and records the transaction. The QR
-  /// sheet closes as soon as a file is picked; [PaymentQrController.recordPayment]
-  /// handles compression, S3 upload, the POST, and injecting the
-  /// `payment_transaction` card into the chat.
-  Future<void> _pickAndRecord(
-      ImageSource source, String qrId, String utr, num amount) async {
+  /// Picks the screenshot from [source] and sends it as a payment message. The
+  /// QR sheet closes as soon as a file is picked; [ChatViewController.
+  /// sendPaymentScreenshot] handles the multipart upload, the `is_payment`
+  /// flag, and rendering the awaiting-approval bubble in the chat.
+  Future<void> _pickAndSend(ImageSource source) async {
+    // The amount (validated in _recordPayment) becomes the screenshot's caption
+    // so the owner sees what was paid. Captured before any pop disposes the
+    // controller.
+    final amount = _amountCtrl.text.trim();
+    final note = 'Payment of ₹$amount';
+
     final XFile? picked = await ImagePicker().pickImage(source: source);
     if (picked == null) return;
 
@@ -655,12 +651,25 @@ class _PaymentQrPanelState extends State<PaymentQrPanel>
     // Payment tab there is no sheet route to pop.
     if (!widget.embedded) Navigator.pop(context);
 
-    await _paymentQrController.recordPayment(
-      paymentQrId: qrId,
-      utrNo: utr,
-      amount: amount,
+    await _chatController.sendPaymentScreenshot(
       screenshot: File(picked.path),
       conversationId: widget.conversationId,
+      note: note,
     );
+  }
+}
+
+/// Restricts an amount field to numbers with at most one decimal point:
+/// up to 6 digits before the decimal and up to 2 digits after
+/// (e.g. `999999.99`). Rejects any edit that doesn't match.
+class _AmountInputFormatter extends TextInputFormatter {
+  static final RegExp _pattern = RegExp(r'^\d{0,6}(\.\d{0,2})?$');
+
+  @override
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
+    final text = newValue.text;
+    if (text.isEmpty) return newValue;
+    return _pattern.hasMatch(text) ? newValue : oldValue;
   }
 }

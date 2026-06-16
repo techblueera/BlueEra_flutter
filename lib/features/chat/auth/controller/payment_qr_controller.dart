@@ -192,16 +192,11 @@ class PaymentQrController extends GetxController {
   /// immediately. Returns the created [PaymentTransaction] or null.
   Future<PaymentTransaction?> recordPayment({
     required String paymentQrId,
-    required String utrNo,
-    required num amount,
     required File screenshot,
     String? conversationId,
   }) async {
     if (isRecording.value) return null;
-    if (amount <= 0) {
-      commonSnackBar(message: 'Enter a valid amount');
-      return null;
-    }
+
     isRecording.value = true;
     try {
       final uploaded = await _uploadToS3(screenshot);
@@ -212,8 +207,8 @@ class PaymentQrController extends GetxController {
 
       final res = await _repo.recordTransaction({
         'payment_qr_id': paymentQrId,
-        'utr_no': utrNo,
-        'amount': amount,
+        // 'utr_no': utrNo,
+        // 'amount': amount,
         'screenshot_url': uploaded.publicUrl,
         if (uploaded.fileKey != null) 'screenshot_key': uploaded.fileKey,
       });

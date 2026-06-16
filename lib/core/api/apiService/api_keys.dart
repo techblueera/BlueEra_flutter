@@ -96,6 +96,8 @@ class ApiKeys {
   static const conversation_id = 'conversation_id';
   static const message_type = 'message_type';
   static const metadata = 'metadata';
+  static const is_payment = 'is_payment';
+  static const payment_status = 'payment_status';
   static const page = 'page';
   static const per_page_message = 'per_page_message';
   static const videoPath = 'videoPath';

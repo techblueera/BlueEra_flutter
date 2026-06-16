@@ -901,6 +901,12 @@ class ChatViewController extends GetxController {
             : Get.put(PaymentQrController(), permanent: true);
         controller.handlePaymentReceived(data);
       });
+
+      // Payment image confirmed/rejected by the receiver: patch the matching
+      // message's payment_status (fires for both participants).
+      chatSocket.listenEvent(ChatEmitEvents.paymentStatusUpdate, (data) {
+        handlePaymentStatusUpdate(data);
+      });
       chatSocket.listenEvent(ChatEmitEvents.messageReceived, (data) async {
           final parsedData = GetListOfMessageData.fromJson(data);
 
@@ -1411,6 +1417,171 @@ class ChatViewController extends GetxController {
     scrollDown();
   }
 
+  // ─────────────────────────────────────────────────────────────────────────
+  // Payment screenshot flow (see image-is-payment-flutter-integration-guide.md)
+  //
+  // The payer uploads a payment screenshot sent as an image message carrying
+  // the top-level `is_payment: true` flag. The backend stores & echoes it
+  // (HTTP + socket) alongside a `payment_status` lifecycle field that starts
+  // at 'pending'.
+  //
+  // The receiver (owner) confirms/rejects via PUT /chat/payment-status, moving
+  // the status to 'success' or 'failed'. The backend then pushes a
+  // `paymentStatusUpdate` socket event to BOTH participants, so each device
+  // re-renders the bubble (waiting → accepted/rejected).
+  // ─────────────────────────────────────────────────────────────────────────
+
+  // Backend payment_status values.
+  static const String kPaymentPending = 'pending';
+  static const String kPaymentSuccess = 'success';
+  static const String kPaymentFailed = 'failed';
+
+  /// Sends [screenshot] as an image message with `is_payment: true` into the
+  /// open conversation. Shows an optimistic uploading placeholder, then swaps
+  /// in the server message on success. Returns true when accepted by the server.
+  Future<bool> sendPaymentScreenshot({
+    required File screenshot,
+    String? conversationId,
+    String? note,
+  }) async {
+    if (isSending.value) return false;
+    if ((conversationId ?? '').isEmpty) {
+      commonSnackBar(message: 'Unable to send payment screenshot');
+      return false;
+    }
+    isSending.value = true;
+
+    // Optimistic uploading card so the payer sees progress immediately.
+    final now = DateTime.now().toUtc().toIso8601String();
+    sendLoadingFile.value = Messages(
+      url: [MessageMediaUrl(url: screenshot.path)],
+      sendLoadingFile: [screenshot],
+      myMessage: true,
+      messageType: 'image',
+      message: note,
+      isPayment: true,
+      paymentStatus: kPaymentPending,
+      createdAt: now,
+    );
+    getListOfMessageData?.add(sendLoadingFile.value);
+    getListOfMessageResponse.value =
+        ApiResponse.complete(getListOfMessageData);
+    scrollDown();
+
+    try {
+      final name = screenshot.path.split('/').last;
+      final part =
+          await dio.MultipartFile.fromFile(screenshot.path, filename: name);
+
+      final params = <String, dynamic>{
+        ApiKeys.conversation_id: conversationId,
+        ApiKeys.message_type: 'image',
+        // Multipart values arrive as strings; backend coerces "true" → true.
+        ApiKeys.is_payment: true,
+        if ((note ?? '').isNotEmpty) ApiKeys.message: note,
+        ApiKeys.files: [part],
+      };
+      attachRouteParam(params);
+
+      final ResponseModel responseModel =
+          await ChatViewRepo().sendMessageToUser(params);
+
+      _removeUploadingPlaceholder();
+
+      if (!responseModel.isSuccess) {
+        commonSnackBar(
+            message: responseModel.message ?? AppStrings.somethingWentWrong);
+        return false;
+      }
+
+      final data = responseModel.response?.data?['data'];
+      final raw = data is List ? (data.isNotEmpty ? data.first : null) : data;
+      if (raw == null) return false;
+      Messages message = Messages.fromJson(raw);
+      // Carry the payment fields even if the server echo omitted them, so the
+      // bubble renders the awaiting-approval footer at once.
+      message.isPayment = true;
+      message.paymentStatus ??= kPaymentPending;
+
+      final alreadyExists = message.id != null &&
+          (getListOfMessageData?.any((m) => m.id == message.id) ?? false);
+      if (!alreadyExists) {
+        getListOfMessageData?.add(message);
+      }
+      getListOfMessageResponse.value =
+          ApiResponse.complete(getListOfMessageData);
+      saveSingleMessageToLocal(conversationId!, message);
+      _updateChatListLastMessage(
+        conversationId,
+        note,
+        'image',
+        message.updatedAt ?? message.createdAt,
+        sendStatus: "",
+      );
+      scrollDown();
+      return true;
+    } catch (e) {
+      _removeUploadingPlaceholder();
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
+    } finally {
+      isSending.value = false;
+    }
+  }
+
+  /// Owner action: confirm ('success') or reject ('failed') the payment image
+  /// [messageId] via PUT /chat/payment-status. Applies an optimistic local
+  /// patch for snappy feedback; the `paymentStatusUpdate` socket then
+  /// reconciles both participants (idempotent).
+  Future<void> updatePaymentStatus({
+    required String messageId,
+    required String status,
+  }) async {
+    if (messageId.isEmpty) return;
+    _applyPaymentStatus(messageId, status);
+    try {
+      final res = await ChatViewRepo().updatePaymentStatusApi({
+        ApiKeys.messageId: messageId,
+        ApiKeys.payment_status: status,
+      });
+      if (!res.isSuccess) {
+        commonSnackBar(
+            message: res.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (_) {
+      // Best-effort: the socket event remains the source of truth.
+    }
+  }
+
+  /// Handles the `paymentStatusUpdate` socket event (fires for both payer and
+  /// receiver). Patches the referenced message's [Messages.paymentStatus].
+  void handlePaymentStatusUpdate(dynamic data) {
+    if (data is! Map) return;
+    final messageId =
+        (data['messageId'] ?? data['message_id'])?.toString();
+    final status = data['payment_status']?.toString();
+    _applyPaymentStatus(messageId, status);
+  }
+
+  /// Patches the in-memory + persisted payment_status of the message with
+  /// [messageId]. No-op when the conversation isn't currently loaded — the
+  /// backend value flows in on the next history load.
+  void _applyPaymentStatus(String? messageId, String? status) {
+    if (messageId == null || messageId.isEmpty) return;
+    if (status == null || status.isEmpty) return;
+    final list = getListOfMessageData;
+    if (list == null) return;
+    final target = list.firstWhereOrNull((m) => m.id == messageId);
+    if (target == null) return;
+    target.isPayment = true;
+    target.paymentStatus = status;
+    getListOfMessageResponse.value = ApiResponse.complete(list);
+    final convId = target.conversationId ?? '';
+    if (convId.isNotEmpty) {
+      localStorageHelper.saveMessagesByConversationId(convId, list);
+    }
+  }
+
   void setReplyMessage(Messages? message) {
     replyMessage?.value = message;
   }
@@ -1567,24 +1738,6 @@ class ChatViewController extends GetxController {
       // Received message or already-sent message — save without pending status.
       await localStorageHelper.saveSingleMessageToConversationId(
           conversationId, msg);
-    }
-  }
-
-  /// Updates the approval status of a payment-screenshot image message locally
-  /// ([status] = 'approved' | 'rejected'). Patches the in-memory message,
-  /// refreshes the list, and re-persists the conversation to Hive so the
-  /// decision survives a reopen. No backend call — approvals are local.
-  Future<void> updatePaymentApprovalStatus(
-      Messages message, String status) async {
-    message.metadata ??= MessageMetadata();
-    message.metadata!.isPaymentScreenshot = true;
-    message.metadata!.approvalStatus = status;
-    getListOfMessageResponse.value =
-        ApiResponse.complete(getListOfMessageData);
-    final convId = message.conversationId ?? '';
-    if (convId.isNotEmpty && getListOfMessageData != null) {
-      await localStorageHelper.saveMessagesByConversationId(
-          convId, getListOfMessageData!);
     }
   }
 

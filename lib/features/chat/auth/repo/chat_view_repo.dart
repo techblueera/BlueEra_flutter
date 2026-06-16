@@ -15,6 +15,17 @@ class ChatViewRepo extends BaseService {
     return response;
   }
 
+  /// PUT /chat/payment-status — confirm/reject a payment image's status.
+  /// See image-is-payment-flutter-integration-guide.md → Updating payment status.
+  Future<ResponseModel> updatePaymentStatusApi(
+      Map<String, dynamic> params) async {
+    final response = await ApiBaseHelper().putHTTP(
+        paymentStatus,
+        showProgress: false,
+        params: params, onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
   Future<ResponseModel> sendMessageToUserLargeFile(Map<String, dynamic> params) async {
     final response = await ApiBaseHelper().postHTTP(
         sendDownloadLargeFile,
