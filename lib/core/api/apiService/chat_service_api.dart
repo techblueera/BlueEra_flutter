@@ -8,6 +8,9 @@ mixin ChatServiceApi {
   /// ADD POST
   final String sendMessage = 'chat-service/chat/send-message';
   final String updateMessage = 'chat-service/chat/update-message';
+  // Confirm/reject a payment image's status (see
+  // image-is-payment-flutter-integration-guide.md → Updating payment status).
+  final String paymentStatus = 'chat-service/chat/payment-status';
   final String generateUploadUrls = 'chat-service/s3/generate-upload-urls';
   final String generateDownloadUrls = 'chat-service/s3/generate-download-url';
   final String sendDownloadLargeFile =

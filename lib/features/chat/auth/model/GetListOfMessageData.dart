@@ -112,6 +112,8 @@ class Messages {
       this.sender,
       this.seller,
       this.buyer,
+      this.isPayment,
+      this.paymentStatus,
   });
 
   Messages.fromJson(dynamic json) {
@@ -136,6 +138,12 @@ class Messages {
         ? MessageMetadata.fromJson(Map<String, dynamic>.from(json['metadata']))
         : null;
     messageRead = json['message_read'];
+    // Top-level payment fields (image-is-payment-flutter-integration-guide.md).
+    // Backend echoes both on the saved message in the HTTP response, the
+    // `newMessageReceived` socket and the `paymentStatusUpdate` socket.
+    // Null-safe: legacy messages → is_payment false, payment_status 'pending'.
+    isPayment = json['is_payment'] == true;
+    paymentStatus = json['payment_status']?.toString() ?? 'pending';
     videoTime = json['video_time'];
     audioTime = json['audio_time'];
     latitude = json['latitude'];
@@ -222,6 +230,12 @@ class Messages {
   bool? deleteFromEveryone;
   bool? isSaveMessage;
   bool? myMessage;
+  bool? isPayment;
+
+  /// Payment lifecycle for an `is_payment` image: 'pending' | 'success' |
+  /// 'failed'. Driven entirely by the backend (PUT /chat/payment-status +
+  /// the `paymentStatusUpdate` socket). Defaults to 'pending'.
+  String? paymentStatus;
   Sender? sender;
   SellerDetails? seller;
   BuyerDetails? buyer;
@@ -272,6 +286,8 @@ class Messages {
     map['delete_from_everyone'] = deleteFromEveryone;
     map['is_save_message'] = isSaveMessage;
     map['my_message'] = myMessage;
+    map['is_payment'] = isPayment;
+    map['payment_status'] = paymentStatus;
     map['visible_to'] = visible_to;
     map['likes_count'] = likes_count;
     map['forwards_count'] = forwards_count;

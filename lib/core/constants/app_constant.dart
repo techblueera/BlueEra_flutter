@@ -1126,6 +1126,10 @@ class ChatEmitEvents {
   // See payment-qr-integration-guide.md §Realtime.
   static const paymentReceived = "payment:received";
 
+  // Emitted to BOTH participants when a payment image's status changes
+  // (pending → success/failed). See image-is-payment-flutter-integration-guide.md.
+  static const paymentStatusUpdate = "paymentStatusUpdate";
+
   // Signaling events
   static const isTyping = "isTyping";
   static const markConversationRead = "markConversationRead";

@@ -288,7 +288,10 @@ class _VideoAndImageCardWidgetState extends State<VideoAndImageCardWidget> {
         url: path.url ?? '',
         height: 250, width: 252, fit: BoxFit.cover);
 
-    final bool isPaymentShot =
+    // A payment screenshot is flagged by the backend's top-level `is_payment`
+    // (see image-is-payment-flutter-integration-guide.md); the legacy
+    // metadata flag is kept for backward compatibility with older messages.
+    final bool isPaymentShot = message.isPayment == true ||
         message.metadata?.isPaymentScreenshot == true;
 
     final imageBubble = GestureDetector(
@@ -379,8 +382,10 @@ class _VideoAndImageCardWidgetState extends State<VideoAndImageCardWidget> {
   /// - Receiver (shop owner): Approve / Reject buttons while pending, then the
   ///   resulting status tag.
   Widget _buildApprovalFooter(Messages message, bool isReceiveMsg) {
-    final status = message.metadata?.approvalStatus ?? 'pending';
+    // Backend lifecycle: 'pending' | 'success' | 'failed'.
+    final status = message.paymentStatus ?? 'pending';
 
+    // Only the receiver (owner) can confirm/reject, and only while pending.
     if (isReceiveMsg && status == 'pending') {
       return Container(
         width: 256,
@@ -393,7 +398,7 @@ class _VideoAndImageCardWidgetState extends State<VideoAndImageCardWidget> {
                 icon: Icons.close_rounded,
                 color: AppColors.red00,
                 filled: false,
-                onTap: () => _handleApproval(message, 'rejected'),
+                onTap: () => _handleApproval(message, 'failed'),
               ),
             ),
             const SizedBox(width: 8),
@@ -403,7 +408,7 @@ class _VideoAndImageCardWidgetState extends State<VideoAndImageCardWidget> {
                 icon: Icons.check_rounded,
                 color: AppColors.green1A,
                 filled: true,
-                onTap: () => _handleApproval(message, 'approved'),
+                onTap: () => _handleApproval(message, 'success'),
               ),
             ),
           ],
@@ -419,15 +424,15 @@ class _VideoAndImageCardWidgetState extends State<VideoAndImageCardWidget> {
     late final IconData icon;
     late final String label;
     switch (status) {
-      case 'approved':
+      case 'success':
         color = AppColors.green1A;
         icon = Icons.check_circle_rounded;
-        label = 'Approved';
+        label = 'Payment accepted';
         break;
-      case 'rejected':
+      case 'failed':
         color = AppColors.red00;
         icon = Icons.cancel_rounded;
-        label = 'Rejected';
+        label = 'Payment rejected';
         break;
       default:
         color = AppColors.orange;
@@ -493,9 +498,12 @@ class _VideoAndImageCardWidgetState extends State<VideoAndImageCardWidget> {
     );
   }
 
+  /// Owner decision via PUT /chat/payment-status. [status] is the backend
+  /// value: 'success' (approve) or 'failed' (reject). The optimistic local
+  /// patch + `paymentStatusUpdate` socket re-render both sides.
   Future<void> _handleApproval(Messages message, String status) async {
     await Get.find<ChatViewController>()
-        .updatePaymentApprovalStatus(message, status);
+        .updatePaymentStatus(messageId: message.id ?? '', status: status);
     if (mounted) setState(() {});
   }
 
