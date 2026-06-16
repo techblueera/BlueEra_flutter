@@ -3,11 +3,12 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/common/Discover/view/all_vehicle_service_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/vehicle/vehicle_listing_screen.dart';
+import 'package:BlueEra/features/me/automotive_products/view/customer/automotive_category_discover_screen.dart';
 import 'package:BlueEra/features/me/vehicle/model/vehicle_models.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
+import 'package:BlueEra/widgets/collapsible_grid_model.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -56,9 +57,10 @@ class AutomotiveServiceCardWidget extends StatelessWidget {
                       service: item,
                       getName: (i) => i.name,
                       getIcon: (i) => i.icon ?? "",
-                      onTap: (data) => Get.to(VehicleListingScreen(
-                        addCondition: _conditionForSlug(item.slugId),
-                      )),
+                      onTap: (data) => _onCategoryTap(data, automotiveServiceItemsCategories),
+                      // Get.to(()=> VehicleListingScreen(
+                      //   addCondition: _conditionForSlug(item.slug Id),
+                      // )),
                     ),
                   );
                 }).toList(),
@@ -69,4 +71,28 @@ class AutomotiveServiceCardWidget extends StatelessWidget {
       ),
     );
   }
+
+  /// "Vehicle Parts" opens the products category-discover screen; every
+  /// other automotive category keeps the existing AllVehicleServiceScreen
+  /// listing.
+  void _onCategoryTap(CollapsibleGridModel item, List<CollapsibleGridModel> categories) {
+    final tag = (item.slugId ?? '').toLowerCase();
+    final name = (item.name ?? '').toLowerCase();
+    final isParts = tag.contains('part') || name.contains('part');
+
+    if (isParts) {
+      Get.to(() => const AutomotiveCategoryDiscoverScreen());
+      return;
+    }
+
+    // AllVehicleServiceScreen is typed against CollapsibleGridModel and keys
+    // its category filter off `slugId`, so map the API categories
+    // (tag_id → slugId) before handing off.
+
+    Get.to(()=> VehicleListingScreen(
+      addCondition: _conditionForSlug(item.slugId),
+    ));
+
+  }
+
 }
