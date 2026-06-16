@@ -11,38 +11,38 @@ import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_d
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/store/controller/store_controller.dart';
-import 'package:BlueEra/features/me/product/view/customer/product_store_card.dart';
-import 'package:BlueEra/features/me/product/controller/product_selfpickup_controller.dart';
-import 'package:BlueEra/features/me/product/view/customer/product_self_pickup_cart_screen.dart';
-import 'package:BlueEra/features/me/product/view/customer/widget/product_self_pickup_cart.dart';
+import 'package:BlueEra/features/me/automotive_products/view/customer/automotive_product_store_card.dart';
+import 'package:BlueEra/features/me/automotive_products/controller/automotive_product_selfpickup_controller.dart';
+import 'package:BlueEra/features/me/automotive_products/view/customer/automotive_product_self_pickup_cart_screen.dart';
+import 'package:BlueEra/features/me/automotive_products/view/customer/widget/automotive_product_self_pickup_cart.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-class ProductsStoreScreen extends StatefulWidget {
+class AutomotiveProductsStoreScreen extends StatefulWidget {
   final String? productCategoryName;
   final String? productCategory;
 
-  const ProductsStoreScreen({
+  const AutomotiveProductsStoreScreen({
     super.key,
     this.productCategoryName,
     this.productCategory,
   });
 
   @override
-  State<ProductsStoreScreen> createState() => _ProductsStoreScreenState();
+  State<AutomotiveProductsStoreScreen> createState() => _AutomotiveProductsStoreScreenState();
 }
 
-class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
+class _AutomotiveProductsStoreScreenState extends State<AutomotiveProductsStoreScreen> {
   final controller = getOrPut(() => StoreController());
   final AuthController _authController = Get.find<AuthController>();
   final RxInt _selectedIndex = 0.obs;
 
-  final ProductSelfPickupController productCartController =
-      getOrPut<ProductSelfPickupController>(
-          () => ProductSelfPickupController());
+  final AutomotiveProductSelfPickupController productCartController =
+      getOrPut<AutomotiveProductSelfPickupController>(
+          () => AutomotiveProductSelfPickupController());
 
   List<CategoryData> get _categories => _authController.businessOnboardingProductsCategories;
 
@@ -70,7 +70,7 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
 
   @override
   void dispose() {
-    deleteIfRegistered<ProductSelfPickupController>();
+    deleteIfRegistered<AutomotiveProductSelfPickupController>();
     super.dispose();
   }
 
@@ -82,7 +82,7 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
     }
     _showCartWarningDialog(
       onPlaceOrder: () {
-        Get.to(() => const ProductSelfPickUpCartScreen());
+        Get.to(() => const AutomotiveProductSelfPickUpCartScreen());
       },
     );
   }
@@ -280,7 +280,7 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
                 right: 0,
                 bottom: 0,
                 child: SafeArea(
-                  child: ProductSelfPickupCart(controller: productCartController),
+                  child: AutomotiveProductSelfPickupCart(controller: productCartController),
                 ),
               ),
             ],
@@ -368,7 +368,7 @@ class _ProductsStoreScreenState extends State<ProductsStoreScreen> {
 
                 return Padding(
                   padding: EdgeInsets.only(bottom: dynamicSize(10)),
-                  child: ProductStoreCard(
+                  child: AutomotiveProductStoreCard(
                     ds: dynamicSize,
                     index: index,
                     getAllStoreResData: storeData,

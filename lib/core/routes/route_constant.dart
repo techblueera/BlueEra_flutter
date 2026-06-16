@@ -188,6 +188,20 @@ class RouteConstant {
   static const String myMedicalProductsScreen = "/MyMedicalProductsScreen";
   static const String productNestedCategoryWithInventoryScreen = "/ProductNestedCategoryWithInventoryScreen";
   static const String myProductProductsScreen = "/MyProductProductsScreen";
+  // ───────── AUTOMOTIVE module (parallel copy of product routes) ─────────
+  static const String automotivePartsScreen = "/AutomotivePartsScreen";
+  static const String automotiveAddProductTextOrSnapScreen = "/AutomotiveAddProductTextOrSnapScreen";
+  static const String automotiveAddProductViaAiStep1 = "/AutomotiveAddProductViaAiStep1";
+  static const String automotiveAddProductViaAiStep2 = "/AutomotiveAddProductViaAiStep2";
+  static const String automotiveProductPreviewScreen = "/AutomotiveProductPreviewScreen";
+  static const String automotiveCreateVariantScreen = "/AutomotiveCreateVariantScreen";
+  static const String automotiveProductsStoreDetailsScreen = "/AutomotiveProductsStoreDetailsScreen";
+  static const String automotiveProductSuperCategoryScreen = "/AutomotiveProductSuperCategoryScreen";
+  static const String automotiveProductNestedCategoryScreen = "/AutomotiveProductNestedCategoryScreen";
+  static const String automotiveStoreProductSelectionScreen = "/AutomotiveStoreProductSelectionScreen";
+  static const String automotiveAddProductVariantScreen = "/AutomotiveAddProductVariantScreen";
+  static const String automotiveProductNestedCategoryWithInventoryScreen = "/AutomotiveProductNestedCategoryWithInventoryScreen";
+  static const String automotiveMyProductProductsScreen = "/AutomotiveMyProductProductsScreen";
   static const String myMedicalVariantScreen = "/MyMedicalVariantScreen";
   static const String medicalListingScreen = "/MedicalListingScreen";
   static const String medicalCartScreen = "/MedicalCartScreen";

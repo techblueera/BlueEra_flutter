@@ -156,6 +156,24 @@ import 'package:BlueEra/features/me/product/model/generate_ai_product_content.da
 import 'package:BlueEra/features/me/product/view/admin/product_preview_screen.dart';
 import 'package:BlueEra/features/me/product/view/customer/products_store_details_screen.dart';
 import 'package:BlueEra/features/me/product/view/admin/inventory_business_cards_screen.dart';
+// ───────── AUTOMOTIVE module (parallel copy of product) ─────────
+import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_parts_screen.dart';
+import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_add_product_text_or_snap_screen.dart';
+import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_add_product_via_ai_step1.dart';
+import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_add_product_via_ai_step2.dart';
+import 'package:BlueEra/features/me/automotive_products/controller/automotive_product_controller.dart';
+import 'package:BlueEra/features/me/automotive_products/model/automotive_generate_ai_product_content.dart';
+import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_product_preview_screen.dart';
+import 'package:BlueEra/features/me/automotive_products/view/customer/automotive_products_store_details_screen.dart';
+import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_create_varient_screen.dart';
+import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_product_super_category_screen.dart';
+import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_product_nested_category_screen.dart';
+import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_product_selection_screen.dart';
+import 'package:BlueEra/features/me/automotive_products/model/automotive_product_nested_category_response.dart';
+import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_add_product_variant_screen.dart';
+import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_product_nested_category_with_inventory_screen.dart';
+import 'package:BlueEra/features/me/automotive_products/model/automotive_product_category_with_inventory_model.dart';
+import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_my_product_products_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/view/add_document_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment/view/add_bank_account_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment/view/payment_setting_screen.dart';
@@ -448,6 +466,34 @@ class RouteHelper {
 
   static String getAddProductVariantScreenRoute() =>
       RouteConstant.addProductVariantScreen;
+
+  // ───────── AUTOMOTIVE module (parallel copy of product routes) ─────────
+  static String getAutomotivePartsScreenRoute() =>
+      RouteConstant.automotivePartsScreen;
+  static String getAutomotiveAddProductTextOrSnapScreenRoute() =>
+      RouteConstant.automotiveAddProductTextOrSnapScreen;
+  static String getAutomotiveAddProductViaAiStep1Route() =>
+      RouteConstant.automotiveAddProductViaAiStep1;
+  static String getAutomotiveAddProductViaAiStep2Route() =>
+      RouteConstant.automotiveAddProductViaAiStep2;
+  static String getAutomotiveProductPreviewScreenRoute() =>
+      RouteConstant.automotiveProductPreviewScreen;
+  static String getAutomotiveCreateVariantScreenRoute() =>
+      RouteConstant.automotiveCreateVariantScreen;
+  static String getAutomotiveProductsStoreDetailsScreenRoute() =>
+      RouteConstant.automotiveProductsStoreDetailsScreen;
+  static String getAutomotiveProductSuperCategoryScreenRoute() =>
+      RouteConstant.automotiveProductSuperCategoryScreen;
+  static String getAutomotiveProductNestedCategoryScreenRoute() =>
+      RouteConstant.automotiveProductNestedCategoryScreen;
+  static String getAutomotiveStoreProductSelectionScreenRoute() =>
+      RouteConstant.automotiveStoreProductSelectionScreen;
+  static String getAutomotiveAddProductVariantScreenRoute() =>
+      RouteConstant.automotiveAddProductVariantScreen;
+  static String getAutomotiveProductNestedCategoryWithInventoryScreenRoute() =>
+      RouteConstant.automotiveProductNestedCategoryWithInventoryScreen;
+  static String getAutomotiveMyProductProductsScreenRoute() =>
+      RouteConstant.automotiveMyProductProductsScreen;
 
   static String getSelfEmployeeScreenRoute() =>
       RouteConstant.selfEmployeeScreen;
@@ -2153,6 +2199,189 @@ class RouteHelper {
                   arrCategories: argProductCategories,
                 ),
             settings: RouteSettings(name: getMyProductProductsScreenRoute()));
+
+      // ───────── AUTOMOTIVE module (parallel copy of product routes) ─────────
+      case RouteConstant.automotivePartsScreen:
+        return MaterialPageRoute(
+            builder: (_) => AutomotivePartsScreen(),
+            settings: RouteSettings(name: getAutomotivePartsScreenRoute()));
+
+      case RouteConstant.automotiveAddProductTextOrSnapScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final String id = args[ApiKeys.id] as String;
+        final ProviderType providerType =
+            args[ApiKeys.providerType] as ProviderType;
+        return MaterialPageRoute(
+            builder: (_) => AutomotiveAddProductTextOrSnapSearchScreen(
+                  id: id,
+                  providerType: providerType,
+                ),
+            settings: RouteSettings(
+                name: getAutomotiveAddProductTextOrSnapScreenRoute()));
+
+      case RouteConstant.automotiveAddProductViaAiStep1:
+        final args = settings.arguments as Map<String, dynamic>;
+        final String id = args[ApiKeys.id] as String;
+        final ProviderType providerType =
+            args[ApiKeys.providerType] as ProviderType;
+        return MaterialPageRoute(
+            builder: (_) =>
+                AutomotiveAddProductViaAiStep1(id: id, providerType: providerType),
+            settings:
+                RouteSettings(name: getAutomotiveAddProductViaAiStep1Route()));
+
+      case RouteConstant.automotiveAddProductViaAiStep2:
+        final args = settings.arguments as Map<String, dynamic>;
+        final AutomotiveProductController controller =
+            args[ApiKeys.controller] as AutomotiveProductController;
+        final AutomotiveGenerateAiProductContent generateAiProductContent =
+            args[ApiKeys.generateAiProductContent]
+                as AutomotiveGenerateAiProductContent;
+        final String id = args[ApiKeys.id] as String;
+        final ProviderType providerType =
+            args[ApiKeys.providerType] as ProviderType;
+        return MaterialPageRoute(
+            builder: (_) => AutomotiveAddProductViaAiStep2(
+                  controller: controller,
+                  generateAiProductContent: generateAiProductContent,
+                  id: id,
+                  providerType: providerType,
+                ),
+            settings:
+                RouteSettings(name: getAutomotiveAddProductViaAiStep2Route()));
+
+      case RouteConstant.automotiveProductPreviewScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        final AutomotiveProductPreviewArgs? argProductData =
+            args?[ApiKeys.argProductData] as AutomotiveProductPreviewArgs?;
+        final bool? isFromProductCreation =
+            args?[ApiKeys.isFromProductCreation] as bool?;
+        final String? id = args?[ApiKeys.id] as String?;
+        final ProviderType? providerType =
+            args?[ApiKeys.providerType] as ProviderType?;
+        return MaterialPageRoute(
+            builder: (_) => AutomotiveProductPreviewScreen(
+                  id: id,
+                  providerType: providerType,
+                  productPreviewArgs: argProductData,
+                  isFromProductCreation: isFromProductCreation ?? false,
+                ),
+            settings:
+                RouteSettings(name: getAutomotiveProductPreviewScreenRoute()));
+
+      case RouteConstant.automotiveProductsStoreDetailsScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final ProductStore? productStore =
+            args[ApiKeys.argProductData] as ProductStore?;
+        final String id = args[ApiKeys.id] as String;
+        final ProviderType providerType =
+            args[ApiKeys.providerType] as ProviderType;
+        return MaterialPageRoute(
+            builder: (_) => AutomotiveProductsStoreDetailsScreen(
+                productStore: productStore,
+                id: id,
+                providerType: providerType),
+            settings: RouteSettings(
+                name: getAutomotiveProductsStoreDetailsScreenRoute()));
+
+      case RouteConstant.automotiveCreateVariantScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final AutomotiveProductController controller =
+            args[ApiKeys.controller] as AutomotiveProductController;
+        final String id = args[ApiKeys.id] as String;
+        final ProviderType providerType =
+            args[ApiKeys.providerType] as ProviderType;
+        return MaterialPageRoute(
+            builder: (_) => AutomotiveCreateVariantScreen(
+                  controller: controller,
+                  id: id,
+                  providerType: providerType,
+                ),
+            settings:
+                RouteSettings(name: getAutomotiveCreateVariantScreenRoute()));
+
+      case RouteConstant.automotiveProductSuperCategoryScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        final String? ownerID = args?[ApiKeys.id] as String?;
+        final ProviderType? providerType =
+            args?[ApiKeys.providerType] as ProviderType?;
+        return MaterialPageRoute(
+            builder: (_) => AutomotiveProductSuperCategoryScreen(
+                  ownerID: ownerID,
+                  providerType: providerType,
+                ),
+            settings: RouteSettings(
+                name: getAutomotiveProductSuperCategoryScreenRoute()));
+
+      case RouteConstant.automotiveProductNestedCategoryScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final List<AutomotiveProductNestedCategoryResponse> superCats =
+            args[ApiKeys.argArrProductSuperCategory]
+                as List<AutomotiveProductNestedCategoryResponse>;
+        final String catId = args[ApiKeys.argArrProductCatId] as String;
+        final String catName = args[ApiKeys.argArrProductCatName] as String;
+        return MaterialPageRoute(
+            builder: (_) => AutomotiveProductNestedCategoryScreen(
+                  argArrProductSuperCat: superCats,
+                  argArrProductCatId: catId,
+                  argArrProductCatName: catName,
+                ),
+            settings: RouteSettings(
+                name: getAutomotiveProductNestedCategoryScreenRoute()));
+
+      case RouteConstant.automotiveStoreProductSelectionScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final List<AutomotiveProductNestedCategoryResponse> products =
+            args[ApiKeys.argProducts]
+                as List<AutomotiveProductNestedCategoryResponse>;
+        final String? categoryName =
+            args[ApiKeys.argArrProductCatName] as String?;
+        return MaterialPageRoute(
+            builder: (_) => AutomotiveProductSelectionScreen(
+                  arrProducts: products,
+                  categoryName: categoryName,
+                ),
+            settings: RouteSettings(
+                name: getAutomotiveStoreProductSelectionScreenRoute()));
+
+      case RouteConstant.automotiveAddProductVariantScreen:
+        return MaterialPageRoute(
+            builder: (_) => AutomotiveAddProductVariantScreen(),
+            settings: RouteSettings(
+                name: getAutomotiveAddProductVariantScreenRoute()));
+
+      case RouteConstant.automotiveProductNestedCategoryWithInventoryScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final List<AutomotiveProductCategoryWithInventoryModel>
+            argProductCategoryWithInventory =
+            args[ApiKeys.argProductCategoryWithInventory]
+                as List<AutomotiveProductCategoryWithInventoryModel>;
+        final String argProductCatName =
+            args[ApiKeys.argProductCatName] as String;
+        final String argProductCatKey =
+            args[ApiKeys.argProductCatKey] as String;
+        return MaterialPageRoute(
+            builder: (_) => AutomotiveProductNestedCategoryWithInventoryScreen(
+                  argProductCategoryWithInventory:
+                      argProductCategoryWithInventory,
+                  argProductCatKey: argProductCatKey,
+                  argProductCatName: argProductCatName,
+                ),
+            settings: RouteSettings(
+                name:
+                    getAutomotiveProductNestedCategoryWithInventoryScreenRoute()));
+
+      case RouteConstant.automotiveMyProductProductsScreen:
+        final args = settings.arguments as Map<String, dynamic>;
+        final List<AutomotiveProductCategoryWithInventoryModel> argProductCategories =
+            args[ApiKeys.argProductCategories]
+                as List<AutomotiveProductCategoryWithInventoryModel>;
+        return MaterialPageRoute(
+            builder: (_) => AutomotiveMyProductProductsScreen(
+                  arrCategories: argProductCategories,
+                ),
+            settings: RouteSettings(
+                name: getAutomotiveMyProductProductsScreenRoute()));
 
       case RouteConstant.myManufacturerProductsScreen:
         final args = settings.arguments as Map<String, dynamic>;

@@ -109,6 +109,15 @@ class HiveServices{
   List<dynamic>? getProductSuperCategoriesRaw() =>
       _getRawList(_savedProductNestedCategoryBox, 'productSuperRaw');
 
+  // Level-0 nested categories backing the automotive consumer
+  // category-discover tabs. Cache-first so the tabs render instantly and
+  // the network refresh stays silent. Reuses the product nested-category
+  // box with a distinct key (no extra box to register).
+  Future<void> saveAutomotiveDiscoverCategoriesRaw(List<dynamic> raw) =>
+      _putRawList(_savedProductNestedCategoryBox, 'automotiveDiscoverRaw', raw);
+  List<dynamic>? getAutomotiveDiscoverCategoriesRaw() =>
+      _getRawList(_savedProductNestedCategoryBox, 'automotiveDiscoverRaw');
+
   bool isPostSaved(String id) {
     if (!Hive.isBoxOpen(_savedPosts)) return false;
     final box = Hive.box(_savedPosts);

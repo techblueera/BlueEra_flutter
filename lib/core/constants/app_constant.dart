@@ -2614,55 +2614,6 @@ final List<OnboardingCategoryModel> financeCategories = [
     accountType: AppConstants.business,),*/
 ];
 
-final List<CollapsibleGridModel> automotiveServiceItemsCategories = [
-  CollapsibleGridModel(
-      name: 'Vehicle Sales',
-      slugId: 'Vehicle_Sales',
-      icon: AppImageAssets.VehicleSales),
-  CollapsibleGridModel(
-      name: 'Vehicle Parts',
-      slugId: 'Vehicle_parts',
-      icon: AppImageAssets.Vehicleparts),
-  CollapsibleGridModel(
-      name: 'Vehicle\nService',
-      slugId: 'VEHICLE_SERVICE',
-      icon: AppImageAssets.vehicleService),
-  CollapsibleGridModel(
-      name: 'Transport Logistic',
-      slugId: 'Transport_Logistic',
-      icon: AppImageAssets.TransportLogistic),
-  CollapsibleGridModel(
-      name: 'Vehicle Rental',
-      slugId: 'Vehicle_Rental',
-      icon: AppImageAssets.VehicleRental),
-  CollapsibleGridModel(
-      name: 'Vehicle Support',
-      slugId: 'VehicleSupport',
-      icon: AppImageAssets.VehicleSupport),
-  //
-  // CollapsibleGridModel(
-  //     name: '2 Wheeler\nShowroom',
-  //     slugId: 'TWO_WHEELER_SHOWROOM',
-  //     icon: AppImageAssets.twoWheelerBike),
-  // CollapsibleGridModel(
-  //     name: '4 Wheeler\nShowroom',
-  //     slugId: 'FOUR_WHEELER_SHOWROOM',
-  //     icon: AppImageAssets.vehicleShowroom),
-  // CollapsibleGridModel(
-  //     name: 'Pre Owned\nShowroom',
-  //     slugId: 'PRE_OWNED_SHOWROOM',
-  //     icon: AppImageAssets.preOwnedShowroom),
-  //
-  // CollapsibleGridModel(
-  //     name: 'Auto Parts\nShop',
-  //     slugId: 'AUTO_PARTS_SHOP',
-  //     icon: AppImageAssets.autoPartsShop),
-  // CollapsibleGridModel(
-  //     name: 'Vehicle\nAccessories',
-  //     slugId: 'VEHICLE_ACCESSORIES',
-  //     icon: AppImageAssets.vehicleAccessories),
-];
-
 final List<CollapsibleGridModel> bookingList = [
   CollapsibleGridModel(
       name: 'Parcel/\nCourier',
