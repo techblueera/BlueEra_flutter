@@ -6,9 +6,11 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// Presents the "is this a NEW or USED vehicle?" chooser. Resolves to
-/// [VehicleCondition.isNew] / [VehicleCondition.used], or `null` if the
-/// user dismisses it — the caller then routes to the matching flow.
+/// Presents the add-vehicle category chooser — "Vehicle Sales" (a
+/// brand-new bike) vs "Vehicle Rental" (a second-hand / used bike).
+/// Resolves to [VehicleCondition.isNew] / [VehicleCondition.used], or
+/// `null` if the user dismisses it — the caller then routes to the
+/// matching flow (new vs second-hand), which is otherwise identical.
 Future<String?> showVehicleConditionDialog(BuildContext context) {
   return showDialog<String>(
     context: context,
@@ -61,17 +63,17 @@ class _VehicleConditionDialog extends StatelessWidget {
             ),
             SizedBox(height: SizeConfig.size18),
             _OptionTile(
-              icon: Icons.fiber_new_rounded,
-              title: AppStrings.newVehicleOption.tr,
-              subtitle: AppStrings.newVehicleOptionDesc.tr,
+              icon: Icons.two_wheeler_rounded,
+              title: AppStrings.vehicleSalesOption.tr,
+              subtitle: AppStrings.vehicleSalesOptionDesc.tr,
               onTap: () =>
                   Navigator.of(context).pop(VehicleCondition.isNew),
             ),
             SizedBox(height: SizeConfig.size12),
             _OptionTile(
-              icon: Icons.directions_car_filled_outlined,
-              title: AppStrings.usedVehicleOption.tr,
-              subtitle: AppStrings.usedVehicleOptionDesc.tr,
+              icon: Icons.history_rounded,
+              title: AppStrings.vehicleRentalOption.tr,
+              subtitle: AppStrings.vehicleRentalOptionDesc.tr,
               onTap: () => Navigator.of(context).pop(VehicleCondition.used),
             ),
           ],

@@ -143,7 +143,7 @@ class _SearchLocationScreenState extends State<SearchLocationScreen> {
         surfaceTintColor: AppColors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.black),
+          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.black),
           onPressed: () => Navigator.pop(context),
         ),
         title: Container(

@@ -631,7 +631,7 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
       title: Row(
         children: [
           IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black),
+            icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
             onPressed: () => chatViewController.exitChatListSelectionMode(),
           ),
           CustomText(

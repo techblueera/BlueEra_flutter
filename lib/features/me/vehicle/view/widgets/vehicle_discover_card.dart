@@ -1,0 +1,628 @@
+import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/me/vehicle/model/vehicle_models.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+/// Owner "more" overflow actions surfaced on the self-listed card.
+enum _OwnerAction { edit, delete }
+
+/// Rich Discover-side vehicle card.
+///
+/// Modelled on the marketing reference: a tall hero image with a rating
+/// pill + share/favourite actions overlaid, the title/description, a row
+/// of three spec tiles (fuel / engine / mileage), the ex-showroom vs
+/// on-road price split, an EMI strip and the Chat / Book-Now CTA row.
+/// Every block is rendered only when the backing field is present, so a
+/// sparsely-filled listing still degrades gracefully.
+class VehicleDiscoverCard extends StatelessWidget {
+  final Vehicle vehicle;
+
+  /// Tapping anywhere on the body (image/title) — wired to the detail screen.
+  final VoidCallback? onTap;
+  final VoidCallback? onChat;
+  final VoidCallback? onBook;
+  final VoidCallback? onShare;
+  final VoidCallback? onFavorite;
+  final bool isFavorite;
+
+  /// Owner-side mode. When true the card renders **identically** to the
+  /// public Discover card and additionally surfaces a "more" (3-dot)
+  /// overflow on the hero with Edit / Delete — used on the self-listed
+  /// "My Vehicles" tab so the owner's own listings look exactly like the
+  /// Discover ones while still exposing owner CRUD.
+  final bool showOwnerActions;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
+
+  const VehicleDiscoverCard({
+    super.key,
+    required this.vehicle,
+    this.onTap,
+    this.onChat,
+    this.onBook,
+    this.onShare,
+    this.onFavorite,
+    this.isFavorite = false,
+    this.showOwnerActions = false,
+    this.onEdit,
+    this.onDelete,
+  });
+
+  static const _blue = Color(0xFF1E88FF);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x14001120),
+            blurRadius: 18,
+            offset: Offset(0, 6),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildHero(),
+          Padding(
+            padding: EdgeInsets.fromLTRB(
+              SizeConfig.size14,
+              SizeConfig.size14,
+              SizeConfig.size14,
+              SizeConfig.size14,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                GestureDetector(
+                  onTap: onTap,
+                  behavior: HitTestBehavior.opaque,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        vehicle.name,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.mainTextColor,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      if ((vehicle.description ?? '').trim().isNotEmpty) ...[
+                        SizedBox(height: SizeConfig.size6),
+                        CustomText(
+                          vehicle.description!.trim(),
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.secondaryTextColor,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                if (_specs.isNotEmpty) ...[
+                  SizedBox(height: SizeConfig.size14),
+                  _buildSpecRow(),
+                ],
+                if (_hasPriceRow) ...[
+                  SizedBox(height: SizeConfig.size12),
+                  _buildPriceRow(),
+                ],
+                if (_hasEmi) ...[
+                  SizedBox(height: SizeConfig.size12),
+                  _buildEmiStrip(),
+                ],
+                SizedBox(height: SizeConfig.size14),
+                _buildActions(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── Hero image with overlays ──────────────────────────────────────
+  Widget _buildHero() {
+    return GestureDetector(
+      onTap: onTap,
+      child: Stack(
+        children: [
+          SizedBox(
+            height: 200,
+            width: double.infinity,
+            child: _CoverImage(url: vehicle.coverImage ?? _firstImage),
+          ),
+          if (vehicle.isVerified ?? false)
+            Positioned(
+              top: 12,
+              left: 12,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.55),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.verified_rounded,
+                        size: 14, color: Colors.white),
+                    const SizedBox(width: 4),
+                    CustomText(
+                      AppStrings.verified.tr,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          Positioned(
+            top: 12,
+            right: 12,
+            child: Column(
+              children: [
+                // Owner-side "more" overflow — Edit / Delete live here so the
+                // card otherwise renders identically to the public Discover one.
+                if (showOwnerActions) ...[
+                  _buildMoreMenu(),
+                  const SizedBox(height: 10),
+                ],
+                _circleAction(Icons.ios_share_rounded, onShare),
+                const SizedBox(height: 10),
+                _circleAction(
+                  isFavorite ? Icons.star_rounded : Icons.star_border_rounded,
+                  onFavorite,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _circleAction(IconData icon, VoidCallback? onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 38,
+        height: 38,
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.45),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, size: 19, color: Colors.white),
+      ),
+    );
+  }
+
+  // ─── Owner "more" overflow (Edit / Delete) ─────────────────────────
+  Widget _buildMoreMenu() {
+    return Container(
+      width: 38,
+      height: 38,
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.45),
+        shape: BoxShape.circle,
+      ),
+      child: PopupMenuButton<_OwnerAction>(
+        tooltip: AppStrings.more.tr,
+        padding: EdgeInsets.zero,
+        icon: const Icon(Icons.more_vert_rounded, size: 19, color: Colors.white),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        onSelected: (action) {
+          switch (action) {
+            case _OwnerAction.edit:
+              onEdit?.call();
+              break;
+            case _OwnerAction.delete:
+              onDelete?.call();
+              break;
+          }
+        },
+        itemBuilder: (_) => [
+          PopupMenuItem(
+            value: _OwnerAction.edit,
+            child: Row(
+              children: [
+                const Icon(Icons.edit_rounded, size: 18, color: _blue),
+                SizedBox(width: SizeConfig.size10),
+                CustomText(
+                  AppStrings.edit.tr,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.mainTextColor,
+                ),
+              ],
+            ),
+          ),
+          PopupMenuItem(
+            value: _OwnerAction.delete,
+            child: Row(
+              children: [
+                Icon(Icons.delete_outline_rounded,
+                    size: 18, color: Colors.red.shade400),
+                SizedBox(width: SizeConfig.size10),
+                CustomText(
+                  AppStrings.delete.tr,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.red.shade400,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── Spec tiles ────────────────────────────────────────────────────
+  List<_Spec> get _specs {
+    final out = <_Spec>[];
+    if (vehicle.fuelType != null) {
+      out.add(_Spec(
+        icon: Icons.local_gas_station_outlined,
+        label: _humanFuel(vehicle.fuelType!),
+      ));
+    }
+    if (vehicle.engineCapacityCc != null) {
+      out.add(_Spec(
+        icon: Icons.settings_outlined,
+        label: '${vehicle.engineCapacityCc} ${AppStrings.ccUnit.tr}',
+      ));
+    }
+    if ((vehicle.mileage ?? '').trim().isNotEmpty) {
+      out.add(_Spec(
+        icon: Icons.route_outlined,
+        label: _mileageLabel(vehicle.mileage!.trim()),
+      ));
+    }
+    return out;
+  }
+
+  Widget _buildSpecRow() {
+    final specs = _specs;
+    return Row(
+      children: [
+        for (int i = 0; i < specs.length; i++) ...[
+          Expanded(child: _SpecTile(spec: specs[i])),
+          if (i != specs.length - 1) const SizedBox(width: 10),
+        ],
+      ],
+    );
+  }
+
+  String _mileageLabel(String raw) {
+    // If the stored mileage is a bare number, append the unit; otherwise
+    // trust the server-provided string (e.g. "35 km/L").
+    final isBareNumber = double.tryParse(raw) != null;
+    return isBareNumber ? '$raw ${AppStrings.kmplUnit.tr}' : raw;
+  }
+
+  // ─── Price split ───────────────────────────────────────────────────
+  bool get _hasPriceRow =>
+      vehicle.exShowroomPrice != null || vehicle.onRoadPrice != null;
+
+  Widget _buildPriceRow() {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F7FA),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      child: Row(
+        children: [
+          Expanded(
+            child: _priceColumn(
+              AppStrings.exShowroomPrice.tr,
+              vehicle.exShowroomPrice ?? vehicle.price,
+            ),
+          ),
+          Container(
+            width: 1,
+            height: 34,
+            color: const Color(0xFFE2E7EE),
+            margin: const EdgeInsets.symmetric(horizontal: 12),
+          ),
+          Expanded(
+            child: _priceColumn(
+              AppStrings.onRoadPrice.tr,
+              vehicle.onRoadPrice,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _priceColumn(String label, double? value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CustomText(
+          label,
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          color: AppColors.secondaryTextColor,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        SizedBox(height: SizeConfig.size4),
+        CustomText(
+          value != null ? _price(value) : '—',
+          fontSize: 16,
+          fontWeight: FontWeight.w800,
+          color: AppColors.mainTextColor,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    );
+  }
+
+  // ─── EMI strip ─────────────────────────────────────────────────────
+  bool get _hasEmi =>
+      (vehicle.emiAvailable ?? false) &&
+      (vehicle.downPayment != null || vehicle.monthlyEmi != null);
+
+  Widget _buildEmiStrip() {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE8ECF2)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: Row(
+        children: [
+          Icon(Icons.account_balance_wallet_outlined,
+              size: 16, color: AppColors.mainTextColor),
+          const SizedBox(width: 6),
+          CustomText(
+            '${AppStrings.emiLabel2.tr} :',
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: AppColors.mainTextColor,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Wrap(
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                if (vehicle.downPayment != null)
+                  _emiPair(AppStrings.downPaymentLabel.tr,
+                      _price(vehicle.downPayment!)),
+                if (vehicle.downPayment != null && vehicle.monthlyEmi != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    child: CustomText('|',
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFFC4CBD4)),
+                  ),
+                if (vehicle.monthlyEmi != null)
+                  _emiPair(
+                      AppStrings.monthly.tr, _price(vehicle.monthlyEmi!)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _emiPair(String label, String value) {
+    return RichText(
+      text: TextSpan(
+        children: [
+          TextSpan(
+            text: '$label - ',
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w500,
+              color: AppColors.secondaryTextColor,
+            ),
+          ),
+          TextSpan(
+            text: value,
+            style: TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700,
+              color: AppColors.mainTextColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── CTA row ───────────────────────────────────────────────────────
+  Widget _buildActions() {
+    return Row(
+      children: [
+        Expanded(
+          child: GestureDetector(
+            onTap: onChat,
+            child: Container(
+              height: 50,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: const Color(0xFFE8F2FF),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.chat_bubble_outline_rounded,
+                      size: 18, color: _blue),
+                  const SizedBox(width: 8),
+                  CustomText(
+                    AppStrings.chat.tr,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: _blue,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          flex: 2,
+          child: GestureDetector(
+            onTap: onBook,
+            child: Container(
+              height: 50,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: _blue,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CustomText(
+                    AppStrings.bookNow.tr,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                  const SizedBox(width: 8),
+                  const Icon(Icons.arrow_forward_rounded,
+                      size: 18, color: Colors.white),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ─── Helpers ───────────────────────────────────────────────────────
+  String? get _firstImage =>
+      vehicle.images.isNotEmpty ? vehicle.images.first : null;
+
+  String _price(double v) {
+    final cur = (vehicle.currency ?? 'INR').toUpperCase();
+    final symbol = cur == 'INR' ? '₹' : '$cur ';
+    return '$symbol${_compactNumber(v)}';
+  }
+
+  String _compactNumber(double v) {
+    if (v >= 1e7) {
+      return '${_trim(v / 1e7)} ${AppStrings.compactUnitCr.tr}';
+    }
+    if (v >= 1e5) {
+      return '${_trim(v / 1e5)} ${AppStrings.compactUnitLac.tr}';
+    }
+    if (v >= 1e3) {
+      return '${_trim(v / 1e3)}${AppStrings.compactUnitThousand.tr}';
+    }
+    return _trim(v);
+  }
+
+  /// Drops a trailing ".0" so 5.0 → "5" while 4.22 stays "4.22".
+  String _trim(double v) {
+    final s = v.toStringAsFixed(2);
+    return s
+        .replaceAll(RegExp(r'0+$'), '')
+        .replaceAll(RegExp(r'\.$'), '');
+  }
+
+  String _humanFuel(VehicleFuelType f) {
+    switch (f) {
+      case VehicleFuelType.petrol:
+        return AppStrings.fuelPetrol.tr;
+      case VehicleFuelType.diesel:
+        return AppStrings.fuelDiesel.tr;
+      case VehicleFuelType.electric:
+        return AppStrings.fuelElectric.tr;
+      case VehicleFuelType.cng:
+        return AppStrings.fuelCng.tr;
+      case VehicleFuelType.hybrid:
+        return AppStrings.fuelHybrid.tr;
+      case VehicleFuelType.other:
+        return AppStrings.fuelOther.tr;
+    }
+  }
+}
+
+class _Spec {
+  final IconData icon;
+  final String label;
+  const _Spec({required this.icon, required this.label});
+}
+
+class _SpecTile extends StatelessWidget {
+  final _Spec spec;
+  const _SpecTile({required this.spec});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F7FA),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Icon(spec.icon, size: 24, color: VehicleDiscoverCard._blue),
+          SizedBox(height: SizeConfig.size8),
+          CustomText(
+            spec.label,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: AppColors.mainTextColor,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CoverImage extends StatelessWidget {
+  final String? url;
+  const _CoverImage({this.url});
+
+  @override
+  Widget build(BuildContext context) {
+    if (url == null || url!.isEmpty) return _placeholder();
+    return CachedNetworkImage(
+      imageUrl: url!,
+      fit: BoxFit.cover,
+      placeholder: (_, __) => _placeholder(),
+      errorWidget: (_, __, ___) => _placeholder(),
+    );
+  }
+
+  Widget _placeholder() => Container(
+        color: const Color(0xFFEAF2FB),
+        alignment: Alignment.center,
+        child: Icon(
+          Icons.directions_car_rounded,
+          size: 40,
+          color: AppColors.primaryColor.withValues(alpha: 0.5),
+        ),
+      );
+}

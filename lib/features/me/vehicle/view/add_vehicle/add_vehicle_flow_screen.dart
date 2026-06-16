@@ -11,6 +11,7 @@ import 'package:BlueEra/features/me/vehicle/view/add_vehicle/steps/photos_locati
 import 'package:BlueEra/features/me/vehicle/view/add_vehicle/steps/used_vehicle_basics_step.dart';
 import 'package:BlueEra/features/me/vehicle/view/add_vehicle/steps/used_vehicle_details_step.dart';
 import 'package:BlueEra/features/me/vehicle/view/add_vehicle/widgets/vehicle_form_widgets.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -133,25 +134,26 @@ class _AddVehicleFlowScreenState extends State<AddVehicleFlowScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F7FB),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0.5,
-        iconTheme: IconThemeData(color: AppColors.mainTextColor),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: _onBack,
-        ),
-        title: CustomText(
-          _titles[_step],
-          fontSize: 17,
-          fontWeight: FontWeight.w800,
-          color: AppColors.mainTextColor,
-        ),
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(4),
-          child: _ProgressBar(value: (_step + 1) / _steps.length),
-        ),
-      ),
+    appBar: CommonBackAppBar(title:           _titles[_step],),
+      // appBar: AppBar(
+      //   backgroundColor: Colors.white,
+      //   elevation: 0.5,
+      //   iconTheme: IconThemeData(color: AppColors.mainTextColor),
+      //   leading: IconButton(
+      //     icon: const Icon(Icons.arrow_back),
+      //     onPressed: _onBack,
+      //   ),
+      //   title: CustomText(
+      //     _titles[_step],
+      //     fontSize: 17,
+      //     fontWeight: FontWeight.w800,
+      //     color: AppColors.mainTextColor,
+      //   ),
+      //   bottom: PreferredSize(
+      //     preferredSize: const Size.fromHeight(4),
+      //     child: _ProgressBar(value: (_step + 1) / _steps.length),
+      //   ),
+      // ),
       body: SafeArea(
         child: capWidth(
           SingleChildScrollView(

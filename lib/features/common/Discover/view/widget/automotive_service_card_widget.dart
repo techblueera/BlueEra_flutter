@@ -5,13 +5,29 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/view/all_vehicle_service_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/vehicle/vehicle_listing_screen.dart';
+import 'package:BlueEra/features/me/vehicle/model/vehicle_models.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-
 class AutomotiveServiceCardWidget extends StatelessWidget {
   const AutomotiveServiceCardWidget({super.key});
+
+  /// Maps an automotive category slug to the add-vehicle condition so the
+  /// add flow can skip the NEW/USED chooser: `Vehicle_Sales` lists/adds a
+  /// brand-new vehicle, `Vehicle_Rental` (re-labelled "Old Vehicle Sales")
+  /// a used one. Any other category has no implied condition.
+  String? _conditionForSlug(String? slugId) {
+    switch (slugId) {
+      case 'Vehicle_Sales':
+        return VehicleCondition.isNew;
+      case 'Vehicle_Rental':
+        return VehicleCondition.used;
+      default:
+        return null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,8 +41,7 @@ class AutomotiveServiceCardWidget extends StatelessWidget {
           SizedBox(height: SizeConfig.paddingXSL),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: LayoutBuilder(
-                builder: (context, constraints) {
+            child: LayoutBuilder(builder: (context, constraints) {
               const double spacing = 8;
               const int columns = 3;
               final double itemWidth =
@@ -41,23 +56,15 @@ class AutomotiveServiceCardWidget extends StatelessWidget {
                       service: item,
                       getName: (i) => i.name,
                       getIcon: (i) => i.icon ?? "",
-                      // Hand off to the AllVehicleServiceScreen so the
-                      // listing matches the Education/Stay/etc. visual
-                      // language (banner + sticky chips). The slug→
-                      // backend-CATEGORY mapping now lives inside that
-                      // screen alongside its category chips.
-                      onTap: (i) => Get.to(() => AllVehicleServiceScreen(
-                            automotiveCategories:
-                                automotiveServiceItemsCategories,
-                            selectedAutomotiveData: i,
-                          )),
+                      onTap: (data) => Get.to(VehicleListingScreen(
+                        addCondition: _conditionForSlug(item.slugId),
+                      )),
                     ),
                   );
                 }).toList(),
               );
             }),
           ),
-
         ],
       ),
     );
