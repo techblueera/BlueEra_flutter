@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/ai_service_api.dart';
 import 'package:BlueEra/core/api/apiService/auth_service_api.dart';
+import 'package:BlueEra/core/api/apiService/automotive_service_api.dart';
 import 'package:BlueEra/core/api/apiService/booking_enquiry_service_api.dart';
 import 'package:BlueEra/core/api/apiService/channel_product_service_api.dart';
 import 'package:BlueEra/core/api/apiService/channel_service_api.dart';
@@ -83,6 +84,7 @@ abstract class BaseService
         ChannelProductServiceApi,
         UserfeedServiceApi,
         ProductServiceApi,
+        AutomotiveServiceApi,
         ServicesServiceApi,
         AiServiceApi,
         OrderServiceApi,

@@ -64,7 +64,7 @@ class _BannerCarouselState extends State<BannerCarousel> {
     return Container(
       height: bannerHeight,
       width: double.infinity,
-      color: widget.backgroundColor ?? AppColors.appBackgroundColor,
+      color: widget.backgroundColor ?? AppColors.primaryColor.withValues(alpha: 0.1),
       child: Stack(
         children: [
           ClipRRect(

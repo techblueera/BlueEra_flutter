@@ -10,7 +10,6 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/constants/string_utils.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/core/services/chat_media_storage_service.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
@@ -25,7 +24,7 @@ import 'package:BlueEra/features/common/connect/view/connect_main_page.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/gig_work_options_screen.dart';
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
-import 'package:BlueEra/features/me/automotive_service/automotive_service_main.dart';
+import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_parts_screen.dart';
 import 'package:BlueEra/features/me/food/view/admin/food_main_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/admin/grocery_screen.dart';
 import 'package:BlueEra/features/me/hospital/view/hospital_main.dart';
@@ -562,67 +561,17 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     } else if (businessTypeGlobal.toUpperCase() == BusinessType.Manufacturing.name.toUpperCase()) {
       // return const ManufactureMain();
       return const ManufacturerProductScreen();
-    } else if (_isSpecificServiceAutomotive()) {
+    } else if (businessTypeGlobal.toUpperCase() ==
+        BusinessType.Automotive.name.toUpperCase()) {
+      final category = businessCategoryGlobal.toUpperCase();
+      logs("AUTOMOTIVE -> category= $category");
+      if (category.contains('AUTO PARTS')) {
+        return const AutomotivePartsScreen();
+      }
       return const VehicleHomeScreenV2();
-    } else if (_isSpecificServiceSpecialAutomotive()) {
-      // VEHICLE_SERVICE / TRANSPORT_LOGISTIC / VEHICLE_SUPPORT now have
-      // their own module entry that currently reuses the OthersMain UI
-      // (and therefore other_repo.dart APIs). Lives in a separate
-      // directory so the UI can diverge in the future without touching
-      // the shared `OthersMain` tree.
-      return const AutomotiveServiceMain();
-    } else if (_isSpecificProductAutomotive()) {
-      return const ProductScreen();
     } else {
       return const _UnknownBusinessFallback();
     }
-  }
-
-  bool _isSpecificServiceAutomotive() {
-    final category = businessCategoryGlobal.toUpperCase();
-
-    // 1. Define the Automotive sectors that count as "Others"
-    final automotiveOthersSectors = {
-      "VEHICLE_SALES",
-      "VEHICLE_PARTS",
-      "VEHICLE_RENTAL",
-      "VEHICLE SALES",
-      "AUTO PARTS",
-      "VEHICLE RENTAL",
-      "AUTO RENTAL",
-      "TRANSPORT_LOGISTICS_PARKING",
-      "TRANSPORT LOGISTICS PARKING",
-    };
-
-    // 2. Check if it's Automotive AND in one of those sectors
-    return businessTypeGlobal.toUpperCase() == BusinessType.Automotive.name.toUpperCase() &&
-        automotiveOthersSectors.contains(category);
-  }
-
-  bool _isSpecificServiceSpecialAutomotive() {
-    final category = businessCategoryGlobal.toUpperCase();
-    logs("category=== ${category}");
-    final automotiveOthersSpecialSectors = {
-      "VEHICLE SERVICE",
-      "VEHICLE_SERVICE",
-      "TRANSPORT_LOGISTIC",
-      "TRANSPORT LOGISTIC",
-      "VEHICLE_SUPPORT",
-      "VEHICLE SUPPORT",
-    };
-
-    // 2. Check if it's Automotive AND in one of those sectors
-    return businessTypeGlobal.toUpperCase() == BusinessType.Automotive.name.toUpperCase() &&
-        automotiveOthersSpecialSectors.contains(category);
-  }
-
-  bool _isSpecificProductAutomotive() {
-    final type = businessTypeGlobal.toUpperCase();
-    final category = businessCategoryGlobal.toUpperCase();
-    final isAutoEligible = type.equalsIgnoreCase(BusinessType.Automotive.name) &&
-        [AppConstants.SALES_SECTOR, AppConstants.PARTS_SECTOR].any((s) => s.equalsIgnoreCase(category));
-
-    return isAutoEligible;
   }
 
   Widget resolveIndividualScreen() {
