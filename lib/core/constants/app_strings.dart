@@ -7058,6 +7058,11 @@ class AppStrings {
   static const String newVehicleOptionDesc = "newVehicleOptionDesc";
   static const String usedVehicleOption = "usedVehicleOption";
   static const String usedVehicleOptionDesc = "usedVehicleOptionDesc";
+  // Category-based add chooser (Vehicle Sales = new, Vehicle Rental = used)
+  static const String vehicleSalesOption = "vehicleSalesOption";
+  static const String vehicleSalesOptionDesc = "vehicleSalesOptionDesc";
+  static const String vehicleRentalOption = "vehicleRentalOption";
+  static const String vehicleRentalOptionDesc = "vehicleRentalOptionDesc";
 
   // Step titles
   static const String selectVehicleTitle = "selectVehicleTitle";
@@ -7144,4 +7149,32 @@ class AppStrings {
   static const String sellerNameRequiredErr = "sellerNameRequiredErr";
   static const String mobileNumberRequiredErr = "mobileNumberRequiredErr";
 
+  // ─── Vehicle listing (Discover) ────────────────────────────────────
+  static const String cars = "cars";
+  static const String bikes = "bikes";
+  static const String trucks = "trucks";
+  static const String buses = "buses";
+  static const String noVehiclesMatchFilters = "noVehiclesMatchFilters";
+  static const String adjustSearchOrClearFilter = "adjustSearchOrClearFilter";
+  static const String emiLabel2 = "emiLabel2";
+  static const String ccUnit = "ccUnit";
+  static const String kmplUnit = "kmplUnit";
+
+  // ─── Vehicle business-profile (preview) screen ─────────────────────
+  static const String businessProfileTitle = "businessProfileTitle";
+  static const String previewProfile = "previewProfile";
+  static const String roadSideImage = "roadSideImage";
+  static const String receptionCounter = "receptionCounter";
+  static const String interior1 = "interior1";
+  static const String interior2 = "interior2";
+  static const String uploadPhoto = "uploadPhoto";
+  static const String noGalleryPhotosLine = "noGalleryPhotosLine";
+  static const String noTestimonialsYet = "noTestimonialsYet";
+  static const String noLivePhotosYet = "noLivePhotosYet";
+  static const String noFacilitiesYet = "noFacilitiesYet";
+  static const String addFacilityTitle = "addFacilityTitle";
+  static const String facilityNameHint = "facilityNameHint";
+  static const String addBikeLabel = "addBikeLabel";
+  static const String scanToConnect = "scanToConnect";
+  static const String fieldRequired = "fieldRequired";
 }

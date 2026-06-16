@@ -1,11 +1,16 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/vehicle/controller/vehicle_controller.dart';
 import 'package:BlueEra/features/me/vehicle/model/vehicle_models.dart';
-import 'package:BlueEra/features/me/vehicle/view/widgets/vehicle_card.dart';
+import 'package:BlueEra/features/me/vehicle/view/widgets/vehicle_discover_card.dart';
+import 'package:BlueEra/features/me/vehicle/view/add_vehicle/add_vehicle_flow_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/vehicle/vehicle_detail_screen.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -27,17 +32,26 @@ class VehicleListingScreen extends StatefulWidget {
   final String? initialCategory;
   final String? initialSubCategory;
 
+  /// Add-vehicle condition implied by the category the user came from.
+  /// `VehicleCondition.isNew` for "New Vehicle Sales" (`Vehicle_Sales`),
+  /// `VehicleCondition.used` for "Old Vehicle Sales" (`Vehicle_Rental`).
+  /// When non-null the Add button skips the NEW/USED chooser and drops the
+  /// user straight into the matching flow; when null it shows the chooser.
+  final String? addCondition;
+
   const VehicleListingScreen({
     super.key,
     this.initialCategory,
     this.initialSubCategory,
+    this.addCondition,
   });
 
   @override
   State<VehicleListingScreen> createState() => _VehicleListingScreenState();
 }
 
-class _VehicleListingScreenState extends State<VehicleListingScreen> {
+class _VehicleListingScreenState extends State<VehicleListingScreen>
+    with SingleTickerProviderStateMixin {
   final VehicleController _ctrl =
       getOrPut(() => VehicleController(), permanent: true);
   final TextEditingController _searchCtrl = TextEditingController();
@@ -47,19 +61,47 @@ class _VehicleListingScreenState extends State<VehicleListingScreen> {
   String? _subCategory;
   int? _pincode;
 
-  static const _categories = ['CAR', 'BIKE', 'TRUCK', 'BUS', 'OTHER'];
+  late final TabController _tabController;
+
+  /// Category values aligned with the tab order; `null` == "All".
+  static const _categoryValues = <String?>[
+    null,
+    'CAR',
+    'BIKE',
+    'TRUCK',
+    'BUS',
+    'OTHER',
+  ];
 
   @override
   void initState() {
     super.initState();
     _category = widget.initialCategory;
     _subCategory = widget.initialSubCategory;
+    final initialIndex = _categoryValues.indexOf(_category);
+    _tabController = TabController(
+      length: _categoryValues.length,
+      initialIndex: initialIndex < 0 ? 0 : initialIndex,
+      vsync: this,
+    )..addListener(_handleTabChange);
     _scrollCtrl.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) => _refresh());
   }
 
+  /// Fires on tab selection. Comparing against [_category] dedupes the
+  /// double listener fire (mid-animation + settle) into a single refresh.
+  void _handleTabChange() {
+    final value = _categoryValues[_tabController.index];
+    if (value != _category) {
+      setState(() => _category = value);
+      _refresh();
+    }
+  }
+
   @override
   void dispose() {
+    _tabController.removeListener(_handleTabChange);
+    _tabController.dispose();
     _scrollCtrl.removeListener(_onScroll);
     _scrollCtrl.dispose();
     _searchCtrl.dispose();
@@ -89,15 +131,15 @@ class _VehicleListingScreenState extends State<VehicleListingScreen> {
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: AppBar(
+        appBar:CommonBackAppBar(title: AppStrings.vehicle.tr,),
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: _onAddVehicle,
           backgroundColor: const Color(0xFF1E88FF),
           foregroundColor: Colors.white,
-          elevation: 0,
-          title: CustomText(
-            'Vehicles',
-            color: Colors.white,
-            fontSize: 17,
-            fontWeight: FontWeight.w800,
+          icon: const Icon(Icons.add_rounded),
+          label: Text(
+            AppStrings.add.tr,
+            style: const TextStyle(fontWeight: FontWeight.w800),
           ),
         ),
         body: Column(
@@ -115,7 +157,7 @@ class _VehicleListingScreenState extends State<VehicleListingScreen> {
                   if (state.status == Status.ERROR &&
                       _ctrl.publicVehicles.isEmpty) {
                     return _ErrorView(
-                      message: state.message ?? 'Something went wrong',
+                      message: state.message ?? AppStrings.somethingWentWrong.tr,
                       onRetry: _refresh,
                     );
                   }
@@ -149,9 +191,11 @@ class _VehicleListingScreenState extends State<VehicleListingScreen> {
                         );
                       }
                       final v = _ctrl.publicVehicles[i];
-                      return VehicleCard(
+                      return VehicleDiscoverCard(
                         vehicle: v,
                         onTap: () => _openDetail(v),
+                        onBook: () => _openDetail(v),
+                        onChat: () => _openDetail(v),
                       );
                     },
                   );
@@ -169,92 +213,51 @@ class _VehicleListingScreenState extends State<VehicleListingScreen> {
     Get.to(() => VehicleDetailScreen(vehicleId: v.id!));
   }
 
-  // ─── Filter bar ────────────────────────────────────────────────
+  /// Opens the add-vehicle flow. When the screen was reached from a
+  /// "New / Old Vehicle Sales" category, [VehicleListingScreen.addCondition]
+  /// fixes the listing as NEW/USED so we skip the chooser; otherwise we ask.
+  Future<void> _onAddVehicle() async {
+    var condition = widget.addCondition;
+    // if (condition == null) {
+    //   condition = await showVehicleConditionDialog(context);
+    //   if (condition == null || !mounted) return;
+    // }
+    logs("businessCategoryGlobal ${businessCategoryGlobal}");
+    if (businessCategoryGlobal.toLowerCase() == "vehicle rental") {
+      condition = VehicleCondition.used;
+    } else {
+      condition = VehicleCondition.isNew;
+    }
+    final created = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => AddVehicleFlowScreen(condition: condition!),
+        fullscreenDialog: true,
+      ),
+    );
+    if (created == true) {
+      await _refresh();
+    }
+  }
+
+  // ─── Filter bar (hospital-style TabBar, ref: HomeTabScaffold) ──────
   Widget _buildFilterBar() {
-    return Container(
-      color: const Color(0xFF1E88FF),
-      padding: EdgeInsets.fromLTRB(
-        SizeConfig.size12,
-        0,
-        SizeConfig.size12,
-        SizeConfig.size12,
-      ),
-      child: Column(
-        children: [
-          _searchField(),
-          SizedBox(height: SizeConfig.size8),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                _categoryChip(label: 'All', value: null),
-                ..._categories
-                    .map((c) => _categoryChip(label: _humanCat(c), value: c)),
-              ],
-            ),
-          ),
+    return Material(
+      color: Colors.white,
+      child: TabBar(
+        controller: _tabController,
+        isScrollable: false,
+        labelColor: AppColors.primaryColor,
+        unselectedLabelColor: AppColors.mainTextColor,
+        indicatorColor: AppColors.primaryColor,
+        indicatorSize: TabBarIndicatorSize.label,
+        dividerColor: Colors.transparent,
+        labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+        unselectedLabelStyle:
+            const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+        tabs: [
+          for (final v in _categoryValues)
+            Tab(text: v == null ? AppStrings.all.tr : _humanCat(v)),
         ],
-      ),
-    );
-  }
-
-  Widget _searchField() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: TextField(
-        controller: _searchCtrl,
-        textInputAction: TextInputAction.search,
-        onSubmitted: (_) => _refresh(),
-        decoration: InputDecoration(
-          hintText: 'Search by name, brand, model…',
-          prefixIcon: const Icon(Icons.search_rounded, color: Colors.grey),
-          suffixIcon: ValueListenableBuilder<TextEditingValue>(
-            valueListenable: _searchCtrl,
-            builder: (_, v, __) {
-              if (v.text.isEmpty) return const SizedBox.shrink();
-              return IconButton(
-                icon: const Icon(Icons.close_rounded, size: 18),
-                onPressed: () {
-                  _searchCtrl.clear();
-                  _refresh();
-                },
-              );
-            },
-          ),
-          border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-        ),
-      ),
-    );
-  }
-
-  Widget _categoryChip({required String label, required String? value}) {
-    final selected = _category == value;
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: ChoiceChip(
-        label: Text(label),
-        selected: selected,
-        backgroundColor: Colors.white,
-        selectedColor: Colors.white,
-        labelStyle: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-          color:
-              selected ? const Color(0xFF1E88FF) : AppColors.secondaryTextColor,
-        ),
-        side: BorderSide(
-          color: selected ? const Color(0xFF1E88FF) : Colors.transparent,
-          width: 1.4,
-        ),
-        onSelected: (_) {
-          setState(() => _category = value);
-          _refresh();
-        },
       ),
     );
   }
@@ -262,15 +265,15 @@ class _VehicleListingScreenState extends State<VehicleListingScreen> {
   String _humanCat(String c) {
     switch (c) {
       case 'CAR':
-        return 'Cars';
+        return AppStrings.cars.tr;
       case 'BIKE':
-        return 'Bikes';
+        return AppStrings.bikes.tr;
       case 'TRUCK':
-        return 'Trucks';
+        return AppStrings.trucks.tr;
       case 'BUS':
-        return 'Buses';
+        return AppStrings.buses.tr;
       default:
-        return 'Other';
+        return AppStrings.other.tr;
     }
   }
 }
@@ -290,7 +293,7 @@ class _EmptyView extends StatelessWidget {
             size: 64, color: AppColors.primaryColor.withValues(alpha: 0.4)),
         SizedBox(height: SizeConfig.size12),
         CustomText(
-          'No vehicles match your filters',
+          AppStrings.noVehiclesMatchFilters.tr,
           textAlign: TextAlign.center,
           fontSize: 15,
           fontWeight: FontWeight.w700,
@@ -298,7 +301,7 @@ class _EmptyView extends StatelessWidget {
         ),
         SizedBox(height: SizeConfig.size6),
         CustomText(
-          'Try adjusting the search or clearing the category filter.',
+          AppStrings.adjustSearchOrClearFilter.tr,
           textAlign: TextAlign.center,
           fontSize: 12,
           fontWeight: FontWeight.w500,
@@ -336,7 +339,7 @@ class _ErrorView extends StatelessWidget {
           child: ElevatedButton.icon(
             onPressed: onRetry,
             icon: const Icon(Icons.refresh_rounded),
-            label: const Text('Retry'),
+            label: Text(AppStrings.retry.tr),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryColor,
               foregroundColor: Colors.white,

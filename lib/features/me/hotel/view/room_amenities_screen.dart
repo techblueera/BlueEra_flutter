@@ -14,26 +14,53 @@ import 'package:get/get.dart';
 /// [RoomAmenityController.roomAmenityStatus] locally and the user commits
 /// the snapshot via the bottom "Submit" button.
 class RoomAmenitiesScreen extends StatelessWidget {
-  RoomAmenitiesScreen({super.key});
+  RoomAmenitiesScreen({super.key, this.roomID});
 
+  final String? roomID;
   final RoomAmenityController controller = Get.put(RoomAmenityController());
 
   /// Display name + SVG asset key + JSON payload key for each amenity row.
   static const List<_AmenityItem> _amenities = [
     _AmenityItem(
-        name: AppStrings.hotelAirConditioning, assetKey: 'AIR_CONDITIONING', keyId: 'airConditioning'),
-    _AmenityItem(name: AppStrings.hotelFreeWifi, assetKey: 'WIFI', keyId: 'freeWifi'),
-    _AmenityItem(name: AppStrings.hotelTelevision, assetKey: 'TELEVISION', keyId: 'television'),
-    _AmenityItem(name: AppStrings.hotelRoomServiceItem, assetKey: 'ROOM_SERVICE', keyId: 'roomService'),
-    _AmenityItem(name: AppStrings.hotelPowerBackup, assetKey: 'POWER_BACKUP', keyId: 'powerBackup'),
-    _AmenityItem(name: AppStrings.hotelBalcony, assetKey: 'BALCONY', keyId: 'balcony'),
+        name: AppStrings.hotelAirConditioning,
+        assetKey: 'AIR_CONDITIONING',
+        keyId: 'airConditioning'),
     _AmenityItem(
-        name: AppStrings.hotelAttachedBathroom, assetKey: 'ATTACHED_BATHROOM', keyId: 'attachedBathroom'),
-    _AmenityItem(name: AppStrings.hotelWardrobe, assetKey: 'WARDROBE', keyId: 'wardrobe'),
-    _AmenityItem(name: AppStrings.hotelDeskChair, assetKey: 'WORK_DESK', keyId: 'deskChair'),
+        name: AppStrings.hotelFreeWifi, assetKey: 'WIFI', keyId: 'freeWifi'),
     _AmenityItem(
-        name: AppStrings.hotelRoomRefrigerators, assetKey: 'ROOM_REFRIGERATOR', keyId: 'roomRefrigerators'),
-    _AmenityItem(name: AppStrings.hotelElectricKettle, assetKey: 'ELECTRIC_KETTLE', keyId: 'electricKettle'),
+        name: AppStrings.hotelTelevision,
+        assetKey: 'TELEVISION',
+        keyId: 'television'),
+    _AmenityItem(
+        name: AppStrings.hotelRoomServiceItem,
+        assetKey: 'ROOM_SERVICE',
+        keyId: 'roomService'),
+    _AmenityItem(
+        name: AppStrings.hotelPowerBackup,
+        assetKey: 'POWER_BACKUP',
+        keyId: 'powerBackup'),
+    _AmenityItem(
+        name: AppStrings.hotelBalcony, assetKey: 'BALCONY', keyId: 'balcony'),
+    _AmenityItem(
+        name: AppStrings.hotelAttachedBathroom,
+        assetKey: 'ATTACHED_BATHROOM',
+        keyId: 'attachedBathroom'),
+    _AmenityItem(
+        name: AppStrings.hotelWardrobe,
+        assetKey: 'WARDROBE',
+        keyId: 'wardrobe'),
+    _AmenityItem(
+        name: AppStrings.hotelDeskChair,
+        assetKey: 'WORK_DESK',
+        keyId: 'deskChair'),
+    _AmenityItem(
+        name: AppStrings.hotelRoomRefrigerators,
+        assetKey: 'ROOM_REFRIGERATOR',
+        keyId: 'roomRefrigerators'),
+    _AmenityItem(
+        name: AppStrings.hotelElectricKettle,
+        assetKey: 'ELECTRIC_KETTLE',
+        keyId: 'electricKettle'),
   ];
 
   @override
@@ -64,7 +91,6 @@ class RoomAmenitiesScreen extends StatelessWidget {
   }
 
   Widget _buildAmenityRow(_AmenityItem item) {
-    final isEnabled = controller.roomAmenityStatus[item.keyId] ?? false;
     return CommonCardWidget(
       borderColorColor: AppColors.whiteE5,
       cardMargin: 7,
@@ -84,9 +110,12 @@ class RoomAmenitiesScreen extends StatelessWidget {
           ),
           Transform.scale(
             scale: 0.75,
+            // Read the observable INSIDE the Obx so the Switch actually
+            // subscribes to `roomAmenityStatus` — reading it outside left
+            // the Obx with no observable, which threw "improper use of GetX".
             child: Obx(
               () => Switch(
-                value: isEnabled,
+                value: controller.roomAmenityStatus[item.keyId] ?? false,
                 activeThumbColor: AppColors.primaryColor,
                 onChanged: (v) => controller.updateAmenity(item.keyId, v),
               ),
@@ -97,12 +126,14 @@ class RoomAmenitiesScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSubmitButton() {
+  _buildSubmitButton() {
     return Padding(
       padding: const EdgeInsets.all(20),
       child: PositiveCustomBtn(
         padding: EdgeInsets.zero,
-        onTap: controller.submitAPI,
+        onTap: () async {
+          await controller.submitAPI(roomID ?? "");
+        },
         title: AppStrings.submit,
       ),
     );
@@ -114,6 +145,7 @@ class _AmenityItem {
   final String name;
   final String assetKey;
   final String keyId;
+
   const _AmenityItem({
     required this.name,
     required this.assetKey,

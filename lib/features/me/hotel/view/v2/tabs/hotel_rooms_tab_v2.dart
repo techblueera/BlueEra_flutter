@@ -52,11 +52,7 @@ class HotelRoomsTabV2 extends StatelessWidget {
                       ),
                       Row(
                         children: [
-                          _IconPill(
-                            icon: Icons.edit_outlined,
-                            onTap: () => Get.to(RoomAmenitiesScreen())
-                                ?.then((_) => controller.loadHotelData()),
-                          ),
+
                           const SizedBox(width: 8),
                           _IconPill(
                             icon: Icons.add,
@@ -214,6 +210,7 @@ class _RoomCard extends StatelessWidget {
       decoration: BoxDecoration(borderRadius: BorderRadius.circular(20)),
       child: Stack(
         children: [
+
           Positioned.fill(
             child: ClipRRect(
               borderRadius: BorderRadius.circular(20),
@@ -291,6 +288,12 @@ class _RoomCard extends StatelessWidget {
                   ],
                 ),
               ],
+            ),
+          ),
+          Positioned(
+            child: _IconPill(
+              icon: Icons.edit_outlined,
+              onTap: () => Get.to(RoomAmenitiesScreen()),
             ),
           ),
         ],

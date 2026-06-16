@@ -2616,7 +2616,7 @@ final List<OnboardingCategoryModel> financeCategories = [
 
 final List<CollapsibleGridModel> automotiveServiceItemsCategories = [
   CollapsibleGridModel(
-      name: 'Vehicle Sales',
+      name: 'New Vehicle Sales',
       slugId: 'Vehicle_Sales',
       icon: AppImageAssets.VehicleSales),
   CollapsibleGridModel(
@@ -2632,7 +2632,7 @@ final List<CollapsibleGridModel> automotiveServiceItemsCategories = [
       slugId: 'Transport_Logistic',
       icon: AppImageAssets.TransportLogistic),
   CollapsibleGridModel(
-      name: 'Vehicle Rental',
+      name: 'Old Vehicle Sales',
       slugId: 'Vehicle_Rental',
       icon: AppImageAssets.VehicleRental),
   CollapsibleGridModel(

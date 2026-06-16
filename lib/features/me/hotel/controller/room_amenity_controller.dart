@@ -46,11 +46,11 @@ class RoomAmenityController extends GetxController {
     roomAmenityStatus.refresh();
   }
 
-  Future<void> submitAPI() async {
+  Future submitAPI(String roomID) async {
     try {
       isSaving.value = true;
       final body = <String, dynamic>{
-        "roomId": "",
+        "roomId": roomID,
         ...roomAmenityStatus,
       };
       final ResponseModel response =

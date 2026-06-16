@@ -942,7 +942,7 @@ class _FullGalleryScreen extends StatelessWidget {
         backgroundColor: AppColors.white,
         elevation: 0.5,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.mainTextColor),
+          icon: const Icon(Icons.arrow_back_ios_new, color: AppColors.mainTextColor),
           onPressed: () => Navigator.pop(context),
         ),
       ),
