@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/core/services/open_googlemap_diraction.dart';
 import 'package:BlueEra/features/common/auth/model/get_all_jobs_model.dart';
 import 'package:BlueEra/features/common/jobs/controller/job_screen_controller.dart';
@@ -95,15 +96,28 @@ class _AllSavedJobPostScreenState extends State<AllSavedJobPostScreen> {
           child: jobScreenController.getSaveJobPostResponse.value.status ==
                       Status.COMPLETE &&
                   jobScreenController.saveJobsList.isNotEmpty
-              ? ListView.builder(
+              ? Builder(builder: (context) {
+                  final rows =
+                      buildNativeAdRows(jobScreenController.saveJobsList.length);
+                  return ListView.builder(
                   controller: _scrollController,
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: EdgeInsets.all(SizeConfig.size12),
-                  itemCount: jobScreenController.saveJobsList.length,
+                  itemCount: rows.length,
                   itemBuilder: (context, index) {
+                    final row = rows[index];
+                    if (row.isAd) {
+                      return Padding(
+                        padding: EdgeInsets.only(bottom: SizeConfig.size10),
+                        child: NativeAdSlot(
+                          adOrdinal: row.adOrdinal,
+                          keyPrefix: 'job_saved_native_ad',
+                        ),
+                      );
+                    }
                     if (jobScreenController.saveJobsList.isNotEmpty) {
                       Jobs? job =
-                          jobScreenController.saveJobsList[index]?.jobId;
+                          jobScreenController.saveJobsList[row.contentIndex]?.jobId;
                       String jobID = job?.sId ?? "";
                       return Padding(
                         padding: EdgeInsets.only(bottom: SizeConfig.size10),
@@ -517,7 +531,8 @@ class _AllSavedJobPostScreenState extends State<AllSavedJobPostScreen> {
                     }
                     return CustomText(AppStrings.noSavedJobsYet);
                   },
-                )
+                );
+                })
               : Container(
                   width: Get.width,
                   height: Get.height,

@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -150,18 +151,25 @@ class _AutomotiveCustomerAllTopSellingProductsScreenState
                 controller: _scrollController,
                 physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
-                  SliverPadding(
-                    padding: EdgeInsets.all(SizeConfig.size10),
-                    sliver: SliverMasonryGrid.count(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 10,
-                      crossAxisSpacing: 10,
-                      childCount: items.length,
-                      itemBuilder: (context, index) => _AutomotiveTopSellingProductTile(
-                        product: items[index],
-                        cartController: _cartController,
-                        onToggleCart: _onToggleCart,
-                        firstVariantId: _firstVariantId,
+                  ...buildNativeAdGridSlivers(
+                    itemCount: items.length,
+                    keyPrefix: 'auto_top_native_ad',
+                    adPadding: EdgeInsets.symmetric(
+                        horizontal: SizeConfig.size10),
+                    gridSliverBuilder: (start, end) => SliverPadding(
+                      padding: EdgeInsets.all(SizeConfig.size10),
+                      sliver: SliverMasonryGrid.count(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 10,
+                        crossAxisSpacing: 10,
+                        childCount: end - start,
+                        itemBuilder: (context, i) =>
+                            _AutomotiveTopSellingProductTile(
+                          product: items[start + i],
+                          cartController: _cartController,
+                          onToggleCart: _onToggleCart,
+                          firstVariantId: _firstVariantId,
+                        ),
                       ),
                     ),
                   ),

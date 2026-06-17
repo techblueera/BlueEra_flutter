@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/food/view/customer/visit_food_store_details_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
@@ -162,17 +163,18 @@ class _AllFoodServiceScreenState extends State<AllFoodServiceScreen> {
                     child: EmptyStateWidget(message: "No services found"));
               }
 
+              final rows = buildNativeAdRows(
+                  controller_.foodRestaurantDataList.length);
+              final showMoreLoader =
+                  controller_.isEducationServiceLoadingMore.value;
+
               return ListView.builder(
                   controller: scrollController,
-                  itemCount: controller_.foodRestaurantDataList.length +
-                      (controller_.isEducationServiceLoadingMore.value
-                          ? 1
-                          : 0),
+                  itemCount: rows.length + (showMoreLoader ? 1 : 0),
                   shrinkWrap: true,
                   padding: EdgeInsets.only(bottom: SizeConfig.paddingL),
                   itemBuilder: (context, index) {
-                    if (index ==
-                        controller_.foodRestaurantDataList.length) {
+                    if (index == rows.length) {
                       return const Center(
                         child: Padding(
                           padding: EdgeInsets.all(16.0),
@@ -181,8 +183,16 @@ class _AllFoodServiceScreenState extends State<AllFoodServiceScreen> {
                       );
                     }
 
-                    var service =
-                    controller_.foodRestaurantDataList[index];
+                    final row = rows[index];
+                    if (row.isAd) {
+                      return NativeAdSlot(
+                        adOrdinal: row.adOrdinal,
+                        keyPrefix: 'food_service_native_ad',
+                      );
+                    }
+
+                    var service = controller_
+                        .foodRestaurantDataList[row.contentIndex];
 
                     return selfProfessionCard(service);
                   });

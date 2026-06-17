@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/features/common/Discover/view/vehicle/vehicle_detail_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
@@ -232,6 +233,7 @@ class _AllVehicleServiceScreenState extends State<AllVehicleServiceScreen> {
       final showMoreLoader = state.status == Status.LOADING &&
           _controller.publicHasMore.value &&
           list.isNotEmpty;
+      final rows = buildNativeAdRows(list.length);
 
       return SliverPadding(
         padding: EdgeInsets.symmetric(
@@ -239,9 +241,9 @@ class _AllVehicleServiceScreenState extends State<AllVehicleServiceScreen> {
           vertical: SizeConfig.size10,
         ),
         sliver: SliverList.builder(
-          itemCount: list.length + (showMoreLoader ? 1 : 0),
+          itemCount: rows.length + (showMoreLoader ? 1 : 0),
           itemBuilder: (context, index) {
-            if (index == list.length) {
+            if (index == rows.length) {
               return const Center(
                 child: Padding(
                   padding: EdgeInsets.all(16.0),
@@ -249,7 +251,14 @@ class _AllVehicleServiceScreenState extends State<AllVehicleServiceScreen> {
                 ),
               );
             }
-            final Vehicle v = list[index];
+            final row = rows[index];
+            if (row.isAd) {
+              return NativeAdSlot(
+                adOrdinal: row.adOrdinal,
+                keyPrefix: 'vehicle_service_native_ad',
+              );
+            }
+            final Vehicle v = list[row.contentIndex];
             return Padding(
               padding: EdgeInsets.only(bottom: SizeConfig.size10),
               child: VehicleCard(

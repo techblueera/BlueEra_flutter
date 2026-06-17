@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/features/me/vehicle/controller/vehicle_controller.dart';
 import 'package:BlueEra/features/me/vehicle/model/vehicle_models.dart';
 import 'package:BlueEra/features/me/vehicle/view/widgets/vehicle_discover_card.dart';
@@ -164,6 +165,8 @@ class _VehicleListingScreenState extends State<VehicleListingScreen>
                   if (_ctrl.publicVehicles.isEmpty) {
                     return _EmptyView(onRefresh: _refresh);
                   }
+                  final rows =
+                      buildNativeAdRows(_ctrl.publicVehicles.length);
                   return ListView.separated(
                     controller: _scrollCtrl,
                     physics: const AlwaysScrollableScrollPhysics(),
@@ -173,12 +176,12 @@ class _VehicleListingScreenState extends State<VehicleListingScreen>
                       SizeConfig.size12,
                       SizeConfig.size16,
                     ),
-                    itemCount: _ctrl.publicVehicles.length +
-                        (_ctrl.publicHasMore.value ? 1 : 0),
+                    itemCount:
+                        rows.length + (_ctrl.publicHasMore.value ? 1 : 0),
                     separatorBuilder: (_, __) =>
                         SizedBox(height: SizeConfig.size12),
                     itemBuilder: (_, i) {
-                      if (i >= _ctrl.publicVehicles.length) {
+                      if (i >= rows.length) {
                         return const Padding(
                           padding: EdgeInsets.symmetric(vertical: 16),
                           child: Center(
@@ -190,7 +193,14 @@ class _VehicleListingScreenState extends State<VehicleListingScreen>
                           ),
                         );
                       }
-                      final v = _ctrl.publicVehicles[i];
+                      final row = rows[i];
+                      if (row.isAd) {
+                        return NativeAdSlot(
+                          adOrdinal: row.adOrdinal,
+                          keyPrefix: 'vehicle_listing_native_ad',
+                        );
+                      }
+                      final v = _ctrl.publicVehicles[row.contentIndex];
                       return VehicleDiscoverCard(
                         vehicle: v,
                         onTap: () => _openDetail(v),

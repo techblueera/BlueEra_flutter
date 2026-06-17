@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/widgets/route_map_bottom_sheet.dart';
 import 'package:BlueEra/features/common/Discover/view/healthcare/discover_hospital_home_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_address_pill.dart';
@@ -98,20 +99,32 @@ class _HospitalListScreenState extends State<HospitalListScreen> {
           onRefresh: () async {
             await controller.fetchInitial(widget.serviceType);
           },
-          child: ListView.builder(
-            controller: _scrollController,
-            padding: EdgeInsets.symmetric(vertical: SizeConfig.size8),
-            itemCount: controller.profiles.length +
-                (controller.isLoadingMore.value ? 1 : 0),
-            itemBuilder: (context, index) {
-              if (index >= controller.profiles.length) {
-                // Load-more footer: wrap a single body in one shimmer.
-                return buildLoadingShimmer(
-                  child: const _HospitalCardSkeletonBody(),
-                );
-              }
-              final item = controller.profiles[index];
-              return _HospitalCard(item: item);
+          child: Builder(
+            builder: (context) {
+              final rows = buildNativeAdRows(controller.profiles.length);
+              return ListView.builder(
+                controller: _scrollController,
+                padding: EdgeInsets.symmetric(vertical: SizeConfig.size8),
+                itemCount:
+                    rows.length + (controller.isLoadingMore.value ? 1 : 0),
+                itemBuilder: (context, index) {
+                  if (index == rows.length) {
+                    // Load-more footer: wrap a single body in one shimmer.
+                    return buildLoadingShimmer(
+                      child: const _HospitalCardSkeletonBody(),
+                    );
+                  }
+                  final row = rows[index];
+                  if (row.isAd) {
+                    return NativeAdSlot(
+                      adOrdinal: row.adOrdinal,
+                      keyPrefix: 'hospital_native_ad',
+                    );
+                  }
+                  final item = controller.profiles[row.contentIndex];
+                  return _HospitalCard(item: item);
+                },
+              );
             },
           ),
         );

@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/features/common/Discover/controller/finance_discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/finance_search_res_model.dart';
 import 'package:BlueEra/features/common/Discover/view/finance/finance_detail_screen.dart';
@@ -79,26 +80,38 @@ class _FinanceListScreenState extends State<FinanceListScreen> {
         onRefresh: () async {
           await controller.fetchInitial(widget.categorySlugId);
         },
-        child: ListView.builder(
-          controller: _scrollController,
-          itemCount: controller.profiles.length +
-              (controller.isLoadingMore.value ? 1 : 0),
-          padding: EdgeInsets.symmetric(
-            vertical: SizeConfig.size12
-          ),
-          physics: NeverScrollableScrollPhysics(),
-          itemBuilder: (context, index) {
-            if (index >= controller.profiles.length) {
-              return Padding(
-                padding: EdgeInsets.symmetric(
-                    vertical: SizeConfig.size12),
-                child: const Center(
-                    child: CircularProgressIndicator(
-                        color: AppColors.primaryColor)),
-              );
-            }
-            final item = controller.profiles[index];
-            return _FinanceCard(item: item);
+        child: Builder(
+          builder: (context) {
+            final rows = buildNativeAdRows(controller.profiles.length);
+            return ListView.builder(
+              controller: _scrollController,
+              itemCount:
+                  rows.length + (controller.isLoadingMore.value ? 1 : 0),
+              padding: EdgeInsets.symmetric(
+                vertical: SizeConfig.size12
+              ),
+              physics: NeverScrollableScrollPhysics(),
+              itemBuilder: (context, index) {
+                if (index == rows.length) {
+                  return Padding(
+                    padding: EdgeInsets.symmetric(
+                        vertical: SizeConfig.size12),
+                    child: const Center(
+                        child: CircularProgressIndicator(
+                            color: AppColors.primaryColor)),
+                  );
+                }
+                final row = rows[index];
+                if (row.isAd) {
+                  return NativeAdSlot(
+                    adOrdinal: row.adOrdinal,
+                    keyPrefix: 'finance_native_ad',
+                  );
+                }
+                final item = controller.profiles[row.contentIndex];
+                return _FinanceCard(item: item);
+              },
+            );
           },
         ),
       );

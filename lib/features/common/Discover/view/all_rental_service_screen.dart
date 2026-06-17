@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/model/rental_service_response.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -70,16 +71,26 @@ class _AllRentalServiceScreenState extends State<AllRentalServiceScreen> {
                   EdgeInsets.symmetric(horizontal: SizeConfig.size15),
                   child: LayoutBuilder(
                     builder: (context, constraints) {
+                      final rows = buildNativeAdRows(rentalServices.length);
 
                       return ListView.builder(
                         controller: scrollController,
-                        itemCount: rentalServices.length,
+                        itemCount: rows.length,
                         shrinkWrap: true,
                         padding:
                         const EdgeInsets.only(top: 12, bottom: 24),
                         physics: const BouncingScrollPhysics(),
-                        itemBuilder: (context, index) =>
-                            _buildServiceCard(rentalServices[index]),
+                        itemBuilder: (context, index) {
+                          final row = rows[index];
+                          if (row.isAd) {
+                            return NativeAdSlot(
+                              adOrdinal: row.adOrdinal,
+                              keyPrefix: 'rental_service_native_ad',
+                            );
+                          }
+                          return _buildServiceCard(
+                              rentalServices[row.contentIndex]);
+                        },
                       );
                     },
                   ),

@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
@@ -254,6 +255,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
 
         final list = controller.rentalServices;
         final showMoreLoader = controller.isRentalServiceLoadingMore.value;
+        final rows = buildNativeAdRows(list.length);
 
         return SliverPadding(
           padding: EdgeInsets.only(
@@ -262,9 +264,9 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
             bottom: SizeConfig.paddingL,
           ),
           sliver: SliverList.builder(
-            itemCount: list.length + (showMoreLoader ? 1 : 0),
+            itemCount: rows.length + (showMoreLoader ? 1 : 0),
             itemBuilder: (context, index) {
-              if (index == list.length) {
+              if (index == rows.length) {
                 return const Center(
                   child: Padding(
                     padding: EdgeInsets.all(16.0),
@@ -272,7 +274,14 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                   ),
                 );
               }
-              return rentalServiceCard(list[index]);
+              final row = rows[index];
+              if (row.isAd) {
+                return NativeAdSlot(
+                  adOrdinal: row.adOrdinal,
+                  keyPrefix: 'stay_service_native_ad',
+                );
+              }
+              return rentalServiceCard(list[row.contentIndex]);
             },
           ),
         );
@@ -299,6 +308,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
 
       final list = controller.hotelServices;
       final showMoreLoader = controller.isRentalServiceLoadingMore.value;
+      final rows = buildNativeAdRows(list.length);
 
       return SliverPadding(
         padding: EdgeInsets.only(
@@ -307,9 +317,9 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
           bottom: SizeConfig.paddingL,
         ),
         sliver: SliverList.builder(
-          itemCount: list.length + (showMoreLoader ? 1 : 0),
+          itemCount: rows.length + (showMoreLoader ? 1 : 0),
           itemBuilder: (context, index) {
-            if (index == list.length) {
+            if (index == rows.length) {
               return const Center(
                 child: Padding(
                   padding: EdgeInsets.all(16.0),
@@ -317,7 +327,14 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                 ),
               );
             }
-            return hotelServiceCard(list[index]);
+            final row = rows[index];
+            if (row.isAd) {
+              return NativeAdSlot(
+                adOrdinal: row.adOrdinal,
+                keyPrefix: 'stay_service_native_ad',
+              );
+            }
+            return hotelServiceCard(list[row.contentIndex]);
           },
         ),
       );

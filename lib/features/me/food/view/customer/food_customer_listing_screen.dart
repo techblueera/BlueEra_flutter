@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
 import 'package:BlueEra/features/me/food/controller/food_selfpickup_controller.dart';
@@ -206,17 +207,29 @@ class _FoodCustomerListingScreenState extends State<FoodCustomerListingScreen> {
               ),
             )
                 : controller.categoryCustomerFoodProductDataList.isNotEmpty
-                ? ListView.builder(
-              padding: const EdgeInsets.all(8),
-              itemCount: controller.categoryCustomerFoodProductDataList.length,
-              itemBuilder: (context, index) {
-                final product = controller.categoryCustomerFoodProductDataList[index];
-                return _buildFoodProductCard(
-                  product: product,
-                  onShowVariants: (p) => _showVariantSheet(context, p),
-                );
-              },
-            )
+                ? Builder(builder: (context) {
+              final rows = buildNativeAdRows(
+                  controller.categoryCustomerFoodProductDataList.length);
+              return ListView.builder(
+                padding: const EdgeInsets.all(8),
+                itemCount: rows.length,
+                itemBuilder: (context, index) {
+                  final row = rows[index];
+                  if (row.isAd) {
+                    return NativeAdSlot(
+                      adOrdinal: row.adOrdinal,
+                      keyPrefix: 'food_listing_native_ad',
+                    );
+                  }
+                  final product = controller
+                      .categoryCustomerFoodProductDataList[row.contentIndex];
+                  return _buildFoodProductCard(
+                    product: product,
+                    onShowVariants: (p) => _showVariantSheet(context, p),
+                  );
+                },
+              );
+            })
                 : Padding(
                 padding: EdgeInsets.all(SizeConfig.size20),
                 child: EmptyStateWidget(

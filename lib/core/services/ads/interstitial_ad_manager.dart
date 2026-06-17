@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:BlueEra/core/services/ads/ad_config.dart';
 import 'package:BlueEra/env.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -19,25 +20,16 @@ class InterstitialAdManager {
   /// [showInterstitial] can wait for a just-started load instead of giving up.
   Completer<void>? _loadCompleter;
 
-  /// Real ad units (from the obfuscated `.env`) only in release builds; the
-  /// test units (also from `.env`) everywhere else. `kReleaseMode` is true ONLY
-  /// for `flutter run --release` / store builds, so debug and profile both stay
-  /// on the test units — keeping the AdMob account safe from invalid-traffic /
-  /// policy strikes during development.
-  /// TODO(testing): TEMPORARY — force Google's always-fill TEST interstitial
-  /// unit in EVERY build (including release) so a shared release APK shows ads
-  /// on any device without test-device registration or live-unit fill. Google's
-  /// test units serve test ads everywhere with no policy risk.
-  /// REVERT to `false` for production (debug→test, release→live).
-  static const bool _forceTestAds = false;
-
+  /// Live ad units (from the obfuscated `.env`) in RELEASE builds; the test
+  /// units (also from `.env`) in DEBUG/profile builds. `kReleaseMode` is true
+  /// ONLY for `flutter run --release` / store builds, so debug and profile both
+  /// stay on the test units — keeping the AdMob account safe from
+  /// invalid-traffic / policy strikes during development.
+  ///
+  /// Set [AdConfig.useLiveAdsInRelease] to `false` to force the TEST units even
+  /// in a release build (e.g. to verify ad delivery on a signed build).
   String get _adUnitId {
-    if (_forceTestAds) {
-      return Platform.isIOS
-          ? Env.admobTestInterstitialAdUnitIos
-          : Env.admobTestInterstitialAdUnitAndroid;
-    }
-    if (kReleaseMode) {
+    if (kReleaseMode && AdConfig.useLiveAdsInRelease) {
       return Platform.isIOS
           ? Env.admobInterstitialAdUnitIos
           : Env.admobInterstitialAdUnitAndroid;
