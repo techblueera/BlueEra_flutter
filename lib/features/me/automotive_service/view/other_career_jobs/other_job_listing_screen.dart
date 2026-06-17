@@ -43,7 +43,7 @@ class _OtherJobListingScreenState extends State<OtherJobListingScreen> {
         key: ValueKey(AppConstants.All),
         onHeaderVisibilityChanged: (val) {},
         headerHeight: 0,
-        screenListingVia: "education",
+        screenListingVia: "other",
       ),
     );
   }
