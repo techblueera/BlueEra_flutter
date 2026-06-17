@@ -2482,6 +2482,7 @@
   "hotelNoRoomsAdded": "कोई कमरा नहीं जोड़ा गया",
   "hotelNoRoomsCreate": "अभी कोई कमरा नहीं। अपना पहला कमरा बनाएं!",
   "hotelNoRoomsForType": "इस प्रकार के लिए कोई कमरा नहीं",
+  "hotelDeleteRoomConfirm": "क्या आप वाकई इस कमरे को हटाना चाहते हैं?",
   "hotelOnboardingAgreementSigned": "होटल ऑनबोर्डिंग समझौता (हस्ताक्षरित)",
   "hotelPhoneExampleHint": "उदा. 9876543210",
   "hotelPoliciesTitle": "नीतियां",

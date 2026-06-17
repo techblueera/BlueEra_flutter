@@ -14,7 +14,11 @@ import 'package:get/get.dart';
 /// [RoomAmenityController.roomAmenityStatus] locally and the user commits
 /// the snapshot via the bottom "Submit" button.
 class RoomAmenitiesScreen extends StatelessWidget {
-  RoomAmenitiesScreen({super.key, this.roomID});
+  RoomAmenitiesScreen({super.key, this.roomID}) {
+    // Load this specific room's saved amenities so the toggles reflect what
+    // was previously stored for it (rather than a blank/shared snapshot).
+    controller.loadForRoom(roomID ?? "");
+  }
 
   final String? roomID;
   final RoomAmenityController controller = Get.put(RoomAmenityController());
@@ -132,7 +136,7 @@ class RoomAmenitiesScreen extends StatelessWidget {
       child: PositiveCustomBtn(
         padding: EdgeInsets.zero,
         onTap: () async {
-          await controller.submitAPI(roomID ?? "");
+          await controller.submitAPI();
         },
         title: AppStrings.submit,
       ),

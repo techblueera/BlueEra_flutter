@@ -4346,6 +4346,7 @@
   "hotelNoRoomsAdded": "No rooms added",
   "hotelNoRoomsCreate": "No rooms yet. Create your first room!",
   "hotelNoRoomsForType": "No rooms for this type",
+  "hotelDeleteRoomConfirm": "Are you sure you want to delete this room?",
   "hotelPhoneExampleHint": "e.g. 9876543210",
   "hotelPoliciesTitle": "Policies",
   "hotelPowerBackup": "Power Backup",

@@ -5467,6 +5467,7 @@ class AppStrings {
   static const String hotelChooseRoom = "hotelChooseRoom";
   static const String hotelNoRoomsAdded = "hotelNoRoomsAdded";
   static const String hotelNoRoomsForType = "hotelNoRoomsForType";
+  static const String hotelDeleteRoomConfirm = "hotelDeleteRoomConfirm";
   static const String hotelGallery = "hotelGallery";
   static const String hotelNoPhotosAdded = "hotelNoPhotosAdded";
   static const String hotelNoAmenitiesAdded = "hotelNoAmenitiesAdded";
