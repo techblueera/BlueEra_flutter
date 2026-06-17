@@ -293,9 +293,9 @@ private extension Optional where Wrapped == String {
 /// fills the height the Flutter AdWidget provides (the measured store-card
 /// height) so the ad matches a card exactly.
 class GroceryNativeAdFactory: NSObject, FLTNativeAdFactory {
-    func createNativeAd(_ nativeAd: GADNativeAd,
-                        customOptions: [AnyHashable: Any]? = nil) -> GADNativeAdView? {
-        let adView = GADNativeAdView()
+    func createNativeAd(_ nativeAd: NativeAd,
+                        customOptions: [AnyHashable: Any]? = nil) -> NativeAdView? {
+        let adView = NativeAdView()
         adView.backgroundColor = .white
         adView.layer.cornerRadius = 12
         adView.layer.borderWidth = 1
@@ -350,7 +350,7 @@ class GroceryNativeAdFactory: NSObject, FLTNativeAdFactory {
         bodyView.numberOfLines = 2
 
         // Media
-        let mediaView = GADMediaView()
+        let mediaView = MediaView()
         mediaView.contentMode = .scaleAspectFill
         mediaView.clipsToBounds = true
         mediaView.layer.cornerRadius = 8
