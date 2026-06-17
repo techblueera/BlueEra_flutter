@@ -82,6 +82,27 @@ class HotelDetailController extends GetxController {
     }
   }
 
+  /// Deletes the room with [roomId] and refreshes the hotel data on success.
+  Future<void> deleteRoom(String roomId) async {
+    if (roomId.isEmpty) return;
+    try {
+      isSaving.value = true;
+      final ResponseModel response = await _repo.deleteHotelRoomRepo(roomId);
+      if (response.isSuccess) {
+        commonSnackBar(message: response.response?.data['message']);
+        await loadHotelData();
+      } else {
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } on Exception catch (e) {
+      logs("HotelDetailController.deleteRoom ERROR $e");
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      isSaving.value = false;
+    }
+  }
+
   /// Unique, non-empty room `type` values from the current hotel data.
   List<String> get dynamicRoomTypes {
     final rooms = hotelData.value?.rooms ?? const <Rooms>[];

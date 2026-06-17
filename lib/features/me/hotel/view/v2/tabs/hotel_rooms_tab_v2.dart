@@ -8,6 +8,7 @@ import 'package:BlueEra/features/me/hotel/controller/hotel_home_detail_controlle
 import 'package:BlueEra/features/me/hotel/view/room_amenities_screen.dart';
 import 'package:BlueEra/features/me/hotel/view/room_detils_screen.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
+import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
@@ -137,7 +138,7 @@ class HotelRoomsTabV2 extends StatelessWidget {
                         scrollDirection: Axis.horizontal,
                         itemCount: filtered.length,
                         itemBuilder: (_, i) =>
-                            _RoomCard(room: filtered[i]),
+                            _RoomCard(room: filtered[i], controller: controller),
                       ),
                     );
                   }),
@@ -176,6 +177,78 @@ class HotelRoomsTabV2 extends StatelessWidget {
   }
 }
 
+/// Three-dot "more" menu on each room card exposing Edit (amenities) and
+/// Delete (with a confirmation prompt) actions for that specific room.
+class _RoomMoreMenu extends StatelessWidget {
+  final Rooms room;
+  final HotelDetailController controller;
+  const _RoomMoreMenu({required this.room, required this.controller});
+
+  void _onEdit() {
+    Get.to(RoomAmenitiesScreen(roomID: room.id))
+        ?.then((_) => controller.loadHotelData());
+  }
+
+  void _onDelete(BuildContext context) {
+    commonConformationDialog(
+      context: context,
+      text: AppStrings.hotelDeleteRoomConfirm.tr,
+      confirmCallback: () {
+        Get.back();
+        controller.deleteRoom(room.id ?? "");
+      },
+      cancelCallback: () => Get.back(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white.withValues(alpha: 0.9),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: PopupMenuButton<int>(
+        padding: EdgeInsets.zero,
+        icon: const Icon(Icons.more_vert, size: 20, color: AppColors.black),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        onSelected: (value) {
+          if (value == 0) {
+            _onEdit();
+          } else if (value == 1) {
+            _onDelete(context);
+          }
+        },
+        itemBuilder: (_) => [
+          PopupMenuItem<int>(
+            value: 0,
+            child: Row(
+              children: [
+                const Icon(Icons.edit_outlined,
+                    size: 18, color: AppColors.primaryColor),
+                SizedBox(width: SizeConfig.size8),
+                CustomText(AppStrings.edit.tr),
+              ],
+            ),
+          ),
+          PopupMenuItem<int>(
+            value: 1,
+            child: Row(
+              children: [
+                const Icon(Icons.delete_outline,
+                    size: 18, color: AppColors.red),
+                SizedBox(width: SizeConfig.size8),
+                CustomText(AppStrings.delete.tr, color: AppColors.red),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _IconPill extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
@@ -199,7 +272,8 @@ class _IconPill extends StatelessWidget {
 
 class _RoomCard extends StatelessWidget {
   final Rooms room;
-  const _RoomCard({required this.room});
+  final HotelDetailController controller;
+  const _RoomCard({required this.room, required this.controller});
 
   @override
   Widget build(BuildContext context) {
@@ -291,10 +365,9 @@ class _RoomCard extends StatelessWidget {
             ),
           ),
           Positioned(
-            child: _IconPill(
-              icon: Icons.edit_outlined,
-              onTap: () => Get.to(RoomAmenitiesScreen()),
-            ),
+            right: 8,
+            top: 8,
+            child: _RoomMoreMenu(room: room, controller: controller),
           ),
         ],
       ),

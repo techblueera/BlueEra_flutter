@@ -13,20 +13,27 @@ class RoomAmenityController extends GetxController {
   final RxBool isLoading = false.obs;
   final RxBool isSaving = false.obs;
 
+  /// The room currently being edited. Set via [loadForRoom] before fetching
+  /// so the amenity toggles reflect (and write back to) that specific room.
+  String roomId = '';
+
   /// `{amenityKey: enabled}` — only boolean entries from the API response.
   final RxMap<String, bool> roomAmenityStatus = <String, bool>{}.obs;
 
-  @override
-  void onInit() {
-    super.onInit();
-    fetchAmenities();
+  /// Point the controller at [roomId] and (re)load its saved amenities.
+  /// Called by [RoomAmenitiesScreen] each time it opens for a given room.
+  Future<void> loadForRoom(String roomId) async {
+    this.roomId = roomId;
+    roomAmenityStatus.clear();
+    await fetchAmenities();
   }
 
   Future<void> fetchAmenities() async {
+    if (roomId.isEmpty) return;
     try {
       isLoading.value = true;
       final ResponseModel response =
-          await _repo.getHotelRoomAmenitiesRepo(roomId: "");
+          await _repo.getHotelRoomAmenitiesRepo(roomId: roomId);
       if (response.isSuccess) {
         final data = response.response?.data['data'] as Map<String, dynamic>?;
         roomAmenityStatus.assignAll(_filterBooleans(data));
@@ -46,11 +53,11 @@ class RoomAmenityController extends GetxController {
     roomAmenityStatus.refresh();
   }
 
-  Future submitAPI(String roomID) async {
+  Future submitAPI() async {
     try {
       isSaving.value = true;
       final body = <String, dynamic>{
-        "roomId": roomID,
+        "roomId": roomId,
         ...roomAmenityStatus,
       };
       final ResponseModel response =

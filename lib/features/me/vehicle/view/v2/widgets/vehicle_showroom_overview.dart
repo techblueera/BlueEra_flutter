@@ -15,6 +15,7 @@ import 'package:BlueEra/features/me/vehicle/view/v2/actions/vehicle_owner_action
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
+import 'package:BlueEra/widgets/common_input_dialog.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -490,40 +491,14 @@ class _VehicleShowroomOverviewState extends State<VehicleShowroomOverview> {
   }
 
   Future<void> _onAddFacility() async {
-    final textCtrl = TextEditingController();
-    final formKey = GlobalKey<FormState>();
-    final name = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(AppStrings.addFacilityTitle.tr),
-        content: Form(
-          key: formKey,
-          child: TextFormField(
-            controller: textCtrl,
-            autofocus: true,
-            textCapitalization: TextCapitalization.words,
-            decoration:
-                InputDecoration(hintText: AppStrings.facilityNameHint.tr),
-            validator: (v) => (v == null || v.trim().isEmpty)
-                ? AppStrings.fieldRequired.tr
-                : null,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(AppStrings.cancel.tr),
-          ),
-          TextButton(
-            onPressed: () {
-              if (formKey.currentState?.validate() ?? false) {
-                Navigator.pop(ctx, textCtrl.text.trim());
-              }
-            },
-            child: Text(AppStrings.add.tr),
-          ),
-        ],
-      ),
+    final name = await showCommonInputDialog(
+      context,
+      title: AppStrings.addFacilityTitle.tr,
+      hintText: AppStrings.facilityNameHint.tr,
+      confirmLabel: AppStrings.add.tr,
+      validator: (v) => (v == null || v.trim().isEmpty)
+          ? AppStrings.fieldRequired.tr
+          : null,
     );
     if (name == null || name.isEmpty) return;
     await _ctrl.addFacility(VehicleFacility(name: name));
