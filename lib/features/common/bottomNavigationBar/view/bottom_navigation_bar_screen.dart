@@ -463,10 +463,10 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                               // on lat/lng — gating blocked navigation when the
                               // first-launch fetch hadn't completed yet.
 
-                              /// Order/Chat (3) prompts for notification permission
+                              /// Order/Chat (2) prompts for notification permission
                               /// but no longer blocks navigation if the user skips —
                               /// the prompt itself surfaces a follow-up warning.
-                              if (index == 3) {
+                              if (index == 2) {
                                 await AppNotificationHandler().checkNotificationPermission();
                                 if (chatViewController.chatMainTabController != null &&
                                     chatViewController.chatMainTabController?.index != 0) {

@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Custom native ad layout for the grocery store list. Styled to sit between
+     GroceryStoreCard items: soft teal card bg, rounded 12dp corners, an icon +
+     headline header, a media view, and a call-to-action button. The root
+     NativeAdView fills the height the Flutter AdWidget provides (the measured
+     store-card height) so the ad matches a card exactly. -->
+<com.google.android.gms.ads.nativead.NativeAdView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="@drawable/grocery_native_ad_bg"
+        android:padding="12dp">
+
+        <!-- Header: icon + (headline / advertiser) + "Ad" badge -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:id="@+id/ad_icon"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:scaleType="centerCrop"
+                android:background="@drawable/grocery_native_ad_tile_bg"
+                android:padding="2dp"
+                android:contentDescription="@null" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="10dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/ad_headline"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:textColor="#1A1A1A"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/ad_advertiser"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:textColor="#7A7A7A"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ad"
+                android:textColor="#FFFFFF"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:paddingStart="6dp"
+                android:paddingEnd="6dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:background="@drawable/grocery_native_ad_cta_bg" />
+        </LinearLayout>
+
+        <!-- Body text -->
+        <TextView
+            android:id="@+id/ad_body"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:textColor="#5A5A5A"
+            android:textSize="13sp" />
+
+        <!-- Media (image/video). Takes the remaining vertical space so the ad
+             fills the card height. minHeight keeps it large enough for video
+             (AdMob warns / renders poorly below ~120dp). -->
+        <com.google.android.gms.ads.nativead.MediaView
+            android:id="@+id/ad_media"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:minHeight="120dp"
+            android:layout_marginTop="8dp" />
+
+        <!-- Call to action -->
+        <Button
+            android:id="@+id/ad_call_to_action"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="@drawable/grocery_native_ad_cta_bg"
+            android:textColor="#FFFFFF"
+            android:textAllCaps="false"
+            android:textStyle="bold"
+            android:textSize="14sp"
+            android:minHeight="40dp"
+            android:stateListAnimator="@null" />
+    </LinearLayout>
+</com.google.android.gms.ads.nativead.NativeAdView>

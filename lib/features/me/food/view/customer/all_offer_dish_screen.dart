@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/me/food/controller/food_selfpickup_controller.dart';
 import 'package:BlueEra/features/me/food/controller/restaurant_controller.dart';
@@ -132,17 +133,22 @@ class _AllOfferDishScreenState extends State<AllOfferDishScreen> {
                 controller: _scrollController,
                 physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
-                  SliverPadding(
-                    padding: EdgeInsets.all(SizeConfig.size10),
-                    sliver: SliverMasonryGrid.count(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 8,
-                      crossAxisSpacing: 8,
-                      childCount: items.length,
-                      itemBuilder: (context, index) =>
-                          _OfferDishTile(
-                        item: items[index],
-                        onTap: () => _onTapItem(items[index]),
+                  ...buildNativeAdGridSlivers(
+                    itemCount: items.length,
+                    keyPrefix: 'offer_dish_native_ad',
+                    adPadding: EdgeInsets.symmetric(
+                        horizontal: SizeConfig.size10),
+                    gridSliverBuilder: (start, end) => SliverPadding(
+                      padding: EdgeInsets.all(SizeConfig.size10),
+                      sliver: SliverMasonryGrid.count(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 8,
+                        crossAxisSpacing: 8,
+                        childCount: end - start,
+                        itemBuilder: (context, i) => _OfferDishTile(
+                          item: items[start + i],
+                          onTap: () => _onTapItem(items[start + i]),
+                        ),
                       ),
                     ),
                   ),

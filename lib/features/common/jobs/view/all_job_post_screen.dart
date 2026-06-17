@@ -10,6 +10,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/features/common/auth/model/get_all_jobs_model.dart';
 import 'package:BlueEra/features/common/jobs/controller/job_screen_controller.dart';
 import 'package:BlueEra/features/common/jobs/view/job_applications.dart';
@@ -114,13 +115,26 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                       ? AppStrings.noJobScheduleYet
                       : AppStrings.noJobsAvailable),
                 ))
-              : ListView.builder(
+              : Builder(builder: (context) {
+                  final rows =
+                      buildNativeAdRows(jobScreenController.jobsData?.length ?? 0);
+                  return ListView.builder(
                   controller: _scrollController,
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: EdgeInsets.all(SizeConfig.size12),
-                  itemCount: jobScreenController.jobsData?.length,
+                  itemCount: rows.length,
                   itemBuilder: (context, index) {
-                    Jobs? job = jobScreenController.jobsData?[index];
+                    final row = rows[index];
+                    if (row.isAd) {
+                      return Padding(
+                        padding: EdgeInsets.only(bottom: SizeConfig.size10),
+                        child: NativeAdSlot(
+                          adOrdinal: row.adOrdinal,
+                          keyPrefix: 'job_all_native_ad',
+                        ),
+                      );
+                    }
+                    Jobs? job = jobScreenController.jobsData?[row.contentIndex];
                     return Padding(
                       padding: EdgeInsets.only(bottom: SizeConfig.size10),
                       child: InkWell(
@@ -636,7 +650,8 @@ class _AllJobPostScreenState extends State<AllJobPostScreen> {
                       ),
                     );
                   },
-                ),
+                );
+                }),
         );
       }),
     );

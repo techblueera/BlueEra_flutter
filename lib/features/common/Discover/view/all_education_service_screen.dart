@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_school_home_screen.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
@@ -176,6 +177,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
 
       final list = controller_.schoolDetailsDataDataList;
       final showMoreLoader = controller_.isEducationServiceLoadingMore.value;
+      final rows = buildNativeAdRows(list.length);
 
       return SliverPadding(
         padding: EdgeInsets.symmetric(
@@ -183,9 +185,9 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
           vertical: SizeConfig.size10,
         ),
         sliver: SliverList.builder(
-          itemCount: list.length + (showMoreLoader ? 1 : 0),
+          itemCount: rows.length + (showMoreLoader ? 1 : 0),
           itemBuilder: (context, index) {
-            if (index == list.length) {
+            if (index == rows.length) {
               return const Center(
                 child: Padding(
                   padding: EdgeInsets.all(16.0),
@@ -193,7 +195,14 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
                 ),
               );
             }
-            return selfProfessionCard(list[index]);
+            final row = rows[index];
+            if (row.isAd) {
+              return NativeAdSlot(
+                adOrdinal: row.adOrdinal,
+                keyPrefix: 'education_service_native_ad',
+              );
+            }
+            return selfProfessionCard(list[row.contentIndex]);
           },
         ),
       );

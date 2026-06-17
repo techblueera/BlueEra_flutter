@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
@@ -189,12 +190,19 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
         }
         final blocks = _buildBlocks(posts);
         final bool showStories = widget.postFilterType == PostType.all;
+        // Interleave native ads across the MAIN combined list (one block per
+        // post in feedController.allPosts) at the shared series positions —
+        // independent of each post's individual type.
+        final rows = buildNativeAdRows(blocks.length);
+        print('[HOME_FEED_AD] type=${widget.postFilterType} '
+            'posts=${posts.length} blocks=${blocks.length} '
+            'rows=${rows.length} ads=${rows.where((r) => r.isAd).length}');
         final listView = ListView.builder(
           controller: _scrollController,
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           // 1. Set padding to zero if you want it flush, or keep only what is necessary
           padding: EdgeInsets.zero,
-          itemCount: blocks.length + (showStories ? 1 : 0),
+          itemCount: rows.length + (showStories ? 1 : 0),
           shrinkWrap: widget.isInParentScroll,
           physics: widget.isInParentScroll
               ? const NeverScrollableScrollPhysics()
@@ -204,7 +212,19 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
               return const SymbolStoryRow();
             }
 
-            int index = showStories ? indexFeed - 1 : indexFeed;
+            final rowIndex = showStories ? indexFeed - 1 : indexFeed;
+            final row = rows[rowIndex];
+
+            if (row.isAd) {
+              print('[HOME_FEED_AD] building ad slot '
+                  'ordinal=${row.adOrdinal} index=$indexFeed');
+              return NativeAdSlot(
+                adOrdinal: row.adOrdinal,
+                keyPrefix: 'home_feed_native_ad',
+              );
+            }
+
+            final index = row.contentIndex;
             final block = blocks[index];
             final item = block.items.first;
 

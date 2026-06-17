@@ -6,6 +6,8 @@ import PushKit
 import AVFoundation
 import UserNotifications
 import flutter_callkit_incoming
+import google_mobile_ads
+import GoogleMobileAds
 
 @main
 @objc class AppDelegate: FlutterAppDelegate, PKPushRegistryDelegate {
@@ -16,6 +18,15 @@ import flutter_callkit_incoming
         GMSServices.provideAPIKey("AIzaSyD4dbz7eaxd8tFF3tZFJwA4y6KvwozkpdU")
         FirebaseApp.configure()
         GeneratedPluginRegistrant.register(with: self)
+
+        // Custom native ad layout for the grocery store list. Must be registered
+        // AFTER GeneratedPluginRegistrant (which registers the ads plugin) and
+        // match NativeAdWidget.factoryId ("groceryAdFactory") on the Dart side.
+        let groceryNativeAdFactory = GroceryNativeAdFactory()
+        FLTGoogleMobileAdsPlugin.registerNativeAdFactory(
+            self,
+            factoryId: "groceryAdFactory",
+            nativeAdFactory: groceryNativeAdFactory)
 
         // Configure AVAudioSession early to prevent error -50 when CallKit queries session properties
         configureAudioSession()
@@ -271,5 +282,131 @@ private extension Optional where Wrapped == String {
     var nonEmpty: String? {
         guard let value = self, !value.isEmpty else { return nil }
         return value
+    }
+}
+
+// MARK: - Grocery Native Ad Factory
+
+/// Builds the custom native ad view for the grocery store list. Mirrors the
+/// Android `grocery_native_ad.xml` look: soft teal card, rounded 12 corners, an
+/// icon + headline header, a media view and a call-to-action button. The view
+/// fills the height the Flutter AdWidget provides (the measured store-card
+/// height) so the ad matches a card exactly.
+class GroceryNativeAdFactory: NSObject, FLTNativeAdFactory {
+    func createNativeAd(_ nativeAd: GADNativeAd,
+                        customOptions: [AnyHashable: Any]? = nil) -> GADNativeAdView? {
+        let adView = GADNativeAdView()
+        adView.backgroundColor = .white
+        adView.layer.cornerRadius = 12
+        adView.layer.borderWidth = 1
+        adView.layer.borderColor = UIColor(white: 0.9, alpha: 1.0).cgColor
+        adView.clipsToBounds = true
+
+        // Icon
+        let iconView = UIImageView()
+        iconView.translatesAutoresizingMaskIntoConstraints = false
+        iconView.contentMode = .scaleAspectFill
+        iconView.clipsToBounds = true
+        iconView.layer.cornerRadius = 10
+        iconView.layer.borderWidth = 1
+        iconView.layer.borderColor = UIColor(red: 0.81, green: 0.93, blue: 0.95, alpha: 1.0).cgColor
+        iconView.backgroundColor = .white
+
+        // Headline
+        let headlineView = UILabel()
+        headlineView.font = .boldSystemFont(ofSize: 16)
+        headlineView.textColor = UIColor(white: 0.1, alpha: 1.0)
+        headlineView.numberOfLines = 1
+
+        // Advertiser
+        let advertiserView = UILabel()
+        advertiserView.font = .systemFont(ofSize: 12)
+        advertiserView.textColor = UIColor(white: 0.48, alpha: 1.0)
+        advertiserView.numberOfLines = 1
+
+        // "Ad" badge
+        let adBadge = UILabel()
+        adBadge.text = " Ad "
+        adBadge.font = .boldSystemFont(ofSize: 10)
+        adBadge.textColor = .white
+        adBadge.backgroundColor = UIColor(red: 0.07, green: 0.86, blue: 0.96, alpha: 1.0)
+        adBadge.layer.cornerRadius = 4
+        adBadge.clipsToBounds = true
+        adBadge.setContentHuggingPriority(.required, for: .horizontal)
+
+        let textStack = UIStackView(arrangedSubviews: [headlineView, advertiserView])
+        textStack.axis = .vertical
+        textStack.spacing = 2
+
+        let headerStack = UIStackView(arrangedSubviews: [iconView, textStack, adBadge])
+        headerStack.axis = .horizontal
+        headerStack.spacing = 10
+        headerStack.alignment = .center
+
+        // Body
+        let bodyView = UILabel()
+        bodyView.font = .systemFont(ofSize: 13)
+        bodyView.textColor = UIColor(white: 0.35, alpha: 1.0)
+        bodyView.numberOfLines = 2
+
+        // Media
+        let mediaView = GADMediaView()
+        mediaView.contentMode = .scaleAspectFill
+        mediaView.clipsToBounds = true
+        mediaView.layer.cornerRadius = 8
+        mediaView.setContentHuggingPriority(.defaultLow, for: .vertical)
+        mediaView.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
+        // Keep the media large enough for video (AdMob warns below ~120pt).
+        mediaView.heightAnchor.constraint(greaterThanOrEqualToConstant: 120).isActive = true
+
+        // Call to action
+        let ctaView = UIButton(type: .system)
+        ctaView.titleLabel?.font = .boldSystemFont(ofSize: 14)
+        ctaView.setTitleColor(.white, for: .normal)
+        ctaView.backgroundColor = UIColor(red: 0.07, green: 0.86, blue: 0.96, alpha: 1.0)
+        ctaView.layer.cornerRadius = 8
+        // NativeAdView handles the tap — the button must not swallow it.
+        ctaView.isUserInteractionEnabled = false
+        ctaView.heightAnchor.constraint(equalToConstant: 40).isActive = true
+
+        let mainStack = UIStackView(arrangedSubviews: [headerStack, bodyView, mediaView, ctaView])
+        mainStack.axis = .vertical
+        mainStack.spacing = 8
+        mainStack.translatesAutoresizingMaskIntoConstraints = false
+        mainStack.isLayoutMarginsRelativeArrangement = true
+        mainStack.layoutMargins = UIEdgeInsets(top: 12, left: 12, bottom: 12, right: 12)
+
+        adView.addSubview(mainStack)
+        NSLayoutConstraint.activate([
+            mainStack.leadingAnchor.constraint(equalTo: adView.leadingAnchor),
+            mainStack.trailingAnchor.constraint(equalTo: adView.trailingAnchor),
+            mainStack.topAnchor.constraint(equalTo: adView.topAnchor),
+            mainStack.bottomAnchor.constraint(equalTo: adView.bottomAnchor),
+            iconView.widthAnchor.constraint(equalToConstant: 44),
+            iconView.heightAnchor.constraint(equalToConstant: 44),
+        ])
+
+        // Register the asset views with the NativeAdView, then populate them.
+        adView.headlineView = headlineView
+        adView.iconView = iconView
+        adView.advertiserView = advertiserView
+        adView.bodyView = bodyView
+        adView.mediaView = mediaView
+        adView.callToActionView = ctaView
+
+        headlineView.text = nativeAd.headline
+        advertiserView.text = nativeAd.advertiser
+        advertiserView.isHidden = nativeAd.advertiser == nil
+        bodyView.text = nativeAd.body
+        bodyView.isHidden = nativeAd.body == nil
+        iconView.image = nativeAd.icon?.image
+        iconView.isHidden = nativeAd.icon == nil
+        ctaView.setTitle(nativeAd.callToAction, for: .normal)
+        ctaView.isHidden = nativeAd.callToAction == nil
+        mediaView.mediaContent = nativeAd.mediaContent
+
+        // Associate the ad — wires impression/click tracking.
+        adView.nativeAd = nativeAd
+        return adView
     }
 }

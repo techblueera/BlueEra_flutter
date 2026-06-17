@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_map_widgets.dart';
 import 'package:BlueEra/features/common/Discover/widget/filter_capsule.dart';
@@ -473,18 +474,26 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
               );
               final showMoreSpinner =
                   controller.isEarnServiceLoadingMore.value;
+              final rows = buildNativeAdRows(sorted.length);
               return ListView.builder(
-                itemCount: sorted.length + (showMoreSpinner ? 1 : 0),
+                itemCount: rows.length + (showMoreSpinner ? 1 : 0),
                 padding: EdgeInsets.only(bottom: SizeConfig.paddingL),
                 itemBuilder: (context, index) {
-                  if (index == sorted.length) {
+                  if (index == rows.length) {
                     return const Center(
                         child: Padding(
                             padding: EdgeInsets.all(16.0),
                             child:
                                 CircularProgressIndicator(strokeWidth: 2)));
                   }
-                  return _buildSpecCard(sorted[index]);
+                  final row = rows[index];
+                  if (row.isAd) {
+                    return NativeAdSlot(
+                      adOrdinal: row.adOrdinal,
+                      keyPrefix: 'self_profession_native_ad',
+                    );
+                  }
+                  return _buildSpecCard(sorted[row.contentIndex]);
                 },
               );
             }),

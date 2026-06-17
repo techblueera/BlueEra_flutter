@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_rider_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
@@ -244,33 +245,38 @@ class _AllGroceryProductsScreenState extends State<AllGroceryProductsScreen> {
                 );
               }
 
-              return MasonryGridView.count(
+              return CustomScrollView(
                 controller: scrollController,
-                itemCount:
-                consumerController.arrUserGrocery.length +
-                    (consumerController.isUserGroceryLoadingMore
-                        .value
-                        ? 1
-                        : 0),
-                crossAxisCount: 2,
-                crossAxisSpacing: 6,
-                mainAxisSpacing: 6,
-                padding: EdgeInsets.only(
-                    bottom: SizeConfig.size30),
-                itemBuilder: (_, i) {
-                  if (i == consumerController.arrUserGrocery.length) {
-                    return const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                slivers: [
+                  ...buildNativeAdGridSlivers(
+                    itemCount: consumerController.arrUserGrocery.length,
+                    keyPrefix: 'grocery_products_rider_native_ad',
+                    adPadding: EdgeInsets.zero,
+                    gridSliverBuilder: (start, end) => SliverPadding(
+                      padding: EdgeInsets.only(bottom: SizeConfig.size30),
+                      sliver: SliverMasonryGrid.count(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 6,
+                        crossAxisSpacing: 6,
+                        childCount: end - start,
+                        itemBuilder: (context, i) => GroceryProductCard(
+                          groceryProducts:
+                              consumerController.arrUserGrocery[start + i],
+                          flowType: GroceryCardFlowType.rider,
+                        ),
                       ),
-                    );
-                  }
-                  return GroceryProductCard(
-                    groceryProducts: consumerController.arrUserGrocery[i],
-                    flowType: GroceryCardFlowType.rider,
-                  );
-                },
+                    ),
+                  ),
+                  if (consumerController.isUserGroceryLoadingMore.value)
+                    const SliverToBoxAdapter(
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Center(
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                    ),
+                ],
               );
             }),
           ),

@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/me/food/view/customer/food_self_pickup_cart_screen.dart';
@@ -333,6 +334,7 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
         );
       }
 
+      final rows = buildNativeAdRows(storeController.allStore.length);
       return ListView.builder(
         padding: EdgeInsets.only(
           left: SizeConfig.size12,
@@ -340,10 +342,10 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
           top: SizeConfig.size12,
           bottom: SizeConfig.paddingL + 70,
         ),
-        itemCount: storeController.allStore.length +
-            (storeController.isAllStoreLoadingMore.value ? 1 : 0),
+        itemCount:
+            rows.length + (storeController.isAllStoreLoadingMore.value ? 1 : 0),
         itemBuilder: (context, index) {
-          if (index == storeController.allStore.length) {
+          if (index == rows.length) {
             return const Padding(
               padding: EdgeInsets.all(16),
               child: Center(
@@ -351,7 +353,15 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
               ),
             );
           }
-          return _buildRestaurantCard(storeController.allStore[index], index);
+          final row = rows[index];
+          if (row.isAd) {
+            return NativeAdSlot(
+              adOrdinal: row.adOrdinal,
+              keyPrefix: 'restaurant_near_native_ad',
+            );
+          }
+          return _buildRestaurantCard(
+              storeController.allStore[row.contentIndex], row.contentIndex);
         },
       );
     });

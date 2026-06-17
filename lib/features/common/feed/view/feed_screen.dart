@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/view/feed_shimmer_card.dart';
@@ -144,24 +145,35 @@ class _FeedScreenState extends State<FeedScreen> {
         isInitialLoad: isInitialLoad, refresh: refresh, id: id, query: query, screenName: '');
   }
 
-  int _calculateItemCount(int postsLength) {
-    int totalItems = postsLength;
+  int _calculateItemCount(int rowsLength) {
+    int totalItems = rowsLength;
     if (widget.postFilterType != PostType.saved && feedController.isTargetHasMoreData.isTrue) {
       totalItems += 1;
     }
     return totalItems;
   }
 
-  Widget _buildListItem(int index, List<Post> posts) {
-    int postIndex = index;
-    if (postIndex >= posts.length) {
+  Widget _buildListItem(int index, List<Post> posts, List<NativeAdRow> rows) {
+    // Trailing load-more loader sits after all interleaved rows.
+    if (index >= rows.length) {
       return Obx(() => feedController.isTargetMoreDataLoading.value
           ? staggeredDotsWaveLoading()
           : const SizedBox.shrink());
     }
 
+    final row = rows[index];
+    if (row.isAd) {
+      print('[FEED_AD] building ad slot ordinal=${row.adOrdinal} index=$index');
+      return NativeAdSlot(
+        adOrdinal: row.adOrdinal,
+        keyPrefix: 'feed_native_ad',
+      );
+    }
+
+    final int postIndex = row.contentIndex;
+
     return VisibilityDetector(
-      key: Key('post_$index'),
+      key: Key('post_$postIndex'),
       onVisibilityChanged: (visibilityInfo) {
         if (visibilityInfo.visibleFraction > 0.5) {
           trackPostView(posts[postIndex].id);
@@ -187,6 +199,11 @@ class _FeedScreenState extends State<FeedScreen> {
             if (feedController.postsResponse.value.status == Status.COMPLETE ||
                 widget.postFilterType == PostType.saved) {
               List<Post> posts = feedController.getListByType(widget.postFilterType);
+              final rows = buildNativeAdRows(posts.length);
+              // [FEED_AD] diagnostics — filter logcat by tag [FEED_AD].
+              print('[FEED_AD] type=${widget.postFilterType} '
+                  'posts=${posts.length} rows=${rows.length} '
+                  'ads=${rows.where((r) => r.isAd).length}');
 
               if (posts.isEmpty) {
                 // Polished "draft on a stack" empty state when the user
@@ -225,8 +242,8 @@ class _FeedScreenState extends State<FeedScreen> {
                   physics: widget.isInParentScroll
                       ? const NeverScrollableScrollPhysics()
                       : const AlwaysScrollableScrollPhysics(),
-                  itemCount: _calculateItemCount(posts.length),
-                  itemBuilder: (context, index) => _buildListItem(index, posts),
+                  itemCount: _calculateItemCount(rows.length),
+                  itemBuilder: (context, index) => _buildListItem(index, posts, rows),
                 ),
               );
 

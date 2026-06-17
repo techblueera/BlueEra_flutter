@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/features/common/jobs/controller/applied_job_controller.dart';
 import 'package:BlueEra/features/common/jobs/controller/job_screen_controller.dart';
 import 'package:BlueEra/features/common/jobs/widget/job_application_card.dart';
@@ -123,11 +124,24 @@ class _AppliedAllScreenState extends State<AppliedAllScreen> {
                       ),
                     ),
                   Expanded(
-                    child: ListView.builder(
+                    child: Builder(
+                      builder: (context) {
+                        final rows = buildNativeAdRows(
+                            appliedController.appliedJobListing.length);
+                        return ListView.builder(
                         padding: EdgeInsets.only(top: SizeConfig.size5),
+                        itemCount: rows.length,
                         itemBuilder: (context, index) {
+                          final row = rows[index];
+                          if (row.isAd) {
+                            return NativeAdSlot(
+                              adOrdinal: row.adOrdinal,
+                              keyPrefix: 'applied_jobs_native_ad',
+                            );
+                          }
                           UserApplications? userData =
-                              appliedController.appliedJobListing[index] ??
+                              appliedController
+                                      .appliedJobListing[row.contentIndex] ??
                                   null;
                           return JobApplicationCard(
                             jobPostImage: userData?.jobId?.jobPostImage ?? "",
@@ -173,8 +187,9 @@ class _AppliedAllScreenState extends State<AppliedAllScreen> {
                                   });
                             },
                           );
-                        },
-                        itemCount: appliedController.appliedJobListing.length),
+                        });
+                      },
+                    ),
                   ),
                 ],
               ),

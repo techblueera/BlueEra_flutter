@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
 import 'package:BlueEra/features/me/automotive_products/controller/automotive_inventory_controller.dart';
@@ -249,31 +250,36 @@ class _AutomotiveVisitProductProductsScreenState
         controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
-          SliverPadding(
-            padding: EdgeInsets.zero,
-            // Why: a uniform SliverGrid (was SliverMasonryGrid) so
-            // every tile claims the same cell height — masonry let
-            // 1-line vs 2-line product names produce ragged rows.
-            // The 0.62 ratio matches the proportions of the
-            // top-selling product cards on the store-details screen so
-            // this grid and that preview present products with
-            // consistent dimensions.
-            sliver: SliverGrid(
-              gridDelegate:
-                  const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                mainAxisSpacing: 10,
-                crossAxisSpacing: 10,
-                childAspectRatio: 0.62,
-              ),
-              delegate: SliverChildBuilderDelegate(
-                (context, index) => _AutomotiveProductGridTile(
-                  product: items[index],
-                  cartController: cartController,
-                  onToggleCart: _onToggleCart,
-                  firstVariantId: _firstVariantId,
+          ...buildNativeAdGridSlivers(
+            itemCount: items.length,
+            keyPrefix: 'auto_visit_native_ad',
+            adPadding: EdgeInsets.zero,
+            gridSliverBuilder: (start, end) => SliverPadding(
+              padding: EdgeInsets.zero,
+              // Why: a uniform SliverGrid (was SliverMasonryGrid) so
+              // every tile claims the same cell height — masonry let
+              // 1-line vs 2-line product names produce ragged rows.
+              // The 0.62 ratio matches the proportions of the
+              // top-selling product cards on the store-details screen so
+              // this grid and that preview present products with
+              // consistent dimensions.
+              sliver: SliverGrid(
+                gridDelegate:
+                    const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 10,
+                  crossAxisSpacing: 10,
+                  childAspectRatio: 0.62,
                 ),
-                childCount: items.length,
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) => _AutomotiveProductGridTile(
+                    product: items[start + index],
+                    cartController: cartController,
+                    onToggleCart: _onToggleCart,
+                    firstVariantId: _firstVariantId,
+                  ),
+                  childCount: end - start,
+                ),
               ),
             ),
           ),

@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
@@ -336,11 +337,12 @@ class _ProfessionConsultantDiscoverScreenState
               );
               final showMoreSpinner =
                   controller.isProfConServiceLoadingMore.value;
+              final rows = buildNativeAdRows(sorted.length);
               return ListView.builder(
-                itemCount: sorted.length + (showMoreSpinner ? 1 : 0),
+                itemCount: rows.length + (showMoreSpinner ? 1 : 0),
                 padding: EdgeInsets.only(bottom: SizeConfig.paddingL),
                 itemBuilder: (context, index) {
-                  if (index == sorted.length) {
+                  if (index == rows.length) {
                     return const Center(
                       child: Padding(
                         padding: EdgeInsets.all(16.0),
@@ -348,7 +350,14 @@ class _ProfessionConsultantDiscoverScreenState
                       ),
                     );
                   }
-                  return _buildSpecCard(sorted[index]);
+                  final row = rows[index];
+                  if (row.isAd) {
+                    return NativeAdSlot(
+                      adOrdinal: row.adOrdinal,
+                      keyPrefix: 'consultant_native_ad',
+                    );
+                  }
+                  return _buildSpecCard(sorted[row.contentIndex]);
                 },
               );
             }),

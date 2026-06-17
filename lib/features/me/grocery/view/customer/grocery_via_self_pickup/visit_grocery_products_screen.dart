@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
@@ -223,32 +224,38 @@ class _VisitGroceryProductsScreenState extends State<VisitGroceryProductsScreen>
               ),
             )
                 : controller.globalGroceryProductsList.isNotEmpty
-                ? MasonryGridView.count(
-              itemCount: controller.globalGroceryProductsList.length +
-                  (controller.isGlobalGroceryDataLoadingMore.value ? 1 : 0),
+                ? CustomScrollView(
               controller: scrollController,
-              padding: EdgeInsets.only(
-                  bottom: SizeConfig.size15 + kBottomNavigationBarHeight
-              ),
-              crossAxisCount: 2,
-              crossAxisSpacing: 6,
-              mainAxisSpacing: 6,
-              itemBuilder: (BuildContext context, int index) {
-                if (index >= controller.globalGroceryProductsList.length) {
-                  return const Padding(
-                    padding: EdgeInsets.all(20),
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                }
-
-                final groceryProducts = controller.globalGroceryProductsList[index];
-
-                return GroceryProductCard(
-                    groceryProducts: groceryProducts,
-                    flowType: GroceryCardFlowType.selfPickup,
-                    bId: widget.visitBusinessId,
-                );
-              },
+              slivers: [
+                ...buildNativeAdGridSlivers(
+                  itemCount: controller.globalGroceryProductsList.length,
+                  keyPrefix: 'grocery_products_visit_native_ad',
+                  adPadding: EdgeInsets.zero,
+                  gridSliverBuilder: (start, end) => SliverPadding(
+                    padding: EdgeInsets.only(
+                        bottom: SizeConfig.size15 + kBottomNavigationBarHeight),
+                    sliver: SliverMasonryGrid.count(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 6,
+                      mainAxisSpacing: 6,
+                      childCount: end - start,
+                      itemBuilder: (context, i) => GroceryProductCard(
+                        groceryProducts:
+                            controller.globalGroceryProductsList[start + i],
+                        flowType: GroceryCardFlowType.selfPickup,
+                        bId: widget.visitBusinessId,
+                      ),
+                    ),
+                  ),
+                ),
+                if (controller.isGlobalGroceryDataLoadingMore.value)
+                  const SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.all(20),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                  ),
+              ],
             ) : Padding(
                 padding: EdgeInsets.all(SizeConfig.size20),
                 child: EmptyStateWidget(
