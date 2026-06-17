@@ -1,8 +1,10 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/GetChatListModel.dart';
 import 'package:BlueEra/features/chat/auth/model/saved_address_model.dart';
+import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -36,6 +38,10 @@ class InquiryRideOrderSelectionScreen extends StatefulWidget {
 class _InquiryRideOrderSelectionScreenState
     extends State<InquiryRideOrderSelectionScreen> {
   final chatViewController = Get.find<ChatViewController>();
+  final discoverController = getOrPut(() => DiscoverController());
+
+  /// True while the multi-shop riders request is in flight (after Submit).
+  bool _isFindingRiders = false;
 
   /// Conversation ids the user has ticked.
   final Set<String> _selectedIds = {};
@@ -74,11 +80,24 @@ class _InquiryRideOrderSelectionScreenState
     });
   }
 
-  void _onSubmit(List<ChatList> inquiries) {
+  Future<void> _onSubmit(List<ChatList> inquiries) async {
+    if (_isFindingRiders) return;
     final selected = inquiries
         .where((c) => _selectedIds.contains(c.conversationId))
         .toList();
     if (selected.isEmpty) return;
+
+    // Resolve each shop's pickup coordinates and find riders near the
+    // furthest shop. Only open the booking screen once riders are loaded.
+    setState(() => _isFindingRiders = true);
+    final ok = await discoverController.resolveAndFindMultiShopRiders(
+      pickups: selected,
+      drop: widget.dropAddress,
+    );
+    if (!mounted) return;
+    setState(() => _isFindingRiders = false);
+    if (!ok) return;
+
     Get.to(() => MultiPickupRiderBookingScreen(
           pickups: selected,
           dropAddress: widget.dropAddress,
@@ -97,6 +116,7 @@ class _InquiryRideOrderSelectionScreenState
           padding: const EdgeInsets.all(14.0),
           child: CustomBtn(
             height: 44,
+            isLoading: _isFindingRiders,
             isValidate: _selectedIds.isNotEmpty,
             onTap: () => _onSubmit(inquiries),
             title:

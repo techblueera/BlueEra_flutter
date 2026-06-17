@@ -88,6 +88,17 @@ mixin RiderServiceApi {
 
   final String makeTransportBookOrder = 'rider-service/fare/orders';
 
+  // Multi-shop (multi-stop) orders. Additive — single-stop flow is unchanged.
+  // 1) Sort shops furthest→nearest + find riders near the furthest shop.
+  final String multiShopRiders = 'rider-service/fare/multi-shop/riders';
+  // 2) Create the multi-stop order (book a rider).
+  final String multiShopOrders = 'rider-service/fare/multi-shop/orders';
+  // Per-stop progress (rider-side): arrive / pickup at each shop.
+  String multiShopStopArrive(String orderId, String businessId) =>
+      'rider-service/fare/multi-shop/orders/$orderId/stops/$businessId/arrive';
+  String multiShopStopPickup(String orderId, String businessId) =>
+      'rider-service/fare/multi-shop/orders/$orderId/stops/$businessId/pickup';
+
   // Medical rider-side
   final String medicalOrderUpdatePaymentStatus =
       'rider-service/medical/orders/payment-status';

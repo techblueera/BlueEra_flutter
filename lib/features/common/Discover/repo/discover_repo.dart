@@ -139,6 +139,33 @@ class DiscoverRepo extends BaseService {
     return response;
   }
 
+  /// Sort shops furthest→nearest + find riders near the furthest shop for a
+  /// multi-stop order. POST `/fare/multi-shop/riders`.
+  Future<ResponseModel> getMultiShopRidersApi(
+      {required Map<String, dynamic> params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      multiShopRiders,
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  /// Create the multi-stop order (book a rider). POST `/fare/multi-shop/orders`.
+  Future<ResponseModel> makeMultiShopOrderApi(
+      {required Map<String, dynamic> params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      multiShopOrders,
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   /// GET EARN SERVICES
   Future<ResponseModel> fetchProfessionalConsServices({required Map<String, dynamic> queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(

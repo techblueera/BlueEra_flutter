@@ -29,6 +29,10 @@ import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import '../../../../core/api/model/new_food_home_res_model.dart';
 import '../model/get_booking_rider_model.dart';
+import '../model/multi_shop_rider_model.dart';
+import '../../../business/auth/repo/business_profile_repo.dart';
+import '../../../chat/auth/model/GetChatListModel.dart';
+import '../../../chat/auth/model/saved_address_model.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../chat/auth/controller/call_controller.dart';
 import '../../../chat/auth/repo/make_order_repo.dart';
@@ -125,6 +129,18 @@ class DiscoverController extends GetxController {
   var isFoodRestaurantLoadingMore = false.obs;
   Rx<VehicleAllResponse> ridersDetailsList = VehicleAllResponse().obs;
   var bookingRiderListResponse = ApiResponse.initial('Initial').obs;
+
+  /// Multi-shop (multi-stop) order state. Populated by
+  /// [resolveAndFindMultiShopRiders]; the booking screen renders the route
+  /// from [multiShopSortedShops] and books via [makeMultiShopOrderApi].
+  RxList<SortedShop> multiShopSortedShops = <SortedShop>[].obs;
+  Rxn<SortedShop> multiShopFurthestShop = Rxn<SortedShop>();
+  RxDouble multiShopRouteDistanceKm = 0.0.obs;
+
+  /// Resolved input shops (businessId + coords) used to build the order body,
+  /// and the drop (user) location chosen for the multi-shop order.
+  final List<SortedShop> _multiShopOrderShops = [];
+  SavedAddress? _multiShopDropAddress;
 
   bool hasMoreEarnServiceData = true;
   bool hasMoreProfConServiceData = true;
@@ -1123,6 +1139,230 @@ class DiscoverController extends GetxController {
             message: response.message ?? AppStrings.somethingWentWrong);
         findRiderDetailsLoading.value = false;
       }
+    }
+  }
+
+  /// Resolve each selected inquiry shop's pickup coordinates, then call
+  /// `/fare/multi-shop/riders` to sort the shops (furthest→nearest) and find
+  /// riders near the furthest shop. Seeds the shared rider state
+  /// ([ridersDetailsList] / [selectedRiders]) and the pickup/drop coords so the
+  /// existing booking + fare-call-queue screens work unchanged.
+  ///
+  /// Returns true when riders were fetched. Surfaces a snackbar and returns
+  /// false on any failure (no drop coords, no resolvable shops, API error).
+  Future<bool> resolveAndFindMultiShopRiders({
+    required List<ChatList> pickups,
+    required SavedAddress drop,
+  }) async {
+    final dropLat = drop.lat ?? 0.0;
+    final dropLng = drop.lng ?? 0.0;
+    if (dropLat == 0.0 && dropLng == 0.0) {
+      commonSnackBar(
+          message:
+              'Selected drop address has no location. Please re-select it from the suggestions.');
+      return false;
+    }
+
+    findRiderDetailsLoading.value = true;
+    bookingRiderListResponse.value = ApiResponse.initial('Initial');
+    // A fresh search clears any previous rider selection.
+    selectedRiders.clear();
+    selectedRider.value = RiderUser();
+    selectedVehicleOptionIndex.value = 0;
+
+    try {
+      // Resolve every shop's pickup coordinates. Shops we can't locate are
+      // skipped rather than failing the whole order.
+      final resolvedShops = <SortedShop>[];
+      for (final chat in pickups) {
+        // The shop's pickup location is looked up by the business *owner's*
+        // user id (`/user-service/business/user/{ownerUserId}`), not the
+        // conversation id or the business id.
+        final ownerUserId = (chat.businessOwnerUserId?.isNotEmpty ?? false)
+            ? chat.businessOwnerUserId!
+            : (chat.sender?.id ?? '');
+        if (ownerUserId.isEmpty) continue;
+        final loc = await _resolveShopLocation(ownerUserId);
+        if (loc == null) continue;
+        // The order body still identifies each shop by its businessId where
+        // available, falling back to the owner user id.
+        final shopBusinessId = (chat.sender?.businessId?.isNotEmpty ?? false)
+            ? chat.sender!.businessId!
+            : ownerUserId;
+        resolvedShops.add(SortedShop(
+          businessId: shopBusinessId,
+          name: chat.sender?.name ?? 'Shop',
+          address: loc.$3,
+          latitude: loc.$1,
+          longitude: loc.$2,
+        ));
+      }
+
+      if (resolvedShops.isEmpty) {
+        findRiderDetailsLoading.value = false;
+        bookingRiderListResponse.value = ApiResponse.error('error');
+        commonSnackBar(message: 'Could not get the shop pickup locations.');
+        return false;
+      }
+
+      final params = {
+        'userLocation': {
+          ApiKeys.address: drop.fullAddress,
+          ApiKeys.latitude: dropLat,
+          ApiKeys.longitude: dropLng,
+        },
+        'shops': resolvedShops.map((s) => s.toRequestJson()).toList(),
+        ApiKeys.orderFor: 'grocery',
+        ApiKeys.range_in_km: 20,
+      };
+
+      final response =
+          await DiscoverRepo().getMultiShopRidersApi(params: params);
+      if (!response.isSuccess) {
+        findRiderDetailsLoading.value = false;
+        bookingRiderListResponse.value = ApiResponse.error('error');
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+        return false;
+      }
+
+      final data = MultiShopRidersResponse.fromJson(
+        response.response?.data is Map
+            ? Map<String, dynamic>.from(response.response?.data)
+            : <String, dynamic>{},
+      );
+
+      multiShopSortedShops.assignAll(data.sortedShops);
+      multiShopFurthestShop.value = data.furthestShop ??
+          (data.sortedShops.isNotEmpty ? data.sortedShops.first : null);
+      multiShopRouteDistanceKm.value = data.routeDistanceKm ?? 0.0;
+      // Remember the shops (in sorted order, falling back to resolved order)
+      // and drop for the subsequent order-creation call.
+      _multiShopOrderShops
+        ..clear()
+        ..addAll(
+            data.sortedShops.isNotEmpty ? data.sortedShops : resolvedShops);
+      _multiShopDropAddress = drop;
+
+      // Drive the shared rider widgets + fare-call queue screen.
+      ridersDetailsList.value = data.riders;
+      bookingRiderListResponse.value = ApiResponse.complete(data.riders);
+
+      // The fare-call queue tracks pickup = route start (furthest shop) and
+      // drop = user. Seed the shared coords so live tracking renders correctly.
+      final start = multiShopFurthestShop.value;
+      if (start != null) {
+        selectedFromLat?.value = start.latitude;
+        selectedFromLong?.value = start.longitude;
+        selectedFromAddress?.value =
+            start.address.isNotEmpty ? start.address : start.name;
+      }
+      selectedToLat?.value = dropLat;
+      selectedToLong?.value = dropLng;
+      selectedToAddress?.value = drop.fullAddress;
+
+      findRiderDetailsLoading.value = false;
+      return true;
+    } catch (e) {
+      findRiderDetailsLoading.value = false;
+      bookingRiderListResponse.value = ApiResponse.error('error');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
+    }
+  }
+
+  /// Fetch a shop's pickup `(lat, lng, address)` from its [businessId] via the
+  /// business-location endpoint. Returns null when unavailable.
+  Future<(double, double, String)?> _resolveShopLocation(
+      String businessId) async {
+    try {
+      final response = await BusinessProfileRepo()
+          .viewBusinessIdForLocation(businessId, 'BUSINESS');
+      final data = response.response?.data;
+      if (data is! Map || data['success'] != true) return null;
+      final body = data['data'];
+      if (body is! Map) return null;
+      final loc = body['business_location'];
+      final lat = double.tryParse(loc?['lat']?.toString() ?? '') ?? 0.0;
+      final lng = double.tryParse(loc?['lon']?.toString() ?? '') ?? 0.0;
+      if (lat == 0.0 && lng == 0.0) return null;
+      return (lat, lng, body['address']?.toString() ?? '');
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// In-City fare for the vehicle tab [index], mirroring the tab-0 mapping of
+  /// `getSelectedVehicleData` (0 Bike, 1 min(carMini,carSedan), 2 Auto,
+  /// 3 eRickshaw).
+  double? selectedInCityFare(int index) {
+    final r = ridersDetailsList.value;
+    switch (index) {
+      case 0:
+        return r.twoWheelerRider?.fare;
+      case 1:
+        final a = r.carMini?.fare;
+        final b = r.carSedan?.fare;
+        if (a != null && b != null) return a < b ? a : b;
+        return a ?? b;
+      case 2:
+        return r.autoTempo?.fare;
+      case 3:
+        return r.eRickshaw?.fare;
+    }
+    return null;
+  }
+
+  /// Book the multi-shop order via `/fare/multi-shop/orders` using the
+  /// currently [selectedRiders] and the selected vehicle fare. Uses the
+  /// `fare-call` order type so the existing fare-call queue/accept/track flow
+  /// applies. Returns true on success (and seeds [fareCallOrderId] for the
+  /// queue screen).
+  Future<bool> makeMultiShopOrderApi() async {
+    if (selectedRiders.isEmpty) {
+      commonSnackBar(message: 'Please select at least one rider');
+      return false;
+    }
+    final drop = _multiShopDropAddress;
+    if (drop == null || _multiShopOrderShops.isEmpty) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
+    }
+
+    bookRiderBtnLoading.value = true;
+
+    final params = {
+      ApiKeys.selectedRiders: selectedRiders.map((r) => r.riderId).toList(),
+      'userLocation': {
+        ApiKeys.address: drop.fullAddress,
+        ApiKeys.latitude: drop.lat ?? 0.0,
+        ApiKeys.longitude: drop.lng ?? 0.0,
+      },
+      'shops': _multiShopOrderShops.map((s) => s.toRequestJson()).toList(),
+      ApiKeys.orderFor: 'grocery',
+      ApiKeys.modeOfPayment: 'prepaid',
+      ApiKeys.fare: selectedInCityFare(selectedVehicleOptionIndex.value),
+      ApiKeys.orderType: 'fare-call',
+      ApiKeys.orderForWhom: 'myself',
+    };
+
+    final response = await DiscoverRepo().makeMultiShopOrderApi(params: params);
+    if (response.isSuccess) {
+      bookRiderBtnLoading.value = false;
+      final data = response.response?.data;
+      if (data is Map) {
+        fareCallOrderId.value =
+            (data['orderId'] ?? data['_id'] ?? '').toString();
+        fareCallPickupOtp.value = (data['pickupOTP'] ?? '').toString();
+      }
+      isFareCallInProgress.value = true;
+      fareCallTotalRiders.value = selectedRiders.length;
+      fareCallCurrentRiderIndex.value = 0;
+      return true;
+    } else {
+      bookRiderBtnLoading.value = false;
+      commonSnackBar(message: response.message ?? 'Unable to Book a Rider');
+      return false;
     }
   }
 
