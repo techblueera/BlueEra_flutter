@@ -2,14 +2,14 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
-import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
@@ -22,12 +22,8 @@ import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_d
 import 'package:BlueEra/features/common/Discover/widget/vehicle_details_widget.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/model/rental_service_response.dart';
-import 'package:BlueEra/widgets/cached_avatar_widget.dart';
-import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
-import 'package:BlueEra/widgets/common_rating_row.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
@@ -324,171 +320,365 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
     });
   }
 
+  /// Discover rental listing card — mirrors the showroom reference
+  /// design (image slider → title → description → spec strip → price →
+  /// Chat / Book Now). Works for both vehicle and property/flat rentals,
+  /// swapping the spec cells to suit the [RentalServiceData.type].
   Widget rentalServiceCard(RentalServiceData service) {
     final rentalCoords = service.location?.coordinates;
     final distanceData = (rentalCoords != null && rentalCoords.length >= 2)
         ? calculateDistance(rentalCoords[1].toDouble(), rentalCoords[0].toDouble())
         : null;
 
-    return InkWell(
-      onTap: () {
-        (service.type == AppConstants.property || service.type == AppConstants.flat)
-            ? Get.to(HomeStayDetailsWidget(service: service))
-            : Get.to(VehicleDetailsWidget(service: service));
-      },
-      // onTap: ()=> showFullRentalDetails(
-      //   service
-      // ),
-      child: CustomFormCard(
-          padding: EdgeInsets.all(SizeConfig.size10),
-          margin: EdgeInsets.only(bottom: SizeConfig.size10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+    final images = service.images ?? const <String>[];
+    final rating = double.tryParse(service.rating?.toString() ?? '') ?? 0.0;
+
+    void openDetails() {
+      (service.type == AppConstants.property || service.type == AppConstants.flat)
+          ? Get.to(HomeStayDetailsWidget(service: service))
+          : Get.to(VehicleDetailsWidget(service: service));
+    }
+
+    return GestureDetector(
+      onTap: openDetails,
+      child: Container(
+        margin: EdgeInsets.only(bottom: SizeConfig.size10),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFEDEFF4)),
+          boxShadow: const [
+            BoxShadow(color: Color(0x14001120), blurRadius: 14, offset: Offset(0, 4)),
+          ],
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _rentalImageHeader(images, rating),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  (service.images?.isNotEmpty ?? false)
-                      ? InkWell(
-                          onTap: () {
-                            // Navigate to details
-                          },
-                          child: CachedAvatarWidget(
-                            imageUrl: service.images?[0] ?? '',
-                            size: SizeConfig.size40,
-                            borderColor: Colors.white,
-                            borderRadius: SizeConfig.size20,
-                          ),
-                        )
-                      : ClipRRect(
-                          borderRadius: BorderRadius.circular(SizeConfig.size20),
-                          child: LocalAssets(
-                            imagePath: AppIconAssets.place_holder_image,
-                            height: SizeConfig.size40,
-                            width: SizeConfig.size40,
-                          ),
-                        ),
-                  SizedBox(width: SizeConfig.size6),
-                  Expanded(
-                      child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      CustomText(service.name ?? AppStrings.unknownUser.tr,
-                          fontSize: SizeConfig.small,
-                          color: AppColors.mainTextColor,
-                          fontWeight: FontWeight.w600),
-                      SizedBox(height: SizeConfig.size6),
-                      CommonRatingRow(
-                        rating: double.tryParse(service.rating.toString()) ?? 0.0,
-                        reviews: service.reviews ?? 0,
-                        distance: distanceData != null ? '$distanceData KM' : '',
-                      )
-                    ],
-                  )),
-                  Icon(Icons.more_vert, color: AppColors.black)
+                  CustomText(
+                    service.name ?? AppStrings.unknownUser.tr,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.mainTextColor,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if ((service.highlights?.isNotEmpty ?? false) ||
+                      (service.description?.trim().isNotEmpty ?? false)) ...[
+                    SizedBox(height: SizeConfig.size6),
+                    CustomText(
+                      (service.highlights?.isNotEmpty ?? false)
+                          ? service.highlights!.join(", ")
+                          : service.description!.trim(),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.secondaryTextColor,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                  if (_rentalSpecs(service).isNotEmpty) ...[
+                    SizedBox(height: SizeConfig.size12),
+                    _rentalSpecStrip(service),
+                  ],
+                  SizedBox(height: SizeConfig.size12),
+                  _rentalPriceRow(service, distanceData),
+                  SizedBox(height: SizeConfig.size12),
+                  _rentalActions(service, openDetails),
                 ],
               ),
-              if (service.highlights?.isNotEmpty ?? false) ...[
-                SizedBox(height: SizeConfig.size6),
-                CustomText(service.highlights?.join(", ") ?? "",
-                    fontSize: SizeConfig.small,
-                    color: AppColors.secondaryTextColor,
-                    fontWeight: FontWeight.w400),
-              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─── Image header (slider + overlays) ────────────────────────────
+  Widget _rentalImageHeader(List<String> images, double rating) {
+    return Stack(
+      children: [
+        CustomImageSlideshow(
+          isLoading: false,
+          imagePaths: images,
+          width: double.infinity,
+          height: 190,
+          boxFit: BoxFit.cover,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+        if (rating > 0)
+          Positioned(
+            left: 10,
+            top: 10,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: const [BoxShadow(color: Color(0x1A000000), blurRadius: 6)],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.star_rounded, size: 14, color: Colors.amber),
+                  SizedBox(width: SizeConfig.size2),
+                  CustomText(
+                    rating.toStringAsFixed(1),
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.mainTextColor,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        Positioned(
+          right: 10,
+          top: 10,
+          child: Column(
+            children: [
+              _circleAction(Icons.share_outlined),
               SizedBox(height: SizeConfig.size8),
-              if (service.price != null && service.priceUnit != null)
-                CustomText(
-                  '₹${service.price}/${service.priceUnit}',
-                  fontSize: SizeConfig.medium,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.mainTextColor,
-                ),
-              SizedBox(height: SizeConfig.size8),
-              if (service.type == AppConstants.property || service.type == AppConstants.flat)
-                FittedBox(
-                  fit: BoxFit.scaleDown,
-                  child: Row(
-                    children: [
-                      CustomText(
-                        AppStrings.checkInLabel,
-                        fontSize: SizeConfig.small,
-                        fontWeight: FontWeight.w400,
-                        overflow: TextOverflow.ellipsis,
-                        color: AppColors.green00,
-                      ),
-                      CustomText(
-                        service.checkInTime,
-                        fontSize: SizeConfig.small,
-                        fontWeight: FontWeight.w400,
-                        overflow: TextOverflow.ellipsis,
-                        color: AppColors.secondaryTextColor,
-                        maxLines: 1,
-                      ),
-                      CustomText(
-                        ' | ',
-                        fontSize: SizeConfig.small,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.secondaryTextColor,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      CustomText(
-                        AppStrings.checkOutLabel,
-                        fontSize: SizeConfig.small,
-                        fontWeight: FontWeight.w400,
-                        overflow: TextOverflow.ellipsis,
-                        color: AppColors.redB4,
-                        maxLines: 1,
-                      ),
-                      CustomText(
-                        service.checkOutTime,
-                        fontSize: SizeConfig.small,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.grayText,
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1,
-                      ),
-                    ],
+              _circleAction(Icons.favorite_border_rounded),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _circleAction(IconData icon) {
+    return GestureDetector(
+      onTap: () => commonSnackBar(message: "Coming soon...."),
+      child: Container(
+        padding: const EdgeInsets.all(6),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          shape: BoxShape.circle,
+          boxShadow: [BoxShadow(color: Color(0x1A000000), blurRadius: 6)],
+        ),
+        child: Icon(icon, size: 18, color: AppColors.mainTextColor),
+      ),
+    );
+  }
+
+  // ─── Spec strip ───────────────────────────────────────────────────
+  /// (icon, label) cells driven by the rental type — only the specs the
+  /// listing actually carries are emitted, capped at three.
+  List<MapEntry<IconData, String>> _rentalSpecs(RentalServiceData service) {
+    final specs = <MapEntry<IconData, String>>[];
+    if (service.type == AppConstants.vehicle) {
+      final v = service.vehicleDetails;
+      if ((v?.fuelType ?? '').trim().isNotEmpty) {
+        specs.add(MapEntry(Icons.local_gas_station_outlined, v!.fuelType!.trim()));
+      }
+      if (v?.seatingCapacity != null) {
+        specs.add(MapEntry(
+          Icons.event_seat_outlined,
+          '${v!.seatingCapacity} ${AppStrings.seats.tr}',
+        ));
+      }
+      if (v?.yearOfManufacture != null) {
+        specs.add(MapEntry(Icons.calendar_today_outlined, '${v!.yearOfManufacture}'));
+      } else if ((v?.vehicleType ?? '').trim().isNotEmpty) {
+        specs.add(MapEntry(Icons.directions_car_outlined, v!.vehicleType!.trim()));
+      }
+    } else {
+      final p = service.propertyDetails;
+      if ((p?.bhk ?? '').trim().isNotEmpty) {
+        specs.add(MapEntry(Icons.home_outlined, p!.bhk!.trim()));
+      }
+      if (p?.beds != null) {
+        specs.add(MapEntry(Icons.bed_outlined, '${p!.beds}'));
+      }
+      if ((p?.propertyType ?? '').trim().isNotEmpty) {
+        specs.add(MapEntry(Icons.apartment_outlined, p!.propertyType!.trim()));
+      }
+    }
+    return specs.take(3).toList();
+  }
+
+  Widget _rentalSpecStrip(RentalServiceData service) {
+    final specs = _rentalSpecs(service);
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF7F9FC),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFEDEFF4)),
+      ),
+      child: Row(
+        children: List.generate(specs.length * 2 - 1, (i) {
+          if (i.isOdd) {
+            return Container(width: 1, height: 34, color: const Color(0xFFE0E6EE));
+          }
+          final spec = specs[i ~/ 2];
+          return Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(spec.key, size: 18, color: AppColors.primaryColor),
+                SizedBox(height: SizeConfig.size4),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: CustomText(
+                    spec.value,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.mainTextColor,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
                   ),
                 ),
-              if (service.type == AppConstants.vehicle) ...[
-                Row(
-                  children: [
-                    CustomText(
-                      AppStrings.securityDepositLabel,
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.mainTextColor,
-                    ),
-                    CustomText(
-                      service.vehicleDetails?.securityDeposit ?? AppStrings.na,
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.secondaryTextColor,
-                    ),
-                  ],
-                ),
-                SizedBox(height: SizeConfig.size5),
-                Row(
-                  children: [
-                    CustomText(
-                      AppStrings.pickupLocationLabel,
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w500,
-                      overflow: TextOverflow.ellipsis,
-                      color: AppColors.mainTextColor,
-                    ),
-                    CustomText(
-                      service.vehicleDetails?.pickupLocation ?? AppStrings.na,
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.secondaryTextColor,
-                    ),
-                  ],
-                ),
-              ]
+              ],
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  // ─── Price + distance ─────────────────────────────────────────────
+  Widget _rentalPriceRow(RentalServiceData service, double? distanceData) {
+    final hasPrice = service.price != null && service.priceUnit != null;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        if (hasPrice)
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEAF2FB),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    AppStrings.price.tr,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.secondaryTextColor,
+                  ),
+                  SizedBox(height: SizeConfig.size2),
+                  CustomText(
+                    '₹${service.price}/${service.priceUnit}',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.primaryColor,
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          const Spacer(),
+        if (distanceData != null) ...[
+          SizedBox(width: SizeConfig.size8),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.near_me_outlined,
+                  size: SizeConfig.size16, color: AppColors.secondaryTextColor),
+              SizedBox(width: SizeConfig.size2),
+              CustomText(
+                '$distanceData KM',
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: AppColors.secondaryTextColor,
+              ),
             ],
-          )),
+          ),
+        ],
+      ],
+    );
+  }
+
+  // ─── Actions ──────────────────────────────────────────────────────
+  Widget _rentalActions(RentalServiceData service, VoidCallback onBook) {
+    return Row(
+      children: [
+        Expanded(
+          child: GestureDetector(
+            onTap: () => _openRentalChat(service),
+            child: Container(
+              height: 44,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.primaryColor),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.chat_bubble_outline_rounded,
+                      size: 16, color: AppColors.primaryColor),
+                  SizedBox(width: SizeConfig.size6),
+                  CustomText(
+                    AppStrings.chat.tr,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primaryColor,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        SizedBox(width: SizeConfig.size10),
+        Expanded(
+          flex: 2,
+          child: GestureDetector(
+            onTap: onBook,
+            child: Container(
+              height: 44,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CustomText(
+                    AppStrings.bookNow.tr,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.white,
+                  ),
+                  SizedBox(width: SizeConfig.size6),
+                  Icon(Icons.arrow_forward_rounded, size: 16, color: AppColors.white),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _openRentalChat(RentalServiceData service) async {
+    final ownerId = service.userId;
+    if (ownerId == null || ownerId.isEmpty) {
+      Get.snackbar(
+        AppStrings.na.tr,
+        AppStrings.businessNotAvailableForChat.tr,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+    final chatViewController = Get.find<ChatViewController>();
+    await chatViewController.checkChatConnectionAndOpenChat(
+      userId: ownerId,
+      route: AppConstants.route_discover,
     );
   }
 
@@ -503,27 +693,36 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
             .take(5) // Stop after 5 items
             .toList() ??
         []; // Fallback to empty list
+
+    // "Starting From" → cheapest room across the listing.
+    final roomPrices = (service.rooms ?? [])
+        .map((r) => r.pricePerDay)
+        .whereType<int>()
+        .toList()
+      ..sort();
+    final startingPrice = roomPrices.isNotEmpty ? roomPrices.first : null;
+
+    void openDetails() => Get.to(() => HotelDiscoverHomeScreen(data: service));
+
     return InkWell(
-      onTap: () {
-        Get.to(() => HotelDiscoverHomeScreen(
-              data: service,
-            ));
-      },
+      onTap: openDetails,
       child: PropertyCard(
         imageUrls: allImages,
         logoUrl: service.profile?.logoUrl ?? '',
         hotelName: service.profile?.name ?? "N/A",
-        subCategory: service.rooms?.firstOrNull?.bedType ?? AppStrings.hotelLabel.tr,
         address: [
           service.profile?.address?.street,
           service.profile?.address?.city,
           service.profile?.address?.state,
         ].where((e) => e != null && e.isNotEmpty).join(', '),
         distance: distance.toString(),
-        rent: service.rooms?.firstOrNull?.pricePerDay.toString() ?? "",
+        rent: startingPrice?.toString() ?? '',
         rating: (service.profile?.rating ?? 0).toDouble(),
         reviews: service.profile?.reviews ?? 0,
-        businessId: service.profile?.businessId ?? '',
+        checkInTime: service.profile?.policy?.checkInTime ?? '',
+        checkOutTime: service.profile?.policy?.checkOutTime ?? '',
+        amenities: _hotelAmenities(service.profile?.amenities),
+        onBook: openDetails,
       ),
     );
 /*
@@ -659,6 +858,30 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
 */
   }
 
+  /// Maps the hotel's boolean amenity flags to (icon, label) pairs for
+  /// the card's amenity grid — only enabled amenities are emitted, in a
+  /// stable display order.
+  List<MapEntry<IconData, String>> _hotelAmenities(Amenities? a) {
+    if (a == null) return const [];
+    final list = <MapEntry<IconData, String>>[];
+    void add(bool? on, IconData icon, String label) {
+      if (on == true) list.add(MapEntry(icon, label));
+    }
+
+    add(a.airConditioning, Icons.ac_unit_rounded, 'Air Conditioning');
+    add(a.freeWifi, Icons.wifi_rounded, 'Free Wifi');
+    add(a.television, Icons.tv_rounded, 'Television');
+    add(a.roomService, Icons.room_service_outlined, 'Room Service');
+    add(a.powerBackup, Icons.bolt_rounded, 'Power Backup');
+    add(a.balcony, Icons.balcony_outlined, 'Balcony');
+    add(a.attachedBathroom, Icons.bathtub_outlined, 'Attached Bathroom');
+    add(a.wardrobe, Icons.checkroom_rounded, 'Wardrobe');
+    add(a.deskChair, Icons.chair_alt_outlined, 'Desk & Chair');
+    add(a.roomRefrigerators, Icons.kitchen_outlined, 'Refrigerator');
+    add(a.electricKettle, Icons.coffee_rounded, 'Electric Kettle');
+    return list;
+  }
+
   void showFullRentalDetails(
     RentalServiceData service,
   ) {
@@ -767,26 +990,30 @@ class PropertyCard extends StatefulWidget {
   final List<String> imageUrls;
   final String logoUrl;
   final String hotelName;
-  final String subCategory;
   final String address;
   final String distance;
   final String rent;
   final double rating;
   final int reviews;
-  final String businessId;
+  final String checkInTime;
+  final String checkOutTime;
+  final List<MapEntry<IconData, String>> amenities;
+  final VoidCallback? onBook;
 
   const PropertyCard({
     super.key,
     required this.imageUrls,
     required this.logoUrl,
     required this.hotelName,
-    required this.subCategory,
     required this.address,
     required this.distance,
     required this.rent,
     required this.rating,
     required this.reviews,
-    required this.businessId,
+    required this.checkInTime,
+    required this.checkOutTime,
+    required this.amenities,
+    this.onBook,
   });
 
   @override
@@ -794,8 +1021,6 @@ class PropertyCard extends StatefulWidget {
 }
 
 class _PropertyCardState extends State<PropertyCard> {
-  int _currentIndex = 0;
-
   // Dummy reviews for the read-only review sheet.
   final List<Map<String, dynamic>> _dummyReviews = const [
     {
@@ -827,18 +1052,6 @@ class _PropertyCardState extends State<PropertyCard> {
     },
   ];
 
-  Future<void> _openInquiryChat() async {
-    if (widget.businessId.isEmpty) {
-      Get.snackbar(AppStrings.na.tr, AppStrings.businessNotAvailableForChat.tr, snackPosition: SnackPosition.BOTTOM);
-      return;
-    }
-    final chatViewController = Get.find<ChatViewController>();
-    await chatViewController.checkChatConnectionAndOpenChat(
-      userId: widget.businessId,
-      route: AppConstants.route_discover,
-    );
-  }
-
   void _openReviewsSheet() {
     showModalBottomSheet(
       context: context,
@@ -857,222 +1070,388 @@ class _PropertyCardState extends State<PropertyCard> {
     final hasMultipleImages = widget.imageUrls.length > 1;
     final screenWidth = MediaQuery.of(context).size.width;
     final imageHeight = (screenWidth - SizeConfig.size32) * 11 / 16;
+    const logoSize = 54.0;
 
-    return CommonCardWidget(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      margin: EdgeInsets.only(bottom: SizeConfig.size10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFEDEFF4)),
+        boxShadow: const [
+          BoxShadow(color: Color(0x14001120), blurRadius: 14, offset: Offset(0, 4)),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        clipBehavior: Clip.none,
         children: [
-          // Image carousel
-          Stack(
-            alignment: Alignment.bottomCenter,
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: widget.imageUrls.isEmpty
-                    ? _brokenImage(imageHeight)
-                    : CarouselSlider(
-                        options: CarouselOptions(
-                          height: imageHeight,
-                          viewportFraction: 1.0,
-                          enableInfiniteScroll: hasMultipleImages,
-                          onPageChanged: (index, _) => setState(() => _currentIndex = index),
-                        ),
-                        items: widget.imageUrls.map((url) {
-                          return Image.network(
-                            url,
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            errorBuilder: (_, __, ___) => _brokenImage(imageHeight),
-                          );
-                        }).toList(),
-                      ),
-              ),
-              if (hasMultipleImages)
-                Positioned(
-                  bottom: 10,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: widget.imageUrls.asMap().entries.map((entry) {
-                      final active = _currentIndex == entry.key;
-                      return AnimatedContainer(
-                        duration: const Duration(milliseconds: 250),
-                        width: active ? 16 : 6,
-                        height: 6,
-                        margin: const EdgeInsets.symmetric(horizontal: 3),
-                        decoration: BoxDecoration(
-                          color: AppColors.white.withValues(alpha: active ? 1.0 : 0.55),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-            ],
-          ),
-
-          SizedBox(height: SizeConfig.size10),
-
-          // Logo + name + subcategory
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              _logoAvatar(),
-              SizedBox(width: SizeConfig.size8),
-              Flexible(
-                flex: 3,
+              _imageHeader(hasMultipleImages, imageHeight),
+              Padding(
+                padding: EdgeInsets.fromLTRB(14, (logoSize / 2) + 8, 14, 14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CustomText(
                       widget.hotelName,
                       fontWeight: FontWeight.w700,
-                      fontSize: SizeConfig.medium,
+                      fontSize: 16,
                       color: AppColors.mainTextColor,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    if (widget.subCategory.isNotEmpty) ...[
-                      CustomText(
-                        widget.subCategory,
-                        fontSize: SizeConfig.small,
-                        color: AppColors.secondaryTextColor,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                    if (widget.address.isNotEmpty) ...[
+                      SizedBox(height: SizeConfig.size6),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(Icons.location_on_outlined,
+                              size: SizeConfig.size16, color: AppColors.secondaryTextColor),
+                          SizedBox(width: SizeConfig.size2),
+                          Expanded(
+                            child: CustomText(
+                              widget.address,
+                              fontSize: 12,
+                              color: AppColors.secondaryTextColor,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
+                    if (widget.amenities.isNotEmpty) ...[
+                      SizedBox(height: SizeConfig.size12),
+                      _amenityGrid(),
+                    ],
+                    SizedBox(height: SizeConfig.size14),
+                    _bottomRow(),
                   ],
                 ),
               ),
             ],
           ),
-
-          SizedBox(height: SizeConfig.size6),
-
-          // Rating + reviews
-          Row(
-            children: [
-              Icon(Icons.star_rounded, size: SizeConfig.size18, color: Colors.amber),
-              SizedBox(width: SizeConfig.size2),
-              CustomText(
-                widget.rating.toStringAsFixed(1),
-                fontWeight: FontWeight.w600,
-                fontSize: SizeConfig.small,
-                color: AppColors.mainTextColor,
-              ),
-              SizedBox(width: SizeConfig.size4),
-              CustomText(
-                '(${widget.reviews} ${AppStrings.reviewsLowercase.tr})',
-                fontSize: SizeConfig.small,
-                color: AppColors.secondaryTextColor,
-              ),
-            ],
-          ),
-
-          SizedBox(height: SizeConfig.size6),
-
-          // Address
-          if (widget.address.isNotEmpty)
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.location_on_outlined,
-                    size: SizeConfig.size16, color: AppColors.secondaryTextColor),
-                SizedBox(width: SizeConfig.size2),
-                Expanded(
-                  child: CustomText(
-                    widget.address,
-                    fontSize: SizeConfig.small,
-                    color: AppColors.secondaryTextColor,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ],
-            ),
-
-          SizedBox(height: SizeConfig.size6),
-
-          // Distance + price
-          Row(
-            children: [
-              Icon(Icons.near_me_outlined, size: SizeConfig.size16, color: AppColors.secondaryTextColor),
-              SizedBox(width: SizeConfig.size2),
-              Flexible(
-                child: CustomText(
-                  "${widget.distance} ${AppStrings.kmAwayLabel.tr}",
-                  fontSize: SizeConfig.small,
-                  color: AppColors.secondaryTextColor,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const Spacer(),
-              if (widget.rent.isNotEmpty)
-                CustomText(
-                  "₹${widget.rent}",
-                  fontWeight: FontWeight.w700,
-                  fontSize: SizeConfig.medium,
-                  color: AppColors.mainTextColor,
-                ),
-              if (widget.rent.isNotEmpty)
-                CustomText(
-                  " ${AppStrings.perDay.tr}",
-                  fontSize: SizeConfig.small,
-                  color: AppColors.secondaryTextColor,
-                ),
-            ],
-          ),
-
-          SizedBox(height: SizeConfig.size10),
-
-          // Review + Inquiry action row
-          Row(
-            children: [
-              Expanded(
-                child: _actionButton(
-                  icon: Icons.star_border_rounded,
-                  label: 'review'.tr,
-                  onTap: _openReviewsSheet,
-                  filled: false,
-                ),
-              ),
-              SizedBox(width: SizeConfig.size10),
-              Expanded(
-                child: _actionButton(
-                  icon: Icons.chat_bubble_outline,
-                  label: AppStrings.inquiry.tr,
-                  onTap: _openInquiryChat,
-                  filled: true,
-                ),
-              ),
-            ],
+          // Logo straddling the image / content seam.
+          Positioned(
+            left: 14,
+            top: imageHeight - (logoSize / 2),
+            child: _logoAvatar(logoSize),
           ),
         ],
       ),
     );
   }
 
-  Widget _logoAvatar() {
-    if (widget.logoUrl.isEmpty) return _brokenHotelLogo();
-    return ClipOval(
-      child: CachedNetworkImage(
-        imageUrl: widget.logoUrl,
-        width: SizeConfig.size40,
-        height: SizeConfig.size40,
-        fit: BoxFit.cover,
-        placeholder: (_, __) => Container(
-          width: SizeConfig.size40,
-          height: SizeConfig.size40,
-          color: AppColors.greyE5,
-        ),
-        errorWidget: (_, __, ___) => _brokenHotelLogo(),
+  // ─── Image header (carousel + overlays) ──────────────────────────
+  Widget _imageHeader(bool hasMultipleImages, double height) {
+    return SizedBox(
+      height: height,
+      width: double.infinity,
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: widget.imageUrls.isEmpty
+                ? _brokenImage(height)
+                : CarouselSlider(
+                    options: CarouselOptions(
+                      height: height,
+                      viewportFraction: 1.0,
+                      enableInfiniteScroll: hasMultipleImages,
+                      autoPlay: hasMultipleImages,
+                    ),
+                    items: widget.imageUrls
+                        .map((url) => Image.network(
+                              url,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              errorBuilder: (_, __, ___) => _brokenImage(height),
+                            ))
+                        .toList(),
+                  ),
+          ),
+          // Bottom scrim for pill/logo legibility.
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              height: 56,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [Colors.black.withValues(alpha: 0.30), Colors.transparent],
+                ),
+              ),
+            ),
+          ),
+          if (widget.rating > 0)
+            Positioned(
+              left: 10,
+              top: 10,
+              child: GestureDetector(
+                onTap: _openReviewsSheet,
+                child: _whitePill(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.star_rounded, size: 14, color: Colors.amber),
+                      SizedBox(width: SizeConfig.size2),
+                      CustomText(
+                        widget.rating.toStringAsFixed(1),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.mainTextColor,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          if (widget.distance.isNotEmpty && widget.distance != '0')
+            Positioned(
+              right: 10,
+              top: 10,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.55),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.near_me_rounded, size: 12, color: Colors.white),
+                    SizedBox(width: SizeConfig.size4),
+                    CustomText(
+                      '${widget.distance} ${AppStrings.kmAwayLabel.tr}',
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          if (widget.checkInTime.isNotEmpty || widget.checkOutTime.isNotEmpty)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 10,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (widget.checkInTime.isNotEmpty) _timePill(widget.checkInTime),
+                  if (widget.checkInTime.isNotEmpty && widget.checkOutTime.isNotEmpty)
+                    SizedBox(width: SizeConfig.size8),
+                  if (widget.checkOutTime.isNotEmpty) _timePill(widget.checkOutTime),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }
 
-  Widget _brokenHotelLogo() => Container(
-        width: SizeConfig.size40,
-        height: SizeConfig.size40,
+  Widget _whitePill({required Widget child}) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: const [BoxShadow(color: Color(0x1A000000), blurRadius: 6)],
+        ),
+        child: child,
+      );
+
+  Widget _timePill(String time) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: const [BoxShadow(color: Color(0x1A000000), blurRadius: 6)],
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.schedule_rounded, size: 13, color: AppColors.primaryColor),
+            SizedBox(width: SizeConfig.size4),
+            CustomText(time,
+                fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.mainTextColor),
+          ],
+        ),
+      );
+
+  // ─── Amenities grid (3 columns) ──────────────────────────────────
+  Widget _amenityGrid() {
+    final items = widget.amenities;
+    final showMore = items.length > 6;
+    final visible = showMore ? items.take(5).toList() : items.toList();
+    final moreCount = items.length - visible.length;
+
+    final cells = <Widget>[
+      ...visible.map((e) => _amenityCell(e.key, e.value)),
+      if (moreCount > 0)
+        _amenityCell(Icons.more_horiz_rounded, '+$moreCount ${AppStrings.more.tr}'),
+    ];
+
+    final rows = <Widget>[];
+    for (int i = 0; i < cells.length; i += 3) {
+      final slice = cells.sublist(i, (i + 3).clamp(0, cells.length));
+      final isLast = i + 3 >= cells.length;
+      rows.add(Padding(
+        padding: EdgeInsets.only(bottom: isLast ? 0 : SizeConfig.size8),
+        child: Row(
+          children: List.generate(
+            3,
+            (c) => Expanded(
+              child: c < slice.length ? slice[c] : const SizedBox.shrink(),
+            ),
+          ),
+        ),
+      ));
+    }
+    return Column(children: rows);
+  }
+
+  Widget _amenityCell(IconData icon, String label) => Row(
+        children: [
+          Icon(icon, size: 16, color: AppColors.primaryColor),
+          SizedBox(width: SizeConfig.size6),
+          Flexible(
+            child: CustomText(
+              label,
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: AppColors.secondaryTextColor,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      );
+
+  // ─── Starting price + Book Now ───────────────────────────────────
+  Widget _bottomRow() => Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: widget.rent.isEmpty
+                ? const SizedBox.shrink()
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        'Starting From',
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.secondaryTextColor,
+                      ),
+                      SizedBox(height: SizeConfig.size2),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          CustomText(
+                            '₹${_formatPrice(widget.rent)}',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.primaryColor,
+                          ),
+                          SizedBox(width: SizeConfig.size2),
+                          CustomText(
+                            AppStrings.perDay.tr,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.secondaryTextColor,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+          ),
+          SizedBox(width: SizeConfig.size10),
+          GestureDetector(
+            onTap: widget.onBook,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CustomText(
+                    AppStrings.bookNow.tr,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.white,
+                  ),
+                  SizedBox(width: SizeConfig.size6),
+                  Icon(Icons.arrow_forward_rounded, size: 16, color: AppColors.white),
+                ],
+              ),
+            ),
+          ),
+        ],
+      );
+
+  String _formatPrice(String raw) {
+    final n = int.tryParse(raw);
+    if (n == null) return raw;
+    final s = n.toString();
+    final buf = StringBuffer();
+    for (int i = 0; i < s.length; i++) {
+      if (i != 0 && (s.length - i) % 3 == 0) buf.write(',');
+      buf.write(s[i]);
+    }
+    return buf.toString();
+  }
+
+  Widget _logoAvatar(double size) {
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+        boxShadow: [BoxShadow(color: Color(0x1A000000), blurRadius: 6)],
+      ),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          ClipOval(
+            child: widget.logoUrl.isEmpty
+                ? _brokenHotelLogo(size)
+                : CachedNetworkImage(
+                    imageUrl: widget.logoUrl,
+                    width: size,
+                    height: size,
+                    fit: BoxFit.cover,
+                    placeholder: (_, __) =>
+                        Container(width: size, height: size, color: AppColors.greyE5),
+                    errorWidget: (_, __, ___) => _brokenHotelLogo(size),
+                  ),
+          ),
+          Positioned(
+            right: -1,
+            bottom: -1,
+            child: Container(
+              padding: const EdgeInsets.all(1),
+              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+              child: Icon(Icons.verified_rounded, size: 16, color: AppColors.primaryColor),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _brokenHotelLogo(double size) => Container(
+        width: size,
+        height: size,
         decoration: BoxDecoration(
           color: AppColors.greyE5,
           shape: BoxShape.circle,
@@ -1080,7 +1459,7 @@ class _PropertyCardState extends State<PropertyCard> {
         ),
         child: Icon(
           Icons.broken_image_outlined,
-          size: SizeConfig.size22,
+          size: size * 0.4,
           color: AppColors.secondaryTextColor,
         ),
       );
@@ -1103,40 +1482,6 @@ class _PropertyCardState extends State<PropertyCard> {
         ),
       );
 
-  Widget _actionButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-    required bool filled,
-  }) {
-    final bg = filled ? AppColors.primaryColor : AppColors.white;
-    final fg = filled ? AppColors.white : AppColors.primaryColor;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: SizeConfig.size10),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.primaryColor, width: 1),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: SizeConfig.size18, color: fg),
-            SizedBox(width: SizeConfig.size6),
-            CustomText(
-              label,
-              fontWeight: FontWeight.w600,
-              fontSize: SizeConfig.small,
-              color: fg,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 class _ReviewsBottomSheet extends StatelessWidget {

@@ -138,6 +138,7 @@ class ProfilePicController extends GetxController {
   ///BIO DATA
   void _updateBioController(GetResumeDataModel data) {
     try {
+      if (!Get.isRegistered<BioController>()) return;
       final BioController bioController = Get.find<BioController>();
       if (data.bio != null && data.bio!.trim().isNotEmpty) {
         bioController.bio.value = data.bio!;
@@ -155,6 +156,7 @@ class ProfilePicController extends GetxController {
   /// QUALIFICATION DATA
   void _updateQualificationController(GetResumeDataModel data) {
     try {
+      if (!Get.isRegistered<QualificationContoller>()) return;
       final qualificationController = Get.find<QualificationContoller>();
 
       qualificationController.educationList.clear();
@@ -189,6 +191,7 @@ class ProfilePicController extends GetxController {
 
   void _updateSalaryController(GetResumeDataModel model) {
     try {
+      if (!Get.isRegistered<SalaryController>()) return;
       final salaryController = Get.find<SalaryController>();
       salaryController.setSalaryDetails(model.salaryDetails);
     } catch (e) {
@@ -200,6 +203,7 @@ class ProfilePicController extends GetxController {
 
   void _updateCurrentJobController(GetResumeDataModel data) {
     try {
+      if (!Get.isRegistered<CurrentJobController>()) return;
       final currentJobController = Get.find<CurrentJobController>();
       currentJobController.setCurrentJobFromModel(data.currentJob);
     } catch (e) {
@@ -210,6 +214,7 @@ class ProfilePicController extends GetxController {
   ///EDUCATION DATA
   void _updateEducationController(GetResumeDataModel model) {
     try {
+      if (!Get.isRegistered<EducationController>()) return;
       final educationController = Get.find<EducationController>();
       educationController.setEducationListFromModel(model.education);
     } catch (e) {
@@ -220,6 +225,7 @@ class ProfilePicController extends GetxController {
   ///experiencedata
   void _updateFullTimeExperienceController(GetResumeDataModel data) {
     try {
+      if (!Get.isRegistered<ExperienceController>(tag: 'fullTime')) return;
       final fullTimeExperienceController =
           Get.find<ExperienceController>(tag: 'fullTime');
       fullTimeExperienceController
@@ -231,6 +237,7 @@ class ProfilePicController extends GetxController {
 
   void _updatePartTimeExperienceController(GetResumeDataModel data) {
     try {
+      if (!Get.isRegistered<ExperienceController>(tag: 'partTime')) return;
       final partTimeExperienceController =
           Get.find<ExperienceController>(tag: 'partTime');
       partTimeExperienceController
@@ -243,6 +250,7 @@ class ProfilePicController extends GetxController {
   ///SKILLS
   void _updateSkillsController(GetResumeDataModel data) {
     try {
+      if (!Get.isRegistered<SkillsController>()) return;
       final skillsController = Get.find<SkillsController>();
       skillsController.setSkillsFromModel(data.skills);
     } catch (e) {
@@ -253,6 +261,7 @@ class ProfilePicController extends GetxController {
   ///LANGUAGE
   void _updateLanguagesController(GetResumeDataModel data) {
     try {
+      if (!Get.isRegistered<LanguagesController>()) return;
       final LanguagesController langController =
           Get.find<LanguagesController>();
 
@@ -285,6 +294,7 @@ class ProfilePicController extends GetxController {
   ///CAREER OBJECTIVE
   void _updateCareerObjectiveController(GetResumeDataModel data) {
     try {
+      if (!Get.isRegistered<CareerObjectiveController>()) return;
       final careerController = Get.find<CareerObjectiveController>();
       final objective = data.careerObjective ?? '';
       careerController.careerObjective.value = objective;
@@ -298,6 +308,7 @@ class ProfilePicController extends GetxController {
   ///PORTFOLIO
   void _updatePortfolioController(GetResumeDataModel data) {
     try {
+      if (!Get.isRegistered<PortfolioController>()) return;
       final portfolioController = Get.find<PortfolioController>();
 
       // Clear existing links first
@@ -318,6 +329,7 @@ class ProfilePicController extends GetxController {
   ///AWARDS
   void _updateAwardsController(GetResumeDataModel data) {
     try {
+      if (!Get.isRegistered<AwardsController>()) return;
       final awardsController = Get.find<AwardsController>();
 
       if (data.awards != null && data.awards!.isNotEmpty) {
@@ -360,6 +372,7 @@ class ProfilePicController extends GetxController {
   ///ACHIEVEMENTS
   void _updateAchievementsController(GetResumeDataModel data) {
     try {
+      if (!Get.isRegistered<AchievementsController>()) return;
       final achievementsController = Get.find<AchievementsController>();
 
       if (data.achievements != null && data.achievements!.isNotEmpty) {
@@ -444,6 +457,7 @@ class ProfilePicController extends GetxController {
   ///CERTIFIACTION
   void _updateCertificationsController(GetResumeDataModel data) {
     try {
+      if (!Get.isRegistered<CertificationsController>()) return;
       final certificationsController = Get.find<CertificationsController>();
 
       if (data.certifications != null && data.certifications!.isNotEmpty) {
@@ -534,6 +548,7 @@ class ProfilePicController extends GetxController {
   ///PUBLICATIONS
   void _updatePublicationsController(GetResumeDataModel data) {
     try {
+      if (!Get.isRegistered<PublicationsController>()) return;
       final publicationsController = Get.find<PublicationsController>();
 
       if (data.publications != null && data.publications!.isNotEmpty) {
@@ -572,6 +587,7 @@ class ProfilePicController extends GetxController {
   /// HOBBIES
   void _updateHobbiesController(GetResumeDataModel data) {
     try {
+      if (!Get.isRegistered<HobbiesController>()) return;
       final hobbiesController = Get.find<HobbiesController>();
 
       // Your "hobbies" model is List<Hobbies> in GetResumeDataModel
@@ -597,6 +613,7 @@ class ProfilePicController extends GetxController {
   ///ADDTIONAL INFORMATION
   void _updateAdditionalInfoController(GetResumeDataModel data) {
     try {
+      if (!Get.isRegistered<AdditionalInfoController>()) return;
       final additionalInfoController = Get.find<AdditionalInfoController>();
 
       if (data.additionalInformation != null &&
@@ -651,6 +668,7 @@ class ProfilePicController extends GetxController {
   /// NGO & PATENT
   void _updateNgoOrgsController(GetResumeDataModel data) {
     try {
+      if (!Get.isRegistered<EntityController>(tag: 'ngo')) return;
       final ngoController = Get.find<EntityController>(
           tag: 'ngo'); // tag if you're using separate GetxControllers
 
@@ -700,6 +718,7 @@ class ProfilePicController extends GetxController {
 
   void _updatePatentsController(GetResumeDataModel data) {
     try {
+      if (!Get.isRegistered<EntityController>(tag: 'patent')) return;
       final patentController = Get.find<EntityController>(tag: 'patent');
 
       if (data.patents != null && data.patents!.isNotEmpty) {

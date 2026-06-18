@@ -579,12 +579,18 @@ class HiveServices{
 
   /// Save all nested categories (Medical)
   Future<void> saveMedicalNestedCategories(List<MedicalNestedCategoryModel> nestedCategories) async {
-    final box = Hive.box(_savedMedicalNestedCategoryBox);
-    final String key = 'medicalData';
+    try {
+      final box = Hive.isBoxOpen(_savedMedicalNestedCategoryBox)
+          ? Hive.box(_savedMedicalNestedCategoryBox)
+          : await Hive.openBox(_savedMedicalNestedCategoryBox);
+      const String key = 'medicalData';
 
-    final List<Map<String, dynamic>> jsonList = nestedCategories.map((item) => item.toJson()).toList();
+      final List<Map<String, dynamic>> jsonList = nestedCategories.map((item) => item.toJson()).toList();
 
-    await box.put(key, jsonList);
+      await box.put(key, jsonList);
+    } catch (e) {
+      print('Error saving medical nested categories: $e');
+    }
   }
 
   /// Save all nested categories (Product)
@@ -628,9 +634,9 @@ class HiveServices{
   /// Get all nested categories (Medical)
   List<MedicalNestedCategoryModel>? getMedicalNestedCategories() {
     try {
-
+      if (!Hive.isBoxOpen(_savedMedicalNestedCategoryBox)) return null;
       final box = Hive.box(_savedMedicalNestedCategoryBox);
-      final String key = 'medicalData';
+      const String key = 'medicalData';
       final data = box.get(key);
 
       if (data == null) {
