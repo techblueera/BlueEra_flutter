@@ -10,10 +10,12 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/string_utils.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/core/services/chat_media_storage_service.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/chat/view/order_main_chat_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
@@ -24,7 +26,7 @@ import 'package:BlueEra/features/common/connect/view/connect_main_page.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/gig_work_options_screen.dart';
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
-import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_parts_screen.dart';
+import 'package:BlueEra/features/me/automotive_service/automotive_service_main.dart';
 import 'package:BlueEra/features/me/food/view/admin/food_main_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/admin/grocery_screen.dart';
 import 'package:BlueEra/features/me/hospital/view/hospital_main.dart';
@@ -55,7 +57,7 @@ import '../../../chat/auth/controller/call_controller.dart';
 import '../../../chat/auth/controller/chat_theme_controller.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../chat/view/forward_screen/chat_forward_screen.dart';
-import '../../../chat/view/order_main_chat_screen.dart';
+import 'package:BlueEra/features/common/reel/view/shorts/reels_tab_screen.dart';
 import '../../delivery_partner/controller/delivery_partner_orders_controller.dart';
 import '../../delivery_partner/controller/pip_floating_page_controller.dart';
 
@@ -457,24 +459,11 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                             currentIndex: bottomBarController.currentIndex.value,
                             showShadow: true,
                             onTap: (index) async {
-                              // Tabs: 0=Me, 1=Discover, 2=Connect, 3=Order.
+                              // Tabs: 0=Me, 1=Discover, 2=Chat, 3=Reels.
                               // Location is fetched at app start (and on resume via
                               // AppLifecycleHandler), so tab changes no longer gate
                               // on lat/lng — gating blocked navigation when the
                               // first-launch fetch hadn't completed yet.
-
-                              /// Order/Chat (2) prompts for notification permission
-                              /// but no longer blocks navigation if the user skips —
-                              /// the prompt itself surfaces a follow-up warning.
-                              if (index == 2) {
-                                await AppNotificationHandler().checkNotificationPermission();
-                                if (chatViewController.chatMainTabController != null &&
-                                    chatViewController.chatMainTabController?.index != 0) {
-                                  chatViewController.onSelectChatTab(0);
-                                }
-                                chatViewController.emitEvent(
-                                    ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.personal_Chat_Type});
-                              }
                               bottomBarController.onChangeIndex(index);
                             },
                             chatNotificationCount: chatNotificationCount,
@@ -504,6 +493,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       case 2:
         return const ConnectMainPage();
       case 3:
+        // return const ReelsTabScreen();
+
       default:
         return const OrderMainChatScreen();
     }
@@ -539,17 +530,57 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     } else if (businessTypeGlobal.toUpperCase() == BusinessType.Siksha.name.toUpperCase()) {
       return const SchoolMain();
     } else if (businessTypeGlobal.toUpperCase() == BusinessType.Healthcare.name.toUpperCase()) {
-      if ((businessCategoryGlobal.toUpperCase() == AppConstants.HOSPITALS.toUpperCase()) ||
-          (businessCategoryGlobal.toUpperCase() == AppConstants.wellness.toUpperCase()) ||
+      // [log] ------------------ SELECTION DATA ------------------
+      // [log] Business Type    : BusinessType.Healthcare
+      // [log] Category Name    : Hospitals
+      // [log] Category Slug Id  : HOSPITALS
+      // [log] sub category Name : Cancer Hospital
+      // [log] sub category Slug Id : 6a088366c1424a5f4d8ec149
+      ///========
+      // [log] Business Type    : BusinessType.Healthcare
+      // [log] Category Name    : Pharmacy
+      // [log] Category Slug Id  : PHARMACY
+      // [log] sub category Name : Generic Medicine Store
+      // [log] sub category Slug Id : 6a088366c1424a5f4d8ec152
+      ///====================
+      // [log] Business Type    : BusinessType.Healthcare
+      // [log] Category Name    : Doctors
+      // [log] Category Slug Id  : DOCTORS
+      // [log] sub category Name : Ayurvedic Doctor
+      // [log] sub category Slug Id : 6a088366c1424a5f4d8ec167
+      ///=====================
+      // [log] ------------------ SELECTION DATA ------------------
+      // [log] Business Type    : BusinessType.Healthcare
+      // [log] Category Name    : Clinics
+      // [log] Category Slug Id  : CLINICS
+      // [log] sub category Name : IVF & Fertility Clinic
+      // [log] sub category Slug Id : 6a088367c1424a5f4d8ec172
+      ///========================
+      // [log] Business Type    : BusinessType.Healthcare
+      // [log] Category Name    : Diagnostic
+      // [log] Category Slug Id  : DIAGNOSTIC
+      // [log] sub category Name : Health Checkup Center
+      // [log] sub category Slug Id : 6a088367c1424a5f4d8ec181
+      ///================
+      // [log] Business Type    : BusinessType.Healthcare
+      // [log] Category Name    : Alternative Health
+      // [log] Category Slug Id  : ALTERNATIVE_HEALTH
+      // [log] sub category Name : Ayurvedic Center
+      // [log] sub category Slug Id : 6a088367c1424a5f4d8ec185
+      if ((businessCategoryGlobal.toUpperCase() =="HOSPITALS") ||
+          (businessCategoryGlobal.toUpperCase() == "Alternative Health".toUpperCase()) ||
           (businessCategoryGlobal.toUpperCase() == "Doctors".toUpperCase()) ||
-          (businessCategoryGlobal.toUpperCase() == AppConstants.clinic.toUpperCase())) {
+          (businessCategoryGlobal.toUpperCase() =="CLINICS")) {
         return const HospitalMain();
-      } else if (businessCategoryGlobal.toUpperCase() == AppConstants.DIAGNOSTIC_TESTING_CENTERS) {
+      } else if (businessCategoryGlobal.toUpperCase() == "Diagnostic".toUpperCase()) {
         return const LaboratoryMain();
-      } else if (businessCategoryGlobal.toUpperCase() == AppConstants.SUPPORT_SERVICES) {
-        return const OthersMain();
       }
-      return const MedicalScreen(fromBottomNavBar: true);
+      else if (businessCategoryGlobal.toUpperCase() == "PHARMACY") {
+        return const MedicalScreen(fromBottomNavBar: true);
+
+      }
+      return const OthersMain();
+
     } else if (businessTypeGlobal.toUpperCase() == BusinessType.Motel.name.toUpperCase()) {
       return const HotelMain();
     } else if (businessTypeGlobal.toUpperCase() == BusinessType.Product.name.toUpperCase()) {
@@ -561,17 +592,67 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     } else if (businessTypeGlobal.toUpperCase() == BusinessType.Manufacturing.name.toUpperCase()) {
       // return const ManufactureMain();
       return const ManufacturerProductScreen();
-    } else if (businessTypeGlobal.toUpperCase() ==
-        BusinessType.Automotive.name.toUpperCase()) {
-      final category = businessCategoryGlobal.toUpperCase();
-      logs("AUTOMOTIVE -> category= $category");
-      if (category.contains('AUTO PARTS')) {
-        return const AutomotivePartsScreen();
-      }
+    } else if (_isSpecificServiceAutomotive()) {
       return const VehicleHomeScreenV2();
+    } else if (_isSpecificServiceSpecialAutomotive()) {
+      // VEHICLE_SERVICE / TRANSPORT_LOGISTIC / VEHICLE_SUPPORT now have
+      // their own module entry that currently reuses the OthersMain UI
+      // (and therefore other_repo.dart APIs). Lives in a separate
+      // directory so the UI can diverge in the future without touching
+      // the shared `OthersMain` tree.
+      return const AutomotiveServiceMain();
+    } else if (_isSpecificProductAutomotive()) {
+      return const ProductScreen();
     } else {
       return const _UnknownBusinessFallback();
     }
+  }
+
+  bool _isSpecificServiceAutomotive() {
+    final category = businessCategoryGlobal.toUpperCase();
+
+    // 1. Define the Automotive sectors that count as "Others"
+    final automotiveOthersSectors = {
+      "VEHICLE_SALES",
+      "VEHICLE_PARTS",
+      "VEHICLE_RENTAL",
+      "VEHICLE SALES",
+      "AUTO PARTS",
+      "VEHICLE RENTAL",
+      "AUTO RENTAL",
+      "TRANSPORT_LOGISTICS_PARKING",
+      "TRANSPORT LOGISTICS PARKING",
+    };
+
+    // 2. Check if it's Automotive AND in one of those sectors
+    return businessTypeGlobal.toUpperCase() == BusinessType.Automotive.name.toUpperCase() &&
+        automotiveOthersSectors.contains(category);
+  }
+
+  bool _isSpecificServiceSpecialAutomotive() {
+    final category = businessCategoryGlobal.toUpperCase();
+    logs("category=== ${category}");
+    final automotiveOthersSpecialSectors = {
+      "VEHICLE SERVICE",
+      "VEHICLE_SERVICE",
+      "TRANSPORT_LOGISTIC",
+      "TRANSPORT LOGISTIC",
+      "VEHICLE_SUPPORT",
+      "VEHICLE SUPPORT",
+    };
+
+    // 2. Check if it's Automotive AND in one of those sectors
+    return businessTypeGlobal.toUpperCase() == BusinessType.Automotive.name.toUpperCase() &&
+        automotiveOthersSpecialSectors.contains(category);
+  }
+
+  bool _isSpecificProductAutomotive() {
+    final type = businessTypeGlobal.toUpperCase();
+    final category = businessCategoryGlobal.toUpperCase();
+    final isAutoEligible = type.equalsIgnoreCase(BusinessType.Automotive.name) &&
+        [AppConstants.SALES_SECTOR, AppConstants.PARTS_SECTOR].any((s) => s.equalsIgnoreCase(category));
+
+    return isAutoEligible;
   }
 
   Widget resolveIndividualScreen() {

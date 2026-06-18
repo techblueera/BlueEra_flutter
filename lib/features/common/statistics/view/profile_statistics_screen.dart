@@ -121,46 +121,48 @@ class _StatisticsBody extends StatelessWidget {
     final profilePoints = profileData?.series ?? const <ProfileVisitPoint>[];
     final profileAvg = _averageOf(profilePoints, (p) => p.visits);
 
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        SizeConfig.paddingS,
-        SizeConfig.paddingS,
-        SizeConfig.paddingS,
-        SizeConfig.paddingXL,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _RangeSelector(selected: range, onChanged: onRangeChanged),
-          SizedBox(height: SizeConfig.paddingS),
-          _StatCard(
-            title: AppStrings.chatCount.tr,
-            headlineLabel: '${range.label} ${AppStrings.averageSuffix.tr}',
-            headlineValue: _formatLakh(chatSummary.totalClicks),
-            asOfDate: chatSummary.lastClickedAt,
-            asOfValue: chatPoints.isNotEmpty
-                ? _formatLakh(chatPoints.last.clicks)
-                : _formatLakh(chatSummary.totalClicks),
-            trailingAverage: chatAvg,
-            spots: _toSpots(chatPoints, (p) => p.clicks),
-            xLabels: _xAxisLabels(chatPoints, (p) => p.bucket),
-            lineColor: AppColors.darkBlueShade,
-          ),
-          SizedBox(height: SizeConfig.paddingS),
-          _StatCard(
-            title: AppStrings.profileVisits.tr,
-            headlineLabel: '${range.label} ${AppStrings.averageSuffix.tr}',
-            headlineValue: _formatLakh(profileSummary?.totalVisits ?? 0),
-            asOfDate: profileSummary?.lastVisitedAt,
-            asOfValue: profilePoints.isNotEmpty
-                ? _formatLakh(profilePoints.last.visits)
-                : _formatLakh(profileSummary?.totalVisits ?? 0),
-            trailingAverage: profileAvg,
-            spots: _toSpots(profilePoints, (p) => p.visits),
-            xLabels: _xAxisLabels(profilePoints, (p) => p.bucket),
-            lineColor: AppColors.primaryColor,
-          ),
-        ],
+    return SingleChildScrollView(
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(
+          SizeConfig.paddingS,
+          SizeConfig.paddingS,
+          SizeConfig.paddingS,
+          SizeConfig.paddingXL,
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _RangeSelector(selected: range, onChanged: onRangeChanged),
+            SizedBox(height: SizeConfig.paddingS),
+            _StatCard(
+              title: AppStrings.chatCount.tr,
+              headlineLabel: '${range.label} ${AppStrings.averageSuffix.tr}',
+              headlineValue: _formatLakh(chatSummary.totalClicks),
+              asOfDate: chatSummary.lastClickedAt,
+              asOfValue: chatPoints.isNotEmpty
+                  ? _formatLakh(chatPoints.last.clicks)
+                  : _formatLakh(chatSummary.totalClicks),
+              trailingAverage: chatAvg,
+              spots: _toSpots(chatPoints, (p) => p.clicks),
+              xLabels: _xAxisLabels(chatPoints, (p) => p.bucket),
+              lineColor: AppColors.darkBlueShade,
+            ),
+            SizedBox(height: SizeConfig.paddingS),
+            _StatCard(
+              title: AppStrings.profileVisits.tr,
+              headlineLabel: '${range.label} ${AppStrings.averageSuffix.tr}',
+              headlineValue: _formatLakh(profileSummary?.totalVisits ?? 0),
+              asOfDate: profileSummary?.lastVisitedAt,
+              asOfValue: profilePoints.isNotEmpty
+                  ? _formatLakh(profilePoints.last.visits)
+                  : _formatLakh(profileSummary?.totalVisits ?? 0),
+              trailingAverage: profileAvg,
+              spots: _toSpots(profilePoints, (p) => p.visits),
+              xLabels: _xAxisLabels(profilePoints, (p) => p.bucket),
+              lineColor: AppColors.primaryColor,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -198,9 +200,7 @@ class _StatisticsBody extends StatelessWidget {
   static String _formatLakh(num value) {
     if (value >= 100000) {
       final v = value / 100000.0;
-      final formatted = v >= 10
-          ? v.toStringAsFixed(2)
-          : v.toStringAsFixed(2);
+      final formatted = v >= 10 ? v.toStringAsFixed(2) : v.toStringAsFixed(2);
       return '${formatted}L';
     }
     if (value >= 1000) {
@@ -235,9 +235,7 @@ class _RangeSelector extends StatelessWidget {
                 vertical: SizeConfig.paddingXSmall,
               ),
               decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.darkBlueShade
-                    : AppColors.white,
+                color: isSelected ? AppColors.darkBlueShade : AppColors.white,
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(
                   color: isSelected
@@ -285,9 +283,8 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final asOfLabel = asOfDate != null
-        ? DateFormat('d MMM yyyy').format(asOfDate!)
-        : '—';
+    final asOfLabel =
+        asOfDate != null ? DateFormat('d MMM yyyy').format(asOfDate!) : '—';
 
     return Container(
       padding: EdgeInsets.all(SizeConfig.paddingM),

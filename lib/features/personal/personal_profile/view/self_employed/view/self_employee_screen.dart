@@ -756,6 +756,11 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
         label: AppStrings.poll.tr,
         iconAsset: AppIconAssets.qa_ask_questionOutlinedIcon,
       ),
+      _PostMenuEntry(
+        type: PostCreationMenu.reel,
+        label: 'Reel',
+        iconAsset: AppIconAssets.video_outline,
+      ),
       if (isBusiness)
         _PostMenuEntry(
           type: PostCreationMenu.jobPost,
@@ -814,6 +819,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
     switch (type) {
       case PostCreationMenu.message:
       case PostCreationMenu.poll:
+      case PostCreationMenu.reel:
         postVia(context, type);
         break;
       case PostCreationMenu.jobPost:

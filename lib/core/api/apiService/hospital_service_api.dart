@@ -12,24 +12,28 @@ mixin HospitalServiceApi {
   final String aiCreateHospital = 'hospital-service/ai/create-hospital';
   final String userSelfHospital = 'hospital-service/hospitals/user/hospitals';
   final String hospitalVisionMissionBase = 'hospital-service/vision-mission';
-  final String hospitalVisionMissionByHospital =
+  // Getter (not a field) so the current `hospitalIDGlobal` is read on every
+  // access. A field initializer would freeze the global's value at the time
+  // the mixin is constructed — which is often before the hospital id is loaded,
+  // producing URLs like `.../hospital/` with a missing id (404).
+  String get hospitalVisionMissionByHospital =>
       'hospital-service/vision-mission/hospital/$hospitalIDGlobal';
   String hospitalVisionMissionById(String id) =>
       'hospital-service/vision-mission/$id';
   final String hospitalHistoryBase = 'hospital-service/history';
-  final String hospitalHistoryGet =
+  String get hospitalHistoryGet =>
       'hospital-service/history/hospital/$hospitalIDGlobal';
   String hospitalHistoryById(String id) => 'hospital-service/history/$id';
 
   /// Hospital Management (Doctors/Leadership)
   final String hospitalManagementBase = 'hospital-service/management';
-  String hospitalManagementByHospital =
+  String get hospitalManagementByHospital =>
       'hospital-service/management/hospital/$hospitalIDGlobal';
   String hospitalManagementById(String id) => 'hospital-service/management/$id';
 
   /// Hospital Departments
   final String hospitalDepartmentsBase = 'hospital-service/departments';
-  String hospitalDepartmentsByHospital =
+  String get hospitalDepartmentsByHospital =>
       'hospital-service/departments/hospital/$hospitalIDGlobal';
   String hospitalDepartmentById(String id) =>
       'hospital-service/departments/$id';
@@ -48,20 +52,20 @@ mixin HospitalServiceApi {
 
   /// Emergency & Critical Care
   final String emergencyCareBase = 'hospital-service/emergency-care';
-  String emergencyCareByHospital =
+  String get emergencyCareByHospital =>
       'hospital-service/emergency-care/hospital/$hospitalIDGlobal';
-  String emergencyCareById =
+  String get emergencyCareById =>
       'hospital-service/emergency-care/status/$hospitalIDGlobal';
 
   /// Emergency Contact
   final String hospitalEmergencyContactBase =
       'hospital-service/emergency-contact';
-  String hospitalEmergencyContactByHospital =
+  String get hospitalEmergencyContactByHospital =>
       'hospital-service/emergency-contact/hospital/$hospitalIDGlobal';
 
   /// Other Facilities
   final String otherFacilitiesBase = 'hospital-service/other-facilities';
-  String otherFacilitiesByHospital =
+  String get otherFacilitiesByHospital =>
       'hospital-service/other-facilities/hospital/$hospitalIDGlobal';
   String otherFacilitiesById(String id) =>
       'hospital-service/other-facilities/status/$hospitalIDGlobal';
@@ -71,6 +75,6 @@ mixin HospitalServiceApi {
   String hospitalDepartmentContact = 'hospital-service/contact/';
   final String hospitalPhotos = 'hospital-service/gallery';
   final String hospitalRemovePhotos = 'hospital-service/gallery/';
-  final String hospitalGetAllPhotos =
+  String get hospitalGetAllPhotos =>
       'hospital-service/gallery/hospital/$hospitalIDGlobal';
 }

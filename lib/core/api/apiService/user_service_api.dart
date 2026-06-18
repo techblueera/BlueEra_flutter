@@ -109,8 +109,68 @@ mixin UserServiceApi {
   // ──────────────────────────────────────────────────────────────────────
   // 3. Resumes
   // ──────────────────────────────────────────────────────────────────────
+// ── Base + profile ──────────────────────────────────────────────────
+  final String resumeUrl = "job-service/resumes";
+  final String previewForAll = 'job-service/resumes/previewForAll';
+  final String resumesTemplates = "job-service/resumes/templates";
+  final String resumeTemplatesDownload = "job-service/resumes/download";
+  final String profilePicUrl = "job-service/resumes/profile-picture";
+  final String profileBioUrl = "job-service/resumes/profile";
+  final String updateBioUrl = "job-service/resumes/bio";
+  final String addSalaryDetailsUrl = "job-service/resumes/salary-details";
+  final String highestQualificationUrl = "job-service/resumes/education";
+  final String currentJobUrl = "job-service/resumes/current-job";
+  final String portfoliosUrl = 'job-service/resumes/portfolios';
+  final String resumeProjects = 'job-service/resumes/projects';
 
-  // ── Base + profile ──────────────────────────────────────────────────
+  // ── Career objective ────────────────────────────────────────────────
+  final String addCareerObjectiveUrl = "job-service/resumes/career-objective";
+  final String updateCareerObjectiveUrl =
+      "job-service/resumes/career-objective";
+  final String deleteCareerObjectiveUrl =
+      "job-service/resumes/career-objective";
+
+  // ── Skills / Languages / Hobbies ────────────────────────────────────
+  final String addSkillsUrl = "job-service/resumes/skills";
+  final String deleteSkillsUrl = "job-service/resumes/skills";
+
+  final String addLanguageUrl = "job-service/resumes/languages";
+  final String getLanguageUrl = "job-service/resumes/languages";
+  final String deleteLanguageUrl = "job-service/resumes/languages";
+
+  final String addHobbiesUrl = "job-service/resumes/hobbies";
+  final String deleteHobbiesUrl = "job-service/resumes/hobbies";
+
+  // ── Awards ──────────────────────────────────────────────────────────
+  final String addAwardUrl = "job-service/resumes/awards";
+  final String updateAwardUr = "job-service/resumes/awards";
+  final String deleteAwardUrl = "job-service/resumes/awards";
+
+  // ── Achievements ────────────────────────────────────────────────────
+  final String addAchievementUrl = "job-service/resumes/achievements";
+  final String updateAchievementUrl = "job-service/resumes/achievements";
+  final String deleteAchievementUrl = "job-service/resumes/achievements";
+
+  // ── Certifications ──────────────────────────────────────────────────
+  final String addCertificationUrl = "job-service/resumes/certifications";
+  final String updateCertificationUrl = "job-service/resumes/certifications";
+  final String deleteCertificationUrl = "job-service/resumes/certifications";
+
+  // ── Publications ────────────────────────────────────────────────────
+  final String addPublicationUrl = "job-service/resumes/publications";
+  final String updatePublicationUrl = "job-service/resumes/publications";
+  final String deletePublicationUrl = "job-service/resumes/publications";
+
+  // ── Experience ──────────────────────────────────────────────────────
+  final String addExperienceUrl = "job-service/resumes/fullTimeExperience";
+  final String addPartExperienceUrl = "job-service/resumes/partTimeExperience";
+
+  // ── Patents / NGO / Additional info ─────────────────────────────────
+  final String patentsBaseUrl = "job-service/resumes/patents";
+  final String ngoBaseUrl = "job-service/resumes/ngo-organizations";
+  final String additionalInfoBaseUrl =
+      "job-service/resumes/additional-information";
+  /*// ── Base + profile ──────────────────────────────────────────────────
   final String resumeUrl = "user-service/resumes";
   final String previewForAll = 'user-service/resumes/previewForAll';
   final String resumesTemplates = "user-service/resumes/templates";
@@ -170,7 +230,7 @@ mixin UserServiceApi {
   final String patentsBaseUrl = "user-service/resumes/patents";
   final String ngoBaseUrl = "user-service/resumes/ngo-organizations";
   final String additionalInfoBaseUrl =
-      "user-service/resumes/additional-information";
+      "user-service/resumes/additional-information";*/
 
   // ──────────────────────────────────────────────────────────────────────
   // 4. Followers

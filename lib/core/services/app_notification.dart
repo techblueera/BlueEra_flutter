@@ -2130,6 +2130,7 @@ class AppNotificationHandler {
 
       // Chat / Message operations
       case 'sent_message':
+      case 'encrypted_message':
       case 'message_reminder':
       case 'tagged_in_message':
       case 'commented_on_message':
@@ -2185,7 +2186,9 @@ class AppNotificationHandler {
       case 'ride_order_picked_up':
       case 'ride_started':
       case 'ride_order_completed':
+      case 'ride_completed':
       case 'ride_order_rejected':
+      case 'ride_order_all_rejected':
       case 'ride_order_cancelled':
       case 'ride_cancelled_by_rider':
       case 'ride_payment_confirmed':
@@ -2202,7 +2205,9 @@ class AppNotificationHandler {
       case 'job_closed':
       case 'new_feedback_submitted':
       case 'applied_for_job':
-        // Navigate to jobs section
+        // Jobs → NotificationScreen hub. (AppliedJobsScreen requires a non-null
+        // headerHeight arg and would crash when launched from a notification.)
+        Get.toNamed(RouteHelper.getNotificationScreenRoute());
         break;
 
       // AI Greetings
@@ -2220,7 +2225,7 @@ class AppNotificationHandler {
       case 'admin_bulk_notification':
       case 'admin_system_announcement':
       case 'admin_urgent_broadcast':
-        // Navigate to notifications screen
+        Get.toNamed(RouteHelper.getNotificationScreenRoute());
         break;
 
       // Self-pickup order operations
@@ -2238,9 +2243,88 @@ class AppNotificationHandler {
       case 'SYMBOL_CREATED':
         _openSymbolFromNotification(data);
         break;
+      // Symbol engagement events reference an existing symbol but don't carry
+      // the full payload the viewer needs → route to the hub.
+      case 'symbol_viewed':
+      case 'symbol_liked':
+      case 'symbol_commented':
+        Get.toNamed(RouteHelper.getNotificationScreenRoute());
+        break;
+
+      // Rider association operations
+      case 'rider_association_request':
+      case 'rider_association_accepted':
+      case 'rider_association_rejected':
+      case 'rider_association_dissociated':
+      case 'rider_association_expired':
+        Get.toNamed(RouteHelper.getNotificationScreenRoute());
+        break;
+
+      // Channel / tag operations
+      case 'channel_created':
+      case 'channel_claimed':
+      case 'channel_updated':
+      case 'channel_verified_owner':
+      case 'channel_verified_follower':
+      case 'channel_deleted_owner':
+      case 'channel_deleted_follower':
+      case 'channel_followed':
+      case 'channel_unfollowed':
+      case 'channel_reported':
+      case 'channel_report_resolved':
+      case 'channel_moderation_action':
+      case 'channel_profile_significant_update':
+      case 'channel_weekly_summary':
+        Get.toNamed(RouteHelper.getNotificationScreenRoute());
+        break;
+
+      // Follower milestones / engagement
+      case 'follower_milestone_10':
+      case 'follower_milestone_50':
+      case 'follower_milestone_100':
+      case 'follower_milestone_500':
+      case 'follower_milestone_1000':
+      case 'follower_milestone_5000':
+      case 'follower_milestone_10000':
+      case 'follower_milestone_50000':
+      case 'follower_milestone_100000':
+      case 'engagement_spike':
+        Get.toNamed(RouteHelper.getNotificationScreenRoute());
+        break;
+
+      // Social / profile operations
+      case 'social_links_added':
+      case 'social_links_updated':
+      case 'social_links_removed':
+      case 'bank_details_updated':
+      case 'experience_verification':
+      case 'profile_updated':
+      case 'profile_completion_reminder':
+      case 'new_user':
+        Get.toNamed(RouteHelper.getNotificationScreenRoute());
+        break;
+
+      // Reports
+      case 'reported_post':
+      case 'reported_reel':
+      case 'reported_message':
+        Get.toNamed(RouteHelper.getNotificationScreenRoute());
+        break;
+
+      // Referrals
+      case 'process_referral':
+      case 'credit_referral_reward':
+        Get.toNamed(RouteHelper.getNotificationScreenRoute());
+        break;
+
+      // Forced-logout signal — NOT a tap target. Intentionally no navigation.
+      case 'session_displaced':
+        break;
 
       default:
-        // Default: open notifications screen or home
+        // Any future/unknown operation lands on the notification hub instead
+        // of dead-ending.
+        Get.toNamed(RouteHelper.getNotificationScreenRoute());
         break;
     }
 

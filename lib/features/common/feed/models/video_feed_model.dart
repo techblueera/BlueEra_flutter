@@ -28,6 +28,47 @@ class VideoResponse {
     );
   }
 
+  /// Parser for the `GET /videos/hot/:type` (trending) response, whose shape
+  /// differs from the unified feed: `data` is a **flat array of raw Video
+  /// objects** (no author/channel/interactions resolution, `isLiked` always
+  /// false) and `pagination` carries `page/limit/total/totalPages` with **no**
+  /// `hasMore` flag. We wrap each raw video into a [ShortFeedItem] so the rest
+  /// of the shorts pipeline (which expects `data.videos`) is unchanged, and we
+  /// derive `hasMore` from `page < totalPages`.
+  factory VideoResponse.fromHotJson(Map<String, dynamic> json) {
+    final items = (json['data'] as List?)
+            ?.whereType<Map<String, dynamic>>()
+            .map((e) => ShortFeedItem(
+                  videoId: e['_id'] as String?,
+                  video: VideoData.fromJson(e),
+                  interactions: Interactions(isLiked: false),
+                ))
+            .toList() ??
+        <ShortFeedItem>[];
+
+    Pagination? pagination;
+    final p = json['pagination'];
+    if (p is Map<String, dynamic>) {
+      final page = p['page'] as int?;
+      final totalPages = p['totalPages'] as int?;
+      pagination = Pagination(
+        page: page,
+        limit: p['limit'] as int?,
+        totalVideos: (p['total'] ?? p['totalVideos']) as int?,
+        totalPages: totalPages,
+        hasMore:
+            (page != null && totalPages != null) ? page < totalPages : false,
+      );
+    }
+
+    return VideoResponse(
+      success: json['success'] as bool?,
+      message: json['message'] as String?,
+      data: VideoFeedData(feedType: 'hot', videos: items),
+      pagination: pagination,
+    );
+  }
+
   VideoResponse copyWith({
     bool? success,
     String? message,

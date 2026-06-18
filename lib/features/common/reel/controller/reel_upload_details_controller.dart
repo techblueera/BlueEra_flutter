@@ -187,7 +187,7 @@ class ReelUploadDetailsController extends GetxController {
 
         await Future.delayed(const Duration(milliseconds: 200));
 
-        if (postVia == PostVia.channel) {
+/*        if (postVia == PostVia.channel) {
           Get.toNamed(
             RouteHelper.getChannelScreenRoute(),
             arguments: {
@@ -196,7 +196,8 @@ class ReelUploadDetailsController extends GetxController {
               ApiKeys.authorId: isIndividualUser() ? userId : userId,
             },
           );
-        } else {
+        }
+        else {
           if (isIndividualUser()) {
             Get.to(() => PersonalProfileSetupNewScreen(
                 selectedIndex: (video == Video.short) ? 3 : 4,
@@ -210,7 +211,7 @@ class ReelUploadDetailsController extends GetxController {
               sortBy: SortBy.UnderProgress,
             ));
           }
-        }
+        }*/
 
         videoUploadResponse = ApiResponse.complete(response);
       } else {

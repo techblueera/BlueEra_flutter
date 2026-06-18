@@ -562,7 +562,8 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                 if (isGuestUser()) {
                   createProfileScreen();
                 } else if (value == PostCreationMenu.message ||
-                    value == PostCreationMenu.poll) {
+                    value == PostCreationMenu.poll ||
+                    value == PostCreationMenu.reel) {
                   postVia(context, value);
                 } else if (value == PostCreationMenu.jobPost) {
                   Get.toNamed(RouteHelper.getCreateJobPostScreenRoute(),

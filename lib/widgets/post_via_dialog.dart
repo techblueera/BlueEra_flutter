@@ -39,6 +39,12 @@ void postNavigations(
       Get.toNamed(RouteHelper.getPollInputScreenRoute(),
           arguments: {ApiKeys.argPostVia: postVia});
       break;
+    case PostCreationMenu.reel:
+      // Pick a video (gallery/camera) → preview → reel upload details. The
+      // chosen PostVia (channel/profile) is threaded through so the upload
+      // is attributed correctly.
+      showVideosPickerDialog(context, type: postVia);
+      break;
     default:
       break;
   }

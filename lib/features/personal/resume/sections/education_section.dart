@@ -1,11 +1,9 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/personal/resume/controller/education_controller.dart';
 import 'package:BlueEra/features/personal/resume/controller/profile_pic_controller.dart';
 import 'package:BlueEra/features/personal/resume/fields/education_screen.dart';
 import 'package:BlueEra/features/personal/resume/resume_profile_section_card.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/delete_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -31,13 +29,9 @@ class _EducationSectionState extends State<EducationSection> {
   Widget build(BuildContext context) {
     // Fetch education details once when widget builds first time
 
-    return Scaffold(
-      appBar: CommonBackAppBar(
-        title: AppStrings.education,
-      ),
-      body: Column(
-        children: [
-          Obx(() {
+    return Column(
+      children: [
+        Obx(() {
             final items = controller.educationList;
             return ResumeProfileSectionCard(
               title:"",
@@ -80,9 +74,8 @@ class _EducationSectionState extends State<EducationSection> {
               subtitle1Color: AppColors.black28,
             );
           }),
-          SizedBox(height: SizeConfig.size10),
-        ],
-      ),
+        SizedBox(height: SizeConfig.size10),
+      ],
     );
   }
 }

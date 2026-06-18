@@ -54,6 +54,22 @@ class FeedRepo extends BaseService{
     return response;
   }
 
+  ///GET ALL "hot"/trending videos via `/videos/hot/:type` (reels = `short`).
+  ///Flat `data: Video[]` response — parse with [VideoResponse.fromHotJson].
+  Future<ResponseModel> getHotVideos({
+    String type = 'short',
+    required Map<String, dynamic> queryParams,
+  }) async {
+    final response = await ApiBaseHelper().getHTTP(
+      hotVideos(type),
+      params: queryParams,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   ///GET ALL Feed NearBy(In Shorts)...
   Future<ResponseModel> getAllFeedNearby({required Map<String, dynamic> queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(

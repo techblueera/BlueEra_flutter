@@ -1,10 +1,8 @@
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/personal/resume/controller/current_job_controller.dart';
 import 'package:BlueEra/features/personal/resume/controller/experience_controller.dart';
 import 'package:BlueEra/features/personal/resume/controller/profile_pic_controller.dart';
 import 'package:BlueEra/features/personal/resume/fields/add_full_time_exp.dart';
 import 'package:BlueEra/features/personal/resume/resume_job_section_card.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/delete_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -33,12 +31,10 @@ class _ExperienceSectionState extends State<ExperienceSection> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CommonBackAppBar(title: AppStrings.experience,),
-      body: Column(
-        children: [
+    return Column(
+      children: [
 
-          /// Full-Time Experience Section
+        /// Full-Time Experience Section
           Obx(() {
             final experiences = fullTimeExperienceController.experienceList;
 
@@ -232,8 +228,7 @@ class _ExperienceSectionState extends State<ExperienceSection> {
           }),
 
           SizedBox(height: SizeConfig.size10),*/
-        ],
-      ),
+      ],
     );
   }
 }

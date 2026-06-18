@@ -1170,6 +1170,11 @@ class _FoodMainScreenState extends State<FoodMainScreen>
         label: AppStrings.poll.tr,
         iconAsset: AppIconAssets.qa_ask_questionOutlinedIcon,
       ),
+      _PostMenuEntry(
+        type: PostCreationMenu.reel,
+        label: 'Reel',
+        iconAsset: AppIconAssets.video_outline,
+      ),
       if (isBusiness)
         _PostMenuEntry(
           type: PostCreationMenu.jobPost,
@@ -1235,6 +1240,7 @@ class _FoodMainScreenState extends State<FoodMainScreen>
     switch (type) {
       case PostCreationMenu.message:
       case PostCreationMenu.poll:
+      case PostCreationMenu.reel:
         postVia(context, type);
         break;
       case PostCreationMenu.jobPost:
