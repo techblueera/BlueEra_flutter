@@ -18,7 +18,7 @@ import 'package:get/get.dart';
 /// Refined provider profile — cover hero, identity block, a price/hours
 /// ribbon, editorial section cards, a weekly availability schedule, and a
 /// sticky price + booking CTA.
-class SelfEmployeeViewScreen extends StatelessWidget {
+class SelfEmployeeViewDiscoverScreen extends StatelessWidget {
   final ServiceData service;
   final Map<String, String> timingMap;
   final String priceDisplay;
@@ -26,7 +26,7 @@ class SelfEmployeeViewScreen extends StatelessWidget {
   final Color priceBadgeColor;
   final bool isSelfPreview;
 
-  const SelfEmployeeViewScreen({
+  const SelfEmployeeViewDiscoverScreen({
     super.key,
     required this.service,
     required this.timingMap,

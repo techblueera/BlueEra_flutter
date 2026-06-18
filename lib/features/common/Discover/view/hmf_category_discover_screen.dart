@@ -24,6 +24,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/floating_cart_widget.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
+import 'package:BlueEra/widgets/blinking_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -281,7 +282,7 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
                       duration: const Duration(milliseconds: 220),
                       curve: Curves.easeOut,
                       padding: EdgeInsets.only(bottom: cartVisible ? 84 : 16),
-                      child: _buildPostFab(),
+                      child: BlinkingWidget(child: _buildPostFab()),
                     );
                   }),
                 ),
@@ -385,7 +386,7 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
                   color: Colors.white, size: 18),
               const SizedBox(width: 8),
               CustomText(
-                AppStrings.postFood.tr,
+                'Add Food',
                 fontSize: 14,
                 fontWeight: FontWeight.w800,
                 color: AppColors.white,

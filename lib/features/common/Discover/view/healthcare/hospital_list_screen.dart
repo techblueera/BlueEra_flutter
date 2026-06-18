@@ -33,33 +33,30 @@ class HospitalListScreen extends StatefulWidget {
 
 class _HospitalListScreenState extends State<HospitalListScreen> {
   late final HospitalServiceAiController controller;
-  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     controller = getOrPut(() => HospitalServiceAiController());
     controller.fetchInitial(widget.serviceType);
-    _scrollController.addListener(_onScroll);
-  }
-
-  void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 100) {
-      controller.fetchMore(widget.serviceType);
-    }
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     SizeConfig.init(context);
-    return Material(
+    // Paginate via scroll notifications instead of an explicit controller so
+    // the inner ListView uses the NestedScrollView's PrimaryScrollController
+    // when embedded (e.g. HealthCareListingScreen) — that keeps the banner /
+    // sticky-category header and the list scrolling as one smooth motion.
+    return NotificationListener<ScrollNotification>(
+      onNotification: (n) {
+        if (n is ScrollUpdateNotification &&
+            n.metrics.pixels >= n.metrics.maxScrollExtent - 100) {
+          controller.fetchMore(widget.serviceType);
+        }
+        return false;
+      },
+      child: Material(
       color: Colors.transparent,
       child: Obx(() {
         if (controller.isLoading.value && controller.profiles.isEmpty) {
@@ -102,7 +99,6 @@ class _HospitalListScreenState extends State<HospitalListScreen> {
             builder: (context) {
               final rows = buildNativeAdRows(controller.profiles.length);
               return ListView.builder(
-                controller: _scrollController,
                 padding: EdgeInsets.symmetric(vertical: SizeConfig.size8),
                 itemCount:
                     rows.length + (controller.isLoadingMore.value ? 1 : 0),
@@ -128,6 +124,7 @@ class _HospitalListScreenState extends State<HospitalListScreen> {
           ),
         );
       }),
+      ),
     );
   }
 }

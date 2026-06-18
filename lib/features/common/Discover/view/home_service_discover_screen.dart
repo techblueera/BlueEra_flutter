@@ -9,6 +9,7 @@ import 'package:BlueEra/features/common/Discover/widget/earn_profile_store_list.
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_dashboard_view.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/home_service_profile_screen.dart';
+import 'package:BlueEra/widgets/blinking_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -27,6 +28,7 @@ class HomeServiceDiscoverScreen extends StatefulWidget {
 class _HomeServiceDiscoverScreenState extends State<HomeServiceDiscoverScreen> {
   static const String _profileType = 'homeService';
   static const Color _primary = AppColors.primaryColor;
+  static const Color _primaryDeep = AppColors.blue5CAF;
 
   final controller = getOrPut(
     () => EarnProfilesDiscoverController(profileType: _profileType),
@@ -38,6 +40,12 @@ class _HomeServiceDiscoverScreenState extends State<HomeServiceDiscoverScreen> {
     "https://img.freepik.com/free-photo/medium-shot-woman-cleaning-home_23-2150454566.jpg?w=1380",
     "https://img.freepik.com/free-photo/plumber-man-fixing-kitchen-sink_53876-27.jpg?w=1380",
   ];
+
+  @override
+  void initState() {
+    controller.fetchStores();
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -65,7 +73,9 @@ class _HomeServiceDiscoverScreenState extends State<HomeServiceDiscoverScreen> {
       ),
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        body: NestedScrollView(
+        body: Stack(
+          children: [
+            NestedScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           headerSliverBuilder: (context, innerBoxIsScrolled) => [
             SliverToBoxAdapter(
@@ -92,7 +102,6 @@ class _HomeServiceDiscoverScreenState extends State<HomeServiceDiscoverScreen> {
                         width: 2,
                       ),
                     ),
-                    if (isIndividualUser()) _buildPostCta(),
                     SizedBox(height: SizeConfig.size12),
                   ],
                 ),
@@ -103,6 +112,14 @@ class _HomeServiceDiscoverScreenState extends State<HomeServiceDiscoverScreen> {
             onNotification: _onScrollNotification,
             child: _buildContent(),
           ),
+            ),
+            if (isIndividualUser())
+              Positioned(
+                right: 16,
+                bottom: 0,
+                child: SafeArea(child: BlinkingWidget(child: _buildPostFab())),
+              ),
+          ],
         ),
       ),
     );
@@ -126,88 +143,45 @@ class _HomeServiceDiscoverScreenState extends State<HomeServiceDiscoverScreen> {
     );
   }
 
-  // ── Post CTA (individual users only) ──────────────────────────────────────
-  Widget _buildPostCta() {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        SizeConfig.size12,
-        SizeConfig.size14,
-        SizeConfig.size12,
-        SizeConfig.size4,
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: _onPostTap,
-          borderRadius: BorderRadius.circular(10),
-          child: Ink(
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.greyE5),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+  /// Floating "Post Service" action — a gradient extended FAB pill, so the add
+  /// affordance no longer crowds the banner header.
+  Widget _buildPostFab() {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: _onPostTap,
+        borderRadius: BorderRadius.circular(30),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [_primary, _primaryDeep],
             ),
-            child: Padding(
-              padding: const EdgeInsets.all(10),
-              child: Row(
-                children: [
-                  Container(
-                    width: 46,
-                    height: 46,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: _primary.withValues(alpha: 0.10),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(Icons.home_repair_service_rounded,
-                        color: _primary, size: 24),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomText(
-                          'Add Your Own Home Service',
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.mainTextColor,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 2),
-                        CustomText(
-                          'Offer your services & reach nearby customers',
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.secondaryTextColor,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    width: 34,
-                    height: 34,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: _primary.withValues(alpha: 0.10),
-                    ),
-                    child: Icon(Icons.arrow_forward_rounded,
-                        color: AppColors.secondaryTextColor, size: 16),
-                  ),
-                ],
+            borderRadius: BorderRadius.circular(30),
+            boxShadow: [
+              BoxShadow(
+                color: _primary.withValues(alpha: 0.40),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
               ),
-            ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.add_business_rounded,
+                  color: Colors.white, size: 18),
+              const SizedBox(width: 8),
+              CustomText(
+                'Add Service',
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                color: AppColors.white,
+                letterSpacing: 0.2,
+              ),
+            ],
           ),
         ),
       ),

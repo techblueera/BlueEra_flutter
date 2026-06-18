@@ -17,14 +17,12 @@ import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_d
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
-import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
-import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -373,35 +371,55 @@ class _ProfessionConsultantDiscoverScreenState
   /// gallery hero → hairline → ghost View + filled Enquire footer.
   Widget _buildSpecCard(ProfessionalConsData service) {
     // ─── Data extraction with sensible fallbacks ──────────────────
-    // Prefer the curated `basicDetails.professionalTitle` (set
-    // when the provider completes their profile) and fall back to
-    // the raw `userDetails.designation` from the user record.
-    final designation = (service.basicDetails?.professionalTitle?.trim().isNotEmpty ?? false)
-        ? service.basicDetails!.professionalTitle!.trim()
-        : (service.userDetails?.designation ?? '').trim();
     final name = (service.basicDetails?.fullName?.trim().isNotEmpty ?? false)
         ? service.basicDetails!.fullName!
         : (service.userDetails?.name ?? AppStrings.unknownUser.tr);
-    final taglineRaw =
-        (service.basicDetails?.shortTagline?.trim().isNotEmpty ?? false)
-            ? service.basicDetails!.shortTagline!
-            : (service.userDetails?.bio ?? '').split('\n').first.trim();
-    final years = service.about?.totalExperience?.years ?? 0;
-    final months = service.about?.totalExperience?.months ?? 0;
     final amount = service.pricing?.amount ?? 0;
-    final mode = service.pricing?.consultationMode ?? '';
+    final priceType = (service.pricing?.type ?? '').trim();
+    final mode = (service.pricing?.consultationMode ?? '').trim();
     final distanceKm = _distanceFor(service);
     final gallery = service.gallery?.signedUrls ?? const <String>[];
 
-    final expStr = (years == 0 && months == 0)
-        ? '—'
-        : (months == 0 ? '${years}Y' : '${years}Y ${months}M');
-    final priceStr =
-        amount == 0 ? '—' : '₹${formatIndianNumber(amount)}';
+    // Hero image: prefer an uploaded gallery shot, then the profile photo,
+    // then the curated basic-details photo. Empty → neutral placeholder.
+    final heroImage = gallery.isNotEmpty
+        ? gallery.first
+        : ((service.userDetails?.profileImage?.trim().isNotEmpty ?? false)
+            ? service.userDetails!.profileImage!.trim()
+            : (service.basicDetails?.profilePhotoUrl ?? '').trim());
+
+    // Address line shown next to the distance — first non-empty of the
+    // contact / user / basic-details address candidates.
+    final address = <String?>[
+      service.contact?.address,
+      service.userDetails?.address,
+      service.basicDetails?.location,
+      service.userDetails?.location,
+    ].firstWhere((a) => (a ?? '').trim().isNotEmpty, orElse: () => '')!.trim();
+
+    final priceStr = amount == 0 ? '—' : '₹${formatIndianNumber(amount)}';
     final distStr = distanceKm == null
-        ? '—'
-        : '${distanceKm < 10 ? distanceKm.toStringAsFixed(1) : distanceKm.toStringAsFixed(0)} km';
-    final modeStr = mode.isEmpty ? '—' : mode;
+        ? null
+        : '${distanceKm < 10 ? distanceKm.toStringAsFixed(1) : distanceKm.toStringAsFixed(0)} km away';
+
+    // "Services offered" checklist — certificate titles first (they read as
+    // concrete offerings), falling back to portfolio project titles.
+    var serviceTitles = (service.certificates ?? [])
+        .map((c) => (c.title ?? '').trim())
+        .where((t) => t.isNotEmpty)
+        .toList();
+    if (serviceTitles.isEmpty) {
+      serviceTitles = (service.portfolio ?? [])
+          .map((p) => (p.projectTitle ?? '').trim())
+          .where((t) => t.isNotEmpty)
+          .toList();
+    }
+    final totalServices = serviceTitles.length;
+    final showMoreServices = totalServices > 6;
+    final visibleServices = showMoreServices
+        ? serviceTitles.take(5).toList()
+        : serviceTitles.take(6).toList();
+    final extraServices = showMoreServices ? totalServices - 5 : 0;
 
     void openDetail() {
       ProfileClickTracker.track(
@@ -415,208 +433,318 @@ class _ProfessionConsultantDiscoverScreenState
 
     return InkWell(
       onTap: openDetail,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(18),
       child: Container(
-        margin: EdgeInsets.only(bottom: SizeConfig.size12),
-        padding: EdgeInsets.all(SizeConfig.size14),
+        margin: EdgeInsets.only(bottom: SizeConfig.size16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(color: const Color(0xFFEDEFF4), width: 1),
           boxShadow: const [
             BoxShadow(
               color: Color(0x14001120),
-              blurRadius: 14,
-              offset: Offset(0, 4),
+              blurRadius: 18,
+              offset: Offset(0, 6),
             ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ─── Eyebrow: bullet + DESIGNATION ────────────────────
-            if (designation.isNotEmpty)
-              Row(
-                children: [
-                  Container(
-                    width: 5,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryColor,
-                      shape: BoxShape.circle,
+            // ─── Hero image + floating consultation-mode chip ─────
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(18),
+                  ),
+                  child: SizedBox(
+                    height: 175,
+                    width: double.infinity,
+                    child: heroImage.isEmpty
+                        ? Container(color: const Color(0xFFEDEFF4))
+                        : CachedNetworkImage(
+                            imageUrl: heroImage,
+                            fit: BoxFit.cover,
+                            memCacheWidth: 800,
+                            placeholder: (_, __) =>
+                                Container(color: const Color(0xFFEDEFF4)),
+                            errorWidget: (_, __, ___) => Container(
+                              color: const Color(0xFFEDEFF4),
+                              child: Icon(
+                                Icons.person,
+                                size: 48,
+                                color: AppColors.secondaryTextColor,
+                              ),
+                            ),
+                          ),
+                  ),
+                ),
+                if (mode.isNotEmpty)
+                  Positioned(
+                    right: SizeConfig.size12,
+                    bottom: SizeConfig.size12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x1F001120),
+                            blurRadius: 8,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            mode.toLowerCase().contains('online')
+                                ? Icons.videocam_rounded
+                                : Icons.handshake_outlined,
+                            size: 14,
+                            color: AppColors.green00,
+                          ),
+                          const SizedBox(width: 6),
+                          CustomText(
+                            mode,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.green00,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  SizedBox(width: SizeConfig.size8),
-                  Flexible(
-                    child: Text(
-                      designation.toUpperCase(),
-                      style: TextStyle(
-                        fontFamily: AppConstants.OpenSans,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.primaryColor,
-                        letterSpacing: 1.4,
+              ],
+            ),
+
+            Padding(
+              padding: EdgeInsets.all(SizeConfig.size14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ─── Avatar + name + location ─────────────────
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CachedAvatarWidget(
+                        imageUrl: service.userDetails?.profileImage ?? '',
+                        size: SizeConfig.size40,
+                        borderColor: Colors.white,
+                        borderRadius: SizeConfig.size20,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      SizedBox(width: SizeConfig.size10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              name,
+                              style: TextStyle(
+                                fontFamily: AppConstants.OpenSans,
+                                fontSize: 17,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.mainTextColor,
+                                letterSpacing: -0.2,
+                                height: 1.15,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            if (distStr != null || address.isNotEmpty) ...[
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.location_on,
+                                    size: 14,
+                                    color: AppColors.primaryColor,
+                                  ),
+                                  const SizedBox(width: 2),
+                                  if (distStr != null)
+                                    CustomText(
+                                      distStr,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.primaryColor,
+                                    ),
+                                  if (distStr != null && address.isNotEmpty)
+                                    CustomText(
+                                      '  |  ',
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w400,
+                                      color: AppColors.secondaryTextColor,
+                                    ),
+                                  if (address.isNotEmpty)
+                                    Expanded(
+                                      child: CustomText(
+                                        address,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w400,
+                                        color: AppColors.secondaryTextColor,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // ─── "Services offered" box ───────────────────
+                  if (visibleServices.isNotEmpty) ...[
+                    SizedBox(height: SizeConfig.size12),
+                    Container(
+                      padding: EdgeInsets.all(SizeConfig.size12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFFEDEFF4),
+                          width: 1,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CustomText(
+                            'Services offered',
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.mainTextColor,
+                          ),
+                          SizedBox(height: SizeConfig.size8),
+                          Container(
+                              height: 1, color: const Color(0xFFEDEFF4)),
+                          SizedBox(height: SizeConfig.size10),
+                          _servicesGrid(
+                            visibleServices,
+                            extraServices,
+                            openDetail,
+                          ),
+                        ],
+                      ),
                     ),
+                  ],
+
+                  SizedBox(height: SizeConfig.size14),
+
+                  // ─── Footer: price + chat + Book Now ──────────
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CustomText(
+                            'Starting From',
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.secondaryTextColor,
+                          ),
+                          const SizedBox(height: 2),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              CustomText(
+                                priceStr,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.primaryColor,
+                              ),
+                              if (priceType.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 2),
+                                  child: CustomText(
+                                    '/$priceType',
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColors.secondaryTextColor,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const Spacer(),
+                      // Chat / enquire icon button
+                      InkWell(
+                        onTap: () =>
+                            ProfessionEnquirySheet.open(context, service),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          height: 44,
+                          width: 44,
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryColor
+                                .withValues(alpha: 0.10),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Center(
+                            child: LocalAssets(
+                              imagePath: AppIconAssets.chat,
+                              height: 20,
+                              width: 20,
+                              imgColor: AppColors.primaryColor,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: SizeConfig.size10),
+                      // Book Now (filled)
+                      InkWell(
+                        onTap: openDetail,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          height: 44,
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryColor,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primaryColor
+                                    .withValues(alpha: 0.30),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CustomText(
+                                'Book Now',
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(width: 8),
+                              const Icon(
+                                Icons.arrow_forward_rounded,
+                                size: 16,
+                                color: Colors.white,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            SizedBox(height: SizeConfig.size8),
-
-            // ─── Name + small avatar ──────────────────────────────
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Text(
-                    name,
-                    style: TextStyle(
-                      fontFamily: AppConstants.OpenSans,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.mainTextColor,
-                      letterSpacing: -0.3,
-                      height: 1.15,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                SizedBox(width: SizeConfig.size10),
-                CachedAvatarWidget(
-                  imageUrl: service.userDetails?.profileImage ?? '',
-                  size: SizeConfig.size40,
-                  borderColor: Colors.white,
-                  borderRadius: SizeConfig.size20,
-                ),
-              ],
-            ),
-
-            if (taglineRaw.isNotEmpty) ...[
-              SizedBox(height: SizeConfig.size6),
-              Text(
-                taglineRaw,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.secondaryTextColor,
-                  height: 1.4,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-
-            SizedBox(height: SizeConfig.size12),
-            Container(height: 1, color: const Color(0xFFEDEFF4)),
-            SizedBox(height: SizeConfig.size12),
-
-            // ─── 4-column spec strip ──────────────────────────────
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(child: _specColumn(AppStrings.specLabelExp.tr, expStr)),
-                Expanded(child: _specColumn(AppStrings.specLabelPrice.tr, priceStr)),
-                Expanded(child: _specColumn(AppStrings.specLabelNear.tr, distStr)),
-                Expanded(child: _specColumn(AppStrings.specLabelMode.tr, modeStr)),
-              ],
-            ),
-
-            // ─── Live-photo carousel (gallery) OR logo fallback ───
-            // Reuses the same [StoreLivePhotoWidget] the store cards
-            // use so the photo experience stays consistent across the
-            // app (horizontal scroll, "live" indicator, etc.). When a
-            // provider hasn't uploaded a gallery yet we render their
-            // profile photo at the same 200px height as a clean
-            // fallback so the card silhouette doesn't change shape.
-            if (gallery.isNotEmpty) ...[
-              SizedBox(height: SizeConfig.size12),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: StoreLivePhotoWidget(
-                  livePhotos: gallery,
-                  natureOfBusiness:
-                      service.userDetails?.profession ?? 'Consultant',
-                  height: 200,
-                  onViewFullScreen: ({
-                    required int index,
-                    required List<String> storeImage,
-                    required String natureOfBusiness,
-                  }) {
-                    navigatePushTo(
-                      context,
-                      ImageViewScreen(
-                        subTitle: natureOfBusiness,
-                        appBarTitle: AppStrings.imageViewer,
-                        imageUrls: storeImage,
-                        initialIndex: index,
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ] else if ((service.userDetails?.profileImage ?? '').isNotEmpty) ...[
-              SizedBox(height: SizeConfig.size12),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: GestureDetector(
-                  onTap: () => navigatePushTo(
-                    context,
-                    ImageViewScreen(
-                      subTitle:
-                          service.userDetails?.profession ?? 'Consultant',
-                      appBarTitle: AppStrings.imageViewer,
-                      imageUrls: [service.userDetails!.profileImage!],
-                      initialIndex: 0,
-                    ),
-                  ),
-                  child: SizedBox(
-                    height: 200,
-                    width: double.infinity,
-                    child: CachedNetworkImage(
-                      imageUrl: service.userDetails!.profileImage!,
-                      fit: BoxFit.cover,
-                      memCacheWidth: 800,
-                      memCacheHeight: 600,
-                      placeholder: (_, __) => LocalAssets(
-                        imagePath: AppIconAssets.place_holder_image,
-                        boxFix: BoxFit.fill,
-                      ),
-                      errorWidget: (_, __, ___) => LocalAssets(
-                        imagePath: AppIconAssets.place_holder_image,
-                        boxFix: BoxFit.fill,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-
-            SizedBox(height: SizeConfig.size12),
-            Container(height: 1, color: const Color(0xFFEDEFF4)),
-            SizedBox(height: SizeConfig.size10),
-
-            // ─── Footer: View (ghost) + Enquire (filled) ──────────
-            Row(
-              children: [
-                Expanded(
-                  child: _ghostButton(
-                    label: 'view'.tr,
-                    icon: Icons.arrow_outward_rounded,
-                    onTap: openDetail,
-                  ),
-                ),
-                SizedBox(width: SizeConfig.size10),
-                Expanded(
-                  child: _filledButton(
-                    label: AppStrings.enquire.tr,
-                    icon: Icons.chat_outlined,
-                    onTap: () => ProfessionEnquirySheet.open(context, service),
-                  ),
-                ),
-              ],
             ),
           ],
         ),
@@ -624,113 +752,66 @@ class _ProfessionConsultantDiscoverScreenState
     );
   }
 
-  /// Single column of the 4-column spec strip — label on top in
-  /// uppercase eyebrow style, value below in body weight with tabular
-  /// figures so digit columns align across rows.
-  Widget _specColumn(String label, String value) {
+  /// Two-column checklist inside the "Services offered" box. [items] is
+  /// already capped; when [extra] > 0 a trailing "+N more services" link
+  /// (→ [onMore]) fills the final cell.
+  Widget _servicesGrid(List<String> items, int extra, VoidCallback onMore) {
+    final cells = <Widget>[
+      ...items.map(_serviceCheckItem),
+      if (extra > 0) _moreServicesLink(extra, onMore),
+    ];
+    final rows = <Widget>[];
+    for (var i = 0; i < cells.length; i += 2) {
+      rows.add(Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(child: cells[i]),
+          SizedBox(width: SizeConfig.size10),
+          Expanded(
+            child:
+                i + 1 < cells.length ? cells[i + 1] : const SizedBox.shrink(),
+          ),
+        ],
+      ));
+      if (i + 2 < cells.length) {
+        rows.add(SizedBox(height: SizeConfig.size8));
+      }
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
+      children: rows,
+    );
+  }
+
+  Widget _serviceCheckItem(String text) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontFamily: AppConstants.OpenSans,
-            fontSize: 9,
-            fontWeight: FontWeight.w800,
-            color: AppColors.secondaryTextColor,
-            letterSpacing: 1.2,
-          ),
-        ),
-        const SizedBox(height: 4),
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.centerLeft,
-          child: Text(
-            value,
-            style: TextStyle(
-              fontFamily: AppConstants.OpenSans,
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-              color: AppColors.mainTextColor,
-              letterSpacing: 0.2,
-              fontFeatures: const [FontFeature.tabularFigures()],
-            ),
+        Icon(Icons.check_circle, size: 15, color: AppColors.green00),
+        const SizedBox(width: 6),
+        Expanded(
+          child: CustomText(
+            text,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: AppColors.mainTextColor,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
     );
   }
 
-  Widget _ghostButton({
-    required String label,
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
+  Widget _moreServicesLink(int extra, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: AppColors.primaryColor.withValues(alpha: 0.30),
-            width: 1,
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 14, color: AppColors.primaryColor),
-            const SizedBox(width: 6),
-            CustomText(
-              label,
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: AppColors.primaryColor,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _filledButton({
-    required String label,
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: AppColors.primaryColor,
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primaryColor.withValues(alpha: 0.30),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 14, color: Colors.white),
-            const SizedBox(width: 6),
-            CustomText(
-              label,
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-            ),
-          ],
-        ),
+      child: CustomText(
+        '+$extra more services',
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: AppColors.primaryColor,
       ),
     );
   }

@@ -3,7 +3,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/common/Discover/view/all_self_profession_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/self_profession_discover_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/book_home_service_card.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/rounded_view_all_btn.dart';
@@ -72,7 +72,7 @@ class _BookHomeServiceWidgetState extends State<BookHomeServiceWidget> {
                       },
                       getIcon: (item) => getIndividualProfessionIcon(item.tagId),
                       onTap: (item) {
-                        Get.to(() => AllSelfProfessionScreen(
+                        Get.to(() => SelfProfessionDiscoverScreen(
                             selfEmployedCategories: categories,
                             selectedSelfProfessionData: item));
                       },

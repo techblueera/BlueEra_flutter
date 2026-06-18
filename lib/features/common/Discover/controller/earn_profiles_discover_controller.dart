@@ -30,12 +30,6 @@ class EarnProfilesDiscoverController extends GetxController {
   int _page = 1;
   bool _hasMore = true;
 
-  @override
-  void onInit() {
-    super.onInit();
-    fetchStores();
-  }
-
   Future<void> fetchStores({bool isLoadMore = false}) async {
     if (isLoadMore) {
       if (isLoadingMore.value || !_hasMore) return;
