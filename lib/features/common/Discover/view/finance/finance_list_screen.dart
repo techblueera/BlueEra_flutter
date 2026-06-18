@@ -1,13 +1,13 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/features/common/Discover/controller/finance_discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/finance_search_res_model.dart';
 import 'package:BlueEra/features/common/Discover/view/finance/finance_detail_screen.dart';
-import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -27,35 +27,28 @@ class FinanceListScreen extends StatefulWidget {
 
 class _FinanceListScreenState extends State<FinanceListScreen> {
   late final FinanceDiscoverController controller;
-  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     controller = getOrPut(() => FinanceDiscoverController());
     controller.fetchInitial(widget.categorySlugId);
-    _scrollController.addListener(_onScroll);
   }
 
-  void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 100) {
+  bool _onScrollNotification(ScrollNotification notification) {
+    final metrics = notification.metrics;
+    if (metrics.axis != Axis.vertical) return false;
+    if (metrics.pixels >= metrics.maxScrollExtent - 200) {
       controller.fetchMore();
     }
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
+    return false;
   }
 
   @override
   Widget build(BuildContext context) {
     return Obx(() {
       if (controller.isLoading.value && controller.profiles.isEmpty) {
-        return const Center(
-            child: CircularProgressIndicator(color: AppColors.primaryColor));
+        return const Center(child: CircularProgressIndicator(color: AppColors.primaryColor));
       }
       if (controller.error.value.isNotEmpty && controller.profiles.isEmpty) {
         return Center(
@@ -80,39 +73,35 @@ class _FinanceListScreenState extends State<FinanceListScreen> {
         onRefresh: () async {
           await controller.fetchInitial(widget.categorySlugId);
         },
-        child: Builder(
-          builder: (context) {
-            final rows = buildNativeAdRows(controller.profiles.length);
-            return ListView.builder(
-              controller: _scrollController,
-              itemCount:
-                  rows.length + (controller.isLoadingMore.value ? 1 : 0),
-              padding: EdgeInsets.symmetric(
-                vertical: SizeConfig.size12
-              ),
-              physics: NeverScrollableScrollPhysics(),
-              itemBuilder: (context, index) {
-                if (index == rows.length) {
-                  return Padding(
-                    padding: EdgeInsets.symmetric(
-                        vertical: SizeConfig.size12),
-                    child: const Center(
-                        child: CircularProgressIndicator(
-                            color: AppColors.primaryColor)),
-                  );
-                }
-                final row = rows[index];
-                if (row.isAd) {
-                  return NativeAdSlot(
-                    adOrdinal: row.adOrdinal,
-                    keyPrefix: 'finance_native_ad',
-                  );
-                }
-                final item = controller.profiles[row.contentIndex];
-                return _FinanceCard(item: item);
-              },
-            );
-          },
+        child: NotificationListener<ScrollNotification>(
+          onNotification: _onScrollNotification,
+          child: Builder(
+            builder: (context) {
+              final rows = buildNativeAdRows(controller.profiles.length);
+              return ListView.builder(
+                itemCount: rows.length + (controller.isLoadingMore.value ? 1 : 0),
+                padding: EdgeInsets.symmetric(vertical: SizeConfig.size12),
+                physics: const AlwaysScrollableScrollPhysics(),
+                itemBuilder: (context, index) {
+                  if (index == rows.length) {
+                    return Padding(
+                      padding: EdgeInsets.symmetric(vertical: SizeConfig.size12),
+                      child: const Center(child: CircularProgressIndicator(color: AppColors.primaryColor)),
+                    );
+                  }
+                  final row = rows[index];
+                  if (row.isAd) {
+                    return NativeAdSlot(
+                      adOrdinal: row.adOrdinal,
+                      keyPrefix: 'finance_native_ad',
+                    );
+                  }
+                  final item = controller.profiles[row.contentIndex];
+                  return _FinanceCard(item: item);
+                },
+              );
+            },
+          ),
         ),
       );
     });
@@ -126,12 +115,46 @@ class _FinanceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String address = item.location?.name ?? item.location?.address ?? '';
-    final String phone =
-        item.contactUs?.firstOrNull?.departments?.firstOrNull?.phone ?? '';
-    final String email =
-        item.contactUs?.firstOrNull?.departments?.firstOrNull?.email ?? '';
+    final String address = _resolveAddress(item);
     final String category = item.category ?? item.type ?? '';
+
+    final List<String> coverImages = <String>[];
+    if (item.gallery != null) {
+      for (final g in item.gallery!) {
+        if (g.imageUrls != null) {
+          coverImages.addAll(g.imageUrls!.where((u) => u.trim().isNotEmpty));
+        }
+      }
+    }
+    if (coverImages.isEmpty && (item.coverUrl ?? '').isNotEmpty) {
+      coverImages.add(item.coverUrl!);
+    }
+
+    const String na = 'N/A';
+    const String rating = na;
+    const String highlightLabel = 'FD rate: $na';
+    const String highlightTrailing = na;
+
+    final String distance = _distanceFromUser(item);
+    const String openHours = na;
+    const String registryLabel = na;
+    const String minBalance = na;
+    const String minBalanceLabel = 'Min. balance';
+    const String openTime = na;
+    const String openTimeLabel = 'Open online';
+    const String savingsRate = na;
+    const String savingsLabel = 'Savings p.a.';
+
+    final String typeTag =
+        (item.type ?? '').isNotEmpty ? item.type!.replaceAll('_', ' ').capitalize ?? item.type! : '';
+    final String categoryTag =
+        category.isNotEmpty ? category.replaceAll('_', ' ').capitalize ?? category : '';
+    final List<String> serviceTags = <String>{
+      if (categoryTag.isNotEmpty) categoryTag,
+      if (typeTag.isNotEmpty) typeTag,
+    }.toList();
+    if (serviceTags.isEmpty) serviceTags.add(na);
+    const int moreTagsCount = 0;
 
     return Padding(
       padding: const EdgeInsets.only(right: 8.0, bottom: 10, left: 8),
@@ -143,212 +166,485 @@ class _FinanceCard extends StatelessWidget {
         },
         child: CommonCardWidget(
           cardMargin: 0,
+          padding: 0,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              _buildCoverSection(
+                images: coverImages,
+                rating: rating,
+                highlightLabel: highlightLabel,
+                highlightTrailing: highlightTrailing,
+              ),
+              Padding(
+                padding: EdgeInsets.fromLTRB(
+                  SizeConfig.size12,
+                  SizeConfig.size12,
+                  SizeConfig.size12,
+                  SizeConfig.size12,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildHeaderRow(
+                      address: address,
+                      distance: distance,
+                    ),
+                    SizedBox(height: SizeConfig.size10),
+                    _buildBadgesRow(
+                      registryLabel: registryLabel,
+                      openHours: openHours,
+                    ),
+                    SizedBox(height: SizeConfig.size12),
+                    _buildStatsRow(
+                      minBalance: minBalance,
+                      minBalanceLabel: minBalanceLabel,
+                      openTime: openTime,
+                      openTimeLabel: openTimeLabel,
+                      savingsRate: savingsRate,
+                      savingsLabel: savingsLabel,
+                    ),
+                    SizedBox(height: SizeConfig.size12),
+                    _buildTagsRow(
+                      serviceTags: serviceTags,
+                      moreCount: moreTagsCount,
+                      category: category,
+                    ),
+                    SizedBox(height: SizeConfig.size12),
+                    _buildActionsRow(),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _resolveAddress(FinanceBusinessItem item) {
+    final branchLoc = item.contactUs?.firstOrNull?.branch?.location;
+    final branchName = item.contactUs?.firstOrNull?.branch?.name;
+    final candidates = <String?>[
+      item.location?.address,
+      item.location?.name,
+      branchLoc?.address,
+      branchLoc?.name,
+      branchName,
+    ];
+    for (final c in candidates) {
+      final t = c?.trim() ?? '';
+      if (t.isNotEmpty) return t;
+    }
+    return '';
+  }
+
+  String _distanceFromUser(FinanceBusinessItem item) {
+    final coords = item.contactUs?.firstOrNull?.branch?.location?.coordinates ?? item.location?.coordinates;
+    if (coords == null || coords.length < 2) return 'N/A';
+    final lng = coords[0];
+    final lat = coords[1];
+    if (lat == 0.0 || lng == 0.0) return 'N/A';
+    final km = calculateDistance(lat, lng);
+    if (km == null) return 'N/A';
+    if (km < 1) return '${(km * 1000).toStringAsFixed(0)}m Away';
+    if (km < 10) return '${km.toStringAsFixed(1)}KM Away';
+    return '${km.toStringAsFixed(0)}KM Away';
+  }
+
+  Widget _buildCoverSection({
+    required List<String> images,
+    required String rating,
+    required String highlightLabel,
+    required String highlightTrailing,
+  }) {
+    final Widget imageWidget = images.isNotEmpty
+        ? GestureDetector(
+            onTap: () => Get.to(() => ImageViewScreen(
+                  subTitle: item.type ?? 'Finance',
+                  appBarTitle: AppStrings.imageViewer,
+                  imageUrls: images,
+                  initialIndex: 0,
+                )),
+            child: CachedNetworkImage(
+              imageUrl: images.first,
+              height: 170,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              memCacheWidth: 800,
+              placeholder: (_, __) => LocalAssets(
+                imagePath: AppIconAssets.place_holder_image,
+                boxFix: BoxFit.cover,
+              ),
+              errorWidget: (_, __, ___) => LocalAssets(
+                imagePath: AppIconAssets.place_holder_image,
+                boxFix: BoxFit.cover,
+              ),
+            ),
+          )
+        : Container(
+            height: 170,
+            width: double.infinity,
+            color: AppColors.liteWhite,
+            child: LocalAssets(
+              imagePath: AppIconAssets.place_holder_image,
+              boxFix: BoxFit.cover,
+            ),
+          );
+
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+      child: SizedBox(
+        height: 170,
+        width: double.infinity,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            imageWidget,
+            Positioned(
+              top: 10,
+              left: 10,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.black.withValues(alpha: 0.55),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.star, size: 14, color: AppColors.yellow),
+                    const SizedBox(width: 4),
+                    CustomText(
+                      rating,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.white,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              top: 10,
+              right: 10,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(SizeConfig.size10),
-                    child: Container(
-                      width: SizeConfig.size60,
-                      height: SizeConfig.size60,
-                      color: AppColors.liteWhite,
-                      child: (item.logoUrl?.isNotEmpty ?? false)
-                          ? Image.network(
-                              item.logoUrl!,
-                              fit: BoxFit.cover,
-                              errorBuilder: (c, e, s) => LocalAssets(
-                                  imagePath: AppIconAssets.place_holder_image),
-                            )
-                          : LocalAssets(
-                              imagePath: AppIconAssets.place_holder_image),
-                    ),
-                  ),
-                  SizedBox(width: SizeConfig.size12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomText(
-                          (item.profileName?.isNotEmpty ?? false)
-                              ? item.profileName
-                              : "Unknown",
-                          fontSize: SizeConfig.medium,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.mainTextColor,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        if (category.isNotEmpty) ...[
-                          SizedBox(height: SizeConfig.size2),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: AppColors.primaryColor
-                                  .withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: CustomText(
-                              category.replaceAll('_', ' ').capitalize ?? '',
-                              fontSize: 10,
-                              color: AppColors.primaryColor,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                        if (address.isNotEmpty) ...[
-                          SizedBox(height: SizeConfig.size6),
-                          CustomText(
-                            "Address : $address",
-                            fontSize: SizeConfig.small,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
+                  _circleIcon(Icons.share_outlined),
+                  const SizedBox(width: 8),
+                  _circleIcon(Icons.star_border),
                 ],
               ),
-              // ─── Gallery / Cover / Logo Photo ───
-              Builder(builder: (_) {
-                final galleryPhotos = <String>[];
-                if (item.gallery != null) {
-                  for (final g in item.gallery!) {
-                    if (g.imageUrls != null) {
-                      galleryPhotos.addAll(
-                          g.imageUrls!.where((u) => u.trim().isNotEmpty));
-                    }
-                  }
-                }
-                final hasCover = (item.coverUrl ?? '').isNotEmpty;
-                final hasLogo = (item.logoUrl ?? '').isNotEmpty;
+            ),
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      AppColors.black.withValues(alpha: 0.0),
+                      AppColors.black.withValues(alpha: 0.55),
+                    ],
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    CustomText(
+                      highlightLabel,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.white,
+                    ),
+                    CustomText(
+                      highlightTrailing,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.white,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-                if (galleryPhotos.isNotEmpty) {
-                  return Padding(
-                    padding: EdgeInsets.only(top: SizeConfig.size6),
-                    child: StoreLivePhotoWidget(
-                      livePhotos: galleryPhotos,
-                      natureOfBusiness: item.type ?? 'Finance',
-                      height: 200,
-                      onViewFullScreen: ({
-                        required int index,
-                        required List<String> storeImage,
-                        required String natureOfBusiness,
-                      }) {
-                        Get.to(() => ImageViewScreen(
-                            subTitle: natureOfBusiness,
-                            appBarTitle: AppStrings.imageViewer,
-                            imageUrls: storeImage,
-                            initialIndex: index,
-                          ),
-                        );
-                      },
-                    ),
-                  );
-                } else if (hasCover) {
-                  return Padding(
-                    padding: EdgeInsets.only(top: SizeConfig.size6),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: GestureDetector(
-                        onTap: () => Get.to(() => ImageViewScreen(
-                            subTitle: item.type ?? 'Finance',
-                            appBarTitle: AppStrings.imageViewer,
-                            imageUrls: [item.coverUrl!],
-                            initialIndex: 0,
-                          ),
-                        ),
-                        child: CachedNetworkImage(
-                          imageUrl: item.coverUrl!,
-                          height: 200,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                          memCacheWidth: 600,
-                          memCacheHeight: 600,
-                          placeholder: (_, __) => LocalAssets(
-                            imagePath: AppIconAssets.place_holder_image,
-                            boxFix: BoxFit.fill,
-                          ),
-                          errorWidget: (_, __, ___) => LocalAssets(
-                            imagePath: AppIconAssets.place_holder_image,
-                            boxFix: BoxFit.fill,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                } else if (hasLogo) {
-                  return Padding(
-                    padding: EdgeInsets.only(top: SizeConfig.size6),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: GestureDetector(
-                        onTap: () => Get.to(() => ImageViewScreen(
-                            subTitle: item.type ?? 'Finance',
-                            appBarTitle: AppStrings.imageViewer,
-                            imageUrls: [item.logoUrl!],
-                            initialIndex: 0,
-                          ),
-                        ),
-                        child: CachedNetworkImage(
-                          imageUrl: item.logoUrl!,
-                          height: 200,
-                          width: double.infinity,
-                          fit: BoxFit.cover,
-                          memCacheWidth: 600,
-                          memCacheHeight: 600,
-                          placeholder: (_, __) => LocalAssets(
-                            imagePath: AppIconAssets.place_holder_image,
-                            boxFix: BoxFit.fill,
-                          ),
-                          errorWidget: (_, __, ___) => LocalAssets(
-                            imagePath: AppIconAssets.place_holder_image,
-                            boxFix: BoxFit.fill,
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                }
-                return const SizedBox.shrink();
-              }),
+  Widget _circleIcon(IconData icon) {
+    return Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        color: AppColors.white.withValues(alpha: 0.9),
+        shape: BoxShape.circle,
+      ),
+      child: Icon(icon, size: 16, color: AppColors.black),
+    );
+  }
 
-              if (phone.isNotEmpty || email.isNotEmpty) ...[
-                SizedBox(height: SizeConfig.size6),
+  Widget _buildHeaderRow({
+    required String address,
+    required String distance,
+  }) {
+    bool isMeaningful(String s) => s.isNotEmpty && s != 'N/A';
+    final parts = <String>[
+      if (isMeaningful(distance)) distance,
+      if (isMeaningful(address)) address,
+    ];
+    final String locationText =
+        parts.isEmpty ? 'N/A' : parts.join(' · ');
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        ClipOval(
+          child: Container(
+            width: 44,
+            height: 44,
+            color: AppColors.liteWhite,
+            child: (item.logoUrl?.isNotEmpty ?? false)
+                ? CachedNetworkImage(
+                    imageUrl: item.logoUrl!,
+                    fit: BoxFit.cover,
+                    placeholder: (_, __) => LocalAssets(imagePath: AppIconAssets.place_holder_image),
+                    errorWidget: (_, __, ___) => LocalAssets(imagePath: AppIconAssets.place_holder_image),
+                  )
+                : LocalAssets(imagePath: AppIconAssets.place_holder_image),
+          ),
+        ),
+        SizedBox(width: SizeConfig.size10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CustomText(
+                (item.profileName?.isNotEmpty ?? false) ? item.profileName : 'Unknown',
+                fontSize: SizeConfig.medium,
+                fontWeight: FontWeight.w700,
+                color: AppColors.mainTextColor,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (locationText.isNotEmpty) ...[
+                SizedBox(height: SizeConfig.size2),
                 Row(
                   children: [
-                    if (phone.isNotEmpty) ...[
-                      Icon(Icons.phone_outlined,
-                          size: 14, color: AppColors.secondaryTextColor),
-                      const SizedBox(width: 4),
-                      CustomText(phone, fontSize: 12),
-                    ],
-                    if (phone.isNotEmpty && email.isNotEmpty)
-                      const SizedBox(width: 12),
-                    if (email.isNotEmpty) ...[
-                      Icon(Icons.email_outlined,
-                          size: 14, color: AppColors.secondaryTextColor),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: CustomText(
-                          email,
-                          fontSize: 12,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                    Icon(Icons.location_on, size: 14, color: AppColors.primaryColor),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: CustomText(
+                        locationText,
+                        fontSize: 12,
+                        color: AppColors.grey83,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ],
+                    ),
                   ],
                 ),
               ],
             ],
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildBadgesRow({
+    required String registryLabel,
+    required String openHours,
+  }) {
+    return Row(
+      children: [
+        _outlineBadge(
+          icon: Icons.verified_outlined,
+          label: registryLabel,
+          color: AppColors.greenShade,
+        ),
+        const SizedBox(width: 8),
+        Flexible(
+          child: _outlineBadge(
+            icon: Icons.access_time,
+            label: 'Open | $openHours',
+            color: AppColors.greenShade,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _outlineBadge({
+    required IconData icon,
+    required String label,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.5)),
       ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: color),
+          const SizedBox(width: 4),
+          CustomText(
+            label,
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: color,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatsRow({
+    required String minBalance,
+    required String minBalanceLabel,
+    required String openTime,
+    required String openTimeLabel,
+    required String savingsRate,
+    required String savingsLabel,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(child: _statCell(minBalance, minBalanceLabel)),
+        const SizedBox(width: 4),
+        Expanded(child: _statCell(openTime, openTimeLabel)),
+        const SizedBox(width: 4),
+        Expanded(child: _statCell(savingsRate, savingsLabel)),
+      ],
+    );
+  }
+
+  Widget _statCell(String value, String label) {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size10,
+        vertical: SizeConfig.size12,
+      ),
+      decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.greyE5, width: 1)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CustomText(
+            value,
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+            color: AppColors.mainTextColor,
+          ),
+          const SizedBox(height: 2),
+          CustomText(
+            label,
+            fontSize: 11,
+            color: AppColors.grey83,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTagsRow({
+    required List<String> serviceTags,
+    required int moreCount,
+    required String category,
+  }) {
+    final tags = serviceTags.isNotEmpty
+        ? serviceTags
+        : (category.isNotEmpty ? [category.replaceAll('_', ' ').capitalize ?? category] : <String>[]);
+
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: [
+        ...tags.map((t) => _tagChip(t, AppColors.fillColor, AppColors.mainTextColor)),
+        if (moreCount > 0) _tagChip('+$moreCount More', AppColors.red.withValues(alpha: 0.08), AppColors.red),
+      ],
+    );
+  }
+
+  Widget _tagChip(String label, Color bg, Color fg) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: CustomText(
+        label,
+        fontSize: 11,
+        fontWeight: FontWeight.w600,
+        color: fg,
+      ),
+    );
+  }
+
+  Widget _buildActionsRow() {
+    return Row(
+      children: [
+        Expanded(
+          flex: 2,
+          child: Container(
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppColors.skyBlueFF,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                LocalAssets(imagePath: AppIconAssets.chat, imgColor: AppColors.primaryColor),
+                const SizedBox(width: 6),
+                CustomText(
+                  'Chat',
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primaryColor,
+                ),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          flex: 4,
+          child: Container(
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppColors.primaryColor,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CustomText(
+                  'Open Account',
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.white,
+                ),
+                const SizedBox(width: 6),
+                const Icon(Icons.arrow_forward, size: 16, color: AppColors.white),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
