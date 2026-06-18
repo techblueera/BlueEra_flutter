@@ -15,6 +15,7 @@ import 'package:BlueEra/features/common/Discover/controller/hmp_store_details_co
 import 'package:BlueEra/features/common/Discover/view/hmp_cart_screen.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/model/earn_profile_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/repo/earn_profile_repo.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/floating_cart_widget.dart';
@@ -26,53 +27,100 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-class HmpStoreDetailsDiscoverScreen extends StatefulWidget {
-  final EarnProfileModel store;
+/// **v2** home-made-product store details.
+///
+/// Unlike [HmpStoreDetailsDiscoverScreen] this DOESN'T receive an
+/// [EarnProfileModel] — the discover-v2 list only has a product (+ its seller
+/// userId). So we take the [userId] and fetch the earn-profile "store" via
+/// `fetchEarnProfileByUserId` (same pattern as the home-service v2 details).
+/// The product catalogue + cart load off the userId immediately; the store
+/// header / gallery / contact fill in once the profile resolves. Everything
+/// else is identical to the v1 screen.
+class HmpStoreDetailsDiscoverScreenV2 extends StatefulWidget {
+  final String userId;
 
-  const HmpStoreDetailsDiscoverScreen({super.key, required this.store});
+  /// Optional — lets the header show a name/logo instantly while the full
+  /// profile is being fetched.
+  final String? serviceName;
+  final String? serviceLogo;
+
+  const HmpStoreDetailsDiscoverScreenV2({
+    super.key,
+    required this.userId,
+    this.serviceName,
+    this.serviceLogo,
+  });
 
   @override
-  State<HmpStoreDetailsDiscoverScreen> createState() =>
-      _HmpStoreDetailsDiscoverScreenState();
+  State<HmpStoreDetailsDiscoverScreenV2> createState() =>
+      _HmpStoreDetailsDiscoverScreenV2State();
 }
 
-class _HmpStoreDetailsDiscoverScreenState
-    extends State<HmpStoreDetailsDiscoverScreen> {
+class _HmpStoreDetailsDiscoverScreenV2State
+    extends State<HmpStoreDetailsDiscoverScreenV2> {
   // App primary color combination (theme-aligned accent for this flow).
   static const Color _primary = AppColors.primaryColor; // 0xFF0086FF
   static const Color _placeholderBg = AppColors.blue5CFF; // 0xFFEBF5FF
+  static const String _profileType = 'homeMadeProduct';
 
-  EarnProfileModel get store => widget.store;
+  final _repo = EarnProfileRepo();
+  EarnProfileModel? _store;
+  bool _loadingStore = true;
 
+  /// The fetched profile, or a minimal stub (from the constructor args) so the
+  /// header has a name/logo to show before the network call resolves.
+  EarnProfileModel get store =>
+      _store ??
+      EarnProfileModel(
+        userId: widget.userId,
+        serviceName: widget.serviceName,
+        serviceLogo: widget.serviceLogo,
+      );
+
+  // Catalogue + cart key off the seller userId directly — no profile needed.
   late final HmpStoreDetailsController controller = getOrPut(
-    () => HmpStoreDetailsController(userId: store.userId ?? ''),
-    tag: store.id ?? store.userId ?? '',
+    () => HmpStoreDetailsController(userId: widget.userId),
+    tag: widget.userId,
   );
 
-  // Shared cart for the whole home made product flow (registered at the list
-  // screen) — found here so adds survive coming back to the list.
   late final HmpCartController cartController =
       getOrPut(() => HmpCartController());
 
   @override
   void initState() {
     super.initState();
-    // Track the profile visit (fire-and-forget). Home-made-product profiles
-    // are individual accounts, so fall back to userId when the business id is
-    // absent — same key the chat tracker / chat open uses for this store.
-    final id = (store.id ?? store.userId ?? '').trim();
-    if (id.isNotEmpty) {
+    if (widget.userId.trim().isNotEmpty) {
       ProfileClickTracker.track(
-        userId: id,
+        userId: widget.userId,
         source: ChatClickSource.searchResult,
       );
     }
+    _fetchProfile();
+  }
+
+  Future<void> _fetchProfile() async {
+    if (widget.userId.trim().isEmpty) {
+      setState(() => _loadingStore = false);
+      return;
+    }
+    try {
+      final res = await _repo.fetchEarnProfileByUserId(
+        userId: widget.userId,
+        queryParams: const {'profileType': _profileType},
+      );
+      final body = res.response?.data;
+      // The by-userId endpoint returns a SINGLE object: { success, data: {…} }.
+      if (res.isSuccess && body is Map && body['data'] is Map) {
+        _store = EarnProfileModel.fromJson(
+            Map<String, dynamic>.from(body['data'] as Map));
+      }
+    } catch (_) {/* swallow — store-only sections simply show the stub / hide */}
+    if (mounted) setState(() => _loadingStore = false);
   }
 
   @override
   void dispose() {
-    deleteIfRegistered<HmpStoreDetailsController>(
-        tag: store.id ?? store.userId ?? '');
+    deleteIfRegistered<HmpStoreDetailsController>(tag: widget.userId);
     super.dispose();
   }
 
@@ -106,7 +154,7 @@ class _HmpStoreDetailsDiscoverScreenState
                     _buildHero(),
                     _buildIdentity(),
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
+                      padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -168,29 +216,12 @@ class _HmpStoreDetailsDiscoverScreenState
             ),
           ),
 
-          // Back (left) · save + share (right).
           Positioned(
             top: statusBar + 8,
             left: 12,
-            right: 12,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _circleButton(
-                  asset: AppIconAssets.back_arrow,
-                  onTap: () => Navigator.of(context).pop(),
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _circleButton(
-                        asset: AppIconAssets.star_rounded, onTap: () {}),
-                    const SizedBox(width: 10),
-                    _circleButton(
-                        asset: AppIconAssets.reelShare, onTap: () {}),
-                  ],
-                ),
-              ],
+            child: _circleButton(
+              asset: AppIconAssets.back_arrow,
+              onTap: () => Navigator.of(context).pop(),
             ),
           ),
         ],
@@ -271,8 +302,10 @@ class _HmpStoreDetailsDiscoverScreenState
                   _ratingChip(),
                 ],
               ),
-              const SizedBox(height: 12),
-              _locationPill(km, hasLoc),
+              if (hasLoc || (store.address?.trim().isNotEmpty ?? false)) ...[
+                const SizedBox(height: 12),
+                _locationPill(km, hasLoc),
+              ],
               const SizedBox(height: 14),
               const Divider(height: 1, color: Color(0xFFEDEFF4)),
               const SizedBox(height: 14),
@@ -776,8 +809,9 @@ class _HmpStoreDetailsDiscoverScreenState
       margin: const EdgeInsets.only(top: 16),
       padding: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
-        color: _primary.withValues(alpha: 0.08),
+        color: const Color(0xFFF6F7F9),
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.greyE5),
       ),
       child: Column(
         children: [
@@ -817,7 +851,8 @@ class _HmpStoreDetailsDiscoverScreenState
       ),
       child: Column(
         children: [
-          Icon(Icons.format_quote_rounded, size: 32, color: _primary),
+          Icon(Icons.format_quote_rounded,
+              size: 32, color: AppColors.secondaryTextColor),
           const SizedBox(height: 6),
           Expanded(
             child: Center(
@@ -837,10 +872,11 @@ class _HmpStoreDetailsDiscoverScreenState
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const CircleAvatar(
+              CircleAvatar(
                 radius: 16,
-                backgroundColor: Color(0xFFE3ECF7),
-                child: Icon(Icons.person_rounded, size: 18, color: _primary),
+                backgroundColor: const Color(0xFFEDEFF4),
+                child: Icon(Icons.person_rounded,
+                    size: 18, color: AppColors.secondaryTextColor),
               ),
               const SizedBox(width: 8),
               Column(
@@ -866,6 +902,15 @@ class _HmpStoreDetailsDiscoverScreenState
 
   // ── Contact Us — heading + bordered card (logo, name, desc, rows, map) ───
   Widget _buildContactCard() {
+    if (_loadingStore) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 20),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+    final store = _store;
+    if (store == null) return const SizedBox.shrink();
+
     final lat = store.latitude ?? 0.0;
     final lng = store.longitude ?? 0.0;
     final hasLoc = !(lat == 0.0 && lng == 0.0);
@@ -876,20 +921,20 @@ class _HmpStoreDetailsDiscoverScreenState
 
     return Padding(
       padding: const EdgeInsets.only(top: 14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _sectionHeading('Contact Us'),
-          const SizedBox(height: 10),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.greyE5),
-            ),
-            child: Column(
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.greyE5),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _sectionHeading('Contact Us'),
+            const SizedBox(height: 12),
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ClipOval(
@@ -970,8 +1015,8 @@ class _HmpStoreDetailsDiscoverScreenState
                 ],
               ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

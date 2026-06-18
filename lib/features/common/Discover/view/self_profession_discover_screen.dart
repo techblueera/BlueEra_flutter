@@ -12,16 +12,14 @@ import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_d
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
-import 'package:BlueEra/features/common/Discover/view/self_employee_view_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/self_employee_view_discover_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/service_enquiry_sheet.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
-import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
-import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -31,22 +29,22 @@ import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 // ─── AllSelfProfessionScreen ───
-class AllSelfProfessionScreen extends StatefulWidget {
+class SelfProfessionDiscoverScreen extends StatefulWidget {
   final List<ProfessionTypeData> selfEmployedCategories;
   final ProfessionTypeData? selectedSelfProfessionData;
 
-  const AllSelfProfessionScreen({
+  const SelfProfessionDiscoverScreen({
     super.key,
     required this.selfEmployedCategories,
     this.selectedSelfProfessionData,
   });
 
   @override
-  State<AllSelfProfessionScreen> createState() =>
-      _AllSelfProfessionScreenState();
+  State<SelfProfessionDiscoverScreen> createState() =>
+      _SelfProfessionDiscoverScreenState();
 }
 
-class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
+class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScreen> {
   final controller = getOrPut(() => DiscoverController());
   late List<ProfessionTypeData> _selfEmployedCategories;
   final String serviceSubType = 'selfWork';
@@ -146,7 +144,7 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
 
   /// Bottom sheet shown when a map marker is tapped — compact provider
   /// summary (avatar, name, rating, distance, price) with a "View Profile"
-  /// CTA into [SelfEmployeeViewScreen]. Takes the host [BuildContext]
+  /// CTA into [SelfEmployeeViewDiscoverScreen]. Takes the host [BuildContext]
   /// so the sheet can render over either this screen or the dedicated
   /// [_SelfProfessionMapScreen] depending on where the marker was tapped.
   void _showServiceMapSheet(BuildContext hostContext, ServiceData service) {
@@ -289,7 +287,7 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
                           userId: service.id ?? '',
                           source: ChatClickSource.searchResult,
                         );
-                        Get.to(() => SelfEmployeeViewScreen(
+                        Get.to(() => SelfEmployeeViewDiscoverScreen(
                               service: service,
                               timingMap:
                                   getMinMaxTimings(service.service?.effectiveTimings),
@@ -513,20 +511,16 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
   /// model is [ServiceData].
   Widget _buildSpecCard(ServiceData service) {
     // ─── Data extraction with sensible fallbacks ──────────────────
-    final designation = (service.designation?.trim().isNotEmpty ?? false)
-        ? service.designation!.trim()
-        : (service.profession ?? '').trim();
     final name = (service.name?.trim().isNotEmpty ?? false)
         ? service.name!
         : AppStrings.unknownUser.tr;
-    final taglineRaw =
-        (service.bio ?? '').split('\n').firstWhere((s) => s.trim().isNotEmpty,
-            orElse: () => '');
 
     final priceData = service.priceData;
     final isRange = priceData?.effectiveIsRange ?? false;
     final priceMin = priceData?.effectiveMin ?? 0;
     final priceMax = priceData?.effectiveMax ?? 0;
+    final priceUnit =
+        (priceData?.unitLabel.isNotEmpty ?? false) ? priceData!.unitLabel : '';
     final distance = (service.distance ?? 0).toDouble();
     final timingMap = getMinMaxTimings(service.service?.effectiveTimings);
     final timingStart = timingMap['start'] ?? '--';
@@ -536,22 +530,35 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
         .where((p) => p.trim().isNotEmpty)
         .toList();
     final profileImage = service.profileImage ?? '';
+    // Hero image: a service photo if one exists, else the profile photo.
+    final heroImage = livePhotos.isNotEmpty ? livePhotos.first : profileImage;
 
-    // Combined service list shown on the card — "Services Offered" merged
-    // with "Types of Work" (deduped, case-insensitive).
+    final address = (service.address?.trim().isNotEmpty ?? false)
+        ? service.address!.trim()
+        : (service.location ?? '').trim();
+    final ratingValue = (service.rating != null && service.rating != 0)
+        ? service.rating.toString()
+        : null;
+
+    // Combined service list shown in the "Services offered" box —
+    // "Services Offered" merged with "Types of Work" (deduped).
     final services = _combinedServices(service);
+    final totalServices = services.length;
+    final showMoreServices = totalServices > 6;
+    final visibleServices = showMoreServices
+        ? services.take(5).toList()
+        : services.take(6).toList();
+    final extraServices = showMoreServices ? totalServices - 5 : 0;
 
-    // ─── 3-column spec-strip values (PRICE / NEAR / HOURS) — rating dropped.
     final priceStr = priceMin == 0
         ? '—'
         : (isRange
             ? '₹${formatIndianNumber(priceMin)}-${formatIndianNumber(priceMax)}'
             : '₹${formatIndianNumber(priceMin)}');
     final distStr = distance == 0
-        ? '—'
-        : '${distance < 10 ? distance.toStringAsFixed(1) : distance.toStringAsFixed(0)} km';
-    // Compact hours: "9:00 AM - 6:00 PM" → "9AM-6PM" so the narrow spec
-    // column doesn't FittedBox down to an unreadable size.
+        ? null
+        : '${distance < 10 ? distance.toStringAsFixed(1) : distance.toStringAsFixed(0)} km away';
+    // Compact hours: "9:00 AM - 6:00 PM" → "9AM-6PM" for the floating chip.
     String compactTime(String t) {
       final m = RegExp(r'(\d+):(\d+)\s*(AM|PM)', caseSensitive: false)
           .firstMatch(t.trim());
@@ -563,7 +570,7 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
     }
 
     final hoursStr = (timingStart == '--' && timingEnd == '--')
-        ? '—'
+        ? null
         : '${compactTime(timingStart)}-${compactTime(timingEnd)}';
 
     // For the price badge inside SelfEmployeeViewScreen — kept
@@ -580,7 +587,7 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
         userId: service.id ?? '',
         source: ChatClickSource.searchResult,
       );
-      Get.to(() => SelfEmployeeViewScreen(
+      Get.to(() => SelfEmployeeViewDiscoverScreen(
             service: service,
             timingMap: timingMap,
             priceDisplay: priceDisplay,
@@ -591,213 +598,318 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
 
     return InkWell(
       onTap: openDetail,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(18),
       child: Container(
-        margin: EdgeInsets.only(bottom: SizeConfig.size12),
-        padding: EdgeInsets.all(SizeConfig.size14),
+        margin: EdgeInsets.only(bottom: SizeConfig.size16),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(color: const Color(0xFFEDEFF4), width: 1),
           boxShadow: const [
             BoxShadow(
               color: Color(0x14001120),
-              blurRadius: 14,
-              offset: Offset(0, 4),
+              blurRadius: 18,
+              offset: Offset(0, 6),
             ),
           ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ─── Eyebrow: bullet + DESIGNATION ────────────────────
-            if (designation.isNotEmpty)
-              Row(
-                children: [
-                  Container(
-                    width: 5,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryColor,
-                      shape: BoxShape.circle,
+            // ─── Hero image + rating badge + "Open | hours" chip ──
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(18),
+                  ),
+                  child: SizedBox(
+                    height: 175,
+                    width: double.infinity,
+                    child: heroImage.isEmpty
+                        ? Container(color: const Color(0xFFEDEFF4))
+                        : CachedNetworkImage(
+                            imageUrl: heroImage,
+                            fit: BoxFit.cover,
+                            memCacheWidth: 800,
+                            placeholder: (_, __) =>
+                                Container(color: const Color(0xFFEDEFF4)),
+                            errorWidget: (_, __, ___) => LocalAssets(
+                              imagePath: AppIconAssets.place_holder_image,
+                              boxFix: BoxFit.fill,
+                            ),
+                          ),
+                  ),
+                ),
+                if (ratingValue != null)
+                  Positioned(
+                    left: SizeConfig.size12,
+                    top: SizeConfig.size12,
+                    child: _buildRatingBadge(ratingValue),
+                  ),
+                if (hoursStr != null)
+                  Positioned(
+                    right: SizeConfig.size12,
+                    bottom: SizeConfig.size12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x1F001120),
+                            blurRadius: 8,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.access_time_rounded,
+                            size: 14,
+                            color: AppColors.green00,
+                          ),
+                          const SizedBox(width: 6),
+                          CustomText(
+                            'Open | $hoursStr',
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.green00,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  SizedBox(width: SizeConfig.size8),
-                  Flexible(
-                    child: Text(
-                      designation.toUpperCase(),
-                      style: TextStyle(
-                        fontFamily: AppConstants.OpenSans,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.primaryColor,
-                        letterSpacing: 1.4,
+              ],
+            ),
+
+            Padding(
+              padding: EdgeInsets.all(SizeConfig.size14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // ─── Avatar + name + location ─────────────────
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CachedAvatarWidget(
+                        imageUrl: profileImage,
+                        size: SizeConfig.size40,
+                        borderColor: Colors.white,
+                        borderRadius: SizeConfig.size20,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                      SizedBox(width: SizeConfig.size10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              name,
+                              style: TextStyle(
+                                fontFamily: AppConstants.OpenSans,
+                                fontSize: 17,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.mainTextColor,
+                                letterSpacing: -0.2,
+                                height: 1.15,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            if (distStr != null || address.isNotEmpty) ...[
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Icon(
+                                    Icons.location_on,
+                                    size: 14,
+                                    color: AppColors.primaryColor,
+                                  ),
+                                  const SizedBox(width: 2),
+                                  if (distStr != null)
+                                    CustomText(
+                                      distStr,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.primaryColor,
+                                    ),
+                                  if (distStr != null && address.isNotEmpty)
+                                    CustomText(
+                                      '  |  ',
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w400,
+                                      color: AppColors.secondaryTextColor,
+                                    ),
+                                  if (address.isNotEmpty)
+                                    Expanded(
+                                      child: CustomText(
+                                        address,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w400,
+                                        color: AppColors.secondaryTextColor,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  // ─── "Services offered" box ───────────────────
+                  if (visibleServices.isNotEmpty) ...[
+                    SizedBox(height: SizeConfig.size12),
+                    Container(
+                      padding: EdgeInsets.all(SizeConfig.size12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: const Color(0xFFEDEFF4),
+                          width: 1,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CustomText(
+                            'Services offered',
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.mainTextColor,
+                          ),
+                          SizedBox(height: SizeConfig.size8),
+                          Container(
+                              height: 1, color: const Color(0xFFEDEFF4)),
+                          SizedBox(height: SizeConfig.size10),
+                          _servicesGrid(
+                            visibleServices,
+                            extraServices,
+                            openDetail,
+                          ),
+                        ],
+                      ),
                     ),
+                  ],
+
+                  SizedBox(height: SizeConfig.size14),
+
+                  // ─── Footer: price + chat + Book Now ──────────
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CustomText(
+                            'Starting From',
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.secondaryTextColor,
+                          ),
+                          const SizedBox(height: 2),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              CustomText(
+                                priceStr,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.primaryColor,
+                              ),
+                              if (priceStr != '—' && priceUnit.isNotEmpty)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 2),
+                                  child: CustomText(
+                                    '/$priceUnit',
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                    color: AppColors.secondaryTextColor,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const Spacer(),
+                      // Chat / enquire icon button
+                      InkWell(
+                        onTap: () =>
+                            ServiceEnquirySheet.open(context, service),
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          height: 44,
+                          width: 44,
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryColor
+                                .withValues(alpha: 0.10),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Center(
+                            child: LocalAssets(
+                              imagePath: AppIconAssets.chat,
+                              height: 20,
+                              width: 20,
+                              imgColor: AppColors.primaryColor,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: SizeConfig.size10),
+                      // Book Now (filled)
+                      InkWell(
+                        onTap: openDetail,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          height: 44,
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryColor,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primaryColor
+                                    .withValues(alpha: 0.30),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CustomText(
+                                'Book Now',
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(width: 8),
+                              const Icon(
+                                Icons.arrow_forward_rounded,
+                                size: 16,
+                                color: Colors.white,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            SizedBox(height: SizeConfig.size8),
-
-            // ─── Name + small avatar ──────────────────────────────
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Expanded(
-                  child: Text(
-                    name,
-                    style: TextStyle(
-                      fontFamily: AppConstants.OpenSans,
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.mainTextColor,
-                      letterSpacing: -0.3,
-                      height: 1.15,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                SizedBox(width: SizeConfig.size10),
-                CachedAvatarWidget(
-                  imageUrl: profileImage,
-                  size: SizeConfig.size40,
-                  borderColor: Colors.white,
-                  borderRadius: SizeConfig.size20,
-                ),
-              ],
-            ),
-
-            if (taglineRaw.isNotEmpty) ...[
-              SizedBox(height: SizeConfig.size6),
-              Text(
-                taglineRaw,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.secondaryTextColor,
-                  height: 1.4,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-
-            // ─── Services strip (offered + types of work) ─────────
-            if (services.isNotEmpty) ...[
-              SizedBox(height: SizeConfig.size12),
-              Container(height: 1, color: const Color(0xFFEDEFF4)),
-              SizedBox(height: SizeConfig.size12),
-              _servicesStrip(services),
-            ],
-
-            // ─── 3-column spec strip (PRICE / NEAR / HOURS) ───────
-            SizedBox(height: SizeConfig.size12),
-            Container(height: 1, color: const Color(0xFFEDEFF4)),
-            SizedBox(height: SizeConfig.size12),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                    child: _specColumn(AppStrings.specLabelPrice.tr, priceStr)),
-                Expanded(
-                    child: _specColumn(AppStrings.specLabelNear.tr, distStr)),
-                Expanded(
-                    child: _specColumn(AppStrings.specLabelHours.tr, hoursStr)),
-              ],
-            ),
-
-            // ─── Live-photo carousel OR profile-image fallback ────
-            // Mirrors the consultant card so the gallery experience
-            // stays consistent across both Discover lists. The 200px
-            // height holds the card silhouette steady even when a
-            // provider hasn't uploaded service photos yet.
-            if (livePhotos.isNotEmpty) ...[
-              SizedBox(height: SizeConfig.size12),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: StoreLivePhotoWidget(
-                  livePhotos: livePhotos,
-                  natureOfBusiness: service.profession ?? 'Service',
-                  height: 200,
-                  onViewFullScreen: ({
-                    required int index,
-                    required List<String> storeImage,
-                    required String natureOfBusiness,
-                  }) {
-                    navigatePushTo(
-                      context,
-                      ImageViewScreen(
-                        subTitle: natureOfBusiness,
-                        appBarTitle: AppStrings.imageViewer,
-                        imageUrls: storeImage,
-                        initialIndex: index,
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ] else if (profileImage.isNotEmpty) ...[
-              SizedBox(height: SizeConfig.size12),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: GestureDetector(
-                  onTap: () => navigatePushTo(
-                    context,
-                    ImageViewScreen(
-                      subTitle: service.profession ?? 'Service',
-                      appBarTitle: AppStrings.imageViewer,
-                      imageUrls: [profileImage],
-                      initialIndex: 0,
-                    ),
-                  ),
-                  child: SizedBox(
-                    height: 200,
-                    width: double.infinity,
-                    child: CachedNetworkImage(
-                      imageUrl: profileImage,
-                      fit: BoxFit.cover,
-                      memCacheWidth: 800,
-                      memCacheHeight: 600,
-                      placeholder: (_, __) => LocalAssets(
-                        imagePath: AppIconAssets.place_holder_image,
-                        boxFix: BoxFit.fill,
-                      ),
-                      errorWidget: (_, __, ___) => LocalAssets(
-                        imagePath: AppIconAssets.place_holder_image,
-                        boxFix: BoxFit.fill,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-
-            SizedBox(height: SizeConfig.size12),
-            Container(height: 1, color: const Color(0xFFEDEFF4)),
-            SizedBox(height: SizeConfig.size10),
-
-            // ─── Footer: View (ghost) + Enquire (filled) ──────────
-            Row(
-              children: [
-                Expanded(
-                  child: _ghostButton(
-                    label: 'view'.tr,
-                    icon: Icons.arrow_outward_rounded,
-                    onTap: openDetail,
-                  ),
-                ),
-                SizedBox(width: SizeConfig.size10),
-                Expanded(
-                  child: _filledButton(
-                    label: AppStrings.enquire.tr,
-                    icon: Icons.chat_outlined,
-                    onTap: () => ServiceEnquirySheet.open(context, service),
-                  ),
-                ),
-              ],
             ),
           ],
         ),
@@ -824,168 +936,66 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
     return out;
   }
 
-  /// Wrapped chip strip of the provider's services. Shows up to [maxChips]
-  /// chips; any overflow collapses into a muted "+N more" pill so providers
-  /// with long service lists don't blow out the card height.
-  Widget _servicesStrip(List<String> services) {
-    const maxChips = 6;
-    final visible = services.take(maxChips).toList();
-    final overflow = services.length - visible.length;
+  /// Two-column checklist inside the "Services offered" box. [items] is
+  /// already capped; when [extra] > 0 a trailing "+N more services" link
+  /// (→ [onMore]) fills the final cell.
+  Widget _servicesGrid(List<String> items, int extra, VoidCallback onMore) {
+    final cells = <Widget>[
+      ...items.map(_serviceCheckItem),
+      if (extra > 0) _moreServicesLink(extra, onMore),
+    ];
+    final rows = <Widget>[];
+    for (var i = 0; i < cells.length; i += 2) {
+      rows.add(Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(child: cells[i]),
+          SizedBox(width: SizeConfig.size10),
+          Expanded(
+            child:
+                i + 1 < cells.length ? cells[i + 1] : const SizedBox.shrink(),
+          ),
+        ],
+      ));
+      if (i + 2 < cells.length) {
+        rows.add(SizedBox(height: SizeConfig.size8));
+      }
+    }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(
-          'SERVICES',
-          style: TextStyle(
-            fontFamily: AppConstants.OpenSans,
-            fontSize: 9,
-            fontWeight: FontWeight.w800,
-            color: AppColors.secondaryTextColor,
-            letterSpacing: 1.2,
-          ),
-        ),
-        SizedBox(height: SizeConfig.size8),
-        Wrap(
-          spacing: 6,
-          runSpacing: 6,
-          children: [
-            ...visible.map((s) => _serviceChip(s)),
-            if (overflow > 0) _serviceChip('+$overflow more', muted: true),
-          ],
-        ),
-      ],
+      children: rows,
     );
   }
 
-  /// Single column of the spec strip — uppercase eyebrow label on top, value
-  /// below in body weight with tabular figures so digit columns align.
-  Widget _specColumn(String label, String value) {
-    return Column(
+  Widget _serviceCheckItem(String text) {
+    return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontFamily: AppConstants.OpenSans,
-            fontSize: 9,
-            fontWeight: FontWeight.w800,
-            color: AppColors.secondaryTextColor,
-            letterSpacing: 1.2,
-          ),
-        ),
-        const SizedBox(height: 4),
-        FittedBox(
-          fit: BoxFit.scaleDown,
-          alignment: Alignment.centerLeft,
-          child: Text(
-            value,
-            style: TextStyle(
-              fontFamily: AppConstants.OpenSans,
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-              color: AppColors.mainTextColor,
-              letterSpacing: 0.2,
-              fontFeatures: const [FontFeature.tabularFigures()],
-            ),
+        Icon(Icons.check_circle, size: 15, color: AppColors.green00),
+        const SizedBox(width: 6),
+        Expanded(
+          child: CustomText(
+            text,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: AppColors.mainTextColor,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
     );
   }
 
-  Widget _serviceChip(String label, {bool muted = false}) {
-    final fg = muted ? AppColors.secondaryTextColor : AppColors.primaryColor;
-    final bg = muted
-        ? AppColors.greyE5.withValues(alpha: 0.4)
-        : AppColors.primaryColor.withValues(alpha: 0.08);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: fg.withValues(alpha: 0.25), width: 0.8),
-      ),
+  Widget _moreServicesLink(int extra, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
       child: CustomText(
-        label,
-        fontSize: 11,
-        fontWeight: FontWeight.w700,
-        color: fg,
-        maxLines: 1,
-      ),
-    );
-  }
-
-  Widget _ghostButton({
-    required String label,
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: AppColors.primaryColor.withValues(alpha: 0.30),
-            width: 1,
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 14, color: AppColors.primaryColor),
-            const SizedBox(width: 6),
-            CustomText(
-              label,
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: AppColors.primaryColor,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _filledButton({
-    required String label,
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: AppColors.primaryColor,
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primaryColor.withValues(alpha: 0.30),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 14, color: Colors.white),
-            const SizedBox(width: 6),
-            CustomText(
-              label,
-              fontSize: 13,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-            ),
-          ],
-        ),
+        '+$extra more services',
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: AppColors.primaryColor,
       ),
     );
   }
@@ -1120,7 +1130,7 @@ class _AllSelfProfessionScreenState extends State<AllSelfProfessionScreen> {
 }
 
 /// Full-screen map page reached by tapping the inline preview on
-/// [AllSelfProfessionScreen]. Loads every provider (unpaginated) via
+/// [SelfProfessionDiscoverScreen]. Loads every provider (unpaginated) via
 /// [DiscoverController.fetchAllEarnServicesForMap] and renders them
 /// through `google_maps_flutter`'s built-in clustering so 100+ pins
 /// stay smooth — nearby providers collapse into a count badge that

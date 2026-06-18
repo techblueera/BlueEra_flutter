@@ -6,6 +6,8 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/hmp_discover_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/home_service_discover_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/v2/hmp_discover_screen_v2.dart';
+import 'package:BlueEra/features/common/Discover/view/v2/home_service_discover_screen_v2.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -40,9 +42,11 @@ class HomeMadeProductAndServiceWidget extends StatelessWidget {
                     child: InkWell(
                       onTap: () {
                         if (categoryItem.slugId == SERVICE) {
-                          Get.to(() => HomeServiceDiscoverScreen());
+                          // Get.to(() => HomeServiceDiscoverScreen());
+                          Get.to(() => HomeServiceDiscoverScreenV2());
                         } else if (categoryItem.slugId == PRODUCT) {
-                          Get.to(() => HmpDiscoverScreen());
+                          // Get.to(() => HmpDiscoverScreen());
+                          Get.to(() => HmpDiscoverScreenV2());
                         }
                       },
                       splashColor: AppColors.primaryColor.withValues(alpha: 0.18),

@@ -119,24 +119,33 @@ class EarnProfileStoreCard extends StatelessWidget {
         ],
       ),
       clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildHero(),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildTitleRow(context),
-                const SizedBox(height: 12),
-                _buildFeatureRow(),
-                const SizedBox(height: 12),
-                _buildActionButtons(),
-              ],
-            ),
+      // Whole card is tappable (→ onStoreTap) so users can open the store from
+      // anywhere on it; the inner Chat / "View" buttons and the map link keep
+      // their own taps.
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHero(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildTitleRow(context),
+                    const SizedBox(height: 12),
+                    _buildFeatureRow(),
+                    const SizedBox(height: 12),
+                    _buildActionButtons(),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

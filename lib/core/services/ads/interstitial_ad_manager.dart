@@ -29,7 +29,7 @@ class InterstitialAdManager {
   /// Set [AdConfig.useLiveAdsInRelease] to `false` to force the TEST units even
   /// in a release build (e.g. to verify ad delivery on a signed build).
   String get _adUnitId {
-    if (kReleaseMode && AdConfig.useLiveAdsInRelease) {
+    if (AdConfig.useLiveUnits) {
       return Platform.isIOS
           ? Env.admobInterstitialAdUnitIos
           : Env.admobInterstitialAdUnitAndroid;
@@ -95,6 +95,12 @@ class InterstitialAdManager {
     // once ad delivery is verified.
     print('[INTERSTITIAL_AD] showInterstitial() called — '
         'sdkInit=$_sdkInitialized isShowing=$_isShowing adLoaded=${_ad != null}');
+    // Master kill-switch: when ads are disabled for this build (e.g. a clean
+    // debug run with AdConfig.showAdsInDebug == false), never show anything.
+    if (!AdConfig.adsEnabled) {
+      print('[INTERSTITIAL_AD] ads disabled for this build — skipped');
+      return;
+    }
     if (!_sdkInitialized) {
       // Not initialised yet — initialise (also kicks the first load) and wait
       // for it so we can show this round rather than skipping.

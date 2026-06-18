@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/ads/ad_config.dart';
 import 'package:BlueEra/env.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -35,7 +34,7 @@ class NativeAdWidget extends StatefulWidget {
   /// Set [AdConfig.useLiveAdsInRelease] to `false` to force the TEST unit even
   /// in a release build (e.g. to verify ad delivery on a signed build).
   static String get adUnitId {
-    if (kReleaseMode && AdConfig.useLiveAdsInRelease) {
+    if (AdConfig.useLiveUnits) {
       return Platform.isIOS
           ? Env.admobNativeAdUnitIos
           : Env.admobNativeAdUnitAndroid;
@@ -67,6 +66,14 @@ class _NativeAdWidgetState extends State<NativeAdWidget>
   }
 
   Future<void> _loadAd() async {
+    // Master kill-switch: when ads are disabled for this build (e.g. a clean
+    // debug run with AdConfig.showAdsInDebug == false), don't load anything and
+    // collapse the slot to zero height so the list looks ad-free.
+    if (!AdConfig.adsEnabled) {
+      if (mounted) setState(() => _failed = true);
+      return;
+    }
+
     // Ensure the Mobile Ads SDK is initialised BEFORE loading. Native ad slots
     // can build before main()'s `MobileAds.instance.initialize()` completes
     // (e.g. the feed is shown right at app launch) — loading before init fails

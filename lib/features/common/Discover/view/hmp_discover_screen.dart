@@ -11,6 +11,7 @@ import 'package:BlueEra/features/common/Discover/widget/earn_profile_store_list.
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_dashboard_view.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/hmp_profile_screen.dart';
+import 'package:BlueEra/widgets/blinking_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/floating_cart_widget.dart';
 import 'package:flutter/material.dart';
@@ -29,6 +30,7 @@ class HmpDiscoverScreen extends StatefulWidget {
 class _HmpDiscoverScreenState extends State<HmpDiscoverScreen> {
   static const String _profileType = 'homeMadeProduct';
   static const Color _primary = AppColors.primaryColor;
+  static const Color _primaryDeep = AppColors.blue5CAF;
 
   final controller = getOrPut(
     () => EarnProfilesDiscoverController(profileType: _profileType),
@@ -193,7 +195,6 @@ class _HmpDiscoverScreenState extends State<HmpDiscoverScreen> {
                               width: 2,
                             ),
                           ),
-                          if (isIndividualUser()) _buildPostCta(),
                           SizedBox(height: SizeConfig.size12),
                         ],
                       ),
@@ -211,6 +212,22 @@ class _HmpDiscoverScreenState extends State<HmpDiscoverScreen> {
                 bottom: 0,
                 child: SafeArea(child: _buildCartBar()),
               ),
+              if (isIndividualUser())
+                Positioned(
+                  right: 16,
+                  bottom: 0,
+                  child: SafeArea(
+                    child: Obx(() {
+                      final cartVisible = !cartController.isEmpty;
+                      return AnimatedPadding(
+                        duration: const Duration(milliseconds: 220),
+                        curve: Curves.easeOut,
+                        padding: EdgeInsets.only(bottom: cartVisible ? 84 : 16),
+                        child: BlinkingWidget(child: _buildPostFab()),
+                      );
+                    }),
+                  ),
+                ),
             ],
           ),
         ),
@@ -259,88 +276,45 @@ class _HmpDiscoverScreenState extends State<HmpDiscoverScreen> {
     );
   }
 
-  // ── Post CTA (individual users only) ──────────────────────────────────────
-  Widget _buildPostCta() {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        SizeConfig.size12,
-        SizeConfig.size14,
-        SizeConfig.size12,
-        SizeConfig.size4,
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: _onPostTap,
-          borderRadius: BorderRadius.circular(10),
-          child: Ink(
-            decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: AppColors.greyE5),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+  /// Floating "Add Product" action — a gradient extended FAB pill, so the add
+  /// affordance no longer crowds the banner header.
+  Widget _buildPostFab() {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: _onPostTap,
+        borderRadius: BorderRadius.circular(30),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [_primary, _primaryDeep],
             ),
-            child: Padding(
-              padding: const EdgeInsets.all(10),
-              child: Row(
-                children: [
-                  Container(
-                    width: 46,
-                    height: 46,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: _primary.withValues(alpha: 0.10),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(Icons.storefront_rounded,
-                        color: _primary, size: 24),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomText(
-                          'Add Your Own Home Made Product',
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.mainTextColor,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 2),
-                        CustomText(
-                          'Start your home business & reach nearby buyers',
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w500,
-                          color: AppColors.secondaryTextColor,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    width: 34,
-                    height: 34,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: _primary.withValues(alpha: 0.10),
-                    ),
-                    child: Icon(Icons.arrow_forward_rounded,
-                        color: AppColors.secondaryTextColor, size: 16),
-                  ),
-                ],
+            borderRadius: BorderRadius.circular(30),
+            boxShadow: [
+              BoxShadow(
+                color: _primary.withValues(alpha: 0.40),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
               ),
-            ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.add_business_rounded,
+                  color: Colors.white, size: 18),
+              const SizedBox(width: 8),
+              CustomText(
+                'Add Product',
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+                color: AppColors.white,
+                letterSpacing: 0.2,
+              ),
+            ],
           ),
         ),
       ),
