@@ -71,8 +71,7 @@ class FinanceDiscoverController extends GetxController {
       }
       error.value = '';
       final ResponseModel res = await ApiBaseHelper().getHTTP(
-        // "other-service/business-profile/search?distance=5000&limit=$_limit&category_Of_Business=CONSULTING_BUSINESS_SERVICES",
-        "other-service/business-profile/search?distance=5000&limit=$_limit&sub_type=${selectedCategory.value}",
+        "other-service/business-profile/search?distance=5000&limit=$_limit&page=$page&sub_type=${selectedCategory.value}",
         onError: (e) {},
         onSuccess: (data) {},
       );
@@ -83,7 +82,16 @@ class FinanceDiscoverController extends GetxController {
         if (items.isEmpty) {
           hasMore.value = false;
         } else {
-          profiles.addAll(items);
+          final existingIds = profiles.map((p) => p.id).toSet();
+          final newItems = items
+              .where((i) => i.id == null || !existingIds.contains(i.id))
+              .toList();
+          if (newItems.isEmpty) {
+            hasMore.value = false;
+          } else {
+            profiles.addAll(newItems);
+            if (items.length < _limit) hasMore.value = false;
+          }
         }
       } else {
         hasMore.value = false;
