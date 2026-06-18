@@ -57,7 +57,7 @@ class PopupMenuBuilders {
       PostCreationMenu.poll: AppStrings.poll,
       PostCreationMenu.symbol: AppStrings.symbol,
       // PostCreationMenu.photos: AppStrings.symbol,
-      PostCreationMenu.reel: 'Reel',
+      // PostCreationMenu.reel: 'Reel',
       PostCreationMenu.jobPost: AppStrings.jobPost,
       // PostCreationMenu.travel: AppStrings.travel,
     };

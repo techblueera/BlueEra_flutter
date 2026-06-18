@@ -209,7 +209,7 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
                       tabs: [
                         Tab(text: AppStrings.social.tr),
                         Tab(text: AppStrings.community.tr),
-                        Tab(text: "Reels"),
+                        // Tab(text: "Reels"),
                       ],
                     ),
                   ),
@@ -229,9 +229,9 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
                             key: const ValueKey('orderMain_feed_community'),
                             headerHeight: 0,
                           ),
-                          ReelsTabScreen(
-                            key: const ValueKey('reels_tab_screen'),
-                          ),
+                          // ReelsTabScreen(
+                          //   key: const ValueKey('reels_tab_screen'),
+                          // ),
                         ],
                       ),
                     ),
