@@ -543,13 +543,14 @@ class AuthController extends GetxController {
             pending.add(getOrPut(() => SchoolController())
                 .createSchoolController(reqData: reqData));
           } else if (categoryOfBusiness ==
-              AppConstants.DIAGNOSTIC_TESTING_CENTERSWith_.toUpperCase()) {
+              "Diagnostic".toUpperCase()) {
             pending.add(getOrPut(() => LabServiceAiController())
                 .createLabServiceController(reqData: reqBody));
           } else if (categoryOfBusiness ==
-                  AppConstants.HOSPITALS_SECTOR.toUpperCase() ||
-              categoryOfBusiness == "ALTERNATIVE_WELLNESS" ||
-              categoryOfBusiness == "CLINIC_DOCTORS") {
+                  "HOSPITALS" ||
+              categoryOfBusiness == "ALTERNATIVE HEALTH" ||
+              categoryOfBusiness == "DOCTORS" ||
+              categoryOfBusiness == "CLINICS") {
             pending.add(getOrPut(() => HospitalServiceAiController())
                 .createHospitalServiceController(reqData: reqBody));
           } else if (categoryOfBusiness == "SUPPORT_SERVICES" ||
