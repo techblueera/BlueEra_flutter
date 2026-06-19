@@ -508,6 +508,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   Widget meScreens() {
+
     if (isGuestUser()) return GuestDashBoardScreen();
     // Colour is applied globally via the theme; the banner is painted
     // app-wide in `GetMaterialApp.builder` (shared `AppHomeBackground`

@@ -92,7 +92,7 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
 
   List<String> _tabs = [
     AppStrings.inquiry.tr,
-    AppStrings.orders.tr,
+    // AppStrings.orders.tr,
     AppStrings.overview.tr,
     AppStrings.products.tr,
     AppStrings.posts.tr,
@@ -215,7 +215,7 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
                     topBarHeight: MediaQuery.of(context).padding.top + 132,
                     tabViews: [
                       _tabScroll(_buildInquiryTab()),
-                      ProfileStatisticsScreen(userId: userId),
+                      // ProfileStatisticsScreen(userId: userId),
                       _tabScroll(_buildOverviewSlivers()),
                       _tabScroll(_buildProductsTab()),
                       _tabScroll(_buildPostTab()),
@@ -903,19 +903,19 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
                       : _logoFallback(),
                 );
               }),
-              Positioned(
-                right: -10,
-                top: 6,
-                child: Container(
-                  height: SizeConfig.size30,
-                  width: SizeConfig.size30,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.red.shade600,
-                    border: Border.all(color: Colors.white, width: 2),
-                  ),
-                ),
-              ),
+              // Positioned(
+              //   right: -10,
+              //   top: 6,
+              //   child: Container(
+              //     height: SizeConfig.size30,
+              //     width: SizeConfig.size30,
+              //     decoration: BoxDecoration(
+              //       shape: BoxShape.circle,
+              //       color: Colors.red.shade600,
+              //       border: Border.all(color: Colors.white, width: 2),
+              //     ),
+              //   ),
+              // ),
             ],
           ),
           SizedBox(width: SizeConfig.size20),

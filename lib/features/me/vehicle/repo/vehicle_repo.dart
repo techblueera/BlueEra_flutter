@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:dio/dio.dart';
+import 'package:http_parser/http_parser.dart';
 
 /// Repository for the BlueEra vehicle service
 /// (`vehicle-service/...` endpoints).
@@ -60,12 +61,20 @@ class VehicleRepo extends BaseService {
     );
   }
 
-  /// GET /vehicles  — public, paginated, filterable.
+  /// GET /vehicles  — public, paginated, filterable. Filters are AND-ed
+  /// and each is an exact, case-normalized match on its own field. Radius
+  /// search needs [lat], [lng] and [radiusKm] together.
   Future<ResponseModel> listVehicles({
     String? category,
     String? subCategory,
+    String? type,
+    String? condition,
     int? pincode,
     String? userId,
+    String? businessId,
+    double? lat,
+    double? lng,
+    double? radiusKm,
     String? q,
     int page = 1,
     int limit = 20,
@@ -75,8 +84,17 @@ class VehicleRepo extends BaseService {
       if (category != null && category.isNotEmpty) 'category': category,
       if (subCategory != null && subCategory.isNotEmpty)
         'sub_category': subCategory,
+      if (type != null && type.isNotEmpty) 'type': type,
+      if (condition != null && condition.isNotEmpty) 'condition': condition,
       if (pincode != null) 'pincode': pincode,
       if (userId != null && userId.isNotEmpty) 'user_id': userId,
+      if (businessId != null && businessId.isNotEmpty)
+        'business_id': businessId,
+      if (lat != null && lng != null && radiusKm != null) ...{
+        'lat': lat,
+        'lng': lng,
+        'radius_km': radiusKm,
+      },
       if (q != null && q.isNotEmpty) 'q': q,
       'page': page,
       'limit': limit,
@@ -84,6 +102,136 @@ class VehicleRepo extends BaseService {
     return ApiBaseHelper().getHTTP(
       vehiclesList,
       params: query,
+      showProgress: showProgress,
+      onSuccess: (_) {},
+      onError: (_) {},
+    );
+  }
+
+  // ─── Catalog (Brand → Model → Variant) ───────────────────────────
+
+  /// GET /vehicles/catalog/brands — Select-Brand screen. `hasListings`
+  /// limits to brands with ≥1 live listing (buyer discovery).
+  Future<ResponseModel> listCatalogBrands({
+    String? category,
+    bool? popular,
+    String? q,
+    bool? hasListings,
+    bool showProgress = false,
+  }) async {
+    return ApiBaseHelper().getHTTP(
+      vehicleCatalogBrands,
+      params: {
+        if (category != null && category.isNotEmpty) 'category': category,
+        if (popular != null) 'popular': popular,
+        if (q != null && q.isNotEmpty) 'q': q,
+        if (hasListings == true) 'has_listings': true,
+      },
+      showProgress: showProgress,
+      onSuccess: (_) {},
+      onError: (_) {},
+    );
+  }
+
+  /// GET /vehicles/catalog/models — Select-Model screen.
+  Future<ResponseModel> listCatalogModels({
+    String? brandId,
+    String? category,
+    String? q,
+    bool? hasListings,
+    bool showProgress = false,
+  }) async {
+    return ApiBaseHelper().getHTTP(
+      vehicleCatalogModels,
+      params: {
+        if (brandId != null && brandId.isNotEmpty) 'brand_id': brandId,
+        if (category != null && category.isNotEmpty) 'category': category,
+        if (q != null && q.isNotEmpty) 'q': q,
+        if (hasListings == true) 'has_listings': true,
+      },
+      showProgress: showProgress,
+      onSuccess: (_) {},
+      onError: (_) {},
+    );
+  }
+
+  /// GET /vehicles/catalog/models/{id}/variants — Select-Variant screen.
+  Future<ResponseModel> listModelVariants(
+    String modelId, {
+    bool showProgress = false,
+  }) async {
+    return ApiBaseHelper().getHTTP(
+      vehicleCatalogModelVariants(modelId),
+      showProgress: showProgress,
+      onSuccess: (_) {},
+      onError: (_) {},
+    );
+  }
+
+  /// GET /vehicles/catalog/variants/{id} — PREFILL payload for the form.
+  Future<ResponseModel> getVariantPrefill(
+    String variantId, {
+    bool showProgress = true,
+  }) async {
+    return ApiBaseHelper().getHTTP(
+      vehicleCatalogVariant(variantId),
+      showProgress: showProgress,
+      onSuccess: (_) {},
+      onError: (_) {},
+    );
+  }
+
+  /// GET /vehicles/catalog/categories — DB-backed taxonomy tree.
+  /// `withListings` prunes to leaves that have live listings (+ ancestors).
+  Future<ResponseModel> listCatalogCategories({
+    bool? withListings,
+    bool showProgress = false,
+  }) async {
+    return ApiBaseHelper().getHTTP(
+      vehicleCatalogCategories,
+      params: {if (withListings == true) 'with_listings': true},
+      showProgress: showProgress,
+      onSuccess: (_) {},
+      onError: (_) {},
+    );
+  }
+
+  /// POST /vehicles/catalog/requests — ask for a catalog item that doesn't
+  /// exist yet (`brand` & `model` required; created `pending`).
+  Future<ResponseModel> createMissingModelRequest(
+    Map<String, dynamic> body, {
+    bool showProgress = true,
+  }) async {
+    return ApiBaseHelper().postHTTP(
+      vehicleCatalogRequests,
+      params: body,
+      showProgress: showProgress,
+      onSuccess: (_) {},
+      onError: (_) {},
+    );
+  }
+
+  /// GET /vehicles/catalog/requests/my — caller's own missing-model requests.
+  Future<ResponseModel> listMyMissingModelRequests({
+    bool showProgress = false,
+  }) async {
+    return ApiBaseHelper().getHTTP(
+      vehicleCatalogRequestsMine,
+      showProgress: showProgress,
+      onSuccess: (_) {},
+      onError: (_) {},
+    );
+  }
+
+  /// POST /vehicles/catalog/change-requests — propose edits to an existing
+  /// Model/Variant (`target_type`, `target_id`, `changes`).
+  Future<ResponseModel> createCatalogChangeRequest(
+    Map<String, dynamic> body, {
+    bool showProgress = true,
+  }) async {
+    return ApiBaseHelper().postHTTP(
+      vehicleCatalogChangeRequests,
+      params: body,
       showProgress: showProgress,
       onSuccess: (_) {},
       onError: (_) {},
@@ -471,7 +619,54 @@ class VehicleRepo extends BaseService {
     );
   }
 
-  /// Step 2 — PUT the binary body to the presigned URL.
+  /// Step 1 (preferred) — ask backend for a size-capped presigned POST
+  /// policy. GET /upload/init-v2?fileName=...&fileType=...
+  Future<ResponseModel> initUploadV2({
+    required String fileName,
+    required String fileType,
+  }) async {
+    return ApiBaseHelper().getHTTP(
+      vehicleUploadInitV2,
+      params: {'fileName': fileName, 'fileType': fileType},
+      showProgress: false,
+      onSuccess: (_) {},
+      onError: (_) {},
+    );
+  }
+
+  /// Step 2 (preferred) — POST a multipart body to the presigned policy
+  /// `url`: append all returned policy [fields] FIRST, then the binary
+  /// `file` LAST (S3 requires this ordering). S3 enforces the declared
+  /// Content-Type and the size cap baked into the policy. Uses a fresh
+  /// [Dio] so app headers (Authorization) never leak into the upload.
+  Future<void> postToS3({
+    required String url,
+    required Map<String, dynamic> fields,
+    required File file,
+    required String contentType,
+    void Function(int sent, int total)? onProgress,
+  }) async {
+    final form = FormData();
+    fields.forEach((k, v) {
+      form.fields.add(MapEntry(k, v.toString()));
+    });
+    form.files.add(MapEntry(
+      'file',
+      await MultipartFile.fromFile(
+        file.path,
+        filename: file.uri.pathSegments.last,
+        contentType: MediaType.parse(contentType),
+      ),
+    ));
+    final dio = Dio();
+    await dio.post(
+      url,
+      data: form,
+      onSendProgress: onProgress,
+    );
+  }
+
+  /// Step 2 (legacy) — PUT the binary body to the presigned URL.
   ///
   /// IMPORTANT: do NOT send the Authorization header here; S3 only
   /// accepts the signed Content-Type. We use a fresh [Dio] (not the

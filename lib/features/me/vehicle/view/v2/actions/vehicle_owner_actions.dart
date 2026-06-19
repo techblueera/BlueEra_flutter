@@ -5,7 +5,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/me/vehicle/controller/vehicle_controller.dart';
 import 'package:BlueEra/features/me/vehicle/model/vehicle_models.dart';
-import 'package:BlueEra/features/me/vehicle/view/add_vehicle/add_vehicle_flow_screen.dart';
+import 'package:BlueEra/features/me/vehicle/view/add_vehicle/vehicle_catalog_picker_screen.dart';
 import 'package:BlueEra/features/me/vehicle/view/widgets/vehicle_contact_form_sheet.dart';
 import 'package:BlueEra/features/me/vehicle/view/widgets/vehicle_form_sheet.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
@@ -25,6 +25,9 @@ class VehicleOwnerActions {
 
   /// Opens the add-vehicle flow. The category implied by the business
   /// (`businessCategoryGlobal`) fixes NEW vs USED so the chooser is skipped.
+  /// Starts at the catalog picker (Select Brand → Model → Variant) so the
+  /// listing references a catalog `variant_id`; the picker then opens the
+  /// detail form pre-filled.
   static Future<void> addVehicle(
     BuildContext context,
     VehicleController ctrl,
@@ -34,7 +37,7 @@ class VehicleOwnerActions {
         : VehicleCondition.isNew;
     final created = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
-        builder: (_) => AddVehicleFlowScreen(condition: condition),
+        builder: (_) => VehicleCatalogPickerScreen(condition: condition),
         fullscreenDialog: true,
       ),
     );

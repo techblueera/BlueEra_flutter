@@ -35,6 +35,17 @@ class VehicleController extends GetxController {
   final RxString sellerDefaultName = ''.obs;
   final RxString sellerDefaultMobile = ''.obs;
 
+  // ─── Catalog (Brand → Model → Variant) ────────────────────────────
+  // Drives the catalog picker. A listing references the chosen catalog
+  // `variant_id`; the form is pre-filled from `GET /catalog/variants/{id}`.
+  final RxList<VehicleBrand> catalogBrands = <VehicleBrand>[].obs;
+  final Rx<ApiResponse> catalogBrandsState = ApiResponse.initial().obs;
+  final RxList<VehicleModelCatalog> catalogModels = <VehicleModelCatalog>[].obs;
+  final Rx<ApiResponse> catalogModelsState = ApiResponse.initial().obs;
+  final RxList<VehicleVariant> catalogVariants = <VehicleVariant>[].obs;
+  final Rx<ApiResponse> catalogVariantsState = ApiResponse.initial().obs;
+  final Rx<ApiResponse> prefillState = ApiResponse.initial().obs;
+
   // ─── Owner-side state (Me-tab) ────────────────────────────────────
   final RxList<Vehicle> myVehicles = <Vehicle>[].obs;
   final Rx<ApiResponse> myVehiclesState = ApiResponse.initial().obs;
@@ -56,8 +67,14 @@ class VehicleController extends GetxController {
   // Last-applied filters — preserved across pagination calls.
   String? _filterCategory;
   String? _filterSubCategory;
+  String? _filterType;
+  String? _filterCondition;
   int? _filterPincode;
   String? _filterUserId;
+  String? _filterBusinessId;
+  double? _filterLat;
+  double? _filterLng;
+  double? _filterRadiusKm;
   String? _filterQuery;
 
   // ─── Single vehicle (detail screen) ───────────────────────────────
@@ -145,6 +162,133 @@ class VehicleController extends GetxController {
       if (t.value == value) return t.label;
     }
     return value;
+  }
+
+  // ────────────────────────────────────────────────────────────────
+  // Catalog (Brand → Model → Variant)
+  // ────────────────────────────────────────────────────────────────
+
+  /// Select-Brand screen. Pass [hasListings] for buyer discovery.
+  Future<void> fetchCatalogBrands({
+    String? category,
+    bool? popular,
+    String? q,
+    bool? hasListings,
+  }) async {
+    catalogBrandsState.value = ApiResponse.loading();
+    try {
+      final res = await _repo.listCatalogBrands(
+        category: category,
+        popular: popular,
+        q: q,
+        hasListings: hasListings,
+      );
+      if (res.isSuccess) {
+        catalogBrands.value = VehicleBrand.listFrom(res.response?.data?['brands']);
+        catalogBrandsState.value = ApiResponse.complete(catalogBrands);
+      } else {
+        catalogBrandsState.value =
+            ApiResponse.error(res.message?.toString() ?? 'Failed to load');
+      }
+    } catch (e) {
+      catalogBrandsState.value = ApiResponse.error(e.toString());
+    }
+  }
+
+  /// Select-Model screen for the chosen brand.
+  Future<void> fetchCatalogModels({
+    String? brandId,
+    String? category,
+    String? q,
+    bool? hasListings,
+  }) async {
+    catalogModelsState.value = ApiResponse.loading();
+    try {
+      final res = await _repo.listCatalogModels(
+        brandId: brandId,
+        category: category,
+        q: q,
+        hasListings: hasListings,
+      );
+      if (res.isSuccess) {
+        catalogModels.value =
+            VehicleModelCatalog.listFrom(res.response?.data?['models']);
+        catalogModelsState.value = ApiResponse.complete(catalogModels);
+      } else {
+        catalogModelsState.value =
+            ApiResponse.error(res.message?.toString() ?? 'Failed to load');
+      }
+    } catch (e) {
+      catalogModelsState.value = ApiResponse.error(e.toString());
+    }
+  }
+
+  /// Select-Variant screen for the chosen model.
+  Future<void> fetchModelVariants(String modelId) async {
+    catalogVariantsState.value = ApiResponse.loading();
+    try {
+      final res = await _repo.listModelVariants(modelId);
+      if (res.isSuccess) {
+        catalogVariants.value =
+            VehicleVariant.listFrom(res.response?.data?['variants']);
+        catalogVariantsState.value = ApiResponse.complete(catalogVariants);
+      } else {
+        catalogVariantsState.value =
+            ApiResponse.error(res.message?.toString() ?? 'Failed to load');
+      }
+    } catch (e) {
+      catalogVariantsState.value = ApiResponse.error(e.toString());
+    }
+  }
+
+  /// Resolve the prefill payload for a chosen variant. Returns the parsed
+  /// [VehiclePrefill] (apply it onto a draft via `VehicleDraft.applyPrefill`)
+  /// or null on failure.
+  Future<VehiclePrefill?> fetchVariantPrefill(String variantId) async {
+    prefillState.value = ApiResponse.loading();
+    try {
+      final res = await _repo.getVariantPrefill(variantId);
+      if (res.isSuccess) {
+        final prefill = VehiclePrefill.fromJson(
+          Map<String, dynamic>.from(res.response?.data ?? const {}),
+        );
+        prefillState.value = ApiResponse.complete(prefill);
+        return prefill;
+      }
+      prefillState.value =
+          ApiResponse.error(res.message?.toString() ?? 'Failed to load');
+      return null;
+    } catch (e) {
+      prefillState.value = ApiResponse.error(e.toString());
+      return null;
+    }
+  }
+
+  /// Ask for a catalog item that doesn't exist yet (`brand` & `model`
+  /// required). Returns true once the request is queued for admin review.
+  Future<bool> requestMissingModel({
+    required String brand,
+    required String model,
+    String? category,
+    String? note,
+  }) async {
+    try {
+      final res = await _repo.createMissingModelRequest({
+        'brand': brand,
+        'model': model,
+        if (category != null && category.isNotEmpty) 'category': category,
+        if (note != null && note.isNotEmpty) 'note': note,
+      });
+      if (res.isSuccess) {
+        commonSnackBar(message: 'Request submitted for review');
+        return true;
+      }
+      commonSnackBar(message: res.message?.toString() ?? 'Failed to submit');
+      return false;
+    } catch (e) {
+      commonSnackBar(message: e.toString());
+      return false;
+    }
   }
 
   // ────────────────────────────────────────────────────────────────
@@ -369,15 +513,27 @@ class VehicleController extends GetxController {
   Future<void> fetchPublicVehicles({
     String? category,
     String? subCategory,
+    String? type,
+    String? condition,
     int? pincode,
     String? userId,
+    String? businessId,
+    double? lat,
+    double? lng,
+    double? radiusKm,
     String? q,
     int limit = 20,
   }) async {
     _filterCategory = category;
     _filterSubCategory = subCategory;
+    _filterType = type;
+    _filterCondition = condition;
     _filterPincode = pincode;
     _filterUserId = userId;
+    _filterBusinessId = businessId;
+    _filterLat = lat;
+    _filterLng = lng;
+    _filterRadiusKm = radiusKm;
     _filterQuery = q;
     publicPage.value = 1;
     publicLimit.value = limit;
@@ -389,8 +545,14 @@ class VehicleController extends GetxController {
       final res = await _repo.listVehicles(
         category: category,
         subCategory: subCategory,
+        type: type,
+        condition: condition,
         pincode: pincode,
         userId: userId,
+        businessId: businessId,
+        lat: lat,
+        lng: lng,
+        radiusKm: radiusKm,
         q: q,
         page: 1,
         limit: limit,
@@ -422,8 +584,14 @@ class VehicleController extends GetxController {
       final res = await _repo.listVehicles(
         category: _filterCategory,
         subCategory: _filterSubCategory,
+        type: _filterType,
+        condition: _filterCondition,
         pincode: _filterPincode,
         userId: _filterUserId,
+        businessId: _filterBusinessId,
+        lat: _filterLat,
+        lng: _filterLng,
+        radiusKm: _filterRadiusKm,
         q: _filterQuery,
         page: nextPage,
         limit: publicLimit.value,
@@ -640,9 +808,11 @@ class VehicleController extends GetxController {
   // Upload helper — runs both steps and returns the public URL.
   // ────────────────────────────────────────────────────────────────
 
-  /// Uploads [file] via the presigned-PUT flow and returns the public
-  /// URL to persist. Returns null + surfaces a snackbar on failure so
-  /// callers can short-circuit cleanly.
+  /// Uploads [file] and returns the public URL to persist. Prefers the
+  /// size-capped presigned-POST flow (`/upload/init-v2`); if that init call
+  /// fails (older backend), it falls back to the legacy presigned-PUT flow.
+  /// Returns null + surfaces a snackbar on failure so callers can
+  /// short-circuit cleanly.
   Future<String?> uploadFile(File file, {String? contentTypeOverride}) async {
     isUploadingMedia.value = true;
     uploadProgress.value = 0.0;
@@ -651,6 +821,29 @@ class VehicleController extends GetxController {
       final contentType = contentTypeOverride ??
           lookupMimeType(file.path) ??
           'application/octet-stream';
+
+      // Preferred: size-capped presigned POST policy.
+      final v2Res =
+          await _repo.initUploadV2(fileName: fileName, fileType: contentType);
+      if (v2Res.isSuccess) {
+        final v2 = VehicleUploadInitV2.fromJson(
+          Map<String, dynamic>.from(v2Res.response?.data ?? const {}),
+        );
+        if (v2.url.isNotEmpty && v2.publicUrl.isNotEmpty) {
+          await _repo.postToS3(
+            url: v2.url,
+            fields: v2.fields,
+            file: file,
+            contentType: contentType,
+            onProgress: (sent, total) {
+              if (total > 0) uploadProgress.value = sent / total;
+            },
+          );
+          return v2.publicUrl;
+        }
+      }
+
+      // Fallback: legacy presigned PUT (no server-side size cap).
       final initRes =
           await _repo.initUpload(fileName: fileName, fileType: contentType);
       if (!initRes.isSuccess) {

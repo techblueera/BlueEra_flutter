@@ -7065,6 +7065,19 @@ class AppStrings {
   static const String vehicleRentalOption = "vehicleRentalOption";
   static const String vehicleRentalOptionDesc = "vehicleRentalOptionDesc";
 
+  // Catalog picker (Select Brand → Model → Variant + request fallback)
+  static const String vehicleSelectBrandTitle = "vehicle_select_brand_title";
+  static const String vehicleSelectModelTitle = "vehicle_select_model_title";
+  static const String vehicleSelectVariantTitle =
+      "vehicle_select_variant_title";
+  static const String vehicleCatalogSearchHint = "vehicle_catalog_search_hint";
+  static const String vehicleCantFindRequest = "vehicle_cant_find_request";
+  static const String vehicleRequestModelTitle = "vehicle_request_model_title";
+  static const String vehicleRequestModelDesc = "vehicle_request_model_desc";
+  static const String vehicleRequestNoteHint = "vehicle_request_note_hint";
+  static const String vehicleRequestSubmitLabel =
+      "vehicle_request_submit_label";
+
   // Step titles
   static const String selectVehicleTitle = "selectVehicleTitle";
   static const String specificationsOffersTitle = "specificationsOffersTitle";

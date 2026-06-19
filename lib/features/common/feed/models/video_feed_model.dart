@@ -49,12 +49,12 @@ class VideoResponse {
     Pagination? pagination;
     final p = json['pagination'];
     if (p is Map<String, dynamic>) {
-      final page = p['page'] as int?;
-      final totalPages = p['totalPages'] as int?;
+      final page = (p['page'] as num?)?.toInt();
+      final totalPages = (p['totalPages'] as num?)?.toInt();
       pagination = Pagination(
         page: page,
-        limit: p['limit'] as int?,
-        totalVideos: (p['total'] ?? p['totalVideos']) as int?,
+        limit: (p['limit'] as num?)?.toInt(),
+        totalVideos: ((p['total'] ?? p['totalVideos']) as num?)?.toInt(),
         totalPages: totalPages,
         hasMore:
             (page != null && totalPages != null) ? page < totalPages : false,
@@ -307,14 +307,16 @@ class VideoData {
       caption: json['caption'],
       coverUrl: json['coverUrl'],
       videoUrl: json['videoUrl'],
-      duration: json['duration'],
+      duration: (json['duration'] as num?)?.toInt(),
       transcodedUrls: json['transcodedUrls'] != null
           ? TranscodedUrls.fromJson(json['transcodedUrls'])
           : null,
       tags: (json['tags'] as List?)?.cast<String>(),
       keywords: (json['keywords'] as List?)?.cast<String>(),
       categories: (json['categories'] as List?)
-          ?.map((e) => Categories.fromJson(e))
+          ?.map((e) => e is Map<String, dynamic>
+              ? Categories.fromJson(e)
+              : Categories(id: e?.toString()))
           .toList(),
       location:
           json['location'] != null ? Location.fromJson(json['location']) : null,
@@ -323,7 +325,9 @@ class VideoData {
       allowComments: json['allowComments'],
       allowGifting: json['allowGifting'],
       taggedUsers: (json['taggedUsers'] as List?)
-          ?.map((e) => TaggedUser.fromJson(e))
+          ?.map((e) => e is Map<String, dynamic>
+              ? TaggedUser.fromJson(e)
+              : TaggedUser(id: e?.toString()))
           .toList(),
       isMatureContent: json['isMatureContent'],
       relatedVideoLink: json['relatedVideoLink'],
@@ -727,11 +731,11 @@ class Stats {
 
   factory Stats.fromJson(Map<String, dynamic> json) {
     return Stats(
-      views: json['views'],
-      likes: json['likes'],
-      shares: json['shares'],
-      comments: json['comments'],
-      repost_count: json['repost_count'],
+      views: (json['views'] as num?)?.toInt(),
+      likes: (json['likes'] as num?)?.toInt(),
+      shares: (json['shares'] as num?)?.toInt(),
+      comments: (json['comments'] as num?)?.toInt(),
+      repost_count: (json['repost_count'] as num?)?.toInt(),
     );
   }
 
@@ -1108,10 +1112,10 @@ class Pagination {
 
   factory Pagination.fromJson(Map<String, dynamic> json) {
     return Pagination(
-      page: json['page'],
-      limit: json['limit'],
-      totalVideos: json['totalVideos'],
-      totalPages: json['totalPages'],
+      page: (json['page'] as num?)?.toInt(),
+      limit: (json['limit'] as num?)?.toInt(),
+      totalVideos: (json['totalVideos'] as num?)?.toInt(),
+      totalPages: (json['totalPages'] as num?)?.toInt(),
       hasMore: json['hasMore'],
     );
   }

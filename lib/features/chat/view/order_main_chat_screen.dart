@@ -102,11 +102,12 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
     if (widget.isForwardUI != null && (widget.isForwardUI ?? false)) {
       chatViewController.selectedUserIds.clear();
     }
-    // Three tabs: Social, Community, Reels — clamp any persisted index to range.
+    // Two tabs: Social, Community (Reels is currently disabled) — clamp any
+    // persisted index to range.
     final rawIndex = chatViewController.selectedChatTabIndex.value;
-    final pendingIndex = (rawIndex >= 0 && rawIndex < 3) ? rawIndex : 0;
+    final pendingIndex = (rawIndex >= 0 && rawIndex < 2) ? rawIndex : 0;
     chatViewController.chatMainTabController = TabController(
-      length: 3,
+      length: 2,
       vsync: this,
       initialIndex: pendingIndex,
     );

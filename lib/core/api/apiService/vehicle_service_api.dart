@@ -22,6 +22,28 @@ mixin VehicleServiceApi {
   String vehiclesImagesRemove(String id) =>
       'vehicle-service/vehicles/$id/images';
 
+  // Catalog (Brand → Model → Variant). Create requires the catalog
+  // `variant_id`; the add-vehicle form is pre-filled from the chosen variant.
+  final String vehicleCatalogBrands = 'vehicle-service/vehicles/catalog/brands';
+  final String vehicleCatalogModels = 'vehicle-service/vehicles/catalog/models';
+  String vehicleCatalogModelVariants(String modelId) =>
+      'vehicle-service/vehicles/catalog/models/$modelId/variants';
+  String vehicleCatalogVariant(String id) =>
+      'vehicle-service/vehicles/catalog/variants/$id';
+  final String vehicleCatalogCategories =
+      'vehicle-service/vehicles/catalog/categories';
+
+  // Missing-model requests — a seller asks for a catalog item that
+  // doesn't exist yet (admin approval creates it).
+  final String vehicleCatalogRequests =
+      'vehicle-service/vehicles/catalog/requests';
+  final String vehicleCatalogRequestsMine =
+      'vehicle-service/vehicles/catalog/requests/my';
+
+  // Catalog change requests — propose edits to an existing Model/Variant.
+  final String vehicleCatalogChangeRequests =
+      'vehicle-service/vehicles/catalog/change-requests';
+
   // Facilities
   final String vehicleFacilitiesCreate = 'vehicle-service/facilities/create';
   final String vehicleFacilitiesMineList = 'vehicle-service/facilities/me/list';
@@ -77,6 +99,8 @@ mixin VehicleServiceApi {
   String vehicleContactDelete(String id) =>
       'vehicle-service/contact-us/delete/$id';
 
-  // S3 upload init (presigned PUT)
+  // S3 upload init (presigned PUT — legacy, no size cap)
   final String vehicleUploadInit = 'vehicle-service/upload/init';
+  // S3 upload init v2 (presigned POST policy, size-capped) — preferred
+  final String vehicleUploadInitV2 = 'vehicle-service/upload/init-v2';
 }

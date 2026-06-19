@@ -24,7 +24,16 @@ import 'package:get/get.dart';
 class AddVehicleFlowScreen extends StatefulWidget {
   final String condition; // VehicleCondition.isNew / .used
 
-  const AddVehicleFlowScreen({super.key, required this.condition});
+  /// Catalog prefill resolved from the chosen variant (Select Brand →
+  /// Model → Variant). When present, the draft opens pre-filled with the
+  /// catalog identity/specs and carries `variant_id` so create succeeds.
+  final VehiclePrefill? prefill;
+
+  const AddVehicleFlowScreen({
+    super.key,
+    required this.condition,
+    this.prefill,
+  });
 
   @override
   State<AddVehicleFlowScreen> createState() => _AddVehicleFlowScreenState();
@@ -46,6 +55,10 @@ class _AddVehicleFlowScreenState extends State<AddVehicleFlowScreen> {
   @override
   void initState() {
     super.initState();
+    // Fold the catalog prefill into the draft BEFORE the steps build, so
+    // their text controllers pick up the pre-filled brand/model/variant.
+    if (widget.prefill != null) _draft.applyPrefill(widget.prefill!);
+
     // Server-controlled pickers — cached, so these are cheap if already
     // loaded elsewhere in the app.
     _ctrl.fetchVehicleTypes();

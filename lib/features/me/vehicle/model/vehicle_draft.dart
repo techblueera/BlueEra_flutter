@@ -12,6 +12,14 @@ import 'package:BlueEra/features/me/vehicle/model/vehicle_models.dart';
 class VehicleDraft {
   String condition; // VehicleCondition.isNew / .used
 
+  // Catalog ref — the variant the seller picked. Required by
+  // POST /vehicles/create; the form's identity/spec fields below are
+  // pre-filled from this variant (see [applyPrefill]).
+  String? variantId;
+  String? brandId;
+  String? modelId;
+  String? categoryId;
+
   // Taxonomy (3 tiers)
   String? category;
   String? subCategory;
@@ -69,6 +77,28 @@ class VehicleDraft {
   bool get isNew => condition == VehicleCondition.isNew;
   bool get isUsed => condition == VehicleCondition.used;
 
+  /// Fold a catalog [VehiclePrefill] (from `GET /catalog/variants/{id}`)
+  /// into the draft so the form opens pre-filled. Stores `variantId` (the
+  /// only field create strictly needs) and the catalog-owned display
+  /// fields; the user can still edit before submit.
+  void applyPrefill(VehiclePrefill p) {
+    variantId = p.variantId ?? variantId;
+    brandId = p.brandId ?? brandId;
+    modelId = p.modelId ?? modelId;
+    categoryId = p.categoryId ?? categoryId;
+    category = p.category ?? category;
+    subCategory = p.subCategory ?? subCategory;
+    type = p.type ?? type;
+    brand = p.brand ?? brand;
+    model = p.model ?? model;
+    variant = p.variant ?? variant;
+    fuelType = p.fuelType ?? fuelType;
+    transmission = p.transmission ?? transmission;
+    engineCapacityCc = p.engineCapacityCc ?? engineCapacityCc;
+    mileage = p.mileage ?? mileage;
+    if (isNew) exShowroomPrice = p.exShowroomPrice ?? exShowroomPrice;
+  }
+
   /// A human title for the listing, assembled from brand/model/variant
   /// (the form has no separate "name" field). Falls back so `name` —
   /// which the API always requires — is never empty.
@@ -98,6 +128,7 @@ class VehicleDraft {
   Vehicle toVehicle() {
     return Vehicle(
       name: listingName,
+      variantId: (variantId ?? '').trim().isEmpty ? null : variantId!.trim(),
       condition: condition,
       category: category,
       subCategory: subCategory,

@@ -83,8 +83,8 @@ The two upload flows have **mutually exclusive** detail fields. Sending a field 
 |-------|:---:|:---:|-------|
 | `availability` | ✅ required | ✖ rejected | |
 | `delivery_time` | ✅ required | ✖ rejected | |
-| `ex_showroom_price` | ✅ required | ✖ rejected | |
-| `on_road_price` | ✅ optional | ✖ rejected | |
+| `ex_showroom_price` | ⬇ from catalog | ✖ rejected | served live from the catalog variant (ignored on input) |
+| `on_road_price` | ✅ optional | ✖ rejected | seller-set |
 | `emi_available` | ✅ optional | ✖ rejected | boolean |
 | `down_payment` | ✅ required *if* `emi_available=true` | ✖ rejected | |
 | `monthly_emi` | ✅ required *if* `emi_available=true` | ✖ rejected | |
@@ -102,8 +102,13 @@ The two upload flows have **mutually exclusive** detail fields. Sending a field 
 | `rc_available` | ✖ rejected | ✅ optional | boolean |
 | `pollution_certificate` | ✖ rejected | ✅ optional | boolean |
 | `service_history` | ✖ rejected | ✅ optional | boolean |
+| `cover_image` / `images` | ⬇ from catalog | ✅ required (≥1) | NEW serves catalog photos; USED needs the seller's own |
 
-**Shared (either flow):** `name` (always required), `description`, `brand`, `model`, `variant`, `year`, `fuel_type`, `transmission`, `seating_capacity`, `engine_capacity_cc`, `mileage`, `price`, `currency`, `location`, `cover_image`, `images`, `videos`, `seller_name`, `seller_mobile`, `is_active`, `business_id`.
+**Required to create (both flows):** `variant_id` (the catalog pick) + `condition`.
+
+**Catalog-owned (derived from `variant_id`, ignored if sent):** `name`, `brand`, `model`, `variant`, `category`, `sub_category`, `type`, `vehicle_class`, `fuel_type`, `transmission`, `seating_capacity`, `engine_capacity_cc`, `mileage`, `brand_id`, `model_id`, `category_id`.
+
+**Seller-settable (either flow):** `description`, `price`, `currency`, `location`, `videos`, `seller_name`, `seller_mobile`, `is_active`, `business_id`.
 
 **`description` length cap:** max **2000** chars for NEW, **500** chars for USED (exceeded → `400`).
 
@@ -164,6 +169,139 @@ PAGE 4: Vehicle is now live — anyone can browse and view
     GET  /vehicles?sub_category=PASSENGER_2W&type=SCOOTER&condition=USED
     GET  /vehicles/get/{id}
 ```
+
+---
+
+## Vehicle Catalog (Brand → Model → Variant)
+
+A seeded, shared catalog ("vehicles as products"). The user picks a **Brand**,
+then a **Model**, then a **Variant**; the add-vehicle form is then **pre-filled**
+from the catalog and the seller only fills price / condition / location / photos.
+All endpoints require auth and are mounted under `/vehicles/catalog`.
+
+```
+GET /vehicles/catalog/brands?category=&popular=&q=        → Select Brand screen
+GET /vehicles/catalog/models?brand_id=&category=&q=        → Select Model screen
+GET /vehicles/catalog/models/{id}/variants                 → Select Variant screen
+GET /vehicles/catalog/variants/{id}                        → PREFILL payload
+GET /vehicles/catalog/categories                           → taxonomy tree (DB-backed)
+```
+
+**Prefill payload** (`GET /vehicles/catalog/variants/{id}`) returns a `prefill`
+object whose keys match the create-listing body — `brand_id`, `model_id`,
+`variant_id`, `category_id`, `brand`, `model`, `variant`, `name`, the
+`category`/`sub_category`/`type` triple (+ `_label`s), `fuel_type`,
+`transmission`, `seating_capacity`, `engine_capacity_cc`, `mileage`,
+`ex_showroom_price`, `on_road_price`, `colors`, `cover_image`, `images`,
+`specification`. The client drops it into the form, the user edits as needed,
+and POSTs it back.
+
+**Create = add a catalog vehicle to your inventory** (the `be_product_service_v2`
+/ `be_grocery_service` inventory pattern). A listing is a row in the
+`VehicleInventory` collection that **references** a catalog `VehicleVariant`.
+`POST /vehicles/create` **requires** `variant_id` (the variant the seller picked)
+plus `condition`. The server resolves the variant → model → brand → category
+chain and takes the **identity, taxonomy and specs from the catalog** (name,
+brand, model, variant, `category`/`sub_category`/`type`, `fuel_type`,
+`transmission`, `seating_capacity`, `engine_capacity_cc`, `mileage`) — these are
+**ignored if sent** in the body. A model that isn't in the catalog must first be
+requested via `POST /vehicles/catalog/requests` (admin approval creates it).
+
+**NEW vs USED data sourcing:**
+- **NEW** — images + ex-showroom price are served **live from the catalog** at
+  read. The seller supplies only the offer: `availability`, `delivery_time`,
+  `on_road_price`, EMI block, `special_offers`, `location`, contact.
+- **USED** — a unique physical unit: the seller uploads their **own** images
+  (≥1 required) and supplies the per-unit details (`manufacturing_year`,
+  `registration_year`, `registration_no`, `ownership`, `condition_grade`,
+  `km_driven`, `expected_price`, `color`, insurance/RC/PUC/service history…).
+
+Identity, taxonomy, specs and the catalog refs are **immutable** on update (to
+change the vehicle, delete the listing and add the right catalog item). Reads
+(`GET /vehicles`, `/vehicles/get/{id}`, `/vehicles/me/list`) and the gRPC lookups
+return the **flat** shape (catalog fields merged in from variant → model).
+
+**Normalized storage (no duplicated catalog data).** The `VehicleInventory` row
+stores **only** `variant_id` (plus the seller's listing/per-unit fields) — no
+brand/model/category/specs are copied onto it; they are joined from the catalog
+at read. Browse filters (`brand_id`/`category`/`sub_category`/`type`/`q`) resolve
+through the catalog (model → variants → inventory); `q` text-searches the catalog
+Model (name + brand).
+
+**Owner.** Each listing has `owner: { id, type: "User" | "Business" }` (a single
+id + type, replacing separate `user_id`/`business_id`). Send `business_id` on
+create to make the listing business-owned; otherwise the authenticated user owns
+it. The gRPC `Vehicle` message still exposes `user_id` (= owner id) and
+`business_id` (set only when the owner is a Business) for consumers.
+
+**Location (map-ready, `be_rider_service` pattern).** A listing carries
+`address`/`city`/`state`/`pincode` plus a GeoJSON `location` Point
+(`{ type:"Point", coordinates:[lng,lat] }`, 2dsphere-indexed) for map display and
+radius search. On create/update send a GeoJSON Point **or** `{lat,lon}` (under
+`location` or top-level); address parts may be sent in `location` or top-level.
+Browse supports radius search: `GET /vehicles?lat=<>&lng=<>&radius_km=<>` (all
+three required together) returns listings within that radius of the point.
+
+> Seeding (required before any listing can be created): run
+> `node scripts/seed-categories.js` (taxonomy → `Category`) then
+> `node scripts/import-catalog.js` (your `brands/models/variants.json`). Both are
+> dry-run by default; re-run with `APPLY=1`. Migrate existing free-text listings
+> with `node scripts/migrate-vehicle-to-inventory.js` (dry-run; `APPLY=1`).
+
+### Buyer discovery — with-listings filters
+
+To show buyers **only what's actually for sale** (not the whole seeded catalog),
+the browse endpoints take optional flags. Omit them to get the full catalog.
+
+| Endpoint | Flag | Effect |
+|---|---|---|
+| `GET /vehicles/catalog/brands` | `?has_listings=true` | only brands with ≥1 live listing |
+| `GET /vehicles/catalog/models` | `?has_listings=true` | only models with ≥1 live listing |
+| `GET /vehicles/catalog/categories` | `?with_listings=true` | taxonomy tree pruned to leaves with live listings (+ ancestors) |
+
+---
+
+## Admin Catalog APIs (Admin / SubAdmin)
+
+Catalog **writes** require an Admin/SubAdmin JWT (`adminAuthentication`). Reads
+above stay open to any authenticated user. Denormalized fields stay in sync
+(e.g. renaming a brand updates `brand_name` on its models/variants); deletes are
+blocked (`409`) when child rows or live listings reference the row.
+
+| Method | Path | Notes |
+|---|---|---|
+| POST | `/vehicles/catalog/brands` | create brand (`name` req; `slug` auto) |
+| PUT/DELETE | `/vehicles/catalog/brands/{id}` | update / delete (409 if models exist) |
+| POST | `/vehicles/catalog/categories` | create taxonomy node (`key`,`name`; `parent_id` optional) |
+| PUT/DELETE | `/vehicles/catalog/categories/{id}` | update / delete (409 if children or used) |
+| POST | `/vehicles/catalog/models` | create model — **optionally with its variants in one call** via a `variants: [...]` array (grocery-style combined create; returns `{ model, variants }`, rolled back if any variant fails). Omit `variants` to create the model alone. |
+| PUT/DELETE | `/vehicles/catalog/models/{id}` | update / delete (409 if variants/listings) |
+| POST | `/vehicles/catalog/models/{id}/variants` | add a single variant to an existing model |
+| PUT/DELETE | `/vehicles/catalog/variants/{id}` | update / delete (409 if listings) |
+
+## Missing-model Requests
+
+Sellers ask for catalog items that don't exist yet; admins review. (Grocery's
+MissingProductRequest equivalent.)
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| POST | `/vehicles/catalog/requests` | user | `brand` & `model` required; created `pending` |
+| GET | `/vehicles/catalog/requests/my` | user | caller's own requests |
+| GET | `/vehicles/catalog/requests` | admin | all (filter `status`, `business_id`) |
+| PATCH | `/vehicles/catalog/requests/{id}` | admin | `status` in_review/approved/rejected (+ `admin_note`, `created_model_id`) |
+
+## Catalog Change Requests
+
+Non-admins propose edits to an existing Model/Variant; the edit queues for admin
+review instead of applying live. (Grocery's ProductVariantChangeRequest equivalent.)
+
+| Method | Path | Auth | Notes |
+|---|---|---|---|
+| POST | `/vehicles/catalog/change-requests` | user | `target_type` (MODEL/VARIANT), `target_id`, `changes` (safe fields only) |
+| GET | `/vehicles/catalog/change-requests` | admin | list (filter `status`, `target_type`) |
+| POST | `/vehicles/catalog/change-requests/{id}/approve` | admin | applies the changes to the target |
+| POST | `/vehicles/catalog/change-requests/{id}/reject` | admin | leaves target unchanged (+ `rejection_reason`) |
 
 ---
 
@@ -561,85 +699,66 @@ Content-Type: application/json
 Authorization: Bearer <user_token>
 ```
 
-The owner (`user_id`) is taken from the JWT — it is **never** read from the body. Server-controlled fields (`user_id`, `is_verified`, `vehicle_class`, `deleted_at`, timestamps) cannot be set by the client.
+The owner (`user_id`) is taken from the JWT — it is **never** read from the body. Server-controlled fields (`user_id`, `is_verified`, `vehicle_class`, `deleted_at`, timestamps) cannot be set by the client. Creating a listing **adds a catalog vehicle to the seller's inventory** — the listing references a catalog `VehicleVariant` and inherits its identity/specs.
 
 #### Always-required fields
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `name` | string | Vehicle title |
-| `category` | string | A **top-level** `value`: `PASSENGER` or `COMMERCIAL`. `vehicle_class` is mirrored from it server-side |
-| `sub_category` | string | A **display group** `value` BELONGING to `category` (e.g. `PASSENGER_2W` under `PASSENGER`) |
-| `type` | string | A **concrete leaf** `value` BELONGING to `sub_category` (e.g. `SCOOTER` under `PASSENGER_2W`) |
+| `variant_id` | string | The catalog `VehicleVariant` the seller picked (from `GET /vehicles/catalog/variants/{id}`). Resolves the model/brand/category. A model not in the catalog must first be requested via `POST /vehicles/catalog/requests`. |
 | `condition` | string | `NEW` or `USED` |
+
+#### Catalog-owned fields (derived — IGNORED if sent)
+
+`name`, `brand`, `model`, `variant`, `category`, `sub_category`, `type` (+ `vehicle_class`), `fuel_type`, `transmission`, `seating_capacity`, `engine_capacity_cc`, `mileage`, and the catalog refs `brand_id`/`model_id`/`category_id` are all taken from the chosen variant. For **NEW**, `cover_image`/`images`/`ex_showroom_price` are served live from the catalog too.
 
 #### Condition-specific required fields (enforced on create)
 
-- **NEW** → `availability`, `delivery_time`, `ex_showroom_price` (plus `down_payment` & `monthly_emi` **when** `emi_available=true`).
-- **USED** → `manufacturing_year`, `registration_year`, `registration_no`, `ownership`, `condition_grade`, `expected_price`, `km_driven`.
+- **NEW** → `availability`, `delivery_time`. (Images + ex-showroom price come from the catalog; the seller adds the offer.)
+- **USED** → `manufacturing_year`, `registration_year`, `registration_no`, `ownership`, `condition_grade`, `expected_price`, `km_driven`, **and ≥1 image** (`cover_image` or `images[]` — the seller's own photos of the unit).
 
 #### Optional fields
 
-See the [NEW vs USED field matrix](#new-vs-used-field-matrix) for which optional fields are valid per flow, and the [full vehicle reference](#full-vehicle-object-reference) for every field. Shared optionals: `description`, `brand`, `model`, `variant`, `year`, `fuel_type`, `transmission`, `seating_capacity`, `engine_capacity_cc`, `mileage`, `price`, `currency`, `location`, `cover_image`, `images`, `videos`, `seller_name`, `seller_mobile`, `is_active`, `business_id`.
+See the [NEW vs USED field matrix](#new-vs-used-field-matrix) and the [full vehicle reference](#full-vehicle-object-reference). Seller-settable optionals: `description`, `price`, `currency`, `location`, `videos`, `seller_name`, `seller_mobile`, `is_active`, `business_id`; NEW: `on_road_price`, `emi_available`, `down_payment`, `monthly_emi`, `special_offers`; USED: `color`, `is_negotiable`, `insurance_valid_till`, `rc_available`, `pollution_certificate`, `service_history`, plus the seller's `cover_image`/`images`.
 
 **Validation (HTTP 400 on failure — show `message`):**
-- `name` required → `name is required`.
-- `category` required / invalid → `category is required` / `Invalid category — must be one of PASSENGER, COMMERCIAL (see GET /vehicles/types)`.
-- `sub_category` required / not under `category` → `sub_category is required` / `Invalid sub_category for <category> — pick a sub-category group under it from GET /vehicles/types`.
-- `type` required / not a leaf under `sub_category` → `type is required` / `Invalid type for <sub_category> — pick a leaf type under it from GET /vehicles/types`.
+- `variant_id` missing/invalid → `variant_id is required — pick a vehicle from the catalog ...` / `variant_id "<id>" not found in catalog`.
 - `condition` required / invalid → `Field "condition" is required — must be one of NEW, USED (see GET /vehicles/conditions)` / `Field "condition" is invalid — ...`.
 - Cross-flow field → `"<field>" is not applicable to a <NEW|USED> vehicle`.
 - Missing flow-required field → `"<field>" is required for a <NEW|USED> vehicle`; missing EMI sub-field → `"<field>" is required when EMI is available`.
+- USED with no image → `At least one image is required for a USED vehicle — upload a cover_image or images[]`.
 - Picker value not in its set → `<field> must be one of <allowed values>` (and `special_offers contains an invalid value — allowed: ...`).
 - `description` over the cap → `description must be at most <2000|500> characters for a <NEW|USED> vehicle`.
-- Numbers (`year`, `manufacturing_year`, `registration_year`, `seating_capacity`, `engine_capacity_cc`, `km_driven`, `price`, `ex_showroom_price`, `on_road_price`, `down_payment`, `monthly_emi`, `expected_price`) — must be finite and non-negative when supplied.
+- Numbers (`year`, `manufacturing_year`, `registration_year`, `km_driven`, `price`, `on_road_price`, `down_payment`, `monthly_emi`, `expected_price`) — must be finite and non-negative when supplied.
 - Booleans (`emi_available`, `is_negotiable`, `rc_available`, `pollution_certificate`, `service_history`) — accept `true/false`, `"true"/"yes"/"1"`, `"false"/"no"/"0"`.
 - `insurance_valid_till` — must be a valid date.
 - `seller_mobile` — optional leading `+` then 6–15 digits (spaces/dashes stripped).
 - `cover_image` — must be a string. `images` / `videos` — arrays of non-empty strings.
 
-**Example request — NEW vehicle:**
+**Example request — NEW vehicle** (identity/specs/images/MSRP come from the catalog):
 ```json
 {
-  "name": "Bajaj Pulsar N160",
-  "description": "Brand new, latest model",
-  "category": "PASSENGER",
-  "sub_category": "PASSENGER_2W",
-  "type": "MOTORCYCLE",
+  "variant_id": "665f0c0000000000000000a1",
   "condition": "NEW",
-  "brand": "Bajaj",
-  "model": "Pulsar N160",
-  "variant": "Pulsar 150 Twin Disc",
-  "fuel_type": "PETROL",
-  "transmission": "MANUAL",
-  "engine_capacity_cc": 160,
   "availability": "IN_STOCK",
   "delivery_time": "IMMEDIATE",
-  "ex_showroom_price": 122000,
   "on_road_price": 138000,
   "emi_available": true,
   "down_payment": 20000,
   "monthly_emi": 4500,
   "special_offers": ["FREE_INSURANCE", "FREE_HELMET"],
+  "description": "Brand new, dealer-fresh stock",
   "location": { "city": "New Delhi", "state": "Delhi", "pincode": 110001 },
-  "cover_image": "https://bucket.s3.../front.jpg",
-  "images": ["https://bucket.s3.../side.jpg"],
   "seller_name": "Rahul Sharma",
   "seller_mobile": "+919876543210"
 }
 ```
 
-**Example request — USED vehicle:**
+**Example request — USED vehicle** (identity/specs from the catalog; seller supplies photos + per-unit details):
 ```json
 {
-  "name": "Honda Activa 6G",
-  "description": "Single owner, well maintained",
-  "category": "PASSENGER",
-  "sub_category": "PASSENGER_2W",
-  "type": "SCOOTER",
+  "variant_id": "665f0c0000000000000000a1",
   "condition": "USED",
-  "brand": "Honda",
-  "model": "Activa 6G",
   "manufacturing_year": 2022,
   "registration_year": 2022,
   "registration_no": "DL01AB1234",
@@ -653,6 +772,7 @@ See the [NEW vs USED field matrix](#new-vs-used-field-matrix) for which optional
   "rc_available": true,
   "pollution_certificate": true,
   "service_history": false,
+  "description": "Single owner, well maintained",
   "location": { "city": "New Delhi", "state": "Delhi", "pincode": 110001 },
   "cover_image": "https://bucket.s3.../front.jpg",
   "images": ["https://bucket.s3.../side.jpg"]
@@ -663,8 +783,8 @@ See the [NEW vs USED field matrix](#new-vs-used-field-matrix) for which optional
 ```json
 {
   "status": true,
-  "message": "Vehicle created",
-  "vehicle": { "_id": "683def...", "category": "PASSENGER", "category_label": "Passenger", "condition": "NEW", "condition_label": "New", "...": "all fields + *_label fields" }
+  "message": "Vehicle added to inventory",
+  "vehicle": { "_id": "683def...", "variant_id": "665f0c...", "category": "PASSENGER", "category_label": "Passenger", "condition": "NEW", "condition_label": "New", "...": "all fields (catalog merged) + *_label fields" }
 }
 ```
 

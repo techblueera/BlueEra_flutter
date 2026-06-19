@@ -170,8 +170,8 @@ class ShortsController extends GetxController{
         trendingShortsResponse = ApiResponse.error('error');
         // commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
-    } catch (e) {
-      logs("trendingShortsResponse ERROR 2");
+    } catch (e, s) {
+      logs("trendingShortsResponse ERROR 2: $e\n$s");
       trendingShortsResponse = ApiResponse.error('error');
       // commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
@@ -262,8 +262,8 @@ class ShortsController extends GetxController{
         personalizedShortsResponse = ApiResponse.error('error');
         // commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
-    } catch (e) {
-      logs("personalizedShortsResponse ERROR 2");
+    } catch (e, s) {
+      logs("personalizedShortsResponse ERROR 2: $e\n$s");
 
       personalizedShortsResponse = ApiResponse.error('error');
       // commonSnackBar(message: AppStrings.somethingWentWrong);
@@ -352,7 +352,7 @@ class ShortsController extends GetxController{
     } catch (e, s) {
       print('stack trace--> $s');
       nearByShortsResponse = ApiResponse.error('error');
-      logs("nearByShortsResponse ERROR 2");
+      logs("nearByShortsResponse ERROR 2: $e\n$s");
 
       // commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {

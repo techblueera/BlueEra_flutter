@@ -30,7 +30,6 @@ class PopupMenuBuilders {
       PostCreationMenu.message,
       PostCreationMenu.symbol,
       PostCreationMenu.poll,
-      if (!isBusiness) PostCreationMenu.reel,
 
       /// Reel/short upload — available to business accounts and to individual
       /// users who already created a channel (matches the old `videos` gate).
@@ -57,7 +56,7 @@ class PopupMenuBuilders {
       PostCreationMenu.poll: AppStrings.poll,
       PostCreationMenu.symbol: AppStrings.symbol,
       // PostCreationMenu.photos: AppStrings.symbol,
-      // PostCreationMenu.reel: 'Reel',
+      PostCreationMenu.reel: 'Reel',
       PostCreationMenu.jobPost: AppStrings.jobPost,
       // PostCreationMenu.travel: AppStrings.travel,
     };

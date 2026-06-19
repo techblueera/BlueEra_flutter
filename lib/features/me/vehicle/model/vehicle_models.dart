@@ -196,10 +196,215 @@ class VehicleOptionSets {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────
+// Catalog (Brand → Model → Variant) — "vehicles as products"
+//
+// A listing references a catalog `VehicleVariant` (`variant_id`); the
+// server takes identity/taxonomy/specs from the catalog. The picker
+// drills Brand → Model → Variant, then `GET /catalog/variants/{id}`
+// returns a `prefill` payload the form drops in. List-item shapes aren't
+// strictly documented, so these models read the documented keys and keep
+// the raw map for anything extra.
+// ─────────────────────────────────────────────────────────────────────
+
+class VehicleBrand {
+  final String id;
+  final String name;
+  final String? slug;
+  final String? logo;
+  final String? icon;
+  final Map<String, dynamic> raw;
+
+  VehicleBrand({
+    required this.id,
+    required this.name,
+    this.slug,
+    this.logo,
+    this.icon,
+    this.raw = const {},
+  });
+
+  factory VehicleBrand.fromJson(Map<String, dynamic> j) => VehicleBrand(
+        id: (j['_id'] ?? j['id'] ?? '') as String,
+        name: (j['name'] ?? j['brand'] ?? '') as String,
+        slug: j['slug'] as String?,
+        logo: (j['logo'] ?? j['image']) as String?,
+        icon: j['icon'] as String?,
+        raw: j,
+      );
+
+  static List<VehicleBrand> listFrom(dynamic raw) => ((raw as List?) ?? const [])
+      .whereType<Map>()
+      .map((m) => VehicleBrand.fromJson(Map<String, dynamic>.from(m)))
+      .toList();
+}
+
+class VehicleModelCatalog {
+  final String id;
+  final String name;
+  final String? brandId;
+  final String? brandName;
+  final String? image;
+  final Map<String, dynamic> raw;
+
+  VehicleModelCatalog({
+    required this.id,
+    required this.name,
+    this.brandId,
+    this.brandName,
+    this.image,
+    this.raw = const {},
+  });
+
+  factory VehicleModelCatalog.fromJson(Map<String, dynamic> j) =>
+      VehicleModelCatalog(
+        id: (j['_id'] ?? j['id'] ?? '') as String,
+        name: (j['name'] ?? j['model'] ?? '') as String,
+        brandId: (j['brand_id'] ?? j['brandId']) as String?,
+        brandName: (j['brand_name'] ?? j['brand']) as String?,
+        image: (j['image'] ?? j['cover_image']) as String?,
+        raw: j,
+      );
+
+  static List<VehicleModelCatalog> listFrom(dynamic raw) =>
+      ((raw as List?) ?? const [])
+          .whereType<Map>()
+          .map((m) => VehicleModelCatalog.fromJson(Map<String, dynamic>.from(m)))
+          .toList();
+}
+
+class VehicleVariant {
+  final String id;
+  final String name;
+  final String? modelId;
+  final double? exShowroomPrice;
+  final String? fuelType;
+  final String? transmission;
+  final Map<String, dynamic> raw;
+
+  VehicleVariant({
+    required this.id,
+    required this.name,
+    this.modelId,
+    this.exShowroomPrice,
+    this.fuelType,
+    this.transmission,
+    this.raw = const {},
+  });
+
+  factory VehicleVariant.fromJson(Map<String, dynamic> j) => VehicleVariant(
+        id: (j['_id'] ?? j['id'] ?? '') as String,
+        name: (j['name'] ?? j['variant'] ?? '') as String,
+        modelId: (j['model_id'] ?? j['modelId']) as String?,
+        exShowroomPrice: (j['ex_showroom_price'] as num?)?.toDouble(),
+        fuelType: j['fuel_type'] as String?,
+        transmission: j['transmission'] as String?,
+        raw: j,
+      );
+
+  static List<VehicleVariant> listFrom(dynamic raw) =>
+      ((raw as List?) ?? const [])
+          .whereType<Map>()
+          .map((m) => VehicleVariant.fromJson(Map<String, dynamic>.from(m)))
+          .toList();
+}
+
+/// Parsed `prefill` payload of `GET /vehicles/catalog/variants/{id}`. Its
+/// keys mirror the create-listing body — the client drops these into the
+/// add-vehicle form, the user edits, then POSTs back. `variantId` is the
+/// only field create strictly needs; the rest pre-fill the (catalog-owned,
+/// server-authoritative) display fields.
+class VehiclePrefill {
+  final String? variantId;
+  final String? brandId;
+  final String? modelId;
+  final String? categoryId;
+  final String? name;
+  final String? brand;
+  final String? model;
+  final String? variant;
+  final String? category;
+  final String? subCategory;
+  final String? type;
+  final VehicleFuelType? fuelType;
+  final VehicleTransmission? transmission;
+  final int? seatingCapacity;
+  final int? engineCapacityCc;
+  final String? mileage;
+  final double? exShowroomPrice;
+  final double? onRoadPrice;
+  final List<String> colors;
+  final String? coverImage;
+  final List<String> images;
+  final Map<String, dynamic> raw;
+
+  VehiclePrefill({
+    this.variantId,
+    this.brandId,
+    this.modelId,
+    this.categoryId,
+    this.name,
+    this.brand,
+    this.model,
+    this.variant,
+    this.category,
+    this.subCategory,
+    this.type,
+    this.fuelType,
+    this.transmission,
+    this.seatingCapacity,
+    this.engineCapacityCc,
+    this.mileage,
+    this.exShowroomPrice,
+    this.onRoadPrice,
+    this.colors = const [],
+    this.coverImage,
+    this.images = const [],
+    this.raw = const {},
+  });
+
+  /// Accepts either the raw response (with a nested `prefill` object) or the
+  /// `prefill` object itself.
+  factory VehiclePrefill.fromJson(Map<String, dynamic> j) {
+    final p = (j['prefill'] is Map)
+        ? Map<String, dynamic>.from(j['prefill'] as Map)
+        : j;
+    return VehiclePrefill(
+      variantId: (p['variant_id'] ?? p['_id'] ?? p['id']) as String?,
+      brandId: p['brand_id'] as String?,
+      modelId: p['model_id'] as String?,
+      categoryId: p['category_id'] as String?,
+      name: p['name'] as String?,
+      brand: p['brand'] as String?,
+      model: p['model'] as String?,
+      variant: p['variant'] as String?,
+      category: p['category'] as String?,
+      subCategory: p['sub_category'] as String?,
+      type: p['type'] as String?,
+      fuelType: VehicleFuelTypeWire.parse(p['fuel_type'] as String?),
+      transmission: VehicleTransmissionWire.parse(p['transmission'] as String?),
+      seatingCapacity: (p['seating_capacity'] as num?)?.toInt(),
+      engineCapacityCc: (p['engine_capacity_cc'] as num?)?.toInt(),
+      mileage: p['mileage'] as String?,
+      exShowroomPrice: (p['ex_showroom_price'] as num?)?.toDouble(),
+      onRoadPrice: (p['on_road_price'] as num?)?.toDouble(),
+      colors:
+          ((p['colors'] as List?) ?? const []).whereType<String>().toList(),
+      coverImage: p['cover_image'] as String?,
+      images:
+          ((p['images'] as List?) ?? const []).whereType<String>().toList(),
+      raw: p,
+    );
+  }
+}
+
 class Vehicle {
   final String? id;
   final String? userId;
   final String? businessId;
+  // Catalog ref — the only identity field create reads (the rest are
+  // catalog-derived and ignored if sent). Required by POST /vehicles/create.
+  final String? variantId;
   final String name;
   final String? description;
   final String? category; // L1 — PASSENGER / COMMERCIAL
@@ -273,6 +478,7 @@ class Vehicle {
     this.id,
     this.userId,
     this.businessId,
+    this.variantId,
     required this.name,
     this.description,
     this.category,
@@ -341,6 +547,7 @@ class Vehicle {
         id: j['_id'] as String?,
         userId: j['user_id'] as String?,
         businessId: j['business_id'] as String?,
+        variantId: j['variant_id'] as String?,
         name: (j['name'] ?? '') as String,
         description: j['description'] as String?,
         category: j['category'] as String?,
@@ -426,6 +633,10 @@ class Vehicle {
   /// USED block rather than the shared base.
   Map<String, dynamic> toCreateJson() {
     final body = <String, dynamic>{
+      // Catalog ref — always-required by create. Identity/spec fields below
+      // are catalog-derived (ignored if sent) but kept for the legacy/free-text
+      // path and harmless when a `variant_id` is present.
+      if (variantId != null) 'variant_id': variantId,
       'name': name,
       if (description != null) 'description': description,
       if (category != null) 'category': category,
@@ -912,5 +1123,36 @@ class VehicleUploadInit {
         uploadUrl: (j['uploadUrl'] ?? '') as String,
         publicUrl: (j['publicUrl'] ?? '') as String,
         fileKey: (j['fileKey'] ?? '') as String,
+      );
+}
+
+/// Presigned S3 **POST** policy from `GET /upload/init-v2` (preferred). S3
+/// enforces the declared Content-Type and a hard size cap via the signed
+/// policy. Build a multipart body with all [fields] first, then the file
+/// last, and POST it to [url]; persist [publicUrl] afterwards.
+class VehicleUploadInitV2 {
+  final String url; // S3 bucket POST endpoint
+  final Map<String, dynamic> fields; // policy fields (append before file)
+  final String publicUrl; // public URL to persist on the entity
+  final String fileKey; // S3 object key
+  final int? maxSizeBytes; // hard size cap S3 enforces
+
+  VehicleUploadInitV2({
+    required this.url,
+    required this.fields,
+    required this.publicUrl,
+    required this.fileKey,
+    this.maxSizeBytes,
+  });
+
+  factory VehicleUploadInitV2.fromJson(Map<String, dynamic> j) =>
+      VehicleUploadInitV2(
+        url: (j['url'] ?? '') as String,
+        fields: j['fields'] is Map
+            ? Map<String, dynamic>.from(j['fields'] as Map)
+            : const {},
+        publicUrl: (j['publicUrl'] ?? '') as String,
+        fileKey: (j['fileKey'] ?? '') as String,
+        maxSizeBytes: (j['maxSizeBytes'] as num?)?.toInt(),
       );
 }
