@@ -2,7 +2,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
 import 'package:BlueEra/features/me/manufacturer/controller/manufacturer_inventory_controller.dart';
 import 'package:BlueEra/features/me/product/model/product_category_with_inventory_model.dart';
-import 'package:BlueEra/features/me/manufacturer/view/admin/widget/manufacturer_own_product_card.dart';
+import 'package:BlueEra/features/me/manufacturer/view/admin/widget/manufacturer_admin_product_card.dart';
 import 'package:BlueEra/widgets/common_search_bar.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
@@ -85,7 +85,11 @@ class _MyProductProductsScreenState extends State<MyManufacturerProductsScreen> 
         isCustomTitleWidget: () => Obx(() {
           final bool isOpen = controller.isProductSearchOpen.value;
 
-          return Expanded(
+          // The app bar already wraps the custom title in a Flexible+Padding, so
+          // an Expanded here is an invalid ParentDataWidget (Padding is a box,
+          // not a Flex). A full-width SizedBox fills the same space safely.
+          return SizedBox(
+            width: double.infinity,
             child: isOpen
                 ? CommonSearchBar(
                     controller: searchController,
@@ -227,7 +231,7 @@ class _MyProductProductsScreenState extends State<MyManufacturerProductsScreen> 
                           final product =
                               controller.productsByCategoryList[index];
 
-                          return ManufacturerOwnProductCard(
+                          return ManufacturerAdminProductCard(
                             product: product,
                             deleteProductApi: () {
                               controller.deleteProduct();

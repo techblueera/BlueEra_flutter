@@ -3,7 +3,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/manufacturer/controller/manufacturer_inventory_controller.dart';
-import 'package:BlueEra/features/me/manufacturer/view/admin/widget/manufacturer_own_product_card.dart';
+import 'package:BlueEra/features/me/manufacturer/view/admin/widget/manufacturer_admin_product_card.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:flutter/material.dart';
@@ -104,7 +104,7 @@ class _AdminAllTopSellingProductsScreenState
                   mainAxisSpacing: 10,
                   crossAxisSpacing: 10,
                   childCount: items.length,
-                  itemBuilder: (context, index) => ManufacturerOwnProductCard(
+                  itemBuilder: (context, index) => ManufacturerAdminProductCard(
                     product: items[index],
                     deleteProductApi: () {},
                     isGridShow: true,

@@ -14,6 +14,7 @@ import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dar
 import 'package:BlueEra/features/me/automotive_products/controller/automotive_inventory_controller.dart';
 import 'package:BlueEra/features/me/automotive_products/controller/automotive_product_selfpickup_controller.dart';
 import 'package:BlueEra/features/me/automotive_products/view/admin/widget/automotive_product_top_selling_tile.dart';
+import 'package:BlueEra/features/me/product/view/admin/widget/product_inventory_bottom_sheet.dart';
 import 'package:BlueEra/features/me/automotive_products/view/customer/automotive_customer_all_top_selling_products_screen.dart';
 import 'package:BlueEra/features/me/automotive_products/view/customer/automotive_visit_product_products_screen.dart';
 import 'package:BlueEra/features/me/automotive_products/view/customer/widget/automotive_product_self_pickup_cart.dart';
@@ -312,7 +313,10 @@ class _AutomotiveVisitProductStoreDetailsScreenState
                 itemBuilder: (context, index) {
                   final product = controller.allProducts[index];
 
-                  return Container(
+                  return GestureDetector(
+                    onTap: () => ProductInventoryBottomSheet.show(context,
+                        product: product),
+                    child: Container(
                     width: SizeConfig.size160,
                     margin: const EdgeInsets.only(right: 8.0),
                     decoration: BoxDecoration(
@@ -326,6 +330,8 @@ class _AutomotiveVisitProductStoreDetailsScreenState
                         Expanded(
                           child: AutomotiveProductTopSellingImage(
                             product: product,
+                            onPreviewTap: () => ProductInventoryBottomSheet
+                                .show(context, product: product),
                             cartOverlay: Obx(() {
                               final cart =
                                   cartController.selectedProductVariants;
@@ -364,6 +370,7 @@ class _AutomotiveVisitProductStoreDetailsScreenState
                         AutomotiveProductTopSellingInfoSection(product: product),
                       ],
                     ),
+                  ),
                   );
                 },
               );

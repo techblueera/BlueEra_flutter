@@ -11,6 +11,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/core/utils/fetch_cache.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/store/models/product_consumer_nested_category_response.dart';
 import 'package:BlueEra/features/common/store/repo/store_repo.dart';
@@ -57,12 +58,45 @@ class StoreController extends GetxController{
   int allStorePage = 1;
   bool allStoreHasMore = true;
 
+  /// Freshness guard for the shared [allStore] list. Both [getAllStoreNearBy]
+  /// (stores / grocery / food — distinguished by [typeOfBusiness]) and
+  /// [getServiceBusinessesNearBy] (services) write into [allStore], so each one
+  /// stamps this cache with its own signature on success. Re-entering a screen
+  /// then reuses the data only when the signature still matches — a grocery
+  /// screen never serves a food screen's leftovers, and vice-versa.
+  final FetchCache _allStoreCache = FetchCache();
+
+  /// `stores|<type>|<category>|<lat>|<lng>` — location rounded to ~110m so tiny
+  /// GPS drift between quick navigations doesn't defeat the cache.
+  String get _allStoreSignature =>
+      'stores|${typeOfBusiness ?? ''}|${businessCategoryId ?? ''}|'
+      '${LocationService.lat.toStringAsFixed(3)}|'
+      '${LocationService.lng.toStringAsFixed(3)}';
+
+  /// `services|<category>|<lat>|<lng>` — service search ignores [typeOfBusiness].
+  String get _serviceStoreSignature =>
+      'services|${businessCategoryId ?? ''}|'
+      '${LocationService.lat.toStringAsFixed(3)}|'
+      '${LocationService.lng.toStringAsFixed(3)}';
+
   /// All Product data
   RxList<GetProductData> productDataList = <GetProductData>[].obs;
   RxBool isProductDataLoadingMore = false.obs;
   RxBool isProductDataFirstLoading = false.obs;
   int productDataPage = 1;
   bool productDataHasMore = true;
+
+  /// Freshness guard for the shared [productDataList].
+  final FetchCache _productCache = FetchCache();
+
+  String _productSignature({
+    ProviderType? providerType,
+    String? productCategory,
+    String? query,
+  }) =>
+      'products|${providerType?.title ?? ''}|${productCategory ?? ''}|'
+      '${query ?? ''}|${LocationService.lat.toStringAsFixed(3)}|'
+      '${LocationService.lng.toStringAsFixed(3)}';
 
   /// Store Ai Variables
   TextEditingController sendMessageController = TextEditingController();
@@ -120,6 +154,16 @@ class StoreController extends GetxController{
     } finally {
       isProductCategoryTreeLoading.value = false;
     }
+  }
+
+  /// Fetch the near-by store list only when it isn't already loaded & fresh for
+  /// the current request. Use this on screen (re)entry; call [getAllStoreNearBy]
+  /// directly for explicit refreshes (pull-to-refresh, category change).
+  Future<void> getAllStoreNearByIfNeeded() async {
+    if (_allStoreCache.isFresh(_allStoreSignature, hasData: allStore.isNotEmpty)) {
+      return;
+    }
+    await getAllStoreNearBy();
   }
 
   ///GET STORES ONLY....
@@ -196,6 +240,9 @@ class StoreController extends GetxController{
             allStore.addAll(newStores);
           } else {
             allStore.assignAll(newStores);
+            // Stamp the freshness cache so a re-entry with the same request
+            // skips the network call instead of refetching identical data.
+            _allStoreCache.mark(_allStoreSignature);
             // if(typeOfBusiness == null && businessCategoryId == null){
             //   await HiveServices().saveAllStore(allStore, userId);
             // }
@@ -232,6 +279,15 @@ class StoreController extends GetxController{
   /// service category as `categoryOfBusiness` (the category tag id, e.g.
   /// `BEAUTY_FITNESS_PERSONAL_CARE`) and maps each business-profile result
   /// into [GetAllStoreResModel] so the existing store card can render it.
+  /// Freshness-guarded variant of [getServiceBusinessesNearBy] for screen entry.
+  Future<void> getServiceBusinessesNearByIfNeeded() async {
+    if (_allStoreCache.isFresh(_serviceStoreSignature,
+        hasData: allStore.isNotEmpty)) {
+      return;
+    }
+    await getServiceBusinessesNearBy();
+  }
+
   Future<void> getServiceBusinessesNearBy({bool isLoadMore = false}) async {
     if (isLoadMore) {
       if (isAllStoreLoadingMore.value || !allStoreHasMore) return;
@@ -284,6 +340,9 @@ class StoreController extends GetxController{
             allStore.addAll(newStores);
           } else {
             allStore.assignAll(newStores);
+            // Shared list — stamp with the service signature so a store screen
+            // re-entry can tell these aren't its results.
+            _allStoreCache.mark(_serviceStoreSignature);
           }
           allStorePage++;
         } else {
@@ -360,6 +419,27 @@ class StoreController extends GetxController{
       'Nature_of_Business': category ?? type,
       'created_at': field('createdAt')?.toString(),
     });
+  }
+
+  /// Freshness-guarded variant of [getAllProductNearBy] for screen entry.
+  Future<void> getAllProductNearByIfNeeded({
+    ProviderType? providerType,
+    String? productCategory,
+    String? query,
+  }) async {
+    final signature = _productSignature(
+      providerType: providerType,
+      productCategory: productCategory,
+      query: query,
+    );
+    if (_productCache.isFresh(signature, hasData: productDataList.isNotEmpty)) {
+      return;
+    }
+    await getAllProductNearBy(
+      providerType: providerType,
+      productCategory: productCategory,
+      query: query,
+    );
   }
 
   ///GET STORE PRODUCT ONLY....
@@ -440,6 +520,11 @@ class StoreController extends GetxController{
             productDataList.addAll(newData);
           } else {
             productDataList.assignAll(newData);
+            _productCache.mark(_productSignature(
+              providerType: providerType,
+              productCategory: productCategory,
+              query: query,
+            ));
             log('product data length--> ${productDataList.length}');
             log('loggggg 1--> ${productDataList[0].product.business_name}');
 

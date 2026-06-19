@@ -82,8 +82,8 @@ class _AutomotiveProductsStoreDetailsScreenState
     super.initState();
     // Load the visiting business profile + inventory in parallel, and
     // track the store-detail view (same pattern as the product visit screen).
-    viewBusinessDetailsController.viewBusinessProfileById(_visitUserId);
-    controller.fetchAllProductData(visitUserId: _visitUserId);
+    viewBusinessDetailsController.viewBusinessProfileByIdIfNeeded(_visitUserId);
+    controller.fetchAllProductDataIfNeeded(visitUserId: _visitUserId);
     ProfileClickTracker.track(
       userId: _visitUserId,
       source: ChatClickSource.storeDetail,
@@ -123,7 +123,14 @@ class _AutomotiveProductsStoreDetailsScreenState
       body: Stack(
         fit: StackFit.expand,
         children: [
-          SingleChildScrollView(
+          RefreshIndicator(
+            onRefresh: () async {
+              viewBusinessDetailsController
+                  .viewBusinessProfileById(_visitUserId);
+              await controller.fetchAllProductData(visitUserId: _visitUserId);
+            },
+            child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: EdgeInsets.symmetric(
               horizontal: SizeConfig.size8,
               vertical: SizeConfig.size15,
@@ -246,6 +253,7 @@ class _AutomotiveProductsStoreDetailsScreenState
                 SizedBox(height: SizeConfig.size100),
               ],
             ),
+          ),
           ),
           Positioned(
             bottom: 40,

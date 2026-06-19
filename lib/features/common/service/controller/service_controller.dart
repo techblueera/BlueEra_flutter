@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/utils/fetch_cache.dart';
 import 'package:BlueEra/features/common/service/model/get_service_model.dart';
 import 'package:BlueEra/features/common/service/controller/add_service_controller.dart';
 import 'package:BlueEra/features/common/service/model/service_ai_generate_model.dart';
@@ -134,6 +135,14 @@ class ServiceController extends GetxController {
   int serviceDataPage = 1;
   bool serviceDataHasMore = true;
 
+  /// Freshness guard for the earn-service first-load, so re-entering a screen
+  /// (e.g. Home-Service discover v2) that already holds matching data within
+  /// the TTL skips a redundant refetch. Keyed by subType + category.
+  final FetchCache _earnCache = FetchCache();
+
+  String _earnSignature(Map<String, dynamic> queryParams) =>
+      'earnSvc|${queryParams[ApiKeys.subType]}|${queryParams[ApiKeys.category]}';
+
   /// Fetch business services (`ServiceAiRepo`).
   Future<void> getBusinessServices(Map<String, dynamic> queryParams,
       {bool isLoadMore = false}) {
@@ -147,11 +156,25 @@ class ServiceController extends GetxController {
   /// Fetch earn-with-BlueEra services (`EarnServiceRepo`).
   Future<void> getEarnServices(Map<String, dynamic> queryParams,
       {bool isLoadMore = false}) {
+    final signature = _earnSignature(queryParams);
     return _loadServices(
       queryParams,
       isLoadMore: isLoadMore,
       fetch: (qp) => EarnServiceRepo().getEarnServiceRepo(queryParams: qp),
+      onFreshSuccess: () => _earnCache.mark(signature),
     );
+  }
+
+  /// Freshness-guarded variant of [getEarnServices] for screen re-entry: skips
+  /// the network call when the current earn-service list already matches this
+  /// request (same subType + category) and is within the cache TTL. Force
+  /// refetches (category taps, load-more) keep calling [getEarnServices].
+  Future<void> getEarnServicesIfNeeded(Map<String, dynamic> queryParams) async {
+    if (_earnCache.isFresh(_earnSignature(queryParams),
+        hasData: serviceDataList.isNotEmpty)) {
+      return;
+    }
+    await getEarnServices(queryParams);
   }
 
   /// Shared pagination + parsing pipeline for the service list. The caller
@@ -160,6 +183,7 @@ class ServiceController extends GetxController {
     Map<String, dynamic> queryParams, {
     required Future<ResponseModel> Function(Map<String, dynamic>) fetch,
     bool isLoadMore = false,
+    VoidCallback? onFreshSuccess,
   }) async {
     if (isLoadMore) {
       if (isServiceDataLoadingMore.value || !serviceDataHasMore) return;
@@ -201,6 +225,7 @@ class ServiceController extends GetxController {
             serviceDataList.addAll(newServices);
           } else {
             serviceDataList.assignAll(newServices);
+            onFreshSuccess?.call();
           }
 
           serviceDataPage++;

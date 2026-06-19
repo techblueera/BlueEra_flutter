@@ -62,7 +62,9 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
             accountType: AppConstants.individual,
           )
         : null;
-    controller.fetchEarnServices(
+    // Skip refetch on re-entry when the cached list is fresh for this
+    // category; category taps below still force a fresh fetch.
+    controller.fetchEarnServicesIfNeeded(
         earnServiceType: earnServiceType, subType: serviceSubType);
   }
 

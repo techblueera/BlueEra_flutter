@@ -1,20 +1,17 @@
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/price_row.dart';
 import 'package:BlueEra/features/me/automotive_products/controller/automotive_inventory_controller.dart';
-import 'package:BlueEra/features/me/automotive_products/controller/automotive_product_controller.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
-import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_product_preview_screen.dart';
 import 'package:BlueEra/features/me/automotive_products/view/admin/widget/automotive_attribute_two_rows.dart';
+import 'package:BlueEra/features/me/product/view/admin/widget/product_inventory_bottom_sheet.dart';
+import 'package:BlueEra/features/me/product/view/admin/widget/product_preview_eye_button.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/product_price_edit_sheet.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 
@@ -107,16 +104,7 @@ class AutomotiveAdminProductCard extends StatelessWidget {
     ProductDetails? details = product.product.details;
 
     return GestureDetector(
-      onTap: () {
-        final productPreviewArgs = mapProductDataToPreviewArgs(product);
-        Get.toNamed(
-          RouteHelper.getAutomotiveProductPreviewScreenRoute(),
-          arguments: {
-            ApiKeys.isFromProductCreation: false,
-            ApiKeys.argProductData: productPreviewArgs,
-          },
-        );
-      },
+      onTap: () => ProductInventoryBottomSheet.show(context, product: product),
       child: (isGridShow) ? Container(
         width: width,
         decoration: BoxDecoration(
@@ -148,6 +136,14 @@ class AutomotiveAdminProductCard extends StatelessWidget {
                     right: 6,
                     top: 6,
                     child: _editButton(context),
+                  ),
+                  Positioned(
+                    top: 6,
+                    left: 6,
+                    child: ProductPreviewEyeButton(
+                      onTap: () => ProductInventoryBottomSheet.show(context,
+                          product: product),
+                    ),
                   ),
                 ],
               ),
@@ -265,13 +261,26 @@ class AutomotiveAdminProductCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             /// AutomotiveProduct Image
-            CustomImageSlideshow(
-              isLoading: false,
-              height: SizeConfig.size200,
-              width: SizeConfig.size150,
-              imagePaths: details?.media ?? [],
-              borderRadius: BorderRadius.horizontal(left: Radius.circular(10.0)),
-              // fit: BoxFit.cover,
+            Stack(
+              children: [
+                CustomImageSlideshow(
+                  isLoading: false,
+                  height: SizeConfig.size200,
+                  width: SizeConfig.size150,
+                  imagePaths: details?.media ?? [],
+                  borderRadius:
+                      BorderRadius.horizontal(left: Radius.circular(10.0)),
+                  // fit: BoxFit.cover,
+                ),
+                Positioned(
+                  top: 6,
+                  left: 6,
+                  child: ProductPreviewEyeButton(
+                    onTap: () => ProductInventoryBottomSheet.show(context,
+                        product: product),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(width: 10),
 
@@ -359,58 +368,4 @@ class AutomotiveAdminProductCard extends StatelessWidget {
     );
   }
 
-}
-
-AutomotiveProductPreviewArgs mapProductDataToPreviewArgs(GetProductData productData) {
-  final product = productData.product;
-  final details = product.details;
-
-  List<AutomotiveProductListing> listedProducts = [];
-  final variants = product.sellerClassification?.variants ?? [];
-  if (variants.isNotEmpty) {
-    listedProducts = variants.map((variant) {
-      final variantName = '${details?.name ?? ''} ' +
-          variant.attributes.entries.map((entry) {
-            final key = entry.key.toLowerCase();
-            final value = entry.value;
-
-            if (key == 'color' && value is Map<String, dynamic>) {
-              return value['color_name'] ?? '';
-            } else if (value != null) {
-              return value.toString();
-            } else {
-              return '';
-            }
-          }).where((attr) => attr.isNotEmpty).join(', ');
-
-      return AutomotiveProductListing(id: variant.id,
-        image: variant.mediaRelatedToVariant,
-        name: variantName,
-        selectedVariants: variant.attributes,
-        price: variant.sellingPrice.toString(),
-        mrp: variant.mrp.toString(),
-        discount: variant.mrp > 0
-            ? (((variant.mrp - variant.sellingPrice) / variant.mrp) * 100)
-            .toStringAsFixed(2)
-            : null,
-      );
-    }).toList();
-  }
-
-  return AutomotiveProductPreviewArgs(
-    productId: details?.id ?? '',
-    productImages: details?.media ?? [],
-    name: details?.name ?? '',
-    description: details?.description ?? '',
-    tags: details?.tags ?? [],
-    features: details?.addProductFeatures.map((f) => f.title).toList() ?? [],
-    details: details?.addMoreDetails
-        .map((d) => AutomotiveDetailPair(d.title, d.details))
-        .toList(),
-    warranty: details?.productWarranty ?? '',
-    // linkOrReferralUrl: details?.linkOrReferralUrl ?? '',
-    // expiry: details?.expiry ?? '',
-    // userGuide: details?.userGuide ?? [],
-    listedProducts: listedProducts,
-  );
 }

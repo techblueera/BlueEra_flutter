@@ -1,16 +1,15 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/features/me/automotive_products/controller/automotive_product_controller.dart';
+import 'package:BlueEra/features/me/product/model/get_product_model.dart' as gpm;
 import 'package:BlueEra/features/me/automotive_products/model/automotive_product_catalog_response.dart';
 import 'package:BlueEra/features/me/automotive_products/model/automotive_product_nested_category_response.dart';
-import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_product_preview_screen.dart';
+import 'package:BlueEra/features/me/product/view/admin/widget/product_inventory_bottom_sheet.dart';
 import 'package:BlueEra/features/me/automotive_products/view/admin/widget/automotive_product_variant_grid_card.dart';
 import 'package:BlueEra/features/me/automotive_products/view/customer/widget/automotive_product_floating_cart.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -288,33 +287,46 @@ class _AutomotiveProductSelectionScreenState extends State<AutomotiveProductSele
   }
 
   void _openPreview(AutomotiveSelectedVariant variantData) {
-    final product = variantData.product;
-    final variant = variantData.variant;
-
-    final productPreviewArgs = AutomotiveProductPreviewArgs(
-      productId: product.id,
-      productImages: product.media.isNotEmpty ? product.media : variant.media,
-      name: product.name,
-      description: product.description,
-      tags: product.tags,
-      features: product.features.map((f) => f.title).toList(),
-      details: product.additionalDetails
-          .map((d) => AutomotiveDetailPair(d.title, d.details))
-          .toList(),
-      sellingPrice: variant.sellingPrice.toString(),
-      MRPPrice: variant.mrp.toString(),
-      warranty: product.productWarranty,
-      expiry: '',
-      userGuide: product.guidelines,
+    ProductInventoryBottomSheet.show(
+      context,
+      product: _toGetProductData(variantData),
     );
+  }
 
-    Get.toNamed(
-      RouteHelper.getAutomotiveProductPreviewScreenRoute(),
-      arguments: {
-        ApiKeys.argProductData: productPreviewArgs,
-        ApiKeys.id: controller.ownerID ?? '',
-        ApiKeys.providerType: controller.ownerProviderType ?? ProviderType.business,
+  /// Adapts a catalog [AutomotiveSelectedVariant] (product + variants) into the
+  /// [gpm.GetProductData] the shared inventory bottom sheet renders.
+  gpm.GetProductData _toGetProductData(AutomotiveSelectedVariant data) {
+    final p = data.product;
+    return gpm.GetProductData.fromJson({
+      'product': {
+        'details': {
+          '_id': p.id,
+          'name': p.name,
+          'description': p.description,
+          'media': p.media,
+          'tags': p.tags,
+          'product_warranty': p.productWarranty,
+          'add_more_details': p.additionalDetails
+              .map((d) => {'title': d.title, 'details': d.details})
+              .toList(),
+          'add_product_features':
+              p.features.map((f) => {'title': f.title}).toList(),
+          'category': const <String, dynamic>{},
+        },
+        'sellerCalsification': {
+          'variants': p.variants
+              .map((v) => {
+                    '_id': v.id,
+                    'attributes': v.attributes,
+                    'stock': true,
+                    'sellingPrice': v.sellingPrice,
+                    'mrp': v.mrp,
+                    'media_related_to_varient': v.media,
+                    'varientIsActive': true,
+                  })
+              .toList(),
+        },
       },
-    );
+    });
   }
 }

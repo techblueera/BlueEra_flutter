@@ -15,6 +15,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/core/utils/fetch_cache.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/me/automotive_products/model/automotive_categoryinventory_model.dart';
@@ -203,6 +204,19 @@ class AutomotiveInventoryController extends GetxController {
   RxList<AutomotiveProductCategoryWithInventoryModel> productNestedCategoryList = <AutomotiveProductCategoryWithInventoryModel>[].obs;
   RxBool productNestedCategoryLoading = false.obs;
 
+  /// Freshness guard for the visited store's product data, keyed per store.
+  final FetchCache _allProductCache = FetchCache();
+
+  /// Load category + products only when not already loaded & fresh for this
+  /// store. Use on screen (re)entry; call [fetchAllProductData] to force.
+  Future<void> fetchAllProductDataIfNeeded({String? visitUserId}) async {
+    final sig = 'allProduct|${visitUserId ?? 'self'}';
+    final hasData =
+        productNestedCategoryList.isNotEmpty || allProducts.isNotEmpty;
+    if (_allProductCache.isFresh(sig, hasData: hasData)) return;
+    await fetchAllProductData(visitUserId: visitUserId);
+  }
+
   Future<void> fetchAllProductData({String? visitUserId}) async {
     try {
       myProductLoading.value = true;
@@ -210,6 +224,10 @@ class AutomotiveInventoryController extends GetxController {
         fetchProductCategoryWithInventory(visitUserId: visitUserId),
         fetchBusinessProducts(visitUserId: visitUserId),
       ]);
+      // Stamp freshness once the category list actually loaded.
+      if (fetchProductCategoryResponse.value.status == Status.COMPLETE) {
+        _allProductCache.mark('allProduct|${visitUserId ?? 'self'}');
+      }
     } catch (e) {
       log('Error fetching product data: $e');
     } finally {

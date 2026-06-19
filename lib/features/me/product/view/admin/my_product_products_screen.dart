@@ -85,7 +85,11 @@ class _MyProductProductsScreenState extends State<MyProductProductsScreen> {
         isCustomTitleWidget: () => Obx(() {
           final bool isOpen = controller.isProductSearchOpen.value;
 
-          return Expanded(
+          // The app bar already wraps the custom title in a Flexible+Padding, so
+          // an Expanded here is an invalid ParentDataWidget (Padding is a box,
+          // not a Flex). A full-width SizedBox fills the same space safely.
+          return SizedBox(
+            width: double.infinity,
             child: isOpen
                 ? CommonSearchBar(
                     controller: searchController,

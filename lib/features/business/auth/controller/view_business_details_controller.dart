@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/services/business_profile_cache.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/core/utils/fetch_cache.dart';
 import 'package:BlueEra/core/api/model/type_of_business_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -567,6 +568,20 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
 
   final visitingcontroller = Get.put(VisitProfileController());
 
+  /// Freshness guard for the visited business profile, keyed per business id.
+  final FetchCache _visitedProfileCache = FetchCache();
+
+  /// Load the visited business profile only when it isn't already loaded &
+  /// fresh for this [userId]. Use on screen (re)entry; call
+  /// [viewBusinessProfileById] directly for explicit/silent refreshes.
+  Future<void> viewBusinessProfileByIdIfNeeded(String userId) async {
+    final hasData = visitedBusinessProfileDetails?.data != null;
+    if (_visitedProfileCache.isFresh('profile|$userId', hasData: hasData)) {
+      return;
+    }
+    await viewBusinessProfileById(userId);
+  }
+
   Future<void> viewBusinessProfileById(String userId,
       {bool silent = false}) async {
     try {
@@ -582,6 +597,9 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
 
         visitedBusinessProfileDetails = ViewBusinessProfileModel.fromJson(data);
         profileVersion.value++;
+        // Stamp freshness (covers both normal & silent refreshes) so a screen
+        // re-entry for the same business reuses the profile.
+        _visitedProfileCache.mark('profile|$userId');
         // visitedBusinessProfileDetails = visitedBusinessProfileDetails_ as ViewBusinessProfileModel?;
         imagePath?.value = visitedBusinessProfileDetails?.data?.logo ?? "";
         businessDescription.value =

@@ -66,7 +66,9 @@ class _RiderLinkStoresScreenState extends State<RiderLinkStoresScreen> {
     controller.businessCategoryId =
         controller.selectedGroceryCategoryData.value?.tagId;
 
-    controller.getAllStoreNearBy();
+    // Skip the call on re-entry when the cached list is still fresh; the
+    // left-sidebar category taps still force a fresh fetch.
+    controller.getAllStoreNearByIfNeeded();
 
     _scrollController.addListener(_onScroll);
   }
@@ -140,8 +142,11 @@ class _RiderLinkStoresScreenState extends State<RiderLinkStoresScreen> {
         );
       }
 
-      return ListView.builder(
+      return RefreshIndicator(
+        onRefresh: () => controller.getAllStoreNearBy(),
+        child: ListView.builder(
         controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
         itemCount: controller.allStore.length +
             (controller.isAllStoreLoadingMore.value ? 1 : 0),
         shrinkWrap: true,
@@ -175,6 +180,7 @@ class _RiderLinkStoresScreenState extends State<RiderLinkStoresScreen> {
             );
           });
         },
+      ),
       );
     });
   }

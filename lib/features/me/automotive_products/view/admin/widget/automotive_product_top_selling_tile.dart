@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/price_row.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/features/me/automotive_products/view/admin/widget/automotive_attribute_two_rows.dart';
+import 'package:BlueEra/features/me/product/view/admin/widget/product_preview_eye_button.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -18,10 +19,15 @@ class AutomotiveProductTopSellingImage extends StatelessWidget {
   /// Optional cart overlay (add/remove button built externally).
   final Widget? cartOverlay;
 
+  /// When set, a small "view" eye button is shown (bottom-right) so users know
+  /// the card opens the product detail bottom sheet.
+  final VoidCallback? onPreviewTap;
+
   const AutomotiveProductTopSellingImage({
     super.key,
     required this.product,
     this.cartOverlay,
+    this.onPreviewTap,
   });
 
   @override
@@ -53,16 +59,23 @@ class AutomotiveProductTopSellingImage extends StatelessWidget {
             ),
     );
 
-    if (cartOverlay == null) return imageChild;
+    if (cartOverlay == null && onPreviewTap == null) return imageChild;
 
     return Stack(
       children: [
         Positioned.fill(child: imageChild),
-        Positioned(
-          top: 0,
-          right: 0,
-          child: cartOverlay!,
-        ),
+        if (cartOverlay != null)
+          Positioned(
+            top: 0,
+            right: 0,
+            child: cartOverlay!,
+          ),
+        if (onPreviewTap != null)
+          Positioned(
+            top: 6,
+            left: 6,
+            child: ProductPreviewEyeButton(onTap: onPreviewTap!),
+          ),
       ],
     );
   }

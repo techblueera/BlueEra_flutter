@@ -155,4 +155,11 @@ class AutomotiveDiscoverController extends GetxController {
   }
 
   void onScrollEnd() => fetchProductsByCategory(isLoadMore: true);
+
+  /// Explicit pull-to-refresh: re-fetch the category tabs and the currently
+  /// selected category's products from the network.
+  Future<void> refreshAll() async {
+    await fetchLevel0Categories();
+    await fetchProductsByCategory();
+  }
 }
