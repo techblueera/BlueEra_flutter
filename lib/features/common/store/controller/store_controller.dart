@@ -316,13 +316,39 @@ class StoreController extends GetxController{
     num? lat;
     num? lon;
     String? address;
-    final loc = field('location');
-    if (loc is Map) {
-      address = loc['address']?.toString();
-      final coords = loc['coordinates'];
+
+    // GeoJSON helper: coords are [lng, lat].
+    void readGeoJson(dynamic locMap) {
+      if (locMap is! Map) return;
+      address ??= (locMap['address']?.toString().trim().isNotEmpty ?? false)
+          ? locMap['address'].toString()
+          : locMap['name']?.toString();
+      final coords = locMap['coordinates'];
       if (coords is List && coords.length >= 2) {
-        lon = coords[0] is num ? coords[0] as num : null;
-        lat = coords[1] is num ? coords[1] as num : null;
+        lon ??= coords[0] is num ? coords[0] as num : null;
+        lat ??= coords[1] is num ? coords[1] as num : null;
+      }
+    }
+
+    // 1. Top-level `location` (search API shape).
+    readGeoJson(field('location'));
+
+    // 2. Fall back to the first `contactUs[].branch.location` — service
+    //    profiles often only carry coordinates on a branch, not at the
+    //    profile root.
+    if (lat == null || lon == null || (address?.isEmpty ?? true)) {
+      final contactUs = field('contactUs');
+      if (contactUs is List) {
+        for (final c in contactUs) {
+          if (c is! Map) continue;
+          final branch = c['branch'];
+          if (branch is Map) {
+            readGeoJson(branch['location']);
+          }
+          if (lat != null && lon != null && (address?.isNotEmpty ?? false)) {
+            break;
+          }
+        }
       }
     }
 

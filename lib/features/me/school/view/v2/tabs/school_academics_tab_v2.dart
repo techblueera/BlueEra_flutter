@@ -4,6 +4,8 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/widgets/empty_section_placeholder.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/features/me/school/view/category/acadamics/school_academics_page.dart';
+import 'package:BlueEra/features/me/school/view/category/acadamics/school_quick_info_form_screen.dart';
+import 'package:BlueEra/features/me/school/view/category/acadamics/widgets/school_quick_info_view.dart';
 import 'package:BlueEra/features/me/school/view/category/career_jobs/school_job_listing_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/notice_news/notice_news_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/school_home/school_course_view.dart';
@@ -32,6 +34,15 @@ class SchoolAcademicsTabV2 extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(height: SizeConfig.size12),
+
+          // ── School Quick Info (Class range / Ratio / Medium) ──
+          SchoolQuickInfoCard(
+            controller: controller,
+            onEditTap: () => Get.to(const SchoolQuickInfoFormScreen())
+                ?.then((_) => controller.getSchoolByIdController()),
+          ),
+
+          SizedBox(height: SizeConfig.size10),
 
           // ── Courses ──
           if (courses.isEmpty)

@@ -4,11 +4,11 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
+import 'package:BlueEra/features/common/Discover/widget/service_business_card.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/store/controller/store_controller.dart';
-import 'package:BlueEra/features/me/product/view/customer/product_store_card.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -33,8 +33,7 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
   final AuthController _authController = Get.find<AuthController>();
   final RxInt _selectedIndex = 0.obs;
 
-  List<CategoryData> get _categories =>
-      _authController.businessOnboardingServicesCategories;
+  List<CategoryData> get _categories => _authController.businessOnboardingServicesCategories;
 
   final List<String> _bannerImages = const [
     "https://img.freepik.com/free-photo/portrait-smiling-female-doctor-with-stethoscope_1262-21077.jpg?w=1380",
@@ -48,8 +47,7 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
 
     if (widget.serviceCategory != null && _categories.isNotEmpty) {
       controller.businessCategoryId = widget.serviceCategory;
-      final idx =
-          _categories.indexWhere((c) => c.tagId == widget.serviceCategory);
+      final idx = _categories.indexWhere((c) => c.tagId == widget.serviceCategory);
       if (idx >= 0) _selectedIndex.value = idx;
     } else if (_categories.isNotEmpty) {
       controller.businessCategoryId = _categories.first.tagId;
@@ -66,8 +64,7 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
 
   bool _onScrollNotification(ScrollNotification notification) {
     if (notification is ScrollUpdateNotification &&
-        notification.metrics.pixels >=
-            notification.metrics.maxScrollExtent - 200) {
+        notification.metrics.pixels >= notification.metrics.maxScrollExtent - 200) {
       controller.getServiceBusinessesNearBy(isLoadMore: true);
     }
     return false;
@@ -113,13 +110,11 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
                           // imageUrl: c.imageUrl,
                         ))
                     .toList(),
-                selectedId: _categories.isNotEmpty &&
-                        _selectedIndex.value < _categories.length
+                selectedId: _categories.isNotEmpty && _selectedIndex.value < _categories.length
                     ? _categories[_selectedIndex.value].tagId
                     : null,
                 onCategoryTap: (item) {
-                  final idx =
-                      _categories.indexWhere((c) => c.tagId == item.id);
+                  final idx = _categories.indexWhere((c) => c.tagId == item.id);
                   if (idx >= 0) _onCategoryTap(_categories[idx], idx);
                   setState(() {});
                 },
@@ -147,8 +142,7 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
 
   Widget _buildStoreContent(double Function(double) dynamicSize) {
     return Obx(() {
-      if (controller.isAllStoreFirstLoading.value &&
-          controller.allStore.isEmpty) {
+      if (controller.isAllStoreFirstLoading.value && controller.allStore.isEmpty) {
         return const Center(child: CircularProgressIndicator());
       }
 
@@ -174,8 +168,7 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
                 right: SizeConfig.size12,
                 bottom: SizeConfig.paddingL,
               ),
-              itemCount: controller.allStore.length +
-                  (controller.isAllStoreLoadingMore.value ? 1 : 0),
+              itemCount: controller.allStore.length + (controller.isAllStoreLoadingMore.value ? 1 : 0),
               itemBuilder: (context, index) {
                 if (index >= controller.allStore.length) {
                   return const Padding(
@@ -189,12 +182,8 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
                 final storeData = controller.allStore[index];
 
                 return Padding(
-                  padding: EdgeInsets.only(bottom: dynamicSize(10)),
-                  child: ProductStoreCard(
-                    ds: dynamicSize,
-                    index: index,
-                    getAllStoreResData: storeData,
-                  ),
+                  padding: EdgeInsets.only(bottom: dynamicSize(12)),
+                  child: ServiceBusinessCard(store: storeData),
                 );
               },
             ),
