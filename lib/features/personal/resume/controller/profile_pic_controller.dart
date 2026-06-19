@@ -34,14 +34,32 @@ class ProfilePicController extends GetxController {
   Rx<ApiResponse> getSelfResumeResponse = ApiResponse.initial('Initial').obs;
   Rx<GetResumeDataModel> getResumeData = GetResumeDataModel().obs;
 
-  Future getMyResume() async {
+  Future getMyResume({bool allowAutoCreate = true}) async {
     try {
       getSelfResumeResponse.value = ApiResponse.initial('Initial');
 
       ResponseModel response = await ResumeRepo().getResumeData();
 
       if (response.isSuccess) {
-        final model = GetResumeDataModel.fromJson(response.response?.data);
+        final data = response.response?.data;
+
+        // When the user has no resume yet the API returns
+        // {"message":"No resumes found for this user.","resumes":[]}.
+        // In that case create an empty resume once, then re-fetch so the
+        // section actions have a resume to attach to.
+        if (allowAutoCreate && _isNoResumeResponse(data)) {
+          final created = await ResumeRepo().createResume();
+          if (created.isSuccess) {
+            return getMyResume(allowAutoCreate: false);
+          }
+        }
+
+        // The endpoint may return the resume flat ({"_id":...,"name":...}) or
+        // wrapped ({"resumes":[{...}]} / {"resume":{...}} / {"data":{...}}).
+        // Unwrap it so the model parses the real fields instead of the
+        // wrapper (otherwise name/email/phone come back null and the profile
+        // renders blank even though the data is present in the response).
+        final model = GetResumeDataModel.fromJson(_extractResumeJson(data));
         getResumeData.value = model;
         getSelfResumeResponse.value = ApiResponse.complete(response);
         _updateBioController(getResumeData.value);
@@ -74,6 +92,34 @@ class ProfilePicController extends GetxController {
       print("Error fetching resume: $e");
       getSelfResumeResponse.value = ApiResponse.error('error');
     }
+  }
+
+  /// Extracts the actual resume document from the GET response, which may be
+  /// either flat or wrapped in `resumes` / `resume` / `data`.
+  dynamic _extractResumeJson(dynamic data) {
+    if (data is! Map) return data;
+    // Already a flat resume document.
+    if (data['_id'] != null || data['name'] != null || data['email'] != null) {
+      return data;
+    }
+    final resumes = data['resumes'];
+    if (resumes is List && resumes.isNotEmpty) return resumes.first;
+    final resume = data['resume'];
+    if (resume is Map) return resume;
+    final inner = data['data'];
+    if (inner is Map) return inner;
+    return data;
+  }
+
+  /// Returns true when the GET resume response indicates the user has no
+  /// resume yet (empty `resumes` list / missing resume id).
+  bool _isNoResumeResponse(dynamic data) {
+    if (data is! Map) return false;
+    // No resume document id present in the payload.
+    if (data['_id'] != null) return false;
+    final resumes = data['resumes'];
+    if (resumes is List) return resumes.isEmpty;
+    return true;
   }
 
   ///PROFILE PICTURE

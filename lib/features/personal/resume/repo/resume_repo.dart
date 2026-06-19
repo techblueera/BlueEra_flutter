@@ -14,6 +14,17 @@ class ResumeRepo extends BaseService {
     );
   }
 
+  /// CREATE RESUME (empty body) — used when the user has no resume yet so that
+  /// the subsequent section actions have a resume to attach to.
+  Future<ResponseModel> createResume() async {
+    return await ApiBaseHelper().postHTTP(
+      resumeUrl,
+      params: {},
+      onError: (error) {},
+      onSuccess: (res) {},
+    );
+  }
+
   ///For Experience
   String getExperienceUrl(bool isFullTime) {
     final url = isFullTime ? addExperienceUrl : addPartExperienceUrl;

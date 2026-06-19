@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/personal/resume/controller/profile_pic_controller.dart';
 import 'package:BlueEra/features/personal/resume/repo/resume_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -14,7 +15,22 @@ class SkillsController extends GetxController {
   @override
   void onInit() {
     skillController.addListener(validateForm);
+    // Seed from the already-loaded resume data. getMyResume() may have run
+    // (in CreateResumeScreen.initState) before this controller was registered,
+    // in which case _updateSkillsController skipped us. Pull the latest skills
+    // straight from the resume model so we are correct as soon as we exist.
+    _seedFromResumeData();
     super.onInit();
+  }
+
+  void _seedFromResumeData() {
+    try {
+      if (!Get.isRegistered<ProfilePicController>()) return;
+      final resumeData = Get.find<ProfilePicController>().getResumeData.value;
+      setSkillsFromModel(resumeData.skills);
+    } catch (e) {
+      print('Error seeding SkillsController from resume data: $e');
+    }
   }
 
   @override
@@ -41,10 +57,20 @@ class SkillsController extends GetxController {
   }
 
 
-  void setSkillsFromModel(List<String>? skills) {
+  void setSkillsFromModel(List<dynamic>? skills) {
     skillsList.clear();
     if (skills != null && skills.isNotEmpty) {
-      skillsList.addAll(skills.whereType<String>());
+      final parsed = skills
+          .map((e) {
+            if (e is String) return e;
+            if (e is Map) {
+              return (e['skill'] ?? e['name'] ?? '').toString();
+            }
+            return e?.toString() ?? '';
+          })
+          .where((e) => e.trim().isNotEmpty)
+          .toList();
+      skillsList.addAll(parsed);
     }
     validateForm();
   }

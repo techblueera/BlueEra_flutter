@@ -50,13 +50,26 @@ class GetResumeDataModel {
     id = json['_id'];
     userId = json['userId'];
     name = json['name'];
-    phone = json['phone'];
+    phone = json['phone'] ?? json['contact_no'];
     email = json['email'];
     location = json['location'];
 
-    skills = json['skills'] != null ? json['skills'].cast<String>() : [];
-    portfolios =
-        json['portfolios'] != null ? json['portfolios'].cast<String>() : [];
+    skills = json['skills'] != null
+        ? (json['skills'] as List)
+            .map((e) {
+              if (e is String) return e;
+              if (e is Map) return (e['skill'] ?? e['name'] ?? '').toString();
+              return e?.toString() ?? '';
+            })
+            .where((e) => e.trim().isNotEmpty)
+            .toList()
+        : <String>[];
+    portfolios = json['portfolios'] is List
+        ? (json['portfolios'] as List)
+            .map((e) => e?.toString() ?? '')
+            .where((e) => e.trim().isNotEmpty)
+            .toList()
+        : <String>[];
     if (json['education'] != null) {
       education = [];
       json['education'].forEach((v) {

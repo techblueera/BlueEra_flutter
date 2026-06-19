@@ -208,7 +208,7 @@ class ExperienceController extends GetxController {
               }
             : null,
         'previousCompanyName': exp.previousCompanyName ?? '',
-        'designation': exp.professionCategory ?? '',
+        'designation': exp.designation ?? '',
         'jobType': exp.jobType ?? '',
         'workMode': exp.workMode ?? '',
         'location': exp.location ?? '',
