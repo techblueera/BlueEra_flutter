@@ -65,9 +65,9 @@ class _VisitFoodStoreDetailsScreenState
   @override
   void initState() {
     super.initState();
-    viewBusinessDetailsController.viewBusinessProfileById(widget.visitBusinessId);
-    controller.fetchHomeData(businessId: widget.visitBusinessId);
-    controller.fetchDiscountFoodProducts(businessId: widget.visitBusinessId);
+    viewBusinessDetailsController
+        .viewBusinessProfileByIdIfNeeded(widget.visitBusinessId);
+    controller.fetchHomeAndDiscountIfNeeded(businessId: widget.visitBusinessId);
     ProfileClickTracker.track(
       userId: widget.visitBusinessId,
       source: ChatClickSource.storeDetail,
@@ -136,6 +136,7 @@ class _VisitFoodStoreDetailsScreenState
           onRefresh: () async {
             viewBusinessDetailsController.viewBusinessProfileById(widget.visitBusinessId);
             controller.fetchHomeData(businessId: widget.visitBusinessId);
+            controller.fetchDiscountFoodProducts(businessId: widget.visitBusinessId);
           },
           child: SingleChildScrollView(
             padding: EdgeInsets.symmetric(

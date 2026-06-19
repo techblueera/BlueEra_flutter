@@ -9,6 +9,7 @@ import 'package:BlueEra/features/me/automotive_products/controller/automotive_pr
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/features/me/automotive_products/model/automotive_product_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/automotive_products/view/admin/widget/automotive_product_top_selling_tile.dart';
+import 'package:BlueEra/features/me/product/view/admin/widget/product_inventory_bottom_sheet.dart';
 import 'package:BlueEra/features/me/automotive_products/view/customer/widget/automotive_product_self_pickup_cart.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -321,7 +322,10 @@ class _AutomotiveProductGridTile extends StatelessWidget {
     // for the thumbnail + cart overlay, same AutomotiveProductTopSellingInfoSection
     // for the title + price block — so the entry point and the
     // category grid present products with identical visuals.
-    return Container(
+    return GestureDetector(
+      onTap: () =>
+          ProductInventoryBottomSheet.show(context, product: product),
+      child: Container(
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(10),
@@ -333,6 +337,8 @@ class _AutomotiveProductGridTile extends StatelessWidget {
           Expanded(
             child: AutomotiveProductTopSellingImage(
               product: product,
+              onPreviewTap: () =>
+                  ProductInventoryBottomSheet.show(context, product: product),
               cartOverlay: Obx(() {
                 // Subscribe to cart list — forces a rebuild on every
                 // add/remove so the toggle affordance stays in sync
@@ -369,6 +375,7 @@ class _AutomotiveProductGridTile extends StatelessWidget {
           AutomotiveProductTopSellingInfoSection(product: product),
         ],
       ),
+    ),
     );
   }
 }

@@ -28,6 +28,14 @@ import GoogleMobileAds
             factoryId: "groceryAdFactory",
             nativeAdFactory: groceryNativeAdFactory)
 
+        // Feed-post-styled native ad for the home feed. Mirrors the Android
+        // `feed_native_ad.xml`; matches NativeAdSlot(factoryId: "feedAdFactory").
+        let feedNativeAdFactory = FeedNativeAdFactory()
+        FLTGoogleMobileAdsPlugin.registerNativeAdFactory(
+            self,
+            factoryId: "feedAdFactory",
+            nativeAdFactory: feedNativeAdFactory)
+
         // Configure AVAudioSession early to prevent error -50 when CallKit queries session properties
         configureAudioSession()
 
@@ -384,6 +392,166 @@ class GroceryNativeAdFactory: NSObject, FLTNativeAdFactory {
             mainStack.bottomAnchor.constraint(equalTo: adView.bottomAnchor),
             iconView.widthAnchor.constraint(equalToConstant: 44),
             iconView.heightAnchor.constraint(equalToConstant: 44),
+        ])
+
+        // Register the asset views with the NativeAdView, then populate them.
+        adView.headlineView = headlineView
+        adView.iconView = iconView
+        adView.advertiserView = advertiserView
+        adView.bodyView = bodyView
+        adView.mediaView = mediaView
+        adView.callToActionView = ctaView
+
+        headlineView.text = nativeAd.headline
+        advertiserView.text = nativeAd.advertiser
+        advertiserView.isHidden = nativeAd.advertiser == nil
+        bodyView.text = nativeAd.body
+        bodyView.isHidden = nativeAd.body == nil
+        iconView.image = nativeAd.icon?.image
+        iconView.isHidden = nativeAd.icon == nil
+        ctaView.setTitle(nativeAd.callToAction, for: .normal)
+        ctaView.isHidden = nativeAd.callToAction == nil
+        mediaView.mediaContent = nativeAd.mediaContent
+
+        // Associate the ad — wires impression/click tracking.
+        adView.nativeAd = nativeAd
+        return adView
+    }
+}
+
+// MARK: - Feed Native Ad Factory
+
+/// Builds the feed-post-styled native ad view for the home feed. Mirrors the
+/// Android `feed_native_ad.xml`: a circular author-style avatar + name/subtitle
+/// header with a "Sponsored" pill, body text, a full-bleed media view and a
+/// primary-blue call-to-action, with a hairline bottom divider so it stacks
+/// flush with the surrounding post cards. The view fills the height the Flutter
+/// AdWidget provides.
+class FeedNativeAdFactory: NSObject, FLTNativeAdFactory {
+    func createNativeAd(_ nativeAd: NativeAd,
+                        customOptions: [AnyHashable: Any]? = nil) -> NativeAdView? {
+        let primaryBlue = UIColor(red: 0.0, green: 0.525, blue: 1.0, alpha: 1.0)
+
+        // Rounded white card with a 1px greyE5 border, matching FeedCardWidget.
+        // Drawing the corners/border on the native view (not via a Flutter clip)
+        // keeps all four corners crisp on the platform view.
+        let adView = NativeAdView()
+        adView.backgroundColor = .white
+        adView.layer.cornerRadius = 20
+        adView.layer.borderWidth = 1
+        adView.layer.borderColor = UIColor(red: 0.898, green: 0.898, blue: 0.898, alpha: 1.0).cgColor
+        adView.clipsToBounds = true
+
+        // Circular author-style avatar.
+        let iconView = UIImageView()
+        iconView.translatesAutoresizingMaskIntoConstraints = false
+        iconView.contentMode = .scaleAspectFill
+        iconView.clipsToBounds = true
+        iconView.layer.cornerRadius = 21
+        iconView.backgroundColor = UIColor(white: 0.95, alpha: 1.0)
+
+        // Headline reads as the post author name.
+        let headlineView = UILabel()
+        headlineView.font = .boldSystemFont(ofSize: 15)
+        headlineView.textColor = UIColor(white: 0.1, alpha: 1.0)
+        headlineView.numberOfLines = 1
+
+        // Advertiser reads as the author subtitle.
+        let advertiserView = UILabel()
+        advertiserView.font = .systemFont(ofSize: 12)
+        advertiserView.textColor = UIColor(white: 0.48, alpha: 1.0)
+        advertiserView.numberOfLines = 1
+
+        // "Sponsored" pill (in place of the post overflow menu).
+        let sponsoredLabel = UILabel()
+        sponsoredLabel.text = " Sponsored "
+        sponsoredLabel.font = .boldSystemFont(ofSize: 10)
+        sponsoredLabel.textColor = UIColor(white: 0.48, alpha: 1.0)
+        sponsoredLabel.backgroundColor = UIColor(red: 0.94, green: 0.95, blue: 0.96, alpha: 1.0)
+        sponsoredLabel.layer.cornerRadius = 6
+        sponsoredLabel.clipsToBounds = true
+        sponsoredLabel.setContentHuggingPriority(.required, for: .horizontal)
+
+        let textStack = UIStackView(arrangedSubviews: [headlineView, advertiserView])
+        textStack.axis = .vertical
+        textStack.spacing = 2
+
+        let headerStack = UIStackView(arrangedSubviews: [iconView, textStack, sponsoredLabel])
+        headerStack.axis = .horizontal
+        headerStack.spacing = 10
+        headerStack.alignment = .center
+
+        // Body — the post text.
+        let bodyView = UILabel()
+        bodyView.font = .systemFont(ofSize: 14)
+        bodyView.textColor = UIColor(white: 0.1, alpha: 1.0)
+        bodyView.numberOfLines = 3
+
+        // Media — full-bleed like a post image.
+        let mediaView = MediaView()
+        mediaView.contentMode = .scaleAspectFill
+        mediaView.clipsToBounds = true
+        mediaView.setContentHuggingPriority(.defaultLow, for: .vertical)
+        mediaView.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
+        mediaView.heightAnchor.constraint(greaterThanOrEqualToConstant: 120).isActive = true
+
+        // Primary-blue CTA.
+        let ctaView = UIButton(type: .system)
+        ctaView.titleLabel?.font = .boldSystemFont(ofSize: 14)
+        ctaView.setTitleColor(.white, for: .normal)
+        ctaView.backgroundColor = primaryBlue
+        ctaView.layer.cornerRadius = 10
+        ctaView.isUserInteractionEnabled = false
+        ctaView.heightAnchor.constraint(equalToConstant: 42).isActive = true
+
+        // Header gets side insets like the post author row; media is full-bleed.
+        let headerContainer = UIView()
+        headerContainer.addSubview(headerStack)
+        headerStack.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            headerStack.leadingAnchor.constraint(equalTo: headerContainer.leadingAnchor, constant: 15),
+            headerStack.trailingAnchor.constraint(equalTo: headerContainer.trailingAnchor, constant: -12),
+            headerStack.topAnchor.constraint(equalTo: headerContainer.topAnchor),
+            headerStack.bottomAnchor.constraint(equalTo: headerContainer.bottomAnchor),
+        ])
+
+        let bodyContainer = UIView()
+        bodyContainer.addSubview(bodyView)
+        bodyView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            bodyView.leadingAnchor.constraint(equalTo: bodyContainer.leadingAnchor, constant: 15),
+            bodyView.trailingAnchor.constraint(equalTo: bodyContainer.trailingAnchor, constant: -12),
+            bodyView.topAnchor.constraint(equalTo: bodyContainer.topAnchor),
+            bodyView.bottomAnchor.constraint(equalTo: bodyContainer.bottomAnchor),
+        ])
+
+        let ctaContainer = UIView()
+        ctaContainer.addSubview(ctaView)
+        ctaView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            ctaView.leadingAnchor.constraint(equalTo: ctaContainer.leadingAnchor, constant: 12),
+            ctaView.trailingAnchor.constraint(equalTo: ctaContainer.trailingAnchor, constant: -12),
+            ctaView.topAnchor.constraint(equalTo: ctaContainer.topAnchor),
+            ctaView.bottomAnchor.constraint(equalTo: ctaContainer.bottomAnchor),
+        ])
+
+        let mainStack = UIStackView(arrangedSubviews: [
+            headerContainer, bodyContainer, mediaView, ctaContainer,
+        ])
+        mainStack.axis = .vertical
+        mainStack.spacing = 8
+        mainStack.translatesAutoresizingMaskIntoConstraints = false
+        mainStack.isLayoutMarginsRelativeArrangement = true
+        mainStack.layoutMargins = UIEdgeInsets(top: 10, left: 0, bottom: 10, right: 0)
+
+        adView.addSubview(mainStack)
+        NSLayoutConstraint.activate([
+            mainStack.leadingAnchor.constraint(equalTo: adView.leadingAnchor),
+            mainStack.trailingAnchor.constraint(equalTo: adView.trailingAnchor),
+            mainStack.topAnchor.constraint(equalTo: adView.topAnchor),
+            mainStack.bottomAnchor.constraint(equalTo: adView.bottomAnchor),
+            iconView.widthAnchor.constraint(equalToConstant: 42),
+            iconView.heightAnchor.constraint(equalToConstant: 42),
         ])
 
         // Register the asset views with the NativeAdView, then populate them.

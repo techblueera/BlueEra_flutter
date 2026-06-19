@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/utils/fetch_cache.dart';
 import 'package:BlueEra/features/common/Discover/model/consumer_tiffin_response_model.dart';
 import 'package:BlueEra/features/me/food/repo/food_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/food_item_model.dart';
@@ -78,6 +79,22 @@ class HmfConsumerController extends GetxController {
 
   // ── Tiffins ──
 
+  // Freshness guard so re-entering the screen doesn't refetch tiffins that are
+  // already loaded for the same meal filter (within the cache TTL).
+  final FetchCache _tiffinCache = FetchCache();
+
+  String get _tiffinSignature =>
+      'tiffins|${_mealTypeByFilter[selectedFilterIndex.value].name}';
+
+  /// Initial-load wrapper used on screen entry: skips the network call when the
+  /// tiffin list is already populated for the same meal filter and still fresh.
+  Future<void> fetchAllTiffinsIfNeeded() async {
+    if (_tiffinCache.isFresh(_tiffinSignature, hasData: tiffinList.isNotEmpty)) {
+      return;
+    }
+    await fetchAllTiffins();
+  }
+
   /// Initial (reset) load of tiffins for the selected meal filter.
   Future<void> fetchAllTiffins() async {
     _tiffinPage = 1;
@@ -117,6 +134,7 @@ class HmfConsumerController extends GetxController {
 
       if (reset) {
         tiffinList.assignAll(parsed.items);
+        _tiffinCache.mark(_tiffinSignature);
       } else {
         tiffinList.addAll(parsed.items);
       }

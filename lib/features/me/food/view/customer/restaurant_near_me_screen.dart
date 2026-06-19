@@ -110,13 +110,22 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchStores(categoryId: _categories.isNotEmpty ? _categories.first.tagId : null);
+    _fetchStores(
+      categoryId: _categories.isNotEmpty ? _categories.first.tagId : null,
+      ifNeeded: true,
+    );
   }
 
-  void _fetchStores({String? categoryId}) {
+  /// [ifNeeded] = true on screen entry (skips the call when the cached list is
+  /// still fresh); category taps pass false to force a fresh fetch.
+  void _fetchStores({String? categoryId, bool ifNeeded = false}) {
     storeController.typeOfBusiness = AppConstants.food;
     storeController.businessCategoryId = categoryId;
-    storeController.getAllStoreNearBy();
+    if (ifNeeded) {
+      storeController.getAllStoreNearByIfNeeded();
+    } else {
+      storeController.getAllStoreNearBy();
+    }
   }
 
   @override
@@ -335,7 +344,10 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
       }
 
       final rows = buildNativeAdRows(storeController.allStore.length);
-      return ListView.builder(
+      return RefreshIndicator(
+        onRefresh: () => storeController.getAllStoreNearBy(),
+        child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.only(
           left: SizeConfig.size12,
           right: SizeConfig.size12,
@@ -363,6 +375,7 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
           return _buildRestaurantCard(
               storeController.allStore[row.contentIndex], row.contentIndex);
         },
+      ),
       );
     });
   }

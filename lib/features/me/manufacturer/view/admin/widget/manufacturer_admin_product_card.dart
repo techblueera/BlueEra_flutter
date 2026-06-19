@@ -1,31 +1,28 @@
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/price_row.dart';
 import 'package:BlueEra/features/me/manufacturer/controller/manufacturer_inventory_controller.dart';
-import 'package:BlueEra/features/me/manufacturer/controller/manufacturer_product_controller.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
-import 'package:BlueEra/features/me/manufacturer/view/admin/manufacturer_product_preview_screen.dart';
 import 'package:BlueEra/features/me/manufacturer/view/admin/widget/manufacturer_attribute_two_rows.dart';
+import 'package:BlueEra/features/me/product/view/admin/widget/product_inventory_bottom_sheet.dart';
+import 'package:BlueEra/features/me/product/view/admin/widget/product_preview_eye_button.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/product_price_edit_sheet.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 
-class ManufacturerOwnProductCard extends StatelessWidget {
+class ManufacturerAdminProductCard extends StatelessWidget {
   final GetProductData product;
   final VoidCallback deleteProductApi;
   final double? width;
   final bool isGridShow;
   final bool showAttributes;
 
-  const ManufacturerOwnProductCard({
+  const ManufacturerAdminProductCard({
     super.key,
     required this.product,
     required this.deleteProductApi,
@@ -96,16 +93,7 @@ class ManufacturerOwnProductCard extends StatelessWidget {
     ProductDetails? details = product.product.details;
 
     return GestureDetector(
-      onTap: () {
-        final productPreviewArgs = mapProductDataToPreviewArgs(product);
-        Get.toNamed(
-          RouteHelper.getManufacturerProductPreviewScreenRoute(),
-          arguments: {
-            ApiKeys.isUserCanCreateVariants: false,
-            ApiKeys.argProductData: productPreviewArgs,
-          },
-        );
-      },
+      onTap: () => ProductInventoryBottomSheet.show(context, product: product),
       child: (isGridShow) ? Container(
         width: width,
         decoration: BoxDecoration(
@@ -137,6 +125,14 @@ class ManufacturerOwnProductCard extends StatelessWidget {
                     right: 6,
                     top: 6,
                     child: _editButton(context),
+                  ),
+                  Positioned(
+                    top: 6,
+                    left: 6,
+                    child: ProductPreviewEyeButton(
+                      onTap: () => ProductInventoryBottomSheet.show(context,
+                          product: product),
+                    ),
                   ),
                 ],
               ),
@@ -246,13 +242,26 @@ class ManufacturerOwnProductCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             /// ManufacturerProduct Image
-            CustomImageSlideshow(
-              isLoading: false,
-              height: SizeConfig.size200,
-              width: SizeConfig.size150,
-              imagePaths: details?.media ?? [],
-              borderRadius: BorderRadius.horizontal(left: Radius.circular(10.0)),
-              // fit: BoxFit.cover,
+            Stack(
+              children: [
+                CustomImageSlideshow(
+                  isLoading: false,
+                  height: SizeConfig.size200,
+                  width: SizeConfig.size150,
+                  imagePaths: details?.media ?? [],
+                  borderRadius:
+                      BorderRadius.horizontal(left: Radius.circular(10.0)),
+                  // fit: BoxFit.cover,
+                ),
+                Positioned(
+                  top: 6,
+                  left: 6,
+                  child: ProductPreviewEyeButton(
+                    onTap: () => ProductInventoryBottomSheet.show(context,
+                        product: product),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(width: 10),
 
@@ -340,58 +349,4 @@ class ManufacturerOwnProductCard extends StatelessWidget {
     );
   }
 
-}
-
-ManufacturerProductPreviewArgs mapProductDataToPreviewArgs(GetProductData productData) {
-  final product = productData.product;
-  final details = product.details;
-
-  List<ManufacturerProductListing> listedProducts = [];
-  final variants = product.sellerClassification?.variants ?? [];
-  if (variants.isNotEmpty) {
-    listedProducts = variants.map((variant) {
-      final variantName = '${details?.name ?? ''} ' +
-          variant.attributes.entries.map((entry) {
-            final key = entry.key.toLowerCase();
-            final value = entry.value;
-
-            if (key == 'color' && value is Map<String, dynamic>) {
-              return value['color_name'] ?? '';
-            } else if (value != null) {
-              return value.toString();
-            } else {
-              return '';
-            }
-          }).where((attr) => attr.isNotEmpty).join(', ');
-
-      return ManufacturerProductListing(id: variant.id,
-        image: variant.mediaRelatedToVariant,
-        name: variantName,
-        selectedVariants: variant.attributes,
-        price: variant.sellingPrice.toString(),
-        mrp: variant.mrp.toString(),
-        discount: variant.mrp > 0
-            ? (((variant.mrp - variant.sellingPrice) / variant.mrp) * 100)
-            .toStringAsFixed(2)
-            : null,
-      );
-    }).toList();
-  }
-
-  return ManufacturerProductPreviewArgs(
-    productId: details?.id ?? '',
-    media: details?.media ?? [],
-    name: details?.name ?? '',
-    description: details?.description ?? '',
-    tags: details?.tags ?? [],
-    features: details?.addProductFeatures.map((f) => f.title).toList() ?? [],
-    details: details?.addMoreDetails
-        .map((d) => ManufacturerDetailPair(d.title, d.details))
-        .toList(),
-    warranty: details?.productWarranty ?? '',
-    // linkOrReferralUrl: details?.linkOrReferralUrl ?? '',
-    // expiry: details?.expiry ?? '',
-    // userGuide: details?.userGuide ?? [],
-    listedProducts: listedProducts,
-  );
 }

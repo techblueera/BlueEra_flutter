@@ -65,7 +65,9 @@ class _ProductsStoreDiscoverScreenState extends State<ProductsStoreDiscoverScree
       controller.businessCategoryId = _categories.first.tagId;
     }
 
-    controller.getAllStoreNearBy();
+    // Skip the call on re-entry when the cached list is still fresh; category
+    // taps below still force a fresh fetch.
+    controller.getAllStoreNearByIfNeeded();
   }
 
   @override
@@ -346,7 +348,10 @@ class _ProductsStoreDiscoverScreenState extends State<ProductsStoreDiscoverScree
           SizedBox(height: SizeConfig.paddingXSL),
 
           Expanded(
-            child: ListView.builder(
+            child: RefreshIndicator(
+              onRefresh: () => controller.getAllStoreNearBy(),
+              child: ListView.builder(
+              physics: const AlwaysScrollableScrollPhysics(),
               padding: EdgeInsets.only(
                 left: SizeConfig.size12,
                 right: SizeConfig.size12,
@@ -375,6 +380,7 @@ class _ProductsStoreDiscoverScreenState extends State<ProductsStoreDiscoverScree
                   ),
                 );
               },
+            ),
             ),
           ),
         ],

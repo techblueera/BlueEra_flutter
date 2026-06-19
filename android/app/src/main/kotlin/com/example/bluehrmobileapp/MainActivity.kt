@@ -60,6 +60,14 @@ class MainActivity: FlutterActivity() {
             GroceryNativeAdFactory(layoutInflater)
         )
 
+        // Feed-post-styled native ad layout for the home feed. Referenced from
+        // Dart via NativeAdSlot(factoryId: "feedAdFactory").
+        GoogleMobileAdsPlugin.registerNativeAdFactory(
+            flutterEngine,
+            "feedAdFactory",
+            FeedNativeAdFactory(layoutInflater)
+        )
+
         // ------------------------------
         // MEDIA SCANNER CHANNEL — makes files show in Gallery
         // ------------------------------
@@ -403,6 +411,7 @@ class MainActivity: FlutterActivity() {
 
     override fun cleanUpFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         GoogleMobileAdsPlugin.unregisterNativeAdFactory(flutterEngine, "groceryAdFactory")
+        GoogleMobileAdsPlugin.unregisterNativeAdFactory(flutterEngine, "feedAdFactory")
         super.cleanUpFlutterEngine(flutterEngine)
     }
 

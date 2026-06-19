@@ -129,6 +129,13 @@ class NativeAdSlot extends StatelessWidget {
     required this.adOrdinal,
     this.keyPrefix = 'native_ad',
     this.height = 300,
+    this.factoryId = NativeAdWidget.defaultFactoryId,
+    this.borderRadius = 12,
+    this.bottomGap,
+    this.margin,
+    this.border,
+    this.boxShadow,
+    this.backgroundColor,
   });
 
   final int adOrdinal;
@@ -138,11 +145,40 @@ class NativeAdSlot extends StatelessWidget {
   /// >=120 media view plus header/body/CTA (smaller warns "media too small").
   final double height;
 
+  /// Which native layout renders the ad (defaults to the grocery card). Pass
+  /// `'feedAdFactory'` for the feed-post-styled layout.
+  final String factoryId;
+
+  /// Outer corner radius (the feed card uses 20 to match a post card).
+  final double borderRadius;
+
+  /// Gap below the slot; pass `0` when the native layout supplies its own.
+  final double? bottomGap;
+
+  /// Outer spacing; overrides [bottomGap]. Feed uses `EdgeInsets.all(5)`.
+  final EdgeInsetsGeometry? margin;
+
+  /// Optional card border (feed post card's hairline).
+  final BoxBorder? border;
+
+  /// Optional card shadow (feed post card's soft shadow).
+  final List<BoxShadow>? boxShadow;
+
+  /// Optional fill behind the ad (white for a bordered card).
+  final Color? backgroundColor;
+
   @override
   Widget build(BuildContext context) {
     return NativeAdWidget(
       key: ValueKey('${keyPrefix}_$adOrdinal'),
       height: height,
+      factoryId: factoryId,
+      borderRadius: borderRadius,
+      bottomGap: bottomGap,
+      margin: margin,
+      border: border,
+      boxShadow: boxShadow,
+      backgroundColor: backgroundColor,
     );
   }
 }

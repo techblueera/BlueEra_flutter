@@ -5,6 +5,7 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/utils/fetch_cache.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/features/me/food/model/food_home_res_model.dart';
 import 'package:BlueEra/features/me/food/model/food_product_response_model.dart';
@@ -38,6 +39,22 @@ class RestaurantController extends GetxController {
 
   bool get discountProductsHasMore => _discountProductsHasMore;
 
+  /// Freshness guard for the store's home data, keyed per business so a
+  /// re-entry for the same restaurant skips the network call.
+  final FetchCache _homeCache = FetchCache();
+
+  /// Load home + discount data only when it isn't already loaded & fresh for
+  /// this [businessId]. Use on screen (re)entry; call [fetchHomeData] /
+  /// [fetchDiscountFoodProducts] directly for explicit refreshes.
+  Future<void> fetchHomeAndDiscountIfNeeded({required String businessId}) async {
+    if (_homeCache.isFresh('foodHome|$businessId',
+        hasData: restaurantData.value != null)) {
+      return;
+    }
+    fetchHomeData(businessId: businessId);
+    fetchDiscountFoodProducts(businessId: businessId);
+  }
+
   void fetchHomeData({required String businessId}) async {
     try {
       foodHomeDataResponse.value = ApiResponse.initial('Initial');
@@ -54,6 +71,7 @@ class RestaurantController extends GetxController {
             restaurantData.value?.restaurantSpecials ?? [];
 
         foodHomeDataResponse.value = ApiResponse.complete(responseModel);
+        _homeCache.mark('foodHome|$businessId');
       } else {
         foodHomeDataResponse.value = ApiResponse.error('error');
 

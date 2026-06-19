@@ -8,6 +8,7 @@ import 'package:BlueEra/features/me/product/controller/inventory_controller.dart
 import 'package:BlueEra/features/me/product/controller/product_selfpickup_controller.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/features/me/product/model/product_category_with_inventory_model.dart';
+import 'package:BlueEra/features/me/product/view/admin/widget/product_inventory_bottom_sheet.dart';
 import 'package:BlueEra/features/me/product/view/admin/widget/product_top_selling_tile.dart';
 import 'package:BlueEra/features/me/product/view/customer/widget/product_self_pickup_cart.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -321,7 +322,10 @@ class _ProductGridTile extends StatelessWidget {
     // for the thumbnail + cart overlay, same ProductTopSellingInfoSection
     // for the title + price block — so the entry point and the
     // category grid present products with identical visuals.
-    return Container(
+    return GestureDetector(
+      onTap: () =>
+          ProductInventoryBottomSheet.show(context, product: product),
+      child: Container(
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(10),
@@ -333,6 +337,8 @@ class _ProductGridTile extends StatelessWidget {
           Expanded(
             child: ProductTopSellingImage(
               product: product,
+              onPreviewTap: () =>
+                  ProductInventoryBottomSheet.show(context, product: product),
               cartOverlay: Obx(() {
                 // Subscribe to cart list — forces a rebuild on every
                 // add/remove so the toggle affordance stays in sync
@@ -369,6 +375,7 @@ class _ProductGridTile extends StatelessWidget {
           ProductTopSellingInfoSection(product: product),
         ],
       ),
+    ),
     );
   }
 }

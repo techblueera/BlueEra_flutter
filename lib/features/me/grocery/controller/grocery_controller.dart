@@ -12,6 +12,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/core/utils/fetch_cache.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_business_products_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_snap_search_response.dart';
@@ -655,6 +656,22 @@ class GroceryController extends GetxController {
 
   bool get businessProductsHasMore => _businessProductsHasMore;
 
+  /// Freshness guard for [fetchAllGroceryData], keyed per store so visiting
+  /// store A → B → back to A re-fetches A only if its data went stale.
+  final FetchCache _allGroceryCache = FetchCache();
+
+  /// Fetch the store's grocery data (categories + top-selling) only when it
+  /// isn't already loaded & fresh for this [userId]. Use on screen (re)entry;
+  /// call [fetchAllGroceryData] for explicit refreshes.
+  Future<void> fetchAllGroceryDataIfNeeded(String userId,
+      {required bool otherStore}) async {
+    final signature = 'grocery|$userId|$otherStore';
+    final hasData = groceryCategoryList.isNotEmpty ||
+        groceryBusinessProductsList.isNotEmpty;
+    if (_allGroceryCache.isFresh(signature, hasData: hasData)) return;
+    await fetchAllGroceryData(userId, otherStore: otherStore);
+  }
+
   Future<void> fetchAllGroceryData(String userId, {required bool otherStore}) async {
     try {
       myGroceryLoading.value = true;
@@ -665,6 +682,11 @@ class GroceryController extends GetxController {
         fetchGroceryBusinessProductsRepo(userId, otherStore),
       ]);
 
+      // Stamp the freshness cache once the category list actually loaded so a
+      // re-entry for the same store reuses it instead of refetching.
+      if (fetchMyGroceryCategoryResponse.value.status == Status.COMPLETE) {
+        _allGroceryCache.mark('grocery|$userId|$otherStore');
+      }
     } catch (e) {
     } finally {
       myGroceryLoading.value = false;

@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_map_widgets.dart';
@@ -74,7 +75,7 @@ class _PropertyDiscoverScreenState extends State<PropertyDiscoverScreen> {
   @override
   void initState() {
     super.initState();
-    _ctrl = Get.put(PropertyDiscoverController());
+    _ctrl = getOrPut(() => PropertyDiscoverController());
     _ctrl.initWithCategories(_categories, widget.initialCategoryIndex);
 
     _scrollController.addListener(() {

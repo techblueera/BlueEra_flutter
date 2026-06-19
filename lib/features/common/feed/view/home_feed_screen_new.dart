@@ -218,9 +218,27 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
             if (row.isAd) {
               print('[HOME_FEED_AD] building ad slot '
                   'ordinal=${row.adOrdinal} index=$indexFeed');
+              // Feed-styled native ad: the platform `feedAdFactory` layout
+              // mirrors a post card (author header + media + CTA). The white
+              // fill, 20dp rounded corners and 1px greyE5 border are drawn by
+              // the NATIVE layout (so all four corners stay crisp on the
+              // platform view); Flutter only adds the matching radius-20 clip,
+              // the soft post-card shadow, and EdgeInsets.all(5) spacing — the
+              // same spacing FeedCardWidget + MessagePostWidget use.
               return NativeAdSlot(
                 adOrdinal: row.adOrdinal,
                 keyPrefix: 'home_feed_native_ad',
+                factoryId: 'feedAdFactory',
+                height: 380,
+                borderRadius: 20,
+                margin: const EdgeInsets.all(5),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               );
             }
 

@@ -13,6 +13,7 @@ import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/me/product/controller/product_selfpickup_controller.dart';
+import 'package:BlueEra/features/me/product/view/admin/widget/product_inventory_bottom_sheet.dart';
 import 'package:BlueEra/features/me/product/view/admin/widget/product_top_selling_tile.dart';
 import 'package:BlueEra/features/me/product/view/customer/customer_all_top_selling_products_screen.dart';
 import 'package:BlueEra/features/me/product/view/customer/visit_product_products_screen.dart';
@@ -64,8 +65,8 @@ class _VisitProductStoreDetailsScreenState
     // track the store-detail view (same pattern as the grocery visit
     // screen).
     viewBusinessDetailsController
-        .viewBusinessProfileById(widget.visitUserId);
-    controller.fetchAllProductData(visitUserId: widget.visitUserId);
+        .viewBusinessProfileByIdIfNeeded(widget.visitUserId);
+    controller.fetchAllProductDataIfNeeded(visitUserId: widget.visitUserId);
     ProfileClickTracker.track(
       userId: widget.visitUserId,
       source: ChatClickSource.storeDetail,
@@ -105,7 +106,15 @@ class _VisitProductStoreDetailsScreenState
       body: Stack(
         fit: StackFit.expand,
         children: [
-          SingleChildScrollView(
+          RefreshIndicator(
+            onRefresh: () async {
+              viewBusinessDetailsController
+                  .viewBusinessProfileById(widget.visitUserId);
+              await controller.fetchAllProductData(
+                  visitUserId: widget.visitUserId);
+            },
+            child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.symmetric(
           horizontal: SizeConfig.size8,
           vertical: SizeConfig.size15,
@@ -250,6 +259,7 @@ class _VisitProductStoreDetailsScreenState
           ],
         ),
       ),
+          ),
           Positioned(
             bottom: 40,
             left: 0,
@@ -312,7 +322,10 @@ class _VisitProductStoreDetailsScreenState
                 itemBuilder: (context, index) {
                   final product = controller.allProducts[index];
 
-                  return Container(
+                  return GestureDetector(
+                    onTap: () => ProductInventoryBottomSheet.show(context,
+                        product: product),
+                    child: Container(
                     width: SizeConfig.size160,
                     margin: const EdgeInsets.only(right: 8.0),
                     decoration: BoxDecoration(
@@ -326,6 +339,8 @@ class _VisitProductStoreDetailsScreenState
                         Expanded(
                           child: ProductTopSellingImage(
                             product: product,
+                            onPreviewTap: () => ProductInventoryBottomSheet
+                                .show(context, product: product),
                             cartOverlay: Obx(() {
                               final cart =
                                   cartController.selectedProductVariants;
@@ -364,6 +379,7 @@ class _VisitProductStoreDetailsScreenState
                         ProductTopSellingInfoSection(product: product),
                       ],
                     ),
+                  ),
                   );
                 },
               );
