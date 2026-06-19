@@ -143,6 +143,58 @@ class BusinessProfileDetails {
     userContactNo = json['userContactNo'];
     availability = json['availability'] != null ? AvailabilityData.fromJson(json['availability']) : null;
     dietaryType = json['dietaryType'];
+
+    // ── Location fallbacks ──
+    // Service-business profiles often carry coordinates and the human
+    // address only inside `contactUs[].branch.location` (GeoJSON), not in
+    // the snake_case `business_location` map at the root. Pull them up so
+    // every consumer (the visit detail screen, BusinessContactMapCard,
+    // etc.) sees real values instead of (0, 0) and an empty address.
+    final hasZeroCoords = businessLocation == null ||
+        ((businessLocation?.lat ?? 0.0) == 0.0 &&
+            (businessLocation?.lon ?? 0.0) == 0.0);
+    final hasEmptyAddress = address == null || address!.trim().isEmpty;
+
+    void applyGeoJson(dynamic locMap) {
+      if (locMap is! Map) return;
+      if (hasEmptyAddress) {
+        final addr = locMap['address']?.toString().trim();
+        if (addr != null && addr.isNotEmpty) {
+          address = addr;
+        } else {
+          final name = locMap['name']?.toString().trim();
+          if (name != null && name.isNotEmpty) address = name;
+        }
+      }
+      final coords = locMap['coordinates'];
+      if (coords is List && coords.length >= 2) {
+        final lng =
+            coords[0] is num ? (coords[0] as num).toDouble() : null;
+        final lat =
+            coords[1] is num ? (coords[1] as num).toDouble() : null;
+        if (lat != null && lng != null && (lat != 0.0 || lng != 0.0)) {
+          businessLocation = BusinessLocation(lat: lat, lon: lng);
+        }
+      }
+    }
+
+    if (hasZeroCoords || hasEmptyAddress) {
+      // 1. Top-level GeoJSON `location`.
+      applyGeoJson(json['location']);
+
+      // 2. First `contactUs[].branch.location` with coordinates.
+      final contactUs = json['contactUs'];
+      if (contactUs is List) {
+        for (final c in contactUs) {
+          if (c is! Map) continue;
+          final branch = c['branch'];
+          if (branch is Map) applyGeoJson(branch['location']);
+          final filled = (businessLocation?.lat ?? 0.0) != 0.0 ||
+              (businessLocation?.lon ?? 0.0) != 0.0;
+          if (filled && (address?.isNotEmpty ?? false)) break;
+        }
+      }
+    }
   }
 
   DateOfIncorporation? dateOfIncorporation;

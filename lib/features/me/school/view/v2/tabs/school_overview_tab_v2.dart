@@ -4,17 +4,19 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
+import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/widgets/empty_section_placeholder.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
+import 'package:BlueEra/features/me/school/view/category/about_school/availability_form_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/about_school/managment_trust_form_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/about_school/principal_message_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/campus_life/campus_life_listing_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/school_contact_us/school_contact_us.dart'
     as contact_us;
+import 'package:BlueEra/features/me/school/view/category/school_home/school_availability_view.dart';
 import 'package:BlueEra/features/me/school/view/category/school_home/school_campus_photo_gallery_view.dart';
 import 'package:BlueEra/features/me/school/view/category/school_home/school_contact_us_view.dart';
 import 'package:BlueEra/features/me/school/view/category/school_home/school_director_card_view.dart';
@@ -37,8 +39,7 @@ class SchoolOverviewTabV2 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final businessController =
-        getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+    final businessController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
     return Obx(() {
       final data = controller.schoolDetailsData?.value;
@@ -49,12 +50,12 @@ class SchoolOverviewTabV2 extends StatelessWidget {
           coordinates[1] != 0.0;
 
       final principal = data?.aboutId?.principalMessage;
-      final hasDirector = (principal?.name?.isNotEmpty ?? false) ||
-          (principal?.message?.isNotEmpty ?? false);
+      final hasDirector = (principal?.name?.isNotEmpty ?? false) || (principal?.message?.isNotEmpty ?? false);
 
       final management = data?.aboutId?.management ?? const [];
       final campusLife = data?.campusLife ?? const [];
       final contacts = data?.contacts ?? const [];
+      // final availability = data?.availability ?? const [];
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -74,8 +75,8 @@ class SchoolOverviewTabV2 extends StatelessWidget {
               title: AppStrings.principalDirectorMessage.tr,
               ctaLabel: AppStrings.principalDirectorMessage.tr,
               ctaIcon: Icons.person_outline,
-              onTap: () => Get.to(PrincipalMessageScreen())
-                  ?.then((_) => controller.getSchoolByIdController()),
+              onTap: () =>
+                  Get.to(PrincipalMessageScreen())?.then((_) => controller.getSchoolByIdController()),
             ),
 
           // ── Management ──
@@ -103,9 +104,27 @@ class SchoolOverviewTabV2 extends StatelessWidget {
             _SectionEmptyCard(
               title: AppStrings.campusLife.tr,
               ctaLabel: AppStrings.campusLife.tr,
-              onTap: () => Get.to(CampusLifeListingScreen())
-                  ?.then((_) => controller.getSchoolByIdController()),
+              onTap: () =>
+                  Get.to(CampusLifeListingScreen())?.then((_) => controller.getSchoolByIdController()),
             ),
+
+          SizedBox(height: SizeConfig.size10),
+
+          // ── Availability ──
+          // if (availability.isNotEmpty)
+          SchoolAvailabilityCard(
+            controller: controller,
+            onEditTap: () =>
+                Get.to(const AvailabilityFormScreen())?.then((_) => controller.getSchoolByIdController()),
+          ),
+          // else
+          //   _SectionEmptyCard(
+          //     title: AppStrings.setYourAvailability.tr,
+          //     ctaLabel: AppStrings.setYourAvailability.tr,
+          //     ctaIcon: Icons.schedule_outlined,
+          //     onTap: () => Get.to(const AvailabilityFormScreen())
+          //         ?.then((_) => controller.getSchoolByIdController()),
+          //   ),
 
           SizedBox(height: SizeConfig.size10),
 
@@ -120,8 +139,8 @@ class SchoolOverviewTabV2 extends StatelessWidget {
               title: AppStrings.contactUs.tr,
               ctaLabel: AppStrings.contactUs.tr,
               ctaIcon: Icons.contact_phone_outlined,
-              onTap: () => Get.to(contact_us.SchoolContactUs())
-                  ?.then((_) => controller.getSchoolByIdController()),
+              onTap: () =>
+                  Get.to(contact_us.SchoolContactUs())?.then((_) => controller.getSchoolByIdController()),
             ),
 
           SizedBox(height: SizeConfig.size10),
@@ -129,10 +148,8 @@ class SchoolOverviewTabV2 extends StatelessWidget {
           Padding(
             padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
             child: WebsiteOverviewCard(
-              websiteUrl: businessController
-                  .businessProfileDetails.value?.data?.websiteUrl,
-              onSave: (url) => businessController
-                  .updateBusinessProfileDetails({ApiKeys.websiteUrl: url}),
+              websiteUrl: businessController.businessProfileDetails.value?.data?.websiteUrl,
+              onSave: (url) => businessController.updateBusinessProfileDetails({ApiKeys.websiteUrl: url}),
             ),
           ),
 
@@ -156,8 +173,7 @@ class SchoolOverviewTabV2 extends StatelessWidget {
 
           // ── QR Code (mirrors the hospital QR card) ──
           Obx(() {
-            final details =
-                businessController.businessProfileDetails.value?.data;
+            final details = businessController.businessProfileDetails.value?.data;
             if (details == null) return const SizedBox.shrink();
             return Padding(
               padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
