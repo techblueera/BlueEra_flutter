@@ -13,6 +13,7 @@ import '../../../../core/constants/app_icon_assets.dart';
 import '../../../../core/services/notification_utils.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
+import '../forward_screen/chat_forward_screen.dart';
 import '../order_main_chat_screen.dart';
 import '../widget/chat_input_box.dart';
 import '../widget/component_widgets.dart';
@@ -377,8 +378,11 @@ class _ReactionInfoWidgetState extends State<ReactionInfoWidget> {
               _verticalDivider(),
               InkWell(
                   onTap: (){
-                    chatThemeController.selectedMessageIds.add(widget.message.id??'');
-                    Navigator.push(context, MaterialPageRoute(builder: (context)=>OrderMainChatScreen(isForwardUI: true,)));
+                    // Forward this image/video message via the same flow as
+                    // the long-press → Forward action: activate selection for
+                    // this message, then open the forward screen.
+                    chatThemeController.activateSelection(widget.message);
+                    Get.to(() => ChatForwardScreen());
                   },
                   child: _iconText(widget.userId,widget.conversation,AppIconAssets.chat_share_icon, "${(widget.message.forwards_count=="null")?"0":widget.message.forwards_count??0}",context,chatThemeController)),
             ],

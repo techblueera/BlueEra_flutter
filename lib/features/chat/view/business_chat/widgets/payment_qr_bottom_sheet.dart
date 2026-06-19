@@ -220,7 +220,7 @@ class _PaymentQrPanelState extends State<PaymentQrPanel>
               // While the conversation person's UPI is loading we show a
               // spinner in the same footprint so the sheet doesn't jump.
               Obx(() {
-                final qrSize = SizeConfig.screenWidth * 0.55;
+                final qrSize = SizeConfig.screenWidth * 0.42;
                 if (_upiController.isLoading.value) {
                   return SizedBox(
                     height: qrSize + 40,
@@ -270,15 +270,29 @@ class _PaymentQrPanelState extends State<PaymentQrPanel>
                       ),
                     ),
                     const SizedBox(height: 10),
-                    _copyableBox(vpa, copiedLabel: 'UPI ID copied'),
-                    // Show the mobile number only when the backend provides one.
-                    if ((_upiController.mobileNumber.value ?? '').isNotEmpty) ...[
-                      const SizedBox(height: 10),
-                      _copyableBox(
-                        _upiController.mobileNumber.value!,
-                        copiedLabel: 'Mobile number copied',
-                      ),
-                    ],
+                    // Show the UPI id and (when available) the linked mobile
+                    // number side by side on a single line.
+                    Builder(builder: (_) {
+                      final mobile = _upiController.mobileNumber.value ?? '';
+                      if (mobile.isEmpty) {
+                        return _copyableBox(vpa, copiedLabel: 'UPI ID copied');
+                      }
+                      return Row(
+                        children: [
+                          Expanded(
+                            child: _copyableBox(vpa,
+                                copiedLabel: 'UPI ID copied'),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _copyableBox(
+                              mobile,
+                              copiedLabel: 'Mobile number copied',
+                            ),
+                          ),
+                        ],
+                      );
+                    }),
                   ],
                 );
               }),
