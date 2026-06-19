@@ -27,7 +27,7 @@ import 'package:BlueEra/features/me/manufacturer/controller/manufacturer_invento
 import 'package:BlueEra/features/me/product/model/product_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/manufacturer/view/admin/manufacturer_admin_all_top_selling_products_screen.dart';
 import 'package:BlueEra/features/me/manufacturer/view/admin/manufacturer_product_home_screen.dart';
-import 'package:BlueEra/features/me/manufacturer/view/admin/widget/manufacturer_own_product_card.dart';
+import 'package:BlueEra/features/me/manufacturer/view/admin/widget/manufacturer_admin_product_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -1190,7 +1190,7 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
           ),
           SizedBox(height: SizeConfig.size12),
           SizedBox(
-            height: ManufacturerOwnProductCard.gridCardHeight,
+            height: ManufacturerAdminProductCard.gridCardHeight,
             child: Builder(builder: (context) {
               final previewCount = controller.allProducts.length >
                       ManufacturerInventoryController.ownProductsPreviewLimit
@@ -1205,7 +1205,7 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
                   padding: EdgeInsets.only(right: SizeConfig.size12),
                   child: SizedBox(
                     width: 168,
-                    child: ManufacturerOwnProductCard(
+                    child: ManufacturerAdminProductCard(
                       product: controller.allProducts[index],
                       deleteProductApi: () {},
                       width: 168,

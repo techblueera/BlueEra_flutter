@@ -60,13 +60,14 @@ class _HomeServiceDiscoverScreenV2State
     // synchronously, which would notify an Obx mid-build otherwise.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _fetch();
+      _fetch(useCache: true);
     });
   }
 
   @override
   void dispose() {
-    deleteIfRegistered<ServiceController>(tag: _ctrlTag);
+    // Keep the tagged controller (and its cached list) alive across re-entry so
+    // the freshness guard can skip a redundant refetch within the cache TTL.
     super.dispose();
   }
 
@@ -81,8 +82,14 @@ class _HomeServiceDiscoverScreenV2State
         ApiKeys.category: _selected.tagId,
       };
 
-  void _fetch({bool isLoadMore = false}) {
-    controller.getEarnServices(_queryParams(), isLoadMore: isLoadMore);
+  void _fetch({bool isLoadMore = false, bool useCache = false}) {
+    if (!isLoadMore && useCache) {
+      // Screen (re-)entry: skip the network call if the same category's data is
+      // already loaded and still fresh.
+      controller.getEarnServicesIfNeeded(_queryParams());
+    } else {
+      controller.getEarnServices(_queryParams(), isLoadMore: isLoadMore);
+    }
   }
 
   void _onCategoryTap(ServiceCategoryOption category) {

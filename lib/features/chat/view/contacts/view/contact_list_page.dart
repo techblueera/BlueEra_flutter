@@ -45,9 +45,16 @@ class _ContactsPageState extends State<ContactsPage> {
   @override
   void initState() {
     super.initState();
-    // chatViewController.loadGroupConnections();
 
-    _loadContactsFromCache();
+    // Group mode renders from `chatViewController.groupConnections`, which is
+    // populated by a separate API call. Without this initial sync the group
+    // list stays empty until the user taps refresh; regular contact mode
+    // hydrates from cache instead.
+    if (widget.from == "group") {
+      chatViewController.loadGroupConnections();
+    } else {
+      _loadContactsFromCache();
+    }
     _searchController.addListener(_onSearchChanged);
   }
 

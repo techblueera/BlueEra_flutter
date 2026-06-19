@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Subtle pill behind the "Sponsored" label in the feed-styled native ad
+     header (reads like the post author-row metadata, not a loud ad badge). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="#F0F2F5" />
+    <corners android:radius="6dp" />
+</shape>

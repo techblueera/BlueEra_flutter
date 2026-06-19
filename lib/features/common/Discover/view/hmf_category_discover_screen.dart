@@ -75,12 +75,11 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
   @override
   void initState() {
     super.initState();
-    controller.fetchAllTiffins();
+    controller.fetchAllTiffinsIfNeeded();
   }
 
   @override
   void dispose() {
-    deleteIfRegistered<HmfConsumerController>();
     super.dispose();
   }
 

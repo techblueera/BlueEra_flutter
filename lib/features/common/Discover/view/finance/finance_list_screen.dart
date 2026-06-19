@@ -196,15 +196,6 @@ class _FinanceCard extends StatelessWidget {
                       openHours: openHours,
                     ),
                     SizedBox(height: SizeConfig.size12),
-                    _buildStatsRow(
-                      minBalance: minBalance,
-                      minBalanceLabel: minBalanceLabel,
-                      openTime: openTime,
-                      openTimeLabel: openTimeLabel,
-                      savingsRate: savingsRate,
-                      savingsLabel: savingsLabel,
-                    ),
-                    SizedBox(height: SizeConfig.size12),
                     _buildTagsRow(
                       serviceTags: serviceTags,
                       moreCount: moreTagsCount,
@@ -337,41 +328,6 @@ class _FinanceCard extends StatelessWidget {
                 ],
               ),
             ),
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      AppColors.black.withValues(alpha: 0.0),
-                      AppColors.black.withValues(alpha: 0.55),
-                    ],
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    CustomText(
-                      highlightLabel,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.white,
-                    ),
-                    CustomText(
-                      highlightTrailing,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.white,
-                    ),
-                  ],
-                ),
-              ),
-            ),
           ],
         ),
       ),
@@ -399,8 +355,7 @@ class _FinanceCard extends StatelessWidget {
       if (isMeaningful(distance)) distance,
       if (isMeaningful(address)) address,
     ];
-    final String locationText =
-        parts.isEmpty ? 'N/A' : parts.join(' · ');
+    final String locationText = parts.isEmpty ? 'N/A' : parts.join(' · ');
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,

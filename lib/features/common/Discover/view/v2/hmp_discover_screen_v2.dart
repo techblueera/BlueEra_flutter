@@ -58,7 +58,8 @@ class _HmpDiscoverScreenV2State extends State<HmpDiscoverScreenV2> {
   @override
   void initState() {
     super.initState();
-    controller = Get.put(HmpProductsDiscoverController());
+    // Persistent so onInit only runs once → warm re-entry hits no API.
+    controller = getOrPut(() => HmpProductsDiscoverController());
     // The sticky header is not reactive on its own — rebuild it when the
     // categories arrive or the active tab changes.
     _catWorker = ever(controller.categories, (_) {
@@ -73,7 +74,6 @@ class _HmpDiscoverScreenV2State extends State<HmpDiscoverScreenV2> {
   void dispose() {
     _catWorker?.dispose();
     _selWorker?.dispose();
-    Get.delete<HmpProductsDiscoverController>();
     super.dispose();
   }
 

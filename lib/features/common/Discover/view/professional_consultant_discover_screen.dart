@@ -79,7 +79,9 @@ class _ProfessionConsultantDiscoverScreenState
             accountType: AppConstants.individual,
           )
         : null;
-    controller.fetchProfessionalConsultantServices();
+    // Skip refetch on re-entry when the cached list is fresh for this
+    // category; category taps below still force a fresh fetch.
+    controller.fetchProfessionalConsultantServicesIfNeeded();
     _ensureLocation();
   }
 

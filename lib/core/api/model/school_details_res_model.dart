@@ -64,6 +64,10 @@ class SchoolDetailsData {
     this.campusLife,
     this.location,
     this.galleryPhotos,
+    this.availability,
+    this.classRange,
+    this.studentTeacherRatio,
+    this.mediumOfInstruction,
   });
 
   SchoolDetailsData.fromJson(dynamic json) {
@@ -111,6 +115,22 @@ class SchoolDetailsData {
         if (url.isNotEmpty) galleryPhotos!.add(url);
       });
     }
+    if (json['availability'] != null) {
+      availability = [];
+      json['availability'].forEach((v) {
+        availability?.add(Availability.fromJson(v));
+      });
+    }
+    classRange = json['classRange'];
+    studentTeacherRatio = json['studentTeacherRatio'];
+    if (json['mediumOfInstruction'] is List) {
+      mediumOfInstruction = (json['mediumOfInstruction'] as List)
+          .map((e) => e.toString())
+          .toList();
+    } else if (json['mediumOfInstruction'] is String &&
+        (json['mediumOfInstruction'] as String).isNotEmpty) {
+      mediumOfInstruction = [json['mediumOfInstruction']];
+    }
   }
   String? id;
   String? name;
@@ -131,6 +151,10 @@ class SchoolDetailsData {
   List<CampusLife>? campusLife;
   Location? location;
   List<String>? galleryPhotos;
+  List<Availability>? availability;
+  String? classRange;
+  String? studentTeacherRatio;
+  List<String>? mediumOfInstruction;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -164,8 +188,42 @@ class SchoolDetailsData {
     if (this.location != null) {
       map['location'] = this.location!.toJson();
     }
+    if (availability != null) {
+      map['availability'] = availability?.map((v) => v.toJson()).toList();
+    }
+    map['classRange'] = classRange;
+    map['studentTeacherRatio'] = studentTeacherRatio;
+    map['mediumOfInstruction'] = mediumOfInstruction;
     return map;
   }
+}
+
+class Availability {
+  Availability({
+    this.day,
+    this.isOpen,
+    this.openTime,
+    this.closeTime,
+  });
+
+  Availability.fromJson(dynamic json) {
+    day = json['day'];
+    isOpen = json['isOpen'];
+    openTime = json['openTime'];
+    closeTime = json['closeTime'];
+  }
+
+  String? day;
+  bool? isOpen;
+  String? openTime;
+  String? closeTime;
+
+  Map<String, dynamic> toJson() => {
+        'day': day,
+        'isOpen': isOpen,
+        'openTime': openTime,
+        'closeTime': closeTime,
+      };
 }
 
 Courses coursesFromJson(String str) => Courses.fromJson(json.decode(str));

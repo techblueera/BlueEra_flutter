@@ -57,8 +57,12 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
   @override
   void initState() {
     super.initState();
-    viewBusinessDetailsController.viewBusinessProfileById(widget.visitBusinessId);
-    controller.fetchAllGroceryData(widget.userId, otherStore: true);
+    // Re-entry no longer refetches: these only hit the API when the cached
+    // profile / grocery data is missing or stale for this store. The rate /
+    // follow callbacks below still refresh explicitly (silent: true).
+    viewBusinessDetailsController
+        .viewBusinessProfileByIdIfNeeded(widget.visitBusinessId);
+    controller.fetchAllGroceryDataIfNeeded(widget.userId, otherStore: true);
     ProfileClickTracker.track(
       userId: widget.visitBusinessId,
       source: ChatClickSource.storeDetail,
@@ -84,7 +88,15 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
       appBar: CommonBackAppBar(),
       body: Stack(
         children: [
-          SingleChildScrollView(
+          RefreshIndicator(
+            onRefresh: () async {
+              viewBusinessDetailsController
+                  .viewBusinessProfileById(widget.visitBusinessId);
+              await controller.fetchAllGroceryData(widget.userId,
+                  otherStore: true);
+            },
+            child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
             padding: EdgeInsets.symmetric(
               horizontal: SizeConfig.size8,
               vertical: SizeConfig.size15,
@@ -223,6 +235,7 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
                 SizedBox(height: SizeConfig.size100),
               ],
             ),
+          ),
           ),
 
           // --- 5. Cart UI (Always Reactive) ---

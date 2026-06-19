@@ -115,7 +115,10 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
       controller.selectedGroceryCategoryData.value = _arrCategories.first;
     }
 
-    controller.getAllStoreNearBy();
+    // Re-entry no longer refetches: only hits the API when the cached list is
+    // missing or stale for this type/category. Category taps below still force
+    // a fresh fetch via getAllStoreNearBy().
+    controller.getAllStoreNearByIfNeeded();
   }
 
   @override
@@ -356,7 +359,10 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                   final rows = _buildRows(controller.allStore.length);
                   final showLoadMore =
                       controller.isAllStoreLoadingMore.value;
-                  return ListView.builder(
+                  return RefreshIndicator(
+                    onRefresh: () => controller.getAllStoreNearBy(),
+                    child: ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
                     itemCount: rows.length + (showLoadMore ? 1 : 0),
                     padding: EdgeInsets.only(
                       left: SizeConfig.size12,
@@ -427,6 +433,7 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                       }
                       return card;
                     },
+                  ),
                   );
                 },
               ),

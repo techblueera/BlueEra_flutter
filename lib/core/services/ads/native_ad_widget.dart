@@ -16,15 +16,50 @@ class NativeAdWidget extends StatefulWidget {
   const NativeAdWidget({
     super.key,
     this.height = 140,
+    this.factoryId = defaultFactoryId,
+    this.borderRadius = 12,
+    this.bottomGap,
+    this.margin,
+    this.border,
+    this.boxShadow,
+    this.backgroundColor,
   });
 
-  /// Must match the id the native [NativeAdFactory] is registered under in
-  /// `MainActivity.kt` (Android) and `AppDelegate.swift` (iOS).
-  static const String factoryId = 'groceryAdFactory';
+  /// Default native factory — the grocery store-card layout. Must match the id
+  /// a native [NativeAdFactory] is registered under in `MainActivity.kt`
+  /// (Android) and `AppDelegate.swift` (iOS).
+  static const String defaultFactoryId = 'groceryAdFactory';
+
+  /// Which platform-side native layout renders this ad. Pass `'feedAdFactory'`
+  /// to get the feed-post-styled layout instead of the grocery card.
+  final String factoryId;
 
   /// Reserved height for the ad slot. The custom native layout fills this
   /// height, so pass the store-card height to make the ad match a card exactly.
   final double height;
+
+  /// Outer corner radius of the slot. Pass `0` for a flush, full-width card
+  /// (the feed cards are flush, not rounded).
+  final double borderRadius;
+
+  /// Gap below the slot. Defaults to `size10`; pass `0` when the native layout
+  /// supplies its own bottom divider/spacing (e.g. the feed card).
+  final double? bottomGap;
+
+  /// Outer spacing around the slot. When set it overrides [bottomGap] (which is
+  /// only the bottom). The feed card uses `EdgeInsets.all(5)` to match a post
+  /// card's spacing exactly.
+  final EdgeInsetsGeometry? margin;
+
+  /// Optional card border (e.g. the feed post card's `1px greyE5` hairline).
+  final BoxBorder? border;
+
+  /// Optional card shadow (e.g. the feed post card's soft drop shadow).
+  final List<BoxShadow>? boxShadow;
+
+  /// Optional fill behind the ad. Set to white for a bordered card so the
+  /// corners read crisp on any background; left null (transparent) by default.
+  final Color? backgroundColor;
 
   /// Live native unit (from the obfuscated `.env`) in RELEASE builds, the Google
   /// TEST unit in DEBUG/profile builds. `kReleaseMode` is true ONLY for
@@ -87,15 +122,15 @@ class _NativeAdWidgetState extends State<NativeAdWidget>
     if (!mounted) return;
 
     print('[NATIVE_AD] loading unit=${NativeAdWidget.adUnitId} '
-        'factory=${NativeAdWidget.factoryId}');
+        'factory=${widget.factoryId}');
     final ad = NativeAd(
       adUnitId: NativeAdWidget.adUnitId,
-      factoryId: NativeAdWidget.factoryId,
+      factoryId: widget.factoryId,
       request: const AdRequest(),
       listener: NativeAdListener(
         onAdLoaded: (ad) {
           print('[NATIVE_AD] loaded unit=${NativeAdWidget.adUnitId} '
-              'factory=${NativeAdWidget.factoryId}');
+              'factory=${widget.factoryId}');
           if (!mounted) {
             ad.dispose();
             return;
@@ -107,7 +142,7 @@ class _NativeAdWidgetState extends State<NativeAdWidget>
         },
         onAdFailedToLoad: (ad, error) {
           print('[NATIVE_AD] FAILED unit=${NativeAdWidget.adUnitId} '
-              'factory=${NativeAdWidget.factoryId} error=$error');
+              'factory=${widget.factoryId} error=$error');
           ad.dispose();
           if (!mounted) return;
           setState(() => _failed = true);
@@ -135,9 +170,18 @@ class _NativeAdWidgetState extends State<NativeAdWidget>
     // view fills all available space, so the SizedBox MUST bound its height —
     // inside a ListView the incoming height is otherwise unbounded.
     return Padding(
-      padding: EdgeInsets.only(bottom: SizeConfig.size10),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
+      padding: widget.margin ??
+          EdgeInsets.only(bottom: widget.bottomGap ?? SizeConfig.size10),
+      child: Container(
+        // antiAlias clips the platform AdWidget to the rounded corners; the
+        // optional border/shadow/fill reproduce a feed post card's chrome.
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: widget.backgroundColor,
+          borderRadius: BorderRadius.circular(widget.borderRadius),
+          border: widget.border,
+          boxShadow: widget.boxShadow,
+        ),
         child: SizedBox(
           height: widget.height,
           width: double.infinity,

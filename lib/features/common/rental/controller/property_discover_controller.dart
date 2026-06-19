@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/core/utils/fetch_cache.dart';
 import 'package:BlueEra/features/common/rental/controller/property_filter_registry.dart';
 import 'package:BlueEra/features/common/rental/model/property_model.dart';
 import 'package:BlueEra/features/common/rental/repo/property_repo.dart';
@@ -83,6 +84,7 @@ extension PropertySortByLabel on PropertySortBy {
 
 class PropertyDiscoverController extends GetxController {
   final PropertyRepo _repo = PropertyRepo();
+  final FetchCache _propertyCache = FetchCache();
 
   final properties = <PropertyModel>[].obs;
   final mapProperties = <PropertyModel>[].obs;
@@ -206,6 +208,8 @@ class PropertyDiscoverController extends GetxController {
       List<PropertyDiscoverCategory> cats, int initialIndex) {
     categories = cats;
     selectedCategoryIndex.value = initialIndex;
+    final sig = 'property|$initialIndex';
+    if (_propertyCache.isFresh(sig, hasData: properties.isNotEmpty)) return;
     fetchProperties();
   }
 
@@ -356,6 +360,7 @@ class PropertyDiscoverController extends GetxController {
             properties.addAll(list);
           } else {
             properties.value = list;
+            _propertyCache.mark('property|${selectedCategoryIndex.value}');
           }
           // Reapply current sort so paged-in items don't always stick
           // to the bottom of a sorted list. No-op when sortBy is none.

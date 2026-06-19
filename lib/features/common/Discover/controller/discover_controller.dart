@@ -10,6 +10,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/core/utils/fetch_cache.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/business_filter_res_model.dart';
 import 'package:BlueEra/features/common/Discover/model/food_restaurant_service_model.dart';
@@ -680,6 +681,48 @@ class DiscoverController extends GetxController {
     }
   }
 
+  // ── Freshness guards (skip refetch on screen re-entry) ──────────────
+  // Keyed by the request params so changing the category/type refetches,
+  // while a back-and-return for the same selection reuses the loaded list.
+  final FetchCache _earnServiceCache = FetchCache();
+  final FetchCache _profConCache = FetchCache();
+  final FetchCache _rentalCache = FetchCache();
+
+  String get _earnServiceSignature =>
+      'earn|${selectedEarnServiceData.value?.slugId ?? ''}';
+  String get _profConSignature =>
+      'profCon|${selectedProfessionalConsultantData.value?.slugId ?? ''}';
+
+  /// Fetch self-work services only when the cached list is missing/stale for
+  /// the current category. Use on screen entry; category taps call
+  /// [fetchEarnServices] directly to force a refresh.
+  Future<void> fetchEarnServicesIfNeeded(
+      {required String earnServiceType, required String subType}) async {
+    if (_earnServiceCache.isFresh(_earnServiceSignature,
+        hasData: earnServiceList.isNotEmpty)) {
+      return;
+    }
+    await fetchEarnServices(
+        earnServiceType: earnServiceType, subType: subType);
+  }
+
+  /// Freshness-guarded variant of [fetchProfessionalConsultantServices].
+  Future<void> fetchProfessionalConsultantServicesIfNeeded() async {
+    if (_profConCache.isFresh(_profConSignature,
+        hasData: professionalConsDataList.isNotEmpty)) {
+      return;
+    }
+    await fetchProfessionalConsultantServices();
+  }
+
+  /// Freshness-guarded variant of [fetchRentalServices].
+  Future<void> fetchRentalServicesIfNeeded(
+      {required RentalServiceType rentalServiceType}) async {
+    final sig = 'rental|${rentalServiceType.apiValue}';
+    if (_rentalCache.isFresh(sig, hasData: rentalServices.isNotEmpty)) return;
+    await fetchRentalServices(rentalServiceType: rentalServiceType);
+  }
+
   /// fetch Earn service
   Future<void> fetchEarnServices(
       {required String earnServiceType,
@@ -764,6 +807,7 @@ class DiscoverController extends GetxController {
           earnServiceList.addAll(tempNewItems);
         } else {
           earnServiceList.assignAll(tempNewItems);
+          _earnServiceCache.mark(_earnServiceSignature);
         }
 
         if (tempNewItems.isNotEmpty) {
@@ -1010,6 +1054,7 @@ class DiscoverController extends GetxController {
           professionalConsDataList.addAll(tempNewItems);
         } else {
           professionalConsDataList.assignAll(tempNewItems);
+          _profConCache.mark(_profConSignature);
         }
 
         if (tempNewItems.isNotEmpty) {
@@ -1686,6 +1731,7 @@ class DiscoverController extends GetxController {
           rentalServices.addAll(tempNewItems);
         } else {
           rentalServices.assignAll(tempNewItems);
+          _rentalCache.mark('rental|${rentalServiceType.apiValue}');
         }
 
         if (tempNewItems.isNotEmpty) {

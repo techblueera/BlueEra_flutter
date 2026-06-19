@@ -76,8 +76,11 @@ class _AutomotiveCategoryDiscoverScreenState
   @override
   void initState() {
     super.initState();
-    controller =
-        Get.put(AutomotiveDiscoverController(businessId: widget.businessId));
+    // Persistent (getOrPut + no delete on dispose) so re-entering the screen
+    // reuses the already-loaded categories/products instead of refetching.
+    // onInit only runs on first creation, so a warm re-entry hits no API.
+    controller = getOrPut(
+        () => AutomotiveDiscoverController(businessId: widget.businessId));
     // The sticky header is not reactive on its own — rebuild it when the
     // categories arrive or the active tab changes.
     _catWorker = ever(controller.level0Categories, (_) {
@@ -92,7 +95,6 @@ class _AutomotiveCategoryDiscoverScreenState
   void dispose() {
     _catWorker?.dispose();
     _selWorker?.dispose();
-    Get.delete<AutomotiveDiscoverController>();
     super.dispose();
   }
 
@@ -302,7 +304,9 @@ class _AutomotiveCategoryDiscoverScreenState
         return _empty('No products in this category');
       }
       final showFooter = controller.isProductsLoadingMore.value;
-      return CustomScrollView(
+      return RefreshIndicator(
+        onRefresh: () => controller.refreshAll(),
+        child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
           SliverPadding(
@@ -329,6 +333,7 @@ class _AutomotiveCategoryDiscoverScreenState
           else
             SliverToBoxAdapter(child: SizedBox(height: SizeConfig.size20)),
         ],
+      ),
       );
     });
   }

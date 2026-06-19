@@ -14,6 +14,8 @@ import 'package:BlueEra/features/common/Discover/controller/hmp_cart_controller.
 import 'package:BlueEra/features/common/Discover/controller/hmp_store_details_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/hmp_cart_screen.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
+import 'package:BlueEra/features/me/product/view/admin/widget/product_inventory_bottom_sheet.dart';
+import 'package:BlueEra/features/me/product/view/admin/widget/product_preview_eye_button.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/model/earn_profile_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/repo/earn_profile_repo.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
@@ -611,7 +613,9 @@ class _HmpStoreDetailsDiscoverScreenV2State
     final sp = HmpCartController.sellingPriceOf(item);
     final mrp = HmpCartController.mrpOf(item);
     final discount = _discountText(sp, mrp);
-    return Container(
+    return GestureDetector(
+      onTap: () => ProductInventoryBottomSheet.show(context, product: item),
+      child: Container(
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(12),
@@ -641,6 +645,15 @@ class _HmpStoreDetailsDiscoverScreenV2State
                 right: 8,
                 top: 8,
                 child: Obx(() => _addControl(item)),
+              ),
+              Positioned(
+                left: 8,
+                top: 8,
+                child: ProductPreviewEyeButton(
+                  onTap: () =>
+                      ProductInventoryBottomSheet.show(context, product: item),
+                  size: 26,
+                ),
               ),
             ],
           ),
@@ -692,6 +705,7 @@ class _HmpStoreDetailsDiscoverScreenV2State
           ),
         ],
       ),
+    ),
     );
   }
 
