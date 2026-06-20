@@ -159,7 +159,8 @@ class _BusinessChatScreenUpdatedState extends State<BusinessChatScreenUpdated>
                   editingController: editingController,
                   conversationId: widget.conversationId,
                   userId: widget.userId,
-
+                  // Inquiry lane: messages younger than 48h can't be deleted.
+                  restrictDeleteWithin48h: true,
                 )
               : getChatTitleAppBar(
                   socketType: "business",

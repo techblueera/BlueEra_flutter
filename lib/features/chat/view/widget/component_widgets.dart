@@ -409,6 +409,11 @@ Widget  ChatListTile({
           }
           if (isForwardUI == true) {
             selectChatListCard();
+          } else if ((chat?.type == AppConstants.group_Chat_Type) ||
+              (chat?.isGroup == true)) {
+            // Group conversations can surface inside the personal/business
+            // list payloads (`type:"group"`); open the dedicated group screen.
+            chatViewController.openGroupFromChatList(chat);
           } else {
             chatViewController.openChatFromChatList(
               userId: senderId,
@@ -2158,6 +2163,18 @@ AppBar getChatTitleAppBar(BuildContext context, {
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             onSelected: (value) {
               if(value == "clear_chat"){
+                // Inquiry lane: a conversation can only be deleted/cleared once
+                // it is at least 48h old. Personal chat is exempt.
+                if (socketType == AppConstants.business_Chat_Type) {
+                  final createdAt = chatViewController
+                      .businessConversationCreatedAt(conversationId);
+                  if (!chatViewController.isInquiryDeleteUnlocked(createdAt)) {
+                    commonSnackBar(
+                        message:
+                            "This inquiry chat can only be deleted after 48 hours.");
+                    return;
+                  }
+                }
                 showDeleteChatDialog(conversationId ?? '');
               } else if(value == "report"){
                 // TODO: Handle report
@@ -2225,6 +2242,8 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
    TextEditingController? editingController,
   String? profileImage,
   bool? isFromAiChat,
+  /// Inquiry (business) lane only: block deleting messages newer than 48h.
+  bool restrictDeleteWithin48h = false,
 }) {
   final chatViewController = Get.find<ChatViewController>();
   final chatThemeController = Get.find<ChatThemeController>();
@@ -2257,6 +2276,18 @@ PreferredSize getChatOptionsAppBar(BuildContext context, {
           icon: Icon(Icons.delete_outline,
               color: AppColors.chat_input_icon_color),
           onPressed: () {
+            // Inquiry lane: messages can only be deleted after 48 hours. Block
+            // if any selected message is still inside the lock window.
+            if (restrictDeleteWithin48h) {
+              final blocked = chatThemeController.selectedMessages.any(
+                  (m) => !chatViewController.isInquiryDeleteUnlocked(m.createdAt));
+              if (blocked) {
+                commonSnackBar(
+                    message:
+                        "Inquiry messages can only be deleted after 48 hours.");
+                return;
+              }
+            }
             showDialog(
               context: context,
               builder: (_) => CommonDeleteDialog(
