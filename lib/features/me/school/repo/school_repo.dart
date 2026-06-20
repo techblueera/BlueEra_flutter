@@ -547,4 +547,44 @@ class SchoolRepo extends BaseService {
         onSuccess: (data) {});
     return response;
   }
+
+  ///GET SCHOOL QUICK INFO REPO....
+  Future<ResponseModel> getSchoolQuickInfoRepo({String? schoolID}) async {
+    final response = await ApiBaseHelper().getHTTP(
+        "$schoolUserID${schoolID ?? schoolIDGlobal}/quick-info",
+        onError: (error) {},
+        onSuccess: (data) {});
+    return response;
+  }
+
+  ///UPDATE SCHOOL QUICK INFO REPO....
+  Future<ResponseModel> updateSchoolQuickInfoRepo(
+      {String? schoolID, required Map<String, dynamic> reqBODY}) async {
+    final response = await ApiBaseHelper().putHTTP(
+        "$schoolUserID${schoolID ?? schoolIDGlobal}/quick-info",
+        params: reqBODY,
+        onError: (error) {},
+        onSuccess: (data) {});
+    return response;
+  }
+
+  ///GET SCHOOL TIMINGS REPO....
+  Future<ResponseModel> getSchoolTimingsRepo({String? schoolID}) async {
+    final response = await ApiBaseHelper().getHTTP(
+        "$schoolUserID${schoolID ?? schoolIDGlobal}/timings",
+        onError: (error) {},
+        onSuccess: (data) {});
+    return response;
+  }
+
+  ///UPDATE SCHOOL TIMINGS REPO....
+  Future<ResponseModel> updateSchoolTimingsRepo(
+      {String? schoolID, required Map<String, dynamic> reqBODY}) async {
+    final response = await ApiBaseHelper().putHTTP(
+        "$schoolUserID${schoolID ?? schoolIDGlobal}/timings",
+        params: reqBODY,
+        onError: (error) {},
+        onSuccess: (data) {});
+    return response;
+  }
 }

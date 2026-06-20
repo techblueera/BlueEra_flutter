@@ -38,6 +38,11 @@ class SchoolAboutUsController extends GetxController {
   final isUploading = false.obs;
   final isDetailLoading = false.obs;
 
+  final isQuickInfoLoading = false.obs;
+  final isQuickInfoSaving = false.obs;
+  final isTimingsLoading = false.obs;
+  final isTimingsSaving = false.obs;
+
   // Initial values (to check if data changed)
   String initialDirectText = "";
   String initialDirectImageUrl = "";
@@ -62,6 +67,8 @@ class SchoolAboutUsController extends GetxController {
     getSchoolBranchController(schoolID: schoolID);
     getSchoolCoursesController(schoolID: schoolID);
     getSchoolCampusLifeController(schoolID: schoolID);
+    fetchSchoolQuickInfo(schoolID: schoolID);
+    fetchSchoolTimings(schoolID: schoolID);
 
     schoolDetailsData?.refresh();
   }
@@ -760,5 +767,124 @@ class SchoolAboutUsController extends GetxController {
 
     await schoolAboutUsController.getSchoolAboutUsController();
     await schoolAboutUsController.getSchoolByIdController();
+  }
+
+  ///GET SCHOOL QUICK INFO....
+  Future<void> fetchSchoolQuickInfo({String? schoolID}) async {
+    try {
+      isQuickInfoLoading.value = true;
+      final res =
+          await SchoolRepo().getSchoolQuickInfoRepo(schoolID: schoolID);
+      if (res.isSuccess) {
+        final data = res.response?.data['data'];
+        if (data != null && schoolDetailsData?.value != null) {
+          schoolDetailsData!.value.classRange = data['classRange'];
+          schoolDetailsData!.value.studentTeacherRatio =
+              data['studentTeacherRatio'];
+          final medium = data['mediumOfInstruction'];
+          schoolDetailsData!.value.mediumOfInstruction = medium is List
+              ? medium.map((e) => e.toString()).toList()
+              : (medium is String && medium.isNotEmpty
+                  ? [medium]
+                  : <String>[]);
+          schoolDetailsData!.value.fees =
+              data['fees'] is num ? (data['fees'] as num).toInt() : null;
+          schoolDetailsData?.refresh();
+        }
+      }
+    } catch (e) {
+      logs("ERROR fetchSchoolQuickInfo: $e");
+    } finally {
+      isQuickInfoLoading.value = false;
+    }
+  }
+
+  ///UPDATE SCHOOL QUICK INFO....
+  Future<bool> updateSchoolQuickInfo({
+    required String classRange,
+    required String studentTeacherRatio,
+    required List<String> mediumOfInstruction,
+    required int fees,
+  }) async {
+    try {
+      isQuickInfoSaving.value = true;
+      final res = await SchoolRepo().updateSchoolQuickInfoRepo(reqBODY: {
+        'classRange': classRange,
+        'studentTeacherRatio': studentTeacherRatio,
+        'mediumOfInstruction': mediumOfInstruction,
+        'fees': fees,
+      });
+      if (res.isSuccess) {
+        commonSnackBar(
+            message:
+                res.response?.data['message'] ?? AppStrings.successful);
+        await fetchSchoolQuickInfo();
+        return true;
+      }
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
+    } catch (e) {
+      logs("ERROR updateSchoolQuickInfo: $e");
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
+    } finally {
+      isQuickInfoSaving.value = false;
+    }
+  }
+
+  ///GET SCHOOL TIMINGS....
+  Future<void> fetchSchoolTimings({String? schoolID}) async {
+    try {
+      isTimingsLoading.value = true;
+      final res = await SchoolRepo().getSchoolTimingsRepo(schoolID: schoolID);
+      if (res.isSuccess) {
+        final List data = res.response?.data['data'] ?? [];
+        if (schoolDetailsData?.value != null) {
+          schoolDetailsData!.value.availability =
+              data.map((v) => Availability.fromJson(v)).toList();
+          schoolDetailsData?.refresh();
+        }
+      }
+    } catch (e) {
+      logs("ERROR fetchSchoolTimings: $e");
+    } finally {
+      isTimingsLoading.value = false;
+    }
+  }
+
+  ///UPDATE SCHOOL TIMINGS....
+  Future<bool> updateSchoolTimings(List<Availability> slots) async {
+    try {
+      isTimingsSaving.value = true;
+      final payload = slots.map((s) {
+        final open = s.isOpen ?? false;
+        return open
+            ? {
+                'day': s.day,
+                'isOpen': true,
+                'openTime': s.openTime,
+                'closeTime': s.closeTime,
+              }
+            : {'day': s.day, 'isOpen': false};
+      }).toList();
+      final res = await SchoolRepo().updateSchoolTimingsRepo(reqBODY: {
+        'schoolTimings': payload,
+      });
+      if (res.isSuccess) {
+        commonSnackBar(
+            message:
+                res.response?.data['message'] ?? AppStrings.successful);
+        await fetchSchoolTimings();
+        return true;
+      }
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
+    } catch (e) {
+      logs("ERROR updateSchoolTimings: $e");
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
+    } finally {
+      isTimingsSaving.value = false;
+    }
   }
 }

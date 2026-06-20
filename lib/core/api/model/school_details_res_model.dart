@@ -68,6 +68,7 @@ class SchoolDetailsData {
     this.classRange,
     this.studentTeacherRatio,
     this.mediumOfInstruction,
+    this.fees,
   });
 
   SchoolDetailsData.fromJson(dynamic json) {
@@ -115,22 +116,31 @@ class SchoolDetailsData {
         if (url.isNotEmpty) galleryPhotos!.add(url);
       });
     }
-    if (json['availability'] != null) {
-      availability = [];
-      json['availability'].forEach((v) {
-        availability?.add(Availability.fromJson(v));
-      });
+    // Accept both legacy `availability` and new `schoolTimings` keys
+    final timings = json['schoolTimings'] ?? json['availability'];
+    if (timings is List) {
+      availability = timings.map((v) => Availability.fromJson(v)).toList();
     }
-    classRange = json['classRange'];
-    studentTeacherRatio = json['studentTeacherRatio'];
-    if (json['mediumOfInstruction'] is List) {
-      mediumOfInstruction = (json['mediumOfInstruction'] as List)
-          .map((e) => e.toString())
-          .toList();
-    } else if (json['mediumOfInstruction'] is String &&
-        (json['mediumOfInstruction'] as String).isNotEmpty) {
-      mediumOfInstruction = [json['mediumOfInstruction']];
+
+    // Quick info can live at top-level (legacy) or nested under `quickInfo`
+    final quickInfo = json['quickInfo'];
+    final cr = quickInfo is Map ? quickInfo['classRange'] : json['classRange'];
+    final str = quickInfo is Map
+        ? quickInfo['studentTeacherRatio']
+        : json['studentTeacherRatio'];
+    final medium = quickInfo is Map
+        ? quickInfo['mediumOfInstruction']
+        : json['mediumOfInstruction'];
+    final feesVal = quickInfo is Map ? quickInfo['fees'] : json['fees'];
+
+    classRange = cr?.toString();
+    studentTeacherRatio = str?.toString();
+    if (medium is List) {
+      mediumOfInstruction = medium.map((e) => e.toString()).toList();
+    } else if (medium is String && medium.isNotEmpty) {
+      mediumOfInstruction = [medium];
     }
+    fees = feesVal is num ? feesVal.toInt() : null;
   }
   String? id;
   String? name;
@@ -155,6 +165,7 @@ class SchoolDetailsData {
   String? classRange;
   String? studentTeacherRatio;
   List<String>? mediumOfInstruction;
+  int? fees;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -194,6 +205,7 @@ class SchoolDetailsData {
     map['classRange'] = classRange;
     map['studentTeacherRatio'] = studentTeacherRatio;
     map['mediumOfInstruction'] = mediumOfInstruction;
+    map['fees'] = fees;
     return map;
   }
 }
