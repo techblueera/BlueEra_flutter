@@ -52,4 +52,14 @@ mixin BookingEnquiryServiceApi {
       'booking-enquiry-service/properties/$id/ratings';
   String propertiesByFilter(String listingType, String propertyType) =>
       'booking-enquiry-service/properties?listingType=$listingType&propertyType=$propertyType';
+
+  /// Property enquiry raised from the rental Discover listing card. `POST`
+  /// creates the enquiry AND (server-side) the in-chat `property_enquiry`
+  /// card + `newPropertyEnquiryReceived` socket emit. The status `PUT` lets
+  /// the owner accept / decline, emitting `propertyEnquiryStatusUpdated`.
+  /// See docs/backend/property-enquiry-flutter-integration.md.
+  final String propertyEnquiries =
+      'booking-enquiry-service/property-enquiries';
+  String propertyEnquiryStatus(String enquiryId) =>
+      'booking-enquiry-service/property-enquiries/$enquiryId/status';
 }

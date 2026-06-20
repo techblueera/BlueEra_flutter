@@ -4,75 +4,110 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
-import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
-import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
+import 'package:BlueEra/features/common/rental/controller/property_enquiry_controller.dart';
+import 'package:BlueEra/features/common/rental/model/property_model.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// Shared service-enquiry flow used by BOTH the Discover self-profession list
-/// card and the provider detail screen. Opens the "What do you need?" sheet
-/// (grouped option checkboxes + optional note + optional photo), submits to the
-/// service-enquiry API, then opens the provider's business chat where the
-/// backend posts the enquiry card.
-class ServiceEnquirySheet {
-  ServiceEnquirySheet._();
+/// Customer-enquiry flow for **rental / property listings** — the property
+/// counterpart of the self-work `ServiceEnquirySheet` and consultant
+/// `ProfessionEnquirySheet` (kept intentionally separate so those flows stay
+/// untouched). Opens the "What are you looking for?" sheet (purpose /
+/// requirements / intended use / timeline chips + optional note + photo),
+/// submits to the property-enquiry API, then opens the owner's business chat
+/// where the backend posts the enquiry card.
+///
+/// See docs/backend/property-enquiry-flutter-integration.md.
+class PropertyEnquirySheet {
+  PropertyEnquirySheet._();
 
-  /// Generic intent options always offered (in addition to the profession's
-  /// fetched options), so the form has a structured choice even when the
-  /// predefined catalog returns nothing for a profession.
-  static const List<String> _standardRequestOptions = [
-    'Installation',
-    'Repair',
-    'Maintenance',
-    'Visit & Quote',
-    'Urgent / Same-day',
+  /// Static option groups — property enquiries don't have a per-listing
+  /// predefined catalog API (unlike professions), so the groups are fixed and
+  /// cover residential through industrial/commercial real-world needs. The
+  /// `apiKey` is the request-body / metadata key each group's values map to.
+  static const List<Map<String, Object>> _groupsCatalog = [
+    {
+      'apiKey': 'purpose',
+      'title': 'Purpose',
+      'options': ['Buy / Purchase', 'Rent / Lease', 'Investment', 'Site visit only'],
+    },
+    {
+      'apiKey': 'intendedUse',
+      'title': 'Intended Use',
+      'options': [
+        'Residential',
+        'Office / Commercial',
+        'Retail / Shop',
+        'Warehouse / Storage',
+        'Industrial / Manufacturing',
+        'Other',
+      ],
+    },
+    {
+      'apiKey': 'requirements',
+      'title': 'I want to',
+      'options': [
+        'Schedule a visit',
+        'Check availability',
+        'Negotiate the price',
+        'See more photos / video',
+        'Get the floor plan / layout',
+        'Documentation & legal help',
+        'Loan / finance assistance',
+      ],
+    },
+    {
+      'apiKey': 'timeline',
+      'title': 'Move-in / Timeline',
+      'options': ['Immediately', 'Within 15 days', '1–3 months', '3+ months', 'Flexible'],
+    },
   ];
 
-  /// Entry point — opens the enquiry sheet for [service]. The selectable
-  /// options are fetched dynamically from the predefined-category API based on
-  /// the provider's profession ([ServiceData.category]).
-  static void open(BuildContext context, ServiceData service) {
-    final targetUserId = service.id ?? '';
-    if (targetUserId.isEmpty) return;
-    final category = (service.category?.trim().isNotEmpty ?? false)
-        ? service.category!.trim()
-        : ((service.designation?.trim().isNotEmpty ?? false)
-            ? service.designation!.trim()
-            : (service.profession ?? '').trim());
+  static void open(BuildContext context, PropertyModel property) {
+    final ownerId = property.userId ?? '';
+    if (ownerId.isEmpty) {
+      commonSnackBar(message: AppStrings.ownerNotAvailableForChat.tr);
+      return;
+    }
+    final ownerName = (property.listedByName?.trim().isNotEmpty ?? false)
+        ? property.listedByName!.trim()
+        : AppStrings.propertyOwnerFallback.tr;
+
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _EnquireSheet(
-        providerName: (service.name?.trim().isNotEmpty ?? false)
-            ? service.name!.trim()
-            : AppStrings.unknownUser.tr,
-        category: category,
+      builder: (_) => _PropertyEnquireForm(
+        ownerName: ownerName,
+        propertyName: property.propertyName.isNotEmpty
+            ? property.propertyName
+            : property.typeLabel,
         onSubmit: (selections, note, photoPaths) =>
-            _submit(service, selections, note, photoPaths),
+            _submit(property, selections, note, photoPaths),
       ),
     );
   }
 
-  /// Submits the enquiry then opens the provider's business chat. The backend
+  /// Submits the enquiry then opens the owner's business chat. The backend
   /// posts the enquiry card into that conversation — it IS the enquiry, so we
   /// don't seed any chat text.
   static Future<void> _submit(
-    ServiceData service,
+    PropertyModel property,
     Map<String, List<String>> selections,
     String note,
     List<String> photoPaths,
   ) async {
-    final targetUserId = service.id ?? '';
-    if (targetUserId.isEmpty) return;
+    final ownerId = property.userId ?? '';
+    if (ownerId.isEmpty) return;
 
-    final controller = getOrPut(() => DiscoverController());
-    final ok = await controller.submitServiceEnquiry(
-      providerId: targetUserId,
+    final controller = getOrPut(() => PropertyEnquiryController());
+    final ok = await controller.submitPropertyEnquiry(
+      propertyId: property.id ?? '',
       selections: selections,
       note: note,
       photoPaths: photoPaths,
@@ -81,15 +116,13 @@ class ServiceEnquirySheet {
 
     final chatViewController = getOrPut(() => ChatViewController());
     chatViewController.checkChatConnectionAndOpenChat(
-      userId: targetUserId,
+      userId: ownerId,
       route: AppConstants.route_discover,
     );
   }
 }
 
-/// One selectable group on the enquiry form — mirrors a provider-profile
-/// field (Service Type / Type of Work / …) or the generic Request Type group.
-/// [apiKey] is the request-body / metadata key the selected values are sent under.
+/// One selectable group on the enquiry form.
 class _EnquiryGroup {
   final String apiKey;
   final String title;
@@ -102,74 +135,43 @@ class _EnquiryGroup {
   });
 }
 
-/// Bottom-sheet enquiry form. Renders the provider's [groups] as tick-able
-/// chips, an optional note, and an optional photo ("show the problem"), then
-/// hands everything back via [onSubmit]; the sheet pops itself.
-class _EnquireSheet extends StatefulWidget {
-  final String providerName;
-  final String category;
+class _PropertyEnquireForm extends StatefulWidget {
+  final String ownerName;
+  final String propertyName;
   final void Function(
     Map<String, List<String>> selections,
     String note,
     List<String> photoPaths,
   ) onSubmit;
 
-  const _EnquireSheet({
-    required this.providerName,
-    required this.category,
+  const _PropertyEnquireForm({
+    required this.ownerName,
+    required this.propertyName,
     required this.onSubmit,
   });
 
   @override
-  State<_EnquireSheet> createState() => _EnquireSheetState();
+  State<_PropertyEnquireForm> createState() => _PropertyEnquireFormState();
 }
 
-class _EnquireSheetState extends State<_EnquireSheet> {
+class _PropertyEnquireFormState extends State<_PropertyEnquireForm> {
   static const Color _accent = AppColors.primaryColor;
   static const Color _accentDeep = AppColors.blue5CAF;
   static const Color _surface = Color(0xFFF4F6FA);
   static const int _maxPhotos = 1;
 
-  /// Fetched option groups we intentionally don't surface in the enquiry form.
-  static const Set<String> _hiddenApiKeys = {'typesOfWork', 'workCategories'};
-
   final Map<String, Set<String>> _selected = {};
   final List<String> _photos = [];
   final _noteController = TextEditingController();
 
-  // Groups fetched from the predefined-category API for the provider's
-  // profession, plus the always-on generic "Request Type" group.
-  List<_EnquiryGroup> _groups = [];
-  bool _loadingOptions = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadOptions();
-  }
-
-  Future<void> _loadOptions() async {
-    final ctrl = getOrPut(() => DiscoverController());
-    final fetched = await ctrl.fetchEnquiryOptions(widget.category);
-    if (!mounted) return;
-    setState(() {
-      _groups = [
-        for (final g in fetched)
-          if (!_hiddenApiKeys.contains(g['apiKey'] as String))
-            _EnquiryGroup(
-              apiKey: g['apiKey'] as String,
-              title: g['title'] as String,
-              options: List<String>.from(g['options'] as List),
-            ),
-        const _EnquiryGroup(
-          apiKey: 'requestType',
-          title: 'Request Type',
-          options: ServiceEnquirySheet._standardRequestOptions,
-        ),
-      ];
-      _loadingOptions = false;
-    });
-  }
+  late final List<_EnquiryGroup> _groups = [
+    for (final g in PropertyEnquirySheet._groupsCatalog)
+      _EnquiryGroup(
+        apiKey: g['apiKey'] as String,
+        title: g['title'] as String,
+        options: List<String>.from(g['options'] as List),
+      ),
+  ];
 
   @override
   void dispose() {
@@ -197,7 +199,6 @@ class _EnquireSheetState extends State<_EnquireSheet> {
       _photos.isNotEmpty;
 
   Future<void> _pickPhotos() async {
-    // Standard app picker: camera/gallery chooser → crop → compress.
     final path = await PhotoPickerService.pickSinglePhoto(
       context,
       'Add a photo',
@@ -261,11 +262,10 @@ class _EnquireSheetState extends State<_EnquireSheet> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Photo first — full-width preview.
                       _eyebrow('Photo · optional', _photos.length),
                       const SizedBox(height: 4),
                       CustomText(
-                        'Show the problem or the item you need help with.',
+                        'Add a photo of the site, layout, or a reference if it helps.',
                         fontSize: 12,
                         color: AppColors.secondaryTextColor,
                         fontWeight: FontWeight.w500,
@@ -273,27 +273,22 @@ class _EnquireSheetState extends State<_EnquireSheet> {
                       const SizedBox(height: 12),
                       _photoSection(),
                       const SizedBox(height: 22),
-                      // Selectable groups — fetched per provider profession.
-                      if (_loadingOptions)
-                        _optionsLoader()
-                      else
-                        for (final group in _groups) ...[
-                          _eyebrow(group.title, _countFor(group.apiKey)),
-                          const SizedBox(height: 10),
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: group.options
-                                .map((s) => _checkChip(
-                                      label: s,
-                                      on: _isOn(group.apiKey, s),
-                                      onTap: () => _toggle(group.apiKey, s),
-                                    ))
-                                .toList(),
-                          ),
-                          const SizedBox(height: 20),
-                        ],
-                      // Note.
+                      for (final group in _groups) ...[
+                        _eyebrow(group.title, _countFor(group.apiKey)),
+                        const SizedBox(height: 10),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: group.options
+                              .map((s) => _checkChip(
+                                    label: s,
+                                    on: _isOn(group.apiKey, s),
+                                    onTap: () => _toggle(group.apiKey, s),
+                                  ))
+                              .toList(),
+                        ),
+                        const SizedBox(height: 20),
+                      ],
                       _eyebrow('Note · optional', 0),
                       const SizedBox(height: 10),
                       _noteField(),
@@ -334,7 +329,7 @@ class _EnquireSheetState extends State<_EnquireSheet> {
                 ),
               ],
             ),
-            child: const Icon(Icons.handyman_rounded,
+            child: const Icon(Icons.maps_home_work_rounded,
                 color: Colors.white, size: 22),
           ),
           const SizedBox(width: 12),
@@ -343,14 +338,14 @@ class _EnquireSheetState extends State<_EnquireSheet> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  'What do you need?',
+                  'What are you looking for?',
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
                   color: AppColors.mainTextColor,
                 ),
                 const SizedBox(height: 2),
                 CustomText(
-                  'Tell ${widget.providerName} what you’re looking for',
+                  'Tell ${widget.ownerName} about your requirement',
                   fontSize: 12.5,
                   color: AppColors.secondaryTextColor,
                   fontWeight: FontWeight.w500,
@@ -375,30 +370,6 @@ class _EnquireSheetState extends State<_EnquireSheet> {
               child: Icon(Icons.close_rounded,
                   size: 18, color: AppColors.secondaryTextColor),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _optionsLoader() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 26),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const SizedBox(
-            width: 18,
-            height: 18,
-            child:
-                CircularProgressIndicator(strokeWidth: 2, color: _accent),
-          ),
-          const SizedBox(width: 10),
-          CustomText(
-            'Loading options…',
-            fontSize: 12.5,
-            fontWeight: FontWeight.w600,
-            color: AppColors.secondaryTextColor,
           ),
         ],
       ),
@@ -560,7 +531,7 @@ class _EnquireSheetState extends State<_EnquireSheet> {
   Widget _noteField() {
     return CommonTextField(
       textEditController: _noteController,
-      hintText: 'Describe the issue, timing, budget…',
+      hintText: 'Budget, preferred area, possession date…',
       maxLine: 4,
       minLines: 2,
       isValidate: false,

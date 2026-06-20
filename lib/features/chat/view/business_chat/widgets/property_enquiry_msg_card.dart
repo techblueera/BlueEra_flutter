@@ -4,23 +4,24 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:get/get.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
-import 'package:BlueEra/features/chat/auth/model/service_enquiry_model.dart';
-import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
+import 'package:BlueEra/features/chat/auth/model/property_enquiry_model.dart';
+import 'package:BlueEra/features/common/rental/controller/property_enquiry_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
-/// In-chat card for a `messageType: "service_enquiry"` message — the Discover
-/// self-profession counterpart of [SelfPickupMsgCard]. Compact layout: a slim
-/// header, divider-separated sections (photo / selections / note), and an
-/// accept-decline or status footer. The provider (receiver) can Accept /
-/// Decline while pending; the customer (sender) sees a waiting/decision state.
-class ServiceEnquiryMsgCard extends StatefulWidget {
+/// In-chat card for a `messageType: "property_enquiry"` message — the rental
+/// Discover counterpart of [ServiceEnquiryMsgCard]. A property hero header
+/// (thumbnail + name + price), divider-separated icon-badged detail rows
+/// (purpose / intended use / requirements / timeline), photo + note, and an
+/// accept-decline or status footer. The owner (receiver) can Accept / Decline
+/// while pending; the customer (sender) sees a waiting/decision band.
+class PropertyEnquiryMsgCard extends StatefulWidget {
   final Messages message;
   final String time;
   final String? conversationId;
 
-  const ServiceEnquiryMsgCard({
+  const PropertyEnquiryMsgCard({
     super.key,
     required this.message,
     required this.time,
@@ -28,10 +29,10 @@ class ServiceEnquiryMsgCard extends StatefulWidget {
   });
 
   @override
-  State<ServiceEnquiryMsgCard> createState() => _ServiceEnquiryMsgCardState();
+  State<PropertyEnquiryMsgCard> createState() => _PropertyEnquiryMsgCardState();
 }
 
-class _ServiceEnquiryMsgCardState extends State<ServiceEnquiryMsgCard> {
+class _PropertyEnquiryMsgCardState extends State<PropertyEnquiryMsgCard> {
   bool _isUpdating = false;
 
   static const Color _accent = AppColors.primaryColor;
@@ -41,16 +42,16 @@ class _ServiceEnquiryMsgCardState extends State<ServiceEnquiryMsgCard> {
   bool get _isMyMessage => widget.message.myMessage ?? false;
 
   String get _status =>
-      (widget.message.metadata?.serviceEnquiry?.status ?? 'pending')
+      (widget.message.metadata?.propertyEnquiry?.status ?? 'pending')
           .toLowerCase();
 
   bool get _isAccepted => _status == 'accepted';
   bool get _isDeclined => _status == 'declined';
 
-  ServiceEnquiryModel? get _enquiry => widget.message.metadata?.serviceEnquiry;
+  PropertyEnquiryModel? get _enquiry => widget.message.metadata?.propertyEnquiry;
 
   /// Non-empty selection groups, in display order — each carries its own
-  /// tinted icon (mirrors the reference enquiry-details design).
+  /// tinted icon (mirrors the service enquiry card's design language).
   List<_EnquiryRow> get _rows {
     final e = _enquiry;
     final out = <_EnquiryRow>[];
@@ -60,15 +61,12 @@ class _ServiceEnquiryMsgCardState extends State<ServiceEnquiryMsgCard> {
       if (list.isNotEmpty) out.add(_EnquiryRow(title, list, icon, color));
     }
 
-    add(AppStrings.serviceType.tr, e?.serviceType,
-        Icons.design_services_outlined, const Color(0xFF0EA5E9));
-    add(AppStrings.typeOfWork.tr, e?.typesOfWork, Icons.bolt_rounded,
-        const Color(0xFF3B82F6));
-    add(AppStrings.workCategories.tr, e?.workCategories,
-        Icons.folder_open_rounded, const Color(0xFF22C55E));
-    add(AppStrings.servicesOffered.tr, e?.servicesOffered, Icons.home_outlined,
+    add('Purpose', e?.purpose, Icons.flag_outlined, const Color(0xFF3B82F6));
+    add('Intended Use', e?.intendedUse, Icons.apartment_rounded,
         const Color(0xFF8B5CF6));
-    add(AppStrings.requestType.tr, e?.requestType, Icons.description_outlined,
+    add('Requirements', e?.requirements, Icons.checklist_rounded,
+        const Color(0xFF22C55E));
+    add('Move-in / Timeline', e?.timeline, Icons.event_available_outlined,
         const Color(0xFFF59E0B));
     return out;
   }
@@ -93,19 +91,19 @@ class _ServiceEnquiryMsgCardState extends State<ServiceEnquiryMsgCard> {
   }
 
   Future<void> _updateStatus(String status) async {
-    final enquiryId = widget.message.metadata?.serviceEnquiry?.enquiryId ??
-        widget.message.metadata?.serviceEnquiryId ??
+    final enquiryId = widget.message.metadata?.propertyEnquiry?.enquiryId ??
+        widget.message.metadata?.propertyEnquiryId ??
         '';
     if (enquiryId.isEmpty) return;
 
     setState(() => _isUpdating = true);
-    final controller = getOrPut(() => DiscoverController());
-    final ok = await controller.updateServiceEnquiryStatus(
+    final controller = getOrPut(() => PropertyEnquiryController());
+    final ok = await controller.updatePropertyEnquiryStatus(
       enquiryId: enquiryId,
       status: status,
     );
     if (ok) {
-      widget.message.metadata?.serviceEnquiry?.status = status;
+      widget.message.metadata?.propertyEnquiry?.status = status;
     }
     if (mounted) setState(() => _isUpdating = false);
   }
@@ -129,8 +127,8 @@ class _ServiceEnquiryMsgCardState extends State<ServiceEnquiryMsgCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _header(),
-          if (_photos.isNotEmpty) ...[_divider(), _photoSection()],
           for (final row in _rows) ...[_divider(), _enquiryRow(row)],
+          if (_photos.isNotEmpty) ...[_divider(), _photoSection()],
           if (_note.trim().isNotEmpty) ...[_divider(), _noteSection()],
           _divider(),
           _footer(),
@@ -141,38 +139,54 @@ class _ServiceEnquiryMsgCardState extends State<ServiceEnquiryMsgCard> {
 
   Widget _divider() => const Divider(height: 1, thickness: 1, color: _line);
 
-  // ── Slim header — small tinted icon + title/subtitle + status pill ──
+  // ── Property hero header — thumbnail + name/price + status pill ──────
   Widget _header() {
+    final e = _enquiry;
+    final image = (e?.propertyImage ?? '').trim();
+    final name = (e?.propertyName ?? '').trim().isNotEmpty
+        ? e!.propertyName!.trim()
+        : 'Property Enquiry';
+    final price = (e?.priceText ?? '').trim();
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(
-            width: 30,
-            height: 30,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: _accent.withValues(alpha: 0.10),
-              borderRadius: BorderRadius.circular(9),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(9),
+            child: SizedBox(
+              width: 44,
+              height: 44,
+              child: image.isEmpty
+                  ? _thumbFallback()
+                  : CachedNetworkImage(
+                      imageUrl: image,
+                      fit: BoxFit.cover,
+                      placeholder: (_, __) => _thumbFallback(),
+                      errorWidget: (_, __, ___) => _thumbFallback(),
+                    ),
             ),
-            child: const Icon(Icons.handyman_rounded, color: _accent, size: 16),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  AppStrings.serviceEnquiry.tr,
+                  name,
                   fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: AppColors.mainTextColor,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
+                const SizedBox(height: 1),
                 CustomText(
-                  _subtitle,
-                  fontSize: 10.5,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.secondaryTextColor,
+                  price.isNotEmpty ? price : _subtitle,
+                  fontSize: 11,
+                  fontWeight: price.isNotEmpty ? FontWeight.w700 : FontWeight.w500,
+                  color: price.isNotEmpty ? _accent : AppColors.secondaryTextColor,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -186,42 +200,13 @@ class _ServiceEnquiryMsgCardState extends State<ServiceEnquiryMsgCard> {
     );
   }
 
-  // ── Full-width photo(s) — compact strip ─────────────────────────────
-  Widget _photoSection() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
-      child: Column(
-        children: [
-          for (int i = 0; i < _photos.length; i++) ...[
-            if (i > 0) const SizedBox(height: 6),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: SizedBox(
-                width: double.infinity,
-                height: 130,
-                child: CachedNetworkImage(
-                  imageUrl: _photos[i],
-                  fit: BoxFit.cover,
-                  placeholder: (_, __) =>
-                      Container(color: AppColors.whiteE5),
-                  errorWidget: (_, __, ___) => Container(
-                    color: AppColors.whiteE5,
-                    alignment: Alignment.center,
-                    child: const Icon(Icons.broken_image_outlined,
-                        size: 20, color: Colors.grey),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
+  Widget _thumbFallback() => Container(
+        color: _accent.withValues(alpha: 0.10),
+        alignment: Alignment.center,
+        child: const Icon(Icons.home_work_rounded, size: 20, color: _accent),
+      );
 
   // ── One enquiry row — tinted icon badge + eyebrow + value(s) ────────
-  // A single value renders as plain text; multiple values render as a
-  // bullet list (mirrors the reference enquiry-details card).
   Widget _enquiryRow(_EnquiryRow row) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
@@ -291,6 +276,38 @@ class _ServiceEnquiryMsgCardState extends State<ServiceEnquiryMsgCard> {
     );
   }
 
+  // ── Full-width photo(s) — compact strip ─────────────────────────────
+  Widget _photoSection() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+      child: Column(
+        children: [
+          for (int i = 0; i < _photos.length; i++) ...[
+            if (i > 0) const SizedBox(height: 6),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: SizedBox(
+                width: double.infinity,
+                height: 130,
+                child: CachedNetworkImage(
+                  imageUrl: _photos[i],
+                  fit: BoxFit.cover,
+                  placeholder: (_, __) => Container(color: AppColors.whiteE5),
+                  errorWidget: (_, __, ___) => Container(
+                    color: AppColors.whiteE5,
+                    alignment: Alignment.center,
+                    child: const Icon(Icons.broken_image_outlined,
+                        size: 20, color: Colors.grey),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   // ── Note — tinted icon badge + eyebrow + text (row style) ───────────
   Widget _noteSection() {
     const color = Color(0xFF64748B);
@@ -307,8 +324,8 @@ class _ServiceEnquiryMsgCardState extends State<ServiceEnquiryMsgCard> {
               color: color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(11),
             ),
-            child: const Icon(Icons.sticky_note_2_outlined,
-                color: color, size: 19),
+            child:
+                const Icon(Icons.sticky_note_2_outlined, color: color, size: 19),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -347,7 +364,7 @@ class _ServiceEnquiryMsgCardState extends State<ServiceEnquiryMsgCard> {
   }
 
   // ── Footer — status band (waiting / accepted / declined) or, for the
-  // provider while pending, the Accept / Decline actions. ──────────────
+  // owner while pending, the Accept / Decline actions. ────────────────
   Widget _footer() {
     if (_isAccepted) {
       return _statusBand(
@@ -364,7 +381,7 @@ class _ServiceEnquiryMsgCardState extends State<ServiceEnquiryMsgCard> {
       );
     }
 
-    // Pending — provider (receiver) gets Accept / Decline + timestamp.
+    // Pending — owner (receiver) gets Accept / Decline + timestamp.
     if (!_isMyMessage) {
       return Padding(
         padding: const EdgeInsets.fromLTRB(10, 9, 10, 8),
@@ -402,7 +419,7 @@ class _ServiceEnquiryMsgCardState extends State<ServiceEnquiryMsgCard> {
       );
     }
 
-    // Pending — customer (sender) waits for the provider's response.
+    // Pending — customer (sender) waits for the owner's response.
     return _statusBand(
       icon: Icons.access_time_rounded,
       color: Colors.orange,
@@ -411,7 +428,7 @@ class _ServiceEnquiryMsgCardState extends State<ServiceEnquiryMsgCard> {
   }
 
   // Full-width tinted band: status icon + label, with the message time on
-  // the right (matches the reference card's footer).
+  // the right (matches the service enquiry card's footer).
   Widget _statusBand({
     required IconData icon,
     required Color color,

@@ -175,6 +175,8 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
                     alignment: Alignment.topCenter,
                     child: _isSearchVisible
                         ? Container(
+                            // White header so the search row reads cleanly; the
+                            // app-wide banner shows behind the feed content below.
                             width: double.infinity,
                             color: Colors.white,
                             padding: const EdgeInsets.symmetric(
@@ -184,6 +186,8 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
                         : const SizedBox(width: double.infinity),
                   ),
                   Container(
+                    // White strip behind the Social / Community tabs; the banner
+                    // shows only behind the feed content below.
                     color: Colors.white,
                     child: TabBar(
                       onTap: (index) {
@@ -215,26 +219,26 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
                     ),
                   ),
                   Expanded(
-                    child: Container(
-                      color: AppColors.white,
-                      child: TabBarView(
-                        controller: chatViewController.chatMainTabController,
-                        children: [
-                          HomeFeedScreenNew(
-                            key: const ValueKey('orderMain_feed_social'),
-                            postFilterType: PostType.all,
-                            headerHeight: 0,
-                            isInParentScroll: false,
-                          ),
-                          ChannelFeedScreen(
-                            key: const ValueKey('orderMain_feed_community'),
-                            headerHeight: 0,
-                          ),
-                          // ReelsTabScreen(
-                          //   key: const ValueKey('reels_tab_screen'),
-                          // ),
-                        ],
-                      ),
+                    // No opaque fill — the feed/community tabs render transparent
+                    // (cards on top), so the app-wide background banner shows
+                    // through here just like the other tabs.
+                    child: TabBarView(
+                      controller: chatViewController.chatMainTabController,
+                      children: [
+                        HomeFeedScreenNew(
+                          key: const ValueKey('orderMain_feed_social'),
+                          postFilterType: PostType.all,
+                          headerHeight: 0,
+                          isInParentScroll: false,
+                        ),
+                        ChannelFeedScreen(
+                          key: const ValueKey('orderMain_feed_community'),
+                          headerHeight: 0,
+                        ),
+                        // ReelsTabScreen(
+                        //   key: const ValueKey('reels_tab_screen'),
+                        // ),
+                      ],
                     ),
                   ),
                   (widget.isForwardUI != null && (widget.isForwardUI ?? false))

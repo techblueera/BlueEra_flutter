@@ -1,6 +1,9 @@
+import 'dart:convert';
+
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:dio/dio.dart';
 
 class PropertyRepo extends BaseService {
   Future<ResponseModel> createProperty(Map<String, dynamic> body) async {
@@ -91,6 +94,61 @@ class PropertyRepo extends BaseService {
     return await ApiBaseHelper().postHTTP(
       propertyRatings(id),
       params: body,
+      showProgress: false,
+      onSuccess: (res) {},
+      onError: (error) {},
+    );
+  }
+
+  /// POST: Raise a property enquiry from the rental Discover listing card.
+  /// The backend creates the enquiry, the in-chat `property_enquiry` card and
+  /// emits `newPropertyEnquiryReceived` to the owner.
+  ///
+  /// No photos → plain JSON body. With photos → `multipart/form-data` where the
+  /// whole [params] body is sent as a JSON string under `payload` and the
+  /// images are sent under `photos`. Mirrors [DiscoverRepo.sendServiceEnquiry].
+  /// See docs/backend/property-enquiry-flutter-integration.md.
+  Future<ResponseModel> sendPropertyEnquiry({
+    required Map<String, dynamic> params,
+    List<String> photoPaths = const [],
+  }) async {
+    if (photoPaths.isEmpty) {
+      return ApiBaseHelper().postHTTP(
+        propertyEnquiries,
+        params: params,
+        showProgress: false,
+        onSuccess: (res) {},
+        onError: (error) {},
+      );
+    }
+
+    final files = <MultipartFile>[];
+    for (final path in photoPaths) {
+      files.add(await MultipartFile.fromFile(path));
+    }
+    final multipartParams = <String, dynamic>{
+      'payload': jsonEncode(params),
+      'photos': files,
+    };
+    return ApiBaseHelper().postHTTP(
+      propertyEnquiries,
+      params: multipartParams,
+      isMultipart: true,
+      showProgress: false,
+      onSuccess: (res) {},
+      onError: (error) {},
+    );
+  }
+
+  /// PUT: Owner accepts / declines a property enquiry. Emits
+  /// `propertyEnquiryStatusUpdated` to both parties.
+  Future<ResponseModel> updatePropertyEnquiryStatus({
+    required String enquiryId,
+    required Map<String, dynamic> params,
+  }) async {
+    return await ApiBaseHelper().putHTTP(
+      propertyEnquiryStatus(enquiryId),
+      params: params,
       showProgress: false,
       onSuccess: (res) {},
       onError: (error) {},

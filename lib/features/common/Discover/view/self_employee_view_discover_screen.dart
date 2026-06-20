@@ -45,34 +45,28 @@ class SelfEmployeeViewDiscoverScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            padding: EdgeInsets.only(
-              bottom: 96 + MediaQuery.of(context).padding.bottom,
-            ),
-            child: Column(
-              children: [
-                _buildHeaderSection(context),
-                Padding(
-                  padding: EdgeInsets.fromLTRB(
-                    SizeConfig.size12,
-                    SizeConfig.size12,
-                    SizeConfig.size12,
-                    0,
-                  ),
-                  child: Column(
-                    children: _joinWithGap(
-                      _sections(),
-                      gap: SizedBox(height: SizeConfig.size12),
-                    ),
-                  ),
+      bottomNavigationBar: isSelfPreview ? null : _buildBottomBar(context),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.only(bottom: SizeConfig.size12),
+        child: Column(
+          children: [
+            _buildHeaderSection(context),
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                SizeConfig.size12,
+                SizeConfig.size12,
+                SizeConfig.size12,
+                0,
+              ),
+              child: Column(
+                children: _joinWithGap(
+                  _sections(),
+                  gap: SizedBox(height: SizeConfig.size12),
                 ),
-              ],
+              ),
             ),
-          ),
-          if (!isSelfPreview) _buildBottomBar(context),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -793,86 +787,85 @@ class SelfEmployeeViewDiscoverScreen extends StatelessWidget {
   // STICKY BOTTOM BAR — price summary + gradient booking CTA.
   // ─────────────────────────────────────────────────────────────
   Widget _buildBottomBar(BuildContext context) {
-    return Positioned(
-      bottom: 0,
-      left: 0,
-      right: 0,
-      child: Container(
-        padding: EdgeInsets.fromLTRB(
-          SizeConfig.size16,
-          SizeConfig.size12,
-          SizeConfig.size16,
-          SizeConfig.size14 + MediaQuery.of(context).padding.bottom,
-        ),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          border: Border(top: BorderSide(color: AppColors.greyE5)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.06),
-              blurRadius: 20,
-              offset: const Offset(0, -4),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CustomText(
-                  priceDisplay,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.mainTextColor,
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        SizeConfig.size16,
+        SizeConfig.size12,
+        SizeConfig.size16,
+        SizeConfig.size14 + MediaQuery.of(context).padding.bottom,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        border: Border(top: BorderSide(color: AppColors.greyE5)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 20,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CustomText(
+                priceDisplay,
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: AppColors.mainTextColor,
+              ),
+              CustomText(
+                priceBadgeText.isNotEmpty
+                    ? 'Per ${priceBadgeText.toLowerCase()}'
+                    : 'Starting price',
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: AppColors.secondaryTextColor,
+              ),
+            ],
+          ),
+          SizedBox(width: SizeConfig.size12),
+          Expanded(
+            child: GestureDetector(
+              onTap: () => ServiceEnquirySheet.open(context, service),
+              child: Container(
+                height: 46,
+                decoration: BoxDecoration(
+                  gradient: _accent,
+                  borderRadius: BorderRadius.circular(14),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primaryColor.withValues(alpha: 0.32),
+                      blurRadius: 14,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
                 ),
-                CustomText(
-                  priceBadgeText.isNotEmpty
-                      ? 'Per ${priceBadgeText.toLowerCase()}'
-                      : 'Starting price',
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.secondaryTextColor,
-                ),
-              ],
-            ),
-            SizedBox(width: SizeConfig.size12),
-            Expanded(
-              child: GestureDetector(
-                onTap: () => ServiceEnquirySheet.open(context, service),
-                child: Container(
-                  height: 52,
-                  decoration: BoxDecoration(
-                    gradient: _accent,
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primaryColor.withValues(alpha: 0.32),
-                        blurRadius: 14,
-                        offset: const Offset(0, 6),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(Icons.chat_outlined,
-                          color: Colors.white, size: 19),
-                      SizedBox(width: SizeConfig.size8),
-                      CustomText(
-                        AppStrings.enquire.tr,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ],
-                  ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    LocalAssets(
+                      imagePath: AppIconAssets.chat,
+                      width: 19,
+                      height: 19,
+                      imgColor: Colors.white,
+                    ),
+                    SizedBox(width: SizeConfig.size8),
+                    CustomText(
+                      AppStrings.enquire.tr,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ],
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

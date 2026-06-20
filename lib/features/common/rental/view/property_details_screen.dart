@@ -10,6 +10,7 @@ import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/features/common/rental/controller/property_controller.dart';
 import 'package:BlueEra/features/common/rental/model/property_model.dart';
 import 'package:BlueEra/features/common/rental/repo/property_repo.dart';
+import 'package:BlueEra/features/common/rental/widget/property_enquiry_sheet.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_form_widgets.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -17,7 +18,6 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:get/get.dart';
 import 'dart:io';
 
@@ -97,7 +97,7 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
             padding: const EdgeInsets.all(14),
             child: SafeArea(
               child: InkWell(
-                onTap: _openChat,
+                onTap: _openEnquiry,
                 borderRadius: BorderRadius.circular(12),
                 child: Container(
                   height: 48,
@@ -113,11 +113,11 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
                         imagePath: AppIconAssets.chat,
                         height: 18.0,
                         width: 18.0,
-                        imgColor: AppColors.primaryColor,
+                        imgColor: Colors.white,
                       ),
                       const SizedBox(width: 8),
                       CustomText(
-                        AppStrings.chatWithOwner.tr,
+                        AppStrings.enquire.tr,
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
@@ -131,15 +131,17 @@ class _PropertyDetailsScreenState extends State<PropertyDetailsScreen> {
     );
   }
 
-  void _openChat() {
+  /// Opens the property-enquiry bottom sheet (purpose / intended use /
+  /// requirements / timeline). On submit it raises the enquiry and navigates
+  /// into the owner's business chat, where the backend posts the
+  /// `property_enquiry` card — same flow as the rental Discover listing card.
+  void _openEnquiry() {
     final ownerId = p.userId;
     if (ownerId == null || ownerId.isEmpty) {
       commonSnackBar(message: AppStrings.ownerNotAvailableForChat.tr);
       return;
     }
-    final chatController = Get.find<ChatViewController>();
-    chatController.checkChatConnectionAndOpenChat(
-        userId: ownerId, route: AppConstants.route_discover);
+    PropertyEnquirySheet.open(context, p);
   }
 
   // ═══════════════════════════════════════════════════════════

@@ -5,8 +5,8 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
-import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/rental/model/property_model.dart';
+import 'package:BlueEra/features/common/rental/widget/property_enquiry_sheet.dart';
 import 'package:BlueEra/features/common/rental/repo/property_repo.dart';
 import 'package:BlueEra/features/common/rental/view/property_details_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -625,15 +625,17 @@ class PropertyListingCard extends StatelessWidget {
     commonSnackBar(message: AppStrings.shareComingSoon.tr);
   }
 
+  /// Opens the property-enquiry bottom sheet (purpose / intended use /
+  /// requirements / timeline). On submit it raises the enquiry and navigates
+  /// into the owner's business chat, where the backend posts the
+  /// `property_enquiry` card — mirrors the self-profession Enquire flow.
   void _openChat() {
     final ownerId = property.userId;
     if (ownerId == null || ownerId.isEmpty) {
       commonSnackBar(message: AppStrings.ownerNotAvailableForChat.tr);
       return;
     }
-    final chatController = Get.find<ChatViewController>();
-    chatController.checkChatConnectionAndOpenChat(
-        userId: ownerId, route: AppConstants.route_discover);
+    PropertyEnquirySheet.open(Get.context!, property);
   }
 
   // Call shortcut is commented out in the footer for now (see

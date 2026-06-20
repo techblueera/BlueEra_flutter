@@ -1122,6 +1122,12 @@ class ChatEmitEvents {
   static const newServiceEnquiryReceived = "newServiceEnquiryReceived";
   static const serviceEnquiryStatusUpdated = "serviceEnquiryStatusUpdated";
 
+  // Property enquiry (rental Discover → chat). `new…Received` delivers the
+  // enquiry card to the owner; `…StatusUpdated` notifies both parties when
+  // the owner accepts / declines.
+  static const newPropertyEnquiryReceived = "newPropertyEnquiryReceived";
+  static const propertyEnquiryStatusUpdated = "propertyEnquiryStatusUpdated";
+
   // Emitted to a Payment QR's owner when a payer records a payment against it.
   // See payment-qr-integration-guide.md §Realtime.
   static const paymentReceived = "payment:received";
