@@ -202,27 +202,29 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
                     ),
                   ),
                   Expanded(
-                    child: Container(
-                      color: AppColors.white,
-                      child: TabBarView(
-                        controller: chatViewController.chatMainTabController,
-                        children: [
-                          HomeFeedScreenNew(
-                            key: const ValueKey('orderMain_feed_social'),
-                            postFilterType: PostType.all,
-                            headerHeight: 0,
-                            isInParentScroll: false,
+                    // No opaque fill here — the feed/community tabs render
+                    // transparent (cards on top), so the app-wide background
+                    // banner / colour (AppHomeBackground) shows through behind
+                    // the feed, like the other tabs. A white Container here
+                    // covers it, which is why the banner stops showing.
+                    child: TabBarView(
+                      controller: chatViewController.chatMainTabController,
+                      children: [
+                        HomeFeedScreenNew(
+                          key: const ValueKey('orderMain_feed_social'),
+                          postFilterType: PostType.all,
+                          headerHeight: 0,
+                          isInParentScroll: false,
+                        ),
+                        ChannelFeedScreen(
+                          key: const ValueKey('orderMain_feed_community'),
+                          headerHeight: 0,
+                        ),
+                        if (kDebugMode)
+                          ReelsTabScreen(
+                            key: const ValueKey('reels_tab_screen'),
                           ),
-                          ChannelFeedScreen(
-                            key: const ValueKey('orderMain_feed_community'),
-                            headerHeight: 0,
-                          ),
-                          if (kDebugMode)
-                            ReelsTabScreen(
-                              key: const ValueKey('reels_tab_screen'),
-                            ),
-                        ],
-                      ),
+                      ],
                     ),
                   ),
                   (widget.isForwardUI != null && (widget.isForwardUI ?? false))
