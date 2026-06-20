@@ -572,6 +572,9 @@ class ApiKeys {
   // Service-enquiry (Discover self-profession → chat) request keys.
   static const services = 'services';
   static const provider_id = 'provider_id';
+  // Property-enquiry (rental Discover → chat) request key — the listed
+  // property the customer is enquiring about.
+  static const property_id = 'property_id';
   static const enquiry_id = 'enquiry_id';
   static const house_no = 'house_no';
   static const street = 'street';

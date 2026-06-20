@@ -4,6 +4,7 @@ import 'package:BlueEra/features/chat/auth/model/payment_success_model.dart';
 import 'package:BlueEra/features/chat/auth/model/replyParantMessage.dart';
 import 'package:BlueEra/features/chat/auth/model/self_pickup_order_model.dart';
 import 'package:BlueEra/features/chat/auth/model/service_enquiry_model.dart';
+import 'package:BlueEra/features/chat/auth/model/property_enquiry_model.dart';
 import 'package:BlueEra/features/chat/auth/model/symbol_details_model.dart';
 
 import 'Conversation.dart';
@@ -444,6 +445,10 @@ class MessageMetadata {
   String? serviceEnquiryId;
   ServiceEnquiryModel? serviceEnquiry;
 
+  // Property enquiry (rental Discover → chat)
+  String? propertyEnquiryId;
+  PropertyEnquiryModel? propertyEnquiry;
+
   // Call-related fields
   String? callId;
   String? roomId;
@@ -502,6 +507,8 @@ class MessageMetadata {
     this.riderAssociation,
     this.serviceEnquiryId,
     this.serviceEnquiry,
+    this.propertyEnquiryId,
+    this.propertyEnquiry,
     this.callId,
     this.roomId,
     this.otherUserId,
@@ -578,6 +585,12 @@ class MessageMetadata {
               ? ServiceEnquiryModel.fromJson(
                   Map<String, dynamic>.from(json['order']))
               : null),
+      propertyEnquiryId:
+          (json['propertyEnquiryId'] ?? json['property_enquiry_id'])?.toString(),
+      propertyEnquiry: json['propertyEnquiry'] is Map
+          ? PropertyEnquiryModel.fromJson(
+              Map<String, dynamic>.from(json['propertyEnquiry']))
+          : null,
       callId: json['call_id']?.toString(),
       roomId: json['room_id']?.toString(),
       otherUserId: json['other_user_id']?.toString(),
@@ -630,6 +643,8 @@ class MessageMetadata {
       'riderAssociation': riderAssociation?.toJson(),
       'serviceEnquiryId': serviceEnquiryId,
       'serviceEnquiry': serviceEnquiry?.toJson(),
+      'propertyEnquiryId': propertyEnquiryId,
+      'propertyEnquiry': propertyEnquiry?.toJson(),
       'call_id': callId,
       'room_id': roomId,
       'other_user_id': otherUserId,

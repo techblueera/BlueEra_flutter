@@ -1252,6 +1252,50 @@ class ChatViewController extends GetxController {
         }
       });
 
+      // Property Enquiry: New enquiry received (owner side)
+      chatSocket.listenEvent(ChatEmitEvents.newPropertyEnquiryReceived, (data) {
+        if (data['message'] != null) {
+          final message = Messages.fromJson(data['message']);
+          final conversationId = message.conversationId ?? '';
+          if (conversationId.isNotEmpty &&
+              conversationId == userOpenConversationId.value) {
+            final currentMessages =
+                getListOfMessageResponse.value.data as List<Messages>? ?? [];
+            final exists = currentMessages.any((m) => m.id == message.id);
+            if (!exists) {
+              currentMessages.add(message);
+              getListOfMessageResponse.value =
+                  ApiResponse.complete(currentMessages);
+              scrollDown();
+            }
+          }
+          // Refresh chat list
+          emitEvent(ChatEmitEvents.ChatList, {
+            ApiKeys.page: 1,
+            ApiKeys.per_page_message: 30,
+          });
+        }
+      });
+
+      // Property Enquiry: owner accepted / declined → update the card status
+      chatSocket.listenEvent(ChatEmitEvents.propertyEnquiryStatusUpdated,
+          (data) {
+        final messageId = data['messageId']?.toString() ?? '';
+        final status = data['status']?.toString();
+        if (messageId.isNotEmpty && status != null) {
+          final currentMessages =
+              getListOfMessageResponse.value.data as List<Messages>? ?? [];
+          for (var msg in currentMessages) {
+            if (msg.id == messageId) {
+              msg.metadata?.propertyEnquiry?.status = status;
+              break;
+            }
+          }
+          getListOfMessageResponse.value =
+              ApiResponse.complete(currentMessages);
+        }
+      });
+
       // Food Self-Pickup: New order received (restaurant side)
       chatSocket.listenEvent(ChatEmitEvents.newFoodPickupOrderReceived, (data) {
         if (data['message'] != null) {

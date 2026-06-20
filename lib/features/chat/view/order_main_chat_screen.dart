@@ -158,6 +158,8 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
                     alignment: Alignment.topCenter,
                     child: _isSearchVisible
                         ? Container(
+                            // White header so the search row reads cleanly; the
+                            // app-wide banner shows behind the feed content below.
                             width: double.infinity,
                             color: Colors.white,
                             padding: const EdgeInsets.symmetric(
@@ -167,6 +169,8 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
                         : const SizedBox(width: double.infinity),
                   ),
                   Container(
+                    // White strip behind the Social / Community tabs; the banner
+                    // shows only behind the feed content below.
                     color: Colors.white,
                     child: TabBar(
                       onTap: (index) {
