@@ -139,19 +139,19 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2>
           ],
         ),
       ),
-      floatingActionButton: _selectedTab == 2
-          ? FloatingActionButton.extended(
-              backgroundColor: AppColors.primaryColor,
-              icon: const Icon(Icons.add, color: Colors.white),
-              label: CustomText(
-                AppStrings.addVehicleLabel.tr,
-                color: Colors.white,
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-              ),
-              onPressed: () => VehicleOwnerActions.addVehicle(context, _ctrl),
-            )
-          : null,
+      // floatingActionButton: _selectedTab == 2
+      //     ? FloatingActionButton.extended(
+      //         backgroundColor: AppColors.primaryColor,
+      //         icon: const Icon(Icons.add, color: Colors.white),
+      //         label: CustomText(
+      //           AppStrings.addVehicleLabel.tr,
+      //           color: Colors.white,
+      //           fontSize: 13,
+      //           fontWeight: FontWeight.w700,
+      //         ),
+      //         onPressed: () => VehicleOwnerActions.addVehicle(context, _ctrl),
+      //       )
+      //     : null,
     );
   }
 

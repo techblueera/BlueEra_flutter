@@ -42,6 +42,10 @@ class ShortPlayerItem extends StatefulWidget {
   final Future<void>? initializeFuture;
   final String? coverUrl;
 
+  /// Asks the parent (single controller owner) to rebuild this slot's
+  /// controller after a load failure. Null when there is no parent owner.
+  final VoidCallback? onReload;
+
   /* -------------------------------- */
 
   const ShortPlayerItem({
@@ -54,6 +58,7 @@ class ShortPlayerItem extends StatefulWidget {
     this.preloadedController,
     this.initializeFuture,
     this.coverUrl,
+    this.onReload,
     /* -------------------------------- */
   });
 
@@ -81,6 +86,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
 
   /* ------------- NEW ------------- */
   bool _useCover = true; // show cover until first frame ready
+  bool _isBuffering = false; // show spinner while the network catches up
   /* -------------------------------- */
 
   @override
@@ -94,24 +100,84 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
 
     getAndSetData();
 
-    /* use pre-built controller if available */
-    if (widget.preloadedController != null) {
-      _controller = widget.preloadedController;
-      _attachListener();
-    } else {
-      _initializePlayer();
-    }
+    // The parent (ShortsPlayerScreen) owns every controller and preloads the
+    // current page ± 1. We are a pure consumer — attach to whatever it gives
+    // us and react in didUpdateWidget when that controller instance changes.
+    // This avoids the old double-controller bug (item self-creating one while
+    // the parent also cached one for the same index).
+    _attachController();
 
     _setupViewTimer();
   }
 
-  void _attachListener() {
-    widget.initializeFuture?.then((_) {
-      if (mounted && !_isDisposed) {
+  void _attachController() {
+    final controller = widget.preloadedController;
+    _controller = controller;
+    _hasError = false;
+    _isBuffering = false;
+
+    if (controller == null) {
+      // Parent hasn't created this page's controller yet — keep showing the
+      // cover; didUpdateWidget fires once it does.
+      _useCover = true;
+      return;
+    }
+
+    _useCover = !controller.value.isInitialized;
+    controller.setLooping(true);
+    controller.addListener(_videoListener);
+
+    final future = widget.initializeFuture;
+    if (future != null) {
+      future.then((_) {
+        if (!mounted || _isDisposed || _controller != controller) return;
         setState(() => _useCover = false);
-        if (widget.autoPlay) _controller?.play();
+        if (widget.autoPlay) controller.play();
+      }).catchError((_) {
+        if (!mounted || _isDisposed || _controller != controller) return;
+        setState(() => _hasError = true);
+      });
+    } else if (controller.value.isInitialized) {
+      _useCover = false;
+      if (widget.autoPlay) controller.play();
+    }
+  }
+
+  /// Reacts to runtime player state: surface mid-playback failures as a Retry
+  /// and show a spinner while the network buffers (instead of a frozen frame).
+  void _videoListener() {
+    final controller = _controller;
+    if (controller == null || _isDisposed || !mounted) return;
+    final value = controller.value;
+
+    if (value.hasError && !_hasError) {
+      setState(() => _hasError = true);
+      return;
+    }
+    if (value.isBuffering != _isBuffering) {
+      setState(() => _isBuffering = value.isBuffering);
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant ShortPlayerItem oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // Parent swapped the controller for this slot (preload / reload / dispose):
+    // detach from the old instance and bind to the new (or null) one. Without
+    // this the item would keep pointing at a disposed controller → frozen page.
+    if (!identical(
+        widget.preloadedController, oldWidget.preloadedController)) {
+      oldWidget.preloadedController?.removeListener(_videoListener);
+      _attachController();
+      if (mounted) setState(() {});
+    } else if (widget.autoPlay != oldWidget.autoPlay) {
+      if (widget.autoPlay) {
+        _controller?.play();
+      } else {
+        _controller?.pause();
       }
-    });
+    }
   }
 
   @override
@@ -144,19 +210,10 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
     _viewTimer?.cancel();
     RouteHelper.routeObserver.unsubscribe(this);
 
-    if (widget.preloadedController == null && _controller != null) {
-      // We created this controller, so we must dispose it
-      print(
-          '🔇 SHORT_PLAYER_ITEM: Disposing self-created controller ${_controller.hashCode}');
-      _controller!.pause();
-      _controller!.setVolume(0.0);
-      _controller!.dispose();
-    } else if (_controller != null) {
-      // We received a preloaded controller, just pause it
-      print(
-          '🔇 SHORT_PLAYER_ITEM: Pausing preloaded controller ${_controller.hashCode}');
-      _controller!.pause();
-    }
+    // The parent owns the controller lifecycle — never dispose it here, just
+    // detach our listener and pause so audio never leaks past this widget.
+    _controller?.removeListener(_videoListener);
+    _controller?.pause();
     deleteIfRegistered<FullScreenShortController>(tag: _controllerTag);
     super.dispose();
   }
@@ -225,50 +282,6 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
     });
   }
 
-  Future<void> _initializePlayer() async {
-    if (_controller != null || _isDisposed) return;
-    try {
-      String? url;
-      if (GetPlatform.isAndroid) {
-        url = fullScreenShortController
-                .videoItem?.video?.transcodedUrls?.master ??
-            fullScreenShortController.videoItem?.video?.videoUrl;
-      } else {
-        url = fullScreenShortController.videoItem?.video?.videoUrl;
-      }
-
-      if (url == null || url.isEmpty) {
-        setState(() => _hasError = true);
-        return;
-      }
-      _controller = VideoPlayerController.networkUrl(
-        Uri.parse(url),
-        videoPlayerOptions: VideoPlayerOptions(
-          mixWithOthers: true,
-          allowBackgroundPlayback: false,
-        ),
-        httpHeaders: isHlsUrl(url)
-            ? {
-                'User-Agent': 'Flutter Video Player',
-                // 'Accept': '*/*',
-                // 'Connection': 'keep-alive',
-              }
-            : {},
-      );
-      await _controller!.initialize();
-      if (!_isDisposed) {
-        _controller?.setLooping(true);
-        _controller?.setVolume(1.0);
-        if (widget.autoPlay) _controller?.play();
-        setState(() {
-          _useCover = false;
-        });
-      }
-    } catch (_) {
-      if (!_isDisposed) setState(() => _hasError = true);
-    }
-  }
-
   void getAndSetData() {
     if (fullScreenShortController.videoItem?.channel?.id != null) {
       profileImage =
@@ -293,13 +306,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
   }
 
   /* public control methods */
-  void playVideo() {
-    if (_controller == null) return;
-    if (_controller!.value.isInitialized)
-      _controller?.play();
-    else
-      _initializePlayer().then((_) => _controller?.play());
-  }
+  void playVideo() => _controller?.play();
 
   void pauseVideo() => _controller?.pause();
 
@@ -330,7 +337,13 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
                   _hasError = false;
                   _useCover = true;
                 });
-                _initializePlayer();
+                // Ask the parent to rebuild this slot's controller; if there is
+                // no parent owner, just re-attach to what we already have.
+                if (widget.onReload != null) {
+                  widget.onReload!.call();
+                } else {
+                  _attachController();
+                }
               },
               child: const Text('Retry'),
             ),
@@ -344,6 +357,8 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
         alignment: Alignment.center,
         children: [
           _buildVideoPlayer(),
+          if (_isBuffering && !_useCover)
+            const CircularProgressIndicator(color: Colors.white),
           _buildPlayPauseOverlay(),
           _buildActionButtons(),
           _buildVideoInfo(),

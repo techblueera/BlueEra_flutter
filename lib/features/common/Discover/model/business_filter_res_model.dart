@@ -108,6 +108,10 @@ class BusinessFilterData {
     this.businessDescription,
     this.categoryDetails,
     this.subCategoryDetails,
+    this.departments,
+    this.departmentCount,
+    this.facilities,
+    this.facilityCount,
   });
 
   BusinessFilterData.fromJson(dynamic json) {
@@ -159,6 +163,25 @@ class BusinessFilterData {
     subCategoryDetails = json['sub_category_details'] is Map
         ? BusinessNamedRef.fromJson(json['sub_category_details'])
         : null;
+    if (json['departments'] is List) {
+      departments = (json['departments'] as List)
+          .whereType<Map>()
+          .map((e) => BusinessFilterDepartment.fromJson(e))
+          .toList();
+    }
+    departmentCount = _asInt(json['department_count']);
+    // `facilities` is polymorphic — either null, a list of plain strings, or
+    // a list of `{name, ...}` objects. Reduce every shape to a name list so
+    // the UI can render chips uniformly.
+    if (json['facilities'] is List) {
+      facilities = (json['facilities'] as List)
+          .map((e) => e is Map
+              ? (e['name']?.toString() ?? '')
+              : (e?.toString() ?? ''))
+          .where((s) => s.trim().isNotEmpty)
+          .toList();
+    }
+    facilityCount = _asInt(json['facility_count']);
   }
 
   String? id;
@@ -187,6 +210,10 @@ class BusinessFilterData {
   String? businessDescription;
   BusinessCategoryDetails? categoryDetails;
   BusinessNamedRef? subCategoryDetails;
+  List<BusinessFilterDepartment>? departments;
+  int? departmentCount;
+  List<String>? facilities;
+  int? facilityCount;
 
   Map<String, dynamic> toJson() => {
         '_id': id,
@@ -215,7 +242,33 @@ class BusinessFilterData {
         'business_description': businessDescription,
         'category_details': categoryDetails?.toJson(),
         'sub_category_details': subCategoryDetails?.toJson(),
+        'departments': departments?.map((e) => e.toJson()).toList(),
+        'department_count': departmentCount,
+        'facilities': facilities,
+        'facility_count': facilityCount,
       };
+}
+
+/// Lightweight department descriptor from `business/filter`. Only the fields
+/// the listing card needs (name/type/key) are kept — full OPD/IPD detail is
+/// fetched separately when a hospital is opened.
+class BusinessFilterDepartment {
+  BusinessFilterDepartment({this.id, this.name, this.key, this.type});
+
+  BusinessFilterDepartment.fromJson(dynamic json) {
+    id = json['_id']?.toString();
+    name = json['name']?.toString();
+    key = json['key']?.toString();
+    type = json['type']?.toString();
+  }
+
+  String? id;
+  String? name;
+  String? key;
+  String? type;
+
+  Map<String, dynamic> toJson() =>
+      {'_id': id, 'name': name, 'key': key, 'type': type};
 }
 
 class BusinessGst {

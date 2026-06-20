@@ -169,6 +169,13 @@ class _HospitalCard extends StatelessWidget {
       .toList();
 
   List<String> _buildFacilities() {
+    // The `business/filter` listing supplies facility names directly. Prefer
+    // those; fall back to deriving them from the emergency-care / other-
+    // facility booleans (populated only on the full-details path).
+    final apiNames = item.facilityNames;
+    if (apiNames != null && apiNames.isNotEmpty) {
+      return apiNames.where((s) => s.trim().isNotEmpty).toList();
+    }
     final list = <String>[];
     final ec = item.emergencyCare;
     final of = item.otherFacilities;
@@ -414,6 +421,10 @@ class _HospitalCard extends StatelessWidget {
   Widget _coverBody(BuildContext context) {
     final deptNames = _departmentNames();
     final facilities = _buildFacilities();
+    // Prefer the server's explicit counts; fall back to the rendered list
+    // length so the badge stays correct on the full-details path.
+    final deptCount = item.departmentCount ?? deptNames.length;
+    final facilityCount = item.facilityCount ?? facilities.length;
     final distance = _distanceLabel();
     final address = item.location?.name;
     final locationText = [
@@ -478,16 +489,20 @@ class _HospitalCard extends StatelessWidget {
         // Departments summary.
         _serviceRow(
           icon: Icons.local_hospital_outlined,
+          chipIcon: Icons.local_hospital_outlined,
           title: 'Departments',
           items: deptNames,
+          count: deptCount,
           emptyLabel: 'No departments listed',
         ),
         const SizedBox(height: 12),
         // Facilities summary.
         _serviceRow(
           icon: Icons.medical_services_outlined,
+          chipIcon: Icons.check_circle_outline,
           title: 'Facilities',
           items: facilities,
+          count: facilityCount,
           emptyLabel: 'No facilities listed',
         ),
         const SizedBox(height: 16),
@@ -546,16 +561,25 @@ class _HospitalCard extends StatelessWidget {
     );
   }
 
-  /// One summary line: `[icon] Title • N  ........  View All`, with a muted
-  /// secondary line listing the items underneath.
+  /// One summary block: `[icon] Title • N  ........  View All` header, with
+  /// the items rendered as wrapped chips underneath. [count] is the server's
+  /// total (may exceed the names we show); surplus names collapse into a
+  /// `+N more` chip that opens the detail screen.
   Widget _serviceRow({
     required IconData icon,
+    required IconData chipIcon,
     required String title,
     required List<String> items,
+    required int count,
     required String emptyLabel,
   }) {
     final accent = AppColors.primaryColor;
-    final count = items.length;
+    const maxChips = 3;
+    final visible = items.take(maxChips).toList();
+    // Hidden = everything the chips don't show. Anchor on the larger of the
+    // server count / names length so the overflow chip never under-reports.
+    final total = count > items.length ? count : items.length;
+    final hidden = total - visible.length;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -605,19 +629,68 @@ class _HospitalCard extends StatelessWidget {
               ),
           ],
         ),
-        const SizedBox(height: 5),
+        const SizedBox(height: 8),
         Padding(
           padding: const EdgeInsets.only(left: 34),
-          child: CustomText(
-            count == 0 ? emptyLabel : items.join(', '),
-            fontSize: SizeConfig.small,
-            color: count == 0 ? AppColors.grey9B : AppColors.secondaryTextColor,
-            fontWeight: FontWeight.w400,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
+          child: visible.isEmpty
+              ? CustomText(
+                  emptyLabel,
+                  fontSize: SizeConfig.small,
+                  color: AppColors.grey9B,
+                  fontWeight: FontWeight.w400,
+                )
+              : Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    for (final name in visible)
+                      _infoChip(label: name, icon: chipIcon, accent: accent),
+                    if (hidden > 0)
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: _openDetail,
+                        child: _infoChip(
+                          label: '+$hidden more',
+                          icon: Icons.more_horiz_rounded,
+                          accent: accent,
+                          filled: true,
+                        ),
+                      ),
+                  ],
+                ),
         ),
       ],
+    );
+  }
+
+  /// Small rounded pill: leading [icon] + [label]. [filled] gives the
+  /// `+N more` chip a slightly stronger tint so it reads as tappable.
+  Widget _infoChip({
+    required String label,
+    required IconData icon,
+    required Color accent,
+    bool filled = false,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: filled ? 0.16 : 0.07),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: accent.withValues(alpha: 0.22)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: accent),
+          const SizedBox(width: 4),
+          CustomText(
+            label,
+            fontSize: SizeConfig.small,
+            fontWeight: FontWeight.w600,
+            color: accent,
+          ),
+        ],
+      ),
     );
   }
 

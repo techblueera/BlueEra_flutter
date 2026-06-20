@@ -92,10 +92,13 @@ class HospitalServiceAiController extends GetxController {
   RxInt selectedDeptIndex = 0.obs; // Tracks selected category chip
   RxInt selectedIpdDeptIndex = 0.obs; // Tracks selected category chip
 
-  /// Departments filtered by [type] ("OPD" or "IPD").
+  /// Departments filtered by [type] ("OPD" or "IPD"). Match is
+  /// case-insensitive so a response that returns `opd`/`Opd` still
+  /// populates the section.
   List<IpdOpdDepartments> _departmentsOfType(String type) =>
       (hospitalDataResModel?.value.data?.departments ?? [])
-          .where((dept) => dept.type == type)
+          .where((dept) =>
+              (dept.type ?? '').toUpperCase() == type.toUpperCase())
           .toList();
 
   List<IpdOpdDepartments> get filteredOpdDepartments =>

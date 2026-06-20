@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
@@ -11,6 +12,7 @@ import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
+import 'package:BlueEra/features/me/hospital/model/hospital_full_details_res_model.dart';
 import 'package:BlueEra/features/me/hospital/view/emergency/emergency_critical_care_view.dart';
 import 'package:BlueEra/features/me/hospital/view/gallery/hospital_home_gallery_widget.dart';
 import 'package:BlueEra/features/me/hospital/view/hospital_job_listing_screen.dart';
@@ -47,17 +49,179 @@ class _DiscoverHospitalHomeScreenState
       Get.find<ViewBusinessDetailsController>();
   final storeController = getOrPut(() => StoreController());
 
+  /// Tracks whether the full hospital profile has finished loading at least
+  /// once. Gates the first-load shimmer so pull-to-refresh keeps the existing
+  /// content on screen instead of flashing back to the skeleton.
+  bool _hasLoadedOnce = false;
+
   @override
   void initState() {
     super.initState();
     final id = controller.hospitalDataResModel?.value.data?.id ?? '';
     if (id.isNotEmpty) {
-      viewBusinessDetailsController.viewBusinessProfileById(id);
+      _loadVisitedHospitalDetails(id);
       ProfileClickTracker.track(
         userId: id,
         source: ChatClickSource.searchResult,
       );
     }
+  }
+
+  /// Loads the visited hospital's profile and merges its OPD/IPD,
+  /// management, gallery and emergency/other-facility sections into
+  /// [HospitalServiceAiController.hospitalDataResModel].
+  ///
+  /// The list adapter that seeded the model (`toHospitalFullData()`)
+  /// leaves those hospital-specific sections null, so they only become
+  /// available from the full `viewBusinessProfileById` response.
+  Future<void> _loadVisitedHospitalDetails(String id) async {
+    await viewBusinessDetailsController.viewBusinessProfileById(id);
+    _mergeHospitalSectionsFromBusinessProfile();
+    if (mounted) setState(() => _hasLoadedOnce = true);
+  }
+
+  /// Parses [HospitalFullData] out of the raw `viewBusinessProfileById`
+  /// response and merges the hospital-only sections onto the existing
+  /// model, preserving the list-card fields (name/logo/cover/location)
+  /// already on screen.
+  void _mergeHospitalSectionsFromBusinessProfile() {
+    final raw =
+        viewBusinessDetailsController.viewBusinessResponseNew.data?.response?.data;
+    _debugDumpKeys(raw);
+    final hospitalJson = _extractHospitalJson(raw);
+    if (hospitalJson == null) {
+      debugPrint('[DiscoverHospital] no hospital JSON found in response');
+      return;
+    }
+
+    final parsed = HospitalFullData.fromJson(hospitalJson);
+    debugPrint('[DiscoverHospital] parsed departments=${parsed.departments?.length} '
+        'types=${parsed.departments?.map((d) => d.type).toList()} '
+        'management=${parsed.management?.length} gallery=${parsed.gallery?.length} '
+        'emergencyCare=${parsed.emergencyCare != null} '
+        'otherFacilities=${parsed.otherFacilities != null}');
+    final existing = controller.hospitalDataResModel?.value.data;
+
+    final merged = existing == null
+        ? parsed
+        : (existing
+          ..departments = parsed.departments ?? existing.departments
+          ..management = parsed.management ?? existing.management
+          ..gallery = parsed.gallery ?? existing.gallery
+          ..emergencyCare = parsed.emergencyCare ?? existing.emergencyCare
+          ..otherFacilities = parsed.otherFacilities ?? existing.otherFacilities
+          ..emergencyContactData =
+              parsed.emergencyContactData ?? existing.emergencyContactData
+          ..contacts = (parsed.contacts?.isNotEmpty ?? false)
+              ? parsed.contacts
+              : existing.contacts
+          ..description = (parsed.description?.isNotEmpty ?? false)
+              ? parsed.description
+              : existing.description);
+
+    controller.hospitalDataResModel?.value =
+        HospitalFullDetailsResModel(success: true, data: merged);
+  }
+
+  /// TEMP: prints the response key structure so we can locate where the
+  /// hospital sections (departments/management/gallery/...) actually sit.
+  void _debugDumpKeys(dynamic raw) {
+    if (raw is! Map) {
+      debugPrint('[DiscoverHospital] raw is not a Map: ${raw.runtimeType}');
+      return;
+    }
+    debugPrint('[DiscoverHospital] root keys: ${raw.keys.toList()}');
+    raw.forEach((k, v) {
+      if (k == 'data') return;
+      if (v is Map) {
+        debugPrint('[DiscoverHospital] root.$k keys: ${v.keys.toList()}');
+      } else if (v is List) {
+        final first = v.isNotEmpty ? v.first : null;
+        debugPrint('[DiscoverHospital] root.$k is List(len=${v.length}) '
+            'firstKeys=${first is Map ? first.keys.toList() : first?.runtimeType}');
+      }
+    });
+    final vp = raw['vertical_profile'];
+    if (vp is Map && vp['data'] is Map) {
+      final vpData = vp['data'] as Map;
+      debugPrint('[DiscoverHospital] vertical_profile.data keys: ${vpData.keys.toList()}');
+      vpData.forEach((k, v) {
+        if (v is List) {
+          final first = v.isNotEmpty ? v.first : null;
+          debugPrint('[DiscoverHospital]   vp.data.$k is List(len=${v.length}) '
+              'firstKeys=${first is Map ? first.keys.toList() : first?.runtimeType}');
+        } else if (v is Map) {
+          debugPrint('[DiscoverHospital]   vp.data.$k keys: ${v.keys.toList()}');
+        }
+      });
+    }
+    final data = raw['data'];
+    if (data is Map) {
+      debugPrint('[DiscoverHospital] data keys: ${data.keys.toList()}');
+      data.forEach((k, v) {
+        if (v is Map) {
+          debugPrint('[DiscoverHospital]   data.$k keys: ${v.keys.toList()}');
+        } else if (v is List) {
+          final first = v.isNotEmpty ? v.first : null;
+          debugPrint('[DiscoverHospital]   data.$k is List(len=${v.length}) '
+              'firstKeys=${first is Map ? first.keys.toList() : first?.runtimeType}');
+        }
+      });
+    }
+  }
+
+  /// Hospital fields read by [HospitalFullData.fromJson].
+  static const _hospitalKeys = <String>[
+    '_id',
+    'name',
+    'description',
+    'userId',
+    'location',
+    'coverUrl',
+    'logoUrl',
+    'visionMission',
+    'history',
+    'management',
+    'departments',
+    'emergencyCare',
+    'otherFacilities',
+    'emergencyContact',
+    'gallery',
+    'contacts',
+  ];
+
+  /// Builds the hospital JSON from the business-profile response. The
+  /// sections can live at the root, under `data`, or under an explicit
+  /// `hospital`/`hospitalDetails` key — and not necessarily all in the
+  /// same container — so each key is taken from the first container that
+  /// actually carries it rather than committing to one object.
+  Map<String, dynamic>? _extractHospitalJson(dynamic raw) {
+    if (raw is! Map) return null;
+    final data = raw['data'];
+    final vp = raw['vertical_profile'];
+    final containers = <Map>[
+      // Vertical-specific profile is where hospital sections live:
+      // `vertical_profile.data.{departments,management,gallery,...}`.
+      if (vp is Map && vp['data'] is Map) vp['data'],
+      if (vp is Map) vp,
+      if (raw['hospital'] is Map) raw['hospital'],
+      if (raw['hospitalDetails'] is Map) raw['hospitalDetails'],
+      if (data is Map && data['hospital'] is Map) data['hospital'],
+      if (data is Map && data['hospitalDetails'] is Map) data['hospitalDetails'],
+      if (data is Map) data,
+      raw,
+    ];
+
+    final merged = <String, dynamic>{};
+    for (final key in _hospitalKeys) {
+      for (final c in containers) {
+        if (c.containsKey(key) && c[key] != null) {
+          merged[key] = c[key];
+          break;
+        }
+      }
+    }
+    return merged.isEmpty ? null : merged;
   }
 
   @override
@@ -71,10 +235,22 @@ class _DiscoverHospitalHomeScreenState
       body: RefreshIndicator(
         color: AppColors.primaryColor,
         onRefresh: () async {
-          await controller.getHospitalFullDetailsController();
+          final id = controller.hospitalDataResModel?.value.data?.id ?? '';
+          if (id.isNotEmpty) {
+            await _loadVisitedHospitalDetails(id);
+          }
         },
         child: Obx(() {
+          final isProfileLoading =
+              viewBusinessDetailsController.isProfileLoading.value;
           final data = controller.hospitalDataResModel?.value.data;
+
+          /// First-load shimmer: keep the skeleton until the full profile
+          /// has merged once, so the OPD/management/gallery sections don't
+          /// briefly flash their empty states while the request is in flight.
+          if (isProfileLoading && !_hasLoadedOnce) {
+            return _buildLoadingShimmer();
+          }
 
           if (data == null) {
             return _buildFullEmptyState();
@@ -163,6 +339,82 @@ class _DiscoverHospitalHomeScreenState
             ),
           );
         }),
+      ),
+    );
+  }
+
+  /// First-load skeleton mirroring the real layout (header, stats, emergency
+  /// action cards and a few content sections). A single [buildLoadingShimmer]
+  /// drives the whole tree so every block shares one animation controller
+  /// instead of spawning a shimmer per placeholder.
+  Widget _buildLoadingShimmer() {
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      child: buildLoadingShimmer(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            /// HEADER (cover + logo + title lines)
+            shimmerContainer(height: SizeConfig.size150, radius: 0),
+            Padding(
+              padding: EdgeInsets.all(SizeConfig.paddingS),
+              child: Row(
+                children: [
+                  shimmerContainer(
+                      width: SizeConfig.size60,
+                      height: SizeConfig.size60,
+                      radius: 30),
+                  SizedBox(width: SizeConfig.paddingS),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        shimmerContainer(height: SizeConfig.size16),
+                        SizedBox(height: SizeConfig.paddingXS),
+                        shimmerContainer(
+                            height: SizeConfig.size12, width: 180),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            /// STATS CARD
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingS),
+              child: shimmerContainer(height: SizeConfig.size60, radius: 12),
+            ),
+            SizedBox(height: SizeConfig.paddingS),
+
+            /// EMERGENCY ACTION CARDS
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingS),
+              child: Row(
+                children: [
+                  Expanded(
+                      child: shimmerContainer(
+                          height: SizeConfig.size150, radius: 12)),
+                  SizedBox(width: SizeConfig.paddingS),
+                  Expanded(
+                      child: shimmerContainer(
+                          height: SizeConfig.size150, radius: 12)),
+                ],
+              ),
+            ),
+            SizedBox(height: SizeConfig.paddingS),
+
+            /// CONTENT SECTION CARDS
+            for (int i = 0; i < 3; i++) ...[
+              Padding(
+                padding:
+                    EdgeInsets.symmetric(horizontal: SizeConfig.paddingS),
+                child: shimmerContainer(height: SizeConfig.size120, radius: 12),
+              ),
+              SizedBox(height: SizeConfig.paddingS),
+            ],
+          ],
+        ),
       ),
     );
   }

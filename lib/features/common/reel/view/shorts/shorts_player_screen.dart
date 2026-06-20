@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
 import 'package:BlueEra/core/services/screen_service.dart';
 import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
@@ -32,8 +33,10 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
   late final PageController _pageController;
   int currentIndex = 0;
 
+  // Single owner of all video controllers. We keep only the current page ± 1
+  // alive (a 3-entry sliding window) so memory stays flat while the neighbours
+  // are preloaded for instant, stutter-free swipes.
   final _videoCache = <int, _VideoCacheEntry>{};
-  static const int _maxCachedVideos = 3;
   static const double _swipeThreshold = 0.5;
   int _lastRoundedPage = 0;
 
@@ -55,6 +58,11 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeFeedData();
       _warmUpRange(currentIndex);
+      // Hand the freshly-created controller to the first page and start it
+      // (the page was built before this callback ran, so it currently has no
+      // controller — this setState delivers it).
+      _playWhenReady(currentIndex);
+      if (mounted) setState(() {});
       print('✅ INIT: Initialization complete');
     });
 
@@ -183,55 +191,79 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
       _videoCache.remove(i);
     });
 
-    /* create missing */
+    /* create missing — always cover the whole [left..right] window so the
+       current page and its immediate neighbours are ready to play. The
+       dispose-far pass above already capped the map, so no extra guard. */
     final toCreate = <int>[];
     for (int i = left; i <= right; i++) {
       if (_videoCache.containsKey(i)) continue;
-      if (_videoCache.length >= _maxCachedVideos) continue;
       final item = list.elementAtOrNull(i);
       if (item == null) continue;
 
       toCreate.add(i);
-
-      final fallbackUrl = item.video?.videoUrl;
-
-      // final controller = VideoPlayerController.networkUrl(
-      //   Uri.parse(masterUrl ?? fallbackUrl ?? ''),
-      // videoPlayerOptions: VideoPlayerOptions(
-      //     mixWithOthers: true,
-      //     allowBackgroundPlayback: true
-      // ),
-      // );
-
-      final controller = VideoPlayerController.networkUrl(
-        Uri.parse(fallbackUrl ?? ''),
-        videoPlayerOptions: VideoPlayerOptions(
-            mixWithOthers: true,
-            allowBackgroundPlayback: true
-        ),
-      );
-
-      // Set looping
-      controller.setLooping(true);
-
-      // Optional listener if you need logs
-      controller.addListener(() {
-        if (controller.value.isInitialized &&
-            controller.value.position >= controller.value.duration) {
-          print('🔁 VIDEO: Looping video at index $i');
-        }
-      });
-
-      _videoCache[i] = _VideoCacheEntry(
-        controller: controller,
-        initializeFuture: controller.initialize(),
-        coverUrl: item.video?.coverUrl,
-      );
+      _videoCache[i] = _createEntry(item);
     }
 
     if (toCreate.isNotEmpty) {
       print('🆕 WARMUP: Created new controllers for indices: $toCreate');
     }
+  }
+
+  /// Picks the playback url: the HLS/adaptive master stream on Android (far
+  /// smoother and lighter than the raw mp4), falling back to the progressive
+  /// url. Must match [ShortPlayerItem] so we never download two variants.
+  String _resolveUrl(ShortFeedItem item) {
+    if (GetPlatform.isAndroid) {
+      return item.video?.transcodedUrls?.master ?? item.video?.videoUrl ?? '';
+    }
+    return item.video?.videoUrl ?? '';
+  }
+
+  /// Builds a ready-to-initialize cache entry for [item].
+  _VideoCacheEntry _createEntry(ShortFeedItem item) {
+    final url = _resolveUrl(item);
+    final controller = VideoPlayerController.networkUrl(
+      Uri.parse(url),
+      videoPlayerOptions: VideoPlayerOptions(
+        mixWithOthers: true,
+        allowBackgroundPlayback: false,
+      ),
+      httpHeaders: isHlsUrl(url)
+          ? const {'User-Agent': 'Flutter Video Player'}
+          : const {},
+    );
+    controller.setLooping(true);
+    return _VideoCacheEntry(
+      controller: controller,
+      initializeFuture: controller.initialize(),
+      coverUrl: item.video?.coverUrl,
+    );
+  }
+
+  /// Dispose + rebuild a single controller. Used by the per-item Retry so a
+  /// failed page can recover without tearing down the whole feed.
+  void _reloadIndex(int index) {
+    final list = _getCurrentFeedList(shortsFeedController!);
+    final item = list?.elementAtOrNull(index);
+    if (item == null) return;
+    print('🔁 RELOAD: Rebuilding controller for index $index');
+    _videoCache[index]?.controller?.dispose();
+    _videoCache[index] = _createEntry(item);
+    if (index == currentIndex) _playWhenReady(index);
+    if (mounted) setState(() {});
+  }
+
+  /// Play [index] as soon as its controller is initialized, but only if it is
+  /// still the visible page by then (guards against fast scrolling).
+  void _playWhenReady(int index) {
+    final entry = _videoCache[index];
+    if (entry == null) return;
+    entry.initializeFuture?.then((_) {
+      if (!mounted || currentIndex != index) return;
+      entry.controller?.play();
+      _acquireWakeLock();
+      setState(() {});
+    }).catchError((_) {});
   }
 
   void _initializeFeedData() {
@@ -371,19 +403,11 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
       _releaseWakeLock();
     }
 
-    /* play current */
-    final currentController = _videoCache[index]?.controller;
-    if (currentController != null) {
-      currentController.play();
-      print('▶️ PAGE_CHANGE: Started playing controller at index '
-          '$index (${currentController.hashCode})');
-      _acquireWakeLock();
-    } else {
-      print('⚠️ PAGE_CHANGE: No controller found for index $index');
-    }
-
-    /* preload */
+    /* preload neighbours first so the current page has a controller */
     _warmUpRange(index);
+
+    /* play current as soon as it is initialized */
+    _playWhenReady(index);
 
     /* load more */
     final list = _getCurrentFeedList(shortsFeedController!);
@@ -472,6 +496,7 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
                                   params: params),
                         ),
                         /* ---- NEW: pass pre-built controller ---- */
+                        onReload: () => _reloadIndex(index),
                         preloadedController: _videoCache[index]?.controller,
                         initializeFuture: _videoCache[index]?.initializeFuture,
                         coverUrl: _videoCache[index]?.coverUrl,

@@ -400,7 +400,7 @@ class _VehicleShowroomOverviewState extends State<VehicleShowroomOverview> {
         _sectionTitle(
           AppStrings.bikes.tr,
           trailing: _linkAction(
-            AppStrings.update.tr,
+            AppStrings.addVehicleLabel.tr,
             () => VehicleOwnerActions.addVehicle(context, _ctrl),
           ),
         ),

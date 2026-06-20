@@ -12,10 +12,11 @@ import 'package:BlueEra/features/me/hospital/model/hospital_full_details_res_mod
 /// not gain a hospital-module dependency.
 ///
 /// Only fields the UI actually reads (logo, cover/gallery, name,
-/// description, address + coordinates, primary phone via contacts) are
-/// mapped; hospital-specific fields (departments, OPD/IPD, emergency
-/// care, other facilities) stay null and the existing UI null-checks
-/// (`item.departments ?? []`, `ec?.icu ?? false`, etc.) handle them.
+/// description, address + coordinates, primary phone via contacts,
+/// department names/count + facility names/count) are mapped. OPD/IPD
+/// detail and the emergency-care/other-facility booleans aren't in the
+/// listing payload, so they stay null and the existing UI null-checks
+/// (`ec?.icu ?? false`, etc.) handle them.
 extension BusinessFilterDataHospitalMappers on BusinessFilterData {
   HospitalFullData toHospitalFullData() {
     final lat = businessLocation?.lat?.toDouble();
@@ -72,6 +73,19 @@ extension BusinessFilterDataHospitalMappers on BusinessFilterData {
             ),
           ];
 
+    // Map the lightweight department descriptors onto the legacy
+    // `IpdOpdDepartments` shape so `_HospitalCard._departmentNames()` keeps
+    // reading `item.departments`. OPD/IPD detail isn't in the listing payload
+    // — it's fetched on demand when a hospital is opened.
+    final deptList = (departments ?? const [])
+        .map((d) => IpdOpdDepartments(
+              id: d.id,
+              name: d.name,
+              key: d.key,
+              type: d.type,
+            ))
+        .toList();
+
     return HospitalFullData(
       id: id,
       userId: userId,
@@ -83,6 +97,10 @@ extension BusinessFilterDataHospitalMappers on BusinessFilterData {
       contacts: contacts,
       createdAt: createdAt,
       updatedAt: updatedAt,
+      departments: deptList.isEmpty ? null : deptList,
+      departmentCount: departmentCount ?? deptList.length,
+      facilityNames: facilities,
+      facilityCount: facilityCount ?? (facilities?.length ?? 0),
       location: Location(
         name: address,
         type: 'Point',

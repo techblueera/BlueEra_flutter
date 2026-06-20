@@ -14,6 +14,7 @@ import 'package:BlueEra/features/common/reel/view/shorts/reels_tab_screen.dart';
 import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/post_via_dialog.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
@@ -107,7 +108,7 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
     final rawIndex = chatViewController.selectedChatTabIndex.value;
     final pendingIndex = (rawIndex >= 0 && rawIndex < 2) ? rawIndex : 0;
     chatViewController.chatMainTabController = TabController(
-      length: 2,
+      length: kDebugMode ? 3 : 2,
       vsync: this,
       initialIndex: pendingIndex,
     );
@@ -140,24 +141,6 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
         return false;
       },
       child: Scaffold(
-        // floatingActionButton: (_isFromForward()) ||
-        //     chatViewController.chatMainTabController?.index == 1 ||
-        //     chatViewController.chatMainTabController?.index == 2 ||
-        //     isSelectionMode
-        //     ? SizedBox()
-        //     : SafeArea(
-        //   child: Padding(
-        //       padding:
-        //       const EdgeInsets.only(bottom: kBottomNavigationBarHeight),
-        //       child: FloatingActionButton(
-        //         child: Icon(Icons.add),
-        //         backgroundColor: AppColors.primaryColor,
-        //         foregroundColor: Colors.white,
-        //         onPressed: () {
-        //           Get.toNamed(RouteHelper.getChatContactsRoute());
-        //         },
-        //       )),
-        // ),
         body: SafeArea(
           child: BottomNavHideOnScroll(
             child: NotificationListener<ScrollNotification>(
@@ -210,7 +193,7 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
                       tabs: [
                         Tab(text: AppStrings.social.tr),
                         Tab(text: AppStrings.community.tr),
-                        // Tab(text: "Reels"),
+                        if (kDebugMode) Tab(text: "Reels"),
                       ],
                     ),
                   ),
@@ -230,9 +213,10 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
                             key: const ValueKey('orderMain_feed_community'),
                             headerHeight: 0,
                           ),
-                          // ReelsTabScreen(
-                          //   key: const ValueKey('reels_tab_screen'),
-                          // ),
+                          if (kDebugMode)
+                            ReelsTabScreen(
+                              key: const ValueKey('reels_tab_screen'),
+                            ),
                         ],
                       ),
                     ),

@@ -52,7 +52,7 @@ class VehicleListingScreen extends StatefulWidget {
 }
 
 class _VehicleListingScreenState extends State<VehicleListingScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   final VehicleController _ctrl =
       getOrPut(() => VehicleController(), permanent: true);
   final TextEditingController _searchCtrl = TextEditingController();
@@ -62,45 +62,84 @@ class _VehicleListingScreenState extends State<VehicleListingScreen>
   String? _subCategory;
   int? _pincode;
 
-  late final TabController _tabController;
+  late TabController _tabController;
 
-  /// Category values aligned with the tab order; `null` == "All".
-  static const _categoryValues = <String?>[
-    null,
-    'CAR',
-    'BIKE',
-    'TRUCK',
-    'BUS',
-    'OTHER',
-  ];
+  /// Tab order, populated from `GET /vehicles/types` — `null` == "All",
+  /// followed by each top-level [VehicleType] (e.g. Passenger, Commercial).
+  /// A tab's [VehicleType.value] is sent as the `category` filter, which is
+  /// exactly what create/update writes to a vehicle's `category` field.
+  List<VehicleType?> _tabTypes = const <VehicleType?>[null];
+
+  /// Fires once `GET /vehicles/types` resolves so the TabBar can be rebuilt
+  /// with the server taxonomy.
+  late final Worker _typesWorker;
 
   @override
   void initState() {
     super.initState();
     _category = widget.initialCategory;
     _subCategory = widget.initialSubCategory;
-    final initialIndex = _categoryValues.indexOf(_category);
+    // Seed from whatever the controller has cached so a revisit shows the
+    // real tabs immediately; the worker fills them in on first load.
+    _tabTypes = <VehicleType?>[null, ..._ctrl.vehicleTypes];
     _tabController = TabController(
-      length: _categoryValues.length,
-      initialIndex: initialIndex < 0 ? 0 : initialIndex,
+      length: _tabTypes.length,
+      initialIndex: _indexForCategory(_category),
       vsync: this,
     )..addListener(_handleTabChange);
+    _typesWorker = ever<List<VehicleType>>(
+      _ctrl.vehicleTypes,
+      (types) => _rebuildTabs(types),
+    );
+    _ctrl.fetchVehicleTypes();
     _scrollCtrl.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) => _refresh());
+  }
+
+  /// Index of the tab whose type matches [cat]; 0 ("All") when absent.
+  int _indexForCategory(String? cat) {
+    if (cat == null) return 0;
+    final i = _tabTypes.indexWhere((t) => t?.value == cat);
+    return i < 0 ? 0 : i;
+  }
+
+  /// Swap the hardcoded tabs for the server taxonomy. Recreates the
+  /// [TabController] (its length is fixed at construction) while preserving
+  /// the current selection where the type still exists.
+  void _rebuildTabs(List<VehicleType> types) {
+    if (!mounted) return;
+    final next = <VehicleType?>[null, ...types];
+    _tabController.removeListener(_handleTabChange);
+    _tabController.dispose();
+    setState(() {
+      _tabTypes = next;
+      _tabController = TabController(
+        length: next.length,
+        initialIndex: _indexForCategory(_category),
+        vsync: this,
+      )..addListener(_handleTabChange);
+    });
   }
 
   /// Fires on tab selection. Comparing against [_category] dedupes the
   /// double listener fire (mid-animation + settle) into a single refresh.
   void _handleTabChange() {
-    final value = _categoryValues[_tabController.index];
+    if (_tabController.index >= _tabTypes.length) return;
+    final value = _tabTypes[_tabController.index]?.value;
     if (value != _category) {
-      setState(() => _category = value);
+      setState(() {
+        _category = value;
+        // The old sub-category belongs to the previous parent; drop it so
+        // the two filters can't contradict each other.
+        _subCategory = null;
+      });
       _refresh();
     }
   }
 
   @override
   void dispose() {
+    _typesWorker.dispose();
     _tabController.removeListener(_handleTabChange);
     _tabController.dispose();
     _scrollCtrl.removeListener(_onScroll);
@@ -133,16 +172,6 @@ class _VehicleListingScreenState extends State<VehicleListingScreen>
       child: Scaffold(
         backgroundColor: Colors.transparent,
         appBar:CommonBackAppBar(title: AppStrings.vehicle.tr,),
-        floatingActionButton: FloatingActionButton.extended(
-          onPressed: _onAddVehicle,
-          backgroundColor: const Color(0xFF1E88FF),
-          foregroundColor: Colors.white,
-          icon: const Icon(Icons.add_rounded),
-          label: Text(
-            AppStrings.add.tr,
-            style: const TextStyle(fontWeight: FontWeight.w800),
-          ),
-        ),
         body: Column(
           children: [
             _buildFilterBar(),
@@ -250,12 +279,16 @@ class _VehicleListingScreenState extends State<VehicleListingScreen>
   }
 
   // ─── Filter bar (hospital-style TabBar, ref: HomeTabScaffold) ──────
+  // Tabs come from `GET /vehicles/types`; labels are the server-provided
+  // [VehicleType.label]. Scrolls once the taxonomy outgrows the bar.
   Widget _buildFilterBar() {
+    final scrollable = _tabTypes.length > 4;
     return Material(
       color: Colors.white,
       child: TabBar(
         controller: _tabController,
-        isScrollable: false,
+        isScrollable: scrollable,
+        tabAlignment: scrollable ? TabAlignment.start : TabAlignment.fill,
         labelColor: AppColors.primaryColor,
         unselectedLabelColor: AppColors.mainTextColor,
         indicatorColor: AppColors.primaryColor,
@@ -265,26 +298,11 @@ class _VehicleListingScreenState extends State<VehicleListingScreen>
         unselectedLabelStyle:
             const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
         tabs: [
-          for (final v in _categoryValues)
-            Tab(text: v == null ? AppStrings.all.tr : _humanCat(v)),
+          for (final t in _tabTypes)
+            Tab(text: t == null ? AppStrings.all.tr : t.label),
         ],
       ),
     );
-  }
-
-  String _humanCat(String c) {
-    switch (c) {
-      case 'CAR':
-        return AppStrings.cars.tr;
-      case 'BIKE':
-        return AppStrings.bikes.tr;
-      case 'TRUCK':
-        return AppStrings.trucks.tr;
-      case 'BUS':
-        return AppStrings.buses.tr;
-      default:
-        return AppStrings.other.tr;
-    }
   }
 }
 

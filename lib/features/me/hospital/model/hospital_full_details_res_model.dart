@@ -56,6 +56,9 @@ class HospitalFullData {
     this.otherFacilities,
     this.gallery,
     this.contacts,
+    this.departmentCount,
+    this.facilityNames,
+    this.facilityCount,
   });
 
   HospitalFullData.fromJson(dynamic json) {
@@ -117,6 +120,20 @@ class HospitalFullData {
     } else {
       emergencyContactData = null;
     }
+    departmentCount = json['department_count'] is num
+        ? (json['department_count'] as num).toInt()
+        : null;
+    facilityCount = json['facility_count'] is num
+        ? (json['facility_count'] as num).toInt()
+        : null;
+    if (json['facilities'] is List) {
+      facilityNames = (json['facilities'] as List)
+          .map((e) => e is Map
+              ? (e['name']?.toString() ?? '')
+              : (e?.toString() ?? ''))
+          .where((s) => s.trim().isNotEmpty)
+          .toList();
+    }
   }
   Location? location;
   String? id;
@@ -137,6 +154,9 @@ class HospitalFullData {
   List<HospitalGallery>? gallery;
   List<HospitalContacts>? contacts;
   EmergencyContactData? emergencyContactData;
+  int? departmentCount;
+  List<String>? facilityNames;
+  int? facilityCount;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -181,6 +201,9 @@ class HospitalFullData {
     if (contacts != null) {
       map['contacts'] = contacts?.map((v) => v.toJson()).toList();
     }
+    map['department_count'] = departmentCount;
+    map['facilities'] = facilityNames;
+    map['facility_count'] = facilityCount;
     return map;
   }
 }
