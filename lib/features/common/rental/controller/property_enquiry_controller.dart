@@ -12,10 +12,10 @@ import 'package:get/get.dart';
 /// heavier [PropertyDiscoverController]. See
 /// docs/backend/property-enquiry-flutter-integration.md.
 class PropertyEnquiryController extends GetxController {
-  /// Flip to `false` once the backend property-enquiry endpoints are deployed.
-  /// While `true`, submit / status calls short-circuit to a success stub so the
-  /// UI (sheet → chat) can be exercised end-to-end before the API exists.
-  static const bool _useStub = true;
+  /// Backend property-enquiry endpoints are live (see
+  /// docs/backend/property-enquiry-frontend-integration-guide.md), so the
+  /// real API is used. Set back to `true` only to exercise the UI offline.
+  static const bool _useStub = false;
 
   final RxBool isSubmitting = false.obs;
 
@@ -77,6 +77,10 @@ class PropertyEnquiryController extends GetxController {
         enquiryId: enquiryId,
         params: {ApiKeys.status: status},
       );
+      // 409 = the opposite decision was already made; the socket event has
+      // already flipped the card, so treat it as success (idempotent) rather
+      // than surfacing an error. See the integration guide §9.
+      if (response.statusCode == 409) return true;
       if (!response.isSuccess) {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
