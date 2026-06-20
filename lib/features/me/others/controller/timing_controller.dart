@@ -17,10 +17,9 @@ class DayTiming {
     bool isOpen = false,
     String openTime = "10:00 AM",
     String closeTime = "10:00 PM",
-  }) : 
-    isOpen = isOpen.obs,
-    openTime = openTime.obs,
-    closeTime = closeTime.obs;
+  })  : isOpen = isOpen.obs,
+        openTime = openTime.obs,
+        closeTime = closeTime.obs;
 }
 
 class TimingController extends GetxController {
@@ -47,7 +46,7 @@ class TimingController extends GetxController {
       for (var hour = 0; hour < 12; hour++) {
         // Handle 12 AM/PM special case
         int displayHour = hour == 0 ? 12 : hour;
-        
+
         for (var min = 0; min < 60; min += 30) {
           String minStr = min.toString().padLeft(2, '0');
           timeSlots.add("$displayHour:$minStr $period");
@@ -65,14 +64,13 @@ class TimingController extends GetxController {
         isOpen: false,
       ));
     }
-
   }
 
   Future<void> fetchTimings() async {
     isLoading.value = true;
     try {
       ResponseModel response = await _repo.getTimingRepo();
-      if (response.isSuccess == true && response.response?.data!= null) {
+      if (response.isSuccess == true && response.response?.data != null) {
         TimingModel model = TimingModel.fromJson(response.response?.data['data']);
         isFirstTime = false; // Data exists, so next time we PUT
         _mapModelToUI(model);
@@ -93,10 +91,10 @@ class TimingController extends GetxController {
       if (index != -1 && schedule != null) {
         timingList[index].isOpen.value = schedule.isOpen ?? false;
         if (schedule.openTime != null && schedule.openTime!.isNotEmpty) {
-            timingList[index].openTime.value = _convert24to12(schedule.openTime!);
+          timingList[index].openTime.value = _convert24to12(schedule.openTime!);
         }
         if (schedule.closeTime != null && schedule.closeTime!.isNotEmpty) {
-            timingList[index].closeTime.value = _convert24to12(schedule.closeTime!);
+          timingList[index].closeTime.value = _convert24to12(schedule.closeTime!);
         }
       }
     }
@@ -113,7 +111,7 @@ class TimingController extends GetxController {
   void toggleDay(int index, bool value) {
     timingList[index].isOpen.value = value;
   }
-  
+
   void updateTime(int index, String newTime, bool isOpenTime) {
     if (isOpenTime) {
       timingList[index].openTime.value = newTime;
@@ -137,18 +135,21 @@ class TimingController extends GetxController {
     try {
       ResponseModel response;
       if (isFirstTime) {
-         response = await _repo.createTimingRepo(body);
+        response = await _repo.createTimingRepo(body);
       } else {
-         response = await _repo.updateTimingRepo(body);
+        response = await _repo.updateTimingRepo(body);
       }
 
-      if (response.isSuccess== true) {
-         commonSnackBar(message: AppStrings.otherAvailabilityUpdated.tr);
-         // Refresh data to ensure sync (optional, but good practice)
-         // await fetchTimings();
-         isFirstTime = false;
+      if (response.isSuccess == true) {
+        commonSnackBar(message: AppStrings.otherAvailabilityUpdated.tr);
+        // Refresh data to ensure sync (optional, but good practice)
+        // await fetchTimings();
+        isFirstTime = false;
       } else {
-         commonSnackBar(message: response.response?.data['message'] != null ? response.response?.data['message'] : AppStrings.otherFailedUpdateAvailability.tr);
+        commonSnackBar(
+            message: response.response?.data['message'] != null
+                ? response.response?.data['message']
+                : AppStrings.otherFailedUpdateAvailability.tr);
       }
     } catch (e) {
       print("Error submitting timings: $e");

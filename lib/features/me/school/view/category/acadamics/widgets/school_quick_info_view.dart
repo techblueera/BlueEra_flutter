@@ -28,6 +28,7 @@ class SchoolQuickInfoCard extends StatelessWidget {
         : mediums.length == 1
             ? '${mediums.first} Medium'
             : '${mediums.length} Mediums';
+    final fees = data?.fees;
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
@@ -71,6 +72,15 @@ class SchoolQuickInfoCard extends StatelessWidget {
                     label: mediumLabel,
                   ),
                 ),
+                if (fees != null) ...[
+                  SizedBox(width: SizeConfig.size8),
+                  Expanded(
+                    child: _InfoChip(
+                      icon: Icons.currency_rupee,
+                      label: '$fees Fees',
+                    ),
+                  ),
+                ],
               ],
             ),
           ],

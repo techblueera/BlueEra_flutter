@@ -9,6 +9,7 @@ import 'package:BlueEra/features/business/visiting_card/view/widget/business_loc
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/finance_discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/finance_search_res_model.dart';
+import 'package:BlueEra/features/common/Discover/view/finance/finance_job_listing_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -124,6 +125,10 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
                 _buildStaffSection(data.staff!),
                 SizedBox(height: SizeConfig.size16),
               ],
+
+              // ─── Jobs ───
+              _buildJobsSection(),
+              SizedBox(height: SizeConfig.size16),
 
               // ─── Blogs ───
               if (data.blogs?.isNotEmpty ?? false) ...[
@@ -817,6 +822,45 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── JOBS ──────────────────────────────────────────────────────────
+  Widget _buildJobsSection() {
+    return CommonCardWidget(
+      padding: 10,
+      cardMargin: 0,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ServiceHomeTitleWidget(title: AppStrings.jobVacancy.tr),
+          SizedBox(height: SizeConfig.size12),
+          InkWell(
+            onTap: () => Get.to(() => const FinanceJobListingScreen()),
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Row(
+                children: [
+                  Icon(Icons.work_outline,
+                      size: 20, color: AppColors.primaryColor),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: CustomText(
+                      AppStrings.jobVacancy.tr,
+                      fontSize: SizeConfig.medium,
+                      color: AppColors.mainTextColor,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  Icon(Icons.arrow_forward_ios_rounded,
+                      size: 14, color: AppColors.primaryColor),
+                ],
+              ),
             ),
           ),
         ],

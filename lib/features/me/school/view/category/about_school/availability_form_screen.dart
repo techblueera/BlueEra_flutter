@@ -21,13 +21,24 @@ class AvailabilityFormScreen extends StatefulWidget {
 class _AvailabilityFormScreenState extends State<AvailabilityFormScreen> {
   final SchoolAboutUsController _controller = Get.find<SchoolAboutUsController>();
 
-  late final List<Availability> _slots;
+  late List<Availability> _slots;
 
   @override
   void initState() {
     super.initState();
-    final existing = _controller.schoolDetailsData?.value.availability ?? const [];
-    _slots = kSchoolWeekDays.map((day) {
+    _slots = _buildSlotsFromController();
+    _controller.fetchSchoolTimings().then((_) {
+      if (!mounted) return;
+      setState(() {
+        _slots = _buildSlotsFromController();
+      });
+    });
+  }
+
+  List<Availability> _buildSlotsFromController() {
+    final existing =
+        _controller.schoolDetailsData?.value.availability ?? const [];
+    return kSchoolWeekDays.map((day) {
       final match = existing.firstWhereOrNull(
         (a) => (a.day ?? '').toLowerCase() == day.toLowerCase(),
       );
@@ -62,10 +73,9 @@ class _AvailabilityFormScreenState extends State<AvailabilityFormScreen> {
     });
   }
 
-  void _onSave() {
-    _controller.schoolDetailsData?.value.availability = _slots;
-    _controller.schoolDetailsData?.refresh();
-    Get.back(result: _slots);
+  Future<void> _onSave() async {
+    final ok = await _controller.updateSchoolTimings(_slots);
+    if (ok) Get.back(result: _slots);
   }
 
   @override
@@ -108,13 +118,17 @@ class _AvailabilityFormScreenState extends State<AvailabilityFormScreen> {
             ),
             Padding(
               padding: EdgeInsets.all(SizeConfig.size12),
-              child: CustomBtn(
-                onTap: _onSave,
-                title: AppStrings.save.tr,
-                bgColor: AppColors.primaryColor,
-                textColor: AppColors.white,
-                radius: 10,
-              ),
+              child: Obx(() {
+                final saving = _controller.isTimingsSaving.value;
+                return CustomBtn(
+                  onTap: saving ? null : _onSave,
+                  title:
+                      saving ? AppStrings.saving.tr : AppStrings.save.tr,
+                  bgColor: AppColors.primaryColor,
+                  textColor: AppColors.white,
+                  radius: 10,
+                );
+              }),
             ),
           ],
         ),

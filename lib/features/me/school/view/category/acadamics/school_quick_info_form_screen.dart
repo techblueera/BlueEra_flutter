@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
+import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/common_chip.dart';
@@ -9,6 +10,7 @@ import 'package:BlueEra/widgets/common_drop_down.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 const List<String> kClassRangeOptions = [
@@ -63,10 +65,17 @@ class _SchoolQuickInfoFormScreenState extends State<SchoolQuickInfoFormScreen> {
   final Rxn<String> _classRange = Rxn<String>();
   final Rxn<String> _ratio = Rxn<String>();
   final RxList<String> _mediums = <String>[].obs;
+  final TextEditingController _feesController = TextEditingController();
+  final RxnInt _fees = RxnInt();
 
   @override
   void initState() {
     super.initState();
+    _hydrateFromController();
+    _controller.fetchSchoolQuickInfo().then((_) => _hydrateFromController());
+  }
+
+  void _hydrateFromController() {
     final data = _controller.schoolDetailsData?.value;
     _classRange.value =
         (data?.classRange?.isNotEmpty ?? false) ? data!.classRange : null;
@@ -74,20 +83,30 @@ class _SchoolQuickInfoFormScreenState extends State<SchoolQuickInfoFormScreen> {
         ? data!.studentTeacherRatio
         : null;
     _mediums.assignAll(data?.mediumOfInstruction ?? const []);
+    _fees.value = data?.fees;
+    _feesController.text = data?.fees?.toString() ?? '';
+  }
+
+  @override
+  void dispose() {
+    _feesController.dispose();
+    super.dispose();
   }
 
   bool get _isFormValid =>
-      _classRange.value != null && _ratio.value != null && _mediums.isNotEmpty;
+      _classRange.value != null &&
+      _ratio.value != null &&
+      _mediums.isNotEmpty &&
+      (_fees.value ?? -1) >= 0;
 
-  void _onSave() {
-    final data = _controller.schoolDetailsData?.value;
-    if (data != null) {
-      data.classRange = _classRange.value;
-      data.studentTeacherRatio = _ratio.value;
-      data.mediumOfInstruction = List<String>.from(_mediums);
-      _controller.schoolDetailsData?.refresh();
-    }
-    Get.back(result: true);
+  Future<void> _onSave() async {
+    final ok = await _controller.updateSchoolQuickInfo(
+      classRange: _classRange.value!,
+      studentTeacherRatio: _ratio.value!,
+      mediumOfInstruction: _mediums.toList(),
+      fees: _fees.value ?? 0,
+    );
+    if (ok) Get.back(result: true);
   }
 
   @override
@@ -166,13 +185,29 @@ class _SchoolQuickInfoFormScreenState extends State<SchoolQuickInfoFormScreen> {
 
                   SizedBox(height: SizeConfig.size24),
 
+                  // ── Fees ──
+                  CustomText("Fees", fontSize: SizeConfig.small),
+                  SizedBox(height: SizeConfig.size8),
+                  CommonTextField(
+                    textEditController: _feesController,
+                    hintText: "e.g. 25000",
+                    keyBoardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                    onChange: (val) {
+                      _fees.value = int.tryParse(val);
+                    },
+                  ),
+
+                  SizedBox(height: SizeConfig.size24),
+
                   // ── Save ──
                   Obx(() {
                     final valid = _isFormValid;
+                    final saving = _controller.isQuickInfoSaving.value;
                     return CustomBtn(
-                      onTap: valid ? _onSave : null,
-                      title: AppStrings.save,
-                      isValidate: valid,
+                      onTap: (valid && !saving) ? _onSave : null,
+                      title: saving ? AppStrings.saving.tr : AppStrings.save,
+                      isValidate: valid && !saving,
                     );
                   }),
                 ],

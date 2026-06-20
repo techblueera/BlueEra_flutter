@@ -1,20 +1,20 @@
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
+
 import '../controller/timing_controller.dart';
 
 class TimingScreen extends StatelessWidget {
-   TimingScreen({Key? key}) : super(key: key);
+  TimingScreen({Key? key}) : super(key: key);
   final controller = Get.put(TimingController());
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       appBar: CommonBackAppBar(
         title: AppStrings.otherTimingTitle.tr,
@@ -46,8 +46,7 @@ class TimingScreen extends StatelessWidget {
               ),
               padding: const EdgeInsets.all(16),
               child: Obx(() {
-                if (controller.isLoading.value &&
-                    controller.timingList.isEmpty) {
+                if (controller.isLoading.value && controller.timingList.isEmpty) {
                   return const Center(
                       child: Padding(
                     padding: EdgeInsets.all(20.0),
@@ -55,8 +54,7 @@ class TimingScreen extends StatelessWidget {
                   ));
                 }
                 return Column(
-                  children:
-                      List.generate(controller.timingList.length, (index) {
+                  children: List.generate(controller.timingList.length, (index) {
                     final dayTiming = controller.timingList[index];
                     return Column(
                       children: [
@@ -81,8 +79,7 @@ class TimingScreen extends StatelessWidget {
                                     scale: 0.8,
                                     child: Switch(
                                       value: dayTiming.isOpen.value,
-                                      onChanged: (val) =>
-                                          controller.toggleDay(index, val),
+                                      onChanged: (val) => controller.toggleDay(index, val),
                                       activeColor: Colors.white,
                                       activeTrackColor: AppColors.primaryColor,
                                       // Google Blue
@@ -93,15 +90,14 @@ class TimingScreen extends StatelessWidget {
                                   // Status Text or Time Pickers
                                   dayTiming.isOpen.value
                                       ? CustomText(
-                                    AppStrings.otherOpen.tr,
-                                    color: AppColors.secondaryTextColor,
-                                    fontSize: SizeConfig.size12,
-                                  )
+                                          AppStrings.otherOpen.tr,
+                                          color: AppColors.secondaryTextColor,
+                                          fontSize: SizeConfig.size12,
+                                        )
                                       : CustomText(
-                                    AppStrings.otherClosed.tr,
-                                    color: AppColors.mainTextColor,
-                                  ),
-
+                                          AppStrings.otherClosed.tr,
+                                          color: AppColors.mainTextColor,
+                                        ),
                                 ],
                               ),
 
@@ -115,23 +111,14 @@ class TimingScreen extends StatelessWidget {
                               SizedBox(
                                 width: 10,
                               ),
-                              
-                              _buildDropdown(
-                                  controller.timeSlots,
-                                  dayTiming.openTime.value,
-                                      (val) => controller.updateTime(
-                                      index, val!, true)),
+                              _buildDropdown(controller.timeSlots, dayTiming.openTime.value,
+                                  (val) => controller.updateTime(index, val!, true)),
                               const SizedBox(width: 8),
-                              _buildDropdown(
-                                  controller.timeSlots,
-                                  dayTiming.closeTime.value,
-                                      (val) => controller.updateTime(
-                                      index, val!, false)),
+                              _buildDropdown(controller.timeSlots, dayTiming.closeTime.value,
+                                  (val) => controller.updateTime(index, val!, false)),
                             ],
                           ),
-
                         ]
-
                       ],
                     );
                   }),
@@ -143,8 +130,7 @@ class TimingScreen extends StatelessWidget {
               width: double.infinity,
               height: 50,
               child: Obx(() => ElevatedButton(
-                    onPressed:
-                        controller.isLoading.value ? null : controller.submit,
+                    onPressed: controller.isLoading.value ? null : controller.submit,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryColor,
                       // Blue color from screenshot
@@ -158,8 +144,7 @@ class TimingScreen extends StatelessWidget {
                         ? const SizedBox(
                             width: 24,
                             height: 24,
-                            child: CircularProgressIndicator(
-                                color: Colors.white, strokeWidth: 2))
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
                         : CustomText(
                             AppStrings.submit.tr,
                             fontSize: 16,
@@ -174,8 +159,7 @@ class TimingScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDropdown(
-      List<String> items, String currentValue, Function(String?) onChanged) {
+  Widget _buildDropdown(List<String> items, String currentValue, Function(String?) onChanged) {
     return Container(
       height: 35,
       padding: const EdgeInsets.symmetric(horizontal: 8),

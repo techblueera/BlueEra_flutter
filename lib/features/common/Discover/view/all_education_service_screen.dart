@@ -213,12 +213,16 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
     final String name = (service.name?.isNotEmpty ?? false) ? service.name! : na;
     final String address = (service.location?.name?.isNotEmpty ?? false) ? service.location!.name! : na;
     final String distance = _distanceFromUser(service);
-    final String hours = na;
-    final String classRange = na;
-    final String ratio = na;
-    final String medium = na;
-    final String feeLabel = _buildFeeLabel(service.courses);
-    final String feeRange = _buildFeeRange(service.courses);
+    final String classRange =
+        (service.classRange?.isNotEmpty ?? false) ? service.classRange! : na;
+    final String ratio = (service.studentTeacherRatio?.isNotEmpty ?? false)
+        ? service.studentTeacherRatio!
+        : na;
+    final String medium = (service.mediumOfInstruction?.isNotEmpty ?? false)
+        ? service.mediumOfInstruction!.first
+        : na;
+    final String feeLabel = _buildFeeLabel(service);
+    final String feeRange = _buildFeeRange(service);
     final String rating = na;
 
     return InkWell(
@@ -240,7 +244,6 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
             _buildCoverSection(
               images: coverImages,
               rating: rating,
-              hours: hours,
               service: service,
             ),
             Padding(
@@ -286,12 +289,16 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
     return '${km.toStringAsFixed(0)}KM Away';
   }
 
-  String _buildFeeLabel(List<Courses>? courses) {
+  String _buildFeeLabel(SchoolDetailsData service) {
+    if (service.fees != null) return 'Annual fee';
+    final courses = service.courses;
     if (courses == null || courses.isEmpty) return 'Annual fee';
     return 'Annual fee · varies by class';
   }
 
-  String _buildFeeRange(List<Courses>? courses) {
+  String _buildFeeRange(SchoolDetailsData service) {
+    if (service.fees != null) return '${_formatFee(service.fees!)}/Year';
+    final courses = service.courses;
     if (courses == null || courses.isEmpty) return 'N/A';
     final yearly = courses.map((c) => c.courseFees?.yearly).whereType<int>().toList()..sort();
     if (yearly.isEmpty) return 'N/A';
@@ -299,6 +306,48 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
     final max = yearly.last;
     if (min == max) return '${_formatFee(min)}/Year';
     return '${_formatFee(min)} - ${_formatFee(max)}/Year';
+  }
+
+  String? _operatingWindow(SchoolDetailsData service) {
+    final availability = service.availability;
+    if (availability == null || availability.isEmpty) return null;
+    const order = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
+    const shortNames = {
+      'Monday': 'Mon',
+      'Tuesday': 'Tue',
+      'Wednesday': 'Wed',
+      'Thursday': 'Thu',
+      'Friday': 'Fri',
+      'Saturday': 'Sat',
+      'Sunday': 'Sun',
+    };
+    final openSlots = <Availability>[];
+    for (final day in order) {
+      final slot = availability.firstWhere(
+        (a) => (a.day ?? '').toLowerCase() == day.toLowerCase(),
+        orElse: () => Availability(),
+      );
+      if (slot.isOpen == true &&
+          (slot.openTime ?? '').isNotEmpty &&
+          (slot.closeTime ?? '').isNotEmpty) {
+        openSlots.add(slot);
+      }
+    }
+    if (openSlots.isEmpty) return null;
+    final firstDay = shortNames[openSlots.first.day] ?? openSlots.first.day ?? '';
+    final lastDay = shortNames[openSlots.last.day] ?? openSlots.last.day ?? '';
+    final dayRange = firstDay == lastDay ? firstDay : '$firstDay - $lastDay';
+    final opens = openSlots.map((s) => s.openTime!).toList()..sort();
+    final closes = openSlots.map((s) => s.closeTime!).toList()..sort();
+    return '$dayRange | ${opens.first} - ${closes.last}';
   }
 
   String _formatFee(int value) {
@@ -316,9 +365,9 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
   Widget _buildCoverSection({
     required List<String> images,
     required String rating,
-    required String hours,
     required SchoolDetailsData service,
   }) {
+    final window = _operatingWindow(service);
     final Widget imageWidget = images.isNotEmpty
         ? GestureDetector(
             onTap: () => navigatePushTo(
@@ -401,31 +450,34 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
                 ],
               ),
             ),
-            Positioned(
-              bottom: 10,
-              right: 10,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.white.withValues(alpha: 0.95),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.greenShade, width: 1),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.access_time, size: 12, color: AppColors.greenShade),
-                    const SizedBox(width: 4),
-                    CustomText(
-                      hours == 'N/A' ? 'Hours: N/A' : hours,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.greenShade,
-                    ),
-                  ],
+            if (window != null)
+              Positioned(
+                bottom: 10,
+                right: 10,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppColors.white.withValues(alpha: 0.95),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.greenShade, width: 1),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.access_time,
+                          size: 12, color: AppColors.greenShade),
+                      const SizedBox(width: 4),
+                      CustomText(
+                        window,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primaryColor,
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),
