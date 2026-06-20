@@ -33,6 +33,7 @@ import '../../../../core/services/local_strorage_helper.dart';
 import '../../../../core/services/pending_message_drainer.dart';
 import '../../../personal/personal_profile/model/check_chat_connection_model.dart';
 import '../../view/business_chat/business_chat_screen_updated.dart';
+import '../../view/group_chat/group_chat_screen.dart';
 import '../../view/personal_chat/personal_chat_screen.dart';
 import '../model/Generate_Upload_Ulr_Model.dart';
 import '../model/GetChatListModel.dart';
@@ -3411,6 +3412,27 @@ class ChatViewController extends GetxController {
     );
   }
 
+  /// Open a group conversation tapped from a chat list. Group rows can surface
+  /// inside the personal/business list payloads (`type:"group"`), so this routes
+  /// them to the dedicated [GroupChatScreen] instead of the 1:1 chat screens.
+  /// Mirrors [openChatFromChatList]: resets the inner tab and hydrates the
+  /// cached messages before navigating.
+  Future<void> openGroupFromChatList(ChatList? chat) async {
+    if (chat == null) return;
+    final conversationId = chat.conversationId ?? '';
+    businessTabIndexSelected.value = 0;
+    await getLocalConversation(conversationId, '', '', chat.groupName ?? '');
+    Get.to(
+      () => GroupChatScreen(
+        isGroupPrivate: chat.publicGroup ?? false,
+        type: AppConstants.group_Chat_Type,
+        conversationId: conversationId,
+        profileImage: chat.groupProfileImage,
+        name: chat.groupName,
+      ),
+    );
+  }
+
   /// Guards against double-tapping a phone number while a lookup is in flight.
   RxBool isFetchingUserByPhone = false.obs;
 
@@ -4011,6 +4033,40 @@ class ChatViewController extends GetxController {
     } finally {
       isSending.value = false;
     }
+  }
+
+  /// Inquiry (business) lane delete lock: a message or conversation can only
+  /// be deleted once it is at least 48 hours old. The personal Chat tab is
+  /// exempt — this only gates the Inquiry tab and the business chat screen.
+  static const Duration inquiryDeleteLockWindow = Duration(hours: 48);
+
+  /// True when an item created at [createdAt] (ISO-8601) is old enough to be
+  /// deleted in the Inquiry lane. Fail-open (returns true) when the timestamp
+  /// is missing or unparseable so a legitimate delete is never permanently
+  /// trapped.
+  bool isInquiryDeleteUnlocked(String? createdAt) {
+    if (createdAt == null || createdAt.isEmpty) return true;
+    final created = DateTime.tryParse(createdAt)?.toLocal();
+    if (created == null) return true;
+    return DateTime.now().difference(created) >= inquiryDeleteLockWindow;
+  }
+
+  /// `createdAt` of the business/history conversation row matching
+  /// [conversationId], or null when not found in either bucket.
+  String? businessConversationCreatedAt(String? conversationId) {
+    if (conversationId == null || conversationId.isEmpty) return null;
+    final buckets = [
+      getBusinessChatListModel?.value.chatList,
+      getHistoryChatListModel?.value.chatList,
+    ];
+    for (final list in buckets) {
+      if (list == null) continue;
+      for (final c in list) {
+        if (c == null) continue;
+        if (c.conversationId == conversationId) return c.createdAt;
+      }
+    }
+    return null;
   }
 
   Future<void> deleteChatMessage(
