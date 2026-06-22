@@ -109,14 +109,28 @@ class Metadata {
   String? senderName;
   String? message;
   String? symbolId;
+  // Some notifications (AI greetings, ride status updates, profile reminders,
+  // etc.) carry their display text in metadata.title / metadata.body and leave
+  // the top-level `message` empty — parse them so those rows aren't blank.
+  String? title;
+  String? body;
 
-  Metadata({this.jobId, this.senderName, this.message, this.symbolId});
+  Metadata({
+    this.jobId,
+    this.senderName,
+    this.message,
+    this.symbolId,
+    this.title,
+    this.body,
+  });
 
   Metadata.fromJson(Map<String, dynamic> json) {
     jobId = json['jobId']??json['post_id'];
     senderName = json['senderName'];
     message = json['message'];
     symbolId = json['symbol_id'];
+    title = json['title'];
+    body = json['body'];
   }
 
   Map<String, dynamic> toJson() {
@@ -125,6 +139,8 @@ class Metadata {
     data['senderName'] = this.senderName;
     data['message'] = this.message;
     data['symbol_id'] = this.symbolId;
+    data['title'] = this.title;
+    data['body'] = this.body;
     return data;
   }
 }

@@ -49,6 +49,13 @@ class DeliverPartnerOrdersController extends GetxController {
   late Stream<dynamic> stream;
   StreamSubscription? subscription;
 
+  // Guards against opening a second SSE connection when fetchStream is
+  // called by more than one consumer (e.g. the rider screen owning the
+  // stream while DeliveryPartnerOrders is also mounted). Each call to
+  // getOrderFromUserStream() opens a fresh HTTP/SSE connection, so we
+  // must keep exactly one alive at a time.
+  bool isStreaming = false;
+
   void onSelectTab(BusinessListModel id){
     if(selectedShops.contains(id)){
       selectedShops.remove(id);
@@ -78,6 +85,10 @@ class DeliverPartnerOrdersController extends GetxController {
   }
 
   Future<void> fetchStream() async {
+    // Idempotent: a stream is already live, so don't open another SSE
+    // connection (multiple consumers share this singleton controller).
+    if (isStreaming) return;
+    isStreaming = true;
     ordersListResponse.value =
         ApiResponse.complete('');
     stream = await getOrderFromUserStream();
@@ -98,7 +109,20 @@ class DeliverPartnerOrdersController extends GetxController {
     }, onError: (error) {
       ordersListResponse.value =
           ApiResponse.error(AppStrings.somethingWentWrong);
-    }, onDone: () {});
+    }, onDone: () {
+      // Connection closed by the server — clear the flag so a later
+      // fetchStream() can re-open it.
+      isStreaming = false;
+    });
+  }
+
+  /// Cancels the live SSE subscription and resets [isStreaming] so the
+  /// stream can be cleanly restarted later. Used by the owning screen
+  /// (e.g. RiderServiceScreen) on dispose.
+  void stopStream() {
+    subscription?.cancel();
+    subscription = null;
+    isStreaming = false;
   }
 
 

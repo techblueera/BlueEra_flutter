@@ -9,6 +9,7 @@ class RegularExpressionUtils {
   static String alphabetSpacePatternDigit = r"[a-zA-Z0-9$_@.-]";
   static String alphabetSpacePatternDigitSpace = r"[a-zA-Z0-9$-/\_@. ]";
   static String alphabetSpacePattern = "[a-zA-Z-0-9 ]";
+  static String alphabetOnlySpacePattern = "[a-zA-Z ]";
   static String alphabetSpacePattern_ = "[a-zA-Z-& ]";
   static String alphabetPattern = "[a-zA-Z]";
   static String alphabetPatternSpace = "[a-zA-Z ]";
@@ -354,6 +355,22 @@ class ValidationMethod {
 
     if (!regex.hasMatch(value.trim().toUpperCase())) {
       return 'Please enter a valid vehicle number (e.g. MH12AB1234 or DF1234).';
+    }
+
+    return null;
+  }
+
+  /// Delivery-partner vehicle number: first 2 characters must be letters,
+  /// followed by 8 to 10 digits (e.g. MH1234567890).
+  static String? validateDeliveryVehicleNumber(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'Vehicle number is required.';
+    }
+
+    final regex = RegExp(r'^[A-Z]{2}[A-Z0-9]{8,10}$');
+
+    if (!regex.hasMatch(value.trim().toUpperCase())) {
+      return 'Please enter a valid vehicle number (2 letters followed by 8-10 digits).';
     }
 
     return null;

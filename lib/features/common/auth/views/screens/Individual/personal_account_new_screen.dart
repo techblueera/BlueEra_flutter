@@ -161,7 +161,12 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
       appBar: CommonBackAppBar(
         isLeading: true,
       ),
-      body: Form(
+      // AutofillGroup makes the OS treat these fields as one autofill
+      // context. Without it, Android/iOS won't surface the device's saved
+      // emails / Google account IDs in the keyboard suggestion bar even
+      // though the email field already advertises AutofillHints.email.
+      body: AutofillGroup(
+        child: Form(
         key: _formKey,
         child: SingleChildScrollView(
           padding: EdgeInsets.only(
@@ -1068,6 +1073,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
             ],
           ),
         ),
+      ),
       ),
       bottomNavigationBar: Material(
         elevation: 8.0,

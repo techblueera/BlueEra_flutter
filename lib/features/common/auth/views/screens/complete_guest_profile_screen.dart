@@ -359,9 +359,10 @@ class _CompleteGuestProfileScreenState
           focusNode: _nameFocus,
           inputLength: AppConstants.inputCharterLimit30,
           keyBoardType: TextInputType.text,
-          regularExpression: RegularExpressionUtils.alphabetSpacePattern,
-          hintText: AppStrings.fullNameHint.tr,
+          regularExpression: RegularExpressionUtils.alphabetOnlySpacePattern,
+          hintText: "Bhagavan",
           autoFillType: AutoFillType.name,
+          maxLength: 15,
           isValidate: false,
           textInputAction: TextInputAction.done,
           onChange: (_) {

@@ -11,6 +11,7 @@ import 'package:BlueEra/features/me/vehicle/model/vehicle_models.dart';
 import 'package:BlueEra/features/me/vehicle/view/widgets/vehicle_discover_card.dart';
 import 'package:BlueEra/features/me/vehicle/view/add_vehicle/add_vehicle_flow_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/vehicle/vehicle_detail_screen.dart';
+import 'package:BlueEra/features/me/vehicle/view/booking/vehicle_bookings_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -171,7 +172,15 @@ class _VehicleListingScreenState extends State<VehicleListingScreen>
       value: SystemUiOverlayStyle.light,
       child: Scaffold(
         backgroundColor: Colors.transparent,
-        appBar:CommonBackAppBar(title: AppStrings.vehicle.tr,),
+        appBar: CommonBackAppBar(
+          title: AppStrings.vehicle.tr,
+          buildCustomActionWidget: () => IconButton(
+            tooltip: AppStrings.bookingsTitle.tr,
+            icon: Icon(Icons.receipt_long_outlined,
+                color: AppColors.primaryColor),
+            onPressed: () => Get.to(() => const VehicleBookingsScreen()),
+          ),
+        ),
         body: Column(
           children: [
             _buildFilterBar(),

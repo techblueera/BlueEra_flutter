@@ -917,7 +917,7 @@ class AuthController extends GetxController {
               SharedPreferenceUtils.accountType, AppConstants.guest);
           await getGuestUserLoginData();
           await Future.delayed(Duration(milliseconds: 350));
-          Get.offAll(() => const BottomNavigationBarScreen(initialIndex: 1));
+          Get.offAll(() => const BottomNavigationBarScreen(initialIndex: 0));
           clearAllData();
           createGuestProfileResponse.value = ApiResponse.complete(response);
           commonSnackBar(message: response.message ?? AppStrings.success);

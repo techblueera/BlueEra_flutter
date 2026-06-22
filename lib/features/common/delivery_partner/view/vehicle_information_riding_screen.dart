@@ -163,9 +163,9 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
                       title: AppStrings.vehicleNumber.tr,
                       hintText: AppStrings.egWB5454.tr,
                       textEditController: controller.vehicleRegistrationNumberController,
-                      validator: ValidationMethod.validateVehicleNumber,
+                      validator: ValidationMethod.validateDeliveryVehicleNumber,
                       isCapitalize: true,
-                      maxLength: 10,
+                      maxLength: 12,
                     ),
                     SizedBox(height: SizeConfig.paddingM),
 

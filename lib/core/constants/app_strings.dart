@@ -6287,6 +6287,39 @@ class AppStrings {
   static const String inquiryVehicleGenericBody = "inquiryVehicleGenericBody";
   static const String inquiryVehicleNamedBodyFmt = "inquiryVehicleNamedBodyFmt";
 
+  // ── Vehicle booking ("place order") flow ──────────────────────────
+  static const String bookingIntentBuy = "bookingIntentBuy";
+  static const String bookingIntentTestDrive = "bookingIntentTestDrive";
+  static const String bookingIntentExchange = "bookingIntentExchange";
+  static const String bookingIntentInfo = "bookingIntentInfo";
+  static const String bookingStatusPending = "bookingStatusPending";
+  static const String bookingStatusAccepted = "bookingStatusAccepted";
+  static const String bookingStatusDeclined = "bookingStatusDeclined";
+  static const String bookingStatusCancelled = "bookingStatusCancelled";
+  static const String bookingOfferLabel = "bookingOfferLabel";
+  static const String bookingPlaceOrder = "bookingPlaceOrder";
+  static const String bookingPlaceOrderTitle = "bookingPlaceOrderTitle";
+  static const String bookingIntentLabel = "bookingIntentLabel";
+  static const String bookingOfferOptionalLabel = "bookingOfferOptionalLabel";
+  static const String bookingOfferHint = "bookingOfferHint";
+  static const String bookingNoteOptionalLabel = "bookingNoteOptionalLabel";
+  static const String bookingNoteHint = "bookingNoteHint";
+  static const String bookingPhotosOptionalLabel = "bookingPhotosOptionalLabel";
+  static const String bookingPhotosLimitFmt = "bookingPhotosLimitFmt";
+  static const String bookingSendRequest = "bookingSendRequest";
+  static const String bookingRequestSent = "bookingRequestSent";
+  static const String bookingViewRequests = "bookingViewRequests";
+  static const String bookingCancelRequest = "bookingCancelRequest";
+  static const String bookingCancelConfirm = "bookingCancelConfirm";
+  static const String bookingAccept = "bookingAccept";
+  static const String bookingDecline = "bookingDecline";
+  static const String bookingDeclineConfirm = "bookingDeclineConfirm";
+  static const String bookingsTitle = "bookingsTitle";
+  static const String bookingsTabSent = "bookingsTabSent";
+  static const String bookingsTabReceived = "bookingsTabReceived";
+  static const String bookingsEmptySent = "bookingsEmptySent";
+  static const String bookingsEmptyReceived = "bookingsEmptyReceived";
+
   /// VISIT BUSINESS STATS CARD — Views/Ratings/Followers/Following/Joined
   /// row used on any visited business profile (Hospital, Lab, School, etc.).
   static const String views = "views";
