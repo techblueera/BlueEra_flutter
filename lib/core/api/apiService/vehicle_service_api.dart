@@ -99,6 +99,19 @@ mixin VehicleServiceApi {
   String vehicleContactDelete(String id) =>
       'vehicle-service/contact-us/delete/$id';
 
+  // Bookings ("place order") — connect-style, one request = one listing.
+  // See docs/backend/VEHICLE_SERVICE_API_DOCUMENTATION.md.
+  final String vehicleBookings = 'vehicle-service/vehicles/bookings';
+  final String vehicleBookingsMine = 'vehicle-service/vehicles/bookings/me';
+  final String vehicleBookingsSellerMine =
+      'vehicle-service/vehicles/bookings/seller/me';
+  String vehicleBookingById(String id) =>
+      'vehicle-service/vehicles/bookings/$id';
+  String vehicleBookingStatus(String id) =>
+      'vehicle-service/vehicles/bookings/$id/status';
+  String vehicleBookingCancel(String id) =>
+      'vehicle-service/vehicles/bookings/$id/cancel';
+
   // S3 upload init (presigned PUT — legacy, no size cap)
   final String vehicleUploadInit = 'vehicle-service/upload/init';
   // S3 upload init v2 (presigned POST policy, size-capped) — preferred

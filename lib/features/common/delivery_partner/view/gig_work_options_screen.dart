@@ -58,7 +58,8 @@ class _GigWorkOptionsScreenState extends State<GigWorkOptionsScreen>
     final Widget body;
     if (userProfessionGlobal == BIKE_RIDER ||
         userProfessionGlobal == GOODS_TAXI ||
-        userProfessionGlobal == AUTO_TAXI) {
+        userProfessionGlobal == AUTO_TAXI ||
+        userProfessionGlobal == CAR_TAXI_DRIVER) {
       // body = RiderMeScreen(fromBottomNavBar: widget.fromBottomNavBar);
       body = RiderServiceScreen(fromBottomNavBar: widget.fromBottomNavBar);
     } else {

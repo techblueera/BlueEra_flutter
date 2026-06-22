@@ -10,7 +10,6 @@ import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upl
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -52,8 +51,8 @@ class DrivingLicenceCardWidget extends StatelessWidget {
                       final selectedPath =
                           await CommonImageUploadTile.pickImage(
                               context: context,
-                              cropAspectRatio:
-                                  const CropAspectRatio(width: 3, height: 2));
+                              cropAspectRatio: CommonImageUploadTile
+                                  .documentCropAspectRatio);
                       if (selectedPath != null) {
                         controller.drivingLicenseFrontImage.value =
                             File(selectedPath);
@@ -71,8 +70,8 @@ class DrivingLicenceCardWidget extends StatelessWidget {
                       final selectedPath =
                           await CommonImageUploadTile.pickImage(
                               context: context,
-                              cropAspectRatio:
-                                  const CropAspectRatio(width: 3, height: 2));
+                              cropAspectRatio: CommonImageUploadTile
+                                  .documentCropAspectRatio);
                       if (selectedPath != null) {
                         controller.drivingLicenseBackImage.value =
                             File(selectedPath);

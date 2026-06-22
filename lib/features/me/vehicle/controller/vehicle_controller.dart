@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/me/vehicle/model/vehicle_booking_models.dart';
 import 'package:BlueEra/features/me/vehicle/model/vehicle_models.dart';
 import 'package:BlueEra/features/me/vehicle/repo/vehicle_repo.dart';
 import 'package:get/get.dart';
@@ -85,6 +86,30 @@ class VehicleController extends GetxController {
   final RxBool isSavingVehicle = false.obs;
   final RxBool isUploadingMedia = false.obs;
   final RxDouble uploadProgress = 0.0.obs;
+
+  // ─── Bookings ("place order") ─────────────────────────────────────
+  // Buyer-side: requests the caller has sent (`GET /bookings/me`).
+  final RxList<VehicleBooking> myBookings = <VehicleBooking>[].obs;
+  final Rx<ApiResponse> myBookingsState = ApiResponse.initial().obs;
+  final RxInt myBookingsPage = 1.obs;
+  final RxInt myBookingsTotal = 0.obs;
+  final RxBool myBookingsHasMore = true.obs;
+  String? _myBookingsStatusFilter;
+
+  // Seller-side: requests received on the caller's listings
+  // (`GET /bookings/seller/me`).
+  final RxList<VehicleBooking> sellerBookings = <VehicleBooking>[].obs;
+  final Rx<ApiResponse> sellerBookingsState = ApiResponse.initial().obs;
+  final RxInt sellerBookingsPage = 1.obs;
+  final RxInt sellerBookingsTotal = 0.obs;
+  final RxBool sellerBookingsHasMore = true.obs;
+  String? _sellerBookingsStatusFilter;
+
+  // In-flight per-booking action flag (accept/decline/cancel) keyed by id
+  // so a card can show a spinner without blocking the whole list.
+  final RxnString bookingActionInFlightId = RxnString();
+  // True only while a place-order request is being submitted.
+  final RxBool isPlacingBooking = false.obs;
 
   // ────────────────────────────────────────────────────────────────
   // Vehicle types (taxonomy)
@@ -802,6 +827,263 @@ class VehicleController extends GetxController {
     }
     commonSnackBar(message: res.message?.toString() ?? 'Failed to submit');
     return false;
+  }
+
+  // ────────────────────────────────────────────────────────────────
+  // Bookings ("place order")
+  // ────────────────────────────────────────────────────────────────
+
+  /// Place an order against a listing (`POST /bookings`).
+  ///
+  /// [inventoryId] is the **listing** id (the `_id` from the detail
+  /// screen), not the catalog variant id. Returns the created
+  /// [VehicleBooking] on success; on a documented error (`400/403/404/
+  /// 409/422`) it surfaces the server's human-readable message via a
+  /// snackbar and returns null so the caller can keep the sheet open.
+  Future<VehicleBooking?> placeBooking({
+    required String inventoryId,
+    required VehicleBookingIntent intent,
+    double? offerPrice,
+    String? note,
+    List<String> photos = const [],
+  }) async {
+    isPlacingBooking.value = true;
+    try {
+      final body = <String, dynamic>{
+        'inventoryId': inventoryId,
+        'intent': intent.wire,
+        if (offerPrice != null) 'offerPrice': offerPrice,
+        if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
+        if (photos.isNotEmpty) 'photos': photos,
+      };
+      final res = await _repo.placeBooking(body);
+      if (res.isSuccess) {
+        final raw = res.response?.data?['booking'];
+        if (raw is Map) {
+          final booking =
+              VehicleBooking.fromJson(Map<String, dynamic>.from(raw));
+          // Keep the buyer's "sent" list fresh if it's already loaded.
+          myBookings.insert(0, booking);
+          myBookingsTotal.value = myBookingsTotal.value + 1;
+          return booking;
+        }
+      }
+      commonSnackBar(
+        message: res.message?.toString() ?? 'Could not place your request',
+      );
+      return null;
+    } catch (e) {
+      commonSnackBar(message: e.toString());
+      return null;
+    } finally {
+      isPlacingBooking.value = false;
+    }
+  }
+
+  /// First page of the buyer's sent requests. [status] filters by
+  /// lifecycle state (null = all).
+  Future<void> fetchMyBookings({
+    String? status,
+    bool showProgress = true,
+  }) async {
+    _myBookingsStatusFilter = status;
+    myBookingsPage.value = 1;
+    myBookingsHasMore.value = true;
+    myBookingsState.value = ApiResponse.loading();
+    try {
+      final res = await _repo.listMyBookings(
+        status: status,
+        page: 1,
+        showProgress: showProgress,
+      );
+      if (res.isSuccess) {
+        final paged = PaginatedVehicleBookings.fromJson(
+          Map<String, dynamic>.from(res.response?.data ?? const {}),
+        );
+        myBookings.assignAll(paged.bookings);
+        myBookingsTotal.value = paged.total;
+        myBookingsHasMore.value = myBookings.length < paged.total;
+        myBookingsState.value = ApiResponse.complete(myBookings);
+      } else {
+        myBookingsState.value =
+            ApiResponse.error(res.message?.toString() ?? 'Failed to load');
+      }
+    } catch (e) {
+      myBookingsState.value = ApiResponse.error(e.toString());
+    }
+  }
+
+  /// Append the next page of the buyer's sent requests.
+  Future<void> loadMoreMyBookings() async {
+    if (!myBookingsHasMore.value) return;
+    if (myBookingsState.value.status == Status.LOADING) return;
+    final next = myBookingsPage.value + 1;
+    myBookingsState.value = ApiResponse.loading();
+    try {
+      final res = await _repo.listMyBookings(
+        status: _myBookingsStatusFilter,
+        page: next,
+        showProgress: false,
+      );
+      if (res.isSuccess) {
+        final paged = PaginatedVehicleBookings.fromJson(
+          Map<String, dynamic>.from(res.response?.data ?? const {}),
+        );
+        myBookings.addAll(paged.bookings);
+        myBookingsPage.value = next;
+        myBookingsTotal.value = paged.total;
+        myBookingsHasMore.value = myBookings.length < paged.total;
+        myBookingsState.value = ApiResponse.complete(myBookings);
+      } else {
+        myBookingsState.value =
+            ApiResponse.error(res.message?.toString() ?? 'Failed to load');
+      }
+    } catch (e) {
+      myBookingsState.value = ApiResponse.error(e.toString());
+    }
+  }
+
+  /// First page of requests received on the seller's listings.
+  Future<void> fetchSellerBookings({
+    String? status,
+    bool showProgress = true,
+  }) async {
+    _sellerBookingsStatusFilter = status;
+    sellerBookingsPage.value = 1;
+    sellerBookingsHasMore.value = true;
+    sellerBookingsState.value = ApiResponse.loading();
+    try {
+      final res = await _repo.listSellerBookings(
+        status: status,
+        page: 1,
+        showProgress: showProgress,
+      );
+      if (res.isSuccess) {
+        final paged = PaginatedVehicleBookings.fromJson(
+          Map<String, dynamic>.from(res.response?.data ?? const {}),
+        );
+        sellerBookings.assignAll(paged.bookings);
+        sellerBookingsTotal.value = paged.total;
+        sellerBookingsHasMore.value = sellerBookings.length < paged.total;
+        sellerBookingsState.value = ApiResponse.complete(sellerBookings);
+      } else {
+        sellerBookingsState.value =
+            ApiResponse.error(res.message?.toString() ?? 'Failed to load');
+      }
+    } catch (e) {
+      sellerBookingsState.value = ApiResponse.error(e.toString());
+    }
+  }
+
+  /// Append the next page of the seller's received requests.
+  Future<void> loadMoreSellerBookings() async {
+    if (!sellerBookingsHasMore.value) return;
+    if (sellerBookingsState.value.status == Status.LOADING) return;
+    final next = sellerBookingsPage.value + 1;
+    sellerBookingsState.value = ApiResponse.loading();
+    try {
+      final res = await _repo.listSellerBookings(
+        status: _sellerBookingsStatusFilter,
+        page: next,
+        showProgress: false,
+      );
+      if (res.isSuccess) {
+        final paged = PaginatedVehicleBookings.fromJson(
+          Map<String, dynamic>.from(res.response?.data ?? const {}),
+        );
+        sellerBookings.addAll(paged.bookings);
+        sellerBookingsPage.value = next;
+        sellerBookingsTotal.value = paged.total;
+        sellerBookingsHasMore.value = sellerBookings.length < paged.total;
+        sellerBookingsState.value = ApiResponse.complete(sellerBookings);
+      } else {
+        sellerBookingsState.value =
+            ApiResponse.error(res.message?.toString() ?? 'Failed to load');
+      }
+    } catch (e) {
+      sellerBookingsState.value = ApiResponse.error(e.toString());
+    }
+  }
+
+  /// Seller accepts or declines a pending request. Replaces the row
+  /// in-place with the server's updated booking on success. A `409`
+  /// (already actioned) refreshes the list so the card shows reality.
+  Future<bool> respondToBooking({
+    required String id,
+    required bool accept,
+  }) async {
+    bookingActionInFlightId.value = id;
+    try {
+      final res = await _repo.setBookingStatus(
+        id: id,
+        status: accept ? 'accepted' : 'declined',
+        showProgress: false,
+      );
+      if (res.isSuccess) {
+        final raw = res.response?.data?['booking'];
+        if (raw is Map) {
+          _replaceSellerBooking(
+              VehicleBooking.fromJson(Map<String, dynamic>.from(raw)));
+        }
+        commonSnackBar(
+          message: accept
+              ? 'Request accepted'
+              : 'Request declined',
+        );
+        return true;
+      }
+      // Conflict → another tab/device already changed it; resync.
+      if (res.statusCode == 409) {
+        await fetchSellerBookings(
+            status: _sellerBookingsStatusFilter, showProgress: false);
+      }
+      commonSnackBar(message: res.message?.toString() ?? 'Action failed');
+      return false;
+    } catch (e) {
+      commonSnackBar(message: e.toString());
+      return false;
+    } finally {
+      bookingActionInFlightId.value = null;
+    }
+  }
+
+  /// Buyer cancels their own pending request. Updates the matching row
+  /// in [myBookings] in-place on success.
+  Future<bool> cancelBooking(String id) async {
+    bookingActionInFlightId.value = id;
+    try {
+      final res = await _repo.cancelBooking(id, showProgress: false);
+      if (res.isSuccess) {
+        final raw = res.response?.data?['booking'];
+        if (raw is Map) {
+          _replaceMyBooking(
+              VehicleBooking.fromJson(Map<String, dynamic>.from(raw)));
+        }
+        commonSnackBar(message: 'Request cancelled');
+        return true;
+      }
+      if (res.statusCode == 409) {
+        await fetchMyBookings(
+            status: _myBookingsStatusFilter, showProgress: false);
+      }
+      commonSnackBar(message: res.message?.toString() ?? 'Could not cancel');
+      return false;
+    } catch (e) {
+      commonSnackBar(message: e.toString());
+      return false;
+    } finally {
+      bookingActionInFlightId.value = null;
+    }
+  }
+
+  void _replaceMyBooking(VehicleBooking updated) {
+    final i = myBookings.indexWhere((b) => b.id == updated.id);
+    if (i >= 0) myBookings[i] = updated;
+  }
+
+  void _replaceSellerBooking(VehicleBooking updated) {
+    final i = sellerBookings.indexWhere((b) => b.id == updated.id);
+    if (i >= 0) sellerBookings[i] = updated;
   }
 
   // ────────────────────────────────────────────────────────────────

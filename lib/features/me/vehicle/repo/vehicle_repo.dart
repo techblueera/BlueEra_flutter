@@ -329,6 +329,103 @@ class VehicleRepo extends BaseService {
     );
   }
 
+  // ─── Bookings ("place order") ────────────────────────────────────
+  // Connect-style: one request = one listing. All endpoints auth-only.
+
+  /// POST /vehicles/bookings — buyer places an order against a listing.
+  /// [body] carries `inventoryId`, `intent`, and the optional
+  /// `offerPrice` / `note` / `photos`.
+  Future<ResponseModel> placeBooking(
+    Map<String, dynamic> body, {
+    bool showProgress = true,
+  }) async {
+    return ApiBaseHelper().postHTTP(
+      vehicleBookings,
+      params: body,
+      showProgress: showProgress,
+      onSuccess: (_) {},
+      onError: (_) {},
+    );
+  }
+
+  /// GET /vehicles/bookings/me — buyer's sent requests, newest-first.
+  Future<ResponseModel> listMyBookings({
+    String? status,
+    int page = 1,
+    int limit = 20,
+    bool showProgress = true,
+  }) async {
+    return ApiBaseHelper().getHTTP(
+      vehicleBookingsMine,
+      params: {
+        if (status != null && status.isNotEmpty) 'status': status,
+        'page': page,
+        'limit': limit,
+      },
+      showProgress: showProgress,
+      onSuccess: (_) {},
+      onError: (_) {},
+    );
+  }
+
+  /// GET /vehicles/bookings/seller/me — requests received by the seller.
+  Future<ResponseModel> listSellerBookings({
+    String? status,
+    int page = 1,
+    int limit = 20,
+    bool showProgress = true,
+  }) async {
+    return ApiBaseHelper().getHTTP(
+      vehicleBookingsSellerMine,
+      params: {
+        if (status != null && status.isNotEmpty) 'status': status,
+        'page': page,
+        'limit': limit,
+      },
+      showProgress: showProgress,
+      onSuccess: (_) {},
+      onError: (_) {},
+    );
+  }
+
+  /// GET /vehicles/bookings/:id — buyer or seller on that booking only.
+  Future<ResponseModel> getBooking(String id,
+      {bool showProgress = true}) async {
+    return ApiBaseHelper().getHTTP(
+      vehicleBookingById(id),
+      showProgress: showProgress,
+      onSuccess: (_) {},
+      onError: (_) {},
+    );
+  }
+
+  /// PUT /vehicles/bookings/:id/status — seller accepts / declines
+  /// (`"accepted"` | `"declined"`). Only valid while pending.
+  Future<ResponseModel> setBookingStatus({
+    required String id,
+    required String status,
+    bool showProgress = true,
+  }) async {
+    return ApiBaseHelper().putHTTP(
+      vehicleBookingStatus(id),
+      params: {'status': status},
+      showProgress: showProgress,
+      onSuccess: (_) {},
+      onError: (_) {},
+    );
+  }
+
+  /// PUT /vehicles/bookings/:id/cancel — buyer cancels (pending only).
+  Future<ResponseModel> cancelBooking(String id,
+      {bool showProgress = true}) async {
+    return ApiBaseHelper().putHTTP(
+      vehicleBookingCancel(id),
+      showProgress: showProgress,
+      onSuccess: (_) {},
+      onError: (_) {},
+    );
+  }
+
   // ─── Facilities ──────────────────────────────────────────────────
 
   Future<ResponseModel> createFacility(Map<String, dynamic> body) async {

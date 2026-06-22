@@ -115,6 +115,7 @@ import 'package:BlueEra/features/common/reel/view/video/video_recorder_screen.da
 import 'package:BlueEra/features/common/service/view/service_upload_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/vehicle/vehicle_detail_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/vehicle/vehicle_listing_screen.dart';
+import 'package:BlueEra/features/me/vehicle/view/booking/vehicle_bookings_screen.dart';
 import 'package:BlueEra/features/journey/view/journey_planning_screen.dart';
 import 'package:BlueEra/features/journey/view/update_journy_screen.dart';
 import 'package:BlueEra/features/me/vehicle/view/v2/vehicle_home_screen_v2.dart';
@@ -574,6 +575,9 @@ class RouteHelper {
   
   static String getVehicleDetailScreenRoute() =>
       RouteConstant.vehicleDetailScreen;
+
+  static String getVehicleBookingsScreenRoute() =>
+      RouteConstant.vehicleBookingsScreen;
 
   // static String getCreateNewAccountScreenRoute() =>
   //     RouteConstant.createNewAccountScreen;
@@ -2515,6 +2519,15 @@ class RouteHelper {
           builder: (_) =>
               VehicleDetailScreen(vehicleId: args['vehicleId'] as String),
           settings: RouteSettings(name: getVehicleDetailScreenRoute()),
+        );
+
+      case RouteConstant.vehicleBookingsScreen:
+        final args = settings.arguments as Map<String, dynamic>?;
+        return MaterialPageRoute(
+          builder: (_) => VehicleBookingsScreen(
+            initialTab: (args?['initialTab'] as int?) ?? 0,
+          ),
+          settings: RouteSettings(name: getVehicleBookingsScreenRoute()),
         );
 
       case RouteConstant.chooseEarnServiceScreen:

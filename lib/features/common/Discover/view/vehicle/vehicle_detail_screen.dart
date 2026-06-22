@@ -6,10 +6,14 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/me/vehicle/controller/vehicle_controller.dart';
+import 'package:BlueEra/features/me/vehicle/model/vehicle_booking_models.dart';
 import 'package:BlueEra/features/me/vehicle/model/vehicle_models.dart';
+import 'package:BlueEra/features/me/vehicle/view/booking/vehicle_bookings_screen.dart';
+import 'package:BlueEra/features/me/vehicle/view/booking/vehicle_place_order_sheet.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -187,13 +191,31 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                 ),
               ],
             ),
-            child: CustomBtn(
-              onTap: () => _onRequestBookingTap(v),
-              isValidate: true,
-              radius: SizeConfig.size12,
-              title: AppStrings.requestBooking.tr,
-              bgColor: AppColors.primaryColor,
-            ),
+            child: _isOwnListing(v)
+                ? CustomBtn(
+                    onTap: () => _openSellerRequests(),
+                    isValidate: true,
+                    radius: SizeConfig.size12,
+                    title: AppStrings.bookingViewRequests.tr,
+                    bgColor: AppColors.primaryColor,
+                  )
+                : Row(
+                    children: [
+                      // Secondary: open a chat with the owner (the
+                      // existing connect handoff).
+                      _chatIconButton(v),
+                      SizedBox(width: SizeConfig.size12),
+                      Expanded(
+                        child: CustomBtn(
+                          onTap: () => _onPlaceOrderTap(v),
+                          isValidate: true,
+                          radius: SizeConfig.size12,
+                          title: AppStrings.bookingPlaceOrder.tr,
+                          bgColor: AppColors.primaryColor,
+                        ),
+                      ),
+                    ],
+                  ),
           ),
         ),
       ],
@@ -908,11 +930,33 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
 
   // ─── CTA / launchers ──────────────────────────────────────────────
 
-  /// Mirrors the self-employee screen's "Request booking" handoff —
-  /// builds a friendly first message and opens the chat with the
-  /// vehicle's owner. No-op when the owner id is missing (which would
-  /// only happen on a malformed payload).
-  void _onRequestBookingTap(Vehicle v) {
+  /// True when the signed-in user is the one who listed this vehicle —
+  /// they can't book their own listing (the server rejects it with 400),
+  /// so we surface the seller's "received requests" inbox instead.
+  bool _isOwnListing(Vehicle v) {
+    final owner = (v.userId ?? '').trim();
+    return owner.isNotEmpty && owner == userId.trim();
+  }
+
+  /// Buyer taps "Place Order" → open the connect-style booking sheet
+  /// (`POST /vehicles/bookings`). On success, confirm and offer a jump to
+  /// the buyer's "My Requests" inbox.
+  Future<void> _onPlaceOrderTap(Vehicle v) async {
+    if ((v.id ?? '').trim().isEmpty) return;
+    final VehicleBooking? booking =
+        await VehiclePlaceOrderSheet.show(context, vehicle: v);
+    if (booking == null || !mounted) return;
+    commonSnackBar(message: AppStrings.bookingRequestSent.tr);
+  }
+
+  /// Owner taps "View Requests" → seller-side inbox (Received tab).
+  void _openSellerRequests() {
+    Get.to(() => const VehicleBookingsScreen(initialTab: 1));
+  }
+
+  /// Secondary connect handoff — opens a chat with the owner, carrying a
+  /// friendly first message. No-op when the owner id is missing.
+  void _onChatTap(Vehicle v) {
     final targetUserId = (v.userId ?? '').trim();
     if (targetUserId.isEmpty) return;
 
@@ -930,6 +974,25 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
       userId: targetUserId,
       prefilledMessage: prefill,
       route: AppConstants.route_discover,
+    );
+  }
+
+  /// Outlined chat affordance shown beside the primary "Place Order" CTA.
+  Widget _chatIconButton(Vehicle v) {
+    return GestureDetector(
+      onTap: () => _onChatTap(v),
+      child: Container(
+        width: 52,
+        height: 52,
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(SizeConfig.size12),
+          border: Border.all(
+              color: AppColors.primaryColor.withValues(alpha: 0.3)),
+        ),
+        child: Icon(Icons.chat_bubble_outline_rounded,
+            color: AppColors.primaryColor, size: 22),
+      ),
     );
   }
 

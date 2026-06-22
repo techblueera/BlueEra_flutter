@@ -342,8 +342,14 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         viewProfileController.viewBusinessProfile();
       }
     } else {
-      if (userProfessionGlobal == BIKE_RIDER) {
-        bottomBarController.currentIndex.value = 1;
+      // Riders (bike rider / car-taxi driver) always land on the Me tab
+      // (index 0) on login — regardless of whether their rider profile
+      // has been created yet — so the rider dashboard / onboarding is
+      // front and centre. Everyone else uses the requested initial tab.
+      final isRider = userProfessionGlobal == BIKE_RIDER ||
+          userProfessionGlobal == CAR_TAXI_DRIVER;
+      if (isRider) {
+        bottomBarController.currentIndex.value = 0;
       } else {
         bottomBarController.currentIndex.value = widget.initialIndex ?? 1;
       }

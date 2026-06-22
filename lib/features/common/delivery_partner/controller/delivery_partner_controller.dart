@@ -137,7 +137,7 @@ class DeliveryPartnerController extends GetxController {
 
   List<String> get vehicleModelYears {
     final currentYear = DateTime.now().year;
-    return List.generate(41, (i) => (currentYear - i).toString());
+    return List.generate(16, (i) => (currentYear - i).toString());
   }
 
   Future<ImageUploadResponseModel?> uploadInit(
@@ -614,10 +614,7 @@ class DeliveryPartnerController extends GetxController {
 
   Future<void> ridersPanCardApi() async {
     // ---------- 1️⃣ VALIDATION ----------
-    if (panCardImage.value == null) {
-      commonSnackBar(message: AppStrings.pleaseSelectPanCardImage.tr);
-      return;
-    }
+    // PAN card image is optional — the number alone can be submitted.
 
     try {
       isRiderPersonalIdentificationLoading.value = true;
@@ -625,15 +622,18 @@ class DeliveryPartnerController extends GetxController {
       // ---------- 2️⃣ INITIALIZE ----------
       String? panCardImageUrl;
 
-      // ---------- 6️⃣ UPLOAD PAN CARD ----------
-      panCardImageUrl = await _uploadToS3(panCardImage.value!);
+      // ---------- 6️⃣ UPLOAD PAN CARD (only when an image was picked) ----------
+      if (panCardImage.value != null) {
+        panCardImageUrl = await _uploadToS3(panCardImage.value!);
+      }
 
       // ---------- 7️⃣ PREPARE PAYLOAD ----------
       final params = {
         ApiKeys.panNo: panNumberController.text,
-        ApiKeys.panImages: {
-          ApiKeys.front: panCardImageUrl,
-        },
+        if (panCardImageUrl != null)
+          ApiKeys.panImages: {
+            ApiKeys.front: panCardImageUrl,
+          },
       };
 
       // ---------- 8️⃣ API CALL ----------
@@ -789,14 +789,7 @@ class DeliveryPartnerController extends GetxController {
 
   Future<void> ridersRcBookVerificationApi() async {
     // ---------- 1️⃣ VALIDATION ----------
-    if (rcFrontImage.value == null) {
-      commonSnackBar(message: AppStrings.pleaseSelectRcFrontImage.tr);
-      return;
-    }
-    if (rcBackImage.value == null) {
-      commonSnackBar(message: AppStrings.pleaseSelectRcBackImage.tr);
-      return;
-    }
+    // RC book images are optional — the RC number alone can be submitted.
 
     try {
       isRiderDrivingVerificationLoading.value = true;
@@ -805,17 +798,22 @@ class DeliveryPartnerController extends GetxController {
       String? rcFrontImageUrl;
       String? rcBackImageUrl;
 
-      // ---------- 3️⃣ UPLOAD RC IMAGES ----------
-      rcFrontImageUrl = await _uploadToS3(rcFrontImage.value!);
-      rcBackImageUrl = await _uploadToS3(rcBackImage.value!);
+      // ---------- 3️⃣ UPLOAD RC IMAGES (only the sides that were picked) ----------
+      if (rcFrontImage.value != null) {
+        rcFrontImageUrl = await _uploadToS3(rcFrontImage.value!);
+      }
+      if (rcBackImage.value != null) {
+        rcBackImageUrl = await _uploadToS3(rcBackImage.value!);
+      }
 
       // ---------- 5️⃣ PREPARE PAYLOAD ----------
       final params = {
         ApiKeys.rcNo: rcController.text,
-        ApiKeys.rcImages: {
-          ApiKeys.front: rcFrontImageUrl,
-          ApiKeys.back: rcBackImageUrl,
-        },
+        if (rcFrontImageUrl != null || rcBackImageUrl != null)
+          ApiKeys.rcImages: {
+            if (rcFrontImageUrl != null) ApiKeys.front: rcFrontImageUrl,
+            if (rcBackImageUrl != null) ApiKeys.back: rcBackImageUrl,
+          },
       };
 
       // ---------- 6️⃣ CALL API ----------

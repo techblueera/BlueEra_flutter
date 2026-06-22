@@ -309,16 +309,14 @@ class _HospitalCard extends StatelessWidget {
             children: [
               // Cover banner with floating action buttons.
               _coverHeader(context),
+              SizedBox(height: 10,),
               // Body content pulled up so the logo straddles the cover edge.
               // The translate leaves ~28px of breathing room at the card
               // bottom, which doubles as the bottom padding.
-              Transform.translate(
-                offset: const Offset(0, -28),
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(14, 0, 14, 0),
-                  child: _coverBody(context),
-                ),
-              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 0, 14, 0),
+                child: _coverBody(context),
+              )
             ],
           ),
         ),
@@ -382,14 +380,40 @@ class _HospitalCard extends StatelessWidget {
             ),
           ),
         ),
-        // Floating share + directions controls.
+        // Rating badge (top-left). No rating in the listing payload yet, so
+        // this renders a static placeholder until the backend supplies one.
+        Positioned(
+          top: 10,
+          left: 10,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppColors.black25,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.star_rounded, size: 14, color: Colors.amber),
+                const SizedBox(width: 3),
+                CustomText(
+                  '4.8',
+                  fontSize: SizeConfig.small,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ],
+            ),
+          ),
+        ),
+        // Floating share + directions controls, stacked vertically.
         Positioned(
           top: 10,
           right: 10,
-          child: Row(
+          child: Column(
             children: [
               _circleAction(Icons.share_outlined, _share),
-              const SizedBox(width: 8),
+              const SizedBox(height: 8),
               _circleAction(
                   Icons.directions_outlined, () => _openMapBottomSheet(context)),
             ],
@@ -427,10 +451,6 @@ class _HospitalCard extends StatelessWidget {
     final facilityCount = item.facilityCount ?? facilities.length;
     final distance = _distanceLabel();
     final address = item.location?.name;
-    final locationText = [
-      if (distance != null) distance,
-      if (!_isEmpty(address)) address!.trim(),
-    ].join('  |  ');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -443,7 +463,7 @@ class _HospitalCard extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.only(top: 32),
+                padding: const EdgeInsets.only(top: 2),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -461,14 +481,34 @@ class _HospitalCard extends StatelessWidget {
                       onTap: () => _openMapBottomSheet(context),
                       child: Row(
                         children: [
-                          Icon(Icons.location_on,
-                              size: 14, color: AppColors.primaryColor),
+                          LocalAssets(imagePath: AppIconAssets.location_outline,imgColor: AppColors.primaryColor,),
                           const SizedBox(width: 3),
+                          // Distance highlighted in the primary color, kept
+                          // separate from the (secondary) address.
+                          if (distance != null) ...[
+                            CustomText(
+                              distance,
+                              fontSize: SizeConfig.small,
+                              color: AppColors.primaryColor,
+                              fontWeight: FontWeight.w700,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            if (!_isEmpty(address))
+                              CustomText(
+                                '  |  ',
+                                fontSize: SizeConfig.small,
+                                color: AppColors.secondaryTextColor,
+                                fontWeight: FontWeight.w500,
+                              ),
+                          ],
                           Expanded(
                             child: CustomText(
-                              locationText.trim().isEmpty
-                                  ? 'Address not available'
-                                  : locationText,
+                              _isEmpty(address)
+                                  ? (distance == null
+                                      ? 'Address not available'
+                                      : '')
+                                  : address!.trim(),
                               fontSize: SizeConfig.small,
                               color: AppColors.secondaryTextColor,
                               fontWeight: FontWeight.w500,
@@ -488,18 +528,19 @@ class _HospitalCard extends StatelessWidget {
         const SizedBox(height: 14),
         // Departments summary.
         _serviceRow(
-          icon: Icons.local_hospital_outlined,
-          chipIcon: Icons.local_hospital_outlined,
+          icon:"assets/svg/department.svg" ,
           title: 'Departments',
           items: deptNames,
           count: deptCount,
           emptyLabel: 'No departments listed',
         ),
-        const SizedBox(height: 12),
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 10),
+          child: Divider(height: 1, thickness: 1, color: AppColors.greyE6),
+        ),
         // Facilities summary.
         _serviceRow(
-          icon: Icons.medical_services_outlined,
-          chipIcon: Icons.check_circle_outline,
+          icon: "assets/svg/hands_brain.svg",
           title: 'Facilities',
           items: facilities,
           count: facilityCount,
@@ -520,6 +561,8 @@ class _HospitalCard extends StatelessWidget {
             ),
           ],
         ),
+        const SizedBox(height: 14),
+
       ],
     );
   }
@@ -561,141 +604,93 @@ class _HospitalCard extends StatelessWidget {
     );
   }
 
-  /// One summary block: `[icon] Title • N  ........  View All` header, with
-  /// the items rendered as wrapped chips underneath. [count] is the server's
-  /// total (may exceed the names we show); surplus names collapse into a
-  /// `+N more` chip that opens the detail screen.
+  /// One summary row: a rounded icon tile on the left, then `Title • N` with a
+  /// single-line, comma-joined preview of the [items] beneath it, and an
+  /// `N More` link on the right. [count] is the server's total; anything beyond
+  /// the preview collapses into the link, which opens the detail screen.
   Widget _serviceRow({
-    required IconData icon,
-    required IconData chipIcon,
+    required String icon,
     required String title,
     required List<String> items,
     required int count,
     required String emptyLabel,
   }) {
     final accent = AppColors.primaryColor;
-    const maxChips = 3;
-    final visible = items.take(maxChips).toList();
-    // Hidden = everything the chips don't show. Anchor on the larger of the
-    // server count / names length so the overflow chip never under-reports.
+    const preview = 4;
+    final shown = items.length < preview ? items.length : preview;
+    // Anchor on the larger of the server count / names length so the link
+    // never under-reports the remaining items.
     final total = count > items.length ? count : items.length;
-    final hidden = total - visible.length;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    final hidden = total - shown;
+    final summary = items.isEmpty ? emptyLabel : items.join(', ');
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Row(
-          children: [
-            Container(
-              width: 26,
-              height: 26,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: accent.withValues(alpha: 0.10),
+        Container(
+          width: 38,
+          height: 38,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            color: accent.withValues(alpha: 0.10),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: LocalAssets(imagePath: icon),
+          // child: Icon(icon, size: 20, color: accent),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  CustomText(
+                    title,
+                    fontSize: SizeConfig.small,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.mainTextColor,
+                  ),
+                  const SizedBox(width: 5),
+                  CustomText(
+                    '• $count',
+                    fontSize: SizeConfig.small,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.secondaryTextColor,
+                  ),
+                ],
               ),
-              child: Icon(icon, size: 15, color: accent),
-            ),
-            const SizedBox(width: 8),
-            CustomText(
-              title,
-              fontSize: SizeConfig.small,
-              fontWeight: FontWeight.w700,
-              color: AppColors.mainTextColor,
-            ),
-            const SizedBox(width: 6),
-            CustomText(
-              '• $count',
+              const SizedBox(height: 3),
+              CustomText(
+                summary,
+                fontSize: SizeConfig.small,
+                color: items.isEmpty
+                    ? AppColors.grey9B
+                    : AppColors.secondaryTextColor,
+                fontWeight: FontWeight.w400,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+        if (hidden > 0) ...[
+          const SizedBox(width: 8),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: _openDetail,
+            child: CustomText(
+              '$hidden More',
               fontSize: SizeConfig.small,
               fontWeight: FontWeight.w600,
-              color: AppColors.secondaryTextColor,
+              color: accent,
             ),
-            const Spacer(),
-            if (count > 0)
-              GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: _openDetail,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CustomText(
-                      'View All',
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w600,
-                      color: accent,
-                    ),
-                    Icon(Icons.chevron_right_rounded, size: 16, color: accent),
-                  ],
-                ),
-              ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Padding(
-          padding: const EdgeInsets.only(left: 34),
-          child: visible.isEmpty
-              ? CustomText(
-                  emptyLabel,
-                  fontSize: SizeConfig.small,
-                  color: AppColors.grey9B,
-                  fontWeight: FontWeight.w400,
-                )
-              : Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: [
-                    for (final name in visible)
-                      _infoChip(label: name, icon: chipIcon, accent: accent),
-                    if (hidden > 0)
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: _openDetail,
-                        child: _infoChip(
-                          label: '+$hidden more',
-                          icon: Icons.more_horiz_rounded,
-                          accent: accent,
-                          filled: true,
-                        ),
-                      ),
-                  ],
-                ),
-        ),
+          ),
+        ],
       ],
     );
   }
 
-  /// Small rounded pill: leading [icon] + [label]. [filled] gives the
-  /// `+N more` chip a slightly stronger tint so it reads as tappable.
-  Widget _infoChip({
-    required String label,
-    required IconData icon,
-    required Color accent,
-    bool filled = false,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-      decoration: BoxDecoration(
-        color: accent.withValues(alpha: filled ? 0.16 : 0.07),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: accent.withValues(alpha: 0.22)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 12, color: accent),
-          const SizedBox(width: 4),
-          CustomText(
-            label,
-            fontSize: SizeConfig.small,
-            fontWeight: FontWeight.w600,
-            color: accent,
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _chatButton() {
-    final accent = AppColors.primaryColor;
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(12),
@@ -703,27 +698,22 @@ class _HospitalCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         onTap: _openChat,
         child: Container(
-          height: 46,
-          alignment: Alignment.center,
+          height: 44,
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: accent, width: 1.2),
+            color: AppColors.skyBlueFF,
+            borderRadius: BorderRadius.circular(10),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              LocalAssets(
-                imagePath: AppIconAssets.chat,
-                height: 18,
-                width: 18,
-                imgColor: accent,
-              ),
-              const SizedBox(width: 8),
+              LocalAssets(imagePath: AppIconAssets.chat, imgColor: AppColors.primaryColor),
+              const SizedBox(width: 6),
               CustomText(
-                'Chat',
-                fontSize: SizeConfig.medium,
+                AppStrings.chat,
+
+                fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: accent,
+                color: AppColors.primaryColor,
               ),
             ],
           ),

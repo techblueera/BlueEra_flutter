@@ -239,9 +239,30 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   final String imageUrl =
                       data.senderProfile?.profileImage ?? '';
                   final String id = data.sId ?? "";
-                  final String title = (data.message?.isNotEmpty ?? false)
-                      ? (data.message ?? data.metadata?.message ?? "")
-                      : (data.metadata?.message ?? "");
+                  // Display text resolution: many notifications (AI greetings,
+                  // ride status updates, profile reminders) leave the top-level
+                  // `message` empty and put their content in metadata.title /
+                  // metadata.body. Build a bold heading + detail line so none of
+                  // these rows render blank.
+                  final String topMsg = (data.message ?? '').trim();
+                  final String metaMsg = (data.metadata?.message ?? '').trim();
+                  final String metaTitle = (data.metadata?.title ?? '').trim();
+                  final String metaBody = (data.metadata?.body ?? '').trim();
+                  // First non-empty among: top-level message → metadata.message
+                  // → metadata.body.
+                  final String bodyText = [topMsg, metaMsg, metaBody]
+                      .firstWhere((s) => s.isNotEmpty, orElse: () => '');
+                  // Bold heading only when it adds info beyond the body line.
+                  final String headerText =
+                      (metaTitle.isNotEmpty && metaTitle != bodyText)
+                          ? metaTitle
+                          : '';
+                  // Title used for the fullscreen image viewer / a11y label.
+                  final String title = headerText.isNotEmpty
+                      ? headerText
+                      : (bodyText.isNotEmpty
+                          ? bodyText
+                          : (data.metadata?.senderName ?? ''));
                   final String status = data.status ?? '';
                   String time = '';
                   try {
@@ -271,10 +292,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         Get.to(() => PostDeatilPage(), arguments: {"postId": data.metadata?.jobId ?? ""});
                       }
                       else {
-                        redirectToProfileScreen(
-                          accountType: data.senderProfile?.account_type ?? "",
-                          profileId: data.senderProfile?.id ?? "",
-                        );
+                        Get.back();
+                        // redirectToProfileScreen(
+                        //   accountType: data.senderProfile?.account_type ?? "",
+                        //   profileId: data.senderProfile?.id ?? "",
+                        // );
                       }
                     },
                     child: Column(
@@ -329,13 +351,35 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                 ),
                                 SizedBox(width: SizeConfig.size10),
                                 Expanded(
-                                  child: CustomText(
-                                    title,
-                                    maxLines: 3,
-                                    fontWeight: FontWeight.w600,
-                                    overflow: TextOverflow.ellipsis,
-                                    color: AppColors.mainTextColor,
-                                    fontSize: SizeConfig.small,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      if (headerText.isNotEmpty) ...[
+                                        CustomText(
+                                          headerText,
+                                          maxLines: 2,
+                                          fontWeight: FontWeight.w700,
+                                          overflow: TextOverflow.ellipsis,
+                                          color: AppColors.mainTextColor,
+                                          fontSize: SizeConfig.small,
+                                        ),
+                                        SizedBox(height: SizeConfig.size2),
+                                      ],
+                                      CustomText(
+                                        bodyText.isNotEmpty ? bodyText : title,
+                                        maxLines: 3,
+                                        fontWeight: headerText.isNotEmpty
+                                            ? FontWeight.w400
+                                            : FontWeight.w600,
+                                        overflow: TextOverflow.ellipsis,
+                                        color: headerText.isNotEmpty
+                                            ? AppColors.secondaryTextColor
+                                            : AppColors.mainTextColor,
+                                        fontSize: SizeConfig.small,
+                                      ),
+                                    ],
                                   ),
                                 ),
                                 Column(

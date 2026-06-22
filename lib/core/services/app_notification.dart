@@ -484,6 +484,13 @@ Future<void> showIncomingCallLocalNotification({
     enableVibration: true,
     vibrationPattern: Int64List.fromList([0, 1000, 500, 1000]),
     icon: '@drawable/ic_stat',
+    // Colorize the notification with the brand blue so Android's contrast
+    // algorithm renders the title (caller name) in WHITE. Without an
+    // explicit `color`, `colorized: true` keeps the default light
+    // background and the title falls back to BLACK — which is exactly the
+    // black-title bug seen on the kill-mode (FCM background isolate)
+    // fallback path. Matches the CallKit `backgroundColor: '#0955fa'`.
+    color: const Color(0xFF0955FA),
     colorized: true,
     audioAttributesUsage: AudioAttributesUsage.notificationRingtone,
     // FLAG_INSISTENT (4) makes the sound repeat until user acts

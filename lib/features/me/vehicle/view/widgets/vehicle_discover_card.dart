@@ -1,8 +1,10 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/vehicle/model/vehicle_models.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -182,10 +184,10 @@ class VehicleDiscoverCard extends StatelessWidget {
                   _buildMoreMenu(),
                   const SizedBox(height: 10),
                 ],
-                _circleAction(Icons.ios_share_rounded, onShare),
+                _circleAction(AppIconAssets.share_bold, onShare),
                 const SizedBox(height: 10),
                 _circleAction(
-                  isFavorite ? Icons.star_rounded : Icons.star_border_rounded,
+               AppIconAssets.star_rounded,
                   onFavorite,
                 ),
               ],
@@ -196,7 +198,7 @@ class VehicleDiscoverCard extends StatelessWidget {
     );
   }
 
-  Widget _circleAction(IconData icon, VoidCallback? onTap) {
+  Widget _circleAction(String icon, VoidCallback? onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -206,7 +208,11 @@ class VehicleDiscoverCard extends StatelessWidget {
           color: Colors.black.withValues(alpha: 0.45),
           shape: BoxShape.circle,
         ),
-        child: Icon(icon, size: 19, color: Colors.white),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: LocalAssets(imagePath: icon,imgColor: AppColors.white,),
+        ),
+        // child: Icon(icon, size: 19, color: Colors.white),
       ),
     );
   }
@@ -277,19 +283,19 @@ class VehicleDiscoverCard extends StatelessWidget {
     final out = <_Spec>[];
     if (vehicle.fuelType != null) {
       out.add(_Spec(
-        icon: Icons.local_gas_station_outlined,
+        icon: "assets/svg/petrol.svg",
         label: _humanFuel(vehicle.fuelType!),
       ));
     }
     if (vehicle.engineCapacityCc != null) {
       out.add(_Spec(
-        icon: Icons.settings_outlined,
+        icon: "assets/svg/engine.svg",
         label: '${vehicle.engineCapacityCc} ${AppStrings.ccUnit.tr}',
       ));
     }
     if ((vehicle.mileage ?? '').trim().isNotEmpty) {
       out.add(_Spec(
-        icon: Icons.route_outlined,
+        icon:"assets/svg/kmroad.svg",
         label: _mileageLabel(vehicle.mileage!.trim()),
       ));
     }
@@ -459,23 +465,21 @@ class VehicleDiscoverCard extends StatelessWidget {
           child: GestureDetector(
             onTap: onChat,
             child: Container(
-              height: 50,
-              alignment: Alignment.center,
+              height: 44,
               decoration: BoxDecoration(
-                color: const Color(0xFFE8F2FF),
-                borderRadius: BorderRadius.circular(12),
+                color: AppColors.skyBlueFF,
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.chat_bubble_outline_rounded,
-                      size: 18, color: _blue),
-                  const SizedBox(width: 8),
+                  LocalAssets(imagePath: AppIconAssets.chat, imgColor: AppColors.primaryColor),
+                  const SizedBox(width: 6),
                   CustomText(
-                    AppStrings.chat.tr,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: _blue,
+                    AppStrings.chat,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primaryColor,
                   ),
                 ],
               ),
@@ -549,13 +553,11 @@ class VehicleDiscoverCard extends StatelessWidget {
   String _humanFuel(VehicleFuelType f) {
     switch (f) {
       case VehicleFuelType.petrol:
-        return AppStrings.fuelPetrol.tr;
       case VehicleFuelType.diesel:
-        return AppStrings.fuelDiesel.tr;
+      case VehicleFuelType.cng:
+        return "assets/svg/engine.svg";
       case VehicleFuelType.electric:
         return AppStrings.fuelElectric.tr;
-      case VehicleFuelType.cng:
-        return AppStrings.fuelCng.tr;
       case VehicleFuelType.hybrid:
         return AppStrings.fuelHybrid.tr;
       case VehicleFuelType.other:
@@ -565,7 +567,7 @@ class VehicleDiscoverCard extends StatelessWidget {
 }
 
 class _Spec {
-  final IconData icon;
+  final String icon;
   final String label;
   const _Spec({required this.icon, required this.label});
 }
@@ -584,7 +586,7 @@ class _SpecTile extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(spec.icon, size: 24, color: VehicleDiscoverCard._blue),
+          LocalAssets(imagePath: spec.icon,),
           SizedBox(height: SizeConfig.size8),
           CustomText(
             spec.label,
