@@ -32,8 +32,13 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders> {
   @override
   void initState() {
     super.initState();
-    if (deliveryPartnerController.riderVerificationState ==
-        RiderVerificationState.completed) {
+    // When embedded in a parent scroll (e.g. RiderServiceScreen), the
+    // PARENT owns the single SSE stream lifecycle — it needs the stream
+    // running even while this widget is hidden behind the preference
+    // card. So we only self-manage the stream in standalone use.
+    if (!widget.isInParentScroll &&
+        deliveryPartnerController.riderVerificationState ==
+            RiderVerificationState.completed) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         controller.fetchStream();
       });
@@ -42,9 +47,12 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders> {
 
   @override
   void dispose() {
-    if (deliveryPartnerController.riderVerificationState ==
-        RiderVerificationState.completed) {
-      controller.subscription?.cancel();
+    // Mirror initState: only tear the stream down when we started it.
+    // For embedded use the parent owns (and disposes) the stream.
+    if (!widget.isInParentScroll &&
+        deliveryPartnerController.riderVerificationState ==
+            RiderVerificationState.completed) {
+      controller.stopStream();
     }
     super.dispose();
   }

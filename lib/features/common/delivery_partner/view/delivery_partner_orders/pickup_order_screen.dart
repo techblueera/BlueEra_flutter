@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_orders_controller.dart';
@@ -43,7 +44,7 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
           ? MainAxisSize.min
           : MainAxisSize.max,
       children: [
-        _filterButtons(),
+        // _filterButtons(),
         _buildTabViews(),
       ],
     );
@@ -305,6 +306,7 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
     final body = Obx(() {
       if (controller.ordersListResponse.value.status ==
           Status.COMPLETE) {
+        logs("controller.selectedPickUp.value ${controller.selectedPickUp.value.name}");
         switch (controller.selectedPickUp.value) {
 
           case PickUpTab.orders:
