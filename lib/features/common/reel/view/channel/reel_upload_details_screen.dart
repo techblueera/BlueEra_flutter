@@ -1257,8 +1257,15 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
     final coverInfo = getFileInfo(coverFile);
 
     try {
-      // 1. Init both uploads (20%)
-      await Future.wait([
+      // Fresh state so a previous attempt's presigned URLs can't leak in.
+      reelUploadDetailsController.uploadInitVideoFile = null;
+      reelUploadDetailsController.uploadInitCoverImageFile = null;
+
+      // 1. Init both uploads (20%). If EITHER init fails (e.g. a 502 on one),
+      // abort right here — don't fire the S3 PUTs with an empty presigned URL
+      // (that was the "No host specified in URI" crash) or register a video
+      // with a missing asset.
+      final initResults = await Future.wait([
         reelUploadDetailsController.uploadInit(
           queryParams: {ApiKeys.fileName: videoInfo['fileName'], ApiKeys.fileType: videoInfo['mimeType']},
           isVideoUpload: true,
@@ -1268,6 +1275,11 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
           isVideoUpload: false,
         ),
       ]);
+      if (initResults.any((ok) => ok == false)) {
+        UploadProgressDialog.close();
+        commonSnackBar(message: 'Upload failed to start. Please try again.');
+        return;
+      }
       updateProgress(0.2);
 
       // 2. Upload files with combined progress (20% → 90%)
@@ -1280,7 +1292,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
         updateProgress(combined);
       }
 
-      await Future.wait([
+      final uploadResults = await Future.wait([
         reelUploadDetailsController.uploadFileToS3(
           file: videoFile,
           fileType: videoInfo['mimeType']!,
@@ -1300,6 +1312,12 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
           },
         ),
       ]);
+      // If either file failed to land in S3, stop — don't register the video.
+      if (uploadResults.any((ok) => ok == false)) {
+        UploadProgressDialog.close();
+        commonSnackBar(message: 'Upload failed. Please try again.');
+        return;
+      }
 
       updateProgress(0.9);
 

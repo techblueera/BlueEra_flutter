@@ -32,9 +32,12 @@ class ProductTopSellingImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final media = product.product.details?.media ?? [];
-    final hasImage = media.isNotEmpty;
-    final imageUrl = hasImage ? media.first : '';
+    // Resolve via the shared fallback (product media → first variant
+    // media) so products that only carry variant-level images render
+    // here too — previously this read product-level media only and
+    // showed the placeholder for variant-only products.
+    final imageUrl = product.primaryImageUrl ?? '';
+    final hasImage = imageUrl.isNotEmpty;
 
     final imageChild = ClipRRect(
       borderRadius: BorderRadius.circular(10.0),

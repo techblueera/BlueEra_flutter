@@ -10,14 +10,12 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
-import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/comment/view/comment_bottom_sheet.dart';
 import 'package:BlueEra/features/common/feed/controller/full_screen_short_controller.dart';
 import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/reel/widget/reels_shorts_popup_menu.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/personal_profile_setup_new_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
+import 'package:BlueEra/core/navigation/visit_profile_resolver.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
@@ -29,7 +27,6 @@ import 'package:get/get.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:video_player/video_player.dart';
 import '../../../../../core/api/apiService/api_keys.dart';
-import '../../../../business/visit_business_profile/view/visit_business_profile_new.dart';
 
 class ShortPlayerItem extends StatefulWidget {
   final ShortFeedItem videoItem;
@@ -77,6 +74,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
   late String profileImage;
   late String name;
   late String designation;
+  bool isVerified = false;
   bool _hasError = false;
   bool isShortSavedInDb = false;
   bool _isDisposed = false;
@@ -289,11 +287,14 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
       name = fullScreenShortController.videoItem?.channel?.name ?? '';
       designation =
           fullScreenShortController.videoItem?.channel?.username ?? '';
+      isVerified =
+          fullScreenShortController.videoItem?.channel?.isVerified ?? false;
     } else {
       profileImage =
           fullScreenShortController.videoItem?.author?.profileImage ?? '';
       name = widget.videoItem.author?.name ?? '';
       designation = widget.videoItem.author?.username ?? '';
+      isVerified = widget.videoItem.author?.isVerified ?? false;
     }
     isShortSavedInDb = HiveServices()
         .isVideoSaved(fullScreenShortController.videoItem?.videoId ?? '');
@@ -303,6 +304,111 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
         fullScreenShortController.videoItem?.video?.stats?.likes ?? 0;
     fullScreenShortController.comments.value =
         fullScreenShortController.videoItem?.video?.stats?.comments ?? 0;
+  }
+
+  /// The text to show as the reel caption. Prefer `caption`, then `title`,
+  /// then `description` — the feed fills different ones depending on source,
+  /// so this keeps the caption from going blank when text exists.
+  String _resolveCaption() {
+    final v = fullScreenShortController.videoItem?.video;
+    final caption = v?.caption ?? '';
+    if (caption.trim().isNotEmpty) return caption;
+    final title = v?.title ?? '';
+    if (title.trim().isNotEmpty) return title;
+    return v?.description ?? '';
+  }
+
+  /// Location · time-ago row + keyword chips — the extra metadata the user
+  /// attaches on upload (location, keywords, created time). Renders nothing
+  /// when none are present.
+  Widget _buildMetaInfo() {
+    final v = fullScreenShortController.videoItem?.video;
+    final location = (v?.location?.name ?? '').trim();
+    final createdAt = (v?.createdAt ?? '').trim();
+    final keywords =
+        (v?.keywords ?? const <String>[]).where((k) => k.trim().isNotEmpty).toList();
+
+    final hasLocation = location.isNotEmpty;
+    final parsedDate =
+        createdAt.isNotEmpty ? DateTime.tryParse(createdAt)?.toLocal() : null;
+    final timeStr = parsedDate != null ? timeAgo(parsedDate) : '';
+    final hasTime = timeStr.isNotEmpty;
+    final hasKeywords = keywords.isNotEmpty;
+
+    if (!hasLocation && !hasTime && !hasKeywords) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: EdgeInsets.only(top: SizeConfig.size8, right: SizeConfig.size40),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (hasLocation || hasTime)
+            Row(
+              children: [
+                if (hasLocation) ...[
+                  const Icon(Icons.location_on,
+                      size: 14, color: AppColors.white),
+                  SizedBox(width: SizeConfig.size4),
+                  Flexible(
+                    child: CustomText(
+                      location,
+                      color: AppColors.white,
+                      fontSize: SizeConfig.small,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+                if (hasLocation && hasTime) ...[
+                  SizedBox(width: SizeConfig.size8),
+                  Container(
+                    width: 3,
+                    height: 3,
+                    decoration: BoxDecoration(
+                      color: AppColors.white.withValues(alpha: 0.7),
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  SizedBox(width: SizeConfig.size8),
+                ],
+                if (hasTime)
+                  CustomText(
+                    timeStr,
+                    color: AppColors.white.withValues(alpha: 0.85),
+                    fontSize: SizeConfig.small,
+                  ),
+              ],
+            ),
+          if (hasKeywords) ...[
+            SizedBox(height: SizeConfig.size6),
+            Wrap(
+              spacing: SizeConfig.size6,
+              runSpacing: SizeConfig.size4,
+              children: keywords
+                  .map((k) => Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppColors.white.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                              color: AppColors.white.withValues(alpha: 0.3)),
+                        ),
+                        child: CustomText(
+                          '#$k',
+                          color: AppColors.white,
+                          fontSize: SizeConfig.size11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ))
+                  .toList(),
+            ),
+          ],
+        ],
+      ),
+    );
   }
 
   /* public control methods */
@@ -323,32 +429,50 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
   @override
   Widget build(BuildContext context) {
     if (_hasError) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            LocalAssets(imagePath: AppIconAssets.place_holder_image),
-            const SizedBox(height: 8),
-            const CustomText('Failed to load video'),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  _hasError = false;
-                  _useCover = true;
-                });
-                // Ask the parent to rebuild this slot's controller; if there is
-                // no parent owner, just re-attach to what we already have.
-                if (widget.onReload != null) {
-                  widget.onReload!.call();
-                } else {
-                  _attachController();
-                }
-              },
-              child: const Text('Retry'),
-            ),
-          ],
-        ),
+      final cover = widget.coverUrl ?? widget.videoItem.video?.coverUrl ?? '';
+      // Keep the cover thumbnail visible behind the error so the page never
+      // goes to a blank black frame; dim it and overlay the Retry.
+      return Stack(
+        fit: StackFit.expand,
+        alignment: Alignment.center,
+        children: [
+          if (cover.isNotEmpty)
+            CachedNetworkImage(
+              imageUrl: cover,
+              fit: BoxFit.cover,
+              placeholder: (_, __) => Container(color: Colors.black),
+              errorWidget: (_, __, ___) => Container(color: Colors.black),
+            )
+          else
+            Container(color: Colors.black),
+          Container(color: Colors.black.withValues(alpha: 0.45)),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline_rounded,
+                  color: AppColors.white, size: 40),
+              const SizedBox(height: 8),
+              const CustomText('Failed to load video', color: AppColors.white),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    _hasError = false;
+                    _useCover = true;
+                  });
+                  // Ask the parent to rebuild this slot's controller; if there
+                  // is no parent owner, just re-attach to what we already have.
+                  if (widget.onReload != null) {
+                    widget.onReload!.call();
+                  } else {
+                    _attachController();
+                  }
+                },
+                child: const Text('Retry'),
+              ),
+            ],
+          ),
+        ],
       );
     }
 
@@ -374,17 +498,23 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
         opacity: _showOverlayIcon ? 1.0 : 0.0,
         duration: const Duration(milliseconds: 300),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(25),
+          borderRadius: BorderRadius.circular(40),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
             child: Container(
-              height: 45,
-              width: 45,
+              height: 56,
+              width: 56,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.white.withValues(alpha: 0.4),
+                // Transparent frosted glass: light tint over the blur with a
+                // subtle bright rim so it reads on both dark and light frames.
+                color: Colors.white.withValues(alpha: 0.18),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.35),
+                  width: 1,
+                ),
               ),
-              child: Icon(_playPauseIcon, size: 36, color: Colors.white),
+              child: Icon(_playPauseIcon, size: 34, color: Colors.white),
             ),
           ),
         ),
@@ -561,35 +691,29 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildUserInfo(),
-          if (fullScreenShortController.videoItem?.video?.title?.isNotEmpty ??
-              false) ...[
-            SizedBox(height: SizeConfig.size10),
-            ExpandableText(
-              text: fullScreenShortController.videoItem?.video?.title ?? '',
-              style: TextStyle(
-                color: AppColors.white,
-                fontSize: SizeConfig.medium15,
-              ),
-            )
-          ],
-          if (fullScreenShortController
-                  .videoItem?.video?.description?.isNotEmpty ??
-              false) ...[
-            Container(
-              child: Padding(
-                padding: EdgeInsets.only(right: SizeConfig.size40),
-                child: ExpandableText(
-                  text:
-                      fullScreenShortController.videoItem?.video?.description ??
-                          '',
-                  style: TextStyle(
-                      color: AppColors.white,
-                      fontWeight: FontWeight.w500,
-                      fontSize: SizeConfig.size13),
+          // Single caption block. The feed fills different fields by source
+          // (trending shorts put the text in `title`, others use `caption` /
+          // `description`), so show whichever is non-empty.
+          Builder(builder: (_) {
+            final caption = _resolveCaption();
+            if (caption.trim().isEmpty) return const SizedBox.shrink();
+            return Padding(
+              padding: EdgeInsets.only(
+                  top: SizeConfig.size10, right: SizeConfig.size40),
+              child: ExpandableText(
+                text: caption,
+                // Clamp to 2 lines; longer captions get an inline
+                // "Read more" / "show less" toggle (not a dialog).
+                trimLines: 2,
+                expandMode: ExpandMode.expandable,
+                style: TextStyle(
+                  color: AppColors.white,
+                  fontSize: SizeConfig.medium15,
                 ),
               ),
-            ),
-          ],
+            );
+          }),
+          _buildMetaInfo(),
           if ((fullScreenShortController.videoItem?.channel?.id?.isNotEmpty ??
                   false) &&
               (fullScreenShortController
@@ -703,11 +827,26 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CustomText(
-                  name,
-                  fontSize: SizeConfig.large18,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.white,
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: CustomText(
+                        name,
+                        fontSize: SizeConfig.large18,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.white,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (isVerified) ...[
+                      SizedBox(width: SizeConfig.size4),
+                      Icon(Icons.verified,
+                          size: SizeConfig.size16,
+                          color: AppColors.primaryColor),
+                    ],
+                  ],
                 ),
                 SizedBox(height: SizeConfig.size1),
                 CustomText(
@@ -790,40 +929,48 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
   }
 
   void _navigateToProfile() {
-    if (fullScreenShortController.videoItem?.channel?.id != null) {
+    final item = fullScreenShortController.videoItem;
+    final author = item?.author;
+
+    // Channel-owned reel → channel screen.
+    if (item?.channel?.id != null) {
       Navigator.pushNamed(
         context,
         RouteHelper.getChannelScreenRoute(),
         arguments: {
-          ApiKeys.argAccountType:
-              fullScreenShortController.videoItem?.author?.accountType,
-          ApiKeys.channelId: fullScreenShortController.videoItem?.channel?.id,
-          ApiKeys.authorId: fullScreenShortController.videoItem?.author?.id
+          ApiKeys.argAccountType: author?.accountType,
+          ApiKeys.channelId: item?.channel?.id,
+          ApiKeys.authorId: author?.id,
         },
       );
+      return;
+    }
+
+    final authorId = author?.id ?? '';
+
+    // Own profile → no-op for now (the own profile screens are being reworked).
+    if (authorId.isNotEmpty && authorId == userId) return;
+
+    final isIndividual =
+        author?.accountType?.toUpperCase() == AppConstants.individual;
+
+    if (isIndividual) {
+      // Individual → route by profile type (self-employed / professional /
+      // gig / social). The rich Discover screen self-fetches by author id.
+      VisitProfileResolver.openIndividual(
+        profileType: author?.profileType ?? '',
+        authorId: authorId,
+      );
     } else {
-      if (fullScreenShortController.videoItem?.author?.accountType
-              ?.toUpperCase() ==
-          AppConstants.individual) {
-        if (fullScreenShortController.videoItem?.author?.id == userId) {
-          navigatePushTo(context, PersonalProfileSetupNewScreen());
-        } else {
-          Get.to(() => NewVisitProfileScreen(
-                authorId: fullScreenShortController.videoItem?.author?.id ?? '',
-                screenFromName: AppConstants.feedScreen,
-              ));
-        }
-      } else {
-        if (fullScreenShortController.videoItem?.author?.id == userId) {
-          navigatePushTo(context, BusinessOwnProfileScreen());
-        } else {
-          Get.to(() => VisitBusinessProfileNew(
-                businessId:
-                    fullScreenShortController.videoItem?.author?.id ?? '',
-                screenName: AppConstants.feedScreen,
-              ));
-        }
-      }
+      // Business → route by business type + category to the dedicated visit
+      // screen (generic business profile when there's no dedicated match).
+      VisitProfileResolver.open(
+        accountType: author?.accountType,
+        businessType: author?.businessType,
+        businessCategory: author?.categoryOfBusiness,
+        businessId: authorId,
+        userId: authorId,
+      );
     }
   }
 

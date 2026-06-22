@@ -1,12 +1,12 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/common/referral/widgets/referral_share_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:share_plus/share_plus.dart';
 
 /// Code pill displayed in the dashboard's AppBar (right action slot).
 /// Mirrors the capsule in `assets/overview_screen.png`:
@@ -43,14 +43,12 @@ class MyCodeHeader extends StatelessWidget {
     );
   }
 
-  Future<void> _share() async {
+  /// Builds the branded referral poster off-screen and shares it as an
+  /// image, with the full download/referral text as the share body.
+  /// Needs a [BuildContext] to host the off-screen overlay.
+  Future<void> _share(BuildContext context) async {
     if (code.isEmpty) return;
-    await SharePlus.instance.share(
-      ShareParams(
-        text: 'Join BlueEra with my referral code: $code',
-        subject: 'My BlueEra referral code',
-      ),
-    );
+    await ReferralShareCard.buildAndShare(context, code: code);
   }
 
   @override
@@ -98,7 +96,7 @@ class MyCodeHeader extends StatelessWidget {
             const SizedBox(width: 8),
             _IconAction(
               assetPath: AppIconAssets.reelShare,
-              onTap: hasCode ? _share : null,
+              onTap: hasCode ? () => _share(context) : null,
               tooltip: 'Share code',
             ),
           ],

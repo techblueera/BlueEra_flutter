@@ -28,6 +28,7 @@ class AppImageAssets {
   static const String appStore = "${imgPath}app_store.png";
   static const String app_logo = "assets/images/app_logo.png";
   static const String chat_tab_to_do = "assets/images/chat_tab_to_do.png";
+  static const String addSymbolColor = "assets/icons/add_symbol_color.png";
 
   static String leftQuotation = "${imgPath}left_quotation.png";
   static String rightQuotation = "${imgPath}right_quotation.png";

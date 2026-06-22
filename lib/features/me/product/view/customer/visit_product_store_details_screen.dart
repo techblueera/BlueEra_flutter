@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -38,19 +39,24 @@ class VisitProductStoreDetailsScreen extends StatefulWidget {
   });
 
   @override
-  State<VisitProductStoreDetailsScreen> createState() => _VisitProductStoreDetailsScreenState();
+  State<VisitProductStoreDetailsScreen> createState() =>
+      _VisitProductStoreDetailsScreenState();
 }
 
-class _VisitProductStoreDetailsScreenState extends State<VisitProductStoreDetailsScreen> {
-  final InventoryController controller = getOrPut<InventoryController>(() => InventoryController());
+class _VisitProductStoreDetailsScreenState
+    extends State<VisitProductStoreDetailsScreen> {
+  final InventoryController controller =
+  getOrPut<InventoryController>(() => InventoryController());
   final ViewBusinessDetailsController viewBusinessDetailsController =
-      Get.find<ViewBusinessDetailsController>();
-  final StoreController storeController = getOrPut<StoreController>(() => StoreController());
+  Get.find<ViewBusinessDetailsController>();
+  final StoreController storeController =
+  getOrPut<StoreController>(() => StoreController());
   // Session cart — registered by the products entry point. `getOrPut`
   // here returns the same instance the cart bar on the entry point is
   // watching, so add/remove on this screen flows through.
   final ProductSelfPickupController cartController =
-      getOrPut<ProductSelfPickupController>(() => ProductSelfPickupController());
+  getOrPut<ProductSelfPickupController>(
+          () => ProductSelfPickupController());
 
   @override
   void initState() {
@@ -58,7 +64,8 @@ class _VisitProductStoreDetailsScreenState extends State<VisitProductStoreDetail
     // Load the visiting business profile + inventory in parallel, and
     // track the store-detail view (same pattern as the grocery visit
     // screen).
-    viewBusinessDetailsController.viewBusinessProfileByIdIfNeeded(widget.visitUserId);
+    viewBusinessDetailsController
+        .viewBusinessProfileByIdIfNeeded(widget.visitUserId);
     controller.fetchAllProductDataIfNeeded(visitUserId: widget.visitUserId);
     ProfileClickTracker.track(
       userId: widget.visitUserId,
@@ -77,7 +84,8 @@ class _VisitProductStoreDetailsScreenState extends State<VisitProductStoreDetail
   void _onToggleTopSellingCart(dynamic product) {
     final id = _firstVariantId(product);
     if (id == null) return;
-    final bDetails = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
+    final bDetails =
+        viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
     if (cartController.isVariantInCart(id)) {
       cartController.removeFromCart(product);
     } else {
@@ -100,8 +108,10 @@ class _VisitProductStoreDetailsScreenState extends State<VisitProductStoreDetail
         children: [
           RefreshIndicator(
             onRefresh: () async {
-              viewBusinessDetailsController.viewBusinessProfileById(widget.visitUserId);
-              await controller.fetchAllProductData(visitUserId: widget.visitUserId);
+              viewBusinessDetailsController
+                  .viewBusinessProfileById(widget.visitUserId);
+              await controller.fetchAllProductData(
+                  visitUserId: widget.visitUserId);
             },
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -120,16 +130,19 @@ class _VisitProductStoreDetailsScreenState extends State<VisitProductStoreDetail
                     if (viewBusinessDetailsController.isProfileLoading.value) {
                       return buildBusinessHeaderSkeleton();
                     }
-                    final details = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
+                    final details = viewBusinessDetailsController
+                        .visitedBusinessProfileDetails?.data;
                     return Column(
                       children: [
                         VisitBusinessCommonHeader(
                           details: details,
-                          onRated: () => viewBusinessDetailsController.viewBusinessProfileById(
+                          onRated: () => viewBusinessDetailsController
+                              .viewBusinessProfileById(
                             widget.visitUserId,
                             silent: true,
                           ),
-                          onFollowChanged: () => viewBusinessDetailsController.viewBusinessProfileById(
+                          onFollowChanged: () => viewBusinessDetailsController
+                              .viewBusinessProfileById(
                             widget.visitUserId,
                             silent: true,
                           ),
@@ -141,32 +154,39 @@ class _VisitProductStoreDetailsScreenState extends State<VisitProductStoreDetail
                   }),
 
                   // ─── 2. Top Selling Products (preview of 20) ───
-                  // Obx(() {
-                  //   if (controller.ownDraftAndPublicProductResponse.value.status == Status.INITIAL) {
-                  //     return Padding(
-                  //       padding: EdgeInsets.only(top: SizeConfig.paddingXSL),
-                  //       child: buildHorizontalListSkeleton(),
-                  //     );
-                  //   }
-                  //   return controller.allProducts.isNotEmpty ? _topSellingProduct() : const SizedBox.shrink();
-                  // }),
+                  Obx(() {
+                    if (controller.ownDraftAndPublicProductResponse.value.status ==
+                        Status.INITIAL) {
+                      return Padding(
+                        padding: EdgeInsets.only(top: SizeConfig.paddingXSL),
+                        child: buildHorizontalListSkeleton(),
+                      );
+                    }
+                    return controller.allProducts.isNotEmpty
+                        ? _topSellingProduct()
+                        : const SizedBox.shrink();
+                  }),
+
 
                   // ─── 3. Categories ───
-                  // Obx(() {
-                  //   if (controller.fetchProductCategoryResponse.value.status ==
-                  //       Status.INITIAL) {
-                  //     return buildCategoryGridSkeleton();
-                  //   }
-                  //   return _categoryWithInventoryWidget();
-                  // }),
+                  Obx(() {
+                    if (controller.fetchProductCategoryResponse.value.status ==
+                        Status.INITIAL) {
+                      return buildCategoryGridSkeleton();
+                    }
+                    return _categoryWithInventoryWidget();
+                  }),
+
 
                   // ─── 4. Live Photos ───
                   Obx(() {
                     if (viewBusinessDetailsController.isProfileLoading.value) {
                       return const SizedBox.shrink();
                     }
-                    final details = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
-                    if (details?.livePhotos != null && details!.livePhotos!.any((p) => p.trim().isNotEmpty)) {
+                    final details = viewBusinessDetailsController
+                        .visitedBusinessProfileDetails?.data;
+                    if (details?.livePhotos != null &&
+                        details!.livePhotos!.any((p) => p.trim().isNotEmpty)) {
                       return Padding(
                         padding: EdgeInsets.only(top: SizeConfig.paddingM),
                         child: CustomFormCard(
@@ -181,9 +201,13 @@ class _VisitProductStoreDetailsScreenState extends State<VisitProductStoreDetail
                               ),
                               const SizedBox(height: 10),
                               StoreLivePhotoWidget(
-                                livePhotos: details.livePhotos!.where((p) => p.trim().isNotEmpty).toList(),
+                                livePhotos: details.livePhotos!
+                                    .where((p) => p.trim().isNotEmpty)
+                                    .toList(),
                                 natureOfBusiness:
-                                    details.subCategoryDetails?.name ?? details.natureOfBusiness ?? 'OTHER',
+                                details.subCategoryDetails?.name ??
+                                    details.natureOfBusiness ??
+                                    'OTHER',
                                 onViewFullScreen: ({
                                   required int index,
                                   required List<String> storeImage,
@@ -213,7 +237,8 @@ class _VisitProductStoreDetailsScreenState extends State<VisitProductStoreDetail
                     if (viewBusinessDetailsController.isProfileLoading.value) {
                       return const SizedBox.shrink();
                     }
-                    final details = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
+                    final details = viewBusinessDetailsController
+                        .visitedBusinessProfileDetails?.data;
                     return BusinessContactMapCard(
                       businessProfileDetails: details,
                       showEditButton: false,
@@ -268,7 +293,7 @@ class _VisitProductStoreDetailsScreenState extends State<VisitProductStoreDetail
               SizedBox(width: SizeConfig.size8),
               InkWell(
                 onTap: () => Get.to(
-                  () => CustomerAllTopSellingProductsScreen(
+                      () => CustomerAllTopSellingProductsScreen(
                     visitUserId: widget.visitUserId,
                   ),
                 ),
@@ -287,7 +312,8 @@ class _VisitProductStoreDetailsScreenState extends State<VisitProductStoreDetail
             child: Builder(builder: (context) {
               // Preview only — cap to first 20 items; "View All" opens
               // the paginated grid.
-              final previewCount = controller.allProducts.length > InventoryController.ownProductsPreviewLimit
+              final previewCount = controller.allProducts.length >
+                  InventoryController.ownProductsPreviewLimit
                   ? InventoryController.ownProductsPreviewLimit
                   : controller.allProducts.length;
               return ListView.builder(
@@ -297,7 +323,8 @@ class _VisitProductStoreDetailsScreenState extends State<VisitProductStoreDetail
                   final product = controller.allProducts[index];
 
                   return GestureDetector(
-                    onTap: () => ProductInventoryBottomSheet.show(context, product: product),
+                    onTap: () => ProductInventoryBottomSheet.show(context,
+                        product: product),
                     child: Container(
                       width: SizeConfig.size160,
                       margin: const EdgeInsets.only(right: 8.0),
@@ -312,22 +339,32 @@ class _VisitProductStoreDetailsScreenState extends State<VisitProductStoreDetail
                           Expanded(
                             child: ProductTopSellingImage(
                               product: product,
-                              onPreviewTap: () => ProductInventoryBottomSheet.show(context, product: product),
+                              onPreviewTap: () => ProductInventoryBottomSheet
+                                  .show(context, product: product),
                               cartOverlay: Obx(() {
-                                final cart = cartController.selectedProductVariants;
+                                final cart =
+                                    cartController.selectedProductVariants;
                                 // ignore: unused_local_variable
                                 final _ = cart.length;
                                 final id = _firstVariantId(product);
-                                final added = cartController.isVariantInCart(id);
+                                final added =
+                                cartController.isVariantInCart(id);
                                 return IconButton(
                                   padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-                                  onPressed: id == null ? null : () => _onToggleTopSellingCart(product),
+                                  constraints: const BoxConstraints(
+                                      minWidth: 28, minHeight: 28),
+                                  onPressed: id == null
+                                      ? null
+                                      : () => _onToggleTopSellingCart(
+                                      product),
                                   icon: Container(
                                     padding: const EdgeInsets.all(4),
                                     decoration: BoxDecoration(
-                                      color: added ? AppColors.greenShade : AppColors.blackMite,
-                                      borderRadius: BorderRadius.circular(20),
+                                      color: added
+                                          ? AppColors.greenShade
+                                          : AppColors.blackMite,
+                                      borderRadius:
+                                      BorderRadius.circular(20),
                                     ),
                                     child: Icon(
                                       added ? Icons.check : Icons.add,
@@ -374,35 +411,35 @@ class _VisitProductStoreDetailsScreenState extends State<VisitProductStoreDetail
           SizedBox(height: SizeConfig.paddingXSL),
           categoryList.isNotEmpty
               ? MasonryGridView.count(
-                  crossAxisCount: 3,
-                  crossAxisSpacing: 6,
-                  mainAxisSpacing: 6,
-                  padding: EdgeInsets.zero,
-                  primary: false,
-                  shrinkWrap: true,
-                  itemCount: categoryList.length,
-                  itemBuilder: (context, index) {
-                    var categoryItem = categoryList[index];
-                    return CommonServiceCard(
-                      service: categoryItem,
-                      getName: (c) => c.name ?? '',
-                      getIcon: (c) => c.image ?? '',
-                      iconHeight: SizeConfig.size60,
-                      boxShadow: const [],
-                      onTap: (c) {
-                        Get.to(
-                          () => VisitProductProductsScreen(
-                            parentCategory: c,
-                            visitBusinessId: widget.visitUserId,
-                          ),
-                        );
-                      },
-                    );
-                  },
-                )
+            crossAxisCount: 3,
+            crossAxisSpacing: 6,
+            mainAxisSpacing: 6,
+            padding: EdgeInsets.zero,
+            primary: false,
+            shrinkWrap: true,
+            itemCount: categoryList.length,
+            itemBuilder: (context, index) {
+              var categoryItem = categoryList[index];
+              return CommonServiceCard(
+                service: categoryItem,
+                getName: (c) => c.name ?? '',
+                getIcon: (c) => c.image ?? '',
+                iconHeight: SizeConfig.size60,
+                boxShadow: const [],
+                onTap: (c) {
+                  Get.to(
+                        () => VisitProductProductsScreen(
+                      parentCategory: c,
+                      visitBusinessId: widget.visitUserId,
+                    ),
+                  );
+                },
+              );
+            },
+          )
               : EmptyStateWidget(
-                  message: 'This store has no products yet.',
-                ),
+            message: 'This store has no products yet.',
+          ),
           SizedBox(height: SizeConfig.paddingXSL),
         ],
       ),

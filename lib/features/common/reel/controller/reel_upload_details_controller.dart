@@ -104,7 +104,11 @@ class ReelUploadDetailsController extends GetxController {
   //   }
   // }
 
-  Future<void> uploadInit(
+  /// Returns true only when the presigned URL was obtained. On failure it
+  /// clears the corresponding init file (so a stale URL from a prior attempt
+  /// can't leak through) and returns false — the caller decides whether to
+  /// proceed, instead of this step silently swallowing the error.
+  Future<bool> uploadInit(
       {required Map<String, dynamic> queryParams,
       required bool isVideoUpload}) async {
     try {
@@ -120,23 +124,39 @@ class ReelUploadDetailsController extends GetxController {
         } else {
           uploadInitCoverImageFile = uploadInit;
         }
+        return true;
       } else {
         uploadInitResponse = ApiResponse.error('error');
-        commonSnackBar(
-            message: response?.message ?? AppStrings.somethingWentWrong);
+        if (isVideoUpload) {
+          uploadInitVideoFile = null;
+        } else {
+          uploadInitCoverImageFile = null;
+        }
+        return false;
       }
-    } catch (e) {
+    } catch (e, s) {
+      log('uploadInit error: $e', stackTrace: s, name: 'ReelUpload');
       uploadInitResponse = ApiResponse.error('error');
-      commonSnackBar(message: AppStrings.somethingWentWrong);
+      if (isVideoUpload) {
+        uploadInitVideoFile = null;
+      } else {
+        uploadInitCoverImageFile = null;
+      }
+      return false;
     }
   }
 
-  Future<void> uploadFileToS3({
+  /// Returns true when the file lands in S3. On failure returns false so the
+  /// caller can abort before registering a video with a missing asset.
+  Future<bool> uploadFileToS3({
     required File file,
     required String fileType,
     required String preSignedUrl,
     required Function(double progress) onProgress,
   }) async {
+    // No presigned URL → the init step failed; don't even attempt the PUT
+    // (this is what threw "No host specified in URI").
+    if (preSignedUrl.isEmpty) return false;
     try {
       ResponseModel? response = await ChannelRepo().uploadVideoToS3(
           onProgress: onProgress,
@@ -146,14 +166,15 @@ class ReelUploadDetailsController extends GetxController {
 
       if (response?.isSuccess ?? false) {
         uploadFileToS3Response = ApiResponse.complete(response);
+        return true;
       } else {
         uploadFileToS3Response = ApiResponse.error('error');
-        commonSnackBar(
-            message: response?.message ?? AppStrings.somethingWentWrong);
+        return false;
       }
-    } catch (e) {
+    } catch (e, s) {
+      log('uploadFileToS3 error: $e', stackTrace: s, name: 'ReelUpload');
       uploadFileToS3Response = ApiResponse.error('error');
-      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
     }
   }
 

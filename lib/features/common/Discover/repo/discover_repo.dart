@@ -178,6 +178,29 @@ class DiscoverRepo extends BaseService {
     return response;
   }
 
+  /// GET a single self-employed earn-service by its owner [userId].
+  /// Backs the visit flow where we only have the author id (no list item).
+  Future<ResponseModel> fetchEarnServiceByUserId(String userId) async {
+    return ApiBaseHelper().getHTTP(
+      earnServiceByUserID(userId),
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+  }
+
+  /// GET a single professional/consultant by [userId] (the search endpoint
+  /// filtered to one user — we take the first result).
+  Future<ResponseModel> fetchProfessionalByUserId(String userId) async {
+    return ApiBaseHelper().getHTTP(
+      professionalSearch,
+      params: {'userId': userId},
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+  }
+
   /// GET: Get Hotel Stay
   Future<ResponseModel> fetchHotelSearchRepo({required Map<String, dynamic> queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(

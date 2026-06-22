@@ -37,8 +37,12 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
   // alive (a 3-entry sliding window) so memory stays flat while the neighbours
   // are preloaded for instant, stutter-free swipes.
   final _videoCache = <int, _VideoCacheEntry>{};
-  static const double _swipeThreshold = 0.5;
-  int _lastRoundedPage = 0;
+
+  /// Video ids whose HLS master stream errored (e.g. an HEVC/H.265 variant the
+  /// device's decoder can't handle) and were transparently rebuilt on the
+  /// progressive mp4. Sticky for the session so a recovered page never flips
+  /// back to the broken master and loops.
+  final Set<String> _mp4FallbackIds = <String>{};
 
   @override
   void initState() {
@@ -51,7 +55,6 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
     print('🚀 INIT: ShortsPlayerScreen initializing...');
     WidgetsBinding.instance.addObserver(this);
     currentIndex = widget.initialIndex;
-    _lastRoundedPage = currentIndex;
     _pageController = PageController(initialPage: currentIndex);
     print('📍 INIT: Starting at index $currentIndex');
 
@@ -137,19 +140,6 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
     print('🔓 WAKE-LOCK released');
   }
 
-  /* --------------  NEW : half-page swipe  -------------- */
-  void _onScroll() {
-    if (!_pageController.hasClients) return;
-    final double page = _pageController.page!;
-    final int round = page.round();
-    if (round != _lastRoundedPage && (page - round).abs() < _swipeThreshold) {
-      // _copyStateToNeighbour(_lastRoundedPage, round);
-      print('📜 SCROLL: Half-page swipe detected from $_lastRoundedPage to $round');
-      _lastRoundedPage = round;
-      _warmUpRange(round);
-      setState(() {});
-    }
-  }
   //
   // void _copyStateToNeighbour(int from, int to) {
   //   final list = _getCurrentFeedList(shortsFeedController);
@@ -201,7 +191,7 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
       if (item == null) continue;
 
       toCreate.add(i);
-      _videoCache[i] = _createEntry(item);
+      _videoCache[i] = _createEntry(item, i);
     }
 
     if (toCreate.isNotEmpty) {
@@ -211,16 +201,28 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
 
   /// Picks the playback url: the HLS/adaptive master stream on Android (far
   /// smoother and lighter than the raw mp4), falling back to the progressive
-  /// url. Must match [ShortPlayerItem] so we never download two variants.
+  /// url. Once a video's master has errored (see [_onControllerError]) we pin
+  /// it to the mp4. Must match [ShortPlayerItem] so we never download two
+  /// variants.
   String _resolveUrl(ShortFeedItem item) {
-    if (GetPlatform.isAndroid) {
-      return item.video?.transcodedUrls?.master ?? item.video?.videoUrl ?? '';
+    final master = item.video?.transcodedUrls?.master;
+    final mp4 = item.video?.videoUrl;
+    final id = item.video?.id;
+    final useFallback = id != null && _mp4FallbackIds.contains(id);
+    if (GetPlatform.isAndroid &&
+        !useFallback &&
+        master != null &&
+        master.isNotEmpty) {
+      return master;
     }
-    return item.video?.videoUrl ?? '';
+    return mp4 ?? master ?? '';
   }
 
-  /// Builds a ready-to-initialize cache entry for [item].
-  _VideoCacheEntry _createEntry(ShortFeedItem item) {
+  /// Builds a ready-to-initialize cache entry for [item] at [index]. Attaches
+  /// an error watcher so a mid-stream decode/load failure on the HLS master
+  /// (common with some HEVC variants) transparently rebuilds the slot on the
+  /// progressive mp4 instead of dead-ending on a Retry button.
+  _VideoCacheEntry _createEntry(ShortFeedItem item, int index) {
     final url = _resolveUrl(item);
     final controller = VideoPlayerController.networkUrl(
       Uri.parse(url),
@@ -233,11 +235,41 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
           : const {},
     );
     controller.setLooping(true);
+
+    void onError() {
+      if (!mounted) return;
+      if (controller.value.hasError) {
+        controller.removeListener(onError);
+        _onControllerError(index, item);
+      }
+    }
+
+    controller.addListener(onError);
     return _VideoCacheEntry(
       controller: controller,
       initializeFuture: controller.initialize(),
       coverUrl: item.video?.coverUrl,
     );
+  }
+
+  /// First error on a video's HLS master → pin it to the progressive mp4 and
+  /// rebuild this slot. If we're already on mp4 (or there's no mp4 to fall back
+  /// to) we leave the controller errored so [ShortPlayerItem] shows its Retry —
+  /// that's a genuine failure, not the HEVC-HLS quirk.
+  void _onControllerError(int index, ShortFeedItem item) {
+    final id = item.video?.id;
+    final mp4 = item.video?.videoUrl;
+    if (id == null ||
+        _mp4FallbackIds.contains(id) ||
+        mp4 == null ||
+        mp4.isEmpty) {
+      return;
+    }
+    _mp4FallbackIds.add(id);
+    _videoCache[index]?.controller?.dispose();
+    _videoCache[index] = _createEntry(item, index); // now resolves to mp4
+    if (index == currentIndex) _playWhenReady(index);
+    if (mounted) setState(() {});
   }
 
   /// Dispose + rebuild a single controller. Used by the per-item Retry so a
@@ -248,7 +280,7 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
     if (item == null) return;
     print('🔁 RELOAD: Rebuilding controller for index $index');
     _videoCache[index]?.controller?.dispose();
-    _videoCache[index] = _createEntry(item);
+    _videoCache[index] = _createEntry(item, index);
     if (index == currentIndex) _playWhenReady(index);
     if (mounted) setState(() {});
   }
@@ -461,16 +493,11 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
             children: [
               Obx(() {
                 final list = _getCurrentFeedList(shortsFeedController!);
-                return NotificationListener<ScrollNotification>(
-                  onNotification: (_) {
-                    _onScroll(); // half-page swipe
-                    return false;
-                  },
-                  child: PageView.builder(
-                    scrollDirection: Axis.vertical,
-                    controller: _pageController,
-                    itemCount: list?.length ?? 0,
-                    onPageChanged: _onPageChanged,
+                return PageView.builder(
+                  scrollDirection: Axis.vertical,
+                  controller: _pageController,
+                  itemCount: list?.length ?? 0,
+                  onPageChanged: _onPageChanged,
                     itemBuilder: (_, index) {
                       final item = list![index];
                       return ShortPlayerItem(
@@ -503,9 +530,17 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
                         /* ---------------------------------------- */
                       );
                     },
-                  ),
                 );
               }),
+
+              // Instagram-style seekable scrubber, lifted off the bottom edge
+              // and inset so it's easy to grab and drag.
+              Positioned(
+                left: 12,
+                right: 12,
+                bottom: 14,
+                child: _buildProgressBar(),
+              ),
 
               // DEBUG: Floating button for manual cache inspection (remove in production)
               // Positioned(
@@ -523,6 +558,15 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
         ),
       ),
     );
+  }
+
+  /// Instagram-style seekable scrubber for the *current* reel. Keyed by the
+  /// controller so its scrub state resets when the page (or the mp4-fallback
+  /// swap) hands us a different controller.
+  Widget _buildProgressBar() {
+    final controller = _videoCache[currentIndex]?.controller;
+    if (controller == null) return const SizedBox.shrink();
+    return _ReelScrubBar(key: ValueKey(controller), controller: controller);
   }
 
   // Enhanced cache printing method
@@ -573,5 +617,175 @@ class _VideoCacheEntry {
   String? coverUrl;
 
   _VideoCacheEntry({this.controller, this.initializeFuture, this.coverUrl});
+}
+
+/// Instagram-style seekable scrubber. Thin while playing; on touch it thickens,
+/// grows a draggable knob, and reveals the current / total time. Dragging seeks
+/// the underlying controller live, so the full-screen video frame itself
+/// previews the scrubbed moment (video_player has no sprite thumbnails — the
+/// real frame is the preview). Playback resumes on release if it was playing.
+class _ReelScrubBar extends StatefulWidget {
+  final VideoPlayerController controller;
+  const _ReelScrubBar({super.key, required this.controller});
+
+  @override
+  State<_ReelScrubBar> createState() => _ReelScrubBarState();
+}
+
+class _ReelScrubBarState extends State<_ReelScrubBar> {
+  bool _scrubbing = false;
+  double _scrubFraction = 0; // 0..1 while scrubbing
+  bool _wasPlaying = false;
+
+  String _fmt(Duration d) {
+    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return '$m:$s';
+  }
+
+  void _startScrub(double dx, double width) {
+    final value = widget.controller.value;
+    if (!value.isInitialized || value.duration.inMilliseconds <= 0) return;
+    // A drag fires both onTapDown and onHorizontalDragStart → don't re-capture
+    // _wasPlaying (we've already paused, so it'd read false and never resume).
+    if (_scrubbing) {
+      _updateScrub(dx, width);
+      return;
+    }
+    _wasPlaying = value.isPlaying;
+    widget.controller.pause();
+    setState(() {
+      _scrubbing = true;
+      _scrubFraction = (dx / width).clamp(0.0, 1.0);
+    });
+    _seekToFraction(_scrubFraction);
+  }
+
+  void _updateScrub(double dx, double width) {
+    if (!_scrubbing) return;
+    setState(() => _scrubFraction = (dx / width).clamp(0.0, 1.0));
+    _seekToFraction(_scrubFraction);
+  }
+
+  void _endScrub() {
+    if (!_scrubbing) return;
+    setState(() => _scrubbing = false);
+    if (_wasPlaying) widget.controller.play();
+  }
+
+  void _seekToFraction(double f) =>
+      widget.controller.seekTo(widget.controller.value.duration * f);
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<VideoPlayerValue>(
+      valueListenable: widget.controller,
+      builder: (_, value, __) {
+        if (!value.isInitialized || value.duration.inMilliseconds <= 0) {
+          return const SizedBox.shrink();
+        }
+        final fraction = _scrubbing
+            ? _scrubFraction
+            : (value.position.inMilliseconds / value.duration.inMilliseconds)
+                .clamp(0.0, 1.0);
+        final current = value.duration * fraction;
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Current / total time — fades in only while scrubbing (IG-style).
+            AnimatedOpacity(
+              opacity: _scrubbing ? 1 : 0,
+              duration: const Duration(milliseconds: 150),
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 6),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(_fmt(current),
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600)),
+                    Text(_fmt(value.duration),
+                        style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.7),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600)),
+                  ],
+                ),
+              ),
+            ),
+            LayoutBuilder(builder: (ctx, c) {
+              final width = c.maxWidth;
+              final barHeight = _scrubbing ? 5.0 : 2.5;
+              final playedWidth = (width * fraction).clamp(0.0, width);
+              return GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onHorizontalDragStart: (d) =>
+                    _startScrub(d.localPosition.dx, width),
+                onHorizontalDragUpdate: (d) =>
+                    _updateScrub(d.localPosition.dx, width),
+                onHorizontalDragEnd: (_) => _endScrub(),
+                onHorizontalDragCancel: _endScrub,
+                onTapDown: (d) => _startScrub(d.localPosition.dx, width),
+                onTapUp: (_) => _endScrub(),
+                // Tall transparent hit area so the thin line is easy to grab.
+                child: SizedBox(
+                  height: 22,
+                  width: double.infinity,
+                  child: Center(
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      alignment: Alignment.centerLeft,
+                      children: [
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          width: width,
+                          height: barHeight,
+                          decoration: BoxDecoration(
+                            color: AppColors.white.withValues(alpha: 0.25),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          width: playedWidth,
+                          height: barHeight,
+                          decoration: BoxDecoration(
+                            color: AppColors.white,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                        if (_scrubbing)
+                          Positioned(
+                            left: playedWidth - 7,
+                            child: Container(
+                              width: 14,
+                              height: 14,
+                              decoration: BoxDecoration(
+                                color: AppColors.white,
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color:
+                                        Colors.black.withValues(alpha: 0.3),
+                                    blurRadius: 4,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ],
+        );
+      },
+    );
+  }
 }
 

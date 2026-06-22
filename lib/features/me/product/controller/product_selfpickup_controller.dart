@@ -192,21 +192,9 @@ class ProductSelfPickupController extends GetxController {
   }
 
   /// Product thumbnail — prefers the product-level media, then falls back to
-  /// the first variant's media.
-  String? imageOf(GetProductData p) {
-    final media = p.product.details?.media;
-    if (media != null && media.isNotEmpty && media.first.isNotEmpty) {
-      return media.first;
-    }
-    final variants = p.product.sellerClassification?.variants;
-    if (variants != null && variants.isNotEmpty) {
-      final variantMedia = variants.first.mediaRelatedToVariant;
-      if (variantMedia.isNotEmpty && variantMedia.first.isNotEmpty) {
-        return variantMedia.first;
-      }
-    }
-    return null;
-  }
+  /// the first variant's media. Delegates to [GetProductData.primaryImageUrl]
+  /// so the cart and every other product surface resolve the same image.
+  String? imageOf(GetProductData p) => p.primaryImageUrl;
 
   /// Build order payload per the integration guide.
   List<Map<String, dynamic>> buildBulkOrderItems() {

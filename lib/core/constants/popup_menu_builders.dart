@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -42,7 +43,7 @@ class PopupMenuBuilders {
     const iconMap = {
       PostCreationMenu.message: AppIconAssets.message_post,
       // PostCreationMenu.symbol:  AppIconAssets.message_post,
-      PostCreationMenu.symbol: "assets/icons/add_symbol_color.png",
+      PostCreationMenu.symbol: AppImageAssets.addSymbolColor,
       PostCreationMenu.poll: AppIconAssets.qa_ask_questionOutlinedIcon,
       // PostCreationMenu.photos: AppIconAssets.photosOutlinedIcon,
       PostCreationMenu.reel: AppIconAssets.video_outline,

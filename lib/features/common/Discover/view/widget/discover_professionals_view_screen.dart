@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart';
 import 'package:BlueEra/features/common/Discover/widget/profession_enquiry_sheet.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/portfolio_project_card_widget.dart';
@@ -24,11 +25,88 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class DiscoverProfessionalsViewScreen extends StatelessWidget {
+/// Public entry point. Pass [professionalConsData] when you already hold the
+/// model (Discover lists), or just a [userId] to have the screen fetch it on
+/// open (visit flow).
+class DiscoverProfessionalsViewScreen extends StatefulWidget {
+  final ProfessionalConsData? professionalConsData;
+  final String? userId;
+
+  const DiscoverProfessionalsViewScreen({
+    super.key,
+    this.professionalConsData,
+    this.userId,
+  });
+
+  @override
+  State<DiscoverProfessionalsViewScreen> createState() =>
+      _DiscoverProfessionalsViewScreenState();
+}
+
+class _DiscoverProfessionalsViewScreenState
+    extends State<DiscoverProfessionalsViewScreen> {
+  ProfessionalConsData? _data;
+  bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _data = widget.professionalConsData;
+    if (_data == null && (widget.userId?.isNotEmpty ?? false)) {
+      _fetch();
+    }
+  }
+
+  Future<void> _fetch() async {
+    setState(() => _loading = true);
+    final controller = Get.isRegistered<DiscoverController>()
+        ? Get.find<DiscoverController>()
+        : Get.put(DiscoverController());
+    final result = await controller.getProfessionalByUserId(widget.userId!);
+    if (!mounted) return;
+    setState(() {
+      _data = result;
+      _loading = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final data = _data;
+    if (data != null) {
+      return _ProfessionalsContent(professionalConsData: data);
+    }
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: AppColors.mainTextColor),
+      ),
+      body: Center(
+        child: _loading
+            ? const CircularProgressIndicator()
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.person_off_outlined,
+                      size: 48, color: AppColors.secondaryTextColor),
+                  SizedBox(height: SizeConfig.size8),
+                  CustomText(
+                    AppStrings.noDataFound.tr,
+                    color: AppColors.secondaryTextColor,
+                  ),
+                ],
+              ),
+      ),
+    );
+  }
+}
+
+class _ProfessionalsContent extends StatelessWidget {
   final ProfessionalConsData professionalConsData;
 
-  const DiscoverProfessionalsViewScreen(
-      {super.key, required this.professionalConsData});
+  const _ProfessionalsContent({required this.professionalConsData});
 
   @override
   Widget build(BuildContext context) {

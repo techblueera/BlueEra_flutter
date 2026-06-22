@@ -11,6 +11,7 @@ import 'package:BlueEra/features/me/grocery/widget/customer_grocery_self_pickup_
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_business_products_model.dart';
+import 'package:BlueEra/features/me/grocery/widget/grocery_qty_stepper.dart';
 import 'package:BlueEra/features/me/grocery/widget/grocery_top_selling_tile.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -117,60 +118,21 @@ class _AllTopSellingGroceryProductsScreenState
     );
   }
 
-  /// Returns true if the given product variant is currently in the cart.
-  /// Only meaningful in customer mode.
-  bool _isVariantInCart(BusinessProductData item) {
+  /// Adds one of [item]'s variant to the cart (first tap / "+" on the
+  /// stepper). Decrement is handled directly in the tile via the
+  /// controller, since it needs no business context.
+  void _onAddToCart(BusinessProductData item) {
     final ctrl = _groceryCustomerController;
-    if (ctrl == null) return false;
-    final variantId = item.productVariant?.sId;
-    if (variantId == null) return false;
-    return ctrl.selectedGroceriesVariants.any((v) => v.sId == variantId);
-  }
-
-  void _onToggleCart(BusinessProductData item) {
-    final ctrl = _groceryCustomerController;
-    if (ctrl == null) {
-      dev.log(
-        '[AllTopSelling] toggle aborted — ctrl is null',
-        name: 'AllTopSelling',
-      );
-      return;
-    }
+    if (ctrl == null) return;
     final productVariant = item.productVariant;
     if (productVariant == null) {
       commonSnackBar(message: AppStrings.groceryViewNoVariantsAvailable.tr);
       return;
     }
 
-    final beforeLen = ctrl.selectedGroceriesVariants.length;
-    final already = _isVariantInCart(item);
-    dev.log(
-      '[AllTopSelling] toggle tapped variantId=${productVariant.sId} '
-      'alreadyInCart=$already beforeLen=$beforeLen '
-      'ctrlHash=${identityHashCode(ctrl)}',
-      name: 'AllTopSelling',
-    );
-
-    if (already) {
-      ctrl.removeFromCart(productVariant);
-      dev.log(
-        '[AllTopSelling] after removeFromCart len=${ctrl.selectedGroceriesVariants.length}',
-        name: 'AllTopSelling',
-      );
-      return;
-    }
-
     final bDetails = _viewBusinessDetailsController
         ?.visitedBusinessProfileDetails
         ?.data;
-    // Resolve image: prefer product-level image, fallback to variant image.
-    String? productImage;
-    if (item.product?.images?.isNotEmpty ?? false) {
-      productImage = item.product!.images!.first.url;
-    } else if (productVariant.images?.isNotEmpty ?? false) {
-      productImage = productVariant.images!.first.url;
-    }
-
     ctrl.addToCart(
       productVariant,
       inventoryId: item.sId,
@@ -179,12 +141,9 @@ class _AllTopSellingGroceryProductsScreenState
       businessName: bDetails?.businessName,
       businessLogo: bDetails?.logo,
       businessAddress: bDetails?.address,
-      productImage: productImage,
-    );
-    dev.log(
-      '[AllTopSelling] after addToCart len=${ctrl.selectedGroceriesVariants.length} '
-      'bDetails.name=${bDetails?.businessName} visitBusinessId=${widget.visitBusinessId}',
-      name: 'AllTopSelling',
+      // Shared resolver (variant image → product image) so the cart
+      // thumbnail matches the tile.
+      productImage: item.primaryImageUrl,
     );
   }
 
@@ -250,8 +209,8 @@ class _AllTopSellingGroceryProductsScreenState
                         customerController: _isCustomerMode
                             ? _groceryCustomerController
                             : null,
-                        onToggleCart: _isCustomerMode
-                            ? () => _onToggleCart(items[index])
+                        onIncrement: _isCustomerMode
+                            ? () => _onAddToCart(items[index])
                             : null,
                       ),
                     ),
@@ -297,12 +256,14 @@ class _TopSellingProductTile extends StatelessWidget {
 
   final GrocerySelfPickupConsumerController? customerController;
 
-  final VoidCallback? onToggleCart;
+  /// Add-one handler (owns the business context). Decrement is handled
+  /// inline against [customerController].
+  final VoidCallback? onIncrement;
 
   const _TopSellingProductTile({
     required this.item,
     this.customerController,
-    this.onToggleCart,
+    this.onIncrement,
   });
 
   bool get _isCustomerMode => customerController != null;
@@ -328,39 +289,24 @@ class _TopSellingProductTile extends StatelessWidget {
               child: GroceryTopSellingImage(
                 item: item,
                 cartOverlay: _isCustomerMode
-                    ? Obx(() {
-                        final cart = customerController!
-                            .selectedGroceriesVariants;
-                        final cartLen = cart.length;
-                        final variantId = item.productVariant?.sId;
-                        final added = variantId != null &&
-                            cart.any((v) => v.sId == variantId);
-                        dev.log(
-                          '[AllTopSelling] tile Obx variantId=$variantId '
-                          'cartLen=$cartLen added=$added '
-                          'ctrlHash=${identityHashCode(customerController)} '
-                          'listHash=${identityHashCode(cart)} '
-                          'cartIds=${cart.map((v) => v.sId).toList()}',
-                          name: 'AllTopSelling',
-                        );
-                        return IconButton(
-                          onPressed: onToggleCart,
-                          icon: Container(
-                            // padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: added
-                                  ? AppColors.greenShade
-                                  : AppColors.blackMite,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Icon(
-                              added ? Icons.check : Icons.add,
-                              size: SizeConfig.size16,
-                              color: AppColors.white,
-                            ),
-                          ),
-                        );
-                      })
+                    ? Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Obx(() {
+                          final variant = item.productVariant;
+                          // Live quantity → stepper rebuilds on every
+                          // add / remove / qty change.
+                          final qty = customerController!
+                              .getQuantity(variant?.sId);
+                          return GroceryQtyStepper(
+                            quantity: qty,
+                            onIncrement: onIncrement ?? () {},
+                            onDecrement: () {
+                              if (variant == null) return;
+                              customerController!.removeFromCart(variant);
+                            },
+                          );
+                        }),
+                      )
                     : null,
               ),
             ),

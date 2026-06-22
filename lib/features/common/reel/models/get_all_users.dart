@@ -31,7 +31,7 @@ class UsersData {
   final String? profileImage;
   final String? message;
   final String? designation;
-  final CategoryOfBusiness? categoryOfBusiness;
+  final String? categoryOfBusiness;
   final RxBool isSelected = false.obs;
 
 
@@ -61,26 +61,10 @@ class UsersData {
       profileImage: json['profile_image'],
       message: json['message'],
       designation: json['designation'],
-      categoryOfBusiness: json['category_Of_Business'] == null
-          ? null
-          : CategoryOfBusiness.fromJson(
-          json['category_Of_Business'] as Map<String, dynamic>),
+      // `category_Of_Business` is a plain slug string (e.g. "GENERAL_STORE"),
+      // not an object. The old code cast it to a Map and threw — which is why
+      // a successful 200 still surfaced a "something went wrong" toast.
+      categoryOfBusiness: json['category_Of_Business']?.toString(),
     );
   }
-}
-
-
-class CategoryOfBusiness {
-  final String id;
-  final String name;
-
-  CategoryOfBusiness({required this.id, required this.name});
-
-  factory CategoryOfBusiness.fromJson(Map<String, dynamic> json) =>
-      CategoryOfBusiness(
-        id: json['_id'] as String,
-        name: json['name'] as String,
-      );
-
-  Map<String, dynamic> toJson() => {'_id': id, 'name': name};
 }

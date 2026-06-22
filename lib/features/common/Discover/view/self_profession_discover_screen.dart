@@ -289,20 +289,8 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
                           userId: service.id ?? '',
                           source: ChatClickSource.searchResult,
                         );
-                        Get.to(() => SelfEmployeeViewDiscoverScreen(
-                              service: service,
-                              timingMap:
-                                  getMinMaxTimings(service.service?.effectiveTimings),
-                              priceDisplay: priceDisplay,
-                              priceBadgeText: (priceData?.feeType ??
-                                          priceData?.priceType ??
-                                          '')
-                                      .capitalizeFirst ??
-                                  '',
-                              priceBadgeColor: isRange
-                                  ? AppColors.green1A
-                                  : AppColors.primaryColor,
-                            ));
+                        Get.to(() =>
+                            SelfEmployeeViewDiscoverScreen(service: service));
                       },
                       borderRadius: BorderRadius.circular(20),
                       child: Container(
@@ -575,27 +563,12 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
         ? null
         : '${compactTime(timingStart)}-${compactTime(timingEnd)}';
 
-    // For the price badge inside SelfEmployeeViewScreen — kept
-    // identical to the legacy card so the detail page reads the same.
-    final priceDisplay = isRange
-        ? "₹${formatIndianNumber(priceMin)}-${formatIndianNumber(priceMax)}"
-        : "₹${formatIndianNumber(priceMin)}";
-    final badgeColor = isRange ? AppColors.green1A : AppColors.primaryColor;
-    final badgeText =
-        (priceData?.feeType ?? priceData?.priceType ?? '').capitalizeFirst ?? '';
-
     void openDetail() {
       ProfileClickTracker.track(
         userId: service.id ?? '',
         source: ChatClickSource.searchResult,
       );
-      Get.to(() => SelfEmployeeViewDiscoverScreen(
-            service: service,
-            timingMap: timingMap,
-            priceDisplay: priceDisplay,
-            priceBadgeText: badgeText,
-            priceBadgeColor: badgeColor,
-          ));
+      Get.to(() => SelfEmployeeViewDiscoverScreen(service: service));
     }
 
     return InkWell(

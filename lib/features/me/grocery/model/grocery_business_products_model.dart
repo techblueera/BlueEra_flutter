@@ -84,6 +84,28 @@ class BusinessProductData {
       }
     }
   }
+
+  /// Display image with the same fallback the floating cart uses: the
+  /// variant's own images first, then the product-level images. Returns
+  /// null when neither carries a usable URL.
+  ///
+  /// Single source of truth so the top-selling tile and the cart show
+  /// the same photo. The tile previously read product-level images
+  /// only, so variant-only products rendered the placeholder here while
+  /// the cart (which falls back to the variant) showed fine.
+  String? get primaryImageUrl {
+    final variantImages = productVariant?.images;
+    if (variantImages != null && variantImages.isNotEmpty) {
+      final url = variantImages.first.url;
+      if (url != null && url.isNotEmpty) return url;
+    }
+    final productImages = product?.images;
+    if (productImages != null && productImages.isNotEmpty) {
+      final url = productImages.first.url;
+      if (url != null && url.isNotEmpty) return url;
+    }
+    return null;
+  }
 }
 
 class Product {
