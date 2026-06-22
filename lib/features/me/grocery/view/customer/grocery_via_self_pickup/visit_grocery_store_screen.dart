@@ -21,6 +21,7 @@ import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consum
 import 'package:BlueEra/features/me/grocery/view/all_top_selling_grocery_products_screen.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/customer_grocery_self_pickup_cart.dart';
+import 'package:BlueEra/features/me/grocery/widget/grocery_qty_stepper.dart';
 import 'package:BlueEra/features/me/grocery/widget/grocery_top_selling_tile.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
@@ -319,152 +320,60 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
                         Expanded(
                           child: GroceryTopSellingImage(
                             item: groceryProductData,
-                            cartOverlay: Obx(() {
-                              var productVariants = groceryProductData.productVariant;
-
-                              final cart = groceryCustomerController.selectedGroceriesVariants;
-                              final cartLen = cart.length;
-                              final bool isAdded = cart.any((v) => v.sId == productVariants?.sId);
-                              dev.log(
-                                '[VisitStore] tile Obx variantId=${productVariants?.sId} '
-                                'cartLen=$cartLen added=$isAdded '
-                                'ctrlHash=${identityHashCode(groceryCustomerController)} '
-                                'listHash=${identityHashCode(cart)} '
-                                'cartIds=${cart.map((v) => v.sId).toList()}',
-                                name: 'VisitStore',
-                              );
-
-                              // Why: morph the cart-toggle from a compact
-                              // black "+" into a wider green "✓ Added"
-                              // pill on tap (and back). AnimatedContainer
-                              // handles color/shape/glow, AnimatedSize
-                              // handles the width swap, and the icon
-                              // swap pops via ScaleTransition for tactile
-                              // feedback. Tap again on the pill removes.
-                              return Padding(
-                                padding: const EdgeInsets.all(8),
-                                child: Material(
-                                  color: Colors.transparent,
-                                  child: InkWell(
-                                    borderRadius: BorderRadius.circular(20),
-                                    onTap: () {
-                                      if (productVariants == null) {
-                                        commonSnackBar(
-                                            message: AppStrings
-                                                .groceryViewNoVariantsAvailable
-                                                .tr);
-                                        return;
-                                      }
-                                      if (!isAdded) {
-                                        final bDetails =
-                                            viewBusinessDetailsController
-                                                .visitedBusinessProfileDetails
-                                                ?.data;
-                                        groceryCustomerController.addToCart(
-                                          productVariants,
-                                          inventoryId: groceryProductData.sId,
-                                          productId: productVariants.sId,
-                                          businessId: widget.visitBusinessId,
-                                          businessName: bDetails?.businessName,
-                                          businessLogo: bDetails?.logo,
-                                          businessAddress: bDetails?.address,
-                                          productImage:
-                                              (groceryProductData.product?.images
-                                                          ?.isNotEmpty ??
-                                                      false)
-                                                  ? groceryProductData.product!
-                                                      .images!.first.url
-                                                  : null,
-                                          businessLat: bDetails
-                                              ?.businessLocation?.lat
-                                              ?.toDouble(),
-                                          businessLng: bDetails
-                                              ?.businessLocation?.lon
-                                              ?.toDouble(),
-                                          businessCategory: bDetails
-                                                  ?.subCategoryDetails?.name ??
-                                              bDetails?.categoryOfBusiness ??
-                                              bDetails?.natureOfBusiness,
-                                        );
-                                      } else {
-                                        groceryCustomerController
-                                            .removeFromCart(productVariants);
-                                      }
-                                    },
-                                    child: AnimatedContainer(
-                                      duration:
-                                          const Duration(milliseconds: 240),
-                                      curve: Curves.easeOutCubic,
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: isAdded ? 8 : 6,
-                                        vertical: 6,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: isAdded
-                                            ? AppColors.green00
-                                            : AppColors.blackMite,
-                                        borderRadius:
-                                            BorderRadius.circular(20),
-                                        boxShadow: isAdded
-                                            ? [
-                                                BoxShadow(
-                                                  color: AppColors.green00
-                                                      .withValues(alpha: 0.45),
-                                                  blurRadius: 10,
-                                                  offset: const Offset(0, 3),
-                                                ),
-                                              ]
-                                            : null,
-                                      ),
-                                      child: AnimatedSize(
-                                        duration: const Duration(
-                                            milliseconds: 240),
-                                        curve: Curves.easeOutCubic,
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            AnimatedSwitcher(
-                                              duration: const Duration(
-                                                  milliseconds: 200),
-                                              transitionBuilder:
-                                                  (child, anim) =>
-                                                      ScaleTransition(
-                                                scale: anim,
-                                                child: FadeTransition(
-                                                  opacity: anim,
-                                                  child: child,
-                                                ),
-                                              ),
-                                              child: Icon(
-                                                isAdded
-                                                    ? Icons.check_rounded
-                                                    : Icons.add,
-                                                key: ValueKey(isAdded),
-                                                size: SizeConfig.size16,
-                                                color: AppColors.white,
-                                              ),
-                                            ),
-                                            if (isAdded) ...[
-                                              const SizedBox(width: 4),
-                                              const Text(
-                                                'Added',
-                                                style: TextStyle(
-                                                  color: Colors.white,
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.w800,
-                                                  letterSpacing: 0.2,
-                                                  height: 1.0,
-                                                ),
-                                              ),
-                                            ],
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }),
+                            cartOverlay: Padding(
+                              padding: const EdgeInsets.all(8),
+                              child: Obx(() {
+                                final productVariants =
+                                    groceryProductData.productVariant;
+                                // Live quantity from the cart — reads the
+                                // RxMap inside Obx so the stepper rebuilds on
+                                // every add / remove / qty change.
+                                final qty = groceryCustomerController
+                                    .getQuantity(productVariants?.sId);
+                                return GroceryQtyStepper(
+                                  quantity: qty,
+                                  onIncrement: () {
+                                    if (productVariants == null) {
+                                      commonSnackBar(
+                                          message: AppStrings
+                                              .groceryViewNoVariantsAvailable
+                                              .tr);
+                                      return;
+                                    }
+                                    final bDetails =
+                                        viewBusinessDetailsController
+                                            .visitedBusinessProfileDetails
+                                            ?.data;
+                                    groceryCustomerController.addToCart(
+                                      productVariants,
+                                      inventoryId: groceryProductData.sId,
+                                      productId: productVariants.sId,
+                                      businessId: widget.visitBusinessId,
+                                      businessName: bDetails?.businessName,
+                                      businessLogo: bDetails?.logo,
+                                      businessAddress: bDetails?.address,
+                                      productImage:
+                                          groceryProductData.primaryImageUrl,
+                                      businessLat: bDetails
+                                          ?.businessLocation?.lat
+                                          ?.toDouble(),
+                                      businessLng: bDetails
+                                          ?.businessLocation?.lon
+                                          ?.toDouble(),
+                                      businessCategory: bDetails
+                                              ?.subCategoryDetails?.name ??
+                                          bDetails?.categoryOfBusiness ??
+                                          bDetails?.natureOfBusiness,
+                                    );
+                                  },
+                                  onDecrement: () {
+                                    if (productVariants == null) return;
+                                    groceryCustomerController
+                                        .removeFromCart(productVariants);
+                                  },
+                                );
+                              }),
+                            ),
                           ),
                         ),
 

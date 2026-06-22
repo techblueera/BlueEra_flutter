@@ -168,9 +168,12 @@ class GroceryTopSellingImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasImage = item.product?.images?.isNotEmpty ?? false;
-    final imageUrl =
-        hasImage ? item.product?.images!.first.url ?? '' : '';
+    // Resolve via the shared fallback (variant images → product images)
+    // so products that only carry variant-level images render here too —
+    // previously this read product-level images only and showed the
+    // placeholder for variant-only products (which the cart shows fine).
+    final imageUrl = item.primaryImageUrl ?? '';
+    final hasImage = imageUrl.isNotEmpty;
     final discountText = _formattedDiscount();
 
     final imageChild = ClipRRect(

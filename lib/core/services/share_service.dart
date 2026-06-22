@@ -15,19 +15,59 @@ class ShareService {
   static final ShareService instance = ShareService._();
 
   bool _isSharing = false;
-  Future<void> shareCard(
+
+  /// Snapshots the widget behind [cardKey] (must point at a
+  /// [RepaintBoundary]) to a PNG and shares it with a body chosen by
+  /// [_messageForCard]. [isProfileCard] true → attach the profile
+  /// link; otherwise the most-specific of the id params wins, falling
+  /// back to the app-download message.
+  Future<void> captureAndShareCard(
     GlobalKey cardKey, {
-    bool shareProfile = true,
+    bool isProfileCard = true,
     String? productId,
     String? serviceId,
     String? foodServiceId,
+  }) {
+    return _captureAndShare(
+      cardKey: cardKey,
+      message: _messageForCard(
+        isProfileCard: isProfileCard,
+        productId: productId,
+        serviceId: serviceId,
+        foodServiceId: foodServiceId,
+      ),
+    );
+  }
+
+  /// Snapshots the widget behind [cardKey] and shares it as the
+  /// referral invite *image*, paired with the full "download BlueEra"
+  /// text body (both store links + the eye-catching referral block).
+  /// Pass [overrideReferralCode] on surfaces that already hold the
+  /// code — e.g. the referral dashboard reads it from wallet stats —
+  /// so the body's code matches the one printed on the poster.
+  Future<void> shareReferralImageCard({
+    required GlobalKey cardKey,
+    String? overrideReferralCode,
+  }) {
+    return _captureAndShare(
+      cardKey: cardKey,
+      message: _appDownloadMessage(overrideReferralCode: overrideReferralCode),
+    );
+  }
+
+  /// Single capture path behind every image share: snapshots a keyed
+  /// [RepaintBoundary] to a temp PNG, opens the OS share sheet with the
+  /// image + [message], then deletes the temp file. Re-entrancy guarded
+  /// (`_isSharing`) so a rapid double-tap can't fire two sheets at once.
+  Future<void> _captureAndShare({
+    required GlobalKey cardKey,
+    required String message,
   }) async {
     if (_isSharing) return;
     _isSharing = true;
     try {
-      // 1. Snapshot the keyed widget. cardKey must point at a
-      // RepaintBoundary; the higher pixelRatio (3.0) keeps the
-      // exported PNG sharp on high-DPI receiving devices.
+      // Snapshot the keyed widget — pixelRatio 3.0 keeps the exported
+      // PNG sharp on high-DPI receiving devices.
       final boundary = cardKey.currentContext!.findRenderObject()
           as RenderRepaintBoundary;
       final ui.Image image = await boundary.toImage(pixelRatio: 3.0);
@@ -35,39 +75,22 @@ class ShareService {
           await image.toByteData(format: ui.ImageByteFormat.png);
       final Uint8List pngBytes = byteData!.buffer.asUint8List();
 
-      // 2. Drop the PNG into the OS temp dir so SharePlus can hand
-      // it off as a file attachment. The temp file is deleted in the
-      // finally-style cleanup at the bottom — keeps the cache lean.
+      // Drop the PNG into the OS temp dir so SharePlus can attach it,
+      // then delete it once the sheet has taken it — keeps cache lean.
       final tempDir = await getTemporaryDirectory();
       final file =
-          await File('${tempDir.path}/visiting_card.png').create();
+          await File('${tempDir.path}/blueera_share_card.png').create();
       await file.writeAsBytes(pngBytes);
 
-      // 3. Build the message body. Single helper so this dispatch is
-      // testable + reused for any future "preview the share text
-      // before actually sharing" surface.
-      final message = _buildMessage(
-        shareProfile: shareProfile,
-        productId: productId,
-        serviceId: serviceId,
-        foodServiceId: foodServiceId,
-      );
-
-      // Route through `openShareSheet` so every share surface —
-      // card, text-only profile share, etc. — funnels through the
-      // same wrapper. Future tweaks (analytics, fallback copy,
-      // error handling) only need to land in one place.
       await openShareSheet(
         text: message,
         subject: message,
         files: [XFile(file.path)],
       );
 
-      // Tidy up the temp file. Best-effort — if the share sheet
-      // kept a handle on the file it'll already be gone.
       if (await file.exists()) {
         await file.delete();
-        debugPrint('🗑️ Visiting card image deleted from cache.');
+        debugPrint('🗑️ Share card image deleted from cache.');
       }
     } catch (e) {
       debugPrint('❌ Error sharing card: $e');
@@ -76,11 +99,11 @@ class ShareService {
     }
   }
 
-  /// Resolves which message body to attach to the share. Pure
+  /// Resolves which message body to attach to a card share. Pure
   /// function (no I/O, no state) so it's safe to unit-test and
   /// re-use for any "what would this share look like?" preview UI.
-  String _buildMessage({
-    required bool shareProfile,
+  String _messageForCard({
+    required bool isProfileCard,
     String? productId,
     String? serviceId,
     String? foodServiceId,
@@ -97,7 +120,7 @@ class ShareService {
       return 'Link to visit my store at BlueEra app:\n'
           '${foodServiceDeepLink(foodServiceId: foodServiceId)}\n';
     }
-    if (shareProfile) {
+    if (isProfileCard) {
       String link = profileDeepLink(
         userId: userId,
       );
@@ -160,10 +183,23 @@ class ShareService {
     if (code != null && code.isNotEmpty) {
       buffer
         ..writeln()
-        ..writeln('Use my referral code at sign-up: $code');
+        ..writeln(_referralCodeBlock(code));
     }
     return buffer.toString();
   }
+
+  /// Eye-catching referral block appended to the bottom of both the
+  /// app-download and profile share bodies. OS share sheets are plain
+  /// text — no font or colour control — so "attractive" here means
+  /// emoji plus a separator rule that makes the code jump out from
+  /// the surrounding lines. Returns the block with no leading/trailing
+  /// blank line; callers add their own spacing.
+  String _referralCodeBlock(String code) =>
+      '━━━━━━━━━━━━━━\n'
+      '🎁  My Referral Code\n'
+      '🔑  $code\n'
+      '✨  Apply it at sign-up & get rewarded!\n'
+      '━━━━━━━━━━━━━━';
 
   /// Single wrapper around `SharePlus.instance.share` — opens the
   /// OS share sheet with [text] (required), an optional [subject]
@@ -182,7 +218,22 @@ class ShareService {
     ));
   }
 
-  /// Standard "See my profile on BlueEra" share-body template.
-  String _profileShareMessage(String link) =>
-      'See my profile on BlueEra:\n$link\n';
+  /// Standard "See my profile on BlueEra" share-body template. When
+  /// the signed-in user is a verified BDM, the referral code is also
+  /// spelled out at the bottom (mirroring [_appDownloadMessage]) so
+  /// the recipient can enter it by hand at sign-up — the [link]
+  /// already carries it as a `referralCode` query param. Non-BDM
+  /// users share just the profile link, no referral line.
+  String _profileShareMessage(String link) {
+    final buffer = StringBuffer()
+      ..writeln('See my profile on BlueEra:')
+      ..writeln(link);
+    final code = currentBdmReferralCode();
+    if (code != null && code.isNotEmpty) {
+      buffer
+        ..writeln()
+        ..writeln(_referralCodeBlock(code));
+    }
+    return buffer.toString();
+  }
 }

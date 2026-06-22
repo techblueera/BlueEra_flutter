@@ -36,12 +36,20 @@ class VideoResponse {
   /// of the shorts pipeline (which expects `data.videos`) is unchanged, and we
   /// derive `hasMore` from `page < totalPages`.
   factory VideoResponse.fromHotJson(Map<String, dynamic> json) {
+    // The hot/trending endpoint returns a FLAT video object per item, with
+    // `author` and `isLiked` as SIBLING fields (no `channel`, no nested
+    // `video`/`interactions` wrapper). Parse them here too — otherwise the
+    // player has no avatar / name / @handle / like-state to show.
     final items = (json['data'] as List?)
             ?.whereType<Map<String, dynamic>>()
             .map((e) => ShortFeedItem(
                   videoId: e['_id'] as String?,
                   video: VideoData.fromJson(e),
-                  interactions: Interactions(isLiked: false),
+                  author: e['author'] is Map<String, dynamic>
+                      ? Author.fromJson(e['author'] as Map<String, dynamic>)
+                      : null,
+                  interactions:
+                      Interactions(isLiked: e['isLiked'] as bool? ?? false),
                 ))
             .toList() ??
         <ShortFeedItem>[];
@@ -776,6 +784,15 @@ class Author {
   final String? designation; // Common designation
   final bool? isVerified;
   final int? followersCount;
+  // Routing taxonomy used by [VisitProfileResolver] to open the right visit
+  // screen for a tapped author:
+  //  - [typeOfBusiness]     → BusinessType (Food / Grocery / Automotive / …)
+  //  - [categoryOfBusiness] → business sub-category slug (e.g. AUTO_PARTS)
+  //  - [profileType]        → individual profile type (SELF_EMPLOYED /
+  //                            PROFESSIONAL / GIG_WORKER / SOCIAL_PROFILE)
+  final String? businessType;
+  final String? categoryOfBusiness;
+  final String? profileType;
 
   const Author({
     this.id,
@@ -786,6 +803,9 @@ class Author {
     this.designation,
     this.isVerified,
     this.followersCount,
+    this.businessType,
+    this.categoryOfBusiness,
+    this.profileType,
   });
 
   factory Author.fromJson(Map<String, dynamic> json) => Author(
@@ -797,6 +817,14 @@ class Author {
         designation: json['designation'] as String?,
         isVerified: json['isVerified'] as bool?,
         followersCount: json['followersCount'] as int?,
+        // Defensive key fallbacks — backends vary between camelCase and
+        // snake_case for these fields.
+        businessType:
+            (json['businessType'] ?? json['businessType']) as String?,
+        categoryOfBusiness: (json['categoryOfBusiness'] ??
+            json['category_of_business']) as String?,
+        profileType:
+            (json['profileType'] ?? json['profile_type']) as String?,
       );
 
   Map<String, dynamic> toJson() => {

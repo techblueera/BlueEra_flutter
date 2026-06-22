@@ -1077,6 +1077,51 @@ class DiscoverController extends GetxController {
     }
   }
 
+  /// Fetch ONE self-employed earn-service by its owner [userId] for the visit
+  /// flow (where we only have an author id, not a list item). Parses
+  /// defensively because the by-user endpoint's envelope isn't pinned down:
+  /// it may return the list `{services:[{data:[...]}]}` shape, a `{data:{…}}`
+  /// wrapper, or the bare service object.
+  Future<ServiceData?> getEarnServiceByUserId(String userId) async {
+    try {
+      final res = await DiscoverRepo().fetchEarnServiceByUserId(userId);
+      if (!res.isSuccess) return null;
+      final data = res.response?.data;
+      if (data is! Map<String, dynamic>) return null;
+      if (data['services'] != null) {
+        final parsed = ServiceModelResponse.fromJson(data);
+        for (final s in parsed.services ?? <Services>[]) {
+          if ((s.data ?? []).isNotEmpty) return s.data!.first;
+        }
+        return null;
+      }
+      final inner = data['data'];
+      if (inner is Map<String, dynamic>) return ServiceData.fromJson(inner);
+      if (inner is List && inner.isNotEmpty) {
+        return ServiceData.fromJson(inner.first);
+      }
+      return ServiceData.fromJson(data);
+    } catch (e, s) {
+      log('getEarnServiceByUserId error: $e\n$s');
+      return null;
+    }
+  }
+
+  /// Fetch ONE professional/consultant by [userId] (search filtered to one,
+  /// first result) for the visit flow.
+  Future<ProfessionalConsData?> getProfessionalByUserId(String userId) async {
+    try {
+      final res = await DiscoverRepo().fetchProfessionalByUserId(userId);
+      if (!res.isSuccess) return null;
+      final parsed = ProfessionalConsResModel.fromJson(res.response?.data);
+      final list = parsed.data ?? [];
+      return list.isNotEmpty ? list.first : null;
+    } catch (e, s) {
+      log('getProfessionalByUserId error: $e\n$s');
+      return null;
+    }
+  }
+
   Future<String> getOrderTypeString() async {
     switch (selectedHorizontalTab.value) {
       case 0:

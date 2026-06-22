@@ -9,24 +9,24 @@ import 'package:flutter/material.dart';
 /// `bdm_id_card_page.dart`, `more_cards_screen.dart`,
 /// `greeting_card_dialog.dart`, the product / service / food cards,
 /// etc.) keep working unchanged. New code should reach for
-/// [ShareService.instance.shareCard] directly — that is now the single
-/// canonical entry point.
+/// [ShareService.instance.captureAndShareCard] directly — that is now
+/// the single canonical entry point.
 class VisitingCardHelper {
-  /// Forwarder onto [ShareService.instance.shareCard]. Kept on the
-  /// helper for back-compat with surfaces that already call
+  /// Forwarder onto [ShareService.instance.captureAndShareCard]. Kept
+  /// on the helper for back-compat with surfaces that already call
   /// `VisitingCardHelper().shareVisitingCard(...)`. Behavior is
   /// identical, including the re-entrancy guard — the singleton's
   /// `_isSharing` flag covers every share button in the app.
   Future<void> shareVisitingCard(
     GlobalKey cardKey, {
-    bool shareProfile = true,
+    bool isProfileCard = true,
     String? productId,
     String? serviceId,
     String? foodServiceId,
   }) {
-    return ShareService.instance.shareCard(
+    return ShareService.instance.captureAndShareCard(
       cardKey,
-      shareProfile: shareProfile,
+      isProfileCard: isProfileCard,
       productId: productId,
       serviceId: serviceId,
       foodServiceId: foodServiceId,
@@ -35,9 +35,10 @@ class VisitingCardHelper {
 
   /// Builds a [VisitingCardThirteen] off-screen via an [OverlayEntry],
   /// waits for it to paint, captures it, and routes through
-  /// [ShareService.instance.shareCard] with `shareProfile: false` —
-  /// the auto-generated card already encodes the user's identity,
-  /// so the share body falls back to the app-download message.
+  /// [ShareService.instance.captureAndShareCard] with
+  /// `isProfileCard: false` — the auto-generated card already encodes
+  /// the user's identity, so the share body falls back to the
+  /// app-download message.
   static Future<void> buildAndShareVisitingCard(BuildContext context) async {
     final GlobalKey cardKey = GlobalKey();
 
@@ -64,7 +65,7 @@ class VisitingCardHelper {
 
     try {
       await ShareService.instance
-          .shareCard(cardKey, shareProfile: false);
+          .captureAndShareCard(cardKey, isProfileCard: false);
     } finally {
       overlay.remove();
     }

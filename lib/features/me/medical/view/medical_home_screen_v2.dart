@@ -1697,10 +1697,6 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
 
     Get.to(() => SelfEmployeeViewDiscoverScreen(
           service: service,
-          timingMap: const {},
-          priceDisplay: '',
-          priceBadgeText: '',
-          priceBadgeColor: AppColors.primaryColor,
           isSelfPreview: true,
         ));
   }

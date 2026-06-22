@@ -77,7 +77,7 @@ class SelectableCommonListView extends StatelessWidget {
           /// ✅ Subtitle logic
           final subtitle = isIndividual
               ? (item.designation ?? '')
-              : (item.categoryOfBusiness?.name ?? '');
+              : (item.categoryOfBusiness ?? '');
 
           final isSelected = selectedIndexes.contains(userId);
 

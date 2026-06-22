@@ -146,10 +146,16 @@ class _AuthInterceptor extends Interceptor {
 
 | Symbol | Meaning |
 |---|---|
-| 🔓 | No auth needed |
-| 🔐 | **Required** — request fails without a valid token |
-| 🟡 | **Optional** — works without auth, but personalizes (`isLiked`, `isFollowing`) and may unlock owner-only data when present |
+| 🔓 | No auth needed (a token, if sent, is **ignored** — these responses are never personalized) |
+| 🔐 | **Required** — the request returns `401` without a valid token |
 | 👑 | Requires an **Admin** (or SubAdmin) account |
+
+> ⚠️ **There is no "optional auth" mode.** The backend's auth middleware is
+> all-or-nothing: an endpoint either ignores the token entirely (🔓) or rejects
+> the request with `401` when the token is missing/invalid (🔐). A 🔓 endpoint
+> therefore **cannot** personalize (`isLiked`/`isFollowing` are always `false`
+> there). Plan your screens accordingly — e.g. the OTT feed and OTT series-detail
+> are 🔐, so a logged-out user cannot browse them.
 
 ---
 
@@ -431,10 +437,10 @@ All under `/videos`.
 | Method | Path | Auth | Shape | Notes |
 |---|---|---|---|---|
 | `GET` | `/videos/hot/:type` | 🔓 | **flat array** | trending; `:type` = `short`/`long` |
-| `GET` | `/videos/search` | 🟡 | feed | `query` required |
-| `GET` | `/videos/category/:categoryId` | 🟡 | feed | not type-filtered server-side |
+| `GET` | `/videos/search` | 🔓 | feed | `query` required; **not personalized** |
+| `GET` | `/videos/category/:categoryId` | 🔓 | feed | not type-filtered server-side; **not personalized** |
 | `GET` | `/videos/categories` | 🔓 | `data: [ ]` | list categories |
-| `GET` | `/videos/metadata/:videoId` | 🟡 | **raw doc** | ⚠️ increments views |
+| `GET` | `/videos/metadata/:videoId` | 🔓 | **raw doc** | ⚠️ increments views; **not personalized** |
 | `GET` | `/videos/:videoId` | 🔐 | feed (`single`) | personalized; no view increment |
 | `GET` | `/videos/channel/:channelId` | 🔐 | feed | a creator's videos |
 | `GET` | `/videos/users/:userId/videos` | 🔐 | feed | alias of channel |
@@ -443,7 +449,6 @@ All under `/videos`.
 | `DELETE` | `/videos/:videoId` | 🔐 | `{success,message}` | owner or admin |
 | `GET` | `/videos/upload-status` | 🔐 | cooldown info | 60-min cooldown |
 | `POST` | `/videos/batch-prepare` | 🔐 | warms cache | body `{videoIds:[…≤100]}` |
-| `GET` | `/videos/health/redis` | 🔓 | health | |
 
 ### 7.1 Trending / "For You" — `GET /videos/hot/:type` 🔓
 
@@ -487,7 +492,7 @@ GET /videos/channel/<id>?typeFilter=short&page=1&limit=20&sortBy=latest&post_via
 
 Returns the feed envelope. Owners pass `status=all` to see their drafts.
 
-### 7.3 By category — `GET /videos/category/:categoryId` 🟡
+### 7.3 By category — `GET /videos/category/:categoryId` 🔓
 
 ```
 GET /videos/category/<id>?page=1&limit=20&sortBy=latest
@@ -496,7 +501,7 @@ Feed envelope. **Not** type-filtered on the server — filter client-side on
 `video.type == 'short'` if needed. Get category IDs from `/videos/categories` or
 `/categories`.
 
-### 7.4 Search — `GET /videos/search` 🟡
+### 7.4 Search — `GET /videos/search` 🔓
 
 ```
 GET /videos/search?query=travel&type=short&page=1&limit=20&sortBy=relevance
@@ -520,7 +525,7 @@ Feed envelope with `feedType:"single"`; `data.videos` is a **single object**.
 A missing video still returns `200` with an empty `videos` — check before
 rendering. Use this for a personalized detail view (no view increment).
 
-### 7.6 Raw metadata + view count — `GET /videos/metadata/:videoId` 🟡
+### 7.6 Raw metadata + view count — `GET /videos/metadata/:videoId` 🔓
 
 Returns the **raw** document: `{ success:true, data:{…video…} }`.
 
@@ -905,7 +910,7 @@ once approved + released they appear publicly.
 
 | Method | Path | Auth | Notes |
 |---|---|---|---|
-| `GET` | `/ott/feed` | 🟡 | personalized if logged in; `?page&limit&category&sortBy=latest\|relevant` |
+| `GET` | `/ott/feed` | 🔐 | **requires a token** (returns 401 without); personalized; `?page&limit&category&sortBy=latest\|relevant` |
 | `POST` | `/ott/interaction` | 🔐 | body `{videoId, type}` — `view`/`like`/`share`/`skip`/`complete` |
 
 Fire-and-forget interactions as the user watches to improve recommendations:
@@ -923,7 +928,7 @@ Future<void> trackInteraction(String videoId, String type) async {
 | Method | Path | Auth | Returns |
 |---|---|---|---|
 | `GET` | `/ott/series` | 🔓 | released series (paginated); each has `videosCount` + `creator` |
-| `GET` | `/ott/series/:id` | 🟡 | series detail with episodes (full video objects, `episodeNumber`) |
+| `GET` | `/ott/series/:id` | 🔐 | **requires a token** (returns 401 without); series detail with episodes (full video objects, `episodeNumber`) |
 | `GET` | `/ott/channel/:id/content` | 🔓 | a channel's approved `series` + standalone `videos` |
 
 `GET /ott/series/:id` returns episodes under `videos[]` where each entry is
@@ -1009,9 +1014,9 @@ Music library for attaching audio to videos/reels.
 
 | Method | Path | Auth | Notes |
 |---|---|---|---|
-| `GET` | `/songs` | 🟡 | `?page&limit`; adds `is_favourite` when authed |
+| `GET` | `/songs` | 🔐 | **returns ALL songs, no pagination** → `{success, count, data:[…]}`; always includes `is_favourite` |
 | `GET` | `/songs/search` | 🔓 | `?query&page&limit` (query required) |
-| `GET` | `/songs/:songId` | 🟡 | adds `is_favourite` when authed |
+| `GET` | `/songs/:songId` | 🔐 | includes `is_favourite` |
 | `POST` | `/songs` | 🔐 | `multipart/form-data` |
 | `PUT` | `/songs/:songId` | 🔐 | uploader or admin; multipart |
 | `DELETE` | `/songs/:songId` | 🔐 | uploader or admin |
@@ -1226,16 +1231,16 @@ class FeedPager {
 
 ## 20. Full endpoint reference
 
-🔓 none · 🟡 optional · 🔐 required · 👑 admin
+🔓 none · 🔐 required · 👑 admin  (no "optional auth" — see §3)
 
 ### Videos `/videos`
 | Method | Path | Auth |
 |---|---|---|
 | GET | `/videos/hot/:type` | 🔓 |
-| GET | `/videos/search` | 🟡 |
-| GET | `/videos/category/:categoryId` | 🟡 |
+| GET | `/videos/search` | 🔓 |
+| GET | `/videos/category/:categoryId` | 🔓 |
 | GET | `/videos/categories` | 🔓 |
-| GET | `/videos/metadata/:videoId` (⚠️ +view) | 🟡 |
+| GET | `/videos/metadata/:videoId` (⚠️ +view) | 🔓 |
 | GET | `/videos/:videoId` | 🔐 |
 | GET | `/videos/channel/:channelId` | 🔐 |
 | GET | `/videos/users/:userId/videos` | 🔐 |
@@ -1244,7 +1249,6 @@ class FeedPager {
 | DELETE | `/videos/:videoId` | 🔐 |
 | GET | `/videos/upload-status` | 🔐 |
 | POST | `/videos/batch-prepare` | 🔐 |
-| GET | `/videos/health/redis` | 🔓 |
 
 ### Upload `/upload`
 | Method | Path | Auth |
@@ -1282,7 +1286,7 @@ class FeedPager {
 ### OTT `/ott`
 | Method | Path | Auth |
 |---|---|---|
-| GET | `/ott/feed` | 🟡 |
+| GET | `/ott/feed` | 🔐 |
 | POST | `/ott/interaction` | 🔐 |
 | GET | `/ott/channel/videos` | 🔐 |
 | GET | `/ott/channel/draft-series` | 🔐 |
@@ -1290,7 +1294,7 @@ class FeedPager {
 | GET | `/ott/channel/:id/rejected-content` | 🔐 |
 | POST | `/ott/series` | 🔐 |
 | GET | `/ott/series` | 🔓 |
-| GET | `/ott/series/:id` | 🟡 |
+| GET | `/ott/series/:id` | 🔐 |
 | PUT | `/ott/series/:id` | 🔐 |
 | DELETE | `/ott/series/:id` | 🔐 |
 | POST | `/ott/series/:id/add-episode` | 🔐 |
@@ -1308,9 +1312,9 @@ class FeedPager {
 ### Songs `/songs` · Favorites `/favorites`
 | Method | Path | Auth |
 |---|---|---|
-| GET | `/songs` | 🟡 |
+| GET | `/songs` | 🔐 |
 | GET | `/songs/search` | 🔓 |
-| GET | `/songs/:songId` | 🟡 |
+| GET | `/songs/:songId` | 🔐 |
 | POST | `/songs` | 🔐 |
 | PUT | `/songs/:songId` | 🔐 |
 | DELETE | `/songs/:songId` | 🔐 |

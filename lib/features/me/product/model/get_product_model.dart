@@ -149,6 +149,30 @@ class GetProductData {
       'product': product.toJson(),
     };
   }
+
+  /// Resolves the product's display image with a fallback chain:
+  /// product-level [ProductDetails.media] first, then the first
+  /// variant's [Variant.mediaRelatedToVariant]. Returns null when the
+  /// product carries no usable image anywhere.
+  ///
+  /// Single source of truth so every surface (top-selling tile, cart
+  /// thumbnail, …) renders the same photo. Products that only store
+  /// media at the variant level used to show fine in the cart — which
+  /// has this fallback — but blank wherever the fallback was missing.
+  String? get primaryImageUrl {
+    final media = product.details?.media;
+    if (media != null && media.isNotEmpty && media.first.isNotEmpty) {
+      return media.first;
+    }
+    final variants = product.sellerClassification?.variants;
+    if (variants != null && variants.isNotEmpty) {
+      final variantMedia = variants.first.mediaRelatedToVariant;
+      if (variantMedia.isNotEmpty && variantMedia.first.isNotEmpty) {
+        return variantMedia.first;
+      }
+    }
+    return null;
+  }
 }
 
 /// Extracts URL strings from the API's `images` / `videos` arrays

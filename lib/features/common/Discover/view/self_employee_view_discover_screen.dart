@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/widget/service_enquiry_sheet.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
@@ -15,30 +16,162 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// Refined provider profile — cover hero, identity block, a price/hours
-/// ribbon, editorial section cards, a weekly availability schedule, and a
-/// sticky price + booking CTA.
-class SelfEmployeeViewDiscoverScreen extends StatelessWidget {
-  final ServiceData service;
-  final Map<String, String> timingMap;
-  final String priceDisplay;
-  final String priceBadgeText;
-  final Color priceBadgeColor;
+/// Public entry point. Pass [service] when you already hold the model (Discover
+/// lists), or just a [userId] to have the screen fetch it on open (visit flow).
+class SelfEmployeeViewDiscoverScreen extends StatefulWidget {
+  final ServiceData? service;
+  final String? userId;
   final bool isSelfPreview;
 
   const SelfEmployeeViewDiscoverScreen({
     super.key,
+    this.service,
+    this.userId,
+    this.isSelfPreview = false,
+  });
+
+  @override
+  State<SelfEmployeeViewDiscoverScreen> createState() =>
+      _SelfEmployeeViewDiscoverScreenState();
+}
+
+class _SelfEmployeeViewDiscoverScreenState
+    extends State<SelfEmployeeViewDiscoverScreen> {
+  ServiceData? _service;
+  bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _service = widget.service;
+    if (_service == null && (widget.userId?.isNotEmpty ?? false)) {
+      _fetch();
+    }
+  }
+
+  Future<void> _fetch() async {
+    setState(() => _loading = true);
+    final controller = Get.isRegistered<DiscoverController>()
+        ? Get.find<DiscoverController>()
+        : Get.put(DiscoverController());
+    final result = await controller.getEarnServiceByUserId(widget.userId!);
+    if (!mounted) return;
+    setState(() {
+      _service = result;
+      _loading = false;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final service = _service;
+    if (service != null) {
+      return _SelfEmployeeContent(
+          service: service, isSelfPreview: widget.isSelfPreview);
+    }
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: AppColors.mainTextColor),
+      ),
+      body: Center(
+        child: _loading
+            ? const CircularProgressIndicator()
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.person_off_outlined,
+                      size: 48, color: AppColors.secondaryTextColor),
+                  SizedBox(height: SizeConfig.size8),
+                  CustomText(
+                    AppStrings.noDataFound.tr,
+                    color: AppColors.secondaryTextColor,
+                  ),
+                ],
+              ),
+      ),
+    );
+  }
+}
+
+/// Refined provider profile — cover hero, identity block, a price/hours
+/// ribbon, editorial section cards, a weekly availability schedule, and a
+/// sticky price + booking CTA.
+class _SelfEmployeeContent extends StatelessWidget {
+  final ServiceData service;
+  final bool isSelfPreview;
+
+  const _SelfEmployeeContent({
     required this.service,
-    required this.timingMap,
-    required this.priceDisplay,
-    required this.priceBadgeText,
-    required this.priceBadgeColor,
     this.isSelfPreview = false,
   });
 
   static const _accent = LinearGradient(
     colors: [AppColors.blue5CAF, AppColors.primaryColor],
   );
+
+  // ── Display values derived from [service] ──────────────────────────────
+  // Previously these were computed at every call site and passed in as four
+  // separate params; now the screen owns the derivation so callers only need
+  // to hand over the [ServiceData].
+  bool get _isRange => service.priceData?.effectiveIsRange ?? false;
+
+  String get priceDisplay {
+    final p = service.priceData;
+    final min = p?.effectiveMin ?? 0;
+    final max = p?.effectiveMax ?? 0;
+    // No usable price → blank (preserves the self-preview's empty price and
+    // avoids showing a misleading "₹0" for providers without a rate).
+    if (min == 0 && max == 0) return '';
+    return _isRange
+        ? '₹${formatIndianNumber(min)}-${formatIndianNumber(max)}'
+        : '₹${formatIndianNumber(min)}';
+  }
+
+  String get priceBadgeText =>
+      (service.priceData?.feeType ?? service.priceData?.priceType ?? '')
+          .capitalizeFirst ??
+      '';
+
+  Color get priceBadgeColor =>
+      _isRange ? AppColors.green1A : AppColors.primaryColor;
+
+  Map<String, String> get timingMap =>
+      _getMinMaxTimings(service.service?.effectiveTimings);
+
+  Map<String, String> _getMinMaxTimings(List<Timings>? timingsList) {
+    if (timingsList == null || timingsList.isEmpty) {
+      return {'start': '--', 'end': '--'};
+    }
+    Timings? earliest = timingsList.first;
+    Timings? latest = timingsList.first;
+    for (final t in timingsList) {
+      if (_parse12HourTime(t.start ?? '00:00 AM')
+          .isBefore(_parse12HourTime(earliest?.start ?? '00:00 AM'))) {
+        earliest = t;
+      }
+      if (_parse12HourTime(t.end ?? '00:00 AM')
+          .isAfter(_parse12HourTime(latest?.end ?? '00:00 AM'))) {
+        latest = t;
+      }
+    }
+    return {'start': earliest?.start ?? '--', 'end': latest?.end ?? '--'};
+  }
+
+  DateTime _parse12HourTime(String timeStr) {
+    final match = RegExp(r'(\d+):(\d+)\s*(AM|PM)').firstMatch(timeStr.trim());
+    if (match != null) {
+      int hour = int.parse(match.group(1)!);
+      final minute = int.parse(match.group(2)!);
+      final period = match.group(3);
+      if (period == 'PM' && hour != 12) hour += 12;
+      if (period == 'AM' && hour == 12) hour = 0;
+      return DateTime(0, 1, 1, hour, minute);
+    }
+    return DateTime(0);
+  }
 
   @override
   Widget build(BuildContext context) {

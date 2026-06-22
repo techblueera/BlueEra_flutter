@@ -1,3 +1,4 @@
+import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
@@ -51,9 +52,11 @@ class TagPeopleController extends GetxController{
         if (page == 1) {
           usersData.value = data;
           filteredUsers.value = data;
-        }else{
+        } else {
+          // Append the new page once (the old code added it twice → dupes) and
+          // also extend the visible list so paginated users actually show.
           usersData.addAll(data);
-          usersData.addAll(data);
+          filteredUsers.addAll(data);
         }
 
         if (data.length < limit) {
@@ -65,7 +68,8 @@ class TagPeopleController extends GetxController{
       } else {
         commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
-    } catch (e) {
+    } catch (e, s) {
+      log('getAllKindOfUsers error: $e', stackTrace: s, name: 'TagPeople');
       allUsersResponse.value = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally{
