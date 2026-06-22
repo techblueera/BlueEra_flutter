@@ -16,11 +16,15 @@ import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/widgets/common_location_search_field.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/features/common/Discover/view/go_live_permission_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
+import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_orders_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/delivery_partner_orders/delivery_partner_orders.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
@@ -58,6 +62,7 @@ class RiderServiceScreen extends StatefulWidget {
 class _RiderServiceScreenState extends State<RiderServiceScreen>
     with SingleTickerProviderStateMixin, RouteAware {
   final controller = getOrPut(() => DeliveryPartnerController());
+  final _ordersCtrl = getOrPut(() => DeliverPartnerOrdersController());
   final _viewCtrl = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
   final _personalCtrl = getOrPut(() => PersonalCreateProfileController());
 
@@ -71,6 +76,25 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   static const _orderSubOrders = 0;
   static const _orderSubChat = 1;
   int _orderSubTab = _orderSubOrders;
+
+  // ── "Set Preference" sub-tab state ─────────────────────────────
+  // Local UI state backing the new Set Preference form that renders
+  // in place of the old orders list (see _buildPreferenceTab). Kept
+  // entirely self-contained so it never touches the existing order
+  // flow, which stays preserved (commented) in _buildOrderTab.
+  //
+  // _servicePreference   → current radio selection (null until picked).
+  // _submittedPreference → the value committed by Submit/Update. Once
+  //   set, its radio shows a check-mark; the CTA becomes "Update" and is
+  //   only enabled when the current selection differs from it (i.e. the
+  //   user picked another option). When selection == submitted, Update
+  //   is disabled/not clickable.
+  // _pickup/_dropController + lat/lng → Google-backed address fields.
+  RiderServicePreference? _servicePreference;
+  RiderServicePreference? _submittedPreference;
+  final TextEditingController _pickupController = TextEditingController();
+  final TextEditingController _dropController = TextEditingController();
+  double? _pickupLat, _pickupLng, _dropLat, _dropLng;
 
 
   @override
@@ -102,6 +126,11 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   @override
   void dispose() {
     _tabController.dispose();
+    _pickupController.dispose();
+    _dropController.dispose();
+    // We own the orders SSE stream while this screen is alive — tear it
+    // down so the connection isn't leaked once the screen is gone.
+    _ordersCtrl.stopStream();
     deleteIfRegistered<DeliveryPartnerController>();
     RouteHelper.routeObserver.unsubscribe(this);
     super.dispose();
@@ -207,13 +236,41 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
       Obx(() {
         final approved = controller.riderOnboardingStatusData.value?.verificationStatus == "approved";
         if (!approved) return RiderProfileStatusScreen();
+
+        // Once approved, this screen OWNS the single orders SSE stream so
+        // the order/preference gate below stays live even while the
+        // preference card is showing (DeliveryPartnerOrders defers its
+        // stream to us when embedded). fetchStream is idempotent.
+        if (!_ordersCtrl.isStreaming) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) _ordersCtrl.fetchStream();
+          });
+        }
+
+        // Active order = pending (new) OR ongoing (accepted / in-progress
+        // / picked-up …). When one exists the first sub-tab becomes the
+        // "Order" screen; once every order is completed or cancelled the
+        // rider falls back to the "Preference" screen. Driving both the
+        // sub-tab LABEL and the body off this single flag keeps them in
+        // sync. Reads reactive lists, so the parent Obx rebuilds on every
+        // stream update.
+        final hasActiveOrders = _ordersCtrl.newOrders.isNotEmpty ||
+            _ordersCtrl.onGoingOrders.isNotEmpty;
+
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildOrderSubTabs(),
+            _buildOrderSubTabs(hasActiveOrders),
             SizedBox(height: SizeConfig.size12),
+            // First sub-tab is order-aware:
+            //   • Active order (pending/in-progress) → EXISTING orders
+            //     flow (DeliveryPartnerOrders); label reads "Order".
+            //   • No active order (complete/cancel/idle) → "Set
+            //     Preference" form; label reads "Preference".
+            // The Inquiry sub-tab still shows the chat inquiries list
+            // (unchanged).
             if (_orderSubTab == _orderSubOrders)
-              DeliveryPartnerOrders(isInParentScroll: true)
+              _buildPreferenceOrOrders(hasActiveOrders)
             else
               BusinessChatsList(
                 isForwardUI: false,
@@ -226,6 +283,17 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     ];
   }
 
+  // Gate between the existing orders flow and the Set Preference form,
+  // using the [hasActiveOrders] flag computed by the caller so the label
+  // and body always agree.
+  Widget _buildPreferenceOrOrders(bool hasActiveOrders) {
+    if (hasActiveOrders) {
+      // EXISTING ORDER FLOW — rendered as-is when an order is active.
+      return DeliveryPartnerOrders(isInParentScroll: true);
+    }
+    return _buildPreferenceTab();
+  }
+
   // Level 2 â€” solid pill segmented control inside My Order.
   // The previous tonal-on-tonal version (primary @ 4% track, @ 14%
   // indicator) disappeared against the dashboard's patterned blue
@@ -234,7 +302,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   // backdrop. Still pill-shaped (BorderRadius 100) so it stays
   // distinct from the L1 strip (white card, animated underline)
   // and from the L3 filter (white form field with chevron).
-  Widget _buildOrderSubTabs() {
+  Widget _buildOrderSubTabs(bool hasActiveOrders) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
       child: LayoutBuilder(
@@ -297,9 +365,14 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
                   child: Row(
                     children: [
                       Expanded(
+                        // Label + icon flip with the active-order state:
+                        // "Order" while an order is live, "Preference"
+                        // when idle/complete/cancelled.
                         child: _subTabButton(
-                          icon: Icons.receipt_long_rounded,
-                          label: 'Orders',
+                          icon: hasActiveOrders
+                              ? Icons.delivery_dining_rounded
+                              : Icons.tune_rounded,
+                          label: hasActiveOrders ? 'Order' : 'Preference',
                           index: _orderSubOrders,
                         ),
                       ),
@@ -391,6 +464,329 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
         ),
       ),
     );
+  }
+
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // SET PREFERENCE TAB
+  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // Two stacked cards rendered for the first ("Preference") sub-tab:
+  //   1. Service Preference â€” a radio choice between Passenger,
+  //      Goods, or Both, with a Submit button that switches to an
+  //      Update affordance once a preference has been saved.
+  //   2. Pickup & Drop Preference â€” two Google-backed address search
+  //      fields (CommonLocationSearchField) plus a Submit button.
+  //
+  // Responsive by construction: cards stretch to the available width,
+  // all spacing flows from SizeConfig (which already scales for
+  // tablet), text uses ellipsis/Flexible, and the CTAs span the full
+  // card width so the layout adapts across phone/tablet form factors.
+  //
+  // This surface only REPLACES the visual of the old orders list for
+  // this sub-tab â€” it never mutates the existing orders flow, which is
+  // preserved (commented) in _buildOrderTab.
+  Widget _buildPreferenceTab() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildServicePreferenceCard(),
+          SizedBox(height: SizeConfig.size12),
+          _buildPickupDropCard(),
+        ],
+      ),
+    );
+  }
+
+  // Card 1 â€” Service Preference (radio + Submit/Update).
+  Widget _buildServicePreferenceCard() {
+    final isUpdateMode = _submittedPreference != null;
+    // Enabled when: first submit needs any selection; updates need the
+    // selection to differ from what was already committed.
+    final ctaEnabled = isUpdateMode
+        ? _servicePreference != _submittedPreference
+        : _servicePreference != null;
+    return CustomFormCard(
+      isBoxShadowAvail: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const CustomText(
+            'Service Preference',
+            fontSize: 15,
+            fontWeight: FontWeight.w800,
+            color: AppColors.mainTextColor,
+          ),
+          SizedBox(height: SizeConfig.size4),
+          const CustomText(
+            'Choose what you want to deliver',
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: AppColors.secondaryTextColor,
+          ),
+          SizedBox(height: SizeConfig.size12),
+          _buildPreferenceRadio(
+            label: 'Passenger',
+            icon: Icons.person_outline_rounded,
+            value: RiderServicePreference.passenger,
+          ),
+          _buildPreferenceRadio(
+            label: 'Goods',
+            icon: Icons.inventory_2_outlined,
+            value: RiderServicePreference.goods,
+          ),
+          _buildPreferenceRadio(
+            label: 'Both Passenger and Goods',
+            icon: Icons.swap_horiz_rounded,
+            value: RiderServicePreference.both,
+          ),
+          SizedBox(height: SizeConfig.size16),
+          // CTA behaviour:
+          //   • Before first submit → "Submit", enabled once an option
+          //     is picked.
+          //   • After submit → "Update", enabled ONLY when the current
+          //     selection differs from the committed one (i.e. the user
+          //     chose a different option). When selection == committed,
+          //     it is disabled and not clickable (greyed out).
+          CustomBtn(
+            title: _submittedPreference != null ? 'Update' : 'Submit',
+            radius: 10,
+            isValidate: ctaEnabled,
+            bgColor: ctaEnabled ? AppColors.primaryColor : AppColors.grey9B,
+            onTap: ctaEnabled ? _onServicePreferenceSubmit : null,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Single selectable radio row inside the Service Preference card.
+  // Uses a hand-rolled radio dot (instead of Radio<T>) so it inherits
+  // the card's styling and avoids global RadioTheme overrides.
+  Widget _buildPreferenceRadio({
+    required String label,
+    required IconData icon,
+    required RiderServicePreference value,
+  }) {
+    final selected = _servicePreference == value;
+    // Show the check-mark variant only on the currently-selected radio
+    // while it still matches the committed preference. The moment the
+    // user picks a different option the selection no longer equals the
+    // committed value, so every radio falls back to the plain dot.
+    final showCheck = selected && _servicePreference == _submittedPreference;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => setState(() => _servicePreference = value),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        margin: EdgeInsets.only(bottom: SizeConfig.size10),
+        padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size12,
+          vertical: SizeConfig.size12,
+        ),
+        decoration: BoxDecoration(
+          color: selected
+              ? AppColors.primaryColor.withValues(alpha: 0.06)
+              : AppColors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: selected ? AppColors.primaryColor : AppColors.greyE5,
+            width: selected ? 1.4 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 20,
+              color: selected
+                  ? AppColors.primaryColor
+                  : AppColors.secondaryTextColor,
+            ),
+            SizedBox(width: SizeConfig.size10),
+            Expanded(
+              child: CustomText(
+                label,
+                fontSize: 13.5,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                color: AppColors.mainTextColor,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              height: 20,
+              width: 20,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                // Committed selection → filled circle (holds the tick).
+                color: showCheck ? AppColors.primaryColor : Colors.transparent,
+                border: Border.all(
+                  color: selected ? AppColors.primaryColor : AppColors.grey9B,
+                  width: 2,
+                ),
+              ),
+              child: showCheck
+                  // Submitted & unchanged → white tick on the filled dot.
+                  ? const Center(
+                      child: Icon(
+                        Icons.check,
+                        size: 13,
+                        color: AppColors.white,
+                      ),
+                    )
+                  : selected
+                      // Selected (not yet committed / changed) → plain dot.
+                      ? Center(
+                          child: Container(
+                            height: 10,
+                            width: 10,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AppColors.primaryColor,
+                            ),
+                          ),
+                        )
+                      : null,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Card 2 â€” Pickup & Drop Preference (two address searches + Submit).
+  Widget _buildPickupDropCard() {
+    return CustomFormCard(
+      isBoxShadowAvail: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const CustomText(
+            'Pickup & Drop Preference',
+            fontSize: 15,
+            fontWeight: FontWeight.w800,
+            color: AppColors.mainTextColor,
+          ),
+          SizedBox(height: SizeConfig.size4),
+          const CustomText(
+            'Set your preferred pickup and drop locations',
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: AppColors.secondaryTextColor,
+          ),
+          SizedBox(height: SizeConfig.size12),
+          // Drop â€” Google Places autocomplete. onSelected gives us the
+          // resolved address + lat/lng which we cache for submission.
+          // Shown first per the desired flow (drop before pickup).
+          CommonLocationSearchField(
+            controller: _dropController,
+            title: 'Drop Location',
+            hintText: 'Search drop address',
+            onSelected: (placeId, lat, lng, address) {
+              setState(() {
+                _dropController.text = address;
+                _dropLat = lat;
+                _dropLng = lng;
+              });
+            },
+          ),
+          SizedBox(height: SizeConfig.size12),
+          // Pickup â€” same Google-backed search field.
+          CommonLocationSearchField(
+            controller: _pickupController,
+            title: 'Pickup Location',
+            hintText: 'Search pickup address',
+            onSelected: (placeId, lat, lng, address) {
+              setState(() {
+                _pickupController.text = address;
+                _pickupLat = lat;
+                _pickupLng = lng;
+              });
+            },
+          ),
+          SizedBox(height: SizeConfig.size16),
+          CustomBtn(
+            title: 'Submit',
+            radius: 10,
+            bgColor: AppColors.primaryColor,
+            onTap: _onPickupDropSubmit,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // â€” Submit handlers â€”
+  // These keep the form self-contained; wire them to the rider
+  // preference API once that endpoint is available. They deliberately
+  // do not touch the existing orders flow.
+  void _onServicePreferenceSubmit() {
+    if (_servicePreference == null) {
+      commonSnackBar(message: 'Please select a service preference');
+      return;
+    }
+    final isUpdate = _submittedPreference != null;
+    // Commit the selection → its radio now shows the tick and the CTA
+    // returns to a disabled "Update" state until the user changes it.
+    setState(() => _submittedPreference = _servicePreference);
+    commonSnackBar(
+      message: isUpdate
+          ? 'Service preference updated: ${_servicePreference!.label}'
+          : 'Service preference saved: ${_servicePreference!.label}',
+    );
+    // TODO: persist _servicePreference via the rider preference API.
+  }
+
+  // Allowed straight-line gap between pickup and drop. Anything below
+  // 500 m or above 20 km is rejected with a validation message.
+  static const double _minPickupDropKm = 0.5; // 500 meters
+  static const double _maxPickupDropKm = 20.0;
+
+  void _onPickupDropSubmit() {
+    if (_pickupController.text.trim().isEmpty ||
+        _dropController.text.trim().isEmpty) {
+      commonSnackBar(message: 'Please select both pickup and drop locations');
+      return;
+    }
+    // Coordinates are only set when a place is chosen from the
+    // suggestions — without them we can't measure the distance.
+    if (_pickupLat == null ||
+        _pickupLng == null ||
+        _dropLat == null ||
+        _dropLng == null) {
+      commonSnackBar(
+          message: 'Please pick both locations from the suggestions');
+      return;
+    }
+    // Distance gate: pickup ↔ drop must be 500 m – 20 km apart.
+    final distanceKm = calculateDistanceKm(
+      _pickupLat!,
+      _pickupLng!,
+      _dropLat!,
+      _dropLng!,
+    );
+    if (distanceKm < _minPickupDropKm) {
+      commonSnackBar(
+          message:
+              'Pickup and drop are too close. Minimum distance is 500 meters.');
+      return;
+    }
+    if (distanceKm > _maxPickupDropKm) {
+      commonSnackBar(
+          message: 'Pickup and drop must be within 20 km. '
+              'Current distance is ${distanceKm.toStringAsFixed(1)} km.');
+      return;
+    }
+    commonSnackBar(message: 'Pickup & drop preference saved');
+    // TODO: persist pickup/drop via the rider preference API. The
+    // resolved coordinates are captured alongside the addresses so the
+    // request can send precise lat/lng once the endpoint is wired.
+    logs('Pickup pref → ${_pickupController.text} '
+        '($_pickupLat, $_pickupLng) | '
+        'Drop pref → ${_dropController.text} ($_dropLat, $_dropLng) | '
+        'distance=${distanceKm.toStringAsFixed(2)} km');
   }
 
   // Post tab â€” embeds FeedScreen filtered to the user's posts.
@@ -1290,5 +1686,19 @@ Future<void> handleGoLiveTap() async {
   if (granted == true) {
     _viewCtrl.toggleShopStatus();
   }
+}
+
+// Service-type options for the rider "Set Preference" tab. Local to this
+// screen since the values only drive the preference form's radio group.
+// `label` is the human-readable text shown beside each radio and reused
+// in the submit confirmation.
+enum RiderServicePreference {
+  passenger('Passenger'),
+  goods('Goods'),
+  both('Both Passenger and Goods');
+
+  const RiderServicePreference(this.label);
+
+  final String label;
 }
 
