@@ -145,7 +145,7 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
               SizedBox(height: SizeConfig.size16),
 
               // ─── Website preview ───
-              WebsitePreviewCard(url: _branchWebsite(data) ?? ''),
+              WebsitePreviewCard(url: data.effectiveWebsite ?? ''),
 
               SizedBox(height: SizeConfig.size16),
 
@@ -662,13 +662,21 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
             ],
           ),
           const Divider(height: 20),
-          if (branch?.website?.isNotEmpty ?? false)
-            _contactItemClickable(
+          // Branch website if set; otherwise fall back to the profile-level
+          // website_url so the row still appears when the branch has none.
+          Builder(builder: (_) {
+            final branchWebsite = branch?.website?.trim() ?? '';
+            final website = branchWebsite.isNotEmpty
+                ? branchWebsite
+                : (data.websiteUrl?.trim() ?? '');
+            if (website.isEmpty) return const SizedBox.shrink();
+            return _contactItemClickable(
               icon: AppIconAssets.website_click,
-              label: branch?.website ?? '',
+              label: website,
               iconColor: AppColors.primaryColor,
-              onTap: () => _launchUrl(branch?.website ?? ''),
-            ),
+              onTap: () => _launchUrl(website),
+            );
+          }),
           if (firstDept?.email?.isNotEmpty ?? false)
             _contactItemClickable(
               icon: AppIconAssets.email,
@@ -866,14 +874,6 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
         ],
       ),
     );
-  }
-
-  String? _branchWebsite(FinanceBusinessItem data) {
-    for (final c in data.contactUs ?? const <FinanceContactUs>[]) {
-      final url = c.branch?.website;
-      if (url != null && url.isNotEmpty) return url;
-    }
-    return null;
   }
 
   // ─── LAUNCHERS ─────────────────────────────────────────────────────

@@ -7,7 +7,6 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
-import 'package:BlueEra/features/me/product/view/customer/visit_product_store_details_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -15,6 +14,8 @@ import 'package:BlueEra/widgets/route_map_bottom_sheet.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+import '../view/others_service_detail_screen.dart';
 
 /// Service-style business card used by the "Services Near Me" screen.
 /// Layout mirrors the design spec: hero image with rating + action icons
@@ -518,7 +519,7 @@ class ServiceBusinessCard extends StatelessWidget {
   }
 
   void _openStore() {
-    Get.to(() => VisitProductStoreDetailsScreen(
+    Get.to(() => OthersServiceDetailScreen(
           visitUserId: store.userId ?? '',
         ));
   }

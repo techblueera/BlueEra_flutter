@@ -1,19 +1,18 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/model/school_contact_us_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
+import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/widgets/empty_section_placeholder.dart';
 import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
-import 'package:BlueEra/features/me/others/model/business_profile_full_model.dart'
-    hide Location;
+import 'package:BlueEra/features/me/others/model/business_profile_full_model.dart' hide Location;
 import 'package:BlueEra/features/me/others/view/management/management_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_career_jobs/other_job_listing_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_contact_us/other_branch_details_form_screen.dart';
@@ -44,13 +43,11 @@ class OtherOverviewTabV2 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final businessController =
-        getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+    final businessController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
     return Obx(() {
       final data = controller.businessProfile.value;
-      final coordinates =
-          data?.contactUs?.firstOrNull?.branch?.location?.coordinates;
+      final coordinates = data?.contactUs?.firstOrNull?.branch?.location?.coordinates;
       final hasCoords = coordinates != null &&
           coordinates.length >= 2 &&
           (double.tryParse(coordinates[0].toString()) ?? 0.0) != 0.0 &&
@@ -108,18 +105,16 @@ class OtherOverviewTabV2 extends StatelessWidget {
                   _SectionHeader(
                     title: AppStrings.otherJobsTitle.tr,
                     actionLabel: AppStrings.viewAll,
-                    onAction: () =>
-                        Get.to(() => const OtherJobListingScreen())
-                            ?.then((_) => controller.getBusinessProfileFull()),
+                    onAction: () => Get.to(() => const OtherJobListingScreen())
+                        ?.then((_) => controller.getBusinessProfileFull()),
                   ),
                   const SizedBox(height: 10),
                   EmptySectionPlaceholder(
                     imageAsset: 'assets/images/other_job.png',
                     ctaLabel: AppStrings.otherJobsTitle.tr,
                     ctaIcon: Icons.work_outline,
-                    onTap: () =>
-                        Get.to(() => const OtherJobListingScreen())
-                            ?.then((_) => controller.getBusinessProfileFull()),
+                    onTap: () => Get.to(() => const OtherJobListingScreen())
+                        ?.then((_) => controller.getBusinessProfileFull()),
                   ),
                 ],
               ),
@@ -160,13 +155,27 @@ class OtherOverviewTabV2 extends StatelessWidget {
 
           SizedBox(height: SizeConfig.size10),
 
+          // ── Banking Information (RBI registered + Account types) ──
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+            child: _BankingCard(
+              initialRbi: data?.rbiRegistered,
+              initialAccountTypes: data?.accountType ?? const [],
+              onSave: (rbi, types) => controller.updateBankingInfo(
+                rbiRegistered: rbi,
+                accountType: types,
+              ),
+            ),
+          ),
+
+          SizedBox(height: SizeConfig.size10),
+
           // ── Timings ──
           Padding(
             padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
             child: _TimingCard(
               timings: data?.timings,
-              onEditTap: () => Get.to(() => TimingScreen())
-                  ?.then((_) => controller.getBusinessProfileFull()),
+              onEditTap: () => Get.to(() => TimingScreen())?.then((_) => controller.getBusinessProfileFull()),
             ),
           ),
 
@@ -184,22 +193,20 @@ class OtherOverviewTabV2 extends StatelessWidget {
                   _SectionHeader(
                     title: AppStrings.contactUs.tr,
                     actionLabel: AppStrings.otherAddEdit.tr,
-                    onAction: () => Get.to(OtherContactUs())
-                        ?.then((_) => controller.getBusinessProfileFull()),
+                    onAction: () =>
+                        Get.to(OtherContactUs())?.then((_) => controller.getBusinessProfileFull()),
                   ),
                   const SizedBox(height: 10),
                   if ((data?.contactUs?.isNotEmpty ?? false))
                     _ContactUs(
-                      contacts:
-                          data!.contactUs!.first,
+                      contacts: data!.contactUs!.first,
                     )
                   else
                     EmptySectionPlaceholder(
                       imageAsset: 'assets/images/other_gallery.png',
                       ctaLabel: AppStrings.contactUs.tr,
                       ctaIcon: Icons.contact_phone_outlined,
-                      onTap: () => Get.to(OtherContactUs())
-                          ?.then((_) => controller.getBusinessProfileFull()),
+                      onTap: () => Get.to(OtherContactUs())?.then((_) => controller.getBusinessProfileFull()),
                     ),
                 ],
               ),
@@ -211,10 +218,8 @@ class OtherOverviewTabV2 extends StatelessWidget {
           Padding(
             padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
             child: WebsiteOverviewCard(
-              websiteUrl: businessController
-                  .businessProfileDetails.value?.data?.websiteUrl,
-              onSave: (url) => businessController
-                  .updateBusinessProfileDetails({ApiKeys.websiteUrl: url}),
+              websiteUrl: businessController.businessProfileDetails.value?.data?.websiteUrl,
+              onSave: (url) => businessController.updateBusinessProfileDetails({ApiKeys.websiteUrl: url}),
             ),
           ),
 
@@ -226,8 +231,7 @@ class OtherOverviewTabV2 extends StatelessWidget {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: BusinessLocationWidget(
-                  locationText: data
-                      ?.contactUs?.firstOrNull?.branch?.location?.name,
+                  locationText: data?.contactUs?.firstOrNull?.branch?.location?.name,
                   latitude: double.parse(coordinates[0].toString()),
                   longitude: double.parse(coordinates[1].toString()),
                   businessName: data?.profile?.profileName ?? '',
@@ -242,8 +246,7 @@ class OtherOverviewTabV2 extends StatelessWidget {
 
           // ── QR Code (mirrors the hospital QR card) ──
           Obx(() {
-            final details =
-                businessController.businessProfileDetails.value?.data;
+            final details = businessController.businessProfileDetails.value?.data;
             if (details == null) return const SizedBox.shrink();
             return Padding(
               padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
@@ -320,8 +323,7 @@ class _ManagementList extends StatelessWidget {
                       errorWidget: (_, __, ___) => Container(
                         color: Colors.grey[300],
                         child: const Center(
-                          child: Icon(Icons.person,
-                              size: 50, color: Colors.white),
+                          child: Icon(Icons.person, size: 50, color: Colors.white),
                         ),
                       ),
                     ),
@@ -434,10 +436,8 @@ class _GalleryLayout extends StatelessWidget {
                     color: Colors.black.withValues(alpha: 0.5),
                     alignment: Alignment.center,
                     child: Text('+$extra',
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold)),
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
                   ),
               ],
             ),
@@ -618,9 +618,7 @@ class _TimingStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = isOpen
-        ? AppColors.greenShade.withValues(alpha: 0.12)
-        : AppColors.greyE6;
+    final bg = isOpen ? AppColors.greenShade.withValues(alpha: 0.12) : AppColors.greyE6;
     final fg = isOpen ? AppColors.greenShade : AppColors.grey83;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -703,9 +701,7 @@ class _ContactUs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final branch = contacts.branch;
-    final firstDept = (contacts.departments?.isNotEmpty ?? false)
-        ? contacts.departments!.first
-        : null;
+    final firstDept = (contacts.departments?.isNotEmpty ?? false) ? contacts.departments!.first : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -723,8 +719,7 @@ class _ContactUs extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.business_outlined,
-                      size: 16, color: AppColors.secondaryTextColor),
+                  const Icon(Icons.business_outlined, size: 16, color: AppColors.secondaryTextColor),
                   const SizedBox(width: 6),
                   Expanded(
                     child: CustomText(
@@ -742,8 +737,7 @@ class _ContactUs extends StatelessWidget {
                           name: contacts.branch?.name,
                           location: SchoolLocation(
                             name: contacts.branch?.location?.name,
-                            coordinates:
-                                contacts.branch?.location?.coordinates ?? [],
+                            coordinates: contacts.branch?.location?.coordinates ?? [],
                           ),
                           website: contacts.branch?.website,
                         ),
@@ -753,8 +747,7 @@ class _ContactUs extends StatelessWidget {
                       ),
                     )),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         border: Border.all(color: AppColors.primaryColor),
                         borderRadius: BorderRadius.circular(6),
@@ -762,11 +755,9 @@ class _ContactUs extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: const [
-                          Icon(Icons.edit_outlined,
-                              size: 14, color: AppColors.primaryColor),
+                          Icon(Icons.edit_outlined, size: 14, color: AppColors.primaryColor),
                           SizedBox(width: 4),
-                          CustomText(AppStrings.edit,
-                              fontSize: 12, color: AppColors.primaryColor),
+                          CustomText(AppStrings.edit, fontSize: 12, color: AppColors.primaryColor),
                         ],
                       ),
                     ),
@@ -775,15 +766,12 @@ class _ContactUs extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               if (branch?.website != null && branch!.website!.isNotEmpty)
-                _row(AppIconAssets.website_click, branch.website!,
-                    AppColors.primaryColor, isLink: true),
+                _row(AppIconAssets.website_click, branch.website!, AppColors.primaryColor, isLink: true),
               if (firstDept != null) ...[
                 if (firstDept.phone != null && firstDept.phone!.isNotEmpty)
-                  _row(AppIconAssets.phone_outline, firstDept.phone!,
-                      AppColors.mainTextColor),
+                  _row(AppIconAssets.phone_outline, firstDept.phone!, AppColors.mainTextColor),
                 if (firstDept.email != null && firstDept.email!.isNotEmpty)
-                  _row(AppIconAssets.email, firstDept.email!,
-                      AppColors.mainTextColor),
+                  _row(AppIconAssets.email, firstDept.email!, AppColors.mainTextColor),
               ],
             ],
           ),
@@ -797,8 +785,7 @@ class _ContactUs extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.primaryColor.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                  color: AppColors.primaryColor.withValues(alpha: 0.3)),
+              border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.3)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -806,9 +793,7 @@ class _ContactUs extends StatelessWidget {
                 Icon(Icons.add, size: 16, color: AppColors.primaryColor),
                 SizedBox(width: 6),
                 CustomText(AppStrings.addMore,
-                    fontSize: 13,
-                    color: AppColors.primaryColor,
-                    fontWeight: FontWeight.w600),
+                    fontSize: 13, color: AppColors.primaryColor, fontWeight: FontWeight.w600),
               ],
             ),
           ),
@@ -817,8 +802,7 @@ class _ContactUs extends StatelessWidget {
     );
   }
 
-  Widget _row(String icon, String text, Color textColor,
-      {bool isLink = false}) {
+  Widget _row(String icon, String text, Color textColor, {bool isLink = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
@@ -843,6 +827,480 @@ class _ContactUs extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// "Banking Information" card for the Other-business Overview tab.
+///
+/// Mirrors the [WebsiteOverviewCard] pattern: the card itself is stateless
+/// and always renders the saved values that the parent passes down
+/// (`initialRbi` / `initialAccountTypes`). An Edit/Add pill opens an inline
+/// modal sheet where the user toggles RBI and picks account types; on save
+/// the sheet calls [onSave], closes on success, and the parent refetches via
+/// `getBusinessProfileFull()` so the card rebuilds with the new props.
+class _BankingCard extends StatelessWidget {
+  static const List<String> _accountTypeOptions = [
+    'Savings',
+    'Current',
+    'Fixed deposit',
+    'Recurring deposit',
+    'Salary',
+    'NRI',
+    'Demat',
+  ];
+
+  final bool? initialRbi;
+  final List<String> initialAccountTypes;
+
+  /// Persists the new values. Returns `true` on success so the editor sheet
+  /// knows whether to close.
+  final Future<bool> Function(bool rbi, List<String> types) onSave;
+
+  const _BankingCard({
+    required this.initialRbi,
+    required this.initialAccountTypes,
+    required this.onSave,
+  });
+
+  bool get _hasSavedData => initialRbi != null || initialAccountTypes.isNotEmpty;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(SizeConfig.size14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE6E8EE)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x14001120),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.account_balance_outlined, size: 18, color: AppColors.primaryColor),
+              SizedBox(width: SizeConfig.size8),
+              Expanded(
+                child: CustomText(
+                  'Banking Information',
+                  fontSize: SizeConfig.medium,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.mainTextColor,
+                ),
+              ),
+              InkWell(
+                onTap: () => _openEditSheet(context),
+                borderRadius: BorderRadius.circular(20),
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: SizeConfig.size10,
+                    vertical: SizeConfig.size4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: AppColors.primaryColor.withValues(alpha: 0.3),
+                      width: 0.6,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        _hasSavedData ? Icons.edit_outlined : Icons.add,
+                        size: 14,
+                        color: AppColors.primaryColor,
+                      ),
+                      SizedBox(width: SizeConfig.size4),
+                      CustomText(
+                        _hasSavedData ? AppStrings.edit.tr : AppStrings.add.tr,
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primaryColor,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: SizeConfig.size12),
+          _buildReadOnlyBody(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReadOnlyBody() {
+    final rbiText = initialRbi == true
+        ? 'Yes'
+        : initialRbi == false
+            ? 'No'
+            : '—';
+    final types = initialAccountTypes;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: CustomText(
+                'RBI Registered',
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.mainTextColor,
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: initialRbi == true ? AppColors.greenShade.withValues(alpha: 0.12) : AppColors.greyE6,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: CustomText(
+                rbiText,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: initialRbi == true ? AppColors.greenShade : AppColors.grey83,
+              ),
+            ),
+          ],
+        ),
+        Divider(height: SizeConfig.size20, color: AppColors.whiteE5),
+        CustomText(
+          'Account Types',
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: AppColors.mainTextColor,
+        ),
+        const SizedBox(height: 8),
+        if (types.isEmpty)
+          CustomText(
+            'No account types selected',
+            fontSize: 12,
+            color: AppColors.grey83,
+          )
+        else
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: types
+                .map((t) => Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: AppColors.primaryColor),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.check_circle, size: 14, color: AppColors.primaryColor),
+                          const SizedBox(width: 6),
+                          CustomText(
+                            t,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primaryColor,
+                          ),
+                        ],
+                      ),
+                    ))
+                .toList(),
+          ),
+      ],
+    );
+  }
+
+  Future<void> _openEditSheet(BuildContext context) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        return _BankingEditSheet(
+          options: _accountTypeOptions,
+          initialRbi: initialRbi ?? false,
+          initialAccountTypes: initialAccountTypes,
+          onSave: onSave,
+        );
+      },
+    );
+  }
+}
+
+class _BankingEditSheet extends StatefulWidget {
+  final List<String> options;
+  final bool initialRbi;
+  final List<String> initialAccountTypes;
+  final Future<bool> Function(bool rbi, List<String> types) onSave;
+
+  const _BankingEditSheet({
+    required this.options,
+    required this.initialRbi,
+    required this.initialAccountTypes,
+    required this.onSave,
+  });
+
+  @override
+  State<_BankingEditSheet> createState() => _BankingEditSheetState();
+}
+
+class _BankingEditSheetState extends State<_BankingEditSheet> {
+  late bool _rbi;
+  late Set<String> _selected;
+  bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _rbi = widget.initialRbi;
+    _selected = widget.initialAccountTypes.toSet();
+  }
+
+  Future<void> _save() async {
+    setState(() => _saving = true);
+    final ok = await widget.onSave(_rbi, _selected.toList());
+    if (!mounted) return;
+    if (ok) {
+      Navigator.of(context).pop();
+    } else {
+      setState(() => _saving = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final bottom = MediaQuery.of(context).viewInsets.bottom;
+    return Padding(
+      padding: EdgeInsets.only(bottom: bottom),
+      child: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(
+            SizeConfig.size16,
+            SizeConfig.size12,
+            SizeConfig.size16,
+            SizeConfig.size16,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.whiteE5,
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+              ),
+              SizedBox(height: SizeConfig.size16),
+              Row(
+                children: [
+                  Icon(Icons.account_balance_outlined, size: 18, color: AppColors.primaryColor),
+                  const SizedBox(width: 8),
+                  CustomText(
+                    'Banking Information',
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                    color: AppColors.mainTextColor,
+                  ),
+                ],
+              ),
+              SizedBox(height: SizeConfig.size16),
+              Row(
+                children: [
+                  Expanded(
+                    child: CustomText(
+                      'RBI Registered',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.mainTextColor,
+                    ),
+                  ),
+                  _YesNoPill(
+                    label: 'Yes',
+                    selected: _rbi == true,
+                    onTap: _saving ? null : () => setState(() => _rbi = true),
+                  ),
+                  const SizedBox(width: 8),
+                  _YesNoPill(
+                    label: 'No',
+                    selected: _rbi == false,
+                    onTap: _saving ? null : () => setState(() => _rbi = false),
+                  ),
+                ],
+              ),
+              Divider(height: SizeConfig.size20, color: AppColors.whiteE5),
+              CustomText(
+                'Account Types',
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.mainTextColor,
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: widget.options.map((type) {
+                  final selected = _selected.contains(type);
+                  return GestureDetector(
+                    onTap: _saving
+                        ? null
+                        : () => setState(() {
+                              selected ? _selected.remove(type) : _selected.add(type);
+                            }),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: selected ? AppColors.primaryColor.withValues(alpha: 0.1) : Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: selected ? AppColors.primaryColor : AppColors.whiteE5,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            selected ? Icons.check_circle : Icons.radio_button_unchecked,
+                            size: 14,
+                            color: selected ? AppColors.primaryColor : AppColors.grey99,
+                          ),
+                          const SizedBox(width: 6),
+                          CustomText(
+                            type,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: selected ? AppColors.primaryColor : AppColors.mainTextColor,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+              SizedBox(height: SizeConfig.size20),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: _saving ? null : () => Navigator.of(context).pop(),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        side: BorderSide(color: AppColors.whiteE5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: CustomText(
+                        AppStrings.cancel.tr,
+                        color: AppColors.mainTextColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton(
+                      onPressed: _saving ? null : _save,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryColor,
+                        disabledBackgroundColor: AppColors.primaryColor.withValues(alpha: 0.4),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: _saving
+                          ? const SizedBox(
+                              height: 18,
+                              width: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            )
+                          : CustomText(
+                              AppStrings.save.tr,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                            ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _YesNoPill extends StatelessWidget {
+  final String label;
+  final bool selected;
+  final VoidCallback? onTap;
+
+  const _YesNoPill({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        constraints: const BoxConstraints(minWidth: 64),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.primaryColor : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: selected ? AppColors.primaryColor : AppColors.whiteE5,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              selected ? Icons.check_circle : Icons.radio_button_unchecked,
+              size: 14,
+              color: selected ? Colors.white : AppColors.grey99,
+            ),
+            const SizedBox(width: 6),
+            CustomText(
+              label,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: selected ? Colors.white : AppColors.mainTextColor,
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -69,6 +69,7 @@ class SchoolDetailsData {
     this.studentTeacherRatio,
     this.mediumOfInstruction,
     this.fees,
+    this.avgRating,
   });
 
   SchoolDetailsData.fromJson(dynamic json) {
@@ -141,6 +142,9 @@ class SchoolDetailsData {
       mediumOfInstruction = [medium];
     }
     fees = feesVal is num ? feesVal.toInt() : null;
+
+    final ratingVal = json['avg_rating'] ?? json['avgRating'];
+    avgRating = ratingVal is num ? ratingVal.toDouble() : null;
   }
   String? id;
   String? name;
@@ -166,6 +170,7 @@ class SchoolDetailsData {
   String? studentTeacherRatio;
   List<String>? mediumOfInstruction;
   int? fees;
+  double? avgRating;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -206,6 +211,7 @@ class SchoolDetailsData {
     map['studentTeacherRatio'] = studentTeacherRatio;
     map['mediumOfInstruction'] = mediumOfInstruction;
     map['fees'] = fees;
+    map['avg_rating'] = avgRating;
     return map;
   }
 }

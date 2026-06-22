@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
+import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/features/common/Discover/controller/finance_discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/finance_search_res_model.dart';
 import 'package:BlueEra/features/common/Discover/view/finance/finance_detail_screen.dart';
@@ -131,28 +132,22 @@ class _FinanceCard extends StatelessWidget {
     }
 
     const String na = 'N/A';
-    const String rating = na;
-    const String highlightLabel = 'FD rate: $na';
-    const String highlightTrailing = na;
+    final double? ratingValue = item.rating;
+    final String rating = (ratingValue != null && ratingValue > 0)
+        ? ratingValue.toStringAsFixed(1)
+        : na;
 
     final String distance = _distanceFromUser(item);
-    const String openHours = na;
-    const String registryLabel = na;
-    const String minBalance = na;
-    const String minBalanceLabel = 'Min. balance';
-    const String openTime = na;
-    const String openTimeLabel = 'Open online';
-    const String savingsRate = na;
-    const String savingsLabel = 'Savings p.a.';
+    final ({String label, Color color}) openBadge = _todayOpenBadge(item);
+    final String registryLabel =
+        item.rbiRegistered == true ? 'RBI Registered' : 'Not RBI Reg.';
+    final Color registryColor = item.rbiRegistered == true
+        ? AppColors.greenShade
+        : AppColors.grey83;
 
-    final String typeTag =
-        (item.type ?? '').isNotEmpty ? item.type!.replaceAll('_', ' ').capitalize ?? item.type! : '';
-    final String categoryTag =
-        category.isNotEmpty ? category.replaceAll('_', ' ').capitalize ?? category : '';
-    final List<String> serviceTags = <String>{
-      if (categoryTag.isNotEmpty) categoryTag,
-      if (typeTag.isNotEmpty) typeTag,
-    }.toList();
+    final List<String> serviceTags = <String>[
+      ...?item.accountType?.where((s) => s.trim().isNotEmpty),
+    ];
     if (serviceTags.isEmpty) serviceTags.add(na);
     const int moreTagsCount = 0;
 
@@ -173,8 +168,6 @@ class _FinanceCard extends StatelessWidget {
               _buildCoverSection(
                 images: coverImages,
                 rating: rating,
-                highlightLabel: highlightLabel,
-                highlightTrailing: highlightTrailing,
               ),
               Padding(
                 padding: EdgeInsets.fromLTRB(
@@ -193,7 +186,9 @@ class _FinanceCard extends StatelessWidget {
                     SizedBox(height: SizeConfig.size10),
                     _buildBadgesRow(
                       registryLabel: registryLabel,
-                      openHours: openHours,
+                      registryColor: registryColor,
+                      openLabel: openBadge.label,
+                      openColor: openBadge.color,
                     ),
                     SizedBox(height: SizeConfig.size12),
                     _buildTagsRow(
@@ -230,6 +225,27 @@ class _FinanceCard extends StatelessWidget {
     return '';
   }
 
+  Future<void> _shareFinance(FinanceBusinessItem item) async {
+    final name = (item.profileName?.trim().isNotEmpty ?? false)
+        ? item.profileName!.trim()
+        : 'this finance service';
+    final address = _resolveAddress(item);
+    final website = item.effectiveWebsite ?? '';
+
+    final lines = <String>['Check out $name on BlueEra'];
+    if (address.isNotEmpty) lines.add(address);
+    if (item.rbiRegistered == true) lines.add('RBI Registered');
+    final types = item.accountType
+            ?.where((s) => s.trim().isNotEmpty)
+            .toList() ??
+        const [];
+    if (types.isNotEmpty) lines.add('Accounts: ${types.join(', ')}');
+    if (website.isNotEmpty) lines.add(website);
+
+    await ShareService.instance
+        .openShareSheet(text: lines.join('\n'), subject: name);
+  }
+
   String _distanceFromUser(FinanceBusinessItem item) {
     final coords = item.contactUs?.firstOrNull?.branch?.location?.coordinates ?? item.location?.coordinates;
     if (coords == null || coords.length < 2) return 'N/A';
@@ -246,8 +262,6 @@ class _FinanceCard extends StatelessWidget {
   Widget _buildCoverSection({
     required List<String> images,
     required String rating,
-    required String highlightLabel,
-    required String highlightTrailing,
   }) {
     final Widget imageWidget = images.isNotEmpty
         ? GestureDetector(
@@ -322,7 +336,10 @@ class _FinanceCard extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _circleIcon(Icons.share_outlined),
+                  GestureDetector(
+                    onTap: () => _shareFinance(item),
+                    child: _circleIcon(Icons.share_outlined),
+                  ),
                   const SizedBox(width: 8),
                   _circleIcon(Icons.star_border),
                 ],
@@ -415,25 +432,51 @@ class _FinanceCard extends StatelessWidget {
 
   Widget _buildBadgesRow({
     required String registryLabel,
-    required String openHours,
+    required Color registryColor,
+    required String openLabel,
+    required Color openColor,
   }) {
     return Row(
       children: [
         _outlineBadge(
           icon: Icons.verified_outlined,
           label: registryLabel,
-          color: AppColors.greenShade,
+          color: registryColor,
         ),
         const SizedBox(width: 8),
         Flexible(
           child: _outlineBadge(
             icon: Icons.access_time,
-            label: 'Open | $openHours',
-            color: AppColors.greenShade,
+            label: openLabel,
+            color: openColor,
           ),
         ),
       ],
     );
+  }
+
+  /// Derives an "Open | HH:MM - HH:MM" / "Closed today" / N/A pill from
+  /// the per-day `timings` payload, with a fallback to the legacy
+  /// `businessHours` object when `timings` is absent.
+  ({String label, Color color}) _todayOpenBadge(FinanceBusinessItem item) {
+    final today = item.timings?.forWeekday(DateTime.now().weekday);
+    if (today != null) {
+      if (today.hasHours) {
+        return (
+          label: 'Open | ${today.openTime} - ${today.closeTime}',
+          color: AppColors.greenShade,
+        );
+      }
+      return (label: 'Closed today', color: AppColors.grey83);
+    }
+    final bh = item.businessHours;
+    if (bh?.hasHours == true) {
+      return (
+        label: 'Open | ${bh!.openTime} - ${bh.closeTime}',
+        color: AppColors.greenShade,
+      );
+    }
+    return (label: 'Open | N/A', color: AppColors.grey83);
   }
 
   Widget _outlineBadge({
@@ -458,56 +501,6 @@ class _FinanceCard extends StatelessWidget {
             fontSize: 11,
             fontWeight: FontWeight.w600,
             color: color,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatsRow({
-    required String minBalance,
-    required String minBalanceLabel,
-    required String openTime,
-    required String openTimeLabel,
-    required String savingsRate,
-    required String savingsLabel,
-  }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Expanded(child: _statCell(minBalance, minBalanceLabel)),
-        const SizedBox(width: 4),
-        Expanded(child: _statCell(openTime, openTimeLabel)),
-        const SizedBox(width: 4),
-        Expanded(child: _statCell(savingsRate, savingsLabel)),
-      ],
-    );
-  }
-
-  Widget _statCell(String value, String label) {
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: SizeConfig.size10,
-        vertical: SizeConfig.size12,
-      ),
-      decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.greyE5, width: 1)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CustomText(
-            value,
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
-            color: AppColors.mainTextColor,
-          ),
-          const SizedBox(height: 2),
-          CustomText(
-            label,
-            fontSize: 11,
-            color: AppColors.grey83,
           ),
         ],
       ),

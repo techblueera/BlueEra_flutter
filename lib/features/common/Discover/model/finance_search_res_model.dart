@@ -35,6 +35,13 @@ class FinanceBusinessItem {
   List<FinanceGallery>? gallery;
   String? createdAt;
   String? updatedAt;
+  double? rating;
+  bool? rbiRegistered;
+  List<String>? accountType;
+  FinanceBusinessHours? businessHours;
+  FinanceDetails? financeDetails;
+  FinanceTimings? timings;
+  String? websiteUrl;
 
   FinanceBusinessItem({
     this.id,
@@ -78,8 +85,7 @@ class FinanceBusinessItem {
     // from the profile's `business_location` ("{\"lat\":..,\"lon\":..}").
     location = json['location'] != null
         ? FinanceLocation.fromJson(json['location'])
-        : FinanceLocation.fromBusinessLocation(
-        profile?['business_location'] ?? json['business_location']);
+        : FinanceLocation.fromBusinessLocation(profile?['business_location'] ?? json['business_location']);
     if (json['contactUs'] != null) {
       contactUs = <FinanceContactUs>[];
       json['contactUs'].forEach((v) {
@@ -118,6 +124,163 @@ class FinanceBusinessItem {
     }
     createdAt = json['createdAt'];
     updatedAt = json['updatedAt'];
+
+    final ratingVal = json['rating'] ?? profile?['rating'];
+    rating = ratingVal is num ? ratingVal.toDouble() : null;
+
+    rbiRegistered = (json['rbiRegistered'] ?? profile?['rbiRegistered']) as bool?;
+
+    final accountTypeRaw = json['accountType'] ?? profile?['accountType'];
+    if (accountTypeRaw is List) {
+      accountType = accountTypeRaw.map((e) => e?.toString() ?? '').where((s) => s.isNotEmpty).toList();
+    }
+
+    final businessHoursRaw = json['businessHours'] ?? profile?['businessHours'];
+    if (businessHoursRaw is Map) {
+      businessHours = FinanceBusinessHours.fromJson(Map<String, dynamic>.from(businessHoursRaw));
+    }
+
+    final financeDetailsRaw = json['financeDetails'] ?? profile?['financeDetails'];
+    if (financeDetailsRaw is Map) {
+      financeDetails = FinanceDetails.fromJson(Map<String, dynamic>.from(financeDetailsRaw));
+    }
+
+    final timingsRaw = json['timings'] ?? profile?['timings'];
+    if (timingsRaw is Map) {
+      timings = FinanceTimings.fromJson(Map<String, dynamic>.from(timingsRaw));
+    }
+
+    // Profile-level website (used as a fallback when no contactUs branch
+    // provides one). Lives under `profile.website_url` in the detail
+    // response; also accept a top-level key for forward compat.
+    final websiteRaw = json['website_url'] ?? profile?['website_url'];
+    final websiteStr = websiteRaw?.toString().trim() ?? '';
+    websiteUrl = websiteStr.isEmpty ? null : websiteStr;
+  }
+
+  /// Branch website if any contactUs entry has one, otherwise the
+  /// profile-level [websiteUrl]. Returns `null` when neither is set.
+  String? get effectiveWebsite {
+    final branch = contactUs?.firstOrNull?.branch?.website?.trim() ?? '';
+    if (branch.isNotEmpty) return branch;
+    final fallback = websiteUrl?.trim() ?? '';
+    return fallback.isEmpty ? null : fallback;
+  }
+}
+
+class FinanceTimings {
+  FinanceDayTiming? monday;
+  FinanceDayTiming? tuesday;
+  FinanceDayTiming? wednesday;
+  FinanceDayTiming? thursday;
+  FinanceDayTiming? friday;
+  FinanceDayTiming? saturday;
+  FinanceDayTiming? sunday;
+
+  FinanceTimings({
+    this.monday,
+    this.tuesday,
+    this.wednesday,
+    this.thursday,
+    this.friday,
+    this.saturday,
+    this.sunday,
+  });
+
+  FinanceTimings.fromJson(Map<String, dynamic> json) {
+    FinanceDayTiming? read(String key) {
+      final v = json[key];
+      if (v is Map) {
+        return FinanceDayTiming.fromJson(Map<String, dynamic>.from(v));
+      }
+      return null;
+    }
+
+    monday = read('monday');
+    tuesday = read('tuesday');
+    wednesday = read('wednesday');
+    thursday = read('thursday');
+    friday = read('friday');
+    saturday = read('saturday');
+    sunday = read('sunday');
+  }
+
+  /// Returns the day's timing for a [DateTime.weekday] (1 = Monday … 7 = Sunday).
+  FinanceDayTiming? forWeekday(int weekday) {
+    switch (weekday) {
+      case DateTime.monday:
+        return monday;
+      case DateTime.tuesday:
+        return tuesday;
+      case DateTime.wednesday:
+        return wednesday;
+      case DateTime.thursday:
+        return thursday;
+      case DateTime.friday:
+        return friday;
+      case DateTime.saturday:
+        return saturday;
+      case DateTime.sunday:
+        return sunday;
+    }
+    return null;
+  }
+}
+
+class FinanceDayTiming {
+  bool? isOpen;
+  String? openTime;
+  String? closeTime;
+
+  FinanceDayTiming({this.isOpen, this.openTime, this.closeTime});
+
+  FinanceDayTiming.fromJson(Map<String, dynamic> json) {
+    isOpen = json['isOpen'] as bool?;
+    openTime = json['openTime']?.toString();
+    closeTime = json['closeTime']?.toString();
+  }
+
+  bool get hasHours => isOpen == true && (openTime?.isNotEmpty ?? false) && (closeTime?.isNotEmpty ?? false);
+}
+
+class FinanceBusinessHours {
+  String? openTime;
+  String? closeTime;
+
+  FinanceBusinessHours({this.openTime, this.closeTime});
+
+  FinanceBusinessHours.fromJson(Map<String, dynamic> json) {
+    openTime = json['openTime']?.toString();
+    closeTime = json['closeTime']?.toString();
+  }
+
+  bool get hasHours => (openTime?.isNotEmpty ?? false) && (closeTime?.isNotEmpty ?? false);
+}
+
+class FinanceDetails {
+  int? minBalance;
+  String? openOnlineTime;
+  double? savingRatePA;
+  double? fdRatePA;
+  String? fdMaxTenure;
+
+  FinanceDetails({
+    this.minBalance,
+    this.openOnlineTime,
+    this.savingRatePA,
+    this.fdRatePA,
+    this.fdMaxTenure,
+  });
+
+  FinanceDetails.fromJson(Map<String, dynamic> json) {
+    final mb = json['minBalance'];
+    minBalance = mb is num ? mb.toInt() : null;
+    openOnlineTime = json['openOnlineTime']?.toString();
+    final sr = json['savingRatePA'];
+    savingRatePA = sr is num ? sr.toDouble() : null;
+    final fr = json['fdRatePA'];
+    fdRatePA = fr is num ? fr.toDouble() : null;
+    fdMaxTenure = json['fdMaxTenure']?.toString();
   }
 }
 
@@ -132,8 +295,7 @@ class FinanceLocation {
     name = json['name'];
     address = json['address'];
     if (json['coordinates'] != null) {
-      coordinates = List<double>.from(
-          json['coordinates'].map((x) => (x as num).toDouble()));
+      coordinates = List<double>.from(json['coordinates'].map((x) => (x as num).toDouble()));
     }
   }
 
@@ -200,9 +362,7 @@ class FinanceContactUs {
 
   FinanceContactUs.fromJson(Map<String, dynamic> json) {
     id = json['_id'];
-    branch = json['branch'] != null
-        ? FinanceBranch.fromJson(json['branch'])
-        : null;
+    branch = json['branch'] != null ? FinanceBranch.fromJson(json['branch']) : null;
     if (json['departments'] != null) {
       departments = <FinanceDepartment>[];
       json['departments'].forEach((v) {
@@ -220,9 +380,7 @@ class FinanceBranch {
   FinanceBranch({this.location, this.name, this.website});
 
   FinanceBranch.fromJson(Map<String, dynamic> json) {
-    location = json['location'] != null
-        ? FinanceLocation.fromJson(json['location'])
-        : null;
+    location = json['location'] != null ? FinanceLocation.fromJson(json['location']) : null;
     name = json['name'];
     website = json['website'];
   }
@@ -307,8 +465,7 @@ class FinanceGallery {
     id = json['_id'];
     title = json['title'];
     if (json['imageUrls'] != null) {
-      imageUrls = List<String>.from(
-          json['imageUrls'].map((x) => x.toString().trim()));
+      imageUrls = List<String>.from(json['imageUrls'].map((x) => x.toString().trim()));
     }
   }
 }
