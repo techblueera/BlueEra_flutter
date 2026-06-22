@@ -331,13 +331,21 @@ Widget  ChatListTile({
   bool showNewIfRecentlyCreated = false,
 }) {
   final sender = chat?.sender;
-  final senderName = chat?.lastMessage == "Order Message"
+  // Group rows can surface inside the personal/business list payloads
+  // (`type:"group"`). For those, the conversation is identified by
+  // `group_name` / `group_profile_image` rather than the embedded sender,
+  // so prefer the group fields when the row is a group.
+  final isGroupChat =
+      (chat?.type == AppConstants.group_Chat_Type) || (chat?.isGroup == true);
+  final senderName = (isGroupChat || chat?.lastMessage == "Order Message")
       ? chat?.groupName
       : sender?.name;
   final senderId = sender?.id ?? '';
   final senderContactNo = sender?.contactNo;
-  final senderProfileImage = chat?.lastMessage == "Order Message" ? chat
-      ?.groupProfileImage : sender?.profileImage;
+  final senderProfileImage =
+      (isGroupChat || chat?.lastMessage == "Order Message")
+          ? chat?.groupProfileImage
+          : sender?.profileImage;
   final senderDesignation = sender?.designation;
   // final senderBusinessId = sender?.businessId;
 
