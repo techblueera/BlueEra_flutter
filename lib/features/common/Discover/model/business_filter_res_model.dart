@@ -112,6 +112,8 @@ class BusinessFilterData {
     this.departmentCount,
     this.facilities,
     this.facilityCount,
+    this.quickInfo,
+    this.schoolTimings,
   });
 
   BusinessFilterData.fromJson(dynamic json) {
@@ -182,6 +184,15 @@ class BusinessFilterData {
           .toList();
     }
     facilityCount = _asInt(json['facility_count']);
+    quickInfo = json['quickInfo'] is Map
+        ? QuickInfo.fromJson(json['quickInfo'])
+        : null;
+    if (json['schoolTimings'] is List) {
+      schoolTimings = (json['schoolTimings'] as List)
+          .whereType<Map>()
+          .map((e) => Availability.fromJson(e))
+          .toList();
+    }
   }
 
   String? id;
@@ -214,6 +225,8 @@ class BusinessFilterData {
   int? departmentCount;
   List<String>? facilities;
   int? facilityCount;
+  QuickInfo? quickInfo;
+  List<Availability>? schoolTimings;
 
   Map<String, dynamic> toJson() => {
         '_id': id,
@@ -246,6 +259,43 @@ class BusinessFilterData {
         'department_count': departmentCount,
         'facilities': facilities,
         'facility_count': facilityCount,
+        'quickInfo': quickInfo?.toJson(),
+        'schoolTimings':
+            schoolTimings?.map((e) => e.toJson()).toList(),
+      };
+}
+
+class QuickInfo {
+  QuickInfo({
+    this.classRange,
+    this.studentTeacherRatio,
+    this.mediumOfInstruction,
+    this.fees,
+  });
+
+  QuickInfo.fromJson(dynamic json) {
+    classRange = json['classRange']?.toString();
+    studentTeacherRatio = json['studentTeacherRatio']?.toString();
+    final medium = json['mediumOfInstruction'];
+    if (medium is List) {
+      mediumOfInstruction = medium.map((e) => e.toString()).toList();
+    } else if (medium is String && medium.isNotEmpty) {
+      mediumOfInstruction = [medium];
+    }
+    final feesVal = json['fees'];
+    fees = feesVal is num ? feesVal.toInt() : null;
+  }
+
+  String? classRange;
+  String? studentTeacherRatio;
+  List<String>? mediumOfInstruction;
+  int? fees;
+
+  Map<String, dynamic> toJson() => {
+        'classRange': classRange,
+        'studentTeacherRatio': studentTeacherRatio,
+        'mediumOfInstruction': mediumOfInstruction,
+        'fees': fees,
       };
 }
 
@@ -466,6 +516,12 @@ extension BusinessFilterDataMappers on BusinessFilterData {
         type: 'Point',
         coordinates: coords,
       ),
+      classRange: quickInfo?.classRange,
+      studentTeacherRatio: quickInfo?.studentTeacherRatio,
+      mediumOfInstruction: quickInfo?.mediumOfInstruction,
+      fees: quickInfo?.fees,
+      availability: schoolTimings,
+      avgRating: avgRating?.toDouble(),
     );
   }
 }

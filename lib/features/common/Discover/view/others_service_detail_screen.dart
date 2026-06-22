@@ -29,21 +29,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
-import '../../../../../core/api/apiService/api_response.dart';
-
-class VisitProductStoreDetailsScreen extends StatefulWidget {
+class OthersServiceDetailScreen extends StatefulWidget {
   final String visitUserId;
 
-  const VisitProductStoreDetailsScreen({
+  const OthersServiceDetailScreen({
     super.key,
     required this.visitUserId,
   });
 
   @override
-  State<VisitProductStoreDetailsScreen> createState() => _VisitProductStoreDetailsScreenState();
+  State<OthersServiceDetailScreen> createState() => _OthersServiceDetailScreenState();
 }
 
-class _VisitProductStoreDetailsScreenState extends State<VisitProductStoreDetailsScreen> {
+class _OthersServiceDetailScreenState extends State<OthersServiceDetailScreen> {
   final InventoryController controller = getOrPut<InventoryController>(() => InventoryController());
   final ViewBusinessDetailsController viewBusinessDetailsController =
       Get.find<ViewBusinessDetailsController>();
@@ -143,23 +141,23 @@ class _VisitProductStoreDetailsScreenState extends State<VisitProductStoreDetail
                   }),
 
                   // ─── 2. Top Selling Products (preview of 20) ───
-                  Obx(() {
-                    if (controller.ownDraftAndPublicProductResponse.value.status == Status.INITIAL) {
-                      return Padding(
-                        padding: EdgeInsets.only(top: SizeConfig.paddingXSL),
-                        child: buildHorizontalListSkeleton(),
-                      );
-                    }
-                    return controller.allProducts.isNotEmpty ? _topSellingProduct() : const SizedBox.shrink();
-                  }),
+                  // Obx(() {
+                  //   if (controller.ownDraftAndPublicProductResponse.value.status == Status.INITIAL) {
+                  //     return Padding(
+                  //       padding: EdgeInsets.only(top: SizeConfig.paddingXSL),
+                  //       child: buildHorizontalListSkeleton(),
+                  //     );
+                  //   }
+                  //   return controller.allProducts.isNotEmpty ? _topSellingProduct() : const SizedBox.shrink();
+                  // }),
 
                   // ─── 3. Categories ───
-                  Obx(() {
-                    if (controller.fetchProductCategoryResponse.value.status == Status.INITIAL) {
-                      return buildCategoryGridSkeleton();
-                    }
-                    return _categoryWithInventoryWidget();
-                  }),
+                  // Obx(() {
+                  //   if (controller.fetchProductCategoryResponse.value.status == Status.INITIAL) {
+                  //     return buildCategoryGridSkeleton();
+                  //   }
+                  //   return _categoryWithInventoryWidget();
+                  // }),
 
                   // ─── 4. Live Photos ───
                   Obx(() {

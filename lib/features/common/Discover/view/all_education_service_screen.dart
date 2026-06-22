@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
+import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_school_home_screen.dart';
@@ -219,11 +220,14 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
         ? service.studentTeacherRatio!
         : na;
     final String medium = (service.mediumOfInstruction?.isNotEmpty ?? false)
-        ? service.mediumOfInstruction!.first
+        ? service.mediumOfInstruction!.join(', ')
         : na;
     final String feeLabel = _buildFeeLabel(service);
     final String feeRange = _buildFeeRange(service);
-    final String rating = na;
+    final double? ratingValue = service.avgRating;
+    final String rating = (ratingValue != null && ratingValue > 0)
+        ? ratingValue.toStringAsFixed(1)
+        : na;
 
     return InkWell(
       onTap: () {
@@ -276,11 +280,33 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
     );
   }
 
+  Future<void> _shareSchool(SchoolDetailsData service) async {
+    final name = (service.name?.trim().isNotEmpty ?? false)
+        ? service.name!.trim()
+        : 'this school';
+    final address = service.location?.name?.trim() ?? '';
+    final classRange = service.classRange?.trim() ?? '';
+    final mediums =
+        service.mediumOfInstruction?.where((s) => s.trim().isNotEmpty).toList() ??
+            const [];
+    final fees = service.fees;
+
+    final lines = <String>['Check out $name on BlueEra'];
+    if (address.isNotEmpty) lines.add(address);
+    if (classRange.isNotEmpty) lines.add('Classes: $classRange');
+    if (mediums.isNotEmpty) lines.add('Medium: ${mediums.join(', ')}');
+    if (fees != null) lines.add('Annual fee: ${_formatFee(fees)}');
+
+    await ShareService.instance
+        .openShareSheet(text: lines.join('\n'), subject: name);
+  }
+
   String _distanceFromUser(SchoolDetailsData service) {
     final coords = service.location?.coordinates;
     if (coords == null || coords.length < 2) return 'N/A';
-    final lat = coords[0].toDouble();
-    final lng = coords[1].toDouble();
+    // GeoJSON convention used by the API + adapter: [lng, lat].
+    final lng = coords[0].toDouble();
+    final lat = coords[1].toDouble();
     if (lat == 0.0 || lng == 0.0) return 'N/A';
     final km = calculateDistance(lat, lng);
     if (km == null) return 'N/A';
@@ -329,25 +355,44 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
       'Saturday': 'Sat',
       'Sunday': 'Sun',
     };
-    final openSlots = <Availability>[];
-    for (final day in order) {
+
+    final openSlots = <MapEntry<int, Availability>>[];
+    for (var i = 0; i < order.length; i++) {
       final slot = availability.firstWhere(
-        (a) => (a.day ?? '').toLowerCase() == day.toLowerCase(),
+        (a) => (a.day ?? '').toLowerCase() == order[i].toLowerCase(),
         orElse: () => Availability(),
       );
       if (slot.isOpen == true &&
           (slot.openTime ?? '').isNotEmpty &&
           (slot.closeTime ?? '').isNotEmpty) {
-        openSlots.add(slot);
+        openSlots.add(MapEntry(i, slot));
       }
     }
     if (openSlots.isEmpty) return null;
-    final firstDay = shortNames[openSlots.first.day] ?? openSlots.first.day ?? '';
-    final lastDay = shortNames[openSlots.last.day] ?? openSlots.last.day ?? '';
-    final dayRange = firstDay == lastDay ? firstDay : '$firstDay - $lastDay';
-    final opens = openSlots.map((s) => s.openTime!).toList()..sort();
-    final closes = openSlots.map((s) => s.closeTime!).toList()..sort();
-    return '$dayRange | ${opens.first} - ${closes.last}';
+
+    // Group consecutive open-day indexes into contiguous runs.
+    final groups = <List<MapEntry<int, Availability>>>[];
+    for (final entry in openSlots) {
+      if (groups.isEmpty || entry.key != groups.last.last.key + 1) {
+        groups.add([entry]);
+      } else {
+        groups.last.add(entry);
+      }
+    }
+
+    final dayRange = groups.map((g) {
+      final first = shortNames[g.first.value.day] ?? g.first.value.day ?? '';
+      final last = shortNames[g.last.value.day] ?? g.last.value.day ?? '';
+      return first == last ? first : '$first–$last';
+    }).join(', ');
+
+    final firstOpen = openSlots.first.value.openTime!;
+    final firstClose = openSlots.first.value.closeTime!;
+    final allSame = openSlots.every((e) =>
+        e.value.openTime == firstOpen && e.value.closeTime == firstClose);
+
+    if (allSame) return '$dayRange | $firstOpen - $firstClose';
+    return '$dayRange | varies';
   }
 
   String _formatFee(int value) {
@@ -444,7 +489,10 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _circleIcon(AppIconAssets.share_bold),
+                  GestureDetector(
+                    onTap: () => _shareSchool(service),
+                    child: _circleIcon(AppIconAssets.share_bold),
+                  ),
                   const SizedBox(width: 8),
                   _circleIcon(AppIconAssets.star),
                 ],
@@ -454,27 +502,34 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
               Positioned(
                 bottom: 10,
                 right: 10,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: AppColors.white.withValues(alpha: 0.95),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: AppColors.greenShade, width: 1),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.access_time,
-                          size: 12, color: AppColors.greenShade),
-                      const SizedBox(width: 4),
-                      CustomText(
-                        window,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.primaryColor,
-                      ),
-                    ],
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 220),
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AppColors.white.withValues(alpha: 0.95),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AppColors.greenShade, width: 1),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.access_time,
+                            size: 12, color: AppColors.greenShade),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: CustomText(
+                            window,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primaryColor,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

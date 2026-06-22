@@ -32,6 +32,8 @@ class BusinessProfileData {
   List<dynamic>? termsAndConditions;
   Timings? timings;
   List<ContactUsOtherProfile>? contactUs;
+  bool? rbiRegistered;
+  List<String>? accountType;
 
   BusinessProfileData({
     this.profile,
@@ -44,6 +46,8 @@ class BusinessProfileData {
     this.termsAndConditions,
     this.timings,
     this.contactUs,
+    this.rbiRegistered,
+    this.accountType,
   });
 
   BusinessProfileData.fromJson(Map<String, dynamic> json) {
@@ -97,6 +101,22 @@ class BusinessProfileData {
         contactUs!.add(new ContactUsOtherProfile.fromJson(v));
       });
     }
+    // `rbiRegistered` and `accountType` are returned at `data.profile.*` by
+    // the full-profile API, but the PUT response may echo them at the top
+    // level. Support both shapes so the card stays in sync after a save.
+    final profileMap = json['profile'];
+    final rbiRaw = json['rbiRegistered'] ??
+        (profileMap is Map ? profileMap['rbiRegistered'] : null);
+    rbiRegistered = rbiRaw as bool?;
+
+    final accountTypeRaw = json['accountType'] ??
+        (profileMap is Map ? profileMap['accountType'] : null);
+    if (accountTypeRaw is List) {
+      accountType = accountTypeRaw
+          .map((e) => e?.toString() ?? '')
+          .where((s) => s.isNotEmpty)
+          .toList();
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -131,6 +151,8 @@ class BusinessProfileData {
     if (this.contactUs != null) {
       data['contactUs'] = this.contactUs!.map((v) => v.toJson()).toList();
     }
+    data['rbiRegistered'] = this.rbiRegistered;
+    data['accountType'] = this.accountType;
     return data;
   }
 }

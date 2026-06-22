@@ -106,6 +106,32 @@ class BusinessProfileFullController extends GetxController {
     }
   }
 
+  /// PUT `other-service/business-profile` with banking fields:
+  /// `rbiRegistered` (bool) and `accountType` (list of strings —
+  /// e.g. ["Savings", "Current", "Fixed deposit"]).
+  Future<bool> updateBankingInfo({
+    required bool rbiRegistered,
+    required List<String> accountType,
+  }) async {
+    try {
+      final response = await _repo.updateOtherBusinessProfileRepo(reqBODY: {
+        "rbiRegistered": rbiRegistered,
+        "accountType": accountType,
+      });
+      if (response.isSuccess) {
+        commonSnackBar(
+            message: response.response?.data['message'] ?? 'Saved');
+        await getBusinessProfileFull();
+        return true;
+      }
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
+    } on Exception {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
+    }
+  }
+
   Future<void> createOtherProfileController(
       {required Map<String, dynamic> reqParm}) async {
     try {
