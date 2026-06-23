@@ -106,7 +106,15 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
           'rider_association',
         };
         DateTime? latestRiderTime;
+        // True once a rider is assigned on the user (customer) side — i.e. a
+        // received `rider`/`rider_map` message exists. The user shouldn't be
+        // able to text the rider, so the input bar is hidden in that case.
+        bool hasAssignedRider = false;
         for (final m in (chatViewController.getListOfMessageData ?? [])) {
+          if ((m.messageType == 'rider' || m.messageType == 'rider_map') &&
+              m.myMessage == false) {
+            hasAssignedRider = true;
+          }
           if (!expiryDrivingTypes.contains(m.messageType)) continue;
           final raw = m.createdAt;
           if (raw == null || raw.isEmpty) continue;
@@ -260,7 +268,7 @@ class _OrderChatScreenState extends State<OrderChatScreen> {
                         const SizedBox(
                           height: 6,
                         ),
-                        if (isOrderExpired)
+                        if (isOrderExpired || hasAssignedRider)
                           // Container(
                           //   width: double.infinity,
                           //   padding: const EdgeInsets.symmetric(

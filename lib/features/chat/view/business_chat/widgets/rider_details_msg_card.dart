@@ -1,5 +1,4 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/chat/auth/controller/order_controllar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -172,8 +171,9 @@ class _RiderDetailsMsgCardState extends State<RiderDetailsMsgCard> {
               height: 1,
               color: Colors.grey,
             ),
-            // View Ride → opens the live tracking map; on back it minimises
-            // into the app-wide floating mini-map so the ride keeps tracking.
+            // Single action row: Track Order opens the live tracking map (on
+            // back it minimises into the app-wide floating mini-map so the ride
+            // keeps tracking); Cancel Ride confirms then cancels the order.
             Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
@@ -184,120 +184,45 @@ class _RiderDetailsMsgCardState extends State<RiderDetailsMsgCard> {
                 children: [
                   Expanded(
                     child: TextButton.icon(
-                      onPressed: isExpired ? null : () => _openRideTracking(rider),
+                      onPressed:
+                          isExpired ? null : () => _openRideTracking(rider),
                       icon: SvgPicture.asset(
                         AppIconAssets.location_new,
                         color: actionColor,
                       ),
                       label: CustomText(
-                        AppStrings.viewRide.tr,
+                        AppStrings.trackOrder,
                         color: actionColor,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    height: 12,
+                    width: 1,
+                    color: AppColors.grayText.withValues(alpha: 0.4),
+                  ),
+                  Expanded(
+                    child: TextButton.icon(
+                      onPressed: isExpired
+                          ? null
+                          : () {
+                              _confirmCancelRide(context);
+                            },
+                      icon: Icon(
+                        Icons.cancel_outlined,
+                        color: isExpired ? AppColors.grayText : AppColors.red,
+                        size: 20,
+                      ),
+                      label: CustomText(
+                        AppStrings.cancelRide.tr,
+                        color: isExpired ? AppColors.grayText : AppColors.red,
                         fontWeight: FontWeight.w900,
                       ),
                     ),
                   ),
                 ],
               ),
-            ),
-            const Divider(
-              height: 1,
-              color: Colors.grey,
-            ),
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                color: AppColors.white,
-              ),
-              child: (widget.message.myMessage == false)
-                  ? Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: TextButton.icon(
-                            onPressed: isExpired
-                                ? null
-                                : () {
-                                    openDialer(rider?.contactNo ?? '');
-                                  },
-                            icon: SvgPicture.asset(
-                              AppIconAssets.rider_call_icon,
-                              color: actionColor,
-                            ),
-                            label: CustomText(
-                              AppStrings.callNow,
-                              color: actionColor,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          height: 12,
-                          width: 1,
-                          color: AppColors.grayText.withValues(alpha: 0.4),
-                        ),
-                        Expanded(
-                          child: TextButton.icon(
-                            onPressed: isExpired
-                                ? null
-                                : () {
-                                    _confirmCancelRide(context);
-                                  },
-                            icon: Icon(
-                              Icons.cancel_outlined,
-                              color: isExpired ? AppColors.grayText : AppColors.red,
-                              size: 20,
-                            ),
-                            label: CustomText(
-                              AppStrings.cancelRide.tr,
-                              color: isExpired ? AppColors.grayText : AppColors.red,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  : Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: TextButton.icon(
-                            onPressed: isExpired
-                                ? null
-                                : () {
-                                    openDialer(rider?.contactNo ?? '');
-                                  },
-                            icon: SvgPicture.asset(
-                              AppIconAssets.rider_call_icon,
-                              color: actionColor,
-                            ),
-                            label: CustomText(
-                              AppStrings.callNow,
-                              color: actionColor,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ),
-                        Container(
-                          height: 12,
-                          width: 1,
-                          color: AppColors.grayText.withValues(alpha: 0.4),
-                        ),
-                        Expanded(
-                          child: TextButton.icon(
-                            onPressed: isExpired ? null : () {},
-                            icon: SvgPicture.asset(
-                              AppIconAssets.quillChatIcon,
-                              color: actionColor,
-                            ),
-                            label: CustomText(
-                              AppStrings.chatNow,
-                              color: actionColor,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
             ),
           ],
         ),
