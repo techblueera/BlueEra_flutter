@@ -350,9 +350,9 @@ print("url=== ${url}");
 
   ///GET VIDEO DETAILS...
   Future<ResponseModel> getVideoDetails({required String videoId}) async {
-    String videoMetaData = videosMetaData(videoId);
+    String video = videos(videoId);
     final response = await ApiBaseHelper().getHTTP(
-      videoMetaData,
+      video,
       showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},

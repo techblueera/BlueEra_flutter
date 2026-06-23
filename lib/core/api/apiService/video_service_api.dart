@@ -29,8 +29,8 @@ mixin VideoServiceApi {
   String videoCommentLike(String commentId) =>
       "video-service/comments/$commentId/like";
   final String videoAddComment = "video-service/comments";
+  // Single video by id — used for both fetch-details (GET) and delete (DELETE).
   String videos(String videoId) => "video-service/videos/$videoId";
-  String videosMetaData(String videoId) => "video-service/videos/$videoId";
 
   /// Trending/"hot" videos. `type` is `short` (reels) or `long`.
   /// Returns a flat `data: Video[]` array (no author/channel resolution).

@@ -37,7 +37,7 @@ import 'package:BlueEra/features/me/food/model/category_food_product_res_model.d
 import 'package:BlueEra/features/me/food/view/admin/discount_food_products_screen.dart';
 import 'package:BlueEra/features/me/food/view/admin/food_category_menu_screen.dart';
 import 'package:BlueEra/features/me/food/view/admin/my_food_product_screen.dart';
-import 'package:BlueEra/features/me/food/view/widget/food_product_variant_sheet.dart';
+import 'package:BlueEra/features/me/food/view/widget/show_food_product_variant_sheet.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
 import 'package:BlueEra/widgets/RatingBadge.dart';

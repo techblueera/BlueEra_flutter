@@ -81,12 +81,19 @@ class SelfPickupItem {
     return SelfPickupItem(
       inventoryId: json['inventoryId']?.toString(),
       productVariantId: json['productVariantId']?.toString(),
-      // Home-made-food items carry `homeMadeFoodId` instead of `productId`.
-      productId:
-          (json['productId'] ?? json['homeMadeFoodId'])?.toString(),
+      // Home-made-food items carry `homeMadeFoodId`, tiffin items `tiffinId`,
+      // instead of `productId`.
+      productId: (json['productId'] ??
+              json['homeMadeFoodId'] ??
+              json['tiffinId'])
+          ?.toString(),
       variantId: json['variantId']?.toString(),
-      // Home-made-food items carry `foodName` instead of `productName`.
-      productName: (json['productName'] ?? json['foodName'])?.toString(),
+      // Home-made-food items carry `foodName`, tiffin items `tiffinName`,
+      // instead of `productName`.
+      productName: (json['productName'] ??
+              json['foodName'] ??
+              json['tiffinName'])
+          ?.toString(),
       variantName: json['variantName']?.toString(),
       quantityLabel: json['quantityLabel']?.toString(),
       unit: json['unit']?.toString(),

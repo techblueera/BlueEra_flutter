@@ -1115,6 +1115,9 @@ class ChatEmitEvents {
   static const newHomeMadeFoodPickupOrderReceived =
       "newHomeMadeFoodPickupOrderReceived";
   static const homeMadeFoodPickupOrderReady = "homeMadeFoodPickupOrderReady";
+  static const newTiffinPickupOrderReceived = "newTiffinPickupOrderReceived";
+  static const tiffinPickupOrderReady = "tiffinPickupOrderReady";
+  static const tiffinPickupOrderCancelled = "tiffinPickupOrderCancelled";
 
   // Service enquiry (Discover self-profession → chat). `new…Received` delivers
   // the enquiry card to the provider; `…StatusUpdated` notifies both parties

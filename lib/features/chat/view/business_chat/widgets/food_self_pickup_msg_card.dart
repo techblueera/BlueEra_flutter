@@ -53,12 +53,19 @@ class FoodSelfPickupMsgCard extends StatefulWidget {
   /// service (`PUT /homeFoodOrders/:orderId/ready`) instead of the food service.
   final bool isHomeMade;
 
+  /// When true, render tiffin copy/icon and mark-ready via the earn service
+  /// (`PUT /tiffinOrders/:orderId/ready`). Reads the order from
+  /// `tiffinPickupOrder` / `tiffinPickupOrderId`. Takes precedence over
+  /// [isHomeMade] when both are somehow set.
+  final bool isTiffin;
+
   const FoodSelfPickupMsgCard({
     super.key,
     required this.message,
     required this.time,
     this.conversationId,
     this.isHomeMade = false,
+    this.isTiffin = false,
   });
 
   @override
@@ -80,14 +87,47 @@ class _FoodSelfPickupMsgCardState extends State<FoodSelfPickupMsgCard> {
       widget.message.sender?.id;
 
   SelfPickupOrderModel? get _order =>
+      widget.message.metadata?.tiffinPickupOrder ??
       widget.message.metadata?.homeMadeFoodPickupOrder ??
       widget.message.metadata?.foodPickupOrder ??
       widget.message.metadata?.selfPickupOrder;
+
+  /// The pickup order id for this card's type — used when [_order]'s own
+  /// `orderId` is absent (mark-ready, payment QR, rider dispatch).
+  String? get _pickupOrderId => widget.isTiffin
+      ? widget.message.metadata?.tiffinPickupOrderId
+      : widget.isHomeMade
+          ? widget.message.metadata?.homeMadeFoodPickupOrderId
+          : widget.message.metadata?.foodPickupOrderId;
 
   bool get _isReady =>
       _order?.isReady ?? (widget.message.metadata?.orderStatus == true);
 
   bool get _isCancelled => widget.message.metadata?.is_cancelled ?? false;
+
+  /// Placeholder icon for an item with no image — type-appropriate so a missing
+  /// (un-enriched) item still reads as the right kind of order.
+  IconData get _itemPlaceholderIcon => widget.isTiffin
+      ? Icons.lunch_dining
+      : widget.isHomeMade
+          ? Icons.soup_kitchen_rounded
+          : Icons.fastfood;
+
+  /// Display name for an item, with a type-appropriate fallback when the
+  /// backend hasn't enriched the card item with a name yet.
+  String _itemName(SelfPickupItem item) {
+    final name = (item.productName ?? '').trim().isNotEmpty
+        ? item.productName!
+        : (item.variantName ?? '').trim().isNotEmpty
+            ? item.variantName!
+            : '';
+    if (name.isNotEmpty) return name;
+    return widget.isTiffin
+        ? 'Tiffin'
+        : widget.isHomeMade
+            ? 'Home-made item'
+            : 'Item';
+  }
 
   /// Business taps "Go to Packing" → show product selection bottom sheet
   void _onMarkAsReadyTap() {
@@ -720,11 +760,7 @@ class _FoodSelfPickupMsgCardState extends State<FoodSelfPickupMsgCard> {
   /// Mark order as ready. Home-made orders route to the earn service
   /// (`PUT /homeFoodOrders/:orderId/ready`); food orders to the food service.
   Future<void> _markAsReady() async {
-    final orderId = _order?.orderId ??
-        (widget.isHomeMade
-            ? widget.message.metadata?.homeMadeFoodPickupOrderId
-            : widget.message.metadata?.foodPickupOrderId) ??
-        '';
+    final orderId = _order?.orderId ?? _pickupOrderId ?? '';
 
     if (orderId.isEmpty) {
       commonSnackBar(message: 'Order ID not found');
@@ -734,9 +770,12 @@ class _FoodSelfPickupMsgCardState extends State<FoodSelfPickupMsgCard> {
     setState(() => _isMarkingReady = true);
 
     try {
-      final response = widget.isHomeMade
-          ? await EarnProfileRepo().markHomeFoodOrderReadyRepo(orderId: orderId)
-          : await FoodRepo().markFoodOrderReadyRepo(orderId: orderId);
+      final response = widget.isTiffin
+          ? await EarnProfileRepo().markTiffinOrderReadyRepo(orderId: orderId)
+          : widget.isHomeMade
+              ? await EarnProfileRepo()
+                  .markHomeFoodOrderReadyRepo(orderId: orderId)
+              : await FoodRepo().markFoodOrderReadyRepo(orderId: orderId);
 
       if (!response.isSuccess) {
         commonSnackBar(
@@ -750,10 +789,12 @@ class _FoodSelfPickupMsgCardState extends State<FoodSelfPickupMsgCard> {
       setState(() {});
 
       commonSnackBar(
-          message: widget.isHomeMade
-              ? 'Home-made food order marked as ready for pickup'
-              : 'Food order marked as ready for pickup');
-      log('${widget.isHomeMade ? 'Home-made food' : 'Food'} self-pickup order $orderId marked as ready');
+          message: widget.isTiffin
+              ? 'Tiffin order marked as ready for pickup'
+              : widget.isHomeMade
+                  ? 'Home-made food order marked as ready for pickup'
+                  : 'Food order marked as ready for pickup');
+      log('${widget.isTiffin ? 'Tiffin' : widget.isHomeMade ? 'Home-made food' : 'Food'} self-pickup order $orderId marked as ready');
     } catch (e) {
       log('Error marking order ready: $e');
       commonSnackBar(message: AppStrings.somethingWentWrong);
@@ -804,9 +845,11 @@ class _FoodSelfPickupMsgCardState extends State<FoodSelfPickupMsgCard> {
                 child: Row(
                   children: [
                     Icon(
-                        widget.isHomeMade
-                            ? Icons.soup_kitchen_rounded
-                            : Icons.restaurant_menu,
+                        widget.isTiffin
+                            ? Icons.lunch_dining_rounded
+                            : widget.isHomeMade
+                                ? Icons.soup_kitchen_rounded
+                                : Icons.restaurant_menu,
                         size: 28,
                         color: Colors.orange),
                     const SizedBox(width: 8),
@@ -815,9 +858,11 @@ class _FoodSelfPickupMsgCardState extends State<FoodSelfPickupMsgCard> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           CustomText(
-                            widget.isHomeMade
-                                ? 'Home-Made Food Order'
-                                : 'Food Order',
+                            widget.isTiffin
+                                ? 'Tiffin Order'
+                                : widget.isHomeMade
+                                    ? 'Home-Made Food Order'
+                                    : 'Food Order',
                             fontSize: SizeConfig.size14,
                             fontWeight: FontWeight.w600,
                             color: Colors.orange,
@@ -1106,10 +1151,7 @@ class _FoodSelfPickupMsgCardState extends State<FoodSelfPickupMsgCard> {
             // Shows the payment QR bottom sheet (dummy QR + download/share).
             onTap: () => showPaymentQrBottomSheet(
               context,
-              data: _order?.orderId ??
-                  (widget.isHomeMade
-                      ? widget.message.metadata?.homeMadeFoodPickupOrderId
-                      : widget.message.metadata?.foodPickupOrderId),
+              data: _order?.orderId ?? _pickupOrderId,
               userId: _conversationPersonId,
               conversationId: widget.conversationId,
             ),
@@ -1176,13 +1218,13 @@ class _FoodSelfPickupMsgCardState extends State<FoodSelfPickupMsgCard> {
 
       // Chat self-pickup → rider dispatch (food / homemade food).
       discoverController.setChatDispatchContext(
-        selfpickupOrderId: _order?.orderId ??
-            (widget.isHomeMade
-                ? widget.message.metadata?.homeMadeFoodPickupOrderId
-                : widget.message.metadata?.foodPickupOrderId) ??
-            '',
+        selfpickupOrderId: _order?.orderId ?? _pickupOrderId ?? '',
         selfpickupType: widget.message.messageType ??
-            (widget.isHomeMade ? 'homemade_food_selfpickup' : 'food_selfpickup'),
+            (widget.isTiffin
+                ? 'tiffin_selfpickup'
+                : widget.isHomeMade
+                    ? 'homemade_food_selfpickup'
+                    : 'food_selfpickup'),
         businessId: businessId,
         orderFor: 'food',
       );
@@ -1689,7 +1731,7 @@ class _FoodSelfPickupMsgCardState extends State<FoodSelfPickupMsgCard> {
                       width: 40,
                       height: 40,
                       color: Colors.grey.shade200,
-                      child: Icon(Icons.fastfood,
+                      child: Icon(_itemPlaceholderIcon,
                           size: 20, color: Colors.grey),
                     ),
                   )
@@ -1700,7 +1742,7 @@ class _FoodSelfPickupMsgCardState extends State<FoodSelfPickupMsgCard> {
                       color: Colors.grey.shade200,
                       borderRadius: BorderRadius.circular(6),
                     ),
-                    child: Icon(Icons.fastfood,
+                    child: Icon(_itemPlaceholderIcon,
                         size: 20, color: Colors.grey),
                   ),
           ),
@@ -1710,7 +1752,7 @@ class _FoodSelfPickupMsgCardState extends State<FoodSelfPickupMsgCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  item.productName ?? item.variantName ?? '',
+                  _itemName(item),
                   fontSize: SizeConfig.size12,
                   fontWeight: FontWeight.w600,
                   maxLines: 1,

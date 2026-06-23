@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -32,6 +33,11 @@ class HmfCartController extends GetxController {
   /// itemId -> store key.
   final Map<String, String> _itemStore = {};
 
+  /// itemId -> is this a tiffin (vs a home-made-food item). The cart is
+  /// single-type: tiffin and food can't be mixed, so every live item shares
+  /// the same value — see [cartIsTiffin] / [wouldMix].
+  final Map<String, bool> _itemIsTiffin = {};
+
   /// store key -> store. Insertion order is preserved, so cart cards keep a
   /// stable order (first-added kitchen on top).
   final Map<String, EarnProfileModel> _storeById = {};
@@ -48,7 +54,25 @@ class HmfCartController extends GetxController {
 
   int qty(String? id) => id == null ? 0 : (quantities[id] ?? 0);
 
-  void add(FoodItemModel item, EarnProfileModel fromStore) {
+  /// Whether the current cart holds tiffin items. `null` when the cart is
+  /// empty (no type yet). Since the cart is single-type, the first live item's
+  /// type represents the whole cart.
+  bool? get cartIsTiffin {
+    if (isEmpty) return null;
+    return _itemIsTiffin[quantities.keys.first] ?? false;
+  }
+
+  /// True when adding an item of [isTiffin] type would mix with the current
+  /// cart (tiffin + food can't be ordered together). False if the cart is
+  /// empty or already the same type — the caller should prompt to start a new
+  /// cart when this returns true.
+  bool wouldMix(bool isTiffin) {
+    final current = cartIsTiffin;
+    return current != null && current != isTiffin;
+  }
+
+  void add(FoodItemModel item, EarnProfileModel fromStore,
+      {bool isTiffin = false}) {
     final id = item.id;
     if (id == null) return;
     final key = storeKeyOf(fromStore);
@@ -56,6 +80,7 @@ class HmfCartController extends GetxController {
     _storeById[key] = fromStore;
     _itemById[id] = item;
     _itemStore[id] = key;
+    _itemIsTiffin[id] = isTiffin;
     quantities[id] = (quantities[id] ?? 0) + 1;
   }
 
@@ -67,6 +92,7 @@ class HmfCartController extends GetxController {
       quantities.remove(id);
       final key = _itemStore.remove(id);
       _itemById.remove(id);
+      _itemIsTiffin.remove(id);
       // Drop the store once its last item is gone.
       if (key != null && !_itemStore.values.contains(key)) {
         _storeById.remove(key);
@@ -158,6 +184,7 @@ class HmfCartController extends GetxController {
       quantities.remove(id);
       _itemById.remove(id);
       _itemStore.remove(id);
+      _itemIsTiffin.remove(id);
     }
     _storeById.remove(key);
   }
@@ -166,21 +193,34 @@ class HmfCartController extends GetxController {
     quantities.clear();
     _itemById.clear();
     _itemStore.clear();
+    _itemIsTiffin.clear();
     _storeById.clear();
   }
 
   // ── Checkout ──────────────────────────────────────────────────────────────
 
-  /// Only `homeMadeFood` + `quantity` are sent per item — the backend reads
-  /// price, seller and pickup location off the HomeMadeFood document.
-  Map<String, dynamic> _payloadFor(String key) => {
-        'items': linesOf(key)
-            .map((item) =>
-                {'homeMadeFood': item.id, 'quantity': qty(item.id)})
-            .toList(),
-        'deliveryType': 'self-pickup',
-        'discount': 0,
-      };
+  /// Only the item id + `quantity` are sent per line — the backend reads
+  /// price, seller and pickup location off the document. The id key differs by
+  /// type: `tiffin` for tiffin orders, `homeMadeFood` for food orders.
+  Map<String, dynamic> _payloadFor(String key) {
+    final tiffin = cartIsTiffin ?? false;
+    final idKey = tiffin ? 'tiffin' : 'homeMadeFood';
+    return {
+      'items': linesOf(key)
+          .map((item) => {idKey: item.id, 'quantity': qty(item.id)})
+          .toList(),
+      'deliveryType': 'self-pickup',
+      'discount': 0,
+    };
+  }
+
+  /// Route a store's order to the correct endpoint based on the cart type.
+  Future<ResponseModel> _placeOrder(String key) {
+    final params = _payloadFor(key);
+    return (cartIsTiffin ?? false)
+        ? _repo.placeTiffinOrder(params: params)
+        : _repo.placeHomeFoodOrder(params: params);
+  }
 
   /// Place the order for one kitchen, drop its cart, return to the home shell,
   /// then open the chat with that kitchen.
@@ -194,7 +234,7 @@ class HmfCartController extends GetxController {
       placingKey.value = key;
       AppLoader.show();
 
-      final response = await _repo.placeHomeFoodOrder(params: _payloadFor(key));
+      final response = await _placeOrder(key);
       AppLoader.hide();
 
       if (!response.isSuccess) {
@@ -236,8 +276,7 @@ class HmfCartController extends GetxController {
       final keys = storeKeys;
       int placed = 0;
       for (final key in keys) {
-        final response =
-            await _repo.placeHomeFoodOrder(params: _payloadFor(key));
+        final response = await _placeOrder(key);
         if (response.isSuccess) placed++;
       }
       AppLoader.hide();

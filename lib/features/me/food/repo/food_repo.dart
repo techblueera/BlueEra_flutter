@@ -69,6 +69,20 @@ class FoodRepo extends BaseService {
     return response;
   }
 
+  /// Delete a single kitchen-inventory entry (a product variant) by its id.
+  /// `DELETE food-service/api/kitchen-inventory/{inventoryId}`.
+  Future<ResponseModel> deleteKitchenInventoryRepo({
+    required String inventoryId,
+  }) async {
+    final response = await ApiBaseHelper().deleteHTTP(
+      kitchenInventoryById(inventoryId),
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   Future<ResponseModel> getFoodByCategoryIdRepo(
       {required Map<String, dynamic> queryPatrams}) async {
     final response = await ApiBaseHelper().getHTTP(
