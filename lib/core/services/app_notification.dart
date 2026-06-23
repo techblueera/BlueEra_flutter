@@ -1822,7 +1822,6 @@ class AppNotificationHandler {
   void _handleIncomingCallPush(RemoteMessage message) {
     try {
       final data = message.data;
-      final callerName = (data['senderName'] ?? 'Unknown').toString();
       final callerImage = (data['senderProfileImage'] ?? '').toString();
 
       final payloadRaw = data['payload'];
@@ -1834,6 +1833,10 @@ class AppNotificationHandler {
       final Map<String, dynamic> callerData = callerRaw is String
           ? (jsonDecode(callerRaw) as Map<String, dynamic>)
           : Map<String, dynamic>.from(callerRaw ?? {});
+
+      // Resolve the caller name from the push, then the caller profile, so the
+      // notification never displays a raw "Unknown".
+      final callerName = resolveCallerName(data, callerData);
 
       final callType = (payload['call_type'] ?? 'audio_call').toString();
       final callId = (payload['call_id'] ?? '').toString();

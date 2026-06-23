@@ -7,6 +7,8 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/auth/model/symbol_details_model.dart';
 import 'package:BlueEra/features/chat/auth/repo/symbol_repo.dart';
+import 'package:BlueEra/features/chat/view/call_screen/call_history_screen.dart';
+import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_screen.dart';
 import 'package:BlueEra/features/chat/view/symbol_view/symbol_view_images.dart';
 import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
 import 'package:BlueEra/features/common/jobs/view/job_details_screen.dart';
@@ -285,6 +287,15 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       if (data.type == "SYMBOL_CREATED") {
                         _openSymbol(data);
                       }
+                      else if (_isCallNotification(data)) {
+                        // incoming_call / missed_call / call_cancelled share
+                        // notification_type "chat" with messages, so branch on
+                        // `type` first and send them to the call history screen.
+                        Get.to(() => const CallHistoryScreen(showAppBar: true));
+                      }
+                      else if (data.notification_type == "chat") {
+                        redirectToChat(data);
+                      }
                       else if (data.notification_type == "jobs") {
                         redirectJobPost(jobID: data.metadata?.jobId ?? "");
                       }
@@ -463,6 +474,27 @@ class _NotificationScreenState extends State<NotificationScreen> {
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
+  }
+
+  // Call notifications (incoming/missed/cancelled) are delivered under the
+  // "chat" notification_type, so they're distinguished by their `type`.
+  bool _isCallNotification(NotificationDataList data) {
+    const callTypes = {"incoming_call", "missed_call", "call_cancelled"};
+    return callTypes.contains(data.type);
+  }
+
+  void redirectToChat(NotificationDataList data) {
+    final String conversationId = data.metadata?.conversationId ?? "";
+    final String userId = data.senderProfile?.id ?? data.sentBy ?? "";
+    Get.to(() => PersonalChatScreen(
+          conversationId: conversationId,
+          userId: userId,
+          type: data.senderProfile?.account_type ??
+              AppConstants.personal_Chat_Type,
+          name: data.senderProfile?.name ?? data.metadata?.senderName,
+          profileImage: data.senderProfile?.profileImage,
+          isInitialMessage: conversationId.isEmpty,
+        ));
   }
 
   void redirectJobPost({required String jobID}) {

@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -6,6 +7,8 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/core/services/share_service.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/common/Discover/controller/finance_discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/finance_search_res_model.dart';
 import 'package:BlueEra/features/common/Discover/view/finance/finance_detail_screen.dart';
@@ -244,6 +247,32 @@ class _FinanceCard extends StatelessWidget {
 
     await ShareService.instance
         .openShareSheet(text: lines.join('\n'), subject: name);
+  }
+
+  /// Opens a chat with the finance business owner — same behaviour as the
+  /// hospital list card: guest gate, chat-click tracking against the business
+  /// id, then opens the discover chat lane.
+  void _openChat() {
+    final userId = item.userId ?? '';
+    if (userId.trim().isEmpty) return;
+    if (isGuestUser()) {
+      createProfileScreen();
+      return;
+    }
+    final bId = item.id?.trim();
+    if (bId != null && bId.isNotEmpty) {
+      ChatClickTracker.track(
+        userId: bId,
+        source: ChatClickSource.searchResult,
+      );
+    }
+    final chatViewController = getOrPut(() => ChatViewController());
+    chatViewController.checkChatConnectionAndOpenChat(
+      userId: userId,
+      name: item.profileName,
+      profile: item.logoUrl,
+      route: AppConstants.route_discover,
+    );
   }
 
   String _distanceFromUser(FinanceBusinessItem item) {
@@ -547,24 +576,32 @@ class _FinanceCard extends StatelessWidget {
       children: [
         Expanded(
           flex: 2,
-          child: Container(
-            height: 44,
-            decoration: BoxDecoration(
-              color: AppColors.skyBlueFF,
+          child: Material(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+            child: InkWell(
               borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                LocalAssets(imagePath: AppIconAssets.chat, imgColor: AppColors.primaryColor),
-                const SizedBox(width: 6),
-                CustomText(
-                  'Chat',
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primaryColor,
+              onTap: _openChat,
+              child: Container(
+                height: 44,
+                decoration: BoxDecoration(
+                  color: AppColors.skyBlueFF,
+                  borderRadius: BorderRadius.circular(10),
                 ),
-              ],
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    LocalAssets(imagePath: AppIconAssets.chat, imgColor: AppColors.primaryColor),
+                    const SizedBox(width: 6),
+                    CustomText(
+                      'Chat',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primaryColor,
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),

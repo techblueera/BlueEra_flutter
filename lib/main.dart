@@ -62,6 +62,24 @@ final AudioPlayer audioPlayer = AudioPlayer();
 /// Shared media received when app was launched via share intent
 SharedMedia? pendingSharedMedia;
 
+/// Resolve a human-readable caller name for incoming-call notifications.
+///
+/// Order of preference: the push `senderName`, then the caller profile `name`
+/// (sender_profile), then their `username`. Falls back to "Incoming Call" so
+/// the notification never displays a raw "Unknown".
+String resolveCallerName(
+    Map<String, dynamic> data, Map<String, dynamic> callerData) {
+  for (final candidate in [
+    data['senderName'],
+    callerData['name'],
+    callerData['username'],
+  ]) {
+    final name = (candidate ?? '').toString().trim();
+    if (name.isNotEmpty && name.toLowerCase() != 'unknown') return name;
+  }
+  return 'Incoming Call';
+}
+
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // The background handler runs in a separate isolate. Platform channels
@@ -90,7 +108,6 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   if (operation == 'incoming_call') {
     try {
       final data = message.data;
-      final callerName = (data['senderName'] ?? 'Unknown').toString();
       final callerImage = (data['senderProfileImage'] ?? '').toString();
 
       // Defensive parsing: backend may send payload/callerData as a JSON
@@ -112,6 +129,11 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       } else if (callerRaw is Map) {
         callerData = Map<String, dynamic>.from(callerRaw);
       }
+
+      // Resolve the caller name from the push first, then fall back to the
+      // caller profile name. Only use "Incoming Call" when nothing is known —
+      // never show a raw "Unknown".
+      final callerName = resolveCallerName(data, callerData);
 
       final callType = (payload['call_type'] ?? 'audio_call').toString();
       final callId = (payload['call_id'] ?? '').toString();

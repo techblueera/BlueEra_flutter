@@ -12,13 +12,19 @@ import 'package:BlueEra/features/chat/auth/model/GetChatListModel.dart';
 import 'package:BlueEra/features/chat/auth/model/call_models.dart';
 import 'package:BlueEra/features/chat/auth/service/call_activity_service.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class CallHistoryScreen extends StatefulWidget {
-  const CallHistoryScreen({super.key});
+  /// Whether to show the back app bar. Only the notification screen opens this
+  /// as a standalone route (where a back button is needed); everywhere else it
+  /// is embedded under a parent scaffold, so the app bar stays hidden.
+  final bool showAppBar;
+
+  const CallHistoryScreen({super.key, this.showAppBar = false});
 
   @override
   State<CallHistoryScreen> createState() => _CallHistoryScreenState();
@@ -294,6 +300,7 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: widget.showAppBar ? CommonBackAppBar() : null,
       body: Obx(() {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,

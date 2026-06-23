@@ -24,7 +24,8 @@ object IncomingCallNotificationHelper {
     fun show(context: Context, args: Map<String, Any?>) {
         val callId = args["callId"]?.toString() ?: ""
         val roomId = args["roomId"]?.toString() ?: ""
-        val callerName = args["callerName"]?.toString() ?: "Incoming Call"
+        val callerName = args["callerName"]?.toString()?.trim()
+            .takeUnless { it.isNullOrEmpty() || it == "Unknown" } ?: "Incoming Call"
         val callType = args["callType"]?.toString() ?: "audio_call"
         val notifId = args["notifId"] as? Int ?: generateNotifId(callId)
 
