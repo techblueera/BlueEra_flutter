@@ -75,17 +75,23 @@ class PaymentResponseModel {
 class LocationModel {
   LocationDataRider? location;
 
-  LocationModel({this.location});
+  /// Human-readable address sent alongside the GeoJSON point
+  /// (e.g. "Bhopal, Madhya Pradesh, India 462024").
+  String? address;
+
+  LocationModel({this.location, this.address});
 
   LocationModel.fromJson(Map<String, dynamic> json) {
     location = json['location'] != null
         ? LocationDataRider.fromJson(json['location'])
         : null;
+    address = json['address']?.toString();
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = {};
     if (location != null) data['location'] = location!.toJson();
+    data['address'] = address;
     return data;
   }
 }

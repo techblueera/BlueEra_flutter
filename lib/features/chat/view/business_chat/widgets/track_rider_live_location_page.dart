@@ -11,6 +11,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../../../environment_config.dart';
 import '../../../auth/controller/live_trach_rider_controller.dart';
+import '../../call_screen/rider_call/ride_navigation_overlay_controller.dart';
 
 class TrackRiderLiveLocationPage extends StatefulWidget {
   const TrackRiderLiveLocationPage(
@@ -59,27 +60,62 @@ class _TrackRiderLiveLocationPageState
     });
   }
 
+  /// Back press keeps the tracking session alive and shrinks it into the
+  /// app-wide draggable floating mini-map (same overlay used by the rider
+  /// navigation screens), so the user can move around the app while the ride
+  /// keeps updating. Tapping the mini-map re-opens this page.
+  void _minimiseToOverlay() {
+    final overlayCtrl = Get.put(RideNavigationOverlayController());
+    overlayCtrl.showOverlay(
+      riderLatVal: orderController.liveLat.value,
+      riderLngVal: orderController.liveLng.value,
+      destLatVal: widget.dropLat,
+      destLngVal: widget.dropLng,
+      destLabelVal: '',
+      customerNameVal: AppStrings.trackYourRider.tr,
+      fareAmountVal: 0,
+      routePoints: const [],
+      type: 'track_rider',
+      params: {
+        'riderId': widget.riderId,
+        'dropLat': widget.dropLat,
+        'dropLng': widget.dropLng,
+        'orderId': widget.orderId ?? '',
+      },
+    );
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: CommonBackAppBar(
-        title: AppStrings.trackYourRider,
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _minimiseToOverlay();
+      },
+      child: Scaffold(
+        appBar: CommonBackAppBar(
+          title: AppStrings.trackYourRider,
+          onBackTap: _minimiseToOverlay,
+        ),
+        body: Obx(() {
+          if ((orderController.liveLng.value == 0) ||
+              (orderController.liveLat.value == 0)) {
+            return Center(
+              child: CustomText(AppStrings.findingRiderLocation),
+            );
+          } else {
+            return SimpleGoogleMapsTracking(
+              startLng: orderController.liveLng.value,
+              startLat: orderController.liveLat.value,
+              endLat: widget.dropLat,
+              endLng: widget.dropLng,
+            );
+          }
+        }),
       ),
-      body: Obx(() {
-        if ((orderController.liveLng.value == 0) ||
-            (orderController.liveLat.value == 0)) {
-          return Center(
-            child: CustomText(AppStrings.findingRiderLocation),
-          );
-        } else {
-          return SimpleGoogleMapsTracking(
-            startLng: orderController.liveLng.value,
-            startLat: orderController.liveLat.value,
-            endLat: widget.dropLat,
-            endLng: widget.dropLng,
-          );
-        }
-      }),
     );
   }
 }

@@ -2748,6 +2748,7 @@ class AppStrings {
   static const callNow = "callNow";
   static const otp = "otp";
   static const trackOrder = "trackOrder";
+  static const viewRide = "viewRide";
   static const viewOrderAddress = "viewOrderAddress";
   static const newDeliveryOrderReceived = "newDeliveryOrderReceived";
   static const proceedToPickupPoint = "proceedToPickupPoint";
@@ -7260,4 +7261,6 @@ class AppStrings {
   static const String addBikeLabel = "addBikeLabel";
   static const String scanToConnect = "scanToConnect";
   static const String fieldRequired = "fieldRequired";
+  static const String cancelRide = "cancelRide";
+  static const String areYouSureCancelRide = "areYouSureCancelRide";
 }
