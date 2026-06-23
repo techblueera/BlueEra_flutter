@@ -246,7 +246,9 @@ class _AutomotiveCategoryDiscoverScreenState
                 pinned: true,
                 delegate: StickyCategoryHeaderDelegate(
                   topPadding: statusBarHeight,
-                  singleLineLabel: true,
+                  // Let multi-word category names wrap to two lines before
+                  // ellipsising, instead of clamping to a single line.
+                  singleLineLabel: false,
                   categories: categories
                       .map((c) => StickyCategory(
                             id: c.sId ?? '',
