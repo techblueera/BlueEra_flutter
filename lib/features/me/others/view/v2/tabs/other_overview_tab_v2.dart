@@ -31,6 +31,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../../../core/constants/app_enum.dart';
+import '../../../../../../core/constants/shared_preference_utils.dart';
+
 /// Overview tab for the redesigned other-business "me" profile.
 ///
 /// Mirrors the hospital v2 overview structure: cover banner first, then
@@ -156,19 +159,20 @@ class OtherOverviewTabV2 extends StatelessWidget {
           SizedBox(height: SizeConfig.size10),
 
           // ── Banking Information (RBI registered + Account types) ──
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
-            child: _BankingCard(
-              initialRbi: data?.rbiRegistered,
-              initialAccountTypes: data?.accountType ?? const [],
-              onSave: (rbi, types) => controller.updateBankingInfo(
-                rbiRegistered: rbi,
-                accountType: types,
+          if (businessTypeGlobal.toUpperCase() == BusinessType.Finance.name.toUpperCase())
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+              child: _BankingCard(
+                initialRbi: data?.rbiRegistered,
+                initialAccountTypes: data?.accountType ?? const [],
+                onSave: (rbi, types) => controller.updateBankingInfo(
+                  rbiRegistered: rbi,
+                  accountType: types,
+                ),
               ),
             ),
-          ),
-
-          SizedBox(height: SizeConfig.size10),
+          if (businessTypeGlobal.toUpperCase() == BusinessType.Finance.name.toUpperCase())
+            SizedBox(height: SizeConfig.size10),
 
           // ── Timings ──
           Padding(

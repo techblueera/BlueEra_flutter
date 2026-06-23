@@ -283,7 +283,7 @@ class OtherRepo extends BaseService {
   Future<dynamic> createTimingRepo(Map<String, dynamic> body) async {
     return await ApiBaseHelper().postHTTP(
       otherTimings,
-      params: {body},
+      params: body,
       showProgress: true,
       onSuccess: (res) {},
       onError: (error) {},
