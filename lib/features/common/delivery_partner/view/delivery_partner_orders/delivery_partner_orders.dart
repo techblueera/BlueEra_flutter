@@ -6,7 +6,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_orders_controller.dart';
-import 'package:BlueEra/features/common/delivery_partner/view/delivery_partner_orders/pickup_order_screen.dart';
+import 'package:BlueEra/features/common/delivery_partner/view/delivery_partner_orders/passenger_order_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -15,7 +15,7 @@ class DeliveryPartnerOrders extends StatefulWidget {
   /// When true, this widget is being embedded inside a parent
   /// [CustomScrollView] (e.g. the rider service screen tab body) and
   /// should NOT introduce its own [Scaffold]/[Expanded] chrome — the
-  /// inner [PickupOrderScreen] will run in shrink-wrap mode so the
+  /// inner [PassengerOrderScreen] will run in shrink-wrap mode so the
   /// parent owns the scroll. Defaults to `false` for standalone use.
   final bool isInParentScroll;
 
@@ -120,7 +120,7 @@ class _DeliveryPartnerOrdersState extends State<DeliveryPartnerOrders> {
                       // been retired; the only live body is pickup,
                       // and pickup's own per-status filters now sit
                       // in a bottom-sheet picker inside that screen.)
-                      return PickupOrderScreen(
+                      return PassengerOrderScreen(
                         isInParentScroll: widget.isInParentScroll,
                       );
                     }

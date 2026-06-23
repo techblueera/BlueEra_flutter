@@ -51,6 +51,16 @@ mixin RiderServiceApi {
   String claimRouteOrder(String orderId) =>
       "rider-service/riders/orders/$orderId/claim";
 
+  // En-route route management — the rider declares a pickup→drop route and
+  // gets a live feed of claimable jobs along it. See
+  // docs/backend/RIDER_JOBTYPE_CALL_OTP_MASTER_FRONTEND_GUIDE.md §4.
+  final String riderRoutes = 'rider-service/riders/routes'; // POST create/activate
+  final String riderActiveRoute = 'rider-service/riders/routes/active'; // GET
+  final String riderEndRoute = 'rider-service/riders/routes/active/end'; // PATCH
+  final String riderRouteOrders = 'rider-service/riders/routes/orders'; // GET list
+  final String riderRouteOrdersStream =
+      'rider-service/riders/routes/orders/stream'; // GET (SSE)
+
   final String getRiderBookingList = "rider-service/riders/orders/requested";
   final String getRiderRejectOrder = "rider-service/riders/orders/rejected";
   String updateOrderStatusFromPialot(String orderId) =>

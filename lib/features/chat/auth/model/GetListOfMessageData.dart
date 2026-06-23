@@ -690,6 +690,15 @@ class RiderOtpInfo {
   final String? rideOrderId;
   final String? selfpickupOrderId;
 
+  // ─ Multi-shop (multi-stop) fields ─
+  // A multi-stop order issues one private pickup OTP card per shop. These tell
+  // the card which shop it belongs to so it can be labelled "Shop 1 of 3".
+  final String? businessId; // the shop this pickup card belongs to
+  final String? shopName;
+  final int? sequence; // 0 = first/furthest shop
+  final int? totalStops; // total shops on the route (for "x of N" labels)
+  final bool isMultiStop;
+
   RiderOtpInfo({
     this.otp,
     this.kind,
@@ -698,10 +707,30 @@ class RiderOtpInfo {
     this.riderName,
     this.rideOrderId,
     this.selfpickupOrderId,
+    this.businessId,
+    this.shopName,
+    this.sequence,
+    this.totalStops,
+    this.isMultiStop = false,
   });
 
   bool get isConsumed => (status ?? '').toLowerCase() == 'consumed';
   bool get isPickup => (kind ?? '').toLowerCase() == 'pickup';
+
+  /// Human label for a multi-shop pickup card, e.g. "Shop 2 of 3" (or the
+  /// shop name when the server provides it). Returns null for single-stop
+  /// cards so callers can fall back to the generic title.
+  String? get shopLabel {
+    if (!isMultiStop) return null;
+    final name = (shopName ?? '').trim();
+    if (sequence != null) {
+      final position = sequence! + 1;
+      final ordinal =
+          (totalStops != null && totalStops! > 0) ? '$position of $totalStops' : '$position';
+      return name.isNotEmpty ? '$name (Shop $ordinal)' : 'Shop $ordinal';
+    }
+    return name.isNotEmpty ? name : null;
+  }
 
   factory RiderOtpInfo.fromJson(Map<String, dynamic> json) {
     return RiderOtpInfo(
@@ -712,6 +741,15 @@ class RiderOtpInfo {
       riderName: json['riderName']?.toString(),
       rideOrderId: json['rideOrderId']?.toString(),
       selfpickupOrderId: json['selfpickupOrderId']?.toString(),
+      businessId: json['businessId']?.toString(),
+      shopName: json['shopName']?.toString(),
+      sequence: json['sequence'] is int
+          ? json['sequence'] as int
+          : int.tryParse(json['sequence']?.toString() ?? ''),
+      totalStops: json['totalStops'] is int
+          ? json['totalStops'] as int
+          : int.tryParse(json['totalStops']?.toString() ?? ''),
+      isMultiStop: json['isMultiStop'] == true,
     );
   }
 
@@ -723,6 +761,11 @@ class RiderOtpInfo {
         'riderName': riderName,
         'rideOrderId': rideOrderId,
         'selfpickupOrderId': selfpickupOrderId,
+        'businessId': businessId,
+        'shopName': shopName,
+        'sequence': sequence,
+        'totalStops': totalStops,
+        'isMultiStop': isMultiStop,
       };
 }
 

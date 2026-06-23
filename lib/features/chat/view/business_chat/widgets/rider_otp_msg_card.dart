@@ -87,13 +87,33 @@ class RiderOtpMsgCard extends StatelessWidget {
               ),
               SizedBox(width: SizeConfig.size8),
               Expanded(
-                child: CustomText(
-                  title,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.mainTextColor,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CustomText(
+                      title,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.mainTextColor,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    // Multi-shop pickup cards identify which shop they belong
+                    // to ("Shop 2 of 3" / shop name) so the rider works the
+                    // stops in order.
+                    if ((otp.shopLabel ?? '').isNotEmpty) ...[
+                      SizedBox(height: SizeConfig.size2),
+                      CustomText(
+                        otp.shopLabel!,
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: accent,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ],

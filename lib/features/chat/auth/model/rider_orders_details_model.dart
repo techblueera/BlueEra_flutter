@@ -1,5 +1,121 @@
 import '../../../common/delivery_partner/model/grocery_order_details.dart';
 
+/// Job descriptor attached to every order that reaches a rider. The backend
+/// derives it from `orderFor` (a passenger **ride**, a **goods** pickup, or a
+/// **parcel** delivery) and ships it under `jobInfo` on order/claim/route
+/// responses (and as flat `jobType`/`jobLabel`/`riderTask` fields on
+/// notifications + the fare-call payload).
+///
+/// Display rule everywhere a rider sees an order:
+///   header  = [jobLabel]
+///   subline = [riderTask]
+///
+/// Legacy responses omit `jobInfo`; use [JobInfo.fromOrderFor] to derive it
+/// client-side from `orderFor`. See
+/// docs/backend/RIDER_JOBTYPE_CALL_OTP_MASTER_FRONTEND_GUIDE.md §1.
+class JobInfo {
+  final String? jobType; // ride | goods | parcel
+  final String? orderFor;
+  final String? jobLabel;
+  final String? riderTask;
+  final String? callTitle;
+  final String? callBody;
+
+  JobInfo({
+    this.jobType,
+    this.orderFor,
+    this.jobLabel,
+    this.riderTask,
+    this.callTitle,
+    this.callBody,
+  });
+
+  bool get isRide => jobType == 'ride';
+  bool get isGoods => jobType == 'goods';
+  bool get isParcel => jobType == 'parcel';
+
+  factory JobInfo.fromJson(Map<String, dynamic> json) => JobInfo(
+        jobType: json['jobType']?.toString(),
+        orderFor: json['orderFor']?.toString(),
+        jobLabel: json['jobLabel']?.toString(),
+        riderTask: json['riderTask']?.toString(),
+        callTitle: json['callTitle']?.toString(),
+        callBody: json['callBody']?.toString(),
+      );
+
+  /// Fallback descriptor derived purely from `orderFor`, for legacy responses
+  /// that predate the backend `jobInfo` field. Mirrors the server's mapping
+  /// table.
+  factory JobInfo.fromOrderFor(String? orderFor) {
+    final value = orderFor ?? '';
+    String jobType;
+    String jobLabel;
+    switch (value) {
+      case 'InCity':
+        jobType = 'ride';
+        jobLabel = 'Passenger ride';
+        break;
+      case 'OutStation':
+        jobType = 'ride';
+        jobLabel = 'Outstation ride';
+        break;
+      case 'HourlyRental':
+        jobType = 'ride';
+        jobLabel = 'Hourly rental ride';
+        break;
+      case 'Parcel':
+        jobType = 'parcel';
+        jobLabel = 'Parcel delivery';
+        break;
+      case 'grocery':
+        jobType = 'goods';
+        jobLabel = 'Grocery pickup';
+        break;
+      case 'food':
+        jobType = 'goods';
+        jobLabel = 'Food pickup';
+        break;
+      case 'medical':
+        jobType = 'goods';
+        jobLabel = 'Medicine pickup';
+        break;
+      case 'product':
+        jobType = 'goods';
+        jobLabel = 'Goods pickup';
+        break;
+      default:
+        jobType = 'ride';
+        jobLabel = 'Ride';
+    }
+    String riderTask;
+    switch (jobType) {
+      case 'parcel':
+        riderTask = 'Collect the parcel and deliver it';
+        break;
+      case 'goods':
+        riderTask = 'Collect the order from the shop and deliver it';
+        break;
+      default:
+        riderTask = 'Pick up and drop the passenger';
+    }
+    return JobInfo(
+      jobType: jobType,
+      orderFor: value,
+      jobLabel: jobLabel,
+      riderTask: riderTask,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'jobType': jobType,
+        'orderFor': orderFor,
+        'jobLabel': jobLabel,
+        'riderTask': riderTask,
+        'callTitle': callTitle,
+        'callBody': callBody,
+      };
+}
+
 class RiderOrdersDetailsModel {
   RiderOrdersDetailsModel({
     this.orderId,
@@ -29,6 +145,7 @@ class RiderOrdersDetailsModel {
     this.selectedRiders,
     this.rejectedRiders,
     this.groceryOrderDetails,
+    this.jobInfo,
     this.version,
   });
 
@@ -81,6 +198,12 @@ class RiderOrdersDetailsModel {
 
     groceryOrderDetails =
     json['groceryOrderDetails'] != null ? GroceryOrderDetails.fromJson(json['groceryOrderDetails']) : null;
+
+    // Job descriptor: prefer the server-supplied `jobInfo`; fall back to
+    // deriving it from `orderFor` for legacy responses that omit it.
+    jobInfo = json['jobInfo'] != null
+        ? JobInfo.fromJson(Map<String, dynamic>.from(json['jobInfo']))
+        : JobInfo.fromOrderFor(orderFor);
   }
 
   String? orderId;
@@ -119,6 +242,8 @@ class RiderOrdersDetailsModel {
 
   GroceryOrderDetails? groceryOrderDetails;
 
+  JobInfo? jobInfo;
+
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
     map['orderId'] = orderId;
@@ -145,6 +270,7 @@ class RiderOrdersDetailsModel {
     map['selectedRiders'] = selectedRiders;
     map['rejectedRiders'] = rejectedRiders;
     map['groceryOrderDetails'] = groceryOrderDetails;
+    map['jobInfo'] = jobInfo?.toJson();
 
     if (groceryOrderDetails != null) {
       map['groceryOrderDetails'] = groceryOrderDetails!.toJson();
