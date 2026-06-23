@@ -40,7 +40,6 @@ import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/order_controllar.dart';
 import '../business_chat/widgets/rider_association_msg_card.dart';
 import '../business_chat/widgets/rider_details_msg_card.dart';
-import '../business_chat/widgets/rider_live_location_msg_card.dart';
 import '../business_chat/widgets/rider_request_msg_card.dart';
 import '../business_chat/widgets/self_pickup_msg_card.dart';
 import '../business_chat/widgets/payment_transaction_msg_card.dart';
@@ -287,7 +286,10 @@ class _MessageCardState extends State<MessageCard>
       case "rider":
         messageWidget = RiderDetailsMsgCard(time: time,message: widget.message,);
       case"rider_map":
-        messageWidget = RiderLiveLocationMsgCard(message: widget.message, time: time,);
+        // The rider details card ("rider") now carries Track Order + Cancel
+        // Ride, so the separate live-location message is suppressed to avoid
+        // showing the rider as two separate cards.
+        return const SizedBox.shrink();
       case "selfpickup":
         messageWidget = SelfPickupMsgCard(message: widget.message, time: time, conversationId: widget.conversationId);
 
