@@ -99,7 +99,6 @@ class _OtpPageScreenState extends State<OtpPageScreen> with CodeAutoFill {
   Future<void> _printAppSignature() async {
     try {
       final signature = await SmsAutoFill().getAppSignature;
-      debugPrint("📲 App Signature (send to backend): $signature");
       print("📲 App Signature (send to backend): $signature");
     } catch (e) {
       debugPrint("Error getting app signature: $e");

@@ -179,6 +179,31 @@ class FoodServiceController extends GetxController {
     }
   }
 
+  /// Append a freshly-created variant into the Source-of-Truth product list so
+  /// the product card's variant count and the variant sheet both update live.
+  void addLocalVariant(String productId, FoodVariants newVariant) {
+    final productIndex = categoryFoundProductDataList.indexWhere(
+      (p) => p.id.toString().trim() == productId.toString().trim(),
+    );
+    if (productIndex == -1) return;
+
+    final product = categoryFoundProductDataList[productIndex];
+    final variants = List<FoodVariants>.from(product.variants ?? []);
+
+    // Guard against a double-insert if the same variant id comes back twice.
+    if (newVariant.id != null &&
+        variants.any((v) => v.id == newVariant.id)) {
+      return;
+    }
+
+    variants.add(newVariant);
+    categoryFoundProductDataList[productIndex] =
+        product.copyWith(variants: variants);
+    categoryFoundProductDataList.refresh();
+
+    debugPrint("✅ Source of Truth: variant added to $productId");
+  }
+
   void changeCategory(String id) {
     selectedCategoryId.value = id;
   }
@@ -304,6 +329,10 @@ class FoodServiceController extends GetxController {
   var variantList = <FoodVariants>[].obs;
   var isFormValid = false.obs;
 
+  /// Human-readable reason the variant form is invalid (shown inline in the
+  /// add/update-variant sheet). `null` when there is nothing to flag.
+  var variantFormError = RxnString();
+
   /// Method for the second box only
   Future<void> pickSecondImage(BuildContext context) async {
     final List<String>? selected =
@@ -326,10 +355,34 @@ class FoodServiceController extends GetxController {
   // int? editingIndex;
 
   void validate() {
-    isFormValid.value = nameController.text.trim().isNotEmpty &&
-        quantityController.text.trim().isNotEmpty &&
-        mrpController.text.trim().isNotEmpty &&
-        priceController.text.trim().isNotEmpty;
+    final name = nameController.text.trim();
+    final quantity = quantityController.text.trim();
+    final mrpText = mrpController.text.trim();
+    final priceText = priceController.text.trim();
+
+    final int? mrp = int.tryParse(mrpText);
+    final int? sellingPrice = int.tryParse(priceText);
+
+    // Surface the first relevant problem so the user knows *why* Submit is
+    // disabled. Required-field emptiness is left to the field hints; the
+    // message here focuses on the price rules, which aren't otherwise obvious.
+    String? error;
+    if (mrpText.isNotEmpty && (mrp == null || mrp <= 0)) {
+      error = AppStrings.foodMrpMustBePositive.tr;
+    } else if (priceText.isNotEmpty && (sellingPrice == null || sellingPrice <= 0)) {
+      error = AppStrings.foodSellingPriceMustBePositive.tr;
+    } else if (mrp != null && sellingPrice != null && sellingPrice > mrp) {
+      error = AppStrings.foodSellingPriceExceedsMrp.tr;
+    }
+    variantFormError.value = error;
+
+    isFormValid.value = name.isNotEmpty &&
+        quantity.isNotEmpty &&
+        mrp != null &&
+        mrp > 0 &&
+        sellingPrice != null &&
+        sellingPrice > 0 &&
+        sellingPrice <= mrp;
   }
 
   Future<String?> addOrUpdateVariant(
@@ -383,19 +436,27 @@ class FoodServiceController extends GetxController {
     mrpController.clear();
     priceController.clear();
     isFormValid.value = false;
+    variantFormError.value = null;
     // editingIndex = null;
   }
 
+  /// Price-only validation used by the edit-variant-price sheet (which edits
+  /// MRP & selling price but not name/quantity). Both must be > 0 and the
+  /// selling price must not exceed MRP.
   void validateVariantPrice() {
-    final double mrp = double.tryParse(mrpController.text) ?? 0;
-    final double sellingPrice = double.tryParse(priceController.text) ?? 0;
+    final int? mrp = int.tryParse(mrpController.text.trim());
+    final int? sellingPrice = int.tryParse(priceController.text.trim());
 
-    // Validation: Both must be > 0 and Selling Price <= MRP
-    if (mrp > 0 && sellingPrice > 0 && sellingPrice <= mrp) {
-      isFormValid.value = true;
-    } else {
-      isFormValid.value = false;
+    String? error;
+    if (mrp == null || mrp <= 0) {
+      error = AppStrings.foodMrpMustBePositive.tr;
+    } else if (sellingPrice == null || sellingPrice <= 0) {
+      error = AppStrings.foodSellingPriceMustBePositive.tr;
+    } else if (sellingPrice > mrp) {
+      error = AppStrings.foodSellingPriceExceedsMrp.tr;
     }
+    variantFormError.value = error;
+    isFormValid.value = error == null;
   }
 
   Future<void> createFoodProductViaAiApi(

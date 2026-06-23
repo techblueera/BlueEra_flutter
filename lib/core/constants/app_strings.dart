@@ -4950,6 +4950,11 @@ class AppStrings {
   static const String foodMrpLabel = "food_mrp_label";
   static const String foodHint180 = "food_hint_180";
   static const String foodSellingPriceLabel = "food_selling_price_label";
+  static const String foodMrpMustBePositive = "food_mrp_must_be_positive";
+  static const String foodSellingPriceMustBePositive =
+      "food_selling_price_must_be_positive";
+  static const String foodSellingPriceExceedsMrp =
+      "food_selling_price_exceeds_mrp";
   static const String foodAddedLabel = "food_added_label";
   static const String foodAddBtnLabel = "food_add_btn_label";
   static const String foodHintRupees = "food_hint_rupees";
