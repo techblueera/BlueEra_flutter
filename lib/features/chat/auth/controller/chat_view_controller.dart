@@ -1455,6 +1455,66 @@ class ChatViewController extends GetxController {
         }
       });
 
+      // Tiffin Self-Pickup: New order received (cook side)
+      chatSocket.listenEvent(
+          ChatEmitEvents.newTiffinPickupOrderReceived, (data) {
+        if (data['message'] != null) {
+          final message = Messages.fromJson(data['message']);
+          final conversationId = message.conversationId ?? '';
+          if (conversationId.isNotEmpty && conversationId == userOpenConversationId.value) {
+            final currentMessages = getListOfMessageResponse.value.data as List<Messages>? ?? [];
+            final exists = currentMessages.any((m) => m.id == message.id);
+            if (!exists) {
+              currentMessages.add(message);
+              getListOfMessageResponse.value = ApiResponse.complete(currentMessages);
+              scrollDown();
+            }
+          }
+          emitEvent(ChatEmitEvents.ChatList, {
+            ApiKeys.page: 1,
+            ApiKeys.per_page_message: 30,
+          });
+        }
+      });
+
+      // Tiffin Self-Pickup: Order marked as ready
+      chatSocket.listenEvent(
+          ChatEmitEvents.tiffinPickupOrderReady, (data) {
+        final messageId = data['messageId']?.toString() ?? '';
+        if (messageId.isNotEmpty) {
+          final currentMessages = getListOfMessageResponse.value.data as List<Messages>? ?? [];
+          for (var msg in currentMessages) {
+            if (msg.id == messageId) {
+              msg.metadata?.orderStatus = true;
+              if (msg.metadata?.tiffinPickupOrder != null) {
+                msg.metadata?.tiffinPickupOrder?.isReady = true;
+              }
+              if (msg.metadata?.selfPickupOrder != null) {
+                msg.metadata?.selfPickupOrder?.isReady = true;
+              }
+              break;
+            }
+          }
+          getListOfMessageResponse.value = ApiResponse.complete(currentMessages);
+        }
+      });
+
+      // Tiffin Self-Pickup: Order cancelled by the customer (while 'placed').
+      chatSocket.listenEvent(
+          ChatEmitEvents.tiffinPickupOrderCancelled, (data) {
+        final messageId = data['messageId']?.toString() ?? '';
+        if (messageId.isNotEmpty) {
+          final currentMessages = getListOfMessageResponse.value.data as List<Messages>? ?? [];
+          for (var msg in currentMessages) {
+            if (msg.id == messageId) {
+              msg.metadata?.is_cancelled = true;
+              break;
+            }
+          }
+          getListOfMessageResponse.value = ApiResponse.complete(currentMessages);
+        }
+      });
+
       socketConnectedCalled.value = true;
     }
     try {

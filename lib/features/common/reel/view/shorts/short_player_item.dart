@@ -880,7 +880,10 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
           ),
         ),
         SizedBox(width: SizeConfig.size8),
-        Expanded(
+        // Flexible (not Expanded) so the name takes only the width it needs and
+        // the Visit button sits right beside it instead of being pushed to the
+        // far edge; the name still ellipsizes when long.
+        Flexible(
           child: InkWell(
             onTap: () {
               _navigateToProfile();
@@ -921,33 +924,65 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
           ),
         ),
         SizedBox(width: SizeConfig.size8),
-        // Column(
-        //   crossAxisAlignment: CrossAxisAlignment.center,
-        //   children: [
-        //     Row(
-        //       children: [
-        //         LocalAssets(
-        //             imagePath: AppIconAssets.viewIcon,
-        //             imgColor: AppColors.grey68),
-        //         SizedBox(width: SizeConfig.size1),
-        //         CustomText(
-        //           (fullScreenShortController.videoItem?.video?.stats?.views ??
-        //                   0)
-        //               .toString(),
-        //           color: AppColors.grey68,
-        //         ),
-        //       ],
-        //     ),
-        //     SizedBox(height: SizeConfig.size1),
-        //     CustomText(
-        //       timeAgo(DateTime.parse(
-        //           fullScreenShortController.videoItem?.video?.createdAt ??
-        //               DateTime.now().toIso8601String())),
-        //       color: AppColors.grey68,
-        //     ),
-        //   ],
-        // )
+        _buildVisitButton(),
       ],
+    );
+  }
+
+  /// Frosted "Visit Store" (business) / "View Profile" (individual) pill that
+  /// opens the author's profile via the same routing as tapping their name.
+  /// Hidden on the viewer's own reel (there's nowhere to visit).
+  Widget _buildVisitButton() {
+    final item = fullScreenShortController.videoItem;
+    final channel = item?.channel;
+    final author = item?.author;
+
+    final isOwn = (channel?.id != null && channel?.id == channelId) ||
+        (channel?.id == null && (author?.id ?? '') == userId);
+    if (isOwn) return const SizedBox.shrink();
+
+    final isBusiness = channel?.id != null ||
+        (author?.accountType ?? '').toUpperCase() ==
+            AppConstants.business.toUpperCase();
+    final label = isBusiness ? 'Visit Store' : 'View Profile';
+    final icon =
+        isBusiness ? Icons.storefront_rounded : Icons.person_rounded;
+
+    return GestureDetector(
+      onTap: _navigateToProfile,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+          child: Container(
+            padding: EdgeInsets.symmetric(
+                horizontal: SizeConfig.size12, vertical: SizeConfig.size6),
+            decoration: BoxDecoration(
+              // Same frosted-glass language as the play/pause overlay so the
+              // button reads as native to the reel surface.
+              color: Colors.white.withValues(alpha: 0.18),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.35),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 15, color: Colors.white),
+                SizedBox(width: SizeConfig.size4),
+                CustomText(
+                  label,
+                  fontSize: SizeConfig.small,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.white,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 

@@ -72,6 +72,35 @@ mixin EarnServiceApi {
   String homeFoodOrderReady(String orderId) =>
       'earn-service/homeFoodOrders/$orderId/ready';
 
+  /// Place a tiffin order. `POST earn-service/tiffinOrders`. Separate from
+  /// home-made-food orders — tiffins are ordered on their own flow.
+  final String tiffinOrders = "earn-service/tiffinOrders";
+
+  /// Mark a tiffin self-pickup order ready (cook side).
+  /// `PUT earn-service/tiffinOrders/{orderId}/ready`.
+  String tiffinOrderReady(String orderId) =>
+      'earn-service/tiffinOrders/$orderId/ready';
+
+  /// Customer's tiffin order history (paginated). `GET earn-service/tiffinOrders/me`.
+  final String tiffinOrdersMe = "earn-service/tiffinOrders/me";
+
+  /// Whether the customer has an ongoing tiffin order.
+  /// `GET earn-service/tiffinOrders/status/me`.
+  final String tiffinOrdersStatusMe = "earn-service/tiffinOrders/status/me";
+
+  /// Cook's incoming tiffin orders (paginated).
+  /// `GET earn-service/tiffinOrders/seller/me`.
+  final String tiffinOrdersSellerMe = "earn-service/tiffinOrders/seller/me";
+
+  /// Update / cancel a tiffin order. `PUT earn-service/tiffinOrders/{id}`.
+  String tiffinOrderById(String orderId) =>
+      'earn-service/tiffinOrders/$orderId';
+
+  /// Alternative cooks for a tiffin order's meal slot(s).
+  /// `GET earn-service/tiffinOrders/{orderId}/alternatives`.
+  String tiffinOrderAlternatives(String orderId) =>
+      'earn-service/tiffinOrders/$orderId/alternatives';
+
   /// Place a home made product order. `POST earn-service/homeProductOrders`.
   final String homeProductOrders = "earn-service/homeProductOrders";
 

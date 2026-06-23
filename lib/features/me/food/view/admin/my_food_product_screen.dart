@@ -8,7 +8,7 @@ import 'package:BlueEra/features/me/food/model/category_food_product_res_model.d
 import 'package:BlueEra/features/me/food/view/widget/food_dietary_and_tag_row.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_des_widget.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_image_widget.dart';
-import 'package:BlueEra/features/me/food/view/widget/food_product_variant_sheet.dart';
+import 'package:BlueEra/features/me/food/view/widget/show_food_product_variant_sheet.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';

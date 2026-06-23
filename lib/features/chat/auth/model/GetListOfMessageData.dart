@@ -438,6 +438,9 @@ class MessageMetadata {
   String? homeMadeFoodPickupOrderId;
   SelfPickupOrderModel? homeMadeFoodPickupOrder;
 
+  String? tiffinPickupOrderId;
+  SelfPickupOrderModel? tiffinPickupOrder;
+
   String? riderAssociationId;
   RiderAssociationMetadata? riderAssociation;
 
@@ -509,6 +512,8 @@ class MessageMetadata {
     this.productPickupOrder,
     this.homeMadeFoodPickupOrderId,
     this.homeMadeFoodPickupOrder,
+    this.tiffinPickupOrderId,
+    this.tiffinPickupOrder,
     this.riderAssociationId,
     this.riderAssociation,
     this.rideOrderId,
@@ -572,6 +577,11 @@ class MessageMetadata {
       homeMadeFoodPickupOrderId: json['homeMadeFoodPickupOrderId']?.toString(),
       homeMadeFoodPickupOrder:
           (json['order'] != null && json['homeMadeFoodPickupOrderId'] != null)
+              ? SelfPickupOrderModel.fromJson(json['order'])
+              : null,
+      tiffinPickupOrderId: json['tiffinPickupOrderId']?.toString(),
+      tiffinPickupOrder:
+          (json['order'] != null && json['tiffinPickupOrderId'] != null)
               ? SelfPickupOrderModel.fromJson(json['order'])
               : null,
       riderAssociationId: json['riderAssociationId']?.toString(),
@@ -651,6 +661,7 @@ class MessageMetadata {
       'foodPickupOrderId': foodPickupOrderId,
       'productPickupOrderId': productPickupOrderId,
       'homeMadeFoodPickupOrderId': homeMadeFoodPickupOrderId,
+      'tiffinPickupOrderId': tiffinPickupOrderId,
       'riderAssociationId': riderAssociationId,
       'riderAssociation': riderAssociation?.toJson(),
       'rideOrderId': rideOrderId,

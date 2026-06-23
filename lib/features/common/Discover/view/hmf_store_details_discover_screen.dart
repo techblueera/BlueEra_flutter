@@ -25,6 +25,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/floating_cart_widget.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/price_row.dart';
 import 'package:BlueEra/widgets/route_map_bottom_sheet.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -48,6 +49,9 @@ class _HmfStoreDetailsDiscoverScreenState
   // App primary color combination (theme-aligned accent for this flow).
   static const Color _primary = AppColors.primaryColor; // 0xFF0086FF
   static const Color _placeholderBg = AppColors.blue5CFF; // 0xFFEBF5FF
+  // Add-to-cart accent — the veg/food green already used on this screen for the
+  // diet badge + discount, reused so the "Add" action reads as food-positive.
+  static const Color _addGreen = Color(0xFF1E7D34);
 
   late final HmfStoreDetailsController controller = getOrPut(
     () => HmfStoreDetailsController(userId: widget.userId),
@@ -740,14 +744,15 @@ class _HmfStoreDetailsDiscoverScreenState
     ),
   ];
 
-  // ── Testimonials — light-blue band + carousel of white quote cards ───────
+  // ── Testimonials — white band + carousel of soft blue-tinted quote cards ──
   Widget _buildTestimonials() {
     return Container(
       margin: const EdgeInsets.only(top: 16),
       padding: const EdgeInsets.symmetric(vertical: 16),
       decoration: BoxDecoration(
-        color: _primary.withValues(alpha: 0.08),
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.greyE5),
       ),
       child: Column(
         children: [
@@ -775,12 +780,15 @@ class _HmfStoreDetailsDiscoverScreenState
     return Container(
       padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        // Soft blue tint so the quote card lifts off the white section while
+        // staying in the screen's blue family.
+        color: const Color(0xFFEFF5FF),
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _primary.withValues(alpha: 0.12)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 12,
+            color: _primary.withValues(alpha: 0.06),
+            blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
@@ -803,7 +811,7 @@ class _HmfStoreDetailsDiscoverScreenState
               ),
             ),
           ),
-          Divider(color: AppColors.greyE5, height: 20),
+          Divider(color: _primary.withValues(alpha: 0.15), height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -849,8 +857,6 @@ class _HmfStoreDetailsDiscoverScreenState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionHeading('Contact Us'),
-          const SizedBox(height: 10),
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(14),
@@ -862,6 +868,8 @@ class _HmfStoreDetailsDiscoverScreenState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                _sectionHeading('Contact Us'),
+                const SizedBox(height: 12),
                 ClipOval(
                   child: SizedBox(
                     width: 64,
@@ -1103,6 +1111,7 @@ class _HmfStoreDetailsDiscoverScreenState
       sellingPrice: item.sellingPrice,
       mrpPrice: item.mrpPrice,
       cartItem: item,
+      isTiffin: false,
     );
   }
 
@@ -1114,6 +1123,7 @@ class _HmfStoreDetailsDiscoverScreenState
       sellingPrice: meal.sellingPrice,
       mrpPrice: meal.mrpPrice,
       cartItem: _tiffinAsFood(meal),
+      isTiffin: true,
     );
   }
 
@@ -1137,6 +1147,7 @@ class _HmfStoreDetailsDiscoverScreenState
     required String sellingPrice,
     required String mrpPrice,
     required FoodItemModel cartItem,
+    required bool isTiffin,
   }) {
     final discount = _discountText(sellingPrice, mrpPrice);
     return Container(
@@ -1168,7 +1179,7 @@ class _HmfStoreDetailsDiscoverScreenState
               Positioned(
                 right: 8,
                 top: 8,
-                child: Obx(() => _addControl(cartItem)),
+                child: Obx(() => _addControl(cartItem, isTiffin)),
               ),
             ],
           ),
@@ -1194,33 +1205,12 @@ class _HmfStoreDetailsDiscoverScreenState
                   ),
                 ],
                 const SizedBox(height: 8),
-                Wrap(
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  spacing: 6,
-                  runSpacing: 2,
-                  children: [
-                    CustomText(
-                      '${AppConstants.rupeeSymbol}$sellingPrice',
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.mainTextColor,
-                    ),
-                    if (mrpPrice.isNotEmpty)
-                      CustomText(
-                        '${AppConstants.rupeeSymbol}$mrpPrice',
-                        fontSize: 11,
-                        color: AppColors.secondaryTextColor,
-                        decoration: TextDecoration.lineThrough,
-                        decorationColor: AppColors.secondaryTextColor,
-                      ),
-                    if (discount.isNotEmpty)
-                      CustomText(
-                        discount,
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF1E7D34),
-                      ),
-                  ],
+                PriceRow(
+                  sellingPrice: '${AppConstants.rupeeSymbol}$sellingPrice',
+                  mrp: mrpPrice.isNotEmpty
+                      ? '${AppConstants.rupeeSymbol}$mrpPrice'
+                      : '',
+                  discount: discount,
                 ),
               ],
             ),
@@ -1238,44 +1228,106 @@ class _HmfStoreDetailsDiscoverScreenState
   }
 
   // Multi-store cart: items from different kitchens stack into separate carts
-  // (Zomato-style), so adding never prompts to replace another kitchen's cart.
-  void _onAddTap(FoodItemModel item) {
-    cartController.add(item, store);
+  // (Zomato-style). Tiffin and food, however, can't share a cart — if the
+  // cart already holds the other type, prompt to start a new one.
+  void _onAddTap(FoodItemModel item, bool isTiffin) {
+    if (cartController.wouldMix(isTiffin)) {
+      _showSwitchCartDialog(item, isTiffin);
+      return;
+    }
+    cartController.add(item, store, isTiffin: isTiffin);
   }
 
-  // Blue "+" on the image; expands to a − qty + stepper once added.
-  Widget _addControl(FoodItemModel item) {
+  /// "Start a new cart?" prompt shown when the user adds an item of a type
+  /// different from what's already in the cart (tiffin vs food). Confirming
+  /// clears the current cart and adds the new item.
+  void _showSwitchCartDialog(FoodItemModel item, bool isTiffin) {
+    final currentIsTiffin = cartController.cartIsTiffin ?? false;
+    final currentLabel = currentIsTiffin ? 'tiffin' : 'food';
+    Get.dialog(
+      AlertDialog(
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: CustomText('Start a new cart?',
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+            color: AppColors.mainTextColor),
+        content: CustomText(
+          'Your cart has $currentLabel items. Tiffin and food are ordered '
+          'separately, so adding this will clear your cart and start a new one.',
+          fontSize: 13,
+          color: AppColors.secondaryTextColor,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: CustomText('Cancel',
+                color: AppColors.secondaryTextColor,
+                fontWeight: FontWeight.w700),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: _primary,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () {
+              cartController.clear();
+              cartController.add(item, store, isTiffin: isTiffin);
+              Get.back();
+            },
+            child: CustomText('New cart',
+                color: AppColors.white, fontWeight: FontWeight.w800),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Green "Add" button on the image; expands to a − qty + stepper once added.
+  Widget _addControl(FoodItemModel item, bool isTiffin) {
     final qty = cartController.qty(item.id);
     if (qty == 0) {
       return GestureDetector(
-        onTap: () => _onAddTap(item),
+        onTap: () => _onAddTap(item, isTiffin),
         child: Container(
-          width: 30,
-          height: 30,
-          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: _primary,
+            color: _addGreen,
+            // Same pill radius as the qty stepper so the control keeps its
+            // shape across the add → quantity transition.
+            borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2),
+                color: _addGreen.withValues(alpha: 0.3),
                 blurRadius: 4,
                 offset: const Offset(0, 2),
               ),
             ],
           ),
-          child: const Icon(Icons.add_rounded, size: 19, color: Colors.white),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.add_rounded, size: 15, color: Colors.white),
+              const SizedBox(width: 3),
+              CustomText('Add',
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white),
+            ],
+          ),
         ),
       );
     }
+    // Solid green stepper (matches the green "Add"): reads far better on the
+    // food photo than a washed-out white pill, and keeps the same pill shape.
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: _addGreen,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: _primary, width: 1.2),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
+            color: _addGreen.withValues(alpha: 0.3),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -1285,16 +1337,17 @@ class _HmfStoreDetailsDiscoverScreenState
         mainAxisSize: MainAxisSize.min,
         children: [
           _stepBtn(qty == 1 ? Icons.delete_outline_rounded : Icons.remove,
-              qty == 1 ? AppColors.red : _primary, () => cartController.remove(item)),
+              Colors.white, () => cartController.remove(item)),
           Container(
             constraints: const BoxConstraints(minWidth: 18),
             alignment: Alignment.center,
             child: CustomText('$qty',
                 fontSize: 13,
                 fontWeight: FontWeight.w800,
-                color: AppColors.mainTextColor),
+                color: Colors.white),
           ),
-          _stepBtn(Icons.add, _primary, () => cartController.add(item, store)),
+          _stepBtn(Icons.add, Colors.white,
+              () => cartController.add(item, store, isTiffin: isTiffin)),
         ],
       ),
     );
