@@ -3,12 +3,12 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/common/Discover/controller/other_service_business_search_controller.dart';
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
 import 'package:BlueEra/features/common/Discover/widget/service_business_card.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
-import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -29,7 +29,7 @@ class ServicesNearMeScreen extends StatefulWidget {
 }
 
 class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
-  final controller = getOrPut(() => StoreController());
+  final controller = getOrPut(() => OtherServiceBusinessSearchController());
   final AuthController _authController = Get.find<AuthController>();
   final RxInt _selectedIndex = 0.obs;
 
@@ -41,31 +41,37 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
     "https://img.freepik.com/free-photo/woman-getting-haircut-salon_23-2148928677.jpg?w=1380",
   ];
 
+  String? get _initialCategoryId {
+    if (widget.serviceCategory != null) return widget.serviceCategory;
+    if (_categories.isNotEmpty) return _categories.first.tagId;
+    return null;
+  }
+
   @override
   void initState() {
     super.initState();
 
     if (widget.serviceCategory != null && _categories.isNotEmpty) {
-      controller.businessCategoryId = widget.serviceCategory;
       final idx = _categories.indexWhere((c) => c.tagId == widget.serviceCategory);
       if (idx >= 0) _selectedIndex.value = idx;
-    } else if (_categories.isNotEmpty) {
-      controller.businessCategoryId = _categories.first.tagId;
     }
 
-    controller.getServiceBusinessesNearBy();
+    final cat = _initialCategoryId;
+    if (cat != null && cat.isNotEmpty) {
+      controller.fetchInitial(cat);
+    }
   }
 
   void _onCategoryTap(CategoryData item, int index) {
     _selectedIndex.value = index;
-    controller.businessCategoryId = item.tagId;
-    controller.getServiceBusinessesNearBy();
+    final tag = item.tagId ?? '';
+    if (tag.isNotEmpty) controller.fetchInitial(tag);
   }
 
   bool _onScrollNotification(ScrollNotification notification) {
     if (notification is ScrollUpdateNotification &&
         notification.metrics.pixels >= notification.metrics.maxScrollExtent - 200) {
-      controller.getServiceBusinessesNearBy(isLoadMore: true);
+      controller.fetchMore();
     }
     return false;
   }
@@ -142,11 +148,11 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
 
   Widget _buildStoreContent(double Function(double) dynamicSize) {
     return Obx(() {
-      if (controller.isAllStoreFirstLoading.value && controller.allStore.isEmpty) {
+      if (controller.isLoading.value && controller.profiles.isEmpty) {
         return const Center(child: CircularProgressIndicator());
       }
 
-      if (controller.allStore.isEmpty) {
+      if (controller.profiles.isEmpty) {
         final categoryName = (_selectedIndex.value >= 0 && _selectedIndex.value < _categories.length)
             ? _categories[_selectedIndex.value].name ?? ''
             : '';
@@ -168,9 +174,9 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
                 right: SizeConfig.size12,
                 bottom: SizeConfig.paddingL,
               ),
-              itemCount: controller.allStore.length + (controller.isAllStoreLoadingMore.value ? 1 : 0),
+              itemCount: controller.profiles.length + (controller.isLoadingMore.value ? 1 : 0),
               itemBuilder: (context, index) {
-                if (index >= controller.allStore.length) {
+                if (index >= controller.profiles.length) {
                   return const Padding(
                     padding: EdgeInsets.all(20),
                     child: Center(
@@ -179,11 +185,11 @@ class _ServicesNearMeScreenState extends State<ServicesNearMeScreen> {
                   );
                 }
 
-                final storeData = controller.allStore[index];
+                final item = controller.profiles[index];
 
                 return Padding(
                   padding: EdgeInsets.only(bottom: dynamicSize(12)),
-                  child: ServiceBusinessCard(store: storeData),
+                  child: ServiceBusinessCard(item: item),
                 );
               },
             ),

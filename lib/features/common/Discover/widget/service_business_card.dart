@@ -1,12 +1,11 @@
-import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
+import 'package:BlueEra/features/common/Discover/model/other_service_business_search_res_model.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -15,20 +14,93 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../core/constants/common_methods.dart';
 import '../view/others_service_detail_screen.dart';
 
 /// Service-style business card used by the "Services Near Me" screen.
-/// Layout mirrors the design spec: hero image with rating + action icons
-/// + service title overlay, an "Open" pill straddling the hero/body
-/// boundary, then a white body (avatar/name, location, chips, stats)
-/// and a light footer (Starting From + chat + Book Now).
-/// Missing values are rendered as "N/A" instead of being hidden.
+///
+/// Bound to [OtherServiceBusinessItem] returned by
+/// `other-service/business-profile/search`. Layout: hero image with rating
+/// pill + action icons + formatted category title overlay, an "Open" pill
+/// straddling the hero/body boundary, then a white body (avatar/name,
+/// inline distance|address, service-title chips) and a light footer
+/// (Price Range + chat + Book Now). Missing values render as "N/A".
 class ServiceBusinessCard extends StatelessWidget {
-  final GetAllStoreResModel store;
+  final OtherServiceBusinessItem item;
 
-  const ServiceBusinessCard({super.key, required this.store});
+  const ServiceBusinessCard({super.key, required this.item});
 
   static const String _na = 'N/A';
+
+  // ─── DERIVED VALUES ──────────────────────────────────────────────
+  OtherBusinessProfile? get _profile => item.profile;
+
+  String get _heroImage {
+    final cover = _profile?.coverUrl?.trim() ?? '';
+    if (cover.isNotEmpty) return cover;
+    final fromGallery =
+        item.gallery.expand((g) => g.imageUrls).firstWhere((u) => u.trim().isNotEmpty, orElse: () => '');
+    if (fromGallery.isNotEmpty) return fromGallery;
+    return item.management
+        .map((m) => m.imageUrl ?? '')
+        .firstWhere((u) => u.trim().isNotEmpty, orElse: () => '');
+  }
+
+  String get _avatarUrl {
+    final cover = _profile?.coverUrl?.trim() ?? '';
+    if (cover.isNotEmpty) return cover;
+    return item.management
+        .map((m) => m.imageUrl ?? '')
+        .firstWhere((u) => u.trim().isNotEmpty, orElse: () => '');
+  }
+
+  /// "CONSULTING_BUSINESS_SERVICES" → "Consulting Business Services".
+  String get _categoryDisplay {
+    final raw = (_profile?.categoryOfBusiness ?? '').trim();
+    if (raw.isEmpty) return _na;
+    return raw
+        .split(RegExp(r'[_\s]+'))
+        .where((w) => w.isNotEmpty)
+        .map((w) => w[0].toUpperCase() + w.substring(1).toLowerCase())
+        .join(' ');
+  }
+
+  String get _ratingText {
+    final r = _profile?.rating ?? 0;
+    return r > 0 ? r.toStringAsFixed(1) : _na;
+  }
+
+  /// Returns "Open | HH:MM - HH:MM" for today if open, else "Closed".
+  ({String label, bool isOpen}) get _todayStatus {
+    final today = item.timings?.forWeekday(DateTime.now().weekday);
+    if (today != null && today.hasHours) {
+      return (label: 'Open | ${today.openTime} - ${today.closeTime}', isOpen: true);
+    }
+    return (label: 'Closed', isOpen: false);
+  }
+
+  /// "₹1,499-2,000" / "₹1,499+" / "Up to ₹2,000" / "N/A".
+  String get _priceRangeText {
+    final pr = item.priceRange;
+    if (pr == null || !pr.hasAnyValue) return _na;
+    final min = pr.min;
+    final max = pr.max;
+    if (min != null && max != null) return '₹${_fmt(min)}-${_fmt(max)}';
+    if (min != null) return '₹${_fmt(min)}+';
+    if (max != null) return 'Up to ₹${_fmt(max)}';
+    return _na;
+  }
+
+  String _fmt(num n) {
+    final s = n.toInt().toString();
+    final buf = StringBuffer();
+    for (int i = 0; i < s.length; i++) {
+      final fromEnd = s.length - i;
+      buf.write(s[i]);
+      if (fromEnd > 1 && (fromEnd - 1) % 3 == 0) buf.write(',');
+    }
+    return buf.toString();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,15 +135,9 @@ class ServiceBusinessCard extends StatelessWidget {
 
   // ─── HERO ─────────────────────────────────────────────────────────
   Widget _buildHero(BuildContext context) {
-    final livePhotos = (store.livePhotos ?? const <String>[]).where((p) => p.trim().isNotEmpty).toList();
-    final heroImage = livePhotos.isNotEmpty ? livePhotos.first : (store.logo ?? '');
-
-    final rating = (store.avgRating ?? 0).toDouble();
-    final ratingText = rating > 0 ? rating.toStringAsFixed(1) : _na;
-
-    final serviceTitle =
-        (store.categoryOfBusiness?.name ?? store.subCategoryOfBusiness?.name ?? store.natureOfBusiness ?? '')
-            .trim();
+    final heroImage = _heroImage;
+    final status = _todayStatus;
+    final pillColor = status.isOpen ? AppColors.greenShade : AppColors.grey83;
 
     return SizedBox(
       height: 195,
@@ -79,7 +145,6 @@ class ServiceBusinessCard extends StatelessWidget {
       child: Stack(
         clipBehavior: Clip.none,
         children: [
-          // Image + dark gradient
           Positioned.fill(
             child: heroImage.isNotEmpty
                 ? CachedNetworkImage(
@@ -133,7 +198,7 @@ class ServiceBusinessCard extends StatelessWidget {
                   const Icon(Icons.star, size: 14, color: Color(0xFFFFC107)),
                   const SizedBox(width: 3),
                   CustomText(
-                    ratingText,
+                    _ratingText,
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
                     color: AppColors.mainTextColor,
@@ -156,22 +221,7 @@ class ServiceBusinessCard extends StatelessWidget {
             ),
           ),
 
-          // ── Service title (bottom-left) ──
-          Positioned(
-            left: 14,
-            right: 14,
-            bottom: 28,
-            child: CustomText(
-              serviceTitle.isNotEmpty ? serviceTitle : _na,
-              color: AppColors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-
-          // ── Open pill (straddles hero/body boundary) ──
+          // ── Open/Closed pill (straddles hero/body boundary) ──
           Positioned(
             right: 14,
             bottom: -14,
@@ -180,7 +230,7 @@ class ServiceBusinessCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: AppColors.greenShade.withValues(alpha: 0.6)),
+                border: Border.all(color: pillColor.withValues(alpha: 0.6)),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.06),
@@ -194,17 +244,17 @@ class ServiceBusinessCard extends StatelessWidget {
                   Container(
                     width: 7,
                     height: 7,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppColors.greenShade,
+                      color: pillColor,
                     ),
                   ),
                   const SizedBox(width: 6),
                   CustomText(
-                    'Open | 10:00 - 16:00',
+                    status.label,
                     fontSize: 12,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.greenShade,
+                    color: pillColor,
                   ),
                 ],
               ),
@@ -243,12 +293,10 @@ class ServiceBusinessCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildHeaderRow(),
-          const SizedBox(height: 10),
-          _buildAddressCard(),
+          const SizedBox(height: 8),
+          _buildAddressRow(),
           const SizedBox(height: 12),
-          _buildCategoryChips(),
-          const SizedBox(height: 14),
-          _buildStatsRow(),
+          _buildServiceChips(),
         ],
       ),
     );
@@ -258,7 +306,7 @@ class ServiceBusinessCard extends StatelessWidget {
     return Row(
       children: [
         CachedAvatarWidget(
-          imageUrl: store.logo ?? '',
+          imageUrl: _avatarUrl,
           size: 32,
           borderRadius: 16,
           borderColor: AppColors.whiteE0,
@@ -267,7 +315,7 @@ class ServiceBusinessCard extends StatelessWidget {
         const SizedBox(width: 10),
         Expanded(
           child: CustomText(
-            store.businessName ?? _na,
+            _profile?.businessName ?? _profile?.profileName ?? _na,
             fontSize: 16,
             fontWeight: FontWeight.w800,
             color: AppColors.mainTextColor,
@@ -280,24 +328,15 @@ class ServiceBusinessCard extends StatelessWidget {
     );
   }
 
-  /// Address tile — mirrors the ProductStoreCard pattern: shadowed
-  /// location icon container, "X.XX Km Away" line + address line, the
-  /// whole tile is tappable and opens the RouteMapBottomSheet.
-  Widget _buildAddressCard() {
-    final lat = store.businessLocation?.lat?.toDouble() ?? 0.0;
-    final lng = store.businessLocation?.lon?.toDouble() ?? 0.0;
-    final hasCoords = lat != 0.0 && lng != 0.0;
-    final km = hasCoords
-        ? calculateDistanceKm(
-            LocationService.lng,
-            LocationService.lat,
-            lng,
-            lat,
-          )
-        : null;
+  /// Inline distance + " | " + address. Tappable when we have map
+  /// coordinates so users can launch directions.
+  Widget _buildAddressRow() {
+    final loc = _profile?.businessLocation;
+    final hasCoords = loc?.isValid ?? false;
+    final km = hasCoords ? calculateDistance(loc!.lat!, loc.lng!) : null;
 
     final distanceText = km != null ? '${km.toStringAsFixed(2)} Km Away' : _na;
-    final addressText = (store.address?.trim().isNotEmpty ?? false) ? store.address! : AppStrings.na.tr;
+    final addressText = _resolveAddress();
 
     return Builder(
       builder: (context) => GestureDetector(
@@ -305,31 +344,41 @@ class ServiceBusinessCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            _buildShadowedLocationIcon(),
-            const SizedBox(width: 10),
+            LocalAssets(
+              imagePath: AppIconAssets.location_outline,
+              imgColor: AppColors.primaryColor,
+              height: 22,
+              width: 18,
+            ),
+            const SizedBox(width: 6),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CustomText(
-                    distanceText,
-                    fontSize: 12,
-                    color: AppColors.primaryColor,
-                    fontWeight: FontWeight.w600,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  CustomText(
-                    addressText,
-                    fontSize: 11,
-                    color: AppColors.grey83,
-                    fontWeight: FontWeight.w400,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
+              child: Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: distanceText,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.primaryColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    TextSpan(
+                      text: '  |  ',
+                      style: TextStyle(fontSize: 12, color: AppColors.grey83),
+                    ),
+                    TextSpan(
+                      text: addressText,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: AppColors.grey83,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
@@ -338,49 +387,47 @@ class ServiceBusinessCard extends StatelessWidget {
     );
   }
 
-  Widget _buildShadowedLocationIcon() {
-    return LocalAssets(
-      imagePath: AppIconAssets.location_outline,
-      imgColor: AppColors.primaryColor,
-      height: 22,
-      width: 18,
-    );
+  String _resolveAddress() {
+    final branchName = item.contactUs.firstOrNull?.branch?.location?.name?.trim() ?? '';
+    if (branchName.isNotEmpty) return branchName;
+    return AppStrings.na.tr;
   }
 
   void _showMapBottomSheet(BuildContext context) {
+    final loc = _profile?.businessLocation;
+    if (loc == null || !loc.isValid) return;
     RouteMapBottomSheet.show(
       context: context,
-      destinationName: store.businessName ?? '',
-      destinationAddress: store.address ?? '',
-      destinationLat: store.businessLocation?.lat?.toDouble() ?? 0.0,
-      destinationLng: store.businessLocation?.lon?.toDouble() ?? 0.0,
-      livePhotos: store.livePhotos,
-      visitCallback: () => _openStore(),
+      destinationName: _profile?.businessName ?? '',
+      destinationAddress: _resolveAddress(),
+      destinationLat: loc.lat!,
+      destinationLng: loc.lng!,
+      livePhotos: const <String>[],
+      visitCallback: _openStore,
     );
   }
 
-  Widget _buildCategoryChips() {
-    final all = (store.categories ?? const <StoreCategoryBrief>[])
-        .map((c) => c.name?.trim() ?? '')
-        .where((n) => n.isNotEmpty)
+  /// Chips powered by `services[].title` — the only chip source per spec.
+  Widget _buildServiceChips() {
+    final titles = item.services
+        .where((s) => s.isDeleted != true)
+        .map((s) => s.title?.trim() ?? '')
+        .where((t) => t.isNotEmpty)
         .toList();
 
-    if (all.isEmpty) {
-      return Wrap(
-        spacing: 8,
-        children: [_chip(_na, isMore: false)],
-      );
+    if (titles.isEmpty) {
+      return Wrap(spacing: 8, children: [_chip(_na, isMore: false)]);
     }
 
     const maxVisible = 3;
-    final visible = all.length > maxVisible ? all.sublist(0, maxVisible) : all;
-    final extra = all.length - visible.length;
+    final visible = titles.length > maxVisible ? titles.sublist(0, maxVisible) : titles;
+    final extra = titles.length - visible.length;
 
     return Wrap(
       spacing: 8,
       runSpacing: 8,
       children: [
-        ...visible.map((c) => _chip(c, isMore: false)),
+        ...visible.map((t) => _chip(t, isMore: false)),
         if (extra > 0) _chip('+$extra More', isMore: true),
       ],
     );
@@ -402,84 +449,25 @@ class ServiceBusinessCard extends StatelessWidget {
     );
   }
 
-  Widget _buildStatsRow() {
-    final year = store.dateOfIncorporation?.year;
-    final yrs = (year != null && year > 1900) ? DateTime.now().year - year : null;
-    final products = store.totalProductCount ?? 0;
-
-    final stats = <_StatCol>[
-      _StatCol(
-        value: yrs != null && yrs > 0 ? '$yrs+ Yrs' : _na,
-        label: 'Experience',
-      ),
-      _StatCol(
-        value: products > 0 ? '$products+' : _na,
-        label: 'Projects',
-      ),
-      _StatCol(
-        // No "response time" field in the model — always N/A per spec.
-        value: _na,
-        label: 'Response',
-      ),
-    ];
-
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      decoration: BoxDecoration(
-        border: Border(
-          top: BorderSide(color: AppColors.whiteED),
-        ),
-      ),
-      child: Row(
-        children: List.generate(stats.length * 2 - 1, (i) {
-          if (i.isOdd) {
-            return Container(width: 1, height: 32, color: AppColors.whiteED);
-          }
-          return Expanded(child: _statColumn(stats[i ~/ 2]));
-        }),
-      ),
-    );
-  }
-
-  Widget _statColumn(_StatCol s) {
-    return Column(
-      children: [
-        CustomText(
-          s.value,
-          fontSize: 15,
-          fontWeight: FontWeight.w800,
-          color: AppColors.mainTextColor,
-        ),
-        const SizedBox(height: 2),
-        CustomText(s.label, fontSize: 11, color: AppColors.grey83),
-      ],
-    );
-  }
-
   // ─── FOOTER ──────────────────────────────────────────────────────
   Widget _buildFooter() {
-    final priceText = (store.quirkyMessage ?? '').trim();
-
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
-      decoration: const BoxDecoration(
-        color: Color(0xFFF6F8FC),
-      ),
+      decoration: const BoxDecoration(color: Color(0xFFF6F8FC)),
       child: Row(
         children: [
-          // Starting From / price
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  'Starting From',
+                  'Price Range',
                   fontSize: 11,
                   color: AppColors.grey83,
                 ),
                 const SizedBox(height: 2),
                 CustomText(
-                  priceText.isEmpty ? _na : priceText,
+                  _priceRangeText,
                   fontSize: 15,
                   fontWeight: FontWeight.w800,
                   color: AppColors.mainTextColor,
@@ -489,21 +477,21 @@ class ServiceBusinessCard extends StatelessWidget {
           ),
           _ChatSquareBtn(
             onTap: () {
-              final uid = store.userId ?? '';
+              final uid = _profile?.userId ?? '';
               if (uid.isEmpty) return;
               if (isGuestUser()) {
                 createProfileScreen();
                 return;
               }
               ChatClickTracker.track(
-                userId: store.id ?? uid,
+                userId: _profile?.id ?? uid,
                 source: ChatClickSource.searchResult,
               );
               final chat = getOrPut(() => ChatViewController());
               chat.checkChatConnectionAndOpenChat(
                 userId: uid,
-                name: store.businessName,
-                profile: store.logo,
+                name: _profile?.businessName,
+                profile: _avatarUrl,
                 route: AppConstants.route_discover,
               );
             },
@@ -520,15 +508,9 @@ class ServiceBusinessCard extends StatelessWidget {
 
   void _openStore() {
     Get.to(() => OthersServiceDetailScreen(
-          visitUserId: store.userId ?? '',
+          visitUserId: _profile?.userId ?? '',
         ));
   }
-}
-
-class _StatCol {
-  final String value;
-  final String label;
-  _StatCol({required this.value, required this.label});
 }
 
 class _ChatSquareBtn extends StatelessWidget {
