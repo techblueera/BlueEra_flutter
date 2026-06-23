@@ -13,14 +13,14 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import 'multi_pickup_rider_booking_screen.dart';
+import 'goods_multi_order_booking_main.dart';
 
 /// Step shown after the rider drop-location sheet is confirmed (Inquiry tab).
 ///
 /// Lists the inquiry (business) conversations whose last message landed within
 /// the last 12 hours — i.e. the still-active orders — and lets the user
 /// multi-select which of them should be picked up. The Submit button just opens
-/// the [MultiPickupRiderBookingScreen]; no API call is made here.
+/// the [GoodsMultiOrderBookingMain]; no API call is made here.
 class InquiryRideOrderSelectionScreen extends StatefulWidget {
   const InquiryRideOrderSelectionScreen({
     super.key,
@@ -98,7 +98,7 @@ class _InquiryRideOrderSelectionScreenState
     setState(() => _isFindingRiders = false);
     if (!ok) return;
 
-    Get.to(() => MultiPickupRiderBookingScreen(
+    Get.to(() => GoodsMultiOrderBookingMain(
           pickups: selected,
           dropAddress: widget.dropAddress,
         ));

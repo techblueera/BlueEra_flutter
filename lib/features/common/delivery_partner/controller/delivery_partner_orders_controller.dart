@@ -237,6 +237,48 @@ class DeliverPartnerOrdersController extends GetxController {
     }
   }
 
+  /// Multi-shop: tells the backend the rider has reached [businessId]'s shop.
+  /// Returns true on success. See the master integration guide §5.3.
+  Future<bool> multiShopStopArrive(String orderId, String businessId) async {
+    try {
+      final response = await MakeOrderRepo()
+          .multiShopStopArriveApi(orderId: orderId, businessId: businessId);
+      if (response.isSuccess) {
+        return true;
+      }
+      commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+      return false;
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
+    }
+  }
+
+  /// Multi-shop: verifies [businessId]'s pickup OTP. The matching pickup card
+  /// flips to consumed (via the `riderOtpUpdated` socket) on success. A 400
+  /// means a missing/wrong OTP. Returns true only when the pickup is accepted.
+  Future<bool> multiShopStopPickup(
+      String orderId, String businessId, String pickupOTP) async {
+    try {
+      final response = await MakeOrderRepo().multiShopStopPickupApi(
+          orderId: orderId, businessId: businessId, pickupOTP: pickupOTP);
+      if (response.isSuccess) {
+        commonSnackBar(message: response.message ?? 'Picked up');
+        return true;
+      }
+      final code = response.statusCode ?? response.response?.statusCode;
+      commonSnackBar(
+          message: response.message ??
+              (code == 400
+                  ? 'Incorrect OTP'
+                  : AppStrings.somethingWentWrong));
+      return false;
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
+    }
+  }
+
   Future<bool> updateRideOrParcelOrderStatusApi(Map<String,dynamic> params,String orderId) async {
     try {
       ResponseModel? response = await MakeOrderRepo().updateRideOrParcelOrderStatusApi(params,orderId);

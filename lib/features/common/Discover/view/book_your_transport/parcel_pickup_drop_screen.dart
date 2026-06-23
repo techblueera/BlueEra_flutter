@@ -5,7 +5,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
-import 'package:BlueEra/features/common/Discover/view/book_your_transport/book_transport_main.dart';
+import 'package:BlueEra/features/common/Discover/view/book_your_transport/passenger_booking_main.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/search_transport_address.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/terms_and_conditions_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/trusted_contacts_screen.dart';
@@ -308,7 +308,7 @@ class _ParcelPickupDropScreenState extends State<ParcelPickupDropScreen> {
                           AppStrings.addPickupDropContactsToContinue.tr);
                   return;
                 }
-                Get.to(() => const BookTransportMain());
+                Get.to(() => const PassengerBookingMain());
               },
             ),
           ],

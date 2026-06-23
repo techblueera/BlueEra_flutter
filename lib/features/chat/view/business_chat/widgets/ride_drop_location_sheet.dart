@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:get/get.dart';
 
 import 'package:BlueEra/core/api/model/place_prediction.dart';
@@ -9,6 +10,7 @@ import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/features/chat/auth/controller/saved_address_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/saved_address_model.dart';
@@ -42,10 +44,22 @@ class _RideDropLocationSheetState extends State<_RideDropLocationSheet> {
   String? _selectedId;
   bool _showAddForm = false;
 
+  // Label selector for a new address. One of [_labelOptions]; when 'Other'
+  // is chosen the free-text [_labelController] field is shown so the user
+  // can type a custom label. The saved address stores the resolved label.
+  static const _labelOptions = ['Home', 'Office', 'Other'];
+  String _labelType = 'Home';
+
   // Google place-suggestion state for the address field.
   final _predictions = <PlacePrediction>[].obs;
   final _isSearching = false.obs;
   Timer? _debounce;
+  // The address field starts as a tap-to-choose entry point: tapping it opens
+  // a "current location vs. search manually" dialog. Once the user picks
+  // "Search manually", [_manualSearch] flips so the field becomes an editable
+  // Google-suggestions search box (and stops re-opening the dialog on tap).
+  final _addressFocus = FocusNode();
+  bool _manualSearch = false;
   // Coordinates of the picked suggestion (null until a suggestion is tapped).
   double? _pickedLat;
   double? _pickedLng;
@@ -53,6 +67,7 @@ class _RideDropLocationSheetState extends State<_RideDropLocationSheet> {
   @override
   void dispose() {
     _debounce?.cancel();
+    _addressFocus.dispose();
     _labelController.dispose();
     _addressController.dispose();
     _houseNoController.dispose();
@@ -118,6 +133,8 @@ class _RideDropLocationSheetState extends State<_RideDropLocationSheet> {
   }
 
   void _resetAddForm() {
+    _labelType = 'Home';
+    _manualSearch = false;
     _labelController.clear();
     _addressController.clear();
     _houseNoController.clear();
@@ -128,7 +145,10 @@ class _RideDropLocationSheetState extends State<_RideDropLocationSheet> {
   }
 
   Future<void> _saveNewAddress() async {
-    final label = _labelController.text.trim();
+    // Resolve the label from the radio selection: Home/Office save as-is,
+    // 'Other' saves the typed custom label.
+    final customLabel = _labelController.text.trim();
+    final label = _labelType == 'Other' ? customLabel : _labelType;
     final address = _addressController.text.trim();
     final houseNo = _houseNoController.text.trim();
     final landmark = _landmarkController.text.trim();
@@ -138,6 +158,10 @@ class _RideDropLocationSheetState extends State<_RideDropLocationSheet> {
     }
     if (houseNo.isEmpty) {
       commonSnackBar(message: 'Please enter the house / flat no');
+      return;
+    }
+    if (_labelType == 'Other' && customLabel.isEmpty) {
+      commonSnackBar(message: 'Please enter a label');
       return;
     }
     final saved = await addressController.addAddress(
@@ -376,16 +400,21 @@ class _RideDropLocationSheetState extends State<_RideDropLocationSheet> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          TextField(
-            controller: _labelController,
-            textCapitalization: TextCapitalization.words,
-            decoration: _fieldDecoration('Label (e.g. Home, Work)'),
-          ),
+          _buildLabelSelector(),
           const SizedBox(height: 10),
-          // Address with Google place suggestions.
+          // Address entry. Until "Search manually" is chosen the field is
+          // read-only and a tap opens the current-location / manual-search
+          // dialog; in manual mode it becomes an editable Google-suggestions
+          // search box.
           TextField(
             controller: _addressController,
+            focusNode: _addressFocus,
+            readOnly: !_manualSearch,
             textCapitalization: TextCapitalization.sentences,
+            minLines: 1,
+            maxLines: 2,
+            keyboardType: TextInputType.multiline,
+            onTap: _manualSearch ? null : _showAddressSourceDialog,
             onChanged: _onAddressChanged,
             decoration: _fieldDecoration('Search drop address').copyWith(
               prefixIcon: const Icon(Icons.search,
@@ -446,6 +475,228 @@ class _RideDropLocationSheetState extends State<_RideDropLocationSheet> {
           ),
         ],
       ),
+    );
+  }
+
+  /// Tapping the (read-only) address field opens this chooser: fill from the
+  /// device's current location, or switch the field into manual search mode.
+  Future<void> _showAddressSourceDialog() async {
+    FocusScope.of(context).unfocus();
+    final choice = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        titlePadding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
+        contentPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        title: const CustomText(
+          'Set drop address',
+          fontSize: 16,
+          fontWeight: FontWeight.w700,
+          color: Colors.black87,
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _addressSourceOption(
+              ctx,
+              value: 'current',
+              icon: Icons.my_location,
+              title: 'Use current location',
+              subtitle: 'Auto-fill from your GPS',
+            ),
+            const SizedBox(height: 10),
+            _addressSourceOption(
+              ctx,
+              value: 'manual',
+              icon: Icons.search,
+              title: 'Search address',
+              subtitle: 'Type to find the drop address',
+            ),
+          ],
+        ),
+      ),
+    );
+    if (!mounted) return;
+    if (choice == 'current') {
+      await _useCurrentLocation();
+    } else if (choice == 'manual') {
+      setState(() => _manualSearch = true);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _addressFocus.requestFocus();
+      });
+    }
+  }
+
+  Widget _addressSourceOption(
+    BuildContext ctx, {
+    required String value,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
+    return InkWell(
+      onTap: () => Navigator.pop(ctx, value),
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: AppColors.primaryColor, size: 22),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    title,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                  const SizedBox(height: 2),
+                  CustomText(
+                    subtitle,
+                    fontSize: 12,
+                    color: Colors.grey.shade600,
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Fetches the device location, reverse-geocodes it to an address string,
+  /// and fills the address field + picked coordinates.
+  Future<void> _useCurrentLocation() async {
+    _isSearching.value = true;
+    try {
+      final result =
+          await LocationService.fetchLocation(openSettingsOnDeny: true);
+      if (result == null || !LocationService.hasUsableLocation) {
+        commonSnackBar(message: 'Unable to fetch current location');
+        return;
+      }
+      final lat = LocationService.lat;
+      final lng = LocationService.lng;
+      final address = await _preciseAddress(lat, lng);
+      _addressController.text = address;
+      _addressController.selection =
+          TextSelection.collapsed(offset: address.length);
+      _pickedLat = lat;
+      _pickedLng = lng;
+      _predictions.clear();
+      // Keep the field in read-only "tap to change" mode after auto-fill.
+      setState(() => _manualSearch = false);
+    } catch (_) {
+      commonSnackBar(message: 'Unable to fetch current location');
+    } finally {
+      _isSearching.value = false;
+    }
+  }
+
+  /// Reverse-geocodes [lat]/[lng] into a precise, building-level address.
+  /// Leads with the building/premise name and street number so the rider
+  /// gets at least a building reference, then street → area → city → state →
+  /// PIN. Duplicate fragments are dropped and the result is capped to the
+  /// first few parts so it stays within ~2 lines. Falls back to the shared
+  /// formatter if the placemark lookup fails.
+  Future<String> _preciseAddress(double lat, double lng) async {
+    try {
+      final placemarks = await placemarkFromCoordinates(lat, lng);
+      if (placemarks.isNotEmpty) {
+        final p = placemarks.first;
+        final ordered = <String>[
+          p.name ?? '',            // building / premise / house no
+          p.subThoroughfare ?? '', // street / building number
+          p.thoroughfare ?? '',    // street / road
+          p.subLocality ?? '',     // locality / area
+          p.locality ?? '',        // city
+          p.administrativeArea ?? '', // state
+          p.postalCode ?? '',      // PIN
+        ];
+        final seen = <String>{};
+        final parts = <String>[];
+        for (final fragment in ordered) {
+          final value = fragment.trim();
+          if (value.isEmpty) continue;
+          if (seen.add(value.toLowerCase())) parts.add(value);
+        }
+        // Cap to the most specific 5 fragments so the address comfortably
+        // fits the 2-line field while still carrying the building reference.
+        if (parts.isNotEmpty) {
+          return parts.take(5).join(', ');
+        }
+      }
+    } catch (_) {
+      // Best-effort: fall through to the shared formatter below.
+    }
+    return LocationService.getAddressUsingLatLng(latitude: lat, longitude: lng);
+  }
+
+  /// Radio selector for the address label — Home / Office / Other. Picking
+  /// 'Other' reveals a free-text field so the user can name the place; the
+  /// chosen label is what gets saved with the address.
+  Widget _buildLabelSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(left: 2, bottom: 4),
+          child: CustomText(
+            'Save as',
+            fontSize: 13.5,
+            fontWeight: FontWeight.w600,
+            color: Colors.black87,
+          ),
+        ),
+        Row(
+          children: _labelOptions.map((opt) {
+            return Expanded(
+              child: InkWell(
+                onTap: () => setState(() => _labelType = opt),
+                borderRadius: BorderRadius.circular(8),
+                child: Row(
+                  children: [
+                    Radio<String>(
+                      value: opt,
+                      groupValue: _labelType,
+                      onChanged: (v) => setState(() => _labelType = v!),
+                      activeColor: AppColors.primaryColor,
+                      visualDensity: VisualDensity.compact,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    Flexible(
+                      child: CustomText(
+                        opt,
+                        fontSize: 13,
+                        color: Colors.black87,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+        if (_labelType == 'Other') ...[
+          const SizedBox(height: 8),
+          TextField(
+            controller: _labelController,
+            textCapitalization: TextCapitalization.words,
+            decoration: _fieldDecoration('Enter label (e.g. Gym, Friend\'s place)'),
+          ),
+        ],
+      ],
     );
   }
 

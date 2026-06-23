@@ -52,7 +52,13 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
   late final String _customerName;
   late final String _customerImage;
   late final String _paymentMethod;
-  late final String _rideType;
+  // Job descriptor (ride | goods | parcel) — drives the call header/labels so
+  // the rider immediately knows whether this is a passenger ride, a shop
+  // goods pickup, or a parcel delivery. See the master integration guide §2.
+  late final String _jobType;
+  late final String _jobLabel;
+  late final String _callTitle;
+  late final String _riderTask;
   late final double _etaDistanceKm;
   late final double _etaDurationMin;
 
@@ -75,7 +81,12 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
         : 'Customer';
     _customerImage = _callController.callerImage.value;
     _paymentMethod = ride?['modeOfPayment'] ?? 'postpaid';
-    _rideType = ride?['orderFor'] ?? '';
+    // Friendly job descriptor — fall back to raw orderFor / sensible defaults
+    // for legacy payloads that don't carry the new fields.
+    _jobType = ride?['jobType'] ?? 'ride'; // ride | goods | parcel
+    _jobLabel = ride?['jobLabel'] ?? ride?['orderFor'] ?? 'Ride';
+    _callTitle = ride?['callTitle'] ?? 'Incoming Ride Request';
+    _riderTask = ride?['riderTask'] ?? '';
     _etaDistanceKm = _toDouble(ride?['eta']?['distanceKm']);
     _etaDurationMin = _toDouble(ride?['eta']?['durationMin']);
 
@@ -131,6 +142,20 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
         }
       }
     });
+  }
+
+  /// Icon representing the job type on the call (passenger / shop goods /
+  /// parcel).
+  IconData get _jobIcon {
+    switch (_jobType) {
+      case 'goods':
+        return Icons.shopping_bag_rounded;
+      case 'parcel':
+        return Icons.inventory_2_rounded;
+      case 'ride':
+      default:
+        return Icons.person_rounded;
+    }
   }
 
   double _toDouble(dynamic value) {
@@ -361,7 +386,8 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         children: [
-          AnimatedBuilder(
+          Flexible(
+            child: AnimatedBuilder(
             animation: _pulseController,
             builder: (context, child) {
               final opacity = 0.5 + (_pulseController.value * 0.5);
@@ -377,26 +403,30 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
                   width: 1,
                 ),
               ),
-              child: const Row(
+              child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.delivery_dining_rounded,
-                      color: Color(0xFF00C853), size: 18),
-                  SizedBox(width: 6),
-                  Text(
-                    'New Ride Request',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF00C853),
-                      fontFamily: 'OpenSans',
+                  Icon(_jobIcon, color: const Color(0xFF00C853), size: 18),
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      _callTitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF00C853),
+                        fontFamily: 'OpenSans',
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
           ),
-          const Spacer(),
+          ),
+          const SizedBox(width: 12),
           _buildCountdownTimer(),
         ],
       ),
@@ -456,6 +486,39 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
       child: Column(
         children: [
           _buildCustomerRow(),
+          if (_riderTask.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Container(
+              width: double.infinity,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: const Color(0xFF42A5F5).withValues(alpha: 0.10),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0xFF42A5F5).withValues(alpha: 0.25),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(_jobIcon,
+                      color: const Color(0xFF42A5F5), size: 18),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      _riderTask,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.white.withValues(alpha: 0.85),
+                        fontFamily: 'OpenSans',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           const SizedBox(height: 20),
           Container(
             decoration: BoxDecoration(
@@ -482,9 +545,9 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
             alignment: WrapAlignment.center,
             children: [
               _buildPaymentChip(),
-              if (_rideType.isNotEmpty) _buildInfoChip(
-                icon: Icons.directions_car_rounded,
-                label: _rideType,
+              if (_jobLabel.isNotEmpty) _buildInfoChip(
+                icon: _jobIcon,
+                label: _jobLabel,
                 color: const Color(0xFF42A5F5),
               ),
               if (_etaDurationMin > 0) _buildInfoChip(

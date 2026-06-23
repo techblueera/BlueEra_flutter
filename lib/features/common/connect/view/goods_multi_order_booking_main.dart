@@ -8,8 +8,8 @@ import 'package:BlueEra/features/chat/auth/model/GetChatListModel.dart';
 import 'package:BlueEra/features/chat/auth/model/saved_address_model.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/multi_shop_rider_model.dart';
-import 'package:BlueEra/features/common/Discover/view/book_your_transport/book_transport_main.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/fare_call_queue_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/book_your_transport/passenger_booking_main.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -29,8 +29,8 @@ import 'package:get/get.dart';
 /// The riders request is fired by [InquiryRideOrderSelectionScreen] before
 /// this screen opens, so [DiscoverController] already holds the sorted shops
 /// + riders by the time we build.
-class MultiPickupRiderBookingScreen extends StatefulWidget {
-  const MultiPickupRiderBookingScreen({
+class GoodsMultiOrderBookingMain extends StatefulWidget {
+  const GoodsMultiOrderBookingMain({
     super.key,
     required this.pickups,
     required this.dropAddress,
@@ -43,12 +43,12 @@ class MultiPickupRiderBookingScreen extends StatefulWidget {
   final SavedAddress dropAddress;
 
   @override
-  State<MultiPickupRiderBookingScreen> createState() =>
-      _MultiPickupRiderBookingScreenState();
+  State<GoodsMultiOrderBookingMain> createState() =>
+      _GoodsMultiOrderBookingMainState();
 }
 
-class _MultiPickupRiderBookingScreenState
-    extends State<MultiPickupRiderBookingScreen> {
+class _GoodsMultiOrderBookingMainState
+    extends State<GoodsMultiOrderBookingMain> {
   final discoverController = getOrPut(() => DiscoverController());
 
   // In-City vehicle choices (same set / order as the transport flow, so the

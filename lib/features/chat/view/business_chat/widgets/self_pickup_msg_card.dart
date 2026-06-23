@@ -14,6 +14,7 @@ import 'package:BlueEra/features/chat/auth/model/saved_address_model.dart';
 import 'package:BlueEra/features/chat/auth/model/self_pickup_order_model.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/product_order_booking_rider_main.dart';
+import 'package:BlueEra/features/common/connect/view/inquiry_ride_order_selection_screen.dart';
 import 'package:BlueEra/features/me/grocery/repo/grocery_repo.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:dio/dio.dart' as dio;
@@ -1155,8 +1156,13 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
               onTap: () async {
                 final drop = await showRideDropLocationSheet(context);
                 if (drop != null) {
-                  await _startRideToDrop(drop);
+                  Get.to(() =>
+                      InquiryRideOrderSelectionScreen(dropAddress: drop));
                 }
+                // final drop = await showRideDropLocationSheet(context);
+                // if (drop != null) {
+                //   await _startRideToDrop(drop);
+                // }
               },
             ),
         ],

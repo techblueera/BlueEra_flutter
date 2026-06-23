@@ -36,6 +36,35 @@ class MakeOrderRepo extends BaseService {
     return response;
   }
 
+  /// Multi-shop: rider arrives at a shop. No body. See the master guide §5.3.
+  Future<ResponseModel> multiShopStopArriveApi(
+      {required String orderId, required String businessId}) async {
+    final response = await ApiBaseHelper().patchHTTP(
+      multiShopStopArrive(orderId, businessId),
+      showProgress: false,
+      params: {},
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  /// Multi-shop: rider enters that shop's pickup OTP. Body: `{pickupOTP}`.
+  /// 400 if missing/wrong; on success that shop's card flips to consumed.
+  Future<ResponseModel> multiShopStopPickupApi(
+      {required String orderId,
+      required String businessId,
+      required String pickupOTP}) async {
+    final response = await ApiBaseHelper().patchHTTP(
+      multiShopStopPickup(orderId, businessId),
+      showProgress: false,
+      params: {'pickupOTP': pickupOTP},
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   Future<ResponseModel> verifyPayment(Map<String, dynamic> params) async {
     final response = await ApiBaseHelper().postHTTP(
         verifyPaymentApi,

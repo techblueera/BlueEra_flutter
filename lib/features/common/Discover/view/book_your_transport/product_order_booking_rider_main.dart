@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/common/Discover/view/book_your_transport/passenger_booking_main.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/search_transport_address.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -15,7 +16,6 @@ import 'package:get/get.dart';
 import '../../../../../core/api/apiService/api_response.dart';
 
 import '../../controller/discover_controller.dart';
-import 'book_transport_main.dart';
 import 'fare_call_queue_screen.dart';
 import '../../model/get_booking_rider_model.dart';
 
