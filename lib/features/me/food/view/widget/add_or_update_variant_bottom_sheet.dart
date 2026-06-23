@@ -9,6 +9,7 @@ import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 void addOrVariantBottomSheet({
@@ -52,6 +53,7 @@ void addOrVariantBottomSheet({
                 textEditController: vc.nameController,
                 hintText: AppStrings.foodHintHalfPlate.tr,
                 title: AppStrings.foodVariantNameLabel.tr,
+                textInputAction: TextInputAction.next,
                 onChange: (val) => vc.validate(),
               ),
               const SizedBox(height: 12),
@@ -59,6 +61,7 @@ void addOrVariantBottomSheet({
                 textEditController: vc.quantityController,
                 hintText: AppStrings.foodHint100GM.tr,
                 title: AppStrings.foodQuantityLabel.tr,
+                textInputAction: TextInputAction.next,
                 onChange: (val) => vc.validate(),
               ),
               const SizedBox(height: 12),
@@ -67,6 +70,11 @@ void addOrVariantBottomSheet({
                 hintText: AppStrings.foodHint200.tr,
                 title: AppStrings.foodMrpLabel.tr,
                 keyBoardType: TextInputType.number,
+                textInputAction: TextInputAction.next,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(10),
+                ],
                 onChange: (val) => vc.validate(),
               ),
               const SizedBox(height: 12),
@@ -75,8 +83,32 @@ void addOrVariantBottomSheet({
                 hintText: AppStrings.foodHint180.tr,
                 title: AppStrings.foodSellingPriceLabel.tr,
                 keyBoardType: TextInputType.number,
+                // Last field — dismiss the keyboard instead of advancing.
+                textInputAction: TextInputAction.done,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(10),
+                ],
                 onChange: (val) => vc.validate(),
               ),
+              // Inline reason the form is invalid (e.g. selling price > MRP).
+              Obx(() {
+                final error = vc.variantFormError.value;
+                if (error == null || error.isEmpty) {
+                  return const SizedBox.shrink();
+                }
+                return Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: CustomText(
+                      error,
+                      color: AppColors.red,
+                      fontSize: SizeConfig.small,
+                    ),
+                  ),
+                );
+              }),
               const SizedBox(height: 20),
               Align(
                 alignment: Alignment.centerRight,
@@ -103,6 +135,9 @@ void addOrVariantBottomSheet({
 
                       if(vId==null) return;
                       newVariant.id = vId;
+                      // Push the new variant into the Source-of-Truth list so
+                      // the product card count and variant sheet update live.
+                      vc.addLocalVariant(foodID, newVariant);
                       onAdd(newVariant); // Trigger the callback
                     }
 
@@ -111,6 +146,14 @@ void addOrVariantBottomSheet({
 
                   }
                       : null,
+                  // Grey out the button while the form is invalid so the
+                  // disabled state is visible, not just non-tappable.
+                  bgColor: vc.isFormValid.value
+                      ? AppColors.primaryColor
+                      : AppColors.greyB4,
+                  borderColor: vc.isFormValid.value
+                      ? AppColors.primaryColor
+                      : AppColors.greyB4,
                   title: (editingIndex!=null) ? AppStrings.update.tr : AppStrings.submit.tr,
                 )),
               ),

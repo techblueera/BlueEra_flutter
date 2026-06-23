@@ -19,22 +19,20 @@ class FullScreenShortController extends GetxController{
   final Map<String, Timer> _shortLikeApiTimers = {};
 
   ///SHORT VIDEO View...
+  /// Fire-and-forget background view ping (hits `GET videos/metadata/:id`,
+  /// which increments the view count server-side). Intentionally SILENT: it
+  /// runs with `showProgress: false` and swallows every failure without a
+  /// snackbar — a missed view is non-critical and must never disrupt playback.
   Future<void> shortVideoView({required String videoId}) async {
-    // try {
-    //
-    //   final response = await FeedRepo().viewVideo(videoId: videoId);
-    //
-    //   if (response.isSuccess) {
-    //     shortVideoViewResponse = ApiResponse.complete(response);
-    //   } else {
-    //     shortVideoViewResponse =  ApiResponse.error('error');
-    //     commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
-    //   }
-    // } catch (e) {
-    //   shortVideoViewResponse =  ApiResponse.error('error');
-    //   commonSnackBar(message: AppStrings.somethingWentWrong);
-    // } finally {
-    // }
+    if (videoId.isEmpty || videoId == '0') return;
+    try {
+      final response = await FeedRepo().viewVideo(videoId: videoId);
+      shortVideoViewResponse = response.isSuccess
+          ? ApiResponse.complete(response)
+          : ApiResponse.error('error');
+    } catch (_) {
+      shortVideoViewResponse = ApiResponse.error('error');
+    }
   }
 
   // ///SHORT VIDEO LIKE...

@@ -225,7 +225,9 @@ class ProductVariantBottomSheet extends StatelessWidget {
   Widget _buildAddVariantButton(CategoryFoodProductData liveProduct) {
     return InkWell(
       onTap: () {
-        Get.back();
+        // Keep this variant sheet mounted underneath: it's an Obx bound to the
+        // Source-of-Truth list, so when the add sheet closes it reveals this
+        // list already showing the newly added variant (no reopen needed).
         controller.clearAllField();
         addOrVariantBottomSheet(
           foodID: liveProduct.id ?? "",

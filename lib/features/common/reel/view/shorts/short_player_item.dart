@@ -80,11 +80,13 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
   bool _isDisposed = false;
   Timer? _overlayTimer;
   Timer? _viewTimer;
+  bool _viewCounted = false; // register the view at most once per item
   bool _isShortSharing = false;
 
   /* ------------- NEW ------------- */
   bool _useCover = true; // show cover until first frame ready
   bool _isBuffering = false; // show spinner while the network catches up
+  bool _keywordsExpanded = false; // keyword chips: 3 + "+N more" → all
   /* -------------------------------- */
 
   @override
@@ -105,7 +107,8 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
     // the parent also cached one for the same index).
     _attachController();
 
-    _setupViewTimer();
+    // If this page is already the active one at creation, start counting now.
+    _scheduleViewCount();
   }
 
   void _attachController() {
@@ -172,8 +175,12 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
     } else if (widget.autoPlay != oldWidget.autoPlay) {
       if (widget.autoPlay) {
         _controller?.play();
+        // Became the active page — start the watch-time view timer.
+        _scheduleViewCount();
       } else {
         _controller?.pause();
+        // Swiped away before the threshold — don't count this as a view.
+        _cancelViewCount();
       }
     }
   }
@@ -321,21 +328,20 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
   /// Location · time-ago row + keyword chips — the extra metadata the user
   /// attaches on upload (location, keywords, created time). Renders nothing
   /// when none are present.
-  Widget _buildMetaInfo() {
+  Widget _buildMetaInfo({bool showKeywords = true}) {
     final v = fullScreenShortController.videoItem?.video;
-    final location = (v?.location?.name ?? '').trim();
     final createdAt = (v?.createdAt ?? '').trim();
     final keywords =
         (v?.keywords ?? const <String>[]).where((k) => k.trim().isNotEmpty).toList();
 
-    final hasLocation = location.isNotEmpty;
+    // Address/location intentionally not shown.
     final parsedDate =
         createdAt.isNotEmpty ? DateTime.tryParse(createdAt)?.toLocal() : null;
     final timeStr = parsedDate != null ? timeAgo(parsedDate) : '';
     final hasTime = timeStr.isNotEmpty;
-    final hasKeywords = keywords.isNotEmpty;
+    final hasKeywords = showKeywords && keywords.isNotEmpty;
 
-    if (!hasLocation && !hasTime && !hasKeywords) {
+    if (!hasTime && !hasKeywords) {
       return const SizedBox.shrink();
     }
 
@@ -344,71 +350,96 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (hasLocation || hasTime)
-            Row(
-              children: [
-                if (hasLocation) ...[
-                  const Icon(Icons.location_on,
-                      size: 14, color: AppColors.white),
-                  SizedBox(width: SizeConfig.size4),
-                  Flexible(
-                    child: CustomText(
-                      location,
-                      color: AppColors.white,
-                      fontSize: SizeConfig.small,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-                if (hasLocation && hasTime) ...[
-                  SizedBox(width: SizeConfig.size8),
-                  Container(
-                    width: 3,
-                    height: 3,
-                    decoration: BoxDecoration(
-                      color: AppColors.white.withValues(alpha: 0.7),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  SizedBox(width: SizeConfig.size8),
-                ],
-                if (hasTime)
-                  CustomText(
-                    timeStr,
-                    color: AppColors.white.withValues(alpha: 0.85),
-                    fontSize: SizeConfig.small,
-                  ),
-              ],
+          if (hasTime)
+            CustomText(
+              timeStr,
+              color: AppColors.white.withValues(alpha: 0.85),
+              fontSize: SizeConfig.small,
             ),
           if (hasKeywords) ...[
             SizedBox(height: SizeConfig.size6),
-            Wrap(
-              spacing: SizeConfig.size6,
-              runSpacing: SizeConfig.size4,
-              children: keywords
-                  .map((k) => Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: AppColors.white.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                              color: AppColors.white.withValues(alpha: 0.3)),
-                        ),
-                        child: CustomText(
-                          '#$k',
-                          color: AppColors.white,
-                          fontSize: SizeConfig.size11,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ))
-                  .toList(),
-            ),
+            _buildKeywords(keywords),
           ],
         ],
       ),
     );
+  }
+
+  /// Max keyword chips shown before collapsing the rest behind "+N more".
+  static const int _collapsedKeywordCount = 3;
+
+  /// Keyword chips — one consistent chip UI in both states. Collapsed shows
+  /// the first [_collapsedKeywordCount] chips plus a "+N more" pill; tapping it
+  /// expands to every chip with a "show less" pill.
+  Widget _buildKeywords(List<String> keywords) {
+    final hasMore = keywords.length > _collapsedKeywordCount;
+    final visible = (_keywordsExpanded || !hasMore)
+        ? keywords
+        : keywords.take(_collapsedKeywordCount).toList();
+    final remaining = keywords.length - visible.length;
+
+    return Wrap(
+      spacing: SizeConfig.size6,
+      runSpacing: SizeConfig.size4,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        ...visible.map(_keywordChip),
+        if (hasMore && !_keywordsExpanded)
+          GestureDetector(
+            onTap: () => setState(() => _keywordsExpanded = true),
+            child: _keywordTogglePill('+$remaining more'),
+          )
+        else if (hasMore && _keywordsExpanded)
+          GestureDetector(
+            onTap: () => setState(() => _keywordsExpanded = false),
+            child: _keywordTogglePill('show less'),
+          ),
+      ],
+    );
+  }
+
+  /// Primary-tinted pill used for the "+N more" / "show less" keyword toggle,
+  /// sized to sit inline with the keyword chips.
+  Widget _keywordTogglePill(String label) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(20),
+          border:
+              Border.all(color: AppColors.primaryColor.withValues(alpha: 0.4)),
+        ),
+        child: CustomText(
+          label,
+          color: AppColors.primaryColor,
+          fontSize: SizeConfig.size11,
+          fontWeight: FontWeight.w700,
+        ),
+      );
+
+  Widget _keywordChip(String k) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: AppColors.white.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.white.withValues(alpha: 0.3)),
+        ),
+        child: CustomText(
+          '#$k',
+          color: AppColors.white,
+          fontSize: SizeConfig.size11,
+          fontWeight: FontWeight.w600,
+        ),
+      );
+
+  /// True when [text] would render on more than one line at [maxWidth].
+  bool _isMultiLine(String text, TextStyle style, double maxWidth) {
+    if (text.trim().isEmpty || maxWidth <= 0) return false;
+    final tp = TextPainter(
+      text: TextSpan(text: text, style: style),
+      maxLines: 1,
+      textDirection: TextDirection.ltr,
+    )..layout(maxWidth: maxWidth);
+    return tp.didExceedMaxLines;
   }
 
   /* public control methods */
@@ -416,15 +447,29 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
 
   void pauseVideo() => _controller?.pause();
 
-  void _setupViewTimer() {
-    // _viewTimer = Timer(const Duration(seconds: 5), () {
-    //   if (!_isDisposed) {
-    //     fullScreenShortController.shortVideoView(
-    //       videoId: fullScreenShortController.videoItem?.video?.id ?? '0',
-    //     );
-    //   }
-    // });
+  /// A view is registered only after this short has stayed the active
+  /// (auto-playing) page for [_viewThreshold] — so a quick swipe-past doesn't
+  /// count, and rewatching the same item never double-counts.
+  static const Duration _viewThreshold = Duration(seconds: 3);
+
+  /// Schedule the (single) background view ping once this becomes the active
+  /// page. A swipe-away before [_viewThreshold] cancels it via [_cancelViewCount].
+  void _scheduleViewCount() {
+    if (_viewCounted || !widget.autoPlay) return;
+    _viewTimer?.cancel();
+    _viewTimer = Timer(_viewThreshold, () {
+      if (_isDisposed || !mounted || _viewCounted || !widget.autoPlay) return;
+      final id = fullScreenShortController.videoItem?.video?.id ??
+          widget.videoItem.videoId ??
+          '';
+      if (id.isEmpty || id == '0') return;
+      _viewCounted = true;
+      // Fire-and-forget — never awaited, never blocks playback.
+      fullScreenShortController.shortVideoView(videoId: id);
+    });
   }
+
+  void _cancelViewCount() => _viewTimer?.cancel();
 
   @override
   Widget build(BuildContext context) {
@@ -525,7 +570,9 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
   Widget _buildActionButtons() {
     return Positioned(
       right: SizeConfig.size20,
-      bottom: SizeConfig.size220,
+      // Bottom-right: the action rail bottom-aligns near the caption instead
+      // of floating at the vertical centre.
+      bottom: SizeConfig.size40,
       child: Column(
         children: [
           Obx(() => Column(
@@ -683,6 +730,20 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
   }
 
   Widget _buildVideoInfo() {
+    final v = fullScreenShortController.videoItem?.video;
+    final title = (v?.title ?? '').trim();
+    final description = (v?.description ?? '').trim();
+    // Hide the keyword row when the title already wraps to more than one line
+    // AND a separate description is present — keeps the overlay uncrowded.
+    final captionStyle =
+        TextStyle(color: AppColors.white, fontSize: SizeConfig.medium15);
+    final captionWidth = MediaQuery.of(context).size.width -
+        16 -
+        SizeConfig.size20 -
+        SizeConfig.size40;
+    final showKeywords = !(_isMultiLine(title, captionStyle, captionWidth) &&
+        description.isNotEmpty);
+
     return Positioned(
       left: 16,
       right: SizeConfig.size20,
@@ -713,7 +774,7 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
               ),
             );
           }),
-          _buildMetaInfo(),
+          _buildMetaInfo(showKeywords: showKeywords),
           if ((fullScreenShortController.videoItem?.channel?.id?.isNotEmpty ??
                   false) &&
               (fullScreenShortController
