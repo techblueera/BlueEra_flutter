@@ -1486,6 +1486,78 @@ class DiscoverController extends GetxController {
     }
   }
 
+  // ─── Chat-dispatch (self-pickup → rider) ──────────────────────────
+  // Set right before opening the rider-selection screen from a self-pickup
+  // chat card. When present, the booking screen creates the ride via the
+  // chat-dispatch endpoint (shop = pickup, customer = drop) instead of the
+  // regular fare order. Cleared after a successful dispatch or when the
+  // booking screen is dismissed. See CHAT_DISPATCH_RIDER_FRONTEND_GUIDE.md.
+  Map<String, dynamic>? chatDispatchContext;
+
+  void setChatDispatchContext({
+    required String selfpickupOrderId,
+    required String selfpickupType,
+    required String businessId,
+    required String orderFor,
+  }) {
+    chatDispatchContext = {
+      'selfpickupOrderId': selfpickupOrderId,
+      'selfpickupType': selfpickupType,
+      'businessId': businessId,
+      'orderFor': orderFor,
+    };
+  }
+
+  void clearChatDispatchContext() => chatDispatchContext = null;
+
+  /// Create a chat self-pickup → rider dispatch order. Reuses the shop/customer
+  /// coordinates already seeded on this controller by the chat card (pickup =
+  /// shop, drop = customer) plus the [chatDispatchContext]. Returns true on a
+  /// 201; the OTP cards then arrive over the chat socket.
+  Future<bool> makeChatDispatchOrderApi() async {
+    final ctx = chatDispatchContext;
+    if (ctx == null) return false;
+    if (selectedRiders.isEmpty) {
+      commonSnackBar(message: AppStrings.noRidersAvailable.tr);
+      return false;
+    }
+    bookRiderBtnLoading.value = true;
+    try {
+      final params = <String, dynamic>{
+        'selfpickupOrderId': ctx['selfpickupOrderId'],
+        'selfpickupType': ctx['selfpickupType'],
+        ApiKeys.businessId: ctx['businessId'],
+        'shopLocation': {
+          ApiKeys.address: "${selectedFromAddress?.value}",
+          ApiKeys.latitude: selectedFromLat?.value,
+          ApiKeys.longitude: selectedFromLong?.value,
+        },
+        ApiKeys.dropLocation: {
+          ApiKeys.address: "${selectedToAddress?.value}",
+          ApiKeys.latitude: selectedToLat?.value,
+          ApiKeys.longitude: selectedToLong?.value,
+        },
+        ApiKeys.orderFor: ctx['orderFor'],
+        ApiKeys.selectedRiders: selectedRiders.map((r) => r.riderId).toList(),
+        ApiKeys.modeOfPayment: "prepaid",
+        ApiKeys.fare: ridersDetailsList.value.twoWheelerRider?.fare,
+      };
+      final response =
+          await DiscoverRepo().makeChatDispatchOrderApi(params: params);
+      if (response.isSuccess) {
+        return true;
+      }
+      commonSnackBar(
+          message: response.message ?? AppStrings.somethingWentWrong);
+      return false;
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
+    } finally {
+      bookRiderBtnLoading.value = false;
+    }
+  }
+
   Future<bool> makeTransportBookOrderApi() async {
     bookRiderBtnLoading.value = true;
     Map<String, dynamic> params = {

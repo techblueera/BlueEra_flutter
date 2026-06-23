@@ -1099,17 +1099,19 @@ class _ProductSelfPickupMsgCardState extends State<ProductSelfPickupMsgCard> {
               conversationId: widget.conversationId,
             ),
           ),
-          _orderActionButton(
-            icon: Icons.two_wheeler,
-            label: 'Ride',
-            color: Colors.deepOrange,
-            onTap: () async {
-              final drop = await showRideDropLocationSheet(context);
-              if (drop != null) {
-                await _startRideToDrop(drop);
-              }
-            },
-          ),
+          // Find Rider — customer (card sender) only; hidden for the business.
+          if (_isMyMessage)
+            _orderActionButton(
+              icon: Icons.two_wheeler,
+              label: AppStrings.findRider.tr,
+              color: Colors.deepOrange,
+              onTap: () async {
+                final drop = await showRideDropLocationSheet(context);
+                if (drop != null) {
+                  await _startRideToDrop(drop);
+                }
+              },
+            ),
         ],
       ),
     );
@@ -1156,6 +1158,16 @@ class _ProductSelfPickupMsgCardState extends State<ProductSelfPickupMsgCard> {
       discoverController.selectedToLat?.value = dropLat;
       discoverController.selectedToLong?.value = dropLng;
       discoverController.selectedToAddress?.value = drop.fullAddress;
+
+      // Chat self-pickup → rider dispatch (product).
+      discoverController.setChatDispatchContext(
+        selfpickupOrderId: _order?.orderId ??
+            widget.message.metadata?.productPickupOrderId ??
+            '',
+        selfpickupType: widget.message.messageType ?? 'product_selfpickup',
+        businessId: businessId,
+        orderFor: 'product',
+      );
 
       await discoverController.getBookingRidersApi();
       AppLoader.hide();

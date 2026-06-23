@@ -1,0 +1,20 @@
+{
+  "preferenceTab": "ಆದ್ಯತೆ",
+  "servicePreference": "ಸೇವಾ ಆದ್ಯತೆ",
+  "chooseWhatToDeliver": "ನೀವು ಏನು ತಲುಪಿಸಲು ಬಯಸುತ್ತೀರಿ ಎಂಬುದನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+  "servicePassenger": "ಪ್ರಯಾಣಿಕ",
+  "serviceGoods": "ಸರಕು",
+  "serviceBoth": "ಪ್ರಯಾಣಿಕ ಮತ್ತು ಸರಕು ಎರಡೂ",
+  "pleaseSelectServicePreference": "ದಯವಿಟ್ಟು ಸೇವಾ ಆದ್ಯತೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+  "servicePreferenceSavedTo": "ಸೇವಾ ಆದ್ಯತೆ ಉಳಿಸಲಾಗಿದೆ:",
+  "servicePreferenceUpdatedTo": "ಸೇವಾ ಆದ್ಯತೆ ನವೀಕರಿಸಲಾಗಿದೆ:",
+  "pickupDropPreference": "ಪಿಕಪ್ ಮತ್ತು ಡ್ರಾಪ್ ಆದ್ಯತೆ",
+  "setPreferredPickupDrop": "ನಿಮ್ಮ ಆದ್ಯತೆಯ ಪಿಕಪ್ ಮತ್ತು ಡ್ರಾಪ್ ಸ್ಥಳವನ್ನು ಹೊಂದಿಸಿ",
+  "searchDropAddress": "ಡ್ರಾಪ್ ವಿಳಾಸ ಹುಡುಕಿ",
+  "searchPickupAddress": "ಪಿಕಪ್ ವಿಳಾಸ ಹುಡುಕಿ",
+  "pleaseSelectPickupDrop": "ದಯವಿಟ್ಟು ಪಿಕಪ್ ಮತ್ತು ಡ್ರಾಪ್ ಎರಡೂ ಸ್ಥಳಗಳನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+  "pickBothFromSuggestions": "ದಯವಿಟ್ಟು ಸಲಹೆಗಳಿಂದ ಎರಡೂ ಸ್ಥಳಗಳನ್ನು ಆಯ್ಕೆಮಾಡಿ",
+  "pickupDropTooClose": "ಪಿಕಪ್ ಮತ್ತು ಡ್ರಾಪ್ ತುಂಬಾ ಹತ್ತಿರವಾಗಿವೆ. ಕನಿಷ್ಠ ಅಂತರ 500 ಮೀಟರ್.",
+  "pickupDropTooFar": "ಪಿಕಪ್ ಮತ್ತು ಡ್ರಾಪ್ 20 ಕಿಮೀ ಒಳಗೆ ಇರಬೇಕು. ಪ್ರಸ್ತುತ ಅಂತರ",
+  "pickupDropPreferenceSaved": "ಪಿಕಪ್ ಮತ್ತು ಡ್ರಾಪ್ ಆದ್ಯತೆ ಉಳಿಸಲಾಗಿದೆ"
+}

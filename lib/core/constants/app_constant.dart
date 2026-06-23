@@ -1128,6 +1128,13 @@ class ChatEmitEvents {
   static const newPropertyEnquiryReceived = "newPropertyEnquiryReceived";
   static const propertyEnquiryStatusUpdated = "propertyEnquiryStatusUpdated";
 
+  // Chat self-pickup → rider dispatch handoff OTPs. `newRiderOtpReceived`
+  // delivers a (private) pickup/delivery OTP card; `riderOtpUpdated` flips an
+  // existing card to "consumed" once the rider verifies that leg. See
+  // docs/backend/CHAT_DISPATCH_RIDER_FRONTEND_GUIDE.md.
+  static const newRiderOtpReceived = "newRiderOtpReceived";
+  static const riderOtpUpdated = "riderOtpUpdated";
+
   // Emitted to a Payment QR's owner when a payer records a payment against it.
   // See payment-qr-integration-guide.md §Realtime.
   static const paymentReceived = "payment:received";

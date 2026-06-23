@@ -1042,6 +1042,36 @@ class ChatViewController extends GetxController {
         }
         scrollDown();
       });
+      // Chat-dispatch handoff OTP card (private pickup/delivery OTP). Arrives
+      // like any other new message; append it to the open conversation. See
+      // docs/backend/CHAT_DISPATCH_RIDER_FRONTEND_GUIDE.md.
+      chatSocket.listenEvent(ChatEmitEvents.newRiderOtpReceived, (data) async {
+        if (data is! Map || data['message'] == null) return;
+        final message = Messages.fromJson(data['message']);
+        if (message.myMessage == null) {
+          message.myMessage = userId == message.senderId;
+        }
+        // Only append when the user is viewing this conversation; otherwise the
+        // card flows in on the next history load.
+        final openConvId = userOpenConversationId.value;
+        if (openConvId.isEmpty || openConvId != message.conversationId) return;
+        final existingIds = getListOfMessageData
+                ?.map((m) => m.id)
+                .where((id) => id != null)
+                .toSet() ??
+            {};
+        if (message.id != null && existingIds.contains(message.id)) return;
+        getListOfMessageData?.add(message);
+        getListOfMessageResponse.value =
+            ApiResponse.complete(getListOfMessageData);
+        saveSingleMessageToLocal(message.conversationId ?? '', message);
+        scrollDown();
+      });
+      // Flip an existing OTP card to "consumed" once the rider verifies that
+      // leg (pickup or delivery).
+      chatSocket.listenEvent(ChatEmitEvents.riderOtpUpdated, (data) {
+        _applyRiderOtpUpdate(data);
+      });
       chatSocket.listenEvent(ChatEmitEvents.isOnLine, (data) {
         final uid = data['user_id'] as String?;
         final isOnline = data['is_online'] == true;
@@ -1620,6 +1650,39 @@ class ChatViewController extends GetxController {
     if (target == null) return;
     target.isPayment = true;
     target.paymentStatus = status;
+    getListOfMessageResponse.value = ApiResponse.complete(list);
+    final convId = target.conversationId ?? '';
+    if (convId.isNotEmpty) {
+      localStorageHelper.saveMessagesByConversationId(convId, list);
+    }
+  }
+
+  /// Handles the `riderOtpUpdated` socket event — payload
+  /// `{ messageId, rideOrderId, kind, status }`. Flips the matching OTP card's
+  /// status (e.g. → "consumed") in-memory and in local storage. Matches by
+  /// messageId first, then falls back to rideOrderId + kind so the card still
+  /// updates if the server omits the messageId.
+  void _applyRiderOtpUpdate(dynamic data) {
+    if (data is! Map) return;
+    final messageId = (data['messageId'] ?? data['message_id'])?.toString();
+    final rideOrderId =
+        (data['rideOrderId'] ?? data['ride_order_id'])?.toString();
+    final kind = data['kind']?.toString();
+    final status = data['status']?.toString();
+    if (status == null || status.isEmpty) return;
+    final list = getListOfMessageData;
+    if (list == null) return;
+    final target = list.firstWhereOrNull((m) {
+      if (m.messageType != 'rider_otp') return false;
+      if (messageId != null && messageId.isNotEmpty) return m.id == messageId;
+      final otp = m.metadata?.riderOtp;
+      return otp != null &&
+          rideOrderId != null &&
+          otp.rideOrderId == rideOrderId &&
+          (kind == null || otp.kind == kind);
+    });
+    if (target == null) return;
+    target.metadata?.riderOtp?.status = status;
     getListOfMessageResponse.value = ApiResponse.complete(list);
     final convId = target.conversationId ?? '';
     if (convId.isNotEmpty) {

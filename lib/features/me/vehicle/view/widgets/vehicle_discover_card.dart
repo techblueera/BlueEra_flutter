@@ -1,7 +1,11 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/me/vehicle/model/vehicle_models.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -462,29 +466,7 @@ class VehicleDiscoverCard extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: GestureDetector(
-            onTap: onChat,
-            child: Container(
-              height: 44,
-              decoration: BoxDecoration(
-                color: AppColors.skyBlueFF,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  LocalAssets(imagePath: AppIconAssets.chat, imgColor: AppColors.primaryColor),
-                  const SizedBox(width: 6),
-                  CustomText(
-                    AppStrings.chat,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.primaryColor,
-                  ),
-                ],
-              ),
-            ),
-          ),
+          child: _chatButton(),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -518,7 +500,61 @@ class VehicleDiscoverCard extends StatelessWidget {
       ],
     );
   }
+  Widget _chatButton() {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: _openChat,
+        child: Container(
+          height: 44,
+          decoration: BoxDecoration(
+            color: AppColors.skyBlueFF,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              LocalAssets(imagePath: AppIconAssets.chat, imgColor: AppColors.primaryColor),
+              const SizedBox(width: 6),
+              CustomText(
+                AppStrings.chat,
 
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.primaryColor,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+
+  void _openChat() {
+    final userId = vehicle.userId ?? '';
+    if (userId.trim().isEmpty) return;
+    if (isGuestUser()) {
+      createProfileScreen();
+      return;
+    }
+    final bId = vehicle.id?.trim();
+    if (bId != null && bId.isNotEmpty) {
+      ChatClickTracker.track(
+        userId: bId,
+        source: ChatClickSource.searchResult,
+      );
+    }
+    final chatViewController = getOrPut(() => ChatViewController());
+    chatViewController.checkChatConnectionAndOpenChat(
+      userId: userId,
+      name: vehicle.name,
+      profile: vehicle.coverImage,
+      route: AppConstants.route_discover,
+    );
+  }
   // ─── Helpers ───────────────────────────────────────────────────────
   String? get _firstImage =>
       vehicle.images.isNotEmpty ? vehicle.images.first : null;

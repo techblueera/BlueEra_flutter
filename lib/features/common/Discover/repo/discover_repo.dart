@@ -139,6 +139,21 @@ class DiscoverRepo extends BaseService {
     return response;
   }
 
+  /// Create a chat self-pickup → rider dispatch order (shop = pickup,
+  /// customer = drop). POST `/fare/chat-dispatch/orders`. See
+  /// docs/backend/CHAT_DISPATCH_RIDER_FRONTEND_GUIDE.md.
+  Future<ResponseModel> makeChatDispatchOrderApi(
+      {required Map<String, dynamic> params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      chatDispatchOrders,
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   /// Sort shops furthest→nearest + find riders near the furthest shop for a
   /// multi-stop order. POST `/fare/multi-shop/riders`.
   Future<ResponseModel> getMultiShopRidersApi(

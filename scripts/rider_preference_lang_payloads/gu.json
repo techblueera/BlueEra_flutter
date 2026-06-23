@@ -1,0 +1,20 @@
+{
+  "preferenceTab": "પસંદગી",
+  "servicePreference": "સેવા પસંદગી",
+  "chooseWhatToDeliver": "તમે શું ડિલિવર કરવા માંગો છો તે પસંદ કરો",
+  "servicePassenger": "મુસાફર",
+  "serviceGoods": "સામાન",
+  "serviceBoth": "મુસાફર અને સામાન બંને",
+  "pleaseSelectServicePreference": "કૃપા કરીને સેવા પસંદગી પસંદ કરો",
+  "servicePreferenceSavedTo": "સેવા પસંદગી સાચવી:",
+  "servicePreferenceUpdatedTo": "સેવા પસંદગી અપડેટ કરી:",
+  "pickupDropPreference": "પિકઅપ અને ડ્રોપ પસંદગી",
+  "setPreferredPickupDrop": "તમારું પસંદગીનું પિકઅપ અને ડ્રોપ સ્થાન સેટ કરો",
+  "searchDropAddress": "ડ્રોપ સરનામું શોધો",
+  "searchPickupAddress": "પિકઅપ સરનામું શોધો",
+  "pleaseSelectPickupDrop": "કૃપા કરીને પિકઅપ અને ડ્રોપ બંને સ્થાન પસંદ કરો",
+  "pickBothFromSuggestions": "કૃપા કરીને સૂચનોમાંથી બંને સ્થાન પસંદ કરો",
+  "pickupDropTooClose": "પિકઅપ અને ડ્રોપ બહુ નજીક છે. ન્યૂનતમ અંતર 500 મીટર છે.",
+  "pickupDropTooFar": "પિકઅપ અને ડ્રોપ 20 કિમીની અંદર હોવા જોઈએ. વર્તમાન અંતર છે",
+  "pickupDropPreferenceSaved": "પિકઅપ અને ડ્રોપ પસંદગી સાચવી"
+}

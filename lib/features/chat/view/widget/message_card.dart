@@ -41,6 +41,7 @@ import '../../auth/controller/order_controllar.dart';
 import '../business_chat/widgets/rider_association_msg_card.dart';
 import '../business_chat/widgets/rider_details_msg_card.dart';
 import '../business_chat/widgets/rider_live_location_msg_card.dart';
+import '../business_chat/widgets/rider_otp_msg_card.dart';
 import '../business_chat/widgets/rider_request_msg_card.dart';
 import '../business_chat/widgets/self_pickup_msg_card.dart';
 import '../business_chat/widgets/payment_transaction_msg_card.dart';
@@ -308,6 +309,9 @@ class _MessageCardState extends State<MessageCard>
 
       case "rider_association":
         messageWidget = RiderAssociationMsgCard(message: widget.message, time: time);
+
+      case "rider_otp":
+        messageWidget = RiderOtpMsgCard(message: widget.message, time: time);
 
       case "payment_transaction":
         messageWidget = PaymentTransactionMsgCard(

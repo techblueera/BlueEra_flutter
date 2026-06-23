@@ -1,0 +1,20 @@
+{
+  "preferenceTab": "प्राधान्य",
+  "servicePreference": "सेवा प्राधान्य",
+  "chooseWhatToDeliver": "तुम्हाला काय डिलिव्हर करायचे आहे ते निवडा",
+  "servicePassenger": "प्रवासी",
+  "serviceGoods": "माल",
+  "serviceBoth": "प्रवासी आणि माल दोन्ही",
+  "pleaseSelectServicePreference": "कृपया सेवा प्राधान्य निवडा",
+  "servicePreferenceSavedTo": "सेवा प्राधान्य जतन केले:",
+  "servicePreferenceUpdatedTo": "सेवा प्राधान्य अद्यतनित केले:",
+  "pickupDropPreference": "पिकअप आणि ड्रॉप प्राधान्य",
+  "setPreferredPickupDrop": "तुमचे पसंतीचे पिकअप आणि ड्रॉप स्थान सेट करा",
+  "searchDropAddress": "ड्रॉप पत्ता शोधा",
+  "searchPickupAddress": "पिकअप पत्ता शोधा",
+  "pleaseSelectPickupDrop": "कृपया पिकअप आणि ड्रॉप दोन्ही स्थाने निवडा",
+  "pickBothFromSuggestions": "कृपया सूचनांमधून दोन्ही स्थाने निवडा",
+  "pickupDropTooClose": "पिकअप आणि ड्रॉप खूप जवळ आहेत. किमान अंतर 500 मीटर आहे.",
+  "pickupDropTooFar": "पिकअप आणि ड्रॉप 20 किमीच्या आत असावे. सध्याचे अंतर आहे",
+  "pickupDropPreferenceSaved": "पिकअप आणि ड्रॉप प्राधान्य जतन केले"
+}

@@ -12,6 +12,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
 import 'package:BlueEra/features/common/Discover/view/hotel_discover_home_screen.dart';
@@ -362,6 +363,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
         margin: EdgeInsets.only(bottom: SizeConfig.size10),
         decoration: BoxDecoration(
           color: Colors.white,
+          // color: Colors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: const Color(0xFFEDEFF4)),
           boxShadow: const [
@@ -682,6 +684,36 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
     );
   }
 
+  /// Opens a chat with the hotel/business owner from the hotel card's chat
+  /// option. Mirrors the hospital/business discover cards: records a
+  /// chat-click against the businessId, then opens the discover chat lane.
+  Future<void> _openHotelChat(HotelServiceData service) async {
+    final businessId = service.businessId ?? service.profile?.businessId ?? '';
+    if (businessId.isEmpty) {
+      Get.snackbar(
+        AppStrings.na.tr,
+        AppStrings.businessNotAvailableForChat.tr,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+      return;
+    }
+    if (isGuestUser()) {
+      createProfileScreen();
+      return;
+    }
+    ChatClickTracker.track(
+      userId: businessId,
+      source: ChatClickSource.searchResult,
+    );
+    final chatViewController = Get.find<ChatViewController>();
+    await chatViewController.checkChatConnectionAndOpenChat(
+      userId: businessId,
+      name: service.profile?.name,
+      profile: service.profile?.logoUrl,
+      route: AppConstants.route_discover,
+    );
+  }
+
   Future<void> _openRentalChat(RentalServiceData service) async {
     final ownerId = service.userId;
     if (ownerId == null || ownerId.isEmpty) {
@@ -740,6 +772,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
         checkOutTime: service.profile?.policy?.checkOutTime ?? '',
         amenities: _hotelAmenities(service.profile?.amenities),
         onBook: openDetails,
+        onChat: () => _openHotelChat(service),
       ),
     );
 /*
@@ -1016,6 +1049,7 @@ class PropertyCard extends StatefulWidget {
   final String checkOutTime;
   final List<MapEntry<IconData, String>> amenities;
   final VoidCallback? onBook;
+  final VoidCallback? onChat;
 
   const PropertyCard({
     super.key,
@@ -1031,6 +1065,7 @@ class PropertyCard extends StatefulWidget {
     required this.checkOutTime,
     required this.amenities,
     this.onBook,
+    this.onChat,
   });
 
   @override
@@ -1108,38 +1143,52 @@ class _PropertyCardState extends State<PropertyCard> {
             children: [
               _imageHeader(hasMultipleImages, imageHeight),
               Padding(
-                padding: EdgeInsets.fromLTRB(14, (logoSize / 2) + 8, 14, 14),
+                padding: EdgeInsets.fromLTRB(14,12, 14, 14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CustomText(
-                      widget.hotelName,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 16,
-                      color: AppColors.mainTextColor,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (widget.address.isNotEmpty) ...[
-                      SizedBox(height: SizeConfig.size6),
-                      Row(
+                    Row(
+                      children: [
+                        _logoAvatar(logoSize),
+                    SizedBox(width: 12,),
+                    Expanded(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(Icons.location_on_outlined,
-                              size: SizeConfig.size16, color: AppColors.secondaryTextColor),
-                          SizedBox(width: SizeConfig.size2),
-                          Expanded(
-                            child: CustomText(
-                              widget.address,
-                              fontSize: 12,
-                              color: AppColors.secondaryTextColor,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+                          CustomText(
+                                widget.hotelName,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 16,
+                                color: AppColors.mainTextColor,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                          if (widget.address.isNotEmpty) ...[
+                            SizedBox(height: SizeConfig.size6),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(Icons.location_on_outlined,
+                                    size: SizeConfig.size16, color: AppColors.secondaryTextColor),
+                                SizedBox(width: SizeConfig.size2),
+                                Expanded(
+                                  child: CustomText(
+                                    widget.address,
+                                    fontSize: 12,
+                                    color: AppColors.secondaryTextColor,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ),
+                          ],
                         ],
                       ),
-                    ],
+                    ),
+                      ],
+                    ),
+
                     if (widget.amenities.isNotEmpty) ...[
                       SizedBox(height: SizeConfig.size12),
                       _amenityGrid(),
@@ -1151,12 +1200,12 @@ class _PropertyCardState extends State<PropertyCard> {
               ),
             ],
           ),
-          // Logo straddling the image / content seam.
-          Positioned(
-            left: 14,
-            top: imageHeight - (logoSize / 2),
-            child: _logoAvatar(logoSize),
-          ),
+          // // Logo straddling the image / content seam.
+          // Positioned(
+          //   left: 14,
+          //   top: imageHeight - (logoSize / 2),
+          //   child: _logoAvatar(logoSize),
+          // ),
         ],
       ),
     );
@@ -1390,6 +1439,26 @@ class _PropertyCardState extends State<PropertyCard> {
                   ),
           ),
           SizedBox(width: SizeConfig.size10),
+          // Chat option — same square chat affordance the hospital/business
+          // discover cards use. Opens a chat with the hotel owner.
+          if (widget.onChat != null) ...[
+            GestureDetector(
+              onTap: widget.onChat,
+              child: Container(
+                height: 44,
+                width: 44,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.primaryColor, width: 0.5),
+                ),
+                child: Icon(Icons.chat_bubble_outline_rounded,
+                    size: 18, color: AppColors.primaryColor),
+              ),
+            ),
+            SizedBox(width: SizeConfig.size10),
+          ],
           GestureDetector(
             onTap: widget.onBook,
             child: Container(
@@ -1452,15 +1521,7 @@ class _PropertyCardState extends State<PropertyCard> {
                     errorWidget: (_, __, ___) => _brokenHotelLogo(size),
                   ),
           ),
-          Positioned(
-            right: -1,
-            bottom: -1,
-            child: Container(
-              padding: const EdgeInsets.all(1),
-              decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-              child: Icon(Icons.verified_rounded, size: 16, color: AppColors.primaryColor),
-            ),
-          ),
+
         ],
       ),
     );

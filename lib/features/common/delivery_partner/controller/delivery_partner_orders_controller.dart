@@ -193,6 +193,50 @@ class DeliverPartnerOrdersController extends GetxController {
     }
   }
 
+  /// Claims an order surfaced on the rider's active route (the
+  /// ROUTE_ORDER_AVAILABLE notification → "Claim Order"). Returns true only
+  /// when the claim succeeds (200). Handles the documented failure codes:
+  ///   409 → just taken by another rider (refresh the list)
+  ///   422 → no longer on route / preference mismatch
+  ///   400 → rider has no active route
+  /// See docs/backend/NEW_NOTIFICATIONS_FRONTEND_GUIDE.md.
+  Future<bool> claimRouteOrder(String orderId) async {
+    try {
+      final response = await MakeOrderRepo().claimRouteOrderApi(orderId);
+      if (response.isSuccess) {
+        commonSnackBar(message: response.message ?? 'Order claimed');
+        // Refresh so the claimed order moves into the active list.
+        fetchStream();
+        return true;
+      }
+      final code = response.statusCode ?? response.response?.statusCode;
+      switch (code) {
+        case 409:
+          commonSnackBar(
+              message: response.message ?? 'Just taken by another rider');
+          fetchStream();
+          break;
+        case 422:
+          commonSnackBar(
+              message: response.message ??
+                  'This order is no longer available on your route');
+          fetchStream();
+          break;
+        case 400:
+          commonSnackBar(
+              message: response.message ?? 'You have no active route');
+          break;
+        default:
+          commonSnackBar(
+              message: response.message ?? AppStrings.somethingWentWrong);
+      }
+      return false;
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
+    }
+  }
+
   Future<bool> updateRideOrParcelOrderStatusApi(Map<String,dynamic> params,String orderId) async {
     try {
       ResponseModel? response = await MakeOrderRepo().updateRideOrParcelOrderStatusApi(params,orderId);

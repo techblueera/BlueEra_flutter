@@ -25,6 +25,7 @@ import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart
 import 'package:BlueEra/features/common/Discover/view/go_live_permission_screen.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_orders_controller.dart';
+import 'package:BlueEra/features/common/delivery_partner/model/rider_onboarding_status.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/delivery_partner_orders/delivery_partner_orders.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
@@ -92,6 +93,11 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   // _pickup/_dropController + lat/lng → Google-backed address fields.
   RiderServicePreference? _servicePreference;
   RiderServicePreference? _submittedPreference;
+  // Hydrates _servicePreference/_submittedPreference from the rider's saved
+  // vehicleUsesType once the onboarding status arrives. Guarded so a manual
+  // edit isn't clobbered by a later status refresh.
+  Worker? _prefWorker;
+  bool _prefHydrated = false;
   final TextEditingController _pickupController = TextEditingController();
   final TextEditingController _dropController = TextEditingController();
   double? _pickupLat, _pickupLng, _dropLat, _dropLng;
@@ -102,6 +108,10 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     super.initState();
     _tabController = TabController(length: 5, vsync: this);
     _checkRiderStatus();
+    // Pre-select the rider's saved service preference as soon as the
+    // onboarding status loads (and hydrate immediately if it's already there).
+    _hydratePreference(controller.riderOnboardingStatusData.value);
+    _prefWorker = ever(controller.riderOnboardingStatusData, _hydratePreference);
     _viewCtrl.UserFollowersAndPostsCount(userId);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewCtrl.shopStatusOpenClose.value =
@@ -126,6 +136,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   @override
   void dispose() {
     _tabController.dispose();
+    _prefWorker?.dispose();
     _pickupController.dispose();
     _dropController.dispose();
     // We own the orders SSE stream while this screen is alive — tear it
@@ -138,6 +149,25 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
 
   void _checkRiderStatus() {
     controller.ridersOnboardingStatusRepoApi();
+  }
+
+  // Sets the radio selection + committed value to the rider's saved
+  // preference. Runs once (first time a non-empty vehicleUsesType arrives)
+  // so it never overwrites a choice the rider is actively editing.
+  void _hydratePreference(RiderOnboardingStatusData? data) {
+    if (_prefHydrated) return;
+    final pref = RiderServicePreference.fromSlug(data?.vehicleUsesType);
+    if (pref == null) return;
+    _prefHydrated = true;
+    if (!mounted) {
+      _servicePreference = pref;
+      _submittedPreference = pref;
+      return;
+    }
+    setState(() {
+      _servicePreference = pref;
+      _submittedPreference = pref;
+    });
   }
 
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -372,7 +402,9 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
                           icon: hasActiveOrders
                               ? Icons.delivery_dining_rounded
                               : Icons.tune_rounded,
-                          label: hasActiveOrders ? 'Order' : 'Preference',
+                          label: hasActiveOrders
+                              ? AppStrings.order.tr
+                              : AppStrings.preferenceTab.tr,
                           index: _orderSubOrders,
                         ),
                       ),
@@ -511,32 +543,32 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CustomText(
-            'Service Preference',
+          CustomText(
+            AppStrings.servicePreference.tr,
             fontSize: 15,
             fontWeight: FontWeight.w800,
             color: AppColors.mainTextColor,
           ),
           SizedBox(height: SizeConfig.size4),
-          const CustomText(
-            'Choose what you want to deliver',
+          CustomText(
+            AppStrings.chooseWhatToDeliver.tr,
             fontSize: 12,
             fontWeight: FontWeight.w500,
             color: AppColors.secondaryTextColor,
           ),
           SizedBox(height: SizeConfig.size12),
           _buildPreferenceRadio(
-            label: 'Passenger',
+            label: RiderServicePreference.passenger.label,
             icon: Icons.person_outline_rounded,
             value: RiderServicePreference.passenger,
           ),
           _buildPreferenceRadio(
-            label: 'Goods',
+            label: RiderServicePreference.goods.label,
             icon: Icons.inventory_2_outlined,
             value: RiderServicePreference.goods,
           ),
           _buildPreferenceRadio(
-            label: 'Both Passenger and Goods',
+            label: RiderServicePreference.both.label,
             icon: Icons.swap_horiz_rounded,
             value: RiderServicePreference.both,
           ),
@@ -548,13 +580,22 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
           //     selection differs from the committed one (i.e. the user
           //     chose a different option). When selection == committed,
           //     it is disabled and not clickable (greyed out).
-          CustomBtn(
-            title: _submittedPreference != null ? 'Update' : 'Submit',
-            radius: 10,
-            isValidate: ctaEnabled,
-            bgColor: ctaEnabled ? AppColors.primaryColor : AppColors.grey9B,
-            onTap: ctaEnabled ? _onServicePreferenceSubmit : null,
-          ),
+          Obx(() {
+            final loading = controller.isRiderPreferenceUpdating.value;
+            return CustomBtn(
+              title: _submittedPreference != null
+                  ? AppStrings.update.tr
+                  : AppStrings.submit.tr,
+              radius: 10,
+              isValidate: ctaEnabled,
+              isLoading: loading,
+              bgColor:
+                  ctaEnabled ? AppColors.primaryColor : AppColors.grey9B,
+              onTap: ctaEnabled && !loading
+                  ? _onServicePreferenceSubmit
+                  : null,
+            );
+          }),
         ],
       ),
     );
@@ -663,15 +704,15 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CustomText(
-            'Pickup & Drop Preference',
+          CustomText(
+            AppStrings.pickupDropPreference.tr,
             fontSize: 15,
             fontWeight: FontWeight.w800,
             color: AppColors.mainTextColor,
           ),
           SizedBox(height: SizeConfig.size4),
-          const CustomText(
-            'Set your preferred pickup and drop locations',
+          CustomText(
+            AppStrings.setPreferredPickupDrop.tr,
             fontSize: 12,
             fontWeight: FontWeight.w500,
             color: AppColors.secondaryTextColor,
@@ -682,8 +723,8 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
           // Shown first per the desired flow (drop before pickup).
           CommonLocationSearchField(
             controller: _dropController,
-            title: 'Drop Location',
-            hintText: 'Search drop address',
+            title: AppStrings.dropLocation.tr,
+            hintText: AppStrings.searchDropAddress.tr,
             onSelected: (placeId, lat, lng, address) {
               setState(() {
                 _dropController.text = address;
@@ -696,8 +737,8 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
           // Pickup â€” same Google-backed search field.
           CommonLocationSearchField(
             controller: _pickupController,
-            title: 'Pickup Location',
-            hintText: 'Search pickup address',
+            title: AppStrings.pickupLocation.tr,
+            hintText: AppStrings.searchPickupAddress.tr,
             onSelected: (placeId, lat, lng, address) {
               setState(() {
                 _pickupController.text = address;
@@ -708,7 +749,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
           ),
           SizedBox(height: SizeConfig.size16),
           CustomBtn(
-            title: 'Submit',
+            title: AppStrings.submit.tr,
             radius: 10,
             bgColor: AppColors.primaryColor,
             onTap: _onPickupDropSubmit,
@@ -722,21 +763,31 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   // These keep the form self-contained; wire them to the rider
   // preference API once that endpoint is available. They deliberately
   // do not touch the existing orders flow.
-  void _onServicePreferenceSubmit() {
-    if (_servicePreference == null) {
-      commonSnackBar(message: 'Please select a service preference');
+  Future<void> _onServicePreferenceSubmit() async {
+    final selection = _servicePreference;
+    if (selection == null) {
+      commonSnackBar(message: AppStrings.pleaseSelectServicePreference.tr);
       return;
     }
+    // No change since the last commit → nothing to persist. The CTA guard
+    // already disables this path, but keep it defensive.
+    if (selection == _submittedPreference) return;
+
     final isUpdate = _submittedPreference != null;
-    // Commit the selection → its radio now shows the tick and the CTA
-    // returns to a disabled "Update" state until the user changes it.
-    setState(() => _submittedPreference = _servicePreference);
+    // Persist the rider's vehicleUsesType — the field the nearby-rider filter
+    // keys off (docs/backend/RIDER_PREFERENCE_FILTER.md). Only commit the UI
+    // once the backend confirms the save.
+    final ok = await controller.updateRiderServicePreference(selection.slugId);
+    if (!ok || !mounted) return;
+    setState(() {
+      _submittedPreference = selection;
+      _prefHydrated = true;
+    });
     commonSnackBar(
       message: isUpdate
-          ? 'Service preference updated: ${_servicePreference!.label}'
-          : 'Service preference saved: ${_servicePreference!.label}',
+          ? '${AppStrings.servicePreferenceUpdatedTo.tr} ${selection.label}'
+          : '${AppStrings.servicePreferenceSavedTo.tr} ${selection.label}',
     );
-    // TODO: persist _servicePreference via the rider preference API.
   }
 
   // Allowed straight-line gap between pickup and drop. Anything below
@@ -747,7 +798,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   void _onPickupDropSubmit() {
     if (_pickupController.text.trim().isEmpty ||
         _dropController.text.trim().isEmpty) {
-      commonSnackBar(message: 'Please select both pickup and drop locations');
+      commonSnackBar(message: AppStrings.pleaseSelectPickupDrop.tr);
       return;
     }
     // Coordinates are only set when a place is chosen from the
@@ -756,8 +807,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
         _pickupLng == null ||
         _dropLat == null ||
         _dropLng == null) {
-      commonSnackBar(
-          message: 'Please pick both locations from the suggestions');
+      commonSnackBar(message: AppStrings.pickBothFromSuggestions.tr);
       return;
     }
     // Distance gate: pickup ↔ drop must be 500 m – 20 km apart.
@@ -768,18 +818,16 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
       _dropLng!,
     );
     if (distanceKm < _minPickupDropKm) {
-      commonSnackBar(
-          message:
-              'Pickup and drop are too close. Minimum distance is 500 meters.');
+      commonSnackBar(message: AppStrings.pickupDropTooClose.tr);
       return;
     }
     if (distanceKm > _maxPickupDropKm) {
       commonSnackBar(
-          message: 'Pickup and drop must be within 20 km. '
-              'Current distance is ${distanceKm.toStringAsFixed(1)} km.');
+          message: '${AppStrings.pickupDropTooFar.tr} '
+              '${distanceKm.toStringAsFixed(1)} km.');
       return;
     }
-    commonSnackBar(message: 'Pickup & drop preference saved');
+    commonSnackBar(message: AppStrings.pickupDropPreferenceSaved.tr);
     // TODO: persist pickup/drop via the rider preference API. The
     // resolved coordinates are captured alongside the addresses so the
     // request can send precise lat/lng once the endpoint is wired.
@@ -1688,17 +1736,39 @@ Future<void> handleGoLiveTap() async {
   }
 }
 
-// Service-type options for the rider "Set Preference" tab. Local to this
-// screen since the values only drive the preference form's radio group.
-// `label` is the human-readable text shown beside each radio and reused
-// in the submit confirmation.
+// Service-type options for the rider "Set Preference" tab. Each option maps
+// to a backend `vehicleUsesType` slug — the field the nearby-rider filter
+// keys off (see docs/backend/RIDER_PREFERENCE_FILTER.md):
+//   passenger → passenger rides only
+//   goods     → delivery (goods) only
+//   both      → passenger&delivery
+// `labelKey` is an AppStrings key resolved with `.tr` so the radio labels
+// and submit confirmation stay localized.
 enum RiderServicePreference {
-  passenger('Passenger'),
-  goods('Goods'),
-  both('Both Passenger and Goods');
+  passenger('passenger', AppStrings.servicePassenger),
+  goods('delivery', AppStrings.serviceGoods),
+  both('passenger&delivery', AppStrings.serviceBoth);
 
-  const RiderServicePreference(this.label);
+  const RiderServicePreference(this.slugId, this.labelKey);
 
-  final String label;
+  /// Backend `vehicleUsesType` value persisted for this preference.
+  final String slugId;
+
+  /// AppStrings key for the human-readable label.
+  final String labelKey;
+
+  String get label => labelKey.tr;
+
+  /// Maps a backend `vehicleUsesType` slug back to a UI option so the card
+  /// can pre-select the rider's saved choice. `goodsTransport` (a heavy-goods
+  /// onboarding type) collapses to the Goods option.
+  static RiderServicePreference? fromSlug(String? slug) {
+    if (slug == null || slug.isEmpty) return null;
+    for (final p in RiderServicePreference.values) {
+      if (p.slugId == slug) return p;
+    }
+    if (slug == 'goodsTransport') return RiderServicePreference.goods;
+    return null;
+  }
 }
 

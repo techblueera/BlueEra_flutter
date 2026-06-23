@@ -1114,17 +1114,19 @@ class _FoodSelfPickupMsgCardState extends State<FoodSelfPickupMsgCard> {
               conversationId: widget.conversationId,
             ),
           ),
-          _orderActionButton(
-            icon: Icons.two_wheeler,
-            label: 'Ride',
-            color: Colors.deepOrange,
-            onTap: () async {
-              final drop = await showRideDropLocationSheet(context);
-              if (drop != null) {
-                await _startRideToDrop(drop);
-              }
-            },
-          ),
+          // Find Rider — customer (card sender) only; hidden for the business.
+          if (_isMyMessage)
+            _orderActionButton(
+              icon: Icons.two_wheeler,
+              label: AppStrings.findRider.tr,
+              color: Colors.deepOrange,
+              onTap: () async {
+                final drop = await showRideDropLocationSheet(context);
+                if (drop != null) {
+                  await _startRideToDrop(drop);
+                }
+              },
+            ),
         ],
       ),
     );
@@ -1171,6 +1173,19 @@ class _FoodSelfPickupMsgCardState extends State<FoodSelfPickupMsgCard> {
       discoverController.selectedToLat?.value = dropLat;
       discoverController.selectedToLong?.value = dropLng;
       discoverController.selectedToAddress?.value = drop.fullAddress;
+
+      // Chat self-pickup → rider dispatch (food / homemade food).
+      discoverController.setChatDispatchContext(
+        selfpickupOrderId: _order?.orderId ??
+            (widget.isHomeMade
+                ? widget.message.metadata?.homeMadeFoodPickupOrderId
+                : widget.message.metadata?.foodPickupOrderId) ??
+            '',
+        selfpickupType: widget.message.messageType ??
+            (widget.isHomeMade ? 'homemade_food_selfpickup' : 'food_selfpickup'),
+        businessId: businessId,
+        orderFor: 'food',
+      );
 
       await discoverController.getBookingRidersApi();
       AppLoader.hide();

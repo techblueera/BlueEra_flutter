@@ -1,0 +1,10 @@
+{
+  "findRider": "રાઇડર શોધો",
+  "riderDispatchRequested": "રાઇડર મોકલવાની વિનંતી કરી. ડિલિવરી OTP અહીં દેખાશે.",
+  "riderOtpPickupTitle": "પિકઅપ વખતે આ OTP રાઇડરને બતાવો",
+  "riderOtpDeliveryTitle": "ડિલિવરી વખતે આ OTP રાઇડરને આપો",
+  "riderOtpPickupHint": "ઓર્ડર લેતી વખતે રાઇડર આ કોડ માગશે.",
+  "riderOtpDeliveryHint": "તમારો ઓર્ડર આવે ત્યારે આ કોડ રાઇડર સાથે શેર કરો.",
+  "riderOtpPickedUp": "પિક અપ થયું",
+  "riderOtpDelivered": "ડિલિવર થયું"
+}

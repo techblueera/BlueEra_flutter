@@ -6395,6 +6395,37 @@ class AppStrings {
   static const String pinchToZoom = "pinchToZoom";
   static const String replaceLabel = "replaceLabel";
 
+  // ─── RIDER SET PREFERENCE TAB (rider_service_screen) ───────────────
+  static const String preferenceTab = "preferenceTab";
+  static const String servicePreference = "servicePreference";
+  static const String chooseWhatToDeliver = "chooseWhatToDeliver";
+  static const String servicePassenger = "servicePassenger";
+  static const String serviceGoods = "serviceGoods";
+  static const String serviceBoth = "serviceBoth";
+  static const String pleaseSelectServicePreference =
+      "pleaseSelectServicePreference";
+  static const String servicePreferenceSavedTo = "servicePreferenceSavedTo";
+  static const String servicePreferenceUpdatedTo = "servicePreferenceUpdatedTo";
+  static const String pickupDropPreference = "pickupDropPreference";
+  static const String setPreferredPickupDrop = "setPreferredPickupDrop";
+  static const String searchDropAddress = "searchDropAddress";
+  static const String searchPickupAddress = "searchPickupAddress";
+  static const String pleaseSelectPickupDrop = "pleaseSelectPickupDrop";
+  static const String pickBothFromSuggestions = "pickBothFromSuggestions";
+  static const String pickupDropTooClose = "pickupDropTooClose";
+  static const String pickupDropTooFar = "pickupDropTooFar";
+  static const String pickupDropPreferenceSaved = "pickupDropPreferenceSaved";
+
+  // ─── CHAT-DISPATCH: Find Rider + Rider OTP card ────────────────────
+  static const String findRider = "findRider";
+  static const String riderDispatchRequested = "riderDispatchRequested";
+  static const String riderOtpPickupTitle = "riderOtpPickupTitle";
+  static const String riderOtpDeliveryTitle = "riderOtpDeliveryTitle";
+  static const String riderOtpPickupHint = "riderOtpPickupHint";
+  static const String riderOtpDeliveryHint = "riderOtpDeliveryHint";
+  static const String riderOtpPickedUp = "riderOtpPickedUp";
+  static const String riderOtpDelivered = "riderOtpDelivered";
+
   /// EARN WITH BLUEERA — earn_with_blueera/view screens
   // Profile screens (hmf, hmp, home_service)
   static const String foodServiceLogo = "foodServiceLogo";

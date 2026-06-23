@@ -545,7 +545,7 @@ class Vehicle {
 
   factory Vehicle.fromJson(Map<String, dynamic> j) => Vehicle(
         id: j['_id'] as String?,
-        userId: j['user_id'] as String?,
+        userId: j['user']['id'] as String?,
         businessId: j['business_id'] as String?,
         variantId: j['variant_id'] as String?,
         name: (j['name'] ?? '') as String,

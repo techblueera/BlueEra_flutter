@@ -441,6 +441,12 @@ class MessageMetadata {
   String? riderAssociationId;
   RiderAssociationMetadata? riderAssociation;
 
+  // Chat-dispatch rider OTP card (message_type 'rider_otp'). The pickup card is
+  // shown to the shop, the delivery card to the customer (server-enforced via
+  // visible_to). See docs/backend/CHAT_DISPATCH_RIDER_FRONTEND_GUIDE.md.
+  String? rideOrderId;
+  RiderOtpInfo? riderOtp;
+
   // Service enquiry (Discover self-profession → chat)
   String? serviceEnquiryId;
   ServiceEnquiryModel? serviceEnquiry;
@@ -505,6 +511,8 @@ class MessageMetadata {
     this.homeMadeFoodPickupOrder,
     this.riderAssociationId,
     this.riderAssociation,
+    this.rideOrderId,
+    this.riderOtp,
     this.serviceEnquiryId,
     this.serviceEnquiry,
     this.propertyEnquiryId,
@@ -570,6 +578,10 @@ class MessageMetadata {
       riderAssociation: json['riderAssociation'] != null
           ? RiderAssociationMetadata.fromJson(
               Map<String, dynamic>.from(json['riderAssociation']))
+          : null,
+      rideOrderId: json['rideOrderId']?.toString(),
+      riderOtp: json['otp'] is Map
+          ? RiderOtpInfo.fromJson(Map<String, dynamic>.from(json['otp']))
           : null,
       serviceEnquiryId:
           (json['serviceEnquiryId'] ?? json['service_enquiry_id'])?.toString(),
@@ -641,6 +653,8 @@ class MessageMetadata {
       'homeMadeFoodPickupOrderId': homeMadeFoodPickupOrderId,
       'riderAssociationId': riderAssociationId,
       'riderAssociation': riderAssociation?.toJson(),
+      'rideOrderId': rideOrderId,
+      'otp': riderOtp?.toJson(),
       'serviceEnquiryId': serviceEnquiryId,
       'serviceEnquiry': serviceEnquiry?.toJson(),
       'propertyEnquiryId': propertyEnquiryId,
@@ -660,6 +674,56 @@ class MessageMetadata {
       'amount': amount,
     };
   }
+}
+
+// ─── Rider OTP (chat-dispatch handoff card) ───────────────────
+// One of two private OTP cards created when a self-pickup order is dispatched
+// to a rider. `kind`/`role` decide the card's label; `status` flips from
+// 'active' to 'consumed' (via the `riderOtpUpdated` socket) once the matching
+// handoff (pickup/delivery) is verified. See the chat-dispatch guide.
+class RiderOtpInfo {
+  final String? otp;
+  final String? kind; // 'pickup' (shop) | 'delivery' (customer)
+  final String? role; // 'shop' | 'customer'
+  String? status; // 'active' | 'consumed' — mutable so the socket can flip it
+  final String? riderName;
+  final String? rideOrderId;
+  final String? selfpickupOrderId;
+
+  RiderOtpInfo({
+    this.otp,
+    this.kind,
+    this.role,
+    this.status,
+    this.riderName,
+    this.rideOrderId,
+    this.selfpickupOrderId,
+  });
+
+  bool get isConsumed => (status ?? '').toLowerCase() == 'consumed';
+  bool get isPickup => (kind ?? '').toLowerCase() == 'pickup';
+
+  factory RiderOtpInfo.fromJson(Map<String, dynamic> json) {
+    return RiderOtpInfo(
+      otp: json['otp']?.toString(),
+      kind: json['kind']?.toString(),
+      role: json['role']?.toString(),
+      status: json['status']?.toString(),
+      riderName: json['riderName']?.toString(),
+      rideOrderId: json['rideOrderId']?.toString(),
+      selfpickupOrderId: json['selfpickupOrderId']?.toString(),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'otp': otp,
+        'kind': kind,
+        'role': role,
+        'status': status,
+        'riderName': riderName,
+        'rideOrderId': rideOrderId,
+        'selfpickupOrderId': selfpickupOrderId,
+      };
 }
 
 // ─── Rider Association Metadata ───────────────────────────────

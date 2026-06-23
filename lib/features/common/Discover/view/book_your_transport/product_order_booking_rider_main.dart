@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/search_transport_address.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -71,6 +72,14 @@ class _ProductOrderBookingRiderMainState
     }
   }
 
+  @override
+  void dispose() {
+    // The chat-dispatch context lives on the shared DiscoverController; clear
+    // it when leaving so a later regular booking can't accidentally inherit it.
+    discoverController.clearChatDispatchContext();
+    super.dispose();
+  }
+
   void _editAddress() {
     Get.off(() => SearchTransportAddress(
           onPlaceSelected: () {},
@@ -92,6 +101,20 @@ class _ProductOrderBookingRiderMainState
                 height: 44,
                 isValidate: discoverController.selectedRiders.isNotEmpty,
                 onTap: () async {
+                  // Chat self-pickup → rider dispatch: create the delivery ride
+                  // via the chat-dispatch endpoint and return to the chat. The
+                  // pickup/delivery OTP cards then arrive over the chat socket.
+                  if (discoverController.chatDispatchContext != null) {
+                    final dispatched =
+                        await discoverController.makeChatDispatchOrderApi();
+                    if (dispatched) {
+                      discoverController.clearChatDispatchContext();
+                      Get.back();
+                      commonSnackBar(
+                          message: AppStrings.riderDispatchRequested.tr);
+                    }
+                    return;
+                  }
                   // Setup queue listeners BEFORE the API call so we don't
                   // miss ride:queue:calling if the server fires it
                   // immediately after order creation.

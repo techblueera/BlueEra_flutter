@@ -37,6 +37,7 @@ class RiderOnboardingStatusData {
     this.vehicleName,
     this.vehicleModelYear,
     this.vehicleType,
+    this.vehicleUsesType,
     this.dlNo,
     this.aadharImage,
     this.aadharImageBack,
@@ -71,6 +72,11 @@ class RiderOnboardingStatusData {
     vehicleModelYear =
         vehicleData is Map ? vehicleData['vehicleModelYear']?.toString() : null;
     vehicleType = vehicleData is Map ? vehicleData['vehicleType'] as String? : null;
+    // The rider's service preference — the field the nearby-rider filter
+    // keys off (see docs/backend/RIDER_PREFERENCE_FILTER.md). Surfaced so the
+    // Set Preference card can pre-select the rider's saved choice.
+    vehicleUsesType =
+        vehicleData is Map ? vehicleData['vehicleUsesType'] as String? : null;
     // Document image URLs — the rider screen renders a thumbnail +
     // pinch-zoom view dialog when these are present. The keys here
     // accept any of: a flat top-level field (e.g. `aadharImage`), the
@@ -212,6 +218,9 @@ class RiderOnboardingStatusData {
   String? vehicleName;
   String? vehicleModelYear;
   String? vehicleType;
+  // Rider service preference (passenger | delivery | passenger&delivery |
+  // goodsTransport) — drives the nearby-rider filter.
+  String? vehicleUsesType;
   // Front-side image URLs for the ID documents that have an image
   // preview slot, plus back-side URLs for the two-sided ones (Aadhar,
   // DL, RC). PAN is single-sided so it only has a front.
@@ -246,6 +255,7 @@ class RiderOnboardingStatusData {
     map['vehicleName'] = vehicleName;
     map['vehicleModelYear'] = vehicleModelYear;
     map['vehicleType'] = vehicleType;
+    map['vehicleUsesType'] = vehicleUsesType;
     map['aadharImage'] = aadharImage;
     map['aadharImageBack'] = aadharImageBack;
     map['panImage'] = panImage;

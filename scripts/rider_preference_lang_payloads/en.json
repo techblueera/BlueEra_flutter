@@ -1,0 +1,20 @@
+{
+  "preferenceTab": "Preference",
+  "servicePreference": "Service Preference",
+  "chooseWhatToDeliver": "Choose what you want to deliver",
+  "servicePassenger": "Passenger",
+  "serviceGoods": "Goods",
+  "serviceBoth": "Both Passenger and Goods",
+  "pleaseSelectServicePreference": "Please select a service preference",
+  "servicePreferenceSavedTo": "Service preference saved:",
+  "servicePreferenceUpdatedTo": "Service preference updated:",
+  "pickupDropPreference": "Pickup & Drop Preference",
+  "setPreferredPickupDrop": "Set your preferred pickup and drop locations",
+  "searchDropAddress": "Search drop address",
+  "searchPickupAddress": "Search pickup address",
+  "pleaseSelectPickupDrop": "Please select both pickup and drop locations",
+  "pickBothFromSuggestions": "Please pick both locations from the suggestions",
+  "pickupDropTooClose": "Pickup and drop are too close. Minimum distance is 500 meters.",
+  "pickupDropTooFar": "Pickup and drop must be within 20 km. Current distance is",
+  "pickupDropPreferenceSaved": "Pickup & drop preference saved"
+}

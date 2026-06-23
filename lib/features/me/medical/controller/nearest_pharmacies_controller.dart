@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 
 class PharmacyItem {
   final String id;
+  final String user_id;
   final String name;
   final String address;
   final String email;
@@ -22,6 +23,7 @@ class PharmacyItem {
 
   PharmacyItem({
     required this.id,
+    required this.user_id,
     required this.name,
     required this.address,
     required this.email,
@@ -39,6 +41,7 @@ class PharmacyItem {
   factory PharmacyItem.fromJson(Map<String, dynamic> json) {
     return PharmacyItem(
       id: json['_id']?.toString() ?? '',
+      user_id: json['user_id']?.toString() ?? '',
       name: json['business_name']?.toString() ?? '',
       address: json['address']?.toString() ?? '',
       email: json['business_number']?['email']?.toString() ?? '',

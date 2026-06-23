@@ -40,6 +40,7 @@ import '../../features/chat/auth/controller/call_controller.dart';
 import '../../features/common/Discover/controller/discover_controller.dart';
 import '../../features/chat/view/ai_chat/view/ai_chat_screen.dart';
 import '../routes/route_helper.dart';
+import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_orders_controller.dart';
 
 String notificationSound = 'sound/hangouts_call.mp3';
 String hello_delivery = 'sound/hello_delivery.mp3';
@@ -292,6 +293,13 @@ Future<void> _handleBackgroundNotificationResponse(
     return;
   }
 
+  // --- Route-order claim (ROUTE_ORDER_AVAILABLE) ---
+  if (actionId.startsWith('claim_order_')) {
+    AppNotificationHandler._handleClaimOrder(
+        actionId.substring('claim_order_'.length));
+    return;
+  }
+
   // --- Ride actions ---
   if (actionId.startsWith('track_ride_') ||
       actionId.startsWith('view_order_') ||
@@ -307,6 +315,14 @@ Future<void> _handleBackgroundNotificationResponse(
       actionId.startsWith('view_reel_') ||
       actionId.startsWith('view_response_')) {
     Get.toNamed(RouteHelper.getNotificationScreenRoute());
+    return;
+  }
+
+  // --- Chat-dispatch rider OTP nudge (before AI-greeting open_chat) ---
+  if (actionId.startsWith('open_chat_') &&
+      (data['type'] ?? data['operation'] ?? '').toString().toLowerCase() ==
+          'rider_otp') {
+    AppNotificationHandler._openChatFromRiderOtp(data);
     return;
   }
 
@@ -1251,6 +1267,13 @@ class AppNotificationHandler {
       return;
     }
 
+    // Route-order claim (ROUTE_ORDER_AVAILABLE notification → "Claim Order").
+    // Must precede the generic ride block so it isn't swallowed by it.
+    if (actionId.startsWith('claim_order_')) {
+      _handleClaimOrder(actionId.substring('claim_order_'.length));
+      return;
+    }
+
     // Ride actions
     if (actionId.startsWith('track_ride_') ||
         actionId.startsWith('view_order_') ||
@@ -1266,6 +1289,16 @@ class AppNotificationHandler {
         actionId.startsWith('view_reel_') ||
         actionId.startsWith('view_response_')) {
       Get.toNamed(RouteHelper.getNotificationScreenRoute());
+      return;
+    }
+
+    // Chat-dispatch rider OTP nudge → open the real chat (NOT the AI
+    // assistant). Checked before the AI-greeting open_chat block below, which
+    // shares the same id prefix.
+    if (actionId.startsWith('open_chat_') &&
+        (data['type'] ?? data['operation'] ?? '').toString().toLowerCase() ==
+            'rider_otp') {
+      _openChatFromRiderOtp(data);
       return;
     }
 
@@ -2114,7 +2147,11 @@ class AppNotificationHandler {
       await Future.delayed(const Duration(milliseconds: 200));
     }
 
-    final operation = (data['operation'] ?? '').toString().toLowerCase();
+    // New-style notifications key off `type` rather than `operation`
+    // (see NEW_NOTIFICATIONS_FRONTEND_GUIDE.md); fall back to it so their
+    // body-tap routing works without disturbing the existing operations.
+    final operation =
+        (data['operation'] ?? data['type'] ?? '').toString().toLowerCase();
     logs("data==== ${data}");
     logs("operation==== ${operation}");
     // logs("operation==== ${data['payload']['post_id']}");
@@ -2200,7 +2237,15 @@ class AppNotificationHandler {
       case 'ride_cancelled_by_rider':
       case 'ride_payment_confirmed':
       case 'rider_onboarding_complete':
+      // A new order surfaced on the rider's active route — open the rider
+      // orders screen so they can view / claim it.
+      case 'route_order_available':
         Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
+        break;
+
+      // Chat-dispatch OTP handoff nudge → open the chat that holds the card.
+      case 'rider_otp':
+        _openChatFromRiderOtp(data);
         break;
 
       // Job operations
@@ -2470,6 +2515,46 @@ class AppNotificationHandler {
       // Best-effort — navigation must still proceed even if this fails.
       logs('[_persistFcmMessageToLocal] failed: $e');
     }
+  }
+
+  /// Claims a route order from the ROUTE_ORDER_AVAILABLE notification's
+  /// "Claim Order" button, then opens the rider orders screen on success.
+  /// See docs/backend/NEW_NOTIFICATIONS_FRONTEND_GUIDE.md.
+  static Future<void> _handleClaimOrder(String orderId) async {
+    if (orderId.isEmpty) return;
+    final controller = getOrPut(() => DeliverPartnerOrdersController());
+    final claimed = await controller.claimRouteOrder(orderId);
+    if (claimed) {
+      Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
+    }
+  }
+
+  /// Opens the chat that received a `rider_otp` handoff card. Chat opens are
+  /// keyed on the other party's userId (which resolves the conversation
+  /// server-side), so we prefer a user id from the payload and fall back to
+  /// the chat contacts list when the push only carries a conversationId.
+  static void _openChatFromRiderOtp(Map<String, dynamic> data) {
+    final senderUser = data['sender_user'];
+    final candidates = <dynamic>[
+      data['senderId'],
+      data['sender_id'],
+      data['otherUserId'],
+      data['other_user_id'],
+      (senderUser is Map) ? senderUser['id'] : null,
+    ];
+    final userId = candidates
+        .firstWhere(
+          (e) => e != null && e.toString().isNotEmpty,
+          orElse: () => null,
+        )
+        ?.toString();
+    if (userId != null && userId.isNotEmpty) {
+      _openChatWithUser(userId);
+      return;
+    }
+    // Only a conversationId is available — land the user on their chat list
+    // so they can open the conversation holding the OTP card.
+    Get.toNamed(RouteHelper.getChatContactsRoute());
   }
 
   /// Helper to open chat with a user by their ID

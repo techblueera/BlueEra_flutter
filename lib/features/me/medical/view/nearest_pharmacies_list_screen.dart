@@ -1,13 +1,18 @@
 ﻿import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/me/medical/controller/nearest_pharmacies_controller.dart';
 import 'package:BlueEra/features/me/medical/view/medical_category_selector_widget.dart';
 import 'package:BlueEra/features/me/medical/view/medical_pharmacy_detail_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -409,25 +414,7 @@ class _PharmacyCard extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: OutlinedButton.icon(
-            onPressed: onTap,
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.primaryColor,
-              side: const BorderSide(color: AppColors.primaryColor),
-              padding: EdgeInsets.symmetric(vertical: SizeConfig.size12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(SizeConfig.size12),
-              ),
-            ),
-            icon: Icon(Icons.chat_bubble_outline_rounded,
-                size: SizeConfig.size18, color: AppColors.primaryColor),
-            label: CustomText(
-              AppStrings.chat.tr,
-              fontSize: SizeConfig.medium,
-              color: AppColors.primaryColor,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          child: _chatButton(item),
         ),
         SizedBox(width: SizeConfig.size12),
         Expanded(
@@ -459,6 +446,63 @@ class _PharmacyCard extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+
+  Widget _chatButton(PharmacyItem item) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: _openChat,
+        child: Container(
+          height: 44,
+          decoration: BoxDecoration(
+            color: AppColors.skyBlueFF,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              LocalAssets(imagePath: AppIconAssets.chat, imgColor: AppColors.primaryColor),
+              const SizedBox(width: 6),
+              CustomText(
+                AppStrings.chat,
+
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.primaryColor,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+
+  void _openChat() {
+    final userId = item.user_id ?? '';
+    if (userId.trim().isEmpty) return;
+    if (isGuestUser()) {
+      createProfileScreen();
+      return;
+    }
+    final bId = item.id?.trim();
+    if (bId != null && bId.isNotEmpty) {
+      ChatClickTracker.track(
+        userId: bId,
+        source: ChatClickSource.searchResult,
+      );
+    }
+    final chatViewController = getOrPut(() => ChatViewController());
+    chatViewController.checkChatConnectionAndOpenChat(
+      userId: userId,
+      name: item.name,
+      profile: item.logo,
+      route: AppConstants.route_discover,
     );
   }
 }

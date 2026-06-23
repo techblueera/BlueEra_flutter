@@ -1,0 +1,10 @@
+{
+  "findRider": "Find Rider",
+  "riderDispatchRequested": "Rider dispatch requested. The delivery OTP will appear here.",
+  "riderOtpPickupTitle": "Show this OTP to the rider at pickup",
+  "riderOtpDeliveryTitle": "Give this OTP to the rider on delivery",
+  "riderOtpPickupHint": "The rider will ask for this code when collecting the order.",
+  "riderOtpDeliveryHint": "Share this code with the rider when your order arrives.",
+  "riderOtpPickedUp": "Picked up",
+  "riderOtpDelivered": "Delivered"
+}

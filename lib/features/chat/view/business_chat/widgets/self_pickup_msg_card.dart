@@ -1141,20 +1141,24 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
               conversationId: widget.conversationId,
             ),
           ),
-          _orderActionButton(
-            icon: Icons.two_wheeler,
-            label: 'Ride',
-            color: Colors.deepOrange,
-            // Ask for the drop location (saved addresses + add-new), stored
-            // locally, then look up the shop pickup location and open the
-            // transport booking screen with riders already being searched.
-            onTap: () async {
-              final drop = await showRideDropLocationSheet(context);
-              if (drop != null) {
-                await _startRideToDrop(drop);
-              }
-            },
-          ),
+          // Find Rider — customer (card sender) only. Dispatches a rider to
+          // collect the self-pickup order from the shop and deliver it to the
+          // customer. Hidden for the business owner (see chat-dispatch guide).
+          if (_isMyMessage)
+            _orderActionButton(
+              icon: Icons.two_wheeler,
+              label: AppStrings.findRider.tr,
+              color: Colors.deepOrange,
+              // Ask for the drop location (saved addresses + add-new), stored
+              // locally, then look up the shop pickup location and open the
+              // transport booking screen with riders already being searched.
+              onTap: () async {
+                final drop = await showRideDropLocationSheet(context);
+                if (drop != null) {
+                  await _startRideToDrop(drop);
+                }
+              },
+            ),
         ],
       ),
     );
@@ -1205,6 +1209,18 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
       discoverController.selectedToLat?.value = dropLat;
       discoverController.selectedToLong?.value = dropLng;
       discoverController.selectedToAddress?.value = drop.fullAddress;
+
+      // Mark this booking as a chat self-pickup dispatch so the booking screen
+      // creates the ride via the chat-dispatch endpoint (shop = pickup,
+      // customer = drop) and the two handoff OTP cards are issued.
+      discoverController.setChatDispatchContext(
+        selfpickupOrderId: widget.message.metadata?.selfpickupOrderId ??
+            widget.message.metadata?.selfPickupOrder?.orderId ??
+            '',
+        selfpickupType: widget.message.messageType ?? 'selfpickup',
+        businessId: businessId,
+        orderFor: 'grocery',
+      );
 
       // Search for riders between the shop and the drop, then open the screen.
       await discoverController.getBookingRidersApi();

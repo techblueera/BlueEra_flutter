@@ -45,6 +45,12 @@ mixin RiderServiceApi {
   final String getBookingRiders = "rider-service/fare/riders";
   final String favoriteLocations = "rider-service/favorite-locations";
 
+  // Claim an order surfaced on the rider's active route (the
+  // ROUTE_ORDER_AVAILABLE notification). See
+  // docs/backend/NEW_NOTIFICATIONS_FRONTEND_GUIDE.md.
+  String claimRouteOrder(String orderId) =>
+      "rider-service/riders/orders/$orderId/claim";
+
   final String getRiderBookingList = "rider-service/riders/orders/requested";
   final String getRiderRejectOrder = "rider-service/riders/orders/rejected";
   String updateOrderStatusFromPialot(String orderId) =>
@@ -87,6 +93,11 @@ mixin RiderServiceApi {
       'rider-service/grocery/orders/payment-status';
 
   final String makeTransportBookOrder = 'rider-service/fare/orders';
+
+  // Chat self-pickup → rider dispatch (shop = pickup, customer = drop). Creates
+  // a delivery ride from a self-pickup chat card and issues the two handoff
+  // OTPs. See docs/backend/CHAT_DISPATCH_RIDER_FRONTEND_GUIDE.md.
+  final String chatDispatchOrders = 'rider-service/fare/chat-dispatch/orders';
 
   // Multi-shop (multi-stop) orders. Additive — single-stop flow is unchanged.
   // 1) Sort shops furthest→nearest + find riders near the furthest shop.

@@ -22,6 +22,20 @@ class MakeOrderRepo extends BaseService {
     );
     return response;
   }
+  /// Claim a route order (ROUTE_ORDER_AVAILABLE notification → "Claim Order").
+  /// Returns the raw ResponseModel so the caller can branch on the
+  /// 200/409/422/400 status codes documented in the notifications guide.
+  Future<ResponseModel> claimRouteOrderApi(String orderId) async {
+    final response = await ApiBaseHelper().postHTTP(
+      claimRouteOrder(orderId),
+      showProgress: false,
+      params: {},
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   Future<ResponseModel> verifyPayment(Map<String, dynamic> params) async {
     final response = await ApiBaseHelper().postHTTP(
         verifyPaymentApi,

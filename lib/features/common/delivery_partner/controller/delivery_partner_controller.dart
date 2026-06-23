@@ -1040,6 +1040,39 @@ class DeliveryPartnerController extends GetxController {
 
   RxBool isRiderVehicleInformationLoading = false.obs;
 
+  // ─── Rider service preference (vehicleUsesType) ──────────────────
+  // Updates ONLY the rider's service preference — the field the
+  // nearby-rider filter keys off (see docs/backend/RIDER_PREFERENCE_FILTER.md).
+  // Reuses the vehicle-information PUT endpoint with a partial body so an
+  // already-onboarded rider can switch what they deliver without re-entering
+  // the rest of their vehicle details. Returns true on success.
+  RxBool isRiderPreferenceUpdating = false.obs;
+
+  Future<bool> updateRiderServicePreference(String vehicleUsesType) async {
+    if (vehicleUsesType.trim().isEmpty) return false;
+    try {
+      isRiderPreferenceUpdating.value = true;
+      final response =
+          await DeliveryPartnerRepo().ridersOnboardingVehicleInformationRepo(
+        params: {ApiKeys.vehicleUsesType: vehicleUsesType},
+      );
+      if (response.isSuccess) {
+        // Refresh status so the saved preference is reflected everywhere
+        // (and the Set Preference card stays in sync after a relaunch).
+        await ridersOnboardingStatusRepoApi();
+        return true;
+      }
+      commonSnackBar(
+          message: response.message ?? AppStrings.somethingWentWrong);
+      return false;
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
+    } finally {
+      isRiderPreferenceUpdating.value = false;
+    }
+  }
+
   Future<void> addLivePhoto() async {
     final selectedPath = await PhotoPickerService.pickFromCamera(
         Get.context!,
