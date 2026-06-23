@@ -109,6 +109,10 @@ class Metadata {
   String? senderName;
   String? message;
   String? symbolId;
+  // Chat/call notifications carry the conversation to open. Call ops use the
+  // snake_case `conversation_id`; AI-greeting chat ops use camelCase
+  // `conversationId` — accept either.
+  String? conversationId;
   // Some notifications (AI greetings, ride status updates, profile reminders,
   // etc.) carry their display text in metadata.title / metadata.body and leave
   // the top-level `message` empty — parse them so those rows aren't blank.
@@ -120,6 +124,7 @@ class Metadata {
     this.senderName,
     this.message,
     this.symbolId,
+    this.conversationId,
     this.title,
     this.body,
   });
@@ -129,6 +134,7 @@ class Metadata {
     senderName = json['senderName'];
     message = json['message'];
     symbolId = json['symbol_id'];
+    conversationId = json['conversation_id'] ?? json['conversationId'];
     title = json['title'];
     body = json['body'];
   }
@@ -139,6 +145,7 @@ class Metadata {
     data['senderName'] = this.senderName;
     data['message'] = this.message;
     data['symbol_id'] = this.symbolId;
+    data['conversation_id'] = this.conversationId;
     data['title'] = this.title;
     data['body'] = this.body;
     return data;
