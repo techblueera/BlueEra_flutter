@@ -67,7 +67,8 @@ class _RiderLiveLocationMsgCardState extends State<RiderLiveLocationMsgCard> {
   @override
   Widget build(BuildContext context) {
     Rider? rider = widget.message.metadata?.rider;
-    final bool isExpired = isMessageOlderThan24Hours(widget.message.createdAt);
+    final bool isExpired = isMessageOlderThan24Hours(widget.message.createdAt,
+        maxAge: const Duration(days: 7));
     final Color actionColor =
         isExpired ? AppColors.grayText : AppColors.primaryColor;
 

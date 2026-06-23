@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../../common/Discover/view/book_your_transport/fare_call_queue_screen.dart';
+import '../../business_chat/widgets/track_rider_live_location_page.dart';
 import 'ride_navigation_overlay_controller.dart';
 import 'rider_pickup_navigation_screen.dart';
 import 'rider_ride_navigation_screen.dart';
@@ -116,6 +117,15 @@ class _DraggableMiniMapState extends State<_DraggableMiniMap> {
     } else if (type == 'customer_tracking') {
       Get.to(() => FareCallQueueScreen(
             orderId: p['orderId'] ?? '',
+          ));
+    } else if (type == 'track_rider') {
+      // Customer tapped the floating mini-map for a chat-initiated rider
+      // tracking session — re-open the full live-tracking page.
+      Get.to(() => TrackRiderLiveLocationPage(
+            riderId: p['riderId'] ?? '',
+            dropLat: (p['dropLat'] as num?)?.toDouble() ?? 0,
+            dropLng: (p['dropLng'] as num?)?.toDouble() ?? 0,
+            orderId: p['orderId'],
           ));
     } else {
       Get.to(() => RiderRideNavigationScreen(

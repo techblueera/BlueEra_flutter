@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/pip_service.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -541,6 +542,15 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
 
   }
 
+  /// Push the Connect screen on the Inquiry tab without ending the active
+  /// call. This screen stays in the navigation stack underneath, so the
+  /// WebRTC call keeps running and Back from Connect returns to it.
+  void _goToConnectInquiry() {
+    final chatViewController = getOrPut(() => ChatViewController());
+    chatViewController.selectedChatTabIndex.value = 1;
+    Get.toNamed(RouteHelper.getHomeScreenRoute());
+  }
+
   void _callRider() {
     final contact = _acceptedRiderInfo?['contact'] ?? '';
     if (contact.isNotEmpty) {
@@ -558,6 +568,13 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
           // After rider accepted there is a map to show — minimise to the
           // in-app floating overlay.
           _minimiseToOverlay();
+          return;
+        }
+        // Call connected (talking to the rider): take the customer to
+        // Connect → Inquiry while the call keeps running in the background
+        // (this screen stays underneath in the stack).
+        if (_callController.callStatus.value == CallStatus.connected) {
+          _goToConnectInquiry();
           return;
         }
         // Calling phase (no rider accepted yet): enter native PiP so the

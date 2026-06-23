@@ -50,11 +50,15 @@ import '../media_view_page/conversation_media_page.dart';
 /// Returns true when [createdAt] (ISO-8601 from server) is older than 24 hours.
 /// Used to expire rider action buttons, the order chat input, and the appbar
 /// call button on order conversations once the delivery window has elapsed.
-bool isMessageOlderThan24Hours(String? createdAt) {
+/// Whether [createdAt] is older than [maxAge] (default 24h). Callers that need
+/// a longer active window (e.g. the rider / rider_map action cards) pass a
+/// larger [maxAge] so their buttons stay enabled for longer-running rides.
+bool isMessageOlderThan24Hours(String? createdAt,
+    {Duration maxAge = const Duration(hours: 24)}) {
   if (createdAt == null || createdAt.isEmpty) return false;
   try {
     final created = DateTime.parse(createdAt).toLocal();
-    return DateTime.now().difference(created) > const Duration(hours: 24);
+    return DateTime.now().difference(created) > maxAge;
   } catch (_) {
     return false;
   }

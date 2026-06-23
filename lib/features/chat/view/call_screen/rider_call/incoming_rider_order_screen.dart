@@ -4,7 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
+import '../../../../../core/constants/getx_utils.dart';
+import '../../../../../core/routes/route_helper.dart';
 import '../../../auth/controller/call_controller.dart';
+import '../../../auth/controller/chat_view_controller.dart';
 import '../../../auth/service/call_pip_service.dart';
 import 'rider_pickup_navigation_screen.dart';
 
@@ -283,13 +286,29 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
     _callController.toggleSpeaker();
   }
 
+  /// Push the Connect screen on the Inquiry tab without ending the active
+  /// call. The call screen stays in the navigation stack underneath, so the
+  /// WebRTC call keeps running and Back from Connect returns to it.
+  void _goToConnectInquiry() {
+    final chatViewController = getOrPut(() => ChatViewController());
+    chatViewController.selectedChatTabIndex.value = 1;
+    Get.toNamed(RouteHelper.getHomeScreenRoute());
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, _) async {
         if (didPop) return;
-        // Back press minimises the call into Android PiP instead of
+        // Once the call is connected, Back takes the rider to Connect →
+        // Inquiry while the call stays alive in the background (this screen
+        // remains underneath in the stack).
+        if (_isCallConnected) {
+          _goToConnectInquiry();
+          return;
+        }
+        // Before connect (ringing): minimise into Android PiP instead of
         // ending the call or rejecting the ride request.
         await CallPipService.enterPipMode();
       },
