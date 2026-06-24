@@ -1,0 +1,721 @@
+import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/widgets/cached_avatar_widget.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+import 'package:pinput/pinput.dart';
+
+import '../../../chat/auth/model/rider_orders_details_model.dart';
+import '../controller/delivery_partner_orders_controller.dart';
+import '../model/grocery_order_details.dart';
+
+/// Order card for **multi-shop goods orders** booked from
+/// `GoodsMultiOrderBookingMain` (`POST /fare/multi-shop/orders`).
+///
+/// Such an order reaches the rider as a `RiderOrdersDetailsModel` with
+/// `orderType == 'fare-call'` and `orderFor == 'grocery'`, carrying several
+/// pickup shops under `groceryOrderDetails.businesses` (one entry per shop)
+/// plus a single customer drop. The generic [OrderCard] only models a single
+/// pickup, so multi-shop orders get this purpose-built card instead.
+///
+/// Lifecycle the card drives, end-to-end:
+///   • New order (pending)  → Accept / Reject via `rideAction`.
+///   • Ongoing              → a sequenced per-shop checklist: at each shop the
+///     rider taps "Arrived" (`multiShopStopArrive`) then enters that shop's
+///     pickup OTP (`multiShopStopPickup`). Once every shop is picked up, the
+///     final customer **Delivery OTP** box appears (`verifyDeliveredOtp`,
+///     which completes the ride on success).
+///   • Completed / cancelled / rejected → read-only summary.
+///
+/// Use [isMultiShopGoodsOrder] to decide whether to render this card.
+bool isMultiShopGoodsOrder(RiderOrdersDetailsModel order) {
+  final isFareCallGrocery = order.orderType == 'fare-call' &&
+      (order.orderFor?.toLowerCase() == AppConstants.grocery);
+  final hasMultiplePickups =
+      (order.groceryOrderDetails?.businesses.length ?? 0) > 1;
+  return isFareCallGrocery || hasMultiplePickups;
+}
+
+class MultiShopOrderCard extends StatefulWidget {
+  final RiderOrdersDetailsModel order;
+  final PickUpTab selectedPickUp;
+
+  const MultiShopOrderCard({
+    super.key,
+    required this.order,
+    required this.selectedPickUp,
+  });
+
+  @override
+  State<MultiShopOrderCard> createState() => _MultiShopOrderCardState();
+}
+
+class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
+  final controller = getOrPut(() => DeliverPartnerOrdersController());
+
+  // Per-shop local UI state, keyed by businessId. These ride on top of the
+  // server truth (`item.isPickedUp`) so the checklist reacts instantly while
+  // the SSE stream catches up.
+  final Set<String> _arrived = {};
+  final Set<String> _pickedLocal = {};
+  final Set<String> _verifyingShop = {};
+
+  RiderOrdersDetailsModel get _order => widget.order;
+
+  String get _orderId => _order.id ?? _order.orderId ?? '';
+
+  List<BusinessOrder> get _shops =>
+      _order.groceryOrderDetails?.businesses ?? const [];
+
+  bool get _isPending =>
+      widget.selectedPickUp == PickUpTab.newOrder ||
+      widget.selectedPickUp == PickUpTab.orders;
+
+  bool get _isOngoing => widget.selectedPickUp == PickUpTab.onGoing;
+
+  bool _isShopPicked(BusinessOrder shop) {
+    if (_pickedLocal.contains(shop.businessId)) return true;
+    return shop.items.isNotEmpty && shop.items.every((i) => i.isPickedUp);
+  }
+
+  bool get _allShopsPicked =>
+      _shops.isNotEmpty && _shops.every(_isShopPicked);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(bottom: SizeConfig.size12),
+      padding: EdgeInsets.all(SizeConfig.size12),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.greyE5),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildHeader(),
+          SizedBox(height: SizeConfig.size12),
+          _buildRoute(),
+          if (_isPending) ...[
+            SizedBox(height: SizeConfig.size14),
+            _buildAcceptRejectRow(),
+          ] else if (_isOngoing && _allShopsPicked) ...[
+            SizedBox(height: SizeConfig.size14),
+            _buildDeliveryOtpSection(),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // ── Header ──────────────────────────────────────────────────────
+  Widget _buildHeader() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CachedAvatarWidget(
+          imageUrl: _order.user?.profileImage,
+          size: SizeConfig.size40,
+          borderRadius: SizeConfig.size20,
+        ),
+        SizedBox(width: SizeConfig.size8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CustomText(
+                _order.user?.name ?? 'Customer',
+                fontSize: SizeConfig.large,
+                fontWeight: FontWeight.w700,
+                color: AppColors.mainTextColor,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              SizedBox(height: SizeConfig.size4),
+              Row(
+                children: [
+                  _multiStopChip(),
+                  SizedBox(width: SizeConfig.size6),
+                  if ((_order.orderNo ?? '').isNotEmpty)
+                    Flexible(
+                      child: CustomText(
+                        '#${_order.orderNo}',
+                        fontSize: SizeConfig.small11,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.secondaryTextColor,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        SizedBox(width: SizeConfig.size6),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            CustomText(
+              _formatTime(_order.createdAt ?? ''),
+              fontSize: SizeConfig.extraSmall,
+              fontWeight: FontWeight.w400,
+              color: AppColors.grey9A,
+            ),
+            SizedBox(height: SizeConfig.size6),
+            _fareBadge(),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _multiStopChip() {
+    final count = _shops.isNotEmpty ? _shops.length : null;
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size8,
+        vertical: SizeConfig.size2,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.primaryColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(100),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.alt_route_rounded,
+              size: SizeConfig.size12, color: AppColors.primaryColor),
+          SizedBox(width: SizeConfig.size4),
+          CustomText(
+            count != null ? '$count pickups • 1 drop' : 'Multi-stop',
+            fontSize: SizeConfig.extraSmall,
+            fontWeight: FontWeight.w700,
+            color: AppColors.primaryColor,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _fareBadge() {
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size10,
+        vertical: SizeConfig.size6,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.primaryColor.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: CustomText(
+        '₹ ${_order.fare ?? 0}',
+        fontSize: SizeConfig.small,
+        fontWeight: FontWeight.w700,
+        color: AppColors.primaryColor,
+      ),
+    );
+  }
+
+  // ── Route (pickups + drop) ──────────────────────────────────────
+  Widget _buildRoute() {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.whiteFE,
+        border: Border.all(color: AppColors.whiteE5),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: EdgeInsets.all(SizeConfig.size12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CustomText(
+            'PICK-UP STOPS',
+            fontSize: SizeConfig.extraSmall,
+            fontWeight: FontWeight.w700,
+            color: AppColors.secondaryTextColor,
+            letterSpacing: 0.6,
+          ),
+          SizedBox(height: SizeConfig.size10),
+          if (_shops.isEmpty)
+            CustomText(
+              'Multiple pickup stops',
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w500,
+              color: AppColors.mainTextColor,
+            )
+          else
+            ...List.generate(_shops.length, (i) => _buildShopStop(i)),
+          _buildDropStop(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildShopStop(int index) {
+    final shop = _shops[index];
+    final picked = _isShopPicked(shop);
+    final arrived = _arrived.contains(shop.businessId);
+    final verifying = _verifyingShop.contains(shop.businessId);
+    final name = shop.businessName.isNotEmpty
+        ? shop.businessName
+        : 'Shop ${index + 1}';
+
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Sequence rail: numbered dot + connecting line.
+          Column(
+            children: [
+              Container(
+                width: 24,
+                height: 24,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: picked
+                      ? AppColors.green0B
+                      : AppColors.primaryColor,
+                  shape: BoxShape.circle,
+                ),
+                child: picked
+                    ? const Icon(Icons.check, size: 14, color: Colors.white)
+                    : CustomText(
+                        '${index + 1}',
+                        fontSize: SizeConfig.small11,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+              ),
+              Expanded(child: Container(width: 2, color: AppColors.whiteE5)),
+            ],
+          ),
+          SizedBox(width: SizeConfig.size10),
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(bottom: SizeConfig.size12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CustomText(
+                          name,
+                          fontSize: SizeConfig.medium,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.mainTextColor,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (shop.items.isNotEmpty)
+                        CustomText(
+                          '${shop.items.length} item${shop.items.length == 1 ? '' : 's'}',
+                          fontSize: SizeConfig.small11,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.primaryColor,
+                        ),
+                    ],
+                  ),
+                  if (shop.amountPaid > 0) ...[
+                    SizedBox(height: SizeConfig.size2),
+                    CustomText(
+                      '₹ ${shop.amountPaid}',
+                      fontSize: SizeConfig.small11,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.secondaryTextColor,
+                    ),
+                  ],
+                  // Per-stop pickup workflow only while the ride is ongoing.
+                  if (_isOngoing && !picked) ...[
+                    SizedBox(height: SizeConfig.size8),
+                    if (!arrived)
+                      _arrivedButton(shop)
+                    else
+                      _shopOtpBox(shop, verifying),
+                  ],
+                  if (picked) ...[
+                    SizedBox(height: SizeConfig.size4),
+                    Row(
+                      children: [
+                        Icon(Icons.check_circle,
+                            size: SizeConfig.size14,
+                            color: AppColors.green0B),
+                        SizedBox(width: SizeConfig.size4),
+                        CustomText(
+                          'Picked up',
+                          fontSize: SizeConfig.small11,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.green0B,
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDropStop() {
+    final address = _order.dropLocation?.address ?? '';
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 24,
+          height: 24,
+          alignment: Alignment.center,
+          decoration: const BoxDecoration(
+            color: AppColors.redLite,
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(Icons.location_on, size: 14, color: Colors.white),
+        ),
+        SizedBox(width: SizeConfig.size10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CustomText(
+                'Drop — ${_order.user?.name ?? 'Customer'}',
+                fontSize: SizeConfig.medium,
+                fontWeight: FontWeight.w600,
+                color: AppColors.mainTextColor,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (address.isNotEmpty) ...[
+                SizedBox(height: SizeConfig.size2),
+                CustomText(
+                  address,
+                  fontSize: SizeConfig.small11,
+                  fontWeight: FontWeight.w400,
+                  color: AppColors.secondaryTextColor,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ],
+          ),
+        ),
+        if (_isOngoing && (_order.user?.contactNo?.isNotEmpty ?? false))
+          _callButton(_order.user?.contactNo),
+      ],
+    );
+  }
+
+  Widget _callButton(String? contactNo) {
+    return InkWell(
+      onTap: () {
+        if (contactNo?.isNotEmpty ?? false) {
+          openDialer(contactNo ?? '');
+        } else {
+          commonSnackBar(message: 'Contact number not found');
+        }
+      },
+      child: Container(
+        margin: EdgeInsets.only(left: SizeConfig.size6),
+        padding: EdgeInsets.all(SizeConfig.size6),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          shape: BoxShape.circle,
+          border: Border.all(color: AppColors.secondaryTextColor),
+        ),
+        child: Icon(Icons.call,
+            size: SizeConfig.size14, color: AppColors.secondaryTextColor),
+      ),
+    );
+  }
+
+  // ── Per-shop "Arrived" + OTP box ────────────────────────────────
+  Widget _arrivedButton(BusinessOrder shop) {
+    return InkWell(
+      onTap: () => _onArrived(shop),
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size12,
+          vertical: SizeConfig.size8,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+              color: AppColors.primaryColor.withValues(alpha: 0.3)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.storefront_outlined,
+                size: SizeConfig.size14, color: AppColors.primaryColor),
+            SizedBox(width: SizeConfig.size6),
+            CustomText(
+              'Arrived at shop',
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w600,
+              color: AppColors.primaryColor,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _shopOtpBox(BusinessOrder shop, bool verifying) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CustomText(
+          'Enter shop pickup OTP',
+          fontSize: SizeConfig.small11,
+          fontWeight: FontWeight.w500,
+          color: AppColors.secondaryTextColor,
+        ),
+        SizedBox(height: SizeConfig.size6),
+        Row(
+          children: [
+            Flexible(
+              child: AbsorbPointer(
+                absorbing: verifying,
+                child: Opacity(
+                  opacity: verifying ? 0.6 : 1,
+                  child: _otpPinput(
+                    onCompleted: (pin) => _onShopOtp(shop, pin),
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(width: SizeConfig.size8),
+            if (verifying)
+              const SizedBox(
+                height: 18,
+                width: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // ── Final delivery OTP ──────────────────────────────────────────
+  Widget _buildDeliveryOtpSection() {
+    return Obx(() {
+      final verifying = controller.verifyingOtpMap[_orderId] ?? false;
+      final verified = controller.otpVerifiedMap[_orderId] ?? false;
+      return Container(
+        width: double.infinity,
+        padding: EdgeInsets.all(SizeConfig.size12),
+        decoration: BoxDecoration(
+          color: AppColors.green0B.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.green0B.withValues(alpha: 0.3)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.verified_user_outlined,
+                    size: SizeConfig.size16, color: AppColors.green0B),
+                SizedBox(width: SizeConfig.size6),
+                Expanded(
+                  child: CustomText(
+                    verified
+                        ? 'Delivery verified'
+                        : 'Enter customer Delivery OTP',
+                    fontSize: SizeConfig.small,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.green0B,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: SizeConfig.size10),
+            Row(
+              children: [
+                Flexible(
+                  child: AbsorbPointer(
+                    absorbing: verifying || verified,
+                    child: Opacity(
+                      opacity: (verifying || verified) ? 0.6 : 1,
+                      child: _otpPinput(
+                        enabled: !verified,
+                        onCompleted: (pin) {
+                          if (pin.length == 4) {
+                            controller.verifyDeliveredOtp(_orderId, pin);
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(width: SizeConfig.size8),
+                if (verifying)
+                  const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                else
+                  Icon(
+                    verified
+                        ? Icons.check_circle
+                        : Icons.radio_button_unchecked,
+                    color: verified ? AppColors.green0B : AppColors.grey9A,
+                    size: SizeConfig.size22,
+                  ),
+              ],
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+  // Shared OTP field — 4-digit numeric box, matching the rest of the app.
+  Widget _otpPinput({
+    required ValueChanged<String> onCompleted,
+    bool enabled = true,
+  }) {
+    return Pinput(
+      length: 4,
+      enabled: enabled,
+      keyboardType: TextInputType.number,
+      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+      onCompleted: onCompleted,
+      defaultPinTheme: PinTheme(
+        width: 40,
+        height: 44,
+        textStyle: TextStyle(
+          fontSize: SizeConfig.medium,
+          fontWeight: FontWeight.w700,
+          color: AppColors.mainTextColor,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.greyE5),
+        ),
+      ),
+      focusedPinTheme: PinTheme(
+        width: 40,
+        height: 44,
+        textStyle: TextStyle(
+          fontSize: SizeConfig.medium,
+          fontWeight: FontWeight.w700,
+          color: AppColors.mainTextColor,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.primaryColor, width: 1.4),
+        ),
+      ),
+    );
+  }
+
+  // ── Accept / Reject (pending) ───────────────────────────────────
+  Widget _buildAcceptRejectRow() {
+    return Row(
+      children: [
+        Expanded(
+          child: _ctaButton(
+            label: 'Reject',
+            bg: AppColors.redLite.withValues(alpha: 0.1),
+            border: AppColors.redLite,
+            fg: AppColors.redLite,
+            onTap: () => controller.rideAction(AppConstants.reject, _orderId),
+          ),
+        ),
+        SizedBox(width: SizeConfig.size10),
+        Expanded(
+          child: _ctaButton(
+            label: 'Accept',
+            bg: AppColors.green0B.withValues(alpha: 0.1),
+            border: AppColors.green0B,
+            fg: AppColors.green0B,
+            onTap: () => controller.rideAction(AppConstants.accept, _orderId),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _ctaButton({
+    required String label,
+    required Color bg,
+    required Color border,
+    required Color fg,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(100),
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: SizeConfig.size10),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: bg,
+          border: Border.all(color: border),
+          borderRadius: BorderRadius.circular(100),
+        ),
+        child: CustomText(
+          label,
+          fontSize: SizeConfig.small,
+          fontWeight: FontWeight.w600,
+          color: fg,
+        ),
+      ),
+    );
+  }
+
+  // ── Actions ─────────────────────────────────────────────────────
+  Future<void> _onArrived(BusinessOrder shop) async {
+    final ok = await controller.multiShopStopArrive(_orderId, shop.businessId);
+    if (ok && mounted) {
+      setState(() => _arrived.add(shop.businessId));
+    }
+  }
+
+  Future<void> _onShopOtp(BusinessOrder shop, String pin) async {
+    if (pin.length != 4) return;
+    setState(() => _verifyingShop.add(shop.businessId));
+    final ok =
+        await controller.multiShopStopPickup(_orderId, shop.businessId, pin);
+    if (!mounted) return;
+    setState(() {
+      _verifyingShop.remove(shop.businessId);
+      if (ok) _pickedLocal.add(shop.businessId);
+    });
+  }
+
+  String _formatTime(String isoString) {
+    try {
+      return DateFormat('hh:mm a').format(DateTime.parse(isoString).toLocal());
+    } catch (_) {
+      return '';
+    }
+  }
+}

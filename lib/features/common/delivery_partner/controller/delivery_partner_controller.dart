@@ -1073,6 +1073,57 @@ class DeliveryPartnerController extends GetxController {
     }
   }
 
+  // ─── En-route route (pickup→drop corridor) ───────────────────────
+  // Declares the rider's fixed pickup→drop path so any open order whose
+  // pickup AND drop both fall within [radiusKm] of the corridor becomes
+  // claimable. Creating a route supersedes the previous active one (one
+  // at a time). See docs/backend/RIDER_ROUTE_ENROUTE_ORDERS_FRONTEND_GUIDE.md.
+  RxBool isRiderRouteSubmitting = false.obs;
+
+  Future<bool> createRiderRoute({
+    required double pickupLat,
+    required double pickupLng,
+    required String pickupAddress,
+    required double dropLat,
+    required double dropLng,
+    required String dropAddress,
+    double radiusKm = 1,
+    int expiresInMinutes = 240,
+  }) async {
+    try {
+      isRiderRouteSubmitting.value = true;
+      final params = <String, dynamic>{
+        'pickup': {
+          ApiKeys.latitude: pickupLat,
+          ApiKeys.longitude: pickupLng,
+          ApiKeys.address: pickupAddress,
+        },
+        'drop': {
+          ApiKeys.latitude: dropLat,
+          ApiKeys.longitude: dropLng,
+          ApiKeys.address: dropAddress,
+        },
+        // No road polyline available here — omit `path` so the backend
+        // falls back to a straight pickup→drop corridor.
+        'radiusKm': radiusKm,
+        'expiresInMinutes': expiresInMinutes,
+      };
+      final response =
+          await DeliveryPartnerRepo().createRiderRouteRepo(params: params);
+      if (response.isSuccess) {
+        return true;
+      }
+      commonSnackBar(
+          message: response.message ?? AppStrings.somethingWentWrong);
+      return false;
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
+    } finally {
+      isRiderRouteSubmitting.value = false;
+    }
+  }
+
   Future<void> addLivePhoto() async {
     final selectedPath = await PhotoPickerService.pickFromCamera(
         Get.context!,
