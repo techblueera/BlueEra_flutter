@@ -42,6 +42,20 @@ class ManufacturerProductRepo extends BaseService {
     );
   }
 
+  /// Delete a single inventory variant by its inventory id.
+  /// `DELETE product-service/api/inventory/{inventoryId}` — same path as the
+  /// update endpoint, DELETE verb.
+  Future<ResponseModel> deleteInventoryVariantRepo({
+    required String inventoryId,
+  }) async {
+    return ApiBaseHelper().deleteHTTP(
+      updateProductInventory(inventoryId),
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+  }
+
   ///Fetch InventoryBasedSearchProduct...
   Future<ResponseModel> fetchSearchProductViaCategoryRepo({required Map<String, dynamic> queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(

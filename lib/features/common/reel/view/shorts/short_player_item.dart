@@ -368,9 +368,9 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
   /// Max keyword chips shown before collapsing the rest behind "+N more".
   static const int _collapsedKeywordCount = 3;
 
-  /// Keyword chips — one consistent chip UI in both states. Collapsed shows
-  /// the first [_collapsedKeywordCount] chips plus a "+N more" pill; tapping it
-  /// expands to every chip with a "show less" pill.
+  /// Keywords as plain `#hashtag` text (no chips/background). Collapsed shows
+  /// the first [_collapsedKeywordCount] plus a "+N more" toggle; tapping it
+  /// expands to all with "show less".
   Widget _buildKeywords(List<String> keywords) {
     final hasMore = keywords.length > _collapsedKeywordCount;
     final visible = (_keywordsExpanded || !hasMore)
@@ -398,37 +398,21 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
     );
   }
 
-  /// Primary-tinted pill used for the "+N more" / "show less" keyword toggle,
-  /// sized to sit inline with the keyword chips.
-  Widget _keywordTogglePill(String label) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-        decoration: BoxDecoration(
-          color: AppColors.primaryColor.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(20),
-          border:
-              Border.all(color: AppColors.primaryColor.withValues(alpha: 0.4)),
-        ),
-        child: CustomText(
-          label,
-          color: AppColors.primaryColor,
-          fontSize: SizeConfig.size11,
-          fontWeight: FontWeight.w700,
-        ),
+  /// Plain "+N more" / "show less" toggle text (primary-colored), inline with
+  /// the hashtags.
+  Widget _keywordTogglePill(String label) => CustomText(
+        label,
+        color: AppColors.primaryColor,
+        fontSize: SizeConfig.size11,
+        fontWeight: FontWeight.w700,
       );
 
-  Widget _keywordChip(String k) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-        decoration: BoxDecoration(
-          color: AppColors.white.withValues(alpha: 0.15),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.white.withValues(alpha: 0.3)),
-        ),
-        child: CustomText(
-          '#$k',
-          color: AppColors.white,
-          fontSize: SizeConfig.size11,
-          fontWeight: FontWeight.w600,
-        ),
+  /// A single keyword as plain `#hashtag` text — no background container.
+  Widget _keywordChip(String k) => CustomText(
+        '#$k',
+        color: AppColors.white,
+        fontSize: SizeConfig.size11,
+        fontWeight: FontWeight.w600,
       );
 
   /// True when [text] would render on more than one line at [maxWidth].

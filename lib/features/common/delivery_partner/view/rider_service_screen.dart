@@ -11,11 +11,13 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/controller/location_controller.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_location_search_field.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -102,6 +104,24 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   final TextEditingController _dropController = TextEditingController();
   double? _pickupLat, _pickupLng, _dropLat, _dropLng;
 
+  // ── Pickup location source ─────────────────────────────────────
+  // The pickup address can come from either of two sources, chosen via a
+  // pair of radio buttons:
+  //   • _pickupUseCurrentLocation == true  → device GPS. We resolve the
+  //     current coordinates + readable address through LocationController
+  //     and surface them read-only.
+  //   • _pickupUseCurrentLocation == false → custom address. The Google
+  //     Places search field is shown along with an extra free-text field
+  //     for the house no. / landmark detail that maps lookups miss.
+  // Defaults to current location so the common case is one tap.
+  bool _pickupUseCurrentLocation = true;
+  bool _fetchingCurrentPickup = false;
+  // Extra free-text detail (flat/house no., landmark) for the custom
+  // address — captured alongside the resolved pickup coordinates.
+  // final TextEditingController _pickupAddressDetailController =
+  //     TextEditingController();
+  final _locationCtrl = getOrPut(() => LocationController());
+
 
   @override
   void initState() {
@@ -139,6 +159,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     _prefWorker?.dispose();
     _pickupController.dispose();
     _dropController.dispose();
+    // _pickupAddressDetailController.dispose();
     // We own the orders SSE stream while this screen is alive — tear it
     // down so the connection isn't leaked once the screen is gone.
     _ordersCtrl.stopStream();
@@ -705,7 +726,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CustomText(
-            AppStrings.pickupDropPreference.tr,
+           "Drop/Destination Preference",
             fontSize: 15,
             fontWeight: FontWeight.w800,
             color: AppColors.mainTextColor,
@@ -734,29 +755,291 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
             },
           ),
           SizedBox(height: SizeConfig.size12),
-          // Pickup â€” same Google-backed search field.
-          CommonLocationSearchField(
-            controller: _pickupController,
-            title: AppStrings.pickupLocation.tr,
-            hintText: AppStrings.searchPickupAddress.tr,
-            onSelected: (placeId, lat, lng, address) {
-              setState(() {
-                _pickupController.text = address;
-                _pickupLat = lat;
-                _pickupLng = lng;
-              });
-            },
-          ),
+          // Pickup — sourced from the device's current location OR a custom
+          // searched address, chosen via radio (see _buildPickupLocationSection).
+          _buildPickupLocationSection(),
           SizedBox(height: SizeConfig.size16),
-          CustomBtn(
-            title: AppStrings.submit.tr,
-            radius: 10,
-            bgColor: AppColors.primaryColor,
-            onTap: _onPickupDropSubmit,
-          ),
+          Obx(() {
+            final loading = controller.isRiderRouteSubmitting.value;
+            return CustomBtn(
+              title: AppStrings.submit.tr,
+              radius: 10,
+              isLoading: loading,
+              bgColor: AppColors.primaryColor,
+              onTap: loading ? null : _onPickupDropSubmit,
+            );
+          }),
         ],
       ),
     );
+  }
+
+  // Pickup location source picker — two radio rows + the body that swaps
+  // with the selection:
+  //   • Current Location → a read-only tile showing the GPS-resolved
+  //     address (fetched on selection) with a refresh affordance.
+  //   • Custom Address → the Google Places search field plus a free-text
+  //     detail field (flat/house no., landmark).
+  Widget _buildPickupLocationSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CustomText(
+          AppStrings.pickupLocation.tr,
+          fontSize: 13,
+          fontWeight: FontWeight.w700,
+          color: AppColors.mainTextColor,
+        ),
+        SizedBox(height: SizeConfig.size10),
+        Row(
+          children: [
+            Expanded(
+              child: _buildPickupModeRadio(
+                label: AppStrings.currentLocation.tr,
+                icon: Icons.my_location_rounded,
+                isCurrent: true,
+              ),
+            ),
+            SizedBox(width: SizeConfig.size10),
+            Expanded(
+              child: _buildPickupModeRadio(
+                label: AppStrings.customAddress.tr,
+                icon: Icons.edit_location_alt_outlined,
+                isCurrent: false,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: SizeConfig.size12),
+        if (_pickupUseCurrentLocation)
+          _buildCurrentLocationTile()
+        else
+          _buildCustomAddressFields(),
+      ],
+    );
+  }
+
+  // One pickup-mode radio (Current Location / Custom Address). Hand-rolled
+  // dot mirrors the service-preference radios for visual consistency.
+  Widget _buildPickupModeRadio({
+    required String label,
+    required IconData icon,
+    required bool isCurrent,
+  }) {
+    final selected = _pickupUseCurrentLocation == isCurrent;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () {
+        if (_pickupUseCurrentLocation == isCurrent) return;
+        setState(() => _pickupUseCurrentLocation = isCurrent);
+        // Selecting Current Location auto-fetches the address (unless we
+        // already have it). Switching to Custom clears the GPS-sourced
+        // value so a stale current address can't leak into a custom pick.
+        if (isCurrent) {
+          if (_pickupLat == null || _pickupLng == null) {
+            _fetchCurrentPickupLocation();
+          }
+        } else {
+          setState(() {
+            _pickupController.clear();
+            _pickupLat = null;
+            _pickupLng = null;
+          });
+        }
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size12,
+          vertical: SizeConfig.size12,
+        ),
+        decoration: BoxDecoration(
+          color: selected
+              ? AppColors.primaryColor.withValues(alpha: 0.06)
+              : AppColors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: selected ? AppColors.primaryColor : AppColors.greyE5,
+            width: selected ? 1.4 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: selected
+                  ? AppColors.primaryColor
+                  : AppColors.secondaryTextColor,
+            ),
+            SizedBox(width: SizeConfig.size8),
+            Expanded(
+              child: CustomText(
+                label,
+                fontSize: 12.5,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                color: AppColors.mainTextColor,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              height: 18,
+              width: 18,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: selected ? AppColors.primaryColor : Colors.transparent,
+                border: Border.all(
+                  color: selected ? AppColors.primaryColor : AppColors.grey9B,
+                  width: 2,
+                ),
+              ),
+              child: selected
+                  ? const Center(
+                      child: Icon(Icons.check, size: 11, color: AppColors.white),
+                    )
+                  : null,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Read-only tile for the GPS-resolved pickup address. Shows a loader
+  // while fetching, the resolved address + coordinates once available, and
+  // a tappable "Use current location" prompt otherwise. The whole tile
+  // re-fetches on tap so the rider can refresh after moving.
+  Widget _buildCurrentLocationTile() {
+    final hasAddress = _pickupController.text.trim().isNotEmpty &&
+        _pickupLat != null &&
+        _pickupLng != null;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: _fetchingCurrentPickup ? null : _fetchCurrentPickupLocation,
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size12,
+          vertical: SizeConfig.size12,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.greyE5, width: 1),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            if (_fetchingCurrentPickup)
+              const SizedBox(
+                height: 18,
+                width: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppColors.primaryColor,
+                ),
+              )
+            else
+              Icon(
+                Icons.my_location_rounded,
+                size: 20,
+                color: AppColors.primaryColor,
+              ),
+            SizedBox(width: SizeConfig.size10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    _fetchingCurrentPickup
+                        ? AppStrings.fetchingLocation.tr
+                        : (hasAddress
+                            ? _pickupController.text
+                            : AppStrings.fetchCurrentLocation.tr),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.mainTextColor,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (hasAddress && !_fetchingCurrentPickup) ...[
+                    SizedBox(height: SizeConfig.size4),
+                    CustomText(
+                      '${_pickupLat!.toStringAsFixed(5)}, '
+                      '${_pickupLng!.toStringAsFixed(5)}',
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.secondaryTextColor,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            if (!_fetchingCurrentPickup) ...[
+              SizedBox(width: SizeConfig.size8),
+              Icon(
+                Icons.refresh_rounded,
+                size: 18,
+                color: AppColors.primaryColor,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Custom-address branch: Google Places search (resolves the pickup
+  // coordinates) + a free-text detail field for the part maps can't infer.
+  Widget _buildCustomAddressFields() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CommonLocationSearchField(
+          controller: _pickupController,
+          title: AppStrings.pickupLocation.tr,
+          hintText: AppStrings.searchPickupAddress.tr,
+          onSelected: (placeId, lat, lng, address) {
+            setState(() {
+              _pickupController.text = address;
+              _pickupLat = lat;
+              _pickupLng = lng;
+            });
+          },
+        ),
+        SizedBox(height: SizeConfig.size12),
+        // Extra free-text detail (flat/house no., landmark) the autocomplete
+        // can't capture — kept separate from the resolved address.
+        // CommonTextField(
+        //   textEditController: _pickupAddressDetailController,
+        //   title: AppStrings.houseNoAndLandMark.tr,
+        //   hintText: AppStrings.landmarkHint.tr,
+        //   maxLine: 2,
+        // ),
+      ],
+    );
+  }
+
+  // Resolves the device's current location (permission → GPS → reverse
+  // geocode) and fills the pickup address + coordinates from it. Used by
+  // the Current Location radio and the tile's refresh tap.
+  Future<void> _fetchCurrentPickupLocation() async {
+    setState(() => _fetchingCurrentPickup = true);
+    final data = await _locationCtrl.checkPermissionAndSetData();
+    if (!mounted) return;
+    if (data == null) {
+      setState(() => _fetchingCurrentPickup = false);
+      commonSnackBar(message: AppStrings.currentLocationUnavailable.tr);
+      return;
+    }
+    setState(() {
+      _pickupController.text = data.fullAddress;
+      _pickupLat = double.tryParse(data.lat);
+      _pickupLng = double.tryParse(data.long);
+      _fetchingCurrentPickup = false;
+    });
   }
 
   // â€” Submit handlers â€”
@@ -795,7 +1078,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   static const double _minPickupDropKm = 0.5; // 500 meters
   static const double _maxPickupDropKm = 20.0;
 
-  void _onPickupDropSubmit() {
+  Future<void> _onPickupDropSubmit() async {
     if (_pickupController.text.trim().isEmpty ||
         _dropController.text.trim().isEmpty) {
       commonSnackBar(message: AppStrings.pleaseSelectPickupDrop.tr);
@@ -827,13 +1110,24 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
               '${distanceKm.toStringAsFixed(1)} km.');
       return;
     }
+    // Declare this pickup→drop as the rider's active en-route route. Any
+    // open order whose pickup AND drop both fall within the corridor (and
+    // matching the rider's vehicle-use preference) then becomes claimable.
+    // Creating a route supersedes the previous active one.
+    final ok = await controller.createRiderRoute(
+      pickupLat: _pickupLat!,
+      pickupLng: _pickupLng!,
+      pickupAddress: _pickupController.text.trim(),
+      dropLat: _dropLat!,
+      dropLng: _dropLng!,
+      dropAddress: _dropController.text.trim(),
+    );
+    if (!ok || !mounted) return;
     commonSnackBar(message: AppStrings.pickupDropPreferenceSaved.tr);
-    // TODO: persist pickup/drop via the rider preference API. The
-    // resolved coordinates are captured alongside the addresses so the
-    // request can send precise lat/lng once the endpoint is wired.
-    logs('Pickup pref → ${_pickupController.text} '
-        '($_pickupLat, $_pickupLng) | '
-        'Drop pref → ${_dropController.text} ($_dropLat, $_dropLng) | '
+    logs('Route created → ${_pickupController.text} '
+        '($_pickupLat, $_pickupLng) '
+        'source=${_pickupUseCurrentLocation ? 'current' : 'custom'} '
+        'Drop → ${_dropController.text} ($_dropLat, $_dropLng) | '
         'distance=${distanceKm.toStringAsFixed(2)} km');
   }
 

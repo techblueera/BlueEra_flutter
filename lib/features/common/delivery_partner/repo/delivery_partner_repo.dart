@@ -159,6 +159,20 @@ class DeliveryPartnerRepo extends BaseService {
     return response;
   }
 
+  /// Create / activate the rider's en-route route (pickup→drop corridor).
+  /// Supersedes any previous active route — one active route at a time.
+  /// See docs/backend/RIDER_ROUTE_ENROUTE_ORDERS_FRONTEND_GUIDE.md §1.
+  Future<ResponseModel> createRiderRouteRepo({required Map<String, dynamic> params}) async {
+    var response = await ApiBaseHelper().postHTTP(
+      riderRoutes,
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   /// Get Associated Shops for rider
   Future<ResponseModel> getAssociatedShopsRepo({required Map<String, dynamic> params}) async {
     final query = params.entries.map((e) => '${e.key}=${e.value}').join('&');

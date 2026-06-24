@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_orders_controller.dart';
+import 'package:BlueEra/features/common/delivery_partner/widget/multi_shop_order_card.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/order_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -663,10 +664,7 @@ class _PassengerOrderScreenState extends State<PassengerOrderScreen> {
               fontWeight: FontWeight.bold,
             ),
           ),
-          ...onGoing.map((order) => OrderCard(
-                order: order,
-                selectedPickUp: PickUpTab.onGoing,
-              )),
+          ...onGoing.map((order) => _orderCard(order, PickUpTab.onGoing)),
         ],
         if (newOrders.isNotEmpty) ...[
           Padding(
@@ -677,10 +675,7 @@ class _PassengerOrderScreenState extends State<PassengerOrderScreen> {
               fontWeight: FontWeight.bold,
             ),
           ),
-          ...newOrders.map((order) => OrderCard(
-                order: order,
-                selectedPickUp: PickUpTab.newOrder,
-              )),
+          ...newOrders.map((order) => _orderCard(order, PickUpTab.newOrder)),
         ],
       ],
     );
@@ -721,15 +716,22 @@ class _PassengerOrderScreenState extends State<PassengerOrderScreen> {
 
               /// 🔹 LIST UNDER TITLE
               ...orders.map((rider) {
-                return OrderCard(
-                  order: rider,
-                  selectedPickUp: controller.selectedPickUp.value,
-                );
+                return _orderCard(rider, controller.selectedPickUp.value);
               }).toList(),
             ],
           );
         },
       );
+  }
+
+  /// Picks the right card for an order: multi-shop goods orders (booked via
+  /// the goods multi-order flow) get the purpose-built [MultiShopOrderCard];
+  /// everything else keeps the generic [OrderCard].
+  Widget _orderCard(RiderOrdersDetailsModel order, PickUpTab tab) {
+    if (isMultiShopGoodsOrder(order)) {
+      return MultiShopOrderCard(order: order, selectedPickUp: tab);
+    }
+    return OrderCard(order: order, selectedPickUp: tab);
   }
 
   Map<String, List<RiderOrdersDetailsModel>> groupOrdersByOrderFor(

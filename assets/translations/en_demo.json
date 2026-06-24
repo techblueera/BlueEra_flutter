@@ -681,6 +681,7 @@
   "currentJobDeleteFailed": "Failed to delete job",
   "currentJobDeleted": "Current Job deleted",
   "currentLocation": "Current Location",
+  "customAddress": "Custom Address",
   "currentLocationUnavailable": "Current Location Unavailable",
   "currentPhoneNumber": "Current Phone Number",
   "currentVideo": "Current Video",
