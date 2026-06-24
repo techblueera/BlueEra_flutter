@@ -860,6 +860,7 @@ class AppStrings {
   static const offline = "offline";
   static const both = "both";
   static const currentLocation = "currentLocation";
+  static const customAddress = "customAddress";
   static const searchLocation = "searchLocation";
   static const fetchCurrentLocation = "fetchCurrentLocation";
   static const tapToFetchBusinessLocation = "tapToFetchBusinessLocation";

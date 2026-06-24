@@ -573,6 +573,7 @@
   "currentJobDeleteFailed": "ജോലി ഡിലീറ്റ് ചെയ്യൽ പരാജയപ്പെട്ടു",
   "currentJobDeleted": "നിലവിലെ ജോലി ഡിലീറ്റ് ചെയ്തു",
   "currentLocation": "നിലവിലെ സ്ഥലം",
+  "customAddress": "Custom Address",
   "currentLocationUnavailable": "നിലവിലെ ലൊക്കേഷൻ ലഭ്യമല്ല",
   "currentOrganization": "നിലവിലെ സ്ഥാപനം",
   "currentPhoneNumber": "പ്രస్తుత ഫോൺ നമ്പർ",
