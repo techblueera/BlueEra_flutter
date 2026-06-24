@@ -1070,6 +1070,36 @@ class InventoryController extends GetxController {
     }
   }
 
+  /// Deletes a single inventory variant by its inventory id, then drops it from
+  /// the in-memory [allProducts] (removing the product entirely once it has no
+  /// variants left) so the grid updates immediately. Returns `true` on success.
+  Future<bool> deleteInventoryVariant({required String inventoryId}) async {
+    if (inventoryId.isEmpty) return false;
+    try {
+      final res = await ProductRepo()
+          .deleteInventoryVariantRepo(inventoryId: inventoryId);
+      if (!res.isSuccess) return false;
+
+      // Purge from every displayed list (the grid renders from
+      // [productsByCategoryList]; [allProducts] backs other strips) and refresh
+      // so the bound Obx rebuilds without the deleted item.
+      for (final list in [allProducts, productsByCategoryList]) {
+        for (final p in list.toList()) {
+          final variants = p.product.sellerClassification?.variants;
+          variants?.removeWhere(
+              (v) => v.inventoryId == inventoryId || v.id == inventoryId);
+          if (variants == null || variants.isEmpty) {
+            list.remove(p);
+          }
+        }
+        list.refresh();
+      }
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// Updates a single inventory variant's selling price / mrp / active flag by
   /// its inventory id, via the product-service inventory endpoint. Refreshes
   /// the in-memory [allProducts] so the card reflects the change immediately.

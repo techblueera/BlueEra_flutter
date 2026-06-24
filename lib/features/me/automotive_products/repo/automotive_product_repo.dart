@@ -59,6 +59,20 @@ class AutomotiveProductRepo extends BaseService {
     );
   }
 
+  /// Delete a single inventory variant by its inventory id.
+  /// `DELETE automotive-service/api/inventory/{inventoryId}` — same path as the
+  /// update endpoint, DELETE verb.
+  Future<ResponseModel> deleteInventoryVariantRepo({
+    required String inventoryId,
+  }) async {
+    return ApiBaseHelper().deleteHTTP(
+      automotiveUpdateProductInventory(inventoryId),
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+  }
+
   /// Place a product order. `POST product-service/api/orders`.
   Future<ResponseModel> placeProductOrderRepo({
     required Map<String, dynamic> params,
