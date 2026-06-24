@@ -1,4 +1,5 @@
 import 'dart:ui';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
@@ -9,7 +10,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
-import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_banner_slider.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/automotive_service_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/book_home_service_widget.dart';
@@ -25,6 +25,7 @@ import 'package:BlueEra/features/common/Discover/view/widget/professionals_card_
 import 'package:BlueEra/features/common/Discover/view/widget/rental_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/shopping_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/transport_service_widget.dart';
+import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/qr_code/view/emergency_qr_screen.dart';
 import 'package:BlueEra/features/common/qr_code/view/qr_design_options_widget.dart';
 import 'package:BlueEra/features/personal/emergency/controller/emergency_profile_controller.dart';
@@ -40,7 +41,6 @@ class DiscoverScreen extends StatefulWidget {
 
   @override
   State<DiscoverScreen> createState() => _DiscoverScreenState();
-
 }
 
 class _DiscoverScreenState extends State<DiscoverScreen> {
@@ -76,7 +76,12 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     final inGrid = _isInGridMode;
     return [
       (widget: GroceryCardWidget(), tabs: {3}),
-      (widget: TransportServiceWidget(targetRiderKey: _riderWidgetKey,), tabs: {1}),
+      (
+        widget: TransportServiceWidget(
+          targetRiderKey: _riderWidgetKey,
+        ),
+        tabs: {1}
+      ),
       (widget: BookHomeServiceWidget(), tabs: {2}),
       (widget: ProfessionalsCardWidget(), tabs: {2}),
       (widget: HealthServiceCardWidget(), tabs: {4}),
@@ -97,9 +102,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   /// — when categories aren't ready yet we render shimmer placeholders of
   /// the same shape instead.
   Widget _buildSectionsColumn() {
-    final visible = _sections
-        .where((s) => _activeTabIndex == 0 || s.tabs.contains(_activeTabIndex))
-        .toList();
+    final visible = _sections.where((s) => _activeTabIndex == 0 || s.tabs.contains(_activeTabIndex)).toList();
     return Column(
       children: [
         for (final s in visible) ...[
@@ -172,8 +175,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   Widget build(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      // Banner is dark and the header gradient stays consistent across
-      // states, so keep status bar icons light (white) throughout.
+        // Banner is dark and the header gradient stays consistent across
+        // states, so keep status bar icons light (white) throughout.
         value: SystemUiOverlayStyle.light.copyWith(
           statusBarColor: Colors.transparent,
           statusBarIconBrightness: Brightness.light,
@@ -212,8 +215,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                               /// Location with rounded bg
                               Expanded(
                                 child: Container(
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 8),
+                                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                                   decoration: BoxDecoration(
                                     color: AppColors.black.withValues(alpha: 0.3),
                                     borderRadius: BorderRadius.circular(24),
@@ -221,16 +223,13 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Icon(Icons.location_on_outlined,
-                                          color: AppColors.white, size: 20),
+                                      Icon(Icons.location_on_outlined, color: AppColors.white, size: 20),
                                       SizedBox(width: SizeConfig.size6),
                                       Flexible(
                                         child: CustomText(
                                           [
-                                            LocationService.userCurrentAddress.value
-                                                .subLocality,
-                                            LocationService
-                                                .userCurrentAddress.value.city,
+                                            LocationService.userCurrentAddress.value.subLocality,
+                                            LocationService.userCurrentAddress.value.city,
                                           ].where((e) => e.isNotEmpty).join(', '),
                                           fontSize: SizeConfig.medium,
                                           color: AppColors.white,
@@ -239,8 +238,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
-                                      Icon(Icons.keyboard_arrow_down,
-                                          color: AppColors.white, size: 18),
+                                      Icon(Icons.keyboard_arrow_down, color: AppColors.white, size: 18),
                                     ],
                                   ),
                                 ),
@@ -251,8 +249,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                               /// Cart with rounded bg
                               _appBarAction(
                                 icon: AppIconAssets.cartIcon,
-                                onTap: () => Navigator.pushNamed(
-                                    context, RouteHelper.getYourCartScreenRoute()),
+                                onTap: () =>
+                                    Navigator.pushNamed(context, RouteHelper.getYourCartScreenRoute()),
                               ),
                             ],
                           ),
@@ -388,9 +386,7 @@ class _DiscoverSectionsShimmer extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8.0),
             child: LayoutBuilder(builder: (context, constraints) {
-              final double itemWidth =
-                  (constraints.maxWidth - _tileSpacing * (_columns - 1)) /
-                      _columns;
+              final double itemWidth = (constraints.maxWidth - _tileSpacing * (_columns - 1)) / _columns;
               return Wrap(
                 spacing: _tileSpacing,
                 runSpacing: _tileSpacing,
@@ -441,12 +437,8 @@ class DottedLinePainter extends CustomPainter {
 }
 
 Widget titleWidget(String title) {
-  return CustomText(
-      title,
-      fontSize: SizeConfig.large18,
-      color: AppColors.mainTextColor,
-      fontWeight: FontWeight.w600
-  );
+  return CustomText(title,
+      fontSize: SizeConfig.large18, color: AppColors.mainTextColor, fontWeight: FontWeight.w600);
   // return Container(
   //   padding: EdgeInsets.symmetric(horizontal: 10),
   //   decoration: BoxDecoration(
@@ -485,8 +477,7 @@ class _StickySearchBarDelegate extends SliverPersistentHeaderDelegate {
   static const double _tabIconSquare = 60; // 10 padding + 40 icon + 10 padding
   static const double _tabIconToText = 6;
   static const double _tabLabelRow = 24;
-  static const double _tabsHeight =
-      _tabIconSquare + _tabIconToText + _tabLabelRow; // 90
+  static const double _tabsHeight = _tabIconSquare + _tabIconToText + _tabLabelRow; // 90
 
   static const double _vTop = 10;
   static const double _vBottom = 10;
@@ -503,20 +494,17 @@ class _StickySearchBarDelegate extends SliverPersistentHeaderDelegate {
   double get minExtent => topPadding + _vTop + _tabsHeight + _vBottom;
 
   List<Map<String, String>> get _sectionData => [
-    {'title': AppStrings.overview.tr, 'icon': AppImageAssets.overviewDiscover},
-    {'title': AppStrings.bookings.tr, 'icon': AppImageAssets.bookingDiscover},
-    {'title': AppStrings.professionals.tr, 'icon': AppImageAssets.professionalDiscover},
-    {'title': AppStrings.shopping.tr, 'icon': AppImageAssets.shoppingDiscover},
-    {'title': AppStrings.services.tr, 'icon': AppImageAssets.servicesDiscover},
-  ];
+        {'title': AppStrings.overview.tr, 'icon': AppImageAssets.overviewDiscover},
+        {'title': AppStrings.bookings.tr, 'icon': AppImageAssets.bookingDiscover},
+        {'title': AppStrings.professionals.tr, 'icon': AppImageAssets.professionalDiscover},
+        {'title': AppStrings.shopping.tr, 'icon': AppImageAssets.shoppingDiscover},
+        {'title': AppStrings.services.tr, 'icon': AppImageAssets.servicesDiscover},
+      ];
 
   @override
-  Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
     final collapseRange = maxExtent - minExtent; // _collapsibleHeight - topPadding
-    final t = collapseRange <= 0
-        ? 1.0
-        : (shrinkOffset / collapseRange).clamp(0.0, 1.0);
+    final t = collapseRange <= 0 ? 1.0 : (shrinkOffset / collapseRange).clamp(0.0, 1.0);
     final currentCollapsibleHeight = (1 - t) * _collapsibleHeight;
     final currentTopPad = _vTop + t * topPadding;
     final searchOpacity = (1 - t * 1.4).clamp(0.0, 1.0);
@@ -546,118 +534,112 @@ class _StickySearchBarDelegate extends SliverPersistentHeaderDelegate {
             bottom: _vBottom,
           ),
           child: Column(
-        children: [
-          // Collapsing search bar + 16px gap below it.
-          SizedBox(
-            height: currentCollapsibleHeight,
-            child: ClipRect(
-              child: OverflowBox(
-                minHeight: _collapsibleHeight,
-                maxHeight: _collapsibleHeight,
-                alignment: Alignment.topCenter,
-                child: Opacity(
-                  opacity: searchOpacity,
-                  child: IgnorePointer(
-                    ignoring: searchOpacity < 0.05,
-                    child: Column(
-                      children: [
-                        SizedBox(
-                          height: _searchBarHeight,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 14, vertical: 10),
-                            decoration: BoxDecoration(
-                              color: AppColors.white,
-                              border: Border.all(
-                                  width: 1, color: AppColors.greyE5),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Row(
-                              children: [
-                                Icon(Icons.search,
-                                    color: AppColors.secondaryTextColor,
-                                    size: 22),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: CustomText(
-                                    AppStrings.searchAnything.tr,
-                                    fontSize: 16,
-                                    color: AppColors.secondaryTextColor,
-                                  ),
+            children: [
+              // Collapsing search bar + 16px gap below it.
+              SizedBox(
+                height: currentCollapsibleHeight,
+                child: ClipRect(
+                  child: OverflowBox(
+                    minHeight: _collapsibleHeight,
+                    maxHeight: _collapsibleHeight,
+                    alignment: Alignment.topCenter,
+                    child: Opacity(
+                      opacity: searchOpacity,
+                      child: IgnorePointer(
+                        ignoring: searchOpacity < 0.05,
+                        child: Column(
+                          children: [
+                            SizedBox(
+                              height: _searchBarHeight,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: AppColors.white,
+                                  border: Border.all(width: 1, color: AppColors.greyE5),
+                                  borderRadius: BorderRadius.circular(10),
                                 ),
-                                LocalAssets(
-                                  imagePath: AppIconAssets.mic,
-                                  width: 20,
-                                  height: 20,
-                                  imgColor: AppColors.secondaryTextColor,
+                                child: Row(
+                                  children: [
+                                    Icon(Icons.search, color: AppColors.secondaryTextColor, size: 22),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: CustomText(
+                                        AppStrings.searchAnything.tr,
+                                        fontSize: 16,
+                                        color: AppColors.secondaryTextColor,
+                                      ),
+                                    ),
+                                    LocalAssets(
+                                      imagePath: AppIconAssets.mic,
+                                      width: 20,
+                                      height: 20,
+                                      imgColor: AppColors.secondaryTextColor,
+                                    ),
+                                    const SizedBox(width: 12),
+                                    LocalAssets(imagePath: AppIconAssets.camera_black),
+                                  ],
                                 ),
-                                const SizedBox(width: 12),
-                                LocalAssets(
-                                    imagePath: AppIconAssets.camera_black),
-                              ],
+                              ),
                             ),
-                          ),
+                            const SizedBox(height: _searchTabsGap),
+                          ],
                         ),
-                        const SizedBox(height: _searchTabsGap),
-                      ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ),
 
-          // Tabs - always visible, distributed evenly across width.
-          SizedBox(
-            height: _tabsHeight,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: List.generate(_sectionData.length, (index) {
-                final isActive = activeIndex == index;
-                final item = _sectionData[index];
-                return Expanded(
-                  child: GestureDetector(
-                    onTap: () => onTabSelected(index),
-                    behavior: HitTestBehavior.opaque,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        _DiscoverTabIconTile(
-                          isActive: isActive,
-                          child: LocalAssets(
-                            imagePath: item['icon']!,
-                            width: 40,
-                            height: 40,
-                            boxFix: BoxFit.cover,
-                          ),
+              // Tabs - always visible, distributed evenly across width.
+              SizedBox(
+                height: _tabsHeight,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: List.generate(_sectionData.length, (index) {
+                    final isActive = activeIndex == index;
+                    final item = _sectionData[index];
+                    return Expanded(
+                      child: GestureDetector(
+                        onTap: () => onTabSelected(index),
+                        behavior: HitTestBehavior.opaque,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            _DiscoverTabIconTile(
+                              isActive: isActive,
+                              child: LocalAssets(
+                                imagePath: item['icon']!,
+                                width: 40,
+                                height: 40,
+                                boxFix: BoxFit.cover,
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+                            Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 2),
+                              child: CustomText(
+                                item['title']!,
+                                fontSize: SizeConfig.small,
+                                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                                // White on both states — sticky is dark and
+                                // the expanded gradient ends in saturated
+                                // blue where the tabs sit, so white reads
+                                // cleanly in both.
+                                color: AppColors.white,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 6),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 2),
-                          child: CustomText(
-                            item['title']!,
-                            fontSize: SizeConfig.small,
-                            fontWeight:
-                                isActive ? FontWeight.w700 : FontWeight.w500,
-                            // White on both states — sticky is dark and
-                            // the expanded gradient ends in saturated
-                            // blue where the tabs sit, so white reads
-                            // cleanly in both.
-                            color: AppColors.white,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }),
-            ),
+                      ),
+                    );
+                  }),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
         ),
       ),
     );
@@ -666,8 +648,8 @@ class _StickySearchBarDelegate extends SliverPersistentHeaderDelegate {
   @override
   bool shouldRebuild(covariant _StickySearchBarDelegate oldDelegate) =>
       topPadding != oldDelegate.topPadding ||
-          activeIndex != oldDelegate.activeIndex ||
-          onTabSelected != oldDelegate.onTabSelected;
+      activeIndex != oldDelegate.activeIndex ||
+      onTabSelected != oldDelegate.onTabSelected;
 }
 
 /// Animated tile behind the active discover tab icon. Inactive tiles stay
@@ -688,8 +670,7 @@ class _DiscoverTabIconTile extends StatefulWidget {
   State<_DiscoverTabIconTile> createState() => _DiscoverTabIconTileState();
 }
 
-class _DiscoverTabIconTileState extends State<_DiscoverTabIconTile>
-    with SingleTickerProviderStateMixin {
+class _DiscoverTabIconTileState extends State<_DiscoverTabIconTile> with SingleTickerProviderStateMixin {
   static const List<RadialGradient> _gradients = <RadialGradient>[
     RadialGradient(
       center: Alignment.center,

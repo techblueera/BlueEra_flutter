@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/common/Discover/model/other_service_business_search_res_model.dart';
@@ -214,7 +215,7 @@ class ServiceBusinessCard extends StatelessWidget {
             right: 12,
             child: Column(
               children: [
-                _circleIconBtn(AppIconAssets.share_bold, onTap: () {}),
+                _circleIconBtn(AppIconAssets.share_bold, onTap: _shareBusiness),
                 const SizedBox(height: 8),
                 _circleIconBtn(AppIconAssets.star, onTap: () {}),
               ],
@@ -510,6 +511,26 @@ class ServiceBusinessCard extends StatelessWidget {
     Get.to(() => OthersServiceDetailScreen(
           visitUserId: _profile?.userId ?? '',
         ));
+  }
+
+  Future<void> _shareBusiness() async {
+    final rawName = (_profile?.businessName?.trim().isNotEmpty ?? false)
+        ? _profile!.businessName!.trim()
+        : (_profile?.profileName?.trim() ?? '');
+    final name = rawName.isNotEmpty ? rawName : 'this business';
+
+    final lines = <String>['Check out $name on BlueEra'];
+    if (_categoryDisplay != _na) lines.add('Category: $_categoryDisplay');
+    final address = _resolveAddress();
+    if (address != AppStrings.na.tr) lines.add(address);
+    if (_priceRangeText != _na) lines.add('Price: $_priceRangeText');
+    final status = _todayStatus;
+    if (status.isOpen) lines.add(status.label);
+
+    await ShareService.instance.openShareSheet(
+      text: lines.join('\n'),
+      subject: name,
+    );
   }
 }
 

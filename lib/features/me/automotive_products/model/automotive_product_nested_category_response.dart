@@ -47,7 +47,11 @@ class AutomotiveProductNestedCategoryResponse {
     if (json['children'] != null) {
       children = <AutomotiveProductNestedCategoryResponse>[];
       json['children'].forEach((v) {
-        children!.add(AutomotiveProductNestedCategoryResponse.fromJson(v));
+        // Nested maps from JSON decode come in as Map<dynamic, dynamic>;
+        // the recursive ctor needs a typed Map<String, dynamic>.
+        children!.add(AutomotiveProductNestedCategoryResponse.fromJson(
+          Map<String, dynamic>.from(v as Map),
+        ));
       });
     }
 

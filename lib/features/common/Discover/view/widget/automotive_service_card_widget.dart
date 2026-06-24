@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/features/common/Discover/view/automotive_other_services_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/vehicle/vehicle_listing_screen.dart';
 import 'package:BlueEra/features/me/automotive_products/view/customer/automotive_category_discover_screen.dart';
@@ -72,9 +73,11 @@ class AutomotiveServiceCardWidget extends StatelessWidget {
     );
   }
 
-  /// "Vehicle Parts" opens the products category-discover screen; every
-  /// other automotive category keeps the existing AllVehicleServiceScreen
-  /// listing.
+  /// Card-tap routing:
+  ///   * Vehicle Parts → automotive products discover screen.
+  ///   * Vehicle Service / Support / Transport Logistics → the
+  ///     `/other-service/business-profile/search` listing.
+  ///   * Everything else → the public vehicle listing.
   void _onCategoryTap(CollapsibleGridModel item, List<CollapsibleGridModel> categories) {
     final tag = (item.slugId ?? '').toLowerCase();
     final name = (item.name ?? '').toLowerCase();
@@ -85,14 +88,39 @@ class AutomotiveServiceCardWidget extends StatelessWidget {
       return;
     }
 
+    final otherServiceWire = _otherServiceWireForSlug(item.slugId);
+    if (otherServiceWire != null) {
+      Get.to(() => AutomotiveOtherServicesScreen(
+            initialCategoryWire: otherServiceWire,
+          ));
+      return;
+    }
+
     // AllVehicleServiceScreen is typed against CollapsibleGridModel and keys
     // its category filter off `slugId`, so map the API categories
     // (tag_id → slugId) before handing off.
 
     Get.to(()=> VehicleListingScreen(
-      addCondition: _conditionForSlug(item.slugId),
+      initialCondition: _conditionForSlug(item.slugId),
     ));
 
+  }
+
+  /// Maps the home-tile slug for the three "Other Service" automotive
+  /// categories to the `categoryOfBusiness` wire value expected by
+  /// `/other-service/business-profile/search`. Returns null for slugs
+  /// that don't belong on that listing.
+  String? _otherServiceWireForSlug(String? slugId) {
+    switch (slugId) {
+      case 'VEHICLE_SERVICE':
+        return 'VEHICLE_SERVICE';
+      case 'VehicleSupport':
+        return 'VEHICLE_SUPPORT';
+      case 'Transport_Logistic':
+        return 'TRANSPORT_LOGISTICS_PARKING';
+      default:
+        return null;
+    }
   }
 
 }

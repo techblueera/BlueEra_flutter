@@ -8,10 +8,7 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
-import 'package:BlueEra/features/me/hospital/view/v2/widgets/empty_section_placeholder.dart';
 import 'package:BlueEra/features/me/automotive_service/controller/business_profile_full_controller.dart';
-import 'package:BlueEra/features/me/others/model/business_profile_full_model.dart'
-    hide Location;
 import 'package:BlueEra/features/me/automotive_service/view/management/management_screen.dart';
 import 'package:BlueEra/features/me/automotive_service/view/other_career_jobs/other_job_listing_screen.dart';
 import 'package:BlueEra/features/me/automotive_service/view/other_contact_us/other_branch_details_form_screen.dart';
@@ -19,6 +16,8 @@ import 'package:BlueEra/features/me/automotive_service/view/other_contact_us/oth
 import 'package:BlueEra/features/me/automotive_service/view/other_contact_us/other_contact_us.dart';
 import 'package:BlueEra/features/me/automotive_service/view/other_service_gallery/other_service_photos_screen.dart';
 import 'package:BlueEra/features/me/automotive_service/view/v2/widgets/other_banner_widget.dart';
+import 'package:BlueEra/features/me/hospital/view/v2/widgets/empty_section_placeholder.dart';
+import 'package:BlueEra/features/me/others/model/business_profile_full_model.dart' hide Location;
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -28,6 +27,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import '../../../../others/view/timing_screen.dart';
 
 /// Overview tab for the redesigned other-business "me" profile.
 ///
@@ -41,13 +42,11 @@ class OtherOverviewTabV2 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final businessController =
-        getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+    final businessController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
     return Obx(() {
       final data = controller.businessProfile.value;
-      final coordinates =
-          data?.contactUs?.firstOrNull?.branch?.location?.coordinates;
+      final coordinates = data?.contactUs?.firstOrNull?.branch?.location?.coordinates;
       final hasCoords = coordinates != null &&
           coordinates.length >= 2 &&
           (double.tryParse(coordinates[0].toString()) ?? 0.0) != 0.0 &&
@@ -105,18 +104,16 @@ class OtherOverviewTabV2 extends StatelessWidget {
                   _SectionHeader(
                     title: AppStrings.otherJobsTitle.tr,
                     actionLabel: AppStrings.viewAll,
-                    onAction: () =>
-                        Get.to(() => const OtherJobListingScreen())
-                            ?.then((_) => controller.getBusinessProfileFull()),
+                    onAction: () => Get.to(() => const OtherJobListingScreen())
+                        ?.then((_) => controller.getBusinessProfileFull()),
                   ),
                   const SizedBox(height: 10),
                   EmptySectionPlaceholder(
                     imageAsset: 'assets/images/other_job.png',
                     ctaLabel: AppStrings.otherJobsTitle.tr,
                     ctaIcon: Icons.work_outline,
-                    onTap: () =>
-                        Get.to(() => const OtherJobListingScreen())
-                            ?.then((_) => controller.getBusinessProfileFull()),
+                    onTap: () => Get.to(() => const OtherJobListingScreen())
+                        ?.then((_) => controller.getBusinessProfileFull()),
                   ),
                 ],
               ),
@@ -154,6 +151,16 @@ class OtherOverviewTabV2 extends StatelessWidget {
               ),
             ),
           ),
+          SizedBox(height: SizeConfig.size10),
+
+          // ── Timings ──
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+            child: _TimingCard(
+              timings: data?.timings,
+              onEditTap: () => Get.to(() => TimingScreen())?.then((_) => controller.getBusinessProfileFull()),
+            ),
+          ),
 
           SizedBox(height: SizeConfig.size10),
 
@@ -169,22 +176,20 @@ class OtherOverviewTabV2 extends StatelessWidget {
                   _SectionHeader(
                     title: AppStrings.contactUs.tr,
                     actionLabel: AppStrings.otherAddEdit.tr,
-                    onAction: () => Get.to(OtherContactUs())
-                        ?.then((_) => controller.getBusinessProfileFull()),
+                    onAction: () =>
+                        Get.to(OtherContactUs())?.then((_) => controller.getBusinessProfileFull()),
                   ),
                   const SizedBox(height: 10),
                   if ((data?.contactUs?.isNotEmpty ?? false))
                     _ContactUs(
-                      contacts:
-                          data!.contactUs!.first,
+                      contacts: data!.contactUs!.first,
                     )
                   else
                     EmptySectionPlaceholder(
                       imageAsset: 'assets/images/other_gallery.png',
                       ctaLabel: AppStrings.contactUs.tr,
                       ctaIcon: Icons.contact_phone_outlined,
-                      onTap: () => Get.to(OtherContactUs())
-                          ?.then((_) => controller.getBusinessProfileFull()),
+                      onTap: () => Get.to(OtherContactUs())?.then((_) => controller.getBusinessProfileFull()),
                     ),
                 ],
               ),
@@ -199,8 +204,7 @@ class OtherOverviewTabV2 extends StatelessWidget {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: BusinessLocationWidget(
-                  locationText: data
-                      ?.contactUs?.firstOrNull?.branch?.location?.name,
+                  locationText: data?.contactUs?.firstOrNull?.branch?.location?.name,
                   latitude: double.parse(coordinates[0].toString()),
                   longitude: double.parse(coordinates[1].toString()),
                   businessName: data?.profile?.profileName ?? '',
@@ -215,8 +219,7 @@ class OtherOverviewTabV2 extends StatelessWidget {
 
           // ── QR Code (mirrors the hospital QR card) ──
           Obx(() {
-            final details =
-                businessController.businessProfileDetails.value?.data;
+            final details = businessController.businessProfileDetails.value?.data;
             if (details == null) return const SizedBox.shrink();
             return Padding(
               padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
@@ -293,8 +296,7 @@ class _ManagementList extends StatelessWidget {
                       errorWidget: (_, __, ___) => Container(
                         color: Colors.grey[300],
                         child: const Center(
-                          child: Icon(Icons.person,
-                              size: 50, color: Colors.white),
+                          child: Icon(Icons.person, size: 50, color: Colors.white),
                         ),
                       ),
                     ),
@@ -407,10 +409,8 @@ class _GalleryLayout extends StatelessWidget {
                     color: Colors.black.withValues(alpha: 0.5),
                     alignment: Alignment.center,
                     child: Text('+$extra',
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold)),
+                        style:
+                            const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
                   ),
               ],
             ),
@@ -478,9 +478,7 @@ class _ContactUs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final branch = contacts.branch;
-    final firstDept = (contacts.departments?.isNotEmpty ?? false)
-        ? contacts.departments!.first
-        : null;
+    final firstDept = (contacts.departments?.isNotEmpty ?? false) ? contacts.departments!.first : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -498,8 +496,7 @@ class _ContactUs extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.business_outlined,
-                      size: 16, color: AppColors.secondaryTextColor),
+                  const Icon(Icons.business_outlined, size: 16, color: AppColors.secondaryTextColor),
                   const SizedBox(width: 6),
                   Expanded(
                     child: CustomText(
@@ -517,8 +514,7 @@ class _ContactUs extends StatelessWidget {
                           name: contacts.branch?.name,
                           location: SchoolLocation(
                             name: contacts.branch?.location?.name,
-                            coordinates:
-                                contacts.branch?.location?.coordinates ?? [],
+                            coordinates: contacts.branch?.location?.coordinates ?? [],
                           ),
                           website: contacts.branch?.website,
                         ),
@@ -528,8 +524,7 @@ class _ContactUs extends StatelessWidget {
                       ),
                     )),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         border: Border.all(color: AppColors.primaryColor),
                         borderRadius: BorderRadius.circular(6),
@@ -537,11 +532,9 @@ class _ContactUs extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: const [
-                          Icon(Icons.edit_outlined,
-                              size: 14, color: AppColors.primaryColor),
+                          Icon(Icons.edit_outlined, size: 14, color: AppColors.primaryColor),
                           SizedBox(width: 4),
-                          CustomText(AppStrings.edit,
-                              fontSize: 12, color: AppColors.primaryColor),
+                          CustomText(AppStrings.edit, fontSize: 12, color: AppColors.primaryColor),
                         ],
                       ),
                     ),
@@ -550,15 +543,12 @@ class _ContactUs extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               if (branch?.website != null && branch!.website!.isNotEmpty)
-                _row(AppIconAssets.website_click, branch.website!,
-                    AppColors.primaryColor, isLink: true),
+                _row(AppIconAssets.website_click, branch.website!, AppColors.primaryColor, isLink: true),
               if (firstDept != null) ...[
                 if (firstDept.phone != null && firstDept.phone!.isNotEmpty)
-                  _row(AppIconAssets.phone_outline, firstDept.phone!,
-                      AppColors.mainTextColor),
+                  _row(AppIconAssets.phone_outline, firstDept.phone!, AppColors.mainTextColor),
                 if (firstDept.email != null && firstDept.email!.isNotEmpty)
-                  _row(AppIconAssets.email, firstDept.email!,
-                      AppColors.mainTextColor),
+                  _row(AppIconAssets.email, firstDept.email!, AppColors.mainTextColor),
               ],
             ],
           ),
@@ -572,8 +562,7 @@ class _ContactUs extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.primaryColor.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                  color: AppColors.primaryColor.withValues(alpha: 0.3)),
+              border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.3)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -581,9 +570,7 @@ class _ContactUs extends StatelessWidget {
                 Icon(Icons.add, size: 16, color: AppColors.primaryColor),
                 SizedBox(width: 6),
                 CustomText(AppStrings.addMore,
-                    fontSize: 13,
-                    color: AppColors.primaryColor,
-                    fontWeight: FontWeight.w600),
+                    fontSize: 13, color: AppColors.primaryColor, fontWeight: FontWeight.w600),
               ],
             ),
           ),
@@ -592,8 +579,7 @@ class _ContactUs extends StatelessWidget {
     );
   }
 
-  Widget _row(String icon, String text, Color textColor,
-      {bool isLink = false}) {
+  Widget _row(String icon, String text, Color textColor, {bool isLink = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
@@ -618,6 +604,202 @@ class _ContactUs extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _TimingCard extends StatelessWidget {
+  final Timings? timings;
+  final VoidCallback onEditTap;
+
+  const _TimingCard({required this.timings, required this.onEditTap});
+
+  static const List<String> _weekDays = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+  ];
+
+  DayTiming? _slotFor(String day) {
+    switch (day) {
+      case 'Monday':
+        return timings?.monday;
+      case 'Tuesday':
+        return timings?.tuesday;
+      case 'Wednesday':
+        return timings?.wednesday;
+      case 'Thursday':
+        return timings?.thursday;
+      case 'Friday':
+        return timings?.friday;
+      case 'Saturday':
+        return timings?.saturday;
+      case 'Sunday':
+        return timings?.sunday;
+    }
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CommonCardWidget(
+      padding: 12,
+      cardMargin: 0,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              CustomText(
+                AppStrings.otherTimingTitle.tr,
+                fontWeight: FontWeight.w700,
+                fontSize: 15,
+              ),
+              _TimingEditPill(onTap: onEditTap),
+            ],
+          ),
+          SizedBox(height: SizeConfig.size12),
+          ..._weekDays.map((day) {
+            final slot = _slotFor(day);
+            return _TimingRow(
+              day: day,
+              isOpen: slot?.isOpen ?? false,
+              openTime: slot?.openTime ?? '10:00',
+              closeTime: slot?.closeTime ?? '10:00',
+            );
+          }),
+        ],
+      ),
+    );
+  }
+}
+
+class _TimingRow extends StatelessWidget {
+  final String day;
+  final bool isOpen;
+  final String openTime;
+  final String closeTime;
+
+  const _TimingRow({
+    required this.day,
+    required this.isOpen,
+    required this.openTime,
+    required this.closeTime,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: SizeConfig.size6),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 90,
+            child: CustomText(
+              day,
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: AppColors.mainTextColor,
+            ),
+          ),
+          _TimingStatusBadge(isOpen: isOpen),
+          const Spacer(),
+          if (isOpen) ...[
+            _TimingChip(time: openTime),
+            const SizedBox(width: 6),
+            CustomText('-', fontSize: 12, color: AppColors.grey99),
+            const SizedBox(width: 6),
+            _TimingChip(time: closeTime),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _TimingStatusBadge extends StatelessWidget {
+  final bool isOpen;
+  const _TimingStatusBadge({required this.isOpen});
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = isOpen ? AppColors.greenShade.withValues(alpha: 0.12) : AppColors.greyE6;
+    final fg = isOpen ? AppColors.greenShade : AppColors.grey83;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: CustomText(
+        isOpen ? 'Open' : 'Closed',
+        fontSize: 11,
+        color: fg,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+  }
+}
+
+class _TimingChip extends StatelessWidget {
+  final String time;
+  const _TimingChip({required this.time});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 60,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.fillColor,
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: AppColors.whiteE0),
+      ),
+      alignment: Alignment.center,
+      child: CustomText(
+        time,
+        fontSize: 12,
+        color: AppColors.grey83,
+        fontWeight: FontWeight.w500,
+      ),
+    );
+  }
+}
+
+class _TimingEditPill extends StatelessWidget {
+  final VoidCallback onTap;
+  const _TimingEditPill({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.edit, size: 13, color: AppColors.primaryColor),
+            const SizedBox(width: 4),
+            CustomText(
+              AppStrings.edit.tr,
+              fontSize: 12,
+              color: AppColors.primaryColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ],
+        ),
       ),
     );
   }
