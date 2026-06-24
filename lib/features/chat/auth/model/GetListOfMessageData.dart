@@ -696,6 +696,14 @@ class RiderOtpInfo {
   final String? otp;
   final String? kind; // 'pickup' (shop) | 'delivery' (customer)
   final String? role; // 'shop' | 'customer'
+  // Flipped-direction fields (RIDER_FRONTEND_INTEGRATION_GUIDE §8):
+  //   mode     : "show"  → display the digits (the holder's card)
+  //              "enter" → render an OTP input + confirm (the verifier's card)
+  //   holder   : who sees the digits  ("rider" on pickup | "customer" on delivery)
+  //   verifier : who enters the OTP   ("shop"  on pickup | "rider"   on delivery)
+  final String? mode;
+  final String? holder;
+  final String? verifier;
   String? status; // 'active' | 'consumed' — mutable so the socket can flip it
   final String? riderName;
   final String? rideOrderId;
@@ -714,6 +722,9 @@ class RiderOtpInfo {
     this.otp,
     this.kind,
     this.role,
+    this.mode,
+    this.holder,
+    this.verifier,
     this.status,
     this.riderName,
     this.rideOrderId,
@@ -727,6 +738,20 @@ class RiderOtpInfo {
 
   bool get isConsumed => (status ?? '').toLowerCase() == 'consumed';
   bool get isPickup => (kind ?? '').toLowerCase() == 'pickup';
+
+  /// Effective render mode. Trusts the server's [mode] when present, otherwise
+  /// derives it from [kind] for the flipped direction: a pickup card is the
+  /// shop's verifier card ("enter"), a delivery card is the customer's holder
+  /// card ("show").
+  String get effectiveMode {
+    final m = (mode ?? '').toLowerCase();
+    if (m == 'enter' || m == 'show') return m;
+    return isPickup ? 'enter' : 'show';
+  }
+
+  /// True when this card should render an OTP input + confirm (the shop's
+  /// pickup card), rather than display the digits.
+  bool get wantsInput => isPickup && effectiveMode == 'enter';
 
   /// Human label for a multi-shop pickup card, e.g. "Shop 2 of 3" (or the
   /// shop name when the server provides it). Returns null for single-stop
@@ -748,6 +773,9 @@ class RiderOtpInfo {
       otp: json['otp']?.toString(),
       kind: json['kind']?.toString(),
       role: json['role']?.toString(),
+      mode: json['mode']?.toString(),
+      holder: json['holder']?.toString(),
+      verifier: json['verifier']?.toString(),
       status: json['status']?.toString(),
       riderName: json['riderName']?.toString(),
       rideOrderId: json['rideOrderId']?.toString(),
@@ -768,6 +796,9 @@ class RiderOtpInfo {
         'otp': otp,
         'kind': kind,
         'role': role,
+        'mode': mode,
+        'holder': holder,
+        'verifier': verifier,
         'status': status,
         'riderName': riderName,
         'rideOrderId': rideOrderId,

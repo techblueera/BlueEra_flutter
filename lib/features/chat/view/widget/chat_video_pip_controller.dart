@@ -29,54 +29,33 @@ class ChatVideoPipController extends GetxController {
   /// Full-screen player route is currently on top.
   final RxBool isFullScreen = false.obs;
 
+  /// Elapsed watch time since the current link was opened — drives the docked
+  /// PiP's time label. (A WebView page doesn't expose the media position, so
+  /// this is wall-clock since open, which tracks playback closely enough.)
+  final Stopwatch watch = Stopwatch();
+
   /// Convenience accessor used by the widgets.
   static ChatVideoPipController get to =>
       Get.isRegistered<ChatVideoPipController>()
           ? Get.find<ChatVideoPipController>()
           : Get.put(ChatVideoPipController(), permanent: true);
 
-  /// Returns true when [url] looks like a playable video link we should open
-  /// in the in-app player instead of the generic browser.
-  static bool isVideoLink(String url) {
-    final u = url.toLowerCase();
-    return u.contains('youtube.com') ||
-        u.contains('youtu.be') ||
-        u.contains('vimeo.com') ||
-        u.contains('dailymotion.com') ||
-        u.contains('.mp4') ||
-        u.contains('.m3u8') ||
-        u.contains('.mov') ||
-        u.contains('.webm') ||
-        u.contains('.mkv');
-  }
+  /// The URL loaded in the WebView — the raw link (scheme ensured). Loading the
+  /// page as-is (rather than a forced YouTube embed) keeps it robust: YouTube /
+  /// video pages play in-page after a tap, exactly like the WhatsApp in-app
+  /// browser, and a minimised PiP keeps that page (and its playback) alive.
+  static String _resolvePlayUrl(String url) =>
+      url.startsWith('http') ? url : 'https://$url';
 
-  /// Extracts a YouTube video id from any common YouTube url shape
-  /// (watch?v=, youtu.be/, /shorts/, /embed/, /live/), or null.
-  static String? _youTubeId(String url) {
-    final patterns = <RegExp>[
-      RegExp(r'youtu\.be/([A-Za-z0-9_-]{6,})'),
-      RegExp(r'[?&]v=([A-Za-z0-9_-]{6,})'),
-      RegExp(r'/shorts/([A-Za-z0-9_-]{6,})'),
-      RegExp(r'/embed/([A-Za-z0-9_-]{6,})'),
-      RegExp(r'/live/([A-Za-z0-9_-]{6,})'),
-    ];
-    for (final p in patterns) {
-      final m = p.firstMatch(url);
-      if (m != null) return m.group(1);
+  /// Short, human label for the app-bar/title — the link's host (e.g.
+  /// "youtube.com"), or "Link" when it can't be parsed.
+  static String _hostTitle(String url) {
+    try {
+      final host = Uri.parse(_resolvePlayUrl(url)).host;
+      return host.startsWith('www.') ? host.substring(4) : host;
+    } catch (_) {
+      return 'Link';
     }
-    return null;
-  }
-
-  /// Builds the URL actually loaded in the WebView. YouTube links become an
-  /// inline embed so they play in-page (no "open YouTube app" bounce); any
-  /// other link is loaded as-is.
-  static String _resolvePlayUrl(String url) {
-    final id = _youTubeId(url);
-    if (id != null) {
-      return 'https://www.youtube.com/embed/$id'
-          '?autoplay=1&playsinline=1&rel=0&modestbranding=1';
-    }
-    return url.startsWith('http') ? url : 'https://$url';
   }
 
   /// Open [url] in the in-app full-screen player. Reuses the existing WebView
@@ -88,7 +67,7 @@ class ChatVideoPipController extends GetxController {
     sourceUrl.value = url;
     playUrl.value = resolved;
     title.value = (videoTitle == null || videoTitle.trim().isEmpty)
-        ? 'Video'
+        ? _hostTitle(url)
         : videoTitle.trim();
 
     if (needsNewLoad) {
@@ -96,6 +75,9 @@ class ChatVideoPipController extends GetxController {
         ..setJavaScriptMode(JavaScriptMode.unrestricted)
         ..setBackgroundColor(Colors.black)
         ..loadRequest(Uri.parse(resolved));
+      watch
+        ..reset()
+        ..start();
     }
 
     isPipVisible.value = false;
@@ -105,10 +87,19 @@ class ChatVideoPipController extends GetxController {
 
   /// Called when the full-screen player is dismissed with back — shrink to the
   /// floating PiP while keeping the WebView (and its playback) alive.
+  ///
+  /// [isFullScreen] flips off immediately so the full-screen player releases
+  /// the shared [WebViewController]; the PiP is then shown one pop-animation
+  /// later so the overlay re-attaches that controller to a fresh WebViewWidget
+  /// without the two briefly fighting over it (which left the PiP blank/absent).
   void enterPip() {
     if (webController == null) return;
     isFullScreen.value = false;
-    isPipVisible.value = true;
+    Future.delayed(const Duration(milliseconds: 320), () {
+      if (webController != null && !isFullScreen.value) {
+        isPipVisible.value = true;
+      }
+    });
   }
 
   /// Expand the PiP back to the full-screen player.
@@ -130,5 +121,8 @@ class ChatVideoPipController extends GetxController {
     title.value = '';
     isPipVisible.value = false;
     isFullScreen.value = false;
+    watch
+      ..stop()
+      ..reset();
   }
 }

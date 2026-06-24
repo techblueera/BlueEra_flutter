@@ -24,6 +24,7 @@ import 'package:BlueEra/features/chat/view/forward_screen/chat_forward_screen.da
 import 'package:BlueEra/features/chat/view/widget/component_widgets.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/ride_drop_location_sheet.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/payment_qr_bottom_sheet.dart';
+import 'package:BlueEra/features/chat/view/business_chat/widgets/pickup_otp_dialog.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
@@ -1103,31 +1104,14 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
     );
   }
 
-  /// Bottom action row that replaced the inline "Forward" button — Call,
-  /// Payment and Ride shortcuts for the order.
+  /// Bottom action row — Payment, Find Rider and Pickup OTP shortcuts for the
+  /// order (in that sequence). The OTP button replaced the old "Call" action.
   Widget _buildForwardRow() {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _orderActionButton(
-            icon: Icons.call,
-            label: 'Call',
-            color: Colors.green,
-            // Same call-options bottom sheet as the chat appbar's call icon.
-            onTap: () {
-              final sender = widget.message.sender;
-              showChatCallOptionsBottomSheet(
-                context: context,
-                otherUserId: sender?.id,
-                conversationId: widget.conversationId,
-                userName: sender?.name ?? '',
-                userImage: sender?.profileImage ?? '',
-                contactNo: sender?.contactNo ?? '',
-              );
-            },
-          ),
           _orderActionButton(
             icon: Icons.account_balance_wallet_outlined,
             label: 'Payment',
@@ -1158,12 +1142,21 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
                   Get.to(() =>
                       InquiryRideOrderSelectionScreen(dropAddress: drop));
                 }
-                // final drop = await showRideDropLocationSheet(context);
-                // if (drop != null) {
-                //   await _startRideToDrop(drop);
-                // }
               },
             ),
+          // Pickup OTP — opens a popup to enter & verify the customer's OTP
+          // (replaces the old "Call" shortcut).
+          _orderActionButton(
+            icon: Icons.password_rounded,
+            label: 'Pickup OTP',
+            color: Colors.green,
+            onTap: () => showPickupOtpDialog(
+              context,
+              orderId: widget.message.metadata?.selfPickupOrder?.orderId ??
+                  widget.message.metadata?.selfpickupOrderId ??
+                  '',
+            ),
+          ),
         ],
       ),
     );

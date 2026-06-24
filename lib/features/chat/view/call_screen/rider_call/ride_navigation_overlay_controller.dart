@@ -74,6 +74,39 @@ class RideNavigationOverlayController extends GetxController {
   bool get hasOngoingCustomerRide =>
       hasOngoingRide && screenType.value == 'customer_tracking';
 
+  /// Rebuild the customer-tracking state from a persisted snapshot on app
+  /// relaunch. Populates only what the card needs and does NOT raise the
+  /// floating mini-map ([isOverlayVisible] stays false) — the card is enough;
+  /// tapping it re-opens the live screen.
+  void restoreCustomerRide({
+    required String orderId,
+    required String riderName,
+    String riderImageVal = '',
+    String riderContactVal = '',
+    String pickupLabel = '',
+    String dropLabelVal = '',
+    String bookingTimeLabelVal = '',
+    double riderLatVal = 0.0,
+    double riderLngVal = 0.0,
+    double pickupLat = 0.0,
+    double pickupLng = 0.0,
+  }) {
+    if (orderId.isEmpty) return;
+    customerName.value = riderName;
+    riderImage.value = riderImageVal;
+    riderContact.value = riderContactVal;
+    destLabel.value = pickupLabel;
+    dropLabel.value = dropLabelVal;
+    bookingTimeLabel.value = bookingTimeLabelVal;
+    riderLat.value = riderLatVal;
+    riderLng.value = riderLngVal;
+    destLat.value = pickupLat;
+    destLng.value = pickupLng;
+    screenType.value = 'customer_tracking';
+    screenParams.assignAll({'orderId': orderId});
+    isOverlayVisible.value = false;
+  }
+
   void hideOverlay() {
     isOverlayVisible.value = false;
     polylinePoints.clear();

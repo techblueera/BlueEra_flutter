@@ -9,6 +9,7 @@ import 'package:BlueEra/features/chat/auth/model/saved_address_model.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/multi_shop_rider_model.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/fare_call_queue_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/book_your_transport/goods_multi_call_tracking_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/passenger_booking_main.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
@@ -74,7 +75,9 @@ class _GoodsMultiOrderBookingMainState
     discoverController.setupFareCallQueueListeners();
     final success = await discoverController.makeMultiShopOrderApi();
     if (success && discoverController.selectedRiders.isNotEmpty) {
-      Get.to(() => FareCallQueueScreen(
+      // Multi-shop goods orders use the dedicated tracking screen (rider info +
+      // drop OTP) instead of the standard fare-call screen.
+      Get.to(() => GoodsMultiCallTrackingScreen(
             orderId: discoverController.fareCallOrderId.value,
           ));
     }

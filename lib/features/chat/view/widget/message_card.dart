@@ -40,6 +40,7 @@ import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/order_controllar.dart';
 import '../business_chat/widgets/rider_association_msg_card.dart';
 import '../business_chat/widgets/rider_details_msg_card.dart';
+import '../business_chat/widgets/rider_otp_msg_card.dart';
 import '../business_chat/widgets/rider_request_msg_card.dart';
 import '../business_chat/widgets/self_pickup_msg_card.dart';
 import '../business_chat/widgets/payment_transaction_msg_card.dart';
@@ -315,6 +316,11 @@ class _MessageCardState extends State<MessageCard>
       case "rider_association":
         messageWidget = RiderAssociationMsgCard(message: widget.message, time: time);
 
+      case "rider_otp":
+        // Handoff OTP card. The shop's pickup card shows an OTP input + confirm;
+        // the customer's delivery card shows the digits (see §8 of the guide).
+        messageWidget = RiderOtpMsgCard(message: widget.message, time: time);
+
       case "payment_transaction":
         messageWidget = PaymentTransactionMsgCard(
           message: widget.message,
@@ -432,19 +438,14 @@ class _MessageCardState extends State<MessageCard>
                                 sym.user?.profileImage ?? fallbackImage,
                           ));
                     }
-                  } else if (widget.message.messageType == "text" && (widget.message.message?.contains("https://") ?? false)) {
+                  } else if (widget.message.messageType == "text" && (widget.message.message?.contains("http") ?? false)) {
                     final regExp = RegExp(r'(https?:\/\/[^\s]+)');
                     final match = regExp.firstMatch(widget.message.message ?? '');
                     if (match != null) {
                       final url = match.group(0)!;
-                      // Video links (YouTube / any web video) open in the in-app
-                      // player so they can be minimised to a floating PiP.
-                      if (ChatVideoPipController.isVideoLink(url)) {
-                        ChatVideoPipController.to.openInApp(url);
-                      } else {
-                        final isBlueEra = url.contains('blueera');
-                        launchUrl(Uri.parse(url), mode: isBlueEra ? LaunchMode.inAppBrowserView : LaunchMode.inAppWebView);
-                      }
+                      // Open in the in-app player; pressing back docks it to a
+                      // WhatsApp-style bottom PiP that keeps playing.
+                      ChatVideoPipController.to.openInApp(url);
                     }
                   }
                 }

@@ -38,14 +38,16 @@ class _ChatVideoPlayerScreenState extends State<ChatVideoPlayerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final web = controller.webController;
-
     return PopScope(
-      canPop: true,
+      // Own the back ourselves (canPop:false) so Android's predictive back
+      // can't finish the activity before we minimise — that's why pressing
+      // back used to exit instead of showing the PiP.
+      canPop: false,
       onPopInvokedWithResult: (didPop, result) {
-        // Back gesture / system back → keep playing in PiP (unless the user
-        // hit the ✕, which already tore the player down).
-        if (didPop && !_intentionalClose) controller.enterPip();
+        if (didPop) return; // already popped via an explicit Get.back()
+        if (_intentionalClose) return;
+        // Hardware / system back → minimise to the floating PiP.
+        _minimizeToPip();
       },
       child: Scaffold(
         backgroundColor: Colors.black,
@@ -90,9 +92,21 @@ class _ChatVideoPlayerScreenState extends State<ChatVideoPlayerScreen> {
         ),
         body: SafeArea(
           child: Center(
-            child: web == null
-                ? const CircularProgressIndicator(color: Colors.white)
-                : WebViewWidget(controller: web),
+            child: Obx(() {
+              final web = controller.webController;
+              if (web == null) {
+                return const CircularProgressIndicator(color: Colors.white);
+              }
+              // Release this WebView the instant we switch to PiP so the
+              // floating overlay can attach the SAME controller without a
+              // conflict — a WebViewController drives only one WebViewWidget
+              // at a time, and keeping both mounted during the pop animation
+              // is exactly why the PiP failed to appear.
+              if (!controller.isFullScreen.value) {
+                return const SizedBox.shrink();
+              }
+              return WebViewWidget(controller: web);
+            }),
           ),
         ),
       ),
