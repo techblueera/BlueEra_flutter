@@ -55,7 +55,9 @@
       "Bash(rm -f /tmp/pip_run.log)",
       "Bash(nohup flutter run -t lib/pip_verify_main.dart -d emulator-5554 --debug)",
       "Bash(echo \"launched pid $!\")",
-      "Read(//private/tmp/**)"
+      "Read(//private/tmp/**)",
+      "Bash(pkill -f \"pip_verify_main.dart\")",
+      "Bash(pkill -f \"flutter_tools.snapshot run\")"
     ]
   }
 }

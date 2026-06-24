@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import 'package:share_plus/share_plus.dart';
@@ -530,12 +531,17 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
       params: {
         'orderId': widget.orderId,
       },
+      // Extras for the Inquiry-tab "Your Ongoing Ride/Booking" card.
+      riderImageVal: (_acceptedRiderInfo?['profileImage'] ?? '').toString(),
+      riderContactVal: (_acceptedRiderInfo?['contact'] ?? '').toString(),
+      dropLabelVal: discoverController.selectedToAddress?.value ?? '',
+      bookingTimeLabelVal: DateFormat('h:mm a').format(DateTime.now()),
     );
     // Pop all screens until the bottom navigation bar
     final bottomBarController = Get.put(BottomBarController());
     final chatViewController = getOrPut(() => ChatViewController());
-    chatViewController.selectedChatTabIndex.value=3;
-    bottomBarController.onChangeIndex(3);
+    chatViewController.selectedChatTabIndex.value=1;
+    bottomBarController.onChangeIndex(2);
     Get.until((route) =>
         route.settings.name == '/BottomNavigationBarScreen' ||
         route.isFirst);
