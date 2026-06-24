@@ -1,3 +1,5 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -11,7 +13,6 @@ import 'package:BlueEra/features/chat/view/personal_chat/chat_requests_screen.da
 import 'package:BlueEra/features/common/channel_feed_view/channel_feed_screen.dart';
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/reel/view/shorts/reels_tab_screen.dart';
-import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/post_via_dialog.dart';
 import 'package:flutter/material.dart';
@@ -129,6 +130,7 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
   }
 
   Widget build(BuildContext context) {
+    final topInset = MediaQuery.of(context).padding.top;
     return WillPopScope(
       onWillPop: () async {
         if (chatViewController.chatMainTabController?.index == 0) {
@@ -139,9 +141,15 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
         return false;
       },
       child: Scaffold(
+        // Transparent so the app-wide background banner (AppHomeBackground)
+        // shows through and the glass header below can frost it.
+        backgroundColor: Colors.transparent,
         body: SafeArea(
-          child: BottomNavHideOnScroll(
-            child: NotificationListener<ScrollNotification>(
+          // Top inset is handled manually inside the glass header so the
+          // frosted glass extends behind the status bar (like the Me tab)
+          // while the search row + tabs stay below the notch.
+          top: false,
+          child: NotificationListener<ScrollNotification>(
               onNotification: _onScrollNotification,
               child: Column(
                 children: [
@@ -150,25 +158,61 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
                   // state. Hides on a sustained scroll-down and returns on the
                   // first upward scroll; the Social/Community TabBar below stays
                   // pinned at the top throughout.
-                  AnimatedSize(
-                    duration: const Duration(milliseconds: 250),
-                    curve: Curves.easeInOut,
-                    alignment: Alignment.topCenter,
-                    child: _isSearchVisible
-                        ? Container(
-                            // White header so the search row reads cleanly; the
-                            // app-wide banner shows behind the feed content below.
-                            width: double.infinity,
-                            color: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 12),
-                            child: _buildHeader(context),
-                          )
-                        : const SizedBox(width: double.infinity),
+                  // Frosted-glass chrome that blurs the app-wide background
+                  // banner — mirrors the glassmorphic headers on the "Me"
+                  // screens. The status-bar strip is ALWAYS present (so the
+                  // glass extends behind the notch and content never slides
+                  // under it); only the search row collapses on scroll.
+                  ClipRect(
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+                      child: Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          // Soft top-to-bottom frost gives the glass a little
+                          // depth instead of a flat wash; a hairline edge seats
+                          // it against the content below.
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.white.withValues(alpha: 0.55),
+                              Colors.white.withValues(alpha: 0.32),
+                            ],
+                          ),
+                          border: Border(
+                            bottom: BorderSide(
+                              color: Colors.black.withValues(alpha: 0.06),
+                              width: 0.5,
+                            ),
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            // Frosted status-bar inset — stays even when the
+                            // search row collapses, keeping the tabs below it.
+                            SizedBox(height: topInset),
+                            AnimatedSize(
+                              duration: const Duration(milliseconds: 250),
+                              curve: Curves.easeInOut,
+                              alignment: Alignment.topCenter,
+                              child: _isSearchVisible
+                                  ? Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 12),
+                                      child: _buildHeader(context),
+                                    )
+                                  : const SizedBox(width: double.infinity),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
                   Container(
-                    // White strip behind the Social / Community tabs; the banner
-                    // shows only behind the feed content below.
+                    // Solid white tab strip — matches the Me-screen tabs
+                    // (grocery_screen). Only the header above is glass.
                     color: Colors.white,
                     child: TabBar(
                       onTap: (index) {
@@ -195,16 +239,14 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
                       tabs: [
                         Tab(text: AppStrings.social.tr),
                         Tab(text: AppStrings.community.tr),
-                        Tab(text: "Reels"),
+                        Tab(text: "Bites"),
                       ],
                     ),
                   ),
                   Expanded(
-                    // No opaque fill here — the feed/community tabs render
-                    // transparent (cards on top), so the app-wide background
-                    // banner / colour (AppHomeBackground) shows through behind
-                    // the feed, like the other tabs. A white Container here
-                    // covers it, which is why the banner stops showing.
+                    // Transparent — the app-wide background banner
+                    // (AppHomeBackground, set via app_background_screen) shows
+                    // behind the feed content, like the rest of the app.
                     child: TabBarView(
                       controller: chatViewController.chatMainTabController,
                       children: [
@@ -219,8 +261,8 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
                           headerHeight: 0,
                         ),
                         ReelsTabScreen(
-                            key: const ValueKey('reels_tab_screen'),
-                          ),
+                          key: const ValueKey('reels_tab_screen'),
+                        ),
                       ],
                     ),
                   ),
@@ -304,7 +346,6 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
                 ],
               ),
             ),
-          ),
         ),
       ),
     );
@@ -391,30 +432,32 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
         //     ],
         //   );
         // }),
-        SizedBox(width: SizeConfig.size8),
-        Expanded(
-          child: CommonSearchBar(
-            onChange: (value) => chatViewController.onSearchChatList(value),
-            borderRadius: 8,
-            backgroundColor: AppColors.greyFill.withValues(alpha: 0.3),
-            controller: TextEditingController(),
-          ),
-        ),
-        const SizedBox(width: 8),
+        // Line-up: mail (left) · search (middle) · "+" (right) — each a
+        // frosted-glass chip, matching the Me-screen header items.
         InkWell(
           onTap: () => Get.to(() => const ChatRequestsScreen()),
-          borderRadius: BorderRadius.circular(20),
-          child: const Padding(
-            padding: EdgeInsets.only(right: 14.0),
-            child: Icon(
+          customBorder: const CircleBorder(),
+          child: _glassCircle(
+            child: const Icon(
               Icons.mail_outline,
-              size: 24,
-              color: Colors.black,
+              size: 18,
+              color: Colors.black87,
             ),
           ),
         ),
-        // Mirrors `CommonBackAppBar`'s `isMore == true` slot — same "+" icon,
-        // same PostCreationMenu popup with message/poll/job-post/symbol.
+        SizedBox(width: SizeConfig.size8),
+        Expanded(
+          child: _glassPill(
+            child: CommonSearchBar(
+              onChange: (value) => chatViewController.onSearchChatList(value),
+              borderRadius: 14,
+              backgroundColor: Colors.transparent,
+              controller: TextEditingController(),
+            ),
+          ),
+        ),
+        SizedBox(width: SizeConfig.size8),
+        // "+" — same PostCreationMenu popup (message / poll / job post / symbol).
         PopupMenuButton<PostCreationMenu>(
           padding: EdgeInsets.zero,
           offset: const Offset(0, 36),
@@ -444,28 +487,83 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
             }
           },
           itemBuilder: (context) => PopupMenuBuilders.popupMenuItems(),
-          child: Padding(
-            padding: const EdgeInsets.only(right: 6.0),
+          child: _glassCircle(
             child: LocalAssets(
               imagePath: AppIconAssets.addOutlinedIcon,
+              width: 18,
+              height: 18,
               imgColor: AppColors.primaryColor,
             ),
           ),
         ),
-
-        // if (!_isFromForward())
-        //   InkWell(
-        //     onTap: () {
-        //       showDialog(
-        //         context: context,
-        //         builder: (context) => ReceivedRequestsDialog(),
-        //       );
-        //     },
-        //     child: SvgPicture.asset(AppIconAssets.chat_receive_req,
-        //         color: Colors.black),
-        //   ),
-        // if (!_isFromForward()) SizedBox(width: 18),
       ],
+    );
+  }
+
+  /// Circular frosted-glass chip for the header icons — same recipe as the
+  /// "Me" screen header buttons (translucent white over the blurred banner,
+  /// hairline border, faint lift).
+  Widget _glassCircle({required Widget child}) {
+    return Container(
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x14000000),
+            blurRadius: 4,
+            offset: Offset(0, 1),
+          ),
+        ],
+      ),
+      child: ClipPath(
+        clipper: const ShapeBorderClipper(shape: CircleBorder()),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+          child: Container(
+            height: SizeConfig.size36,
+            width: SizeConfig.size36,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withValues(alpha: 0.6),
+              border: Border.all(color: const Color(0xFFC9CDD5), width: 1),
+            ),
+            child: child,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Rounded frosted-glass pill — same chip treatment as [_glassCircle], used
+  /// to wrap the search field so the trio reads as one glass family.
+  Widget _glassPill({required Widget child}) {
+    final radius = BorderRadius.circular(14);
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: radius,
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x14000000),
+            blurRadius: 4,
+            offset: Offset(0, 1),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: radius,
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: radius,
+              color: Colors.white.withValues(alpha: 0.6),
+              border: Border.all(color: const Color(0xFFC9CDD5), width: 1),
+            ),
+            child: child,
+          ),
+        ),
+      ),
     );
   }
 

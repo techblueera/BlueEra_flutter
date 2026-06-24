@@ -7,7 +7,6 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
@@ -18,11 +17,13 @@ import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
 import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
+import 'package:BlueEra/core/api/model/images.dart';
 import 'package:BlueEra/features/me/grocery/view/all_top_selling_grocery_products_screen.dart';
+import 'package:BlueEra/features/me/grocery/model/grocery_business_products_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventory_model.dart';
+import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/customer_grocery_self_pickup_cart.dart';
-import 'package:BlueEra/features/me/grocery/widget/grocery_qty_stepper.dart';
-import 'package:BlueEra/features/me/grocery/widget/grocery_top_selling_tile.dart';
+import 'package:BlueEra/features/me/grocery/widget/grocery_product_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -257,7 +258,7 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
     return CustomFormCard(
       padding: EdgeInsets.all(SizeConfig.size10),
       margin: EdgeInsets.only(top: SizeConfig.paddingXSL),
-      color: AppColors.primaryColor.withValues(alpha: 0.1),
+      color: AppColors.white,
       child: Column(
         children: [
           Row(
@@ -292,104 +293,77 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
           ),
 
           SizedBox(
-            height: SizeConfig.size240,
+            height: 265,
             child: Builder(builder: (context) {
+              // One card per product. Uses the SAME GroceryProductCard +
+              // variants sheet as the products screen (visit_grocery_products),
+              // so the card UI and the bottom sheet are identical.
+              final grouped = groupBusinessProductsByProduct(
+                  controller.groceryBusinessProductsList.toList());
+              final previewGroups =
+                  grouped.length > GroceryController.businessProductsPreviewLimit
+                      ? grouped
+                          .take(GroceryController.businessProductsPreviewLimit)
+                          .toList()
+                      : grouped;
 
-              final previewItems = controller.groceryBusinessProductsList.length >
-                      GroceryController.businessProductsPreviewLimit
-                  ? controller.groceryBusinessProductsList
-                      .take(GroceryController.businessProductsPreviewLimit)
-                      .toList()
-                  : controller.groceryBusinessProductsList.toList();
               return ListView.builder(
-                itemCount: previewItems.length,
+                itemCount: previewGroups.length,
                 scrollDirection: Axis.horizontal,
-                itemBuilder: (context, index){
-                  var groceryProductData = previewItems[index];
-
-                  return Container(
-                    width: SizeConfig.size150,
-                    margin: EdgeInsets.only(right: 8.0),
-                    decoration: BoxDecoration(
-                      color: AppColors.white,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: GroceryTopSellingImage(
-                            item: groceryProductData,
-                            cartOverlay: Padding(
-                              padding: const EdgeInsets.all(8),
-                              child: Obx(() {
-                                final productVariants =
-                                    groceryProductData.productVariant;
-                                // Live quantity from the cart — reads the
-                                // RxMap inside Obx so the stepper rebuilds on
-                                // every add / remove / qty change.
-                                final qty = groceryCustomerController
-                                    .getQuantity(productVariants?.sId);
-                                return GroceryQtyStepper(
-                                  quantity: qty,
-                                  onIncrement: () {
-                                    if (productVariants == null) {
-                                      commonSnackBar(
-                                          message: AppStrings
-                                              .groceryViewNoVariantsAvailable
-                                              .tr);
-                                      return;
-                                    }
-                                    final bDetails =
-                                        viewBusinessDetailsController
-                                            .visitedBusinessProfileDetails
-                                            ?.data;
-                                    groceryCustomerController.addToCart(
-                                      productVariants,
-                                      inventoryId: groceryProductData.sId,
-                                      productId: productVariants.sId,
-                                      businessId: widget.visitBusinessId,
-                                      businessName: bDetails?.businessName,
-                                      businessLogo: bDetails?.logo,
-                                      businessAddress: bDetails?.address,
-                                      productImage:
-                                          groceryProductData.primaryImageUrl,
-                                      businessLat: bDetails
-                                          ?.businessLocation?.lat
-                                          ?.toDouble(),
-                                      businessLng: bDetails
-                                          ?.businessLocation?.lon
-                                          ?.toDouble(),
-                                      businessCategory: bDetails
-                                              ?.subCategoryDetails?.name ??
-                                          bDetails?.categoryOfBusiness ??
-                                          bDetails?.natureOfBusiness,
-                                    );
-                                  },
-                                  onDecrement: () {
-                                    if (productVariants == null) return;
-                                    groceryCustomerController
-                                        .removeFromCart(productVariants);
-                                  },
-                                );
-                              }),
-                            ),
+                itemBuilder: (context, index) {
+                  final group = previewGroups[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: SizedBox(
+                        width: SizeConfig.size150,
+                        // Outer border so the white card stands out against the
+                        // section's white background.
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: AppColors.greyE5),
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: GroceryProductCard(
+                            groceryProducts: _toGroceryProductData(group),
+                            flowType: GroceryCardFlowType.selfPickup,
+                            bId: widget.visitBusinessId,
                           ),
                         ),
-
-                        GroceryTopSellingInfoSection(item: groceryProductData),
-                      ],
+                      ),
                     ),
                   );
                 },
               );
             }),
           ),
-
-
-
         ],
       ),
+    );
+  }
+
+  /// Adapt a grouped business-product (`BusinessProductData` + its variants)
+  /// to the `GroceryProductData` that `GroceryProductCard` consumes, so the
+  /// top-selling rail renders the exact same card + variants sheet as the
+  /// products screen.
+  GroceryProductData _toGroceryProductData(GroceryProductVariantGroup group) {
+    final bp = group.product;
+    // GroceryProductCard already falls back product-image → variant-image, so
+    // just pass the product image and the variants.
+    return GroceryProductData(
+      sId: bp.product?.sId,
+      name: bp.product?.name,
+      description: bp.product?.description,
+      brand: bp.product?.brand,
+      category: bp.category?.sId,
+      images: bp.product?.images?.map((i) => Images(url: i.url)).toList(),
+      variants: group.variants,
+      isVegetarian: group.variants.isNotEmpty
+          ? group.variants.first.isVegetarian
+          : null,
+      isActive: true,
     );
   }
 

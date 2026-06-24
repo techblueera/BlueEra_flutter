@@ -30,9 +30,10 @@ import 'package:BlueEra/features/contribution/controller/contribution_controller
 import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_business_products_model.dart';
+import 'package:BlueEra/features/me/grocery/widget/grocery_top_selling_product_card.dart';
+import 'package:BlueEra/features/me/grocery/widget/grocery_variants_sheet.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/grocery/view/all_top_selling_grocery_products_screen.dart';
-import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
 import 'package:BlueEra/widgets/common_business_live_photo.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -743,7 +744,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
   List<Widget> _buildOverviewSlivers() {
     return [
       BusinessJoinedProfileCard(businessController: _businessController),
-      SizedBox(height: SizeConfig.size12),
+      SizedBox(height: SizeConfig.size2),
       Padding(
         padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
         child: CommonBusinessLivePhoto(
@@ -1240,9 +1241,13 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
       final products = _groceryController.groceryBusinessProductsList;
       if (!isLoading && products.isEmpty) return const SizedBox.shrink();
 
-      final previewItems = products.length > GroceryController.businessProductsPreviewLimit
-          ? products.take(GroceryController.businessProductsPreviewLimit).toList()
-          : products.toList();
+      // The business-products list can carry one row per variant (so the same
+      // product repeats). Group by product → one card per product; tapping a
+      // card opens a sheet listing that product's variants.
+      final grouped = groupBusinessProductsByProduct(products.toList());
+      final previewGroups = grouped.length > GroceryController.businessProductsPreviewLimit
+          ? grouped.take(GroceryController.businessProductsPreviewLimit).toList()
+          : grouped;
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1253,20 +1258,48 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
           ),
           SizedBox(height: SizeConfig.size12),
           SizedBox(
-            height: 290,
+            height: 225,
             child: isLoading
                 ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
                 : ListView.builder(
-                    itemCount: previewItems.length,
+                    itemCount: previewGroups.length,
                     scrollDirection: Axis.horizontal,
                     padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-                    itemBuilder: (context, index) => _productCard(previewItems[index], index + 1),
+                    itemBuilder: (context, index) {
+                      final group = previewGroups[index];
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 12),
+                        // Align stops the horizontal ListView's tight cross-axis
+                        // (height) constraint from stretching the card — it sizes
+                        // to its content instead of filling the rail height.
+                        child: Align(
+                          alignment: Alignment.topCenter,
+                          child: SizedBox(
+                            width: 160,
+                            child: GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () => showGroceryVariantsSheet(
+                                context: context,
+                                productName: group.product.product?.name ?? '',
+                                productImageUrl: group.product.productImageUrlOnly,
+                                variants: group.variants,
+                              ),
+                              child: GroceryTopSellingProductCard(
+                                product: group.product,
+                                variants: group.variants,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
           ),
         ],
       );
     });
   }
+
 
   Widget _topSellingSectionHeader() {
     return Row(
@@ -1371,230 +1404,6 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
   // info zone uses a clear three-row hierarchy (chips â†’ name â†’ price)
   // and the card is finished with a brand-blue gradient ribbon at
   // the bottom edge to anchor the silhouette.
-  Widget _productCard(BusinessProductData item, int rank) {
-    final imageUrl = item.product?.images?.firstOrNull?.url ?? '';
-    final hasImage = imageUrl.isNotEmpty;
-    final discountPercent = (item.avgDiscount ?? 0).toInt();
-    final variantName = item.productVariant?.variantName ?? '';
-    final isVeg = item.productVariant?.isVegetarian;
-
-    return Container(
-      width: 168,
-      margin: const EdgeInsets.only(right: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE6E8EE), width: 1),
-        boxShadow: const [
-          // Grocery-flavoured shadow â€” soft green halo (matches the
-          // discount sticker palette) instead of the page's neutral
-          // navy shadow, so the shelf reads as "fresh / produce".
-          BoxShadow(
-            color: Color(0x3315B85A),
-            blurRadius: 10,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Image hero â€” brand-tinted backdrop with the photo
-          // centered (BoxFit.contain so packaged products never
-          // crop). Discount sticker top-left, rank pill top-right.
-          AspectRatio(
-            aspectRatio: 1.05,
-            child: Stack(
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        AppColors.primaryColor.withValues(alpha: 0.10),
-                        AppColors.primaryColor.withValues(alpha: 0.04),
-                      ],
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(14),
-                  child: SizedBox.expand(
-                    child: hasImage
-                        ? CachedNetworkImage(
-                            imageUrl: imageUrl,
-                            fit: BoxFit.contain,
-                            placeholder: (_, __) => const SizedBox.shrink(),
-                            errorWidget: (_, __, ___) => LocalAssets(
-                              imagePath: AppIconAssets.place_holder_image,
-                              boxFix: BoxFit.contain,
-                            ),
-                          )
-                        : LocalAssets(
-                            imagePath: AppIconAssets.place_holder_image,
-                            boxFix: BoxFit.contain,
-                          ),
-                  ),
-                ),
-                if (discountPercent > 0)
-                  Positioned(
-                    top: 0,
-                    left: 0,
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(16),
-                        bottomRight: Radius.circular(12),
-                      ),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                        decoration: const BoxDecoration(
-                          // Grocery palette â€” fresh-leaf â†’
-                          // deep-produce green pulled from AppColors
-                          // so the sticker visibly belongs to the
-                          // grocery section's brand language.
-                          gradient: LinearGradient(
-                            begin: Alignment.centerLeft,
-                            end: Alignment.centerRight,
-                            colors: [
-                              AppColors.greenLight,
-                              AppColors.green1A,
-                            ],
-                          ),
-                        ),
-                        child: CustomText(
-                          AppStrings.discountOffFmt.trParams({'percent': '$discountPercent'}),
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: AppColors.primaryColor.withValues(alpha: 0.30),
-                        width: 1,
-                      ),
-                      boxShadow: const [
-                        BoxShadow(
-                          color: Color(0x14001120),
-                          blurRadius: 4,
-                          offset: Offset(0, 1),
-                        ),
-                      ],
-                    ),
-                    child: CustomText(
-                      '#${rank.toString().padLeft(2, '0')}',
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.primaryColor,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          // Info zone â€” chips row, name, price hierarchy.
-          Padding(
-            padding: const EdgeInsets.fromLTRB(10, 10, 10, 12),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (isVeg != null || variantName.isNotEmpty)
-                  Row(
-                    children: [
-                      if (isVeg != null) ...[
-                        FoodTypeIndicator(isVegetarian: isVeg, size: 6),
-                        const SizedBox(width: 6),
-                      ],
-                      if (variantName.isNotEmpty)
-                        Flexible(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: AppColors.primaryColor.withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: CustomText(
-                              variantName,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.primaryColor,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                if (isVeg != null || variantName.isNotEmpty) const SizedBox(height: 8),
-                CustomText(
-                  item.product?.name ?? '',
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.mainTextColor,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    CustomText(
-                      '${AppConstants.rupeeSymbol}${item.minSellingPrice ?? '-'}',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.mainTextColor,
-                    ),
-                    const SizedBox(width: 6),
-                    Flexible(
-                      child: CustomText(
-                        '${AppConstants.rupeeSymbol}${item.minMrp ?? '-'}',
-                        fontSize: 11,
-                        fontWeight: FontWeight.w400,
-                        color: AppColors.secondaryTextColor,
-                        decoration: TextDecoration.lineThrough,
-                        decorationColor: AppColors.secondaryTextColor,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          // Brand-blue gradient ribbon â€” the subtle "section
-          // signature" that ties the shelf together.
-          Container(
-            height: 3,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-                colors: [
-                  AppColors.primaryColor.withValues(alpha: 0.55),
-                  AppColors.primaryColor,
-                  AppColors.primaryColor.withValues(alpha: 0.55),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // CATEGORIES WITH INVENTORY â€” header strip + two-tone storefront

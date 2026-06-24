@@ -4,6 +4,33 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 
 class GroceryRepo extends BaseService {
+  /// Update a single inventory record (one variant) — price/mrp etc.
+  /// `PUT grocery-service/api/inventory/{inventoryId}`.
+  Future<ResponseModel> updateInventoryVariantRepo({
+    required String inventoryId,
+    required Map<String, dynamic> params,
+  }) async {
+    return ApiBaseHelper().putHTTP(
+      updateGroceryInventory(inventoryId),
+      params: params,
+      showProgress: false,
+    );
+  }
+
+  /// Delete a single inventory variant by its inventory id.
+  /// `DELETE grocery-service/api/inventory/{inventoryId}` — same path as the
+  /// update endpoint, DELETE verb.
+  Future<ResponseModel> deleteInventoryVariantRepo({
+    required String inventoryId,
+  }) async {
+    return ApiBaseHelper().deleteHTTP(
+      updateGroceryInventory(inventoryId),
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+  }
+
   Future<ResponseModel> searchGroceryCategoryRepo(
       {Map<String, dynamic>? queryParam}) async {
     final response = await ApiBaseHelper().getHTTP(

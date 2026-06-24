@@ -44,6 +44,7 @@ import 'package:BlueEra/features/me/vehicle/view/v2/vehicle_home_screen_v2.dart'
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/personal_profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_employee_screen.dart';
+import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/location_permission_banner.dart';
@@ -420,7 +421,20 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
                   return Positioned.fill(
                     top: topOffset,
-                    child: _getScreen(bottomBarController.currentIndex.value, isVisible),
+                    // Single app-wide hide-on-scroll wrapper so EVERY tab and
+                    // every "Me" sub-screen (individual + business) gets the
+                    // same behaviour — including the ones that don't wrap
+                    // themselves (SelfEmployee, Professionals, Food, Grocery,
+                    // Hospital, Others, Product, Manufacturer, Vehicle, …).
+                    // Keyed per index so each tab keeps its own scroll
+                    // accumulator; tab switches reset visibility in
+                    // BottomBarController.onChangeIndex.
+                    child: BottomNavHideOnScroll(
+                      key: ValueKey(
+                          'navHideOnScroll_${bottomBarController.currentIndex.value}'),
+                      child: _getScreen(
+                          bottomBarController.currentIndex.value, isVisible),
+                    ),
                   );
                 }),
 

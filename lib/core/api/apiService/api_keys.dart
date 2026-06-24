@@ -135,6 +135,7 @@ class ApiKeys {
   static const filter = 'filter';
   static const offset = 'limit';
   static const refresh = 'refresh';
+  static const includeReels = 'includeReels';
   static const songId = 'songId';
   static const query = 'query';
   static const q = 'q';

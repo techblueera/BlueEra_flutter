@@ -5,11 +5,14 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
+import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
 import 'package:BlueEra/features/common/comment/view/comment_bottom_sheet.dart';
 import 'package:BlueEra/features/common/feed/controller/full_screen_short_controller.dart';
 import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
@@ -77,6 +80,10 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
   bool isVerified = false;
   bool _hasError = false;
   bool isShortSavedInDb = false;
+
+  /// Follow state for an individual author's reel (seeded from
+  /// `interactions.isFollowing`, toggled optimistically on tap).
+  bool _isFollowing = false;
   bool _isDisposed = false;
   Timer? _overlayTimer;
   Timer? _viewTimer;
@@ -305,6 +312,8 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
     }
     isShortSavedInDb = HiveServices()
         .isVideoSaved(fullScreenShortController.videoItem?.videoId ?? '');
+    _isFollowing =
+        fullScreenShortController.videoItem?.interactions?.isFollowing ?? false;
     fullScreenShortController.isLiked.value =
         fullScreenShortController.videoItem?.interactions?.isLiked ?? false;
     fullScreenShortController.likes.value =
@@ -913,27 +922,67 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
     );
   }
 
-  /// Frosted "Visit Store" (business) / "View Profile" (individual) pill that
-  /// opens the author's profile via the same routing as tapping their name.
-  /// Hidden on the viewer's own reel (there's nowhere to visit).
+  /// Trailing action beside the author row:
+  ///   * **own reel** → nothing (you can't visit/follow yourself),
+  ///   * **business** (other) → frosted "Visit Store" pill → opens the store,
+  ///   * **individual** (other) → Follow / Following toggle (user follow API).
+  ///     No "View Profile" for individuals.
   Widget _buildVisitButton() {
     final item = fullScreenShortController.videoItem;
     final channel = item?.channel;
     final author = item?.author;
 
-    final isOwn = (channel?.id != null && channel?.id == channelId) ||
-        (channel?.id == null && (author?.id ?? '') == userId);
-    if (isOwn) return const SizedBox.shrink();
+    // Own reel — nothing to show.
+    if (_isOwnReel(item)) return const SizedBox.shrink();
 
     final isBusiness = channel?.id != null ||
         (author?.accountType ?? '').toUpperCase() ==
             AppConstants.business.toUpperCase();
-    final label = isBusiness ? 'Visit Store' : 'View Profile';
-    final icon =
-        isBusiness ? Icons.storefront_rounded : Icons.person_rounded;
 
+    if (isBusiness) {
+      // Business → Visit Store (unchanged behaviour).
+      return _frostedPill(
+        icon: Icons.storefront_rounded,
+        label: 'Visit Store',
+        onTap: _navigateToProfile,
+      );
+    }
+
+    // Individual → Follow / Following (no profile visit).
+    final authorId = author?.id ?? '';
+    return _frostedPill(
+      icon: _isFollowing ? Icons.check_rounded : Icons.person_add_alt_1,
+      label: _isFollowing ? 'Following' : 'Follow',
+      // Solid primary fill while not following so it reads as a clear CTA.
+      filled: !_isFollowing,
+      onTap: authorId.isEmpty ? null : () => _toggleFollow(authorId),
+    );
+  }
+
+  /// True when the reel belongs to the signed-in user — by author id **or**
+  /// channel. The author check runs regardless of whether a channel exists:
+  /// the old logic skipped it whenever a channel was present, so an
+  /// individual's own reel (which still carries a channel) was treated as
+  /// someone else's and wrongly showed the visit button.
+  bool _isOwnReel(ShortFeedItem? item) {
+    final authorId = item?.author?.id ?? '';
+    if (authorId.isNotEmpty && authorId == userId) return true;
+    final chId = item?.channel?.id ?? '';
+    if (chId.isNotEmpty && chId == channelId) return true;
+    return false;
+  }
+
+  /// Shared frosted-glass pill (same language as the play/pause overlay) used
+  /// for both the Visit Store and Follow actions. [filled] gives it a solid
+  /// primary background for a stronger CTA.
+  Widget _frostedPill({
+    required IconData icon,
+    required String label,
+    required VoidCallback? onTap,
+    bool filled = false,
+  }) {
     return GestureDetector(
-      onTap: _navigateToProfile,
+      onTap: onTap,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
         child: BackdropFilter(
@@ -942,9 +991,9 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
             padding: EdgeInsets.symmetric(
                 horizontal: SizeConfig.size12, vertical: SizeConfig.size6),
             decoration: BoxDecoration(
-              // Same frosted-glass language as the play/pause overlay so the
-              // button reads as native to the reel surface.
-              color: Colors.white.withValues(alpha: 0.18),
+              color: filled
+                  ? AppColors.primaryColor.withValues(alpha: 0.85)
+                  : Colors.white.withValues(alpha: 0.18),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: Colors.white.withValues(alpha: 0.35),
@@ -968,6 +1017,30 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
         ),
       ),
     );
+  }
+
+  /// Follow / unfollow the individual author of this reel. Optimistic — flips
+  /// the local state immediately and reverts if the API call fails. Guests are
+  /// routed to create a profile first.
+  Future<void> _toggleFollow(String authorId) async {
+    if (isGuestUser()) {
+      createProfileScreen();
+      return;
+    }
+    final wasFollowing = _isFollowing;
+    setState(() => _isFollowing = !wasFollowing);
+    try {
+      final res = wasFollowing
+          ? await UserRepo().unfollowUser(followUserId: authorId)
+          : await UserRepo().followUser(followUserId: authorId);
+      if (!res.isSuccess) {
+        if (mounted) setState(() => _isFollowing = wasFollowing);
+        commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (_) {
+      if (mounted) setState(() => _isFollowing = wasFollowing);
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
   }
 
   Widget _buildBackButton() {

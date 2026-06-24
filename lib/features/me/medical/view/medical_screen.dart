@@ -4,7 +4,6 @@ import 'package:BlueEra/features/me/medical/controller/medical_controller.dart';
 import 'package:BlueEra/features/common/statistics/controller/profile_statistics_controller.dart';
 import 'package:BlueEra/features/me/medical/view/medical_home_screen_v2.dart';
 import 'package:BlueEra/features/me/medical/controller/user_medical_controller.dart';
-import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:flutter/material.dart';
 
 class MedicalScreen extends StatefulWidget {
@@ -32,9 +31,7 @@ class _MedicalScreenState extends State<MedicalScreen> {
     // directly — no redundant outer TabBarView.
     return Scaffold(
       body: SafeArea(
-        child: BottomNavHideOnScroll(
-          child: MedicalHomeScreenV2(businessId: userId),
-        ),
+        child: MedicalHomeScreenV2(businessId: userId),
       ),
     );
   }

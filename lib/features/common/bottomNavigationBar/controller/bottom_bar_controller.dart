@@ -24,6 +24,9 @@ class BottomBarController extends GetxController {
     if (currentIndex.value == 0 && index != 0) {
       _pauseFeedVideo();
     }
+    // Always reveal the bottom nav on a tab switch — otherwise a tab left
+    // scrolled-down would hand the next tab a hidden bar.
+    isBottomNavVisible.value = true;
     currentIndex.value = index;
   }
   void _pauseFeedVideo() {

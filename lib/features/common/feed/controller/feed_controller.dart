@@ -256,7 +256,10 @@ class FeedController extends GetxController {
       final Map<String, dynamic> queryParams = {
         ApiKeys.page: page,
         ApiKeys.limit: initialFetchLimit, // Fetch 40 items for enhancement
-        ApiKeys.filter: postFilterType
+        ApiKeys.filter: postFilterType,
+        // Ask the server to interleave reels into the post feed (default is on;
+        // sent explicitly to document intent). See REELS_IN_FEED guide.
+        ApiKeys.includeReels: true,
       };
 
       if (query == null) {
@@ -283,8 +286,12 @@ class FeedController extends GetxController {
           // Update the UI with fresh data (first 20 posts)
           targetList.value = postResponse.data.take(displayLimit).toList();
 
-          // Set pagination state
-          if (postResponse.data.length < initialFetchLimit) {
+          // Set pagination state. Reels are layered on top of posts and don't
+          // count toward the page limit, so measure progress by post count, not
+          // data.length (which now includes reels). See REELS_IN_FEED guide §6.
+          final fetchedPostCount =
+              postResponse.data.where((e) => !e.isReel).length;
+          if (fetchedPostCount < initialFetchLimit) {
             isTargetHasMoreData.value = false;
             print('📄 No more data from server after background fetch');
           } else {
@@ -349,6 +356,17 @@ class FeedController extends GetxController {
       ApiKeys.limit: isInitialLoad ? initialFetchLimit : displayLimit,
       ApiKeys.filter: postFilterType,
     };
+
+    // Reels are injected only into the post feeds — home/search (PostType.all),
+    // my-posts, and other-user posts. The channel feed (latest/popular/oldest/
+    // otherChannelPosts) is posts-only on the backend, so don't request reels
+    // there. See REELS_IN_FEED_FRONTEND_GUIDE.md §1 ("channel feed → no reels").
+    final feedSupportsReels = type == PostType.all ||
+        type == PostType.myPosts ||
+        type == PostType.otherPosts;
+    if (feedSupportsReels) {
+      queryParams[ApiKeys.includeReels] = true;
+    }
 
     if (query == null) {
       queryParams[ApiKeys.refresh] = refresh;
@@ -423,9 +441,14 @@ class FeedController extends GetxController {
               '📦 Added ${postResponse.data.length} new posts to cache. Total cached: ${_cachedPosts[type]!.length}');
         }
 
-        // Check if we have more data available from server
+        // Check if we have more data available from server. Reels are layered
+        // on top of posts and don't count toward the page limit, so measure by
+        // post count, not data.length (which now includes reels). See
+        // REELS_IN_FEED guide §6.
         final expectedLimit = isInitialLoad ? initialFetchLimit : displayLimit;
-        final hasServerMore = postResponse.data.length >= expectedLimit;
+        final fetchedPostCount =
+            postResponse.data.where((e) => !e.isReel).length;
+        final hasServerMore = fetchedPostCount >= expectedLimit;
         final hasCacheMore = _hasMoreCachedData(type);
 
         if (!hasServerMore && !hasCacheMore) {
@@ -494,10 +517,12 @@ class FeedController extends GetxController {
     }
     _lastFetchedId = id;
 
+    // Channel feed is posts-only — the backend injects no reels here, so we
+    // don't request them. See REELS_IN_FEED_FRONTEND_GUIDE.md §1.
     final Map<String, dynamic> queryParams = {
       ApiKeys.page: page,
       ApiKeys.limit: isInitialLoad ? initialFetchLimit : displayLimit,
-      ApiKeys.filter: postFilterType
+      ApiKeys.filter: postFilterType,
     };
 
     if (query == null) {
@@ -536,9 +561,14 @@ class FeedController extends GetxController {
               '📦 Added ${postResponse.data.length} new posts to cache. Total cached: ${_cachedPosts[type]!.length}');
         }
 
-        // Check if we have more data available from server
+        // Check if we have more data available from server. Reels are layered
+        // on top of posts and don't count toward the page limit, so measure by
+        // post count, not data.length (which now includes reels). See
+        // REELS_IN_FEED guide §6.
         final expectedLimit = isInitialLoad ? initialFetchLimit : displayLimit;
-        final hasServerMore = postResponse.data.length >= expectedLimit;
+        final fetchedPostCount =
+            postResponse.data.where((e) => !e.isReel).length;
+        final hasServerMore = fetchedPostCount >= expectedLimit;
         final hasCacheMore = _hasMoreCachedData(type);
 
         if (!hasServerMore && !hasCacheMore) {

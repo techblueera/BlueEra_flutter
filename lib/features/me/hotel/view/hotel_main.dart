@@ -1,7 +1,6 @@
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_home_detail_controller.dart';
 import 'package:BlueEra/features/me/hotel/view/v2/hotel_home_screen_v2.dart';
-import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:flutter/material.dart';
 
 /// Root container for the hotel tab in the Me section. Defers to
@@ -34,9 +33,7 @@ class _HotelMainState extends State<HotelMain> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: BottomNavHideOnScroll(
-          child: HotelHomeScreenV2(),
-        ),
+        child: HotelHomeScreenV2(),
       ),
     );
   }
