@@ -24,6 +24,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
+import '../../../chat/auth/controller/chat_view_controller.dart';
+import '../../../chat/auth/service/chat_click_tracker.dart';
+
 class AllEducationServiceScreen extends StatefulWidget {
   final List<OnboardingCategoryModel> professionalConsultantCategories;
   final OnboardingCategoryModel? selectedProfessionConsultantData;
@@ -136,6 +139,29 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  void _openChat(SchoolDetailsData service) {
+    final userId = service.ownerId ?? '';
+    if (userId.trim().isEmpty) return;
+    if (isGuestUser()) {
+      createProfileScreen();
+      return;
+    }
+    final bId = service.id?.trim();
+    if (bId != null && bId.isNotEmpty) {
+      ChatClickTracker.track(
+        userId: bId,
+        source: ChatClickSource.searchResult,
+      );
+    }
+    final chatViewController = getOrPut(() => ChatViewController());
+    chatViewController.checkChatConnectionAndOpenChat(
+      userId: userId,
+      name: service.name,
+      profile: service.logo,
+      route: AppConstants.route_discover,
     );
   }
 
@@ -270,7 +296,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
                   SizedBox(height: SizeConfig.size12),
                   _buildFeeRow(label: feeLabel, value: feeRange),
                   SizedBox(height: SizeConfig.size12),
-                  _buildActionsRow(),
+                  _buildActionsRow(service),
                 ],
               ),
             ),
@@ -706,29 +732,32 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
     );
   }
 
-  Widget _buildActionsRow() {
+  Widget _buildActionsRow(SchoolDetailsData service) {
     return Row(
       children: [
         Expanded(
           flex: 2,
-          child: Container(
-            height: 44,
-            decoration: BoxDecoration(
-              color: AppColors.skyBlueFF,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                LocalAssets(imagePath: AppIconAssets.chat, imgColor: AppColors.primaryColor),
-                const SizedBox(width: 6),
-                CustomText(
-                  'Chat',
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primaryColor,
-                ),
-              ],
+          child: InkWell(
+            onTap: () => _openChat(service),
+            child: Container(
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.skyBlueFF,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  LocalAssets(imagePath: AppIconAssets.chat, imgColor: AppColors.primaryColor),
+                  const SizedBox(width: 6),
+                  CustomText(
+                    'Chat',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primaryColor,
+                  ),
+                ],
+              ),
             ),
           ),
         ),

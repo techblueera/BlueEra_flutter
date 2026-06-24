@@ -19,7 +19,9 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
+import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/chat/auth/socket/chat_socket.dart';
 import 'package:BlueEra/features/common/auth/model/business_category_response_model.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/auth/model/guest_res_model.dart';
@@ -28,42 +30,36 @@ import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dar
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import 'package:BlueEra/features/common/auth/model/single_business_category_response.dart';
 import 'package:BlueEra/features/common/auth/model/username_res_model.dart';
-import 'package:BlueEra/features/chat/auth/socket/chat_socket.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/auth/views/screens/complete_guest_profile_screen.dart';
-import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/features/common/auth/views/screens/create_account_type_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_bar_screen.dart';
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_service_controller.dart';
-import 'package:geocoding/geocoding.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_service_ai_controller.dart';
 import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
 import 'package:BlueEra/features/me/professionals_consultant/controller/ai_professionals_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/self_work_service_controller.dart';
 import 'package:BlueEra/features/me/school/controller/school_controller.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/self_work_service_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:get/get.dart';
+
 import '../../bottomNavigationBar/controller/bottom_bar_controller.dart';
 
 class AuthController extends GetxController {
   ApiResponse mobileNoOtpSendResponse = ApiResponse.initial('Initial');
   ApiResponse businessCategoryResponse = ApiResponse.initial('Initial');
   ApiResponse professionListingResponse = ApiResponse.initial('Initial');
-  final Rx<ApiResponse> otpVerificationResponse =
-      Rx<ApiResponse>(ApiResponse.initial('Initial'));
-  final Rx<ApiResponse> addUserResponse =
-      Rx<ApiResponse>(ApiResponse.initial('Initial'));
+  final Rx<ApiResponse> otpVerificationResponse = Rx<ApiResponse>(ApiResponse.initial('Initial'));
+  final Rx<ApiResponse> addUserResponse = Rx<ApiResponse>(ApiResponse.initial('Initial'));
   Rx<ApiResponse> gstVerifyResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> getUserNameCheckResponse = ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> deleteUserAccountResponse =
-      ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> businessSubCategoryResponse =
-      ApiResponse.initial('Initial').obs;
-  Rx<ApiResponse> contentCreatorFieldResponse =
-      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> deleteUserAccountResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> businessSubCategoryResponse = ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> contentCreatorFieldResponse = ApiResponse.initial('Initial').obs;
   ApiResponse blockUserResponse = ApiResponse.initial('Initial');
   final mobileNumberEditController = TextEditingController(text: '');
   final referralCodeController = TextEditingController();
@@ -77,10 +73,8 @@ class AuthController extends GetxController {
   RxInt? selectedDay = 0.obs, selectedMonth = 0.obs, selectedYear = 0.obs;
 
   RxString selectedParentSlug = AppConstants.individual.obs;
-  Rxn<OnboardingCategoryModel> selectedIndividualOnboardingProfile =
-      Rxn<OnboardingCategoryModel>();
-  Rxn<OnboardingCategoryModel> selectedBusinessOnboardingProfile =
-      Rxn<OnboardingCategoryModel>();
+  Rxn<OnboardingCategoryModel> selectedIndividualOnboardingProfile = Rxn<OnboardingCategoryModel>();
+  Rxn<OnboardingCategoryModel> selectedBusinessOnboardingProfile = Rxn<OnboardingCategoryModel>();
 
   RxBool isAppLoading = false.obs;
 
@@ -129,8 +123,7 @@ class AuthController extends GetxController {
       ApiKeys.type: isOtpType.value,
     };
     try {
-      ResponseModel responseModel =
-          await AuthRepo().authMobileOtpSendRepo(bodyRequest: requestData);
+      ResponseModel responseModel = await AuthRepo().authMobileOtpSendRepo(bodyRequest: requestData);
       // logs("responseModel: ${responseModel.statusCode}");
       if (responseModel.isSuccess) {
         commonSnackBar(message: responseModel.message ?? AppStrings.success);
@@ -140,8 +133,7 @@ class AuthController extends GetxController {
         );
         mobileNoOtpSendResponse = ApiResponse.complete(responseModel);
       } else {
-        commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong);
+        commonSnackBar(message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       mobileNoOtpSendResponse = ApiResponse.error('error');
@@ -162,8 +154,7 @@ class AuthController extends GetxController {
       if (token == null || token.isEmpty) {
         // Refresh failed (GMS unavailable, APNs not ready, etc.) — fall
         // back to whatever is in cache so verifyOTP still sends something.
-        token = await SharedPreferenceUtils.getSecureValue(
-            SharedPreferenceUtils.notificationDeviceToken);
+        token = await SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.notificationDeviceToken);
       }
       print("TOKEN = $token");
 
@@ -173,12 +164,10 @@ class AuthController extends GetxController {
         ApiKeys.device_token: token,
         ApiKeys.one_signal_player_id: "",
       };
-      ResponseModel response =
-          await AuthRepo().authMobileOtpVerifyRepo(bodyRequest: requestData);
+      ResponseModel response = await AuthRepo().authMobileOtpVerifyRepo(bodyRequest: requestData);
 
       if (response.statusCode == 200) {
-        OtpVerifyModel data =
-            otpVerifyModelFromJson(jsonEncode(response.response?.data));
+        OtpVerifyModel data = otpVerifyModelFromJson(jsonEncode(response.response?.data));
 
         final dataUser = response.response?.data?[ApiKeys.user] ?? false;
 
@@ -196,14 +185,12 @@ class AuthController extends GetxController {
           if (data.token != null && (data.token?.isNotEmpty ?? false)) {
             // OnesignalService.setOneSignalUserIdentity(
             //     data.data?.username ?? '');
-            if (data.data?.accountType?.toUpperCase() ==
-                AppConstants.business) {
+            if (data.data?.accountType?.toUpperCase() == AppConstants.business) {
               await SharedPreferenceUtils.setSecureValue(
                   SharedPreferenceUtils.accountType, AppConstants.business);
               await SharedPreferenceUtils.setSecureValue(
                   SharedPreferenceUtils.userBusinessId, data.data?.business);
-              await SharedPreferenceUtils.setSecureValue(
-                  SharedPreferenceUtils.authToken, data.token);
+              await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.authToken, data.token);
               await SharedPreferenceUtils.setSecureValue(
                   SharedPreferenceUtils.userLoginMobile, data.data?.contactNo);
               await getMobileNo();
@@ -235,9 +222,7 @@ class AuthController extends GetxController {
               // _handlePostFrameInitialization then no-ops because the
               // response is already COMPLETE. Subsequent logins hit the
               // BusinessProfileCache instantly so this stays cheap.
-              final viewProfileController = getOrPut(
-                  () => ViewBusinessDetailsController(),
-                  permanent: true);
+              final viewProfileController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
               await viewProfileController.viewBusinessProfile();
               navigatedAway = true;
               Get.offNamedUntil(
@@ -247,8 +232,7 @@ class AuthController extends GetxController {
                 // individual branch below.
                 arguments: {ApiKeys.initialIndex: 1},
               );
-            } else if (data.data?.accountType?.toUpperCase() ==
-                AppConstants.individual) {
+            } else if (data.data?.accountType?.toUpperCase() == AppConstants.individual) {
               await SharedPreferenceUtils.setSecureValue(
                   SharedPreferenceUtils.userLoginMobile, data.data?.contactNo);
               await getMobileNo();
@@ -257,8 +241,7 @@ class AuthController extends GetxController {
                   SharedPreferenceUtils.accountType, AppConstants.individual);
               await getUserLoginAccountType();
 
-              await SharedPreferenceUtils.setSecureValue(
-                  SharedPreferenceUtils.authToken, data.token);
+              await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.authToken, data.token);
 
               await getUserAuthToken();
               // Auth is now available — flush any FCM token queued during the
@@ -276,8 +259,7 @@ class AuthController extends GetxController {
               // OTP screen's dim overlay until the prefs are populated.
               // PersonalProfileCache makes this near-instant on subsequent
               // logins.
-              final personalController =
-                  Get.put(ViewPersonalDetailsController(), permanent: true);
+              final personalController = Get.put(ViewPersonalDetailsController(), permanent: true);
               await personalController.viewPersonalProfile();
               navigatedAway = true;
               Get.offNamedUntil(
@@ -322,8 +304,7 @@ class AuthController extends GetxController {
             getUserName: "${data.data?.name ?? data.data?.username}",
             profileImage: data.data?.profileImage ?? '',
           );
-          await SharedPreferenceUtils.setSecureValue(
-              SharedPreferenceUtils.accountType, AppConstants.guest);
+          await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.accountType, AppConstants.guest);
           await getGuestUserLoginData();
           // await Future.delayed(Duration(milliseconds: 350));
           // Get.offAll(() => const ChooseAccountTypeScreen());
@@ -343,10 +324,8 @@ class AuthController extends GetxController {
           otpVerificationResponse.value = ApiResponse.complete(response);
         }
       } else {
-        commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong);
-        otpVerificationResponse.value = ApiResponse.error(
-            response.message ?? AppStrings.somethingWentWrong);
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+        otpVerificationResponse.value = ApiResponse.error(response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e, s) {
       logs("ERROR ${e}");
@@ -357,33 +336,25 @@ class AuthController extends GetxController {
     }
   }
 
-  Future<void> addIndividualUser(
-      {required Map<String, dynamic>? reqData}) async {
+  Future<void> addIndividualUser({required Map<String, dynamic>? reqData}) async {
     addUserResponse.value = ApiResponse.loading('loading');
     try {
-      ResponseModel response = await AuthRepo()
-          .updateIndividualAccountUserRepo(bodyRequest: reqData);
+      ResponseModel response = await AuthRepo().updateIndividualAccountUserRepo(bodyRequest: reqData);
       if (!response.isSuccess) {
-        commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong);
-        addUserResponse.value = ApiResponse.error(
-            response.message ?? AppStrings.somethingWentWrong);
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+        addUserResponse.value = ApiResponse.error(response.message ?? AppStrings.somethingWentWrong);
         return;
       }
 
-      final upgraded =
-          IndividualUserResponseModel.fromJson(response.response?.data ?? {});
+      final upgraded = IndividualUserResponseModel.fromJson(response.response?.data ?? {});
       if (!(upgraded.status ?? false)) {
         commonSnackBar(message: AppStrings.somethingWentWrong);
-        addUserResponse.value =
-            ApiResponse.error(AppStrings.somethingWentWrong);
+        addUserResponse.value = ApiResponse.error(AppStrings.somethingWentWrong);
         return;
       }
 
-      await SharedPreferenceUtils.setSecureValue(
-          SharedPreferenceUtils.accountType, AppConstants.individual);
-      await SharedPreferenceUtils.setSecureValue(
-          SharedPreferenceUtils.authToken, upgraded.token);
+      await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.accountType, AppConstants.individual);
+      await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.authToken, upgraded.token);
       await getUserLoginAccountType();
       await getUserAuthToken();
       // Guest → individual upgrade: token just landed, open the chat
@@ -400,8 +371,7 @@ class AuthController extends GetxController {
       //      Backend side-effect; navigation doesn't depend on it but
       //      we wait so any failure surfaces to the user before they
       //      leave this screen.
-      final personalController =
-          Get.put(ViewPersonalDetailsController(), permanent: true);
+      final personalController = Get.put(ViewPersonalDetailsController(), permanent: true);
       final pending = <Future<void>>[
         personalController.viewPersonalProfile(),
       ];
@@ -423,8 +393,7 @@ class AuthController extends GetxController {
         controller.professionCategory = reqData?['profession'];
         pending.add(controller.createMinimalEarnService(
           serviceSubType: 'selfWork',
-          professionCategoryOverride:
-              controller.professionCategory?.toUpperCase(),
+          professionCategoryOverride: controller.professionCategory?.toUpperCase(),
         ));
       }
       await Future.wait(pending);
@@ -467,21 +436,37 @@ class AuthController extends GetxController {
     }
   }
 
+  /// Automotive sub-sectors that are functionally "Service Other" — they
+  /// have no dedicated module yet, so create-business hands them off to
+  /// `createOtherProfileController` with `type = "other"`, identical to
+  /// SUPPORT_SERVICES / generic Service businesses. Mirror of the set in
+  /// `_isSpecificServiceSpecialAutomotive` on `BottomNavigationBarScreen`
+  /// (which routes the same businesses to `AutomotiveServiceMain` on
+  /// re-entry); both lists MUST stay in sync.
+  static const Set<String> _automotiveOtherCategories = {
+    'VEHICLE SERVICE',
+    'VEHICLE_SERVICE',
+    'TRANSPORT_LOGISTIC',
+    'TRANSPORT LOGISTIC',
+    'VEHICLE_SUPPORT',
+    'VEHICLE SUPPORT',
+    'TRANSPORT_LOGISTICS_PARKING',
+    'TRANSPORT LOGISTICS PARKING',
+  };
+
   Future<void> addBusinessUser({required Map<String, dynamic>? reqData}) async {
     addUserResponse.value = ApiResponse.loading('loading');
     try {
-      ResponseModel response = await AuthRepo().updateBusinessAccountUserRepo(
-          bodyRequest: reqData, showProgress: false);
+      ResponseModel response =
+          await AuthRepo().updateBusinessAccountUserRepo(bodyRequest: reqData, showProgress: false);
       if (response.isSuccess) {
-        final upgraded =
-            BusinessUserResponseModel.fromJson(response.response?.data ?? {});
+        final upgraded = BusinessUserResponseModel.fromJson(response.response?.data ?? {});
         if (upgraded.status ?? false) {
           await SharedPreferenceUtils.setSecureValue(
               SharedPreferenceUtils.accountType, AppConstants.business);
           await SharedPreferenceUtils.setSecureValue(
               SharedPreferenceUtils.userBusinessId, upgraded.businessId);
-          await SharedPreferenceUtils.setSecureValue(
-              SharedPreferenceUtils.authToken, upgraded.token);
+          await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.authToken, upgraded.token);
 
           await getUserLoginBusinessId();
           await getUserAuthToken();
@@ -492,10 +477,8 @@ class AuthController extends GetxController {
           // and forget — UI must not block on socket handshake.
           unawaited(ChatSocketService().connectToSocket());
 
-          final typeOfBusiness =
-              reqData?[ApiKeys.type_of_business].toString().toUpperCase();
-          final categoryOfBusiness =
-              reqData?[ApiKeys.category_Of_Business].toString().toUpperCase();
+          final typeOfBusiness = reqData?[ApiKeys.type_of_business].toString().toUpperCase();
+          final categoryOfBusiness = reqData?[ApiKeys.category_Of_Business].toString().toUpperCase();
           // Build with conditional spreads so null fields are omitted
           // entirely rather than serialized as JSON `null`. The
           // create*Profile endpoints below send this as a JSON body
@@ -510,16 +493,12 @@ class AuthController extends GetxController {
             ApiKeys.type_of_business: reqData?[ApiKeys.type_of_business],
             if (reqData?[ApiKeys.nature_of_business] != null)
               ApiKeys.nature_of_business: reqData?[ApiKeys.nature_of_business],
-            ApiKeys.date_of_incorporation:
-                reqData?[ApiKeys.date_of_incorporation],
-            ApiKeys.category_Of_Business:
-                reqData?[ApiKeys.category_Of_Business],
+            ApiKeys.date_of_incorporation: reqData?[ApiKeys.date_of_incorporation],
+            ApiKeys.category_Of_Business: reqData?[ApiKeys.category_Of_Business],
             if (reqData?[ApiKeys.sub_category_Of_Business] != null)
-              ApiKeys.sub_category_Of_Business:
-                  reqData?[ApiKeys.sub_category_Of_Business],
+              ApiKeys.sub_category_Of_Business: reqData?[ApiKeys.sub_category_Of_Business],
             if (reqData?[ApiKeys.number_of_Employees] != null)
-              ApiKeys.number_of_Employees:
-                  reqData?[ApiKeys.number_of_Employees],
+              ApiKeys.number_of_Employees: reqData?[ApiKeys.number_of_Employees],
             if (reqData?[ApiKeys.number_of_branch] != null)
               ApiKeys.number_of_branch: reqData?[ApiKeys.number_of_branch],
           };
@@ -533,42 +512,45 @@ class AuthController extends GetxController {
           //      specific business type. Navigation doesn't depend on
           //      it but we wait so any failure surfaces before the
           //      user leaves this screen.
-          final viewProfileController =
-              getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+          final viewProfileController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
           final pending = <Future<void>>[
             viewProfileController.viewBusinessProfile(),
           ];
 
           if (typeOfBusiness == BusinessType.Siksha.name.toUpperCase()) {
-            pending.add(getOrPut(() => SchoolController())
-                .createSchoolController(reqData: reqData));
-          } else if (categoryOfBusiness ==
-              "Diagnostic".toUpperCase()) {
-            pending.add(getOrPut(() => LabServiceAiController())
-                .createLabServiceController(reqData: reqBody));
-          } else if (categoryOfBusiness ==
-                  "HOSPITALS" ||
+            pending.add(getOrPut(() => SchoolController()).createSchoolController(reqData: reqData));
+          } else if (categoryOfBusiness == "Diagnostic".toUpperCase()) {
+            pending
+                .add(getOrPut(() => LabServiceAiController()).createLabServiceController(reqData: reqBody));
+          } else if (categoryOfBusiness == "HOSPITALS" ||
               categoryOfBusiness == "ALTERNATIVE HEALTH" ||
               categoryOfBusiness == "DOCTORS" ||
               categoryOfBusiness == "CLINICS") {
             pending.add(getOrPut(() => HospitalServiceAiController())
                 .createHospitalServiceController(reqData: reqBody));
           } else if (categoryOfBusiness == "SUPPORT_SERVICES" ||
-              typeOfBusiness == BusinessType.Service.name.toUpperCase()) {
-            final controller = getOrPut(() => BusinessProfileFullController());
+              typeOfBusiness == BusinessType.Service.name.toUpperCase() ||
+              (typeOfBusiness == BusinessType.Automotive.name.toUpperCase() &&
+                  _automotiveOtherCategories.contains(categoryOfBusiness))) {
+            // Direct instantiation (not `getOrPut`) — two classes share the
+            // name `BusinessProfileFullController` (one under me/others, one
+            // under me/automotive_service). GetX keys its registry by the
+            // simple class name, so the wrong instance can be returned and
+            // the cast then throws. We only need the controller for one
+            // fire-and-forget call here, so binding to GetX is unnecessary.
+            final controller = BusinessProfileFullController();
             reqBody['profileName'] = reqData?[ApiKeys.business_name];
             reqBody['type'] = "other";
-            pending
-                .add(controller.createOtherProfileController(reqParm: reqBody));
-          } else if (typeOfBusiness == "FINANCE" ||
-              typeOfBusiness == "BANKING_SECTOR") {
-            final controller = getOrPut(() => BusinessProfileFullController());
+            pending.add(controller.createOtherProfileController(reqParm: reqBody));
+          } else if (typeOfBusiness == "FINANCE" || typeOfBusiness == "BANKING_SECTOR") {
+            // Direct instantiation — see the comment in the SUPPORT_SERVICES
+            // branch above for the GetX class-name collision rationale.
+            final controller = BusinessProfileFullController();
             reqBody['profileName'] = reqData?[ApiKeys.business_name];
             reqBody['type'] = "finance";
             reqBody['sub_type'] = categoryOfBusiness;
             // reqBody['sub_type'] = typeOfBusiness;
-            pending
-                .add(controller.createOtherProfileController(reqParm: reqBody));
+            pending.add(controller.createOtherProfileController(reqParm: reqBody));
           } else if (typeOfBusiness == BusinessType.Motel.name.toUpperCase()) {
             // await SharedPreferenceUtils.setSecureValue(
             //     SharedPreferenceUtils.businessCategory, categoryOfBusiness);
@@ -576,7 +558,7 @@ class AuthController extends GetxController {
             //     SharedPreferenceUtils.businessCategory) ??
             //     "";
             logs("categoryOfBusiness= ${categoryOfBusiness}");
-            reqBody['category'] =  categoryOfBusiness;
+            reqBody['category'] = categoryOfBusiness;
 
             pending.add(_createMotelService(reqData ?? {}));
           }
@@ -604,14 +586,11 @@ class AuthController extends GetxController {
           clearAllData();
         } else {
           commonSnackBar(message: AppStrings.somethingWentWrong);
-          addUserResponse.value =
-              ApiResponse.error(AppStrings.somethingWentWrong);
+          addUserResponse.value = ApiResponse.error(AppStrings.somethingWentWrong);
         }
       } else {
-        commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong);
-        addUserResponse.value = ApiResponse.error(
-            response.message ?? AppStrings.somethingWentWrong);
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+        addUserResponse.value = ApiResponse.error(response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       logs("ERRPR $e");
@@ -633,18 +612,14 @@ class AuthController extends GetxController {
     String city = '';
     String state = '';
     String pincode = '';
-    final double? latD =
-        lat is num ? lat.toDouble() : double.tryParse(lat.toString());
-    final double? lonD =
-        lon is num ? lon.toDouble() : double.tryParse(lon.toString());
+    final double? latD = lat is num ? lat.toDouble() : double.tryParse(lat.toString());
+    final double? lonD = lon is num ? lon.toDouble() : double.tryParse(lon.toString());
     if (latD != null && lonD != null) {
       try {
         final placemarks = await placemarkFromCoordinates(latD, lonD);
         if (placemarks.isNotEmpty) {
           final p = placemarks.first;
-          city = p.locality?.isNotEmpty == true
-              ? p.locality!
-              : (p.subAdministrativeArea ?? '');
+          city = p.locality?.isNotEmpty == true ? p.locality! : (p.subAdministrativeArea ?? '');
           state = p.administrativeArea ?? '';
           pincode = p.postalCode ?? '';
         }
@@ -670,9 +645,7 @@ class AuthController extends GetxController {
   }
 
   Rx<GstVerifyModel>? gstVerifyModel = GstVerifyModel().obs;
-  RxBool isValidate = false.obs,
-      isHaveGstApprove = false.obs,
-      hasGstNumber = false.obs;
+  RxBool isValidate = false.obs, isHaveGstApprove = false.obs, hasGstNumber = false.obs;
   RxBool isGstVerifyLoading = false.obs;
   final businessNameTextController = TextEditingController();
   final businessOtherCategoryTextController = TextEditingController();
@@ -683,23 +656,20 @@ class AuthController extends GetxController {
       isGstVerifyLoading.value = true;
       gstVerifyResponse.value = ApiResponse.loading('loading');
 
-      ResponseModel responseModel =
-          await AuthRepo().getUserVerifyGstRepo(gstNumber: gstNumber);
+      ResponseModel responseModel = await AuthRepo().getUserVerifyGstRepo(gstNumber: gstNumber);
 
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
         gstVerifyModel?.value = GstVerifyModel.fromJson(data);
 
         if (gstVerifyModel?.value.isVerified == true) {
-          List<String>? parts =
-              gstVerifyModel?.value.data?.registrationDate?.split("/");
+          List<String>? parts = gstVerifyModel?.value.data?.registrationDate?.split("/");
 
           selectedDay?.value = int.tryParse(parts?[0] ?? "") ?? 0;
           selectedMonth?.value = int.tryParse(parts?[1] ?? "") ?? 0;
           selectedYear?.value = int.tryParse(parts?[2] ?? "") ?? 0;
           isHaveGstApprove.value = true;
-          businessNameTextController.text =
-              gstVerifyModel?.value.data?.tradeName ?? "";
+          businessNameTextController.text = gstVerifyModel?.value.data?.tradeName ?? "";
           businessName.value = gstVerifyModel?.value.data?.tradeName ?? "";
 
           gstVerifyResponse.value = ApiResponse.complete(responseModel);
@@ -707,17 +677,13 @@ class AuthController extends GetxController {
           await _updateGstBusinessDetails(gstNumber: gstNumber);
         } else {
           isHaveGstApprove.value = false;
-          gstVerifyResponse.value = ApiResponse.error(
-              responseModel.message ?? AppStrings.somethingWentWrong);
-          commonSnackBar(
-              message: responseModel.message ?? AppStrings.somethingWentWrong);
+          gstVerifyResponse.value = ApiResponse.error(responseModel.message ?? AppStrings.somethingWentWrong);
+          commonSnackBar(message: responseModel.message ?? AppStrings.somethingWentWrong);
         }
       } else {
         isHaveGstApprove.value = false;
-        gstVerifyResponse.value = ApiResponse.error(
-            responseModel.message ?? AppStrings.somethingWentWrong);
-        commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong);
+        gstVerifyResponse.value = ApiResponse.error(responseModel.message ?? AppStrings.somethingWentWrong);
+        commonSnackBar(message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       isHaveGstApprove.value = false;
@@ -735,30 +701,24 @@ class AuthController extends GetxController {
 
       final Map<String, dynamic> body = {
         ApiKeys.gstNo: gstNumber ?? data?.gstin ?? "",
-        if ((data?.tradeName ?? "").isNotEmpty)
-          ApiKeys.businessName: data?.tradeName,
+        if ((data?.tradeName ?? "").isNotEmpty) ApiKeys.businessName: data?.tradeName,
         if (parts != null && parts.length == 3)
           ApiKeys.date_of_incorporation: {
             ApiKeys.date: int.tryParse(parts[0]) ?? 0,
             ApiKeys.month: int.tryParse(parts[1]) ?? 0,
             ApiKeys.year: int.tryParse(parts[2]) ?? 0,
           },
-        if (selectedTypeOfBusiness != null)
-          ApiKeys.type_of_business: selectedTypeOfBusiness?.name,
-        if (selectedNatureOfBusiness != null)
-          ApiKeys.Nature_of_Business: selectedNatureOfBusiness?.name,
-        if ((selectedCategorySlugId ?? "").isNotEmpty)
-          ApiKeys.category_Of_Business: selectedCategorySlugId,
+        if (selectedTypeOfBusiness != null) ApiKeys.type_of_business: selectedTypeOfBusiness?.name,
+        if (selectedNatureOfBusiness != null) ApiKeys.Nature_of_Business: selectedNatureOfBusiness?.name,
+        if ((selectedCategorySlugId ?? "").isNotEmpty) ApiKeys.category_Of_Business: selectedCategorySlugId,
       };
       logs("bodyRequest for gst ==== ${body}");
-      final ResponseModel response =
-          await AuthRepo().authBusinessUserRegisterRepo(bodyRequest: body);
+      final ResponseModel response = await AuthRepo().authBusinessUserRegisterRepo(bodyRequest: body);
 
       if (response.isSuccess) {
         Get.toNamed(RouteHelper.getCreateBusinessAccountNewStepOneRoute());
       } else {
-        commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong);
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       logs("updateGstBusinessDetails ERROR: $e");
@@ -776,8 +736,7 @@ class AuthController extends GetxController {
     selectedIndex.value = (selectedIndex.value == i) ? -1 : i;
   }
 
-  String? get selectedValue =>
-      selectedIndex.value == -1 ? null : userNameList[selectedIndex.value];
+  String? get selectedValue => selectedIndex.value == -1 ? null : userNameList[selectedIndex.value];
   RxBool isShowCheck = true.obs;
   RxList<String> userNameList = <String>[].obs;
   Rx<UsernameResModel> usernameResModel = UsernameResModel().obs;
@@ -785,8 +744,7 @@ class AuthController extends GetxController {
   Future<void> getCheckUsernameController({required String? value}) async {
     userNameList.clear();
     try {
-      ResponseModel responseModel =
-          await AuthRepo().getCheckUsernameRepo(userName: value);
+      ResponseModel responseModel = await AuthRepo().getCheckUsernameRepo(userName: value);
 
       if (responseModel.isSuccess) {
         final data = responseModel.response?.data;
@@ -801,8 +759,7 @@ class AuthController extends GetxController {
       } else {
         isShowCheck.value = true;
 
-        commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong);
+        commonSnackBar(message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       isShowCheck.value = true;
@@ -850,14 +807,11 @@ class AuthController extends GetxController {
   }
 
   ///USER BLOCK(PARTIAL AND FULL)...
-  Future<void> userBlocked(
-      {required bool isPartialBlocked, required String otherUserId}) async {
+  Future<void> userBlocked({required bool isPartialBlocked, required String otherUserId}) async {
     try {
       Map<String, dynamic> params = {
         ApiKeys.blockedTo: otherUserId,
-        ApiKeys.type: isPartialBlocked
-            ? BlockedType.partial.label
-            : BlockedType.full.label,
+        ApiKeys.type: isPartialBlocked ? BlockedType.partial.label : BlockedType.full.label,
         ApiKeys.duration: 0
       };
 
@@ -865,13 +819,11 @@ class AuthController extends GetxController {
 
       if (response.isSuccess) {
         blockUserResponse = ApiResponse.complete(response);
-        BlockUserResponse blockUser =
-            BlockUserResponse.fromJson(response.response?.data);
+        BlockUserResponse blockUser = BlockUserResponse.fromJson(response.response?.data);
         commonSnackBar(message: blockUser.message, isFromHomeScreen: true);
       } else {
         blockUserResponse = ApiResponse.error('error');
-        commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong);
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       blockUserResponse = ApiResponse.error('error');
@@ -883,12 +835,10 @@ class AuthController extends GetxController {
   /// Continue button's inline loader on the Complete Guest Profile
   /// screen — the screen reads `.status` and shows a spinner while
   /// it's `Status.LOADING`.
-  Rx<ApiResponse> createGuestProfileResponse =
-      ApiResponse.initial('Initial').obs;
+  Rx<ApiResponse> createGuestProfileResponse = ApiResponse.initial('Initial').obs;
 
   ///Add User...
-  Future<void> createGuestAccountUserController(
-      {required Map<String, dynamic> reqData}) async {
+  Future<void> createGuestAccountUserController({required Map<String, dynamic> reqData}) async {
     createGuestProfileResponse.value = ApiResponse.loading('loading');
     try {
       final imagePath = reqData[ApiKeys.profile_image];
@@ -900,11 +850,9 @@ class AuthController extends GetxController {
           reqData.remove(ApiKeys.profile_image);
         }
       }
-      ResponseModel response =
-          await AuthRepo().createGuestAccountRepo(params: reqData);
+      ResponseModel response = await AuthRepo().createGuestAccountRepo(params: reqData);
       if (response.isSuccess) {
-        GuestResModel guestResModel =
-            guestResModelFromJson(jsonEncode(response.response?.data));
+        GuestResModel guestResModel = guestResModelFromJson(jsonEncode(response.response?.data));
         if (guestResModel.success ?? false) {
           await SharedPreferenceUtils.guestUserLoggedIn(
             loginUserId_: "${guestResModel.data?.id}",
@@ -913,8 +861,7 @@ class AuthController extends GetxController {
             getUserName: "${guestResModel.data?.name}",
             profileImage: guestResModel.data?.profileImage ?? '',
           );
-          await SharedPreferenceUtils.setSecureValue(
-              SharedPreferenceUtils.accountType, AppConstants.guest);
+          await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.accountType, AppConstants.guest);
           await getGuestUserLoginData();
           await Future.delayed(Duration(milliseconds: 350));
           Get.offAll(() => const BottomNavigationBarScreen(initialIndex: 0));
@@ -922,16 +869,14 @@ class AuthController extends GetxController {
           createGuestProfileResponse.value = ApiResponse.complete(response);
           commonSnackBar(message: response.message ?? AppStrings.success);
         } else {
-          commonSnackBar(
-              message: guestResModel.message ?? AppStrings.somethingWentWrong);
-          createGuestProfileResponse.value = ApiResponse.error(
-              guestResModel.message ?? AppStrings.somethingWentWrong);
+          commonSnackBar(message: guestResModel.message ?? AppStrings.somethingWentWrong);
+          createGuestProfileResponse.value =
+              ApiResponse.error(guestResModel.message ?? AppStrings.somethingWentWrong);
         }
       } else {
-        commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong);
-        createGuestProfileResponse.value = ApiResponse.error(
-            response.message ?? AppStrings.somethingWentWrong);
+        commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+        createGuestProfileResponse.value =
+            ApiResponse.error(response.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
       createGuestProfileResponse.value = ApiResponse.error('error');
@@ -943,15 +888,13 @@ class AuthController extends GetxController {
   List<SubCategories> businessSubCategoriesList = [];
   Rxn<String> subCategoryErrorMessage = Rxn<String>();
 
-  Future<void> fetchBusinessSubCategories(
-      {required String categorySlugId}) async {
+  Future<void> fetchBusinessSubCategories({required String categorySlugId}) async {
     try {
       isBusinessSubCategoriesLoading.value = true;
       businessSubCategoriesList.clear();
       subCategoryErrorMessage.value = null;
 
-      final response =
-          await AuthRepo().getBusinessSubCategoriesRepo(tagId: categorySlugId);
+      final response = await AuthRepo().getBusinessSubCategoriesRepo(tagId: categorySlugId);
 
       if (!response.isSuccess) {
         subCategoryErrorMessage.value = response.message;
@@ -962,8 +905,7 @@ class AuthController extends GetxController {
       }
 
       final jsonData = response.response?.data;
-      final businessCategoryModel =
-          SingleBusinessCategoryModelResponse.fromJson(jsonData);
+      final businessCategoryModel = SingleBusinessCategoryModelResponse.fromJson(jsonData);
       businessSubCategoriesList = businessCategoryModel.subCategories ?? [];
 
       businessSubCategoryResponse.value = ApiResponse.complete(response);
@@ -979,15 +921,13 @@ class AuthController extends GetxController {
   List<BusinessCategory> businessCategoriesList = [];
   Rxn<String> categoryErrorMessage = Rxn<String>();
 
-  Future<void> fetchBusinessCategoriesByType(
-      {required BusinessType businessTpe}) async {
+  Future<void> fetchBusinessCategoriesByType({required BusinessType businessTpe}) async {
     try {
       isBusinessCategoriesLoading.value = true;
       businessCategoriesList.clear();
       categoryErrorMessage.value = null;
 
-      final response = await AuthRepo()
-          .fetchBusinessCategoriesByTypeRepo(businessType: businessTpe.name);
+      final response = await AuthRepo().fetchBusinessCategoriesByTypeRepo(businessType: businessTpe.name);
 
       if (!response.isSuccess) {
         categoryErrorMessage.value = response.message;
@@ -998,10 +938,8 @@ class AuthController extends GetxController {
       }
 
       final jsonData = response.response?.data;
-      final businessCategoryResponseModel =
-          BusinessCategoryResponseModel.fromJson(jsonData);
-      businessCategoriesList =
-          businessCategoryResponseModel.businessCategory ?? [];
+      final businessCategoryResponseModel = BusinessCategoryResponseModel.fromJson(jsonData);
+      businessCategoriesList = businessCategoryResponseModel.businessCategory ?? [];
 
       businessCategoryResponse = ApiResponse.complete(response);
     } catch (e) {
@@ -1028,10 +966,8 @@ class AuthController extends GetxController {
 
       if (response.isSuccess) {
         contentCreatorFieldResponse.value = ApiResponse.complete(response);
-        final individualFieldsResponseModel =
-            IndividualFieldsResponseModel.fromJson(response.response?.data);
-        arrIndividualFields.value =
-            individualFieldsResponseModel.data?.fields ?? [];
+        final individualFieldsResponseModel = IndividualFieldsResponseModel.fromJson(response.response?.data);
+        arrIndividualFields.value = individualFieldsResponseModel.data?.fields ?? [];
       } else {
         contentCreatorFieldResponse.value = ApiResponse.error('error');
       }
@@ -1057,10 +993,8 @@ class AuthController extends GetxController {
     final cachedBusiness = hive.getAllCategories();
     final cachedProfessions = hive.getAllProfessions();
 
-    final hasCachedBusiness =
-        cachedBusiness != null && cachedBusiness.isNotEmpty;
-    final hasCachedProfessions =
-        cachedProfessions != null && cachedProfessions.isNotEmpty;
+    final hasCachedBusiness = cachedBusiness != null && cachedBusiness.isNotEmpty;
+    final hasCachedProfessions = cachedProfessions != null && cachedProfessions.isNotEmpty;
 
     if (hasCachedBusiness) {
       // log('from business cache');
@@ -1101,14 +1035,10 @@ class AuthController extends GetxController {
   // Reactive buckets: mutating them (via `assignAll` in the update methods
   // below) notifies any `Obx` that reads them — including on the *silent*
   // network refresh — with no manual change-counter to keep in sync.
-  final RxList<ProfessionTypeData> individualOnboardingSocialProfileList =
-      <ProfessionTypeData>[].obs;
-  final RxList<ProfessionTypeData> individualOnboardingGigWorkList =
-      <ProfessionTypeData>[].obs;
-  final RxList<ProfessionTypeData> individualOnboardingSkillWorkList =
-      <ProfessionTypeData>[].obs;
-  final RxList<ProfessionTypeData> individualOnboardingConsultationList =
-      <ProfessionTypeData>[].obs;
+  final RxList<ProfessionTypeData> individualOnboardingSocialProfileList = <ProfessionTypeData>[].obs;
+  final RxList<ProfessionTypeData> individualOnboardingGigWorkList = <ProfessionTypeData>[].obs;
+  final RxList<ProfessionTypeData> individualOnboardingSkillWorkList = <ProfessionTypeData>[].obs;
+  final RxList<ProfessionTypeData> individualOnboardingConsultationList = <ProfessionTypeData>[].obs;
 
   /// Derived flat master list of profession types — concatenates the four
   /// onboarding buckets (which are the source of truth). Exposed as a
@@ -1146,8 +1076,7 @@ class AuthController extends GetxController {
         await HiveServices().saveProfessionList(professions);
         updateIndividualCategoriesFromApi(professions);
       } else {
-        commonSnackBar(
-            message: responseModel.message ?? AppStrings.somethingWentWrong);
+        commonSnackBar(message: responseModel.message ?? AppStrings.somethingWentWrong);
         professionListingResponse = ApiResponse.error('error');
       }
     } catch (e) {
@@ -1155,8 +1084,7 @@ class AuthController extends GetxController {
     }
   }
 
-  void updateIndividualCategoriesFromApi(
-      List<ProfessionTypeData> categoryData) {
+  void updateIndividualCategoriesFromApi(List<ProfessionTypeData> categoryData) {
     // Accumulate into local lists, then push each bucket once via `assignAll`.
     // assignAll replaces the contents and emits a single change notification,
     // so reactive consumers repaint exactly once per bucket (vs. one per
@@ -1172,8 +1100,7 @@ class AuthController extends GetxController {
 
       switch (apiType) {
         case 'Social Profile':
-          apiCategory.individualProfileType =
-              IndividualProfileType.SOCIAL_PROFILE;
+          apiCategory.individualProfileType = IndividualProfileType.SOCIAL_PROFILE;
           social.add(apiCategory);
           break;
         case 'GigWork':
@@ -1181,13 +1108,11 @@ class AuthController extends GetxController {
           gig.add(apiCategory);
           break;
         case 'Self Employed':
-          apiCategory.individualProfileType =
-              IndividualProfileType.SELF_EMPLOYED;
+          apiCategory.individualProfileType = IndividualProfileType.SELF_EMPLOYED;
           skill.add(apiCategory);
           break;
         case 'Professional':
-          apiCategory.individualProfileType =
-              IndividualProfileType.PROFESSIONAL;
+          apiCategory.individualProfileType = IndividualProfileType.PROFESSIONAL;
           consult.add(apiCategory);
           break;
       }
@@ -1202,26 +1127,16 @@ class AuthController extends GetxController {
   RxBool isAllBusinessCategoriesLoading = false.obs;
 
   // Reactive buckets — see the profession buckets above for the rationale.
-  final RxList<CategoryData> businessOnboardingServicesCategories =
-      <CategoryData>[].obs;
-  final RxList<CategoryData> businessOnboardingProductsCategories =
-      <CategoryData>[].obs;
-  final RxList<CategoryData> businessOnboardingGroceriesCategories =
-      <CategoryData>[].obs;
-  final RxList<CategoryData> businessOnboardingFoodsCategories =
-      <CategoryData>[].obs;
-  final RxList<CategoryData> businessOnboardingManufacturingCategories =
-      <CategoryData>[].obs;
-  final RxList<CategoryData> businessOnboardingAutomotiveServicesCategories =
-      <CategoryData>[].obs;
-  final RxList<CategoryData> businessOnboardingHealthcareSectorsCategories =
-      <CategoryData>[].obs;
-  final RxList<CategoryData> businessOnboardingHospitalityStayCategories =
-      <CategoryData>[].obs;
-  final RxList<CategoryData> businessOnboardingEducationTrainingCategories =
-      <CategoryData>[].obs;
-  final RxList<CategoryData> businessOnboardingFinancialSectorsCategories =
-      <CategoryData>[].obs;
+  final RxList<CategoryData> businessOnboardingServicesCategories = <CategoryData>[].obs;
+  final RxList<CategoryData> businessOnboardingProductsCategories = <CategoryData>[].obs;
+  final RxList<CategoryData> businessOnboardingGroceriesCategories = <CategoryData>[].obs;
+  final RxList<CategoryData> businessOnboardingFoodsCategories = <CategoryData>[].obs;
+  final RxList<CategoryData> businessOnboardingManufacturingCategories = <CategoryData>[].obs;
+  final RxList<CategoryData> businessOnboardingAutomotiveServicesCategories = <CategoryData>[].obs;
+  final RxList<CategoryData> businessOnboardingHealthcareSectorsCategories = <CategoryData>[].obs;
+  final RxList<CategoryData> businessOnboardingHospitalityStayCategories = <CategoryData>[].obs;
+  final RxList<CategoryData> businessOnboardingEducationTrainingCategories = <CategoryData>[].obs;
+  final RxList<CategoryData> businessOnboardingFinancialSectorsCategories = <CategoryData>[].obs;
 
   /// Read inside an `Obx` to subscribe to *any* onboarding-bucket change —
   /// initial cache load or silent network refresh — when the actual bucket
@@ -1264,8 +1179,7 @@ class AuthController extends GetxController {
       }
 
       final jsonData = response.response?.data;
-      List<CategoryData> businessCategories =
-          CategoryModel.fromJson(jsonData).data ?? [];
+      List<CategoryData> businessCategories = CategoryModel.fromJson(jsonData).data ?? [];
       await HiveServices().saveCategoryList(businessCategories);
       updateBusinessCategoriesFromApi(businessCategories);
       businessCategoryResponse = ApiResponse.complete(response);

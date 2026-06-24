@@ -136,17 +136,12 @@ class _FinanceCard extends StatelessWidget {
 
     const String na = 'N/A';
     final double? ratingValue = item.rating;
-    final String rating = (ratingValue != null && ratingValue > 0)
-        ? ratingValue.toStringAsFixed(1)
-        : na;
+    final String rating = (ratingValue != null && ratingValue > 0) ? ratingValue.toStringAsFixed(1) : na;
 
     final String distance = _distanceFromUser(item);
     final ({String label, Color color}) openBadge = _todayOpenBadge(item);
-    final String registryLabel =
-        item.rbiRegistered == true ? 'RBI Registered' : 'Not RBI Reg.';
-    final Color registryColor = item.rbiRegistered == true
-        ? AppColors.greenShade
-        : AppColors.grey83;
+    final String registryLabel = item.rbiRegistered == true ? 'RBI Registered' : 'Not RBI Reg.';
+    final Color registryColor = item.rbiRegistered == true ? AppColors.greenShade : AppColors.grey83;
 
     final List<String> serviceTags = <String>[
       ...?item.accountType?.where((s) => s.trim().isNotEmpty),
@@ -229,24 +224,19 @@ class _FinanceCard extends StatelessWidget {
   }
 
   Future<void> _shareFinance(FinanceBusinessItem item) async {
-    final name = (item.profileName?.trim().isNotEmpty ?? false)
-        ? item.profileName!.trim()
-        : 'this finance service';
+    final name =
+        (item.profileName?.trim().isNotEmpty ?? false) ? item.profileName!.trim() : 'this finance service';
     final address = _resolveAddress(item);
     final website = item.effectiveWebsite ?? '';
 
     final lines = <String>['Check out $name on BlueEra'];
     if (address.isNotEmpty) lines.add(address);
     if (item.rbiRegistered == true) lines.add('RBI Registered');
-    final types = item.accountType
-            ?.where((s) => s.trim().isNotEmpty)
-            .toList() ??
-        const [];
+    final types = item.accountType?.where((s) => s.trim().isNotEmpty).toList() ?? const [];
     if (types.isNotEmpty) lines.add('Accounts: ${types.join(', ')}');
     if (website.isNotEmpty) lines.add(website);
 
-    await ShareService.instance
-        .openShareSheet(text: lines.join('\n'), subject: name);
+    await ShareService.instance.openShareSheet(text: lines.join('\n'), subject: name);
   }
 
   /// Opens a chat with the finance business owner — same behaviour as the
@@ -367,10 +357,10 @@ class _FinanceCard extends StatelessWidget {
                 children: [
                   GestureDetector(
                     onTap: () => _shareFinance(item),
-                    child: _circleIcon(Icons.share_outlined),
+                    child: _circleIcon(AppIconAssets.share_bold),
                   ),
                   const SizedBox(width: 8),
-                  _circleIcon(Icons.star_border),
+                  _circleIcon(AppIconAssets.star),
                 ],
               ),
             ),
@@ -380,7 +370,7 @@ class _FinanceCard extends StatelessWidget {
     );
   }
 
-  Widget _circleIcon(IconData icon) {
+  Widget _circleIcon(String icon) {
     return Container(
       width: 32,
       height: 32,
@@ -388,7 +378,13 @@ class _FinanceCard extends StatelessWidget {
         color: AppColors.white.withValues(alpha: 0.9),
         shape: BoxShape.circle,
       ),
-      child: Icon(icon, size: 16, color: AppColors.black),
+      child: Padding(
+        padding: const EdgeInsets.all(6),
+        child: LocalAssets(
+          imagePath: icon,
+          imgColor: AppColors.black,
+        ),
+      ),
     );
   }
 

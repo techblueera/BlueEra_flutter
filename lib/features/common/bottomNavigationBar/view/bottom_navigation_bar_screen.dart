@@ -51,13 +51,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:get/get.dart';
 import 'package:share_handler/share_handler.dart';
+
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/routes/route_helper.dart';
 import '../../../chat/auth/controller/call_controller.dart';
 import '../../../chat/auth/controller/chat_theme_controller.dart';
 import '../../../chat/auth/controller/chat_view_controller.dart';
 import '../../../chat/view/forward_screen/chat_forward_screen.dart';
-import 'package:BlueEra/features/common/reel/view/shorts/reels_tab_screen.dart';
 import '../../delivery_partner/controller/delivery_partner_orders_controller.dart';
 import '../../delivery_partner/controller/pip_floating_page_controller.dart';
 
@@ -335,7 +335,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
   void _handlePostFrameInitialization() {
     if (isBusiness()) {
-
       bottomBarController.currentIndex.value = widget.initialIndex ?? 1;
       final viewProfileController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
       if (viewProfileController.viewBusinessResponse.status != Status.COMPLETE) {
@@ -346,8 +345,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       // (index 0) on login — regardless of whether their rider profile
       // has been created yet — so the rider dashboard / onboarding is
       // front and centre. Everyone else uses the requested initial tab.
-      final isRider = userProfessionGlobal == BIKE_RIDER ||
-          userProfessionGlobal == CAR_TAXI_DRIVER;
+      final isRider = userProfessionGlobal == BIKE_RIDER || userProfessionGlobal == CAR_TAXI_DRIVER;
       if (isRider) {
         bottomBarController.currentIndex.value = 0;
       } else {
@@ -499,7 +497,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       case 2:
         return const ConnectMainPage();
       case 3:
-        // return const ReelsTabScreen();
+      // return const ReelsTabScreen();
 
       default:
         return const OrderMainChatScreen();
@@ -514,7 +512,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   Widget meScreens() {
-
     if (isGuestUser()) return GuestDashBoardScreen();
     // Colour is applied globally via the theme; the banner is painted
     // app-wide in `GetMaterialApp.builder` (shared `AppHomeBackground`
@@ -574,20 +571,17 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       // [log] Category Slug Id  : ALTERNATIVE_HEALTH
       // [log] sub category Name : Ayurvedic Center
       // [log] sub category Slug Id : 6a088367c1424a5f4d8ec185
-      if ((businessCategoryGlobal.toUpperCase() =="HOSPITALS") ||
+      if ((businessCategoryGlobal.toUpperCase() == "HOSPITALS") ||
           (businessCategoryGlobal.toUpperCase() == "Alternative Health".toUpperCase()) ||
           (businessCategoryGlobal.toUpperCase() == "Doctors".toUpperCase()) ||
-          (businessCategoryGlobal.toUpperCase() =="CLINICS")) {
+          (businessCategoryGlobal.toUpperCase() == "CLINICS")) {
         return const HospitalMain();
       } else if (businessCategoryGlobal.toUpperCase() == "Diagnostic".toUpperCase()) {
         return const LaboratoryMain();
-      }
-      else if (businessCategoryGlobal.toUpperCase() == "PHARMACY") {
+      } else if (businessCategoryGlobal.toUpperCase() == "PHARMACY") {
         return const MedicalScreen(fromBottomNavBar: true);
-
       }
       return const OthersMain();
-
     } else if (businessTypeGlobal.toUpperCase() == BusinessType.Motel.name.toUpperCase()) {
       return const HotelMain();
     } else if (businessTypeGlobal.toUpperCase() == BusinessType.Product.name.toUpperCase()) {
@@ -627,8 +621,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       "AUTO PARTS",
       "VEHICLE RENTAL",
       "AUTO RENTAL",
-      "TRANSPORT_LOGISTICS_PARKING",
-      "TRANSPORT LOGISTICS PARKING",
     };
 
     // 2. Check if it's Automotive AND in one of those sectors
@@ -646,6 +638,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       "TRANSPORT LOGISTIC",
       "VEHICLE_SUPPORT",
       "VEHICLE SUPPORT",
+      "TRANSPORT_LOGISTICS_PARKING",
+      "TRANSPORT LOGISTICS PARKING",
     };
 
     // 2. Check if it's Automotive AND in one of those sectors
