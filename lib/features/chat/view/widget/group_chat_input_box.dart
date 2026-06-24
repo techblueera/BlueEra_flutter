@@ -858,6 +858,24 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
                     await _pickDocument();
                   },
                 ),
+                _buildMediaOptionIcon(
+                  icon: Icons.poll_outlined,
+                  label: 'Poll',
+                  onTap: () {
+                    FocusScope.of(context).unfocus();
+                    Navigator.pop(context);
+                    _createPoll(context);
+                  },
+                ),
+                _buildMediaOptionIcon(
+                  icon: Icons.event_outlined,
+                  label: 'Event',
+                  onTap: () {
+                    FocusScope.of(context).unfocus();
+                    Navigator.pop(context);
+                    _createEvent(context);
+                  },
+                ),
                 _buildMediaOption(
                   icon: AppIconAssets.chat_input_quick_reply,
                   label: 'Quick Reply',
@@ -936,6 +954,427 @@ class _GroupChatInputBarState extends State<GroupChatInputBar>   with WidgetsBin
             fontWeight: FontWeight.w600,
           ),
         ],
+      ),
+    );
+  }
+
+  /// Same layout as [_buildMediaOption] but driven by a Material [IconData]
+  /// (Poll / Event have no dedicated SVG asset).
+  Widget _buildMediaOptionIcon({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 36, color: AppColors.primaryColor),
+          const SizedBox(height: 8),
+          CustomText(label, fontSize: 14, fontWeight: FontWeight.w600),
+        ],
+      ),
+    );
+  }
+
+  /// Sends a pre-formatted text message through the normal text pipeline so a
+  /// poll/event delivers and renders immediately (no backend type required).
+  void _sendFormattedText(String body) {
+    if (body.trim().isEmpty) return;
+    final data = <String, dynamic>{
+      if (widget.isInitialMessage)
+        ApiKeys.other_user_id: widget.userId
+      else
+        ApiKeys.conversation_id: widget.conversationId,
+      ApiKeys.message: body,
+      ApiKeys.message_type: "text",
+    };
+    sendMessageToUser(data: data, isInitial: widget.isInitialMessage);
+  }
+
+  InputDecoration _sheetFieldDecoration(String hint) {
+    return InputDecoration(
+      hintText: hint,
+      isDense: true,
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: BorderSide(color: Colors.grey.shade300),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(10),
+        borderSide: const BorderSide(color: AppColors.primaryColor),
+      ),
+    );
+  }
+
+  Widget _sheetDragHandle() {
+    return Center(
+      child: Container(
+        width: 40,
+        height: 4,
+        decoration: BoxDecoration(
+          color: Colors.grey.shade300,
+          borderRadius: BorderRadius.circular(2),
+        ),
+      ),
+    );
+  }
+
+  String _formatEventDate(DateTime d) {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    return '${days[d.weekday - 1]}, ${d.day} ${months[d.month - 1]} ${d.year}';
+  }
+
+  // ───────────────────────── Poll ─────────────────────────
+  void _createPoll(BuildContext context) {
+    final questionCtrl = TextEditingController();
+    final optionCtrls = <TextEditingController>[
+      TextEditingController(),
+      TextEditingController(),
+    ];
+    bool allowMultiple = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setSheet) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 18,
+                right: 18,
+                top: 14,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 18,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _sheetDragHandle(),
+                    const SizedBox(height: 14),
+                    Row(children: [
+                      const Icon(Icons.poll_outlined,
+                          color: AppColors.primaryColor),
+                      const SizedBox(width: 8),
+                      CustomText('Create poll',
+                          fontSize: 18, fontWeight: FontWeight.bold),
+                    ]),
+                    const SizedBox(height: 16),
+                    CustomText('Question',
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey.shade600),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: questionCtrl,
+                      textCapitalization: TextCapitalization.sentences,
+                      decoration: _sheetFieldDecoration('Ask a question'),
+                    ),
+                    const SizedBox(height: 18),
+                    CustomText('Options',
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey.shade600),
+                    const SizedBox(height: 6),
+                    for (int i = 0; i < optionCtrls.length; i++)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: Row(children: [
+                          Expanded(
+                            child: TextField(
+                              controller: optionCtrls[i],
+                              textCapitalization:
+                                  TextCapitalization.sentences,
+                              decoration:
+                                  _sheetFieldDecoration('Option ${i + 1}'),
+                            ),
+                          ),
+                          if (optionCtrls.length > 2)
+                            IconButton(
+                              icon: Icon(Icons.close,
+                                  size: 20, color: Colors.grey.shade500),
+                              onPressed: () => setSheet(
+                                  () => optionCtrls.removeAt(i).dispose()),
+                            ),
+                        ]),
+                      ),
+                    if (optionCtrls.length < 12)
+                      TextButton.icon(
+                        onPressed: () => setSheet(
+                            () => optionCtrls.add(TextEditingController())),
+                        icon: const Icon(Icons.add,
+                            color: AppColors.primaryColor),
+                        label: CustomText('Add option',
+                            color: AppColors.primaryColor,
+                            fontWeight: FontWeight.w600),
+                      ),
+                    const SizedBox(height: 4),
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      value: allowMultiple,
+                      activeColor: AppColors.primaryColor,
+                      onChanged: (v) => setSheet(() => allowMultiple = v),
+                      title: CustomText('Allow multiple answers',
+                          fontSize: 14),
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryColor,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                        ),
+                        onPressed: () {
+                          final q = questionCtrl.text.trim();
+                          final opts = optionCtrls
+                              .map((c) => c.text.trim())
+                              .where((t) => t.isNotEmpty)
+                              .toList();
+                          if (q.isEmpty) {
+                            commonSnackBar(
+                                message: 'Please enter a question');
+                            return;
+                          }
+                          if (opts.length < 2) {
+                            commonSnackBar(
+                                message: 'Please add at least 2 options');
+                            return;
+                          }
+                          final buffer = StringBuffer('📊 Poll\n$q\n');
+                          for (int i = 0; i < opts.length; i++) {
+                            buffer.write('\n${i + 1}. ${opts[i]}');
+                          }
+                          if (allowMultiple) {
+                            buffer.write('\n\n(You can choose multiple)');
+                          }
+                          Navigator.pop(ctx);
+                          _sendFormattedText(buffer.toString());
+                        },
+                        child: CustomText('Send poll',
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // ───────────────────────── Event ─────────────────────────
+  void _createEvent(BuildContext context) {
+    final nameCtrl = TextEditingController();
+    final locationCtrl = TextEditingController();
+    final descCtrl = TextEditingController();
+    DateTime? selectedDate;
+    TimeOfDay? selectedTime;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setSheet) {
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 18,
+                right: 18,
+                top: 14,
+                bottom: MediaQuery.of(ctx).viewInsets.bottom + 18,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _sheetDragHandle(),
+                    const SizedBox(height: 14),
+                    Row(children: [
+                      const Icon(Icons.event_outlined,
+                          color: AppColors.primaryColor),
+                      const SizedBox(width: 8),
+                      CustomText('Create event',
+                          fontSize: 18, fontWeight: FontWeight.bold),
+                    ]),
+                    const SizedBox(height: 16),
+                    CustomText('Event name',
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey.shade600),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: nameCtrl,
+                      textCapitalization: TextCapitalization.words,
+                      decoration: _sheetFieldDecoration('What\'s the event?'),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(children: [
+                      Expanded(
+                        child: _eventPickerTile(
+                          icon: Icons.calendar_today_outlined,
+                          label: selectedDate == null
+                              ? 'Select date'
+                              : _formatEventDate(selectedDate!),
+                          onTap: () async {
+                            final now = DateTime.now();
+                            final picked = await showDatePicker(
+                              context: ctx,
+                              initialDate: selectedDate ?? now,
+                              firstDate: now,
+                              lastDate: DateTime(now.year + 5),
+                            );
+                            if (picked != null) {
+                              setSheet(() => selectedDate = picked);
+                            }
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _eventPickerTile(
+                          icon: Icons.access_time,
+                          label: selectedTime == null
+                              ? 'Select time'
+                              : selectedTime!.format(ctx),
+                          onTap: () async {
+                            final picked = await showTimePicker(
+                              context: ctx,
+                              initialTime: selectedTime ?? TimeOfDay.now(),
+                            );
+                            if (picked != null) {
+                              setSheet(() => selectedTime = picked);
+                            }
+                          },
+                        ),
+                      ),
+                    ]),
+                    const SizedBox(height: 16),
+                    CustomText('Location (optional)',
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey.shade600),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: locationCtrl,
+                      textCapitalization: TextCapitalization.words,
+                      decoration: _sheetFieldDecoration('Add a place'),
+                    ),
+                    const SizedBox(height: 16),
+                    CustomText('Description (optional)',
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey.shade600),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: descCtrl,
+                      maxLines: 3,
+                      textCapitalization: TextCapitalization.sentences,
+                      decoration: _sheetFieldDecoration('Add details'),
+                    ),
+                    const SizedBox(height: 18),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryColor,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                        ),
+                        onPressed: () {
+                          final name = nameCtrl.text.trim();
+                          if (name.isEmpty) {
+                            commonSnackBar(
+                                message: 'Please enter an event name');
+                            return;
+                          }
+                          if (selectedDate == null) {
+                            commonSnackBar(message: 'Please select a date');
+                            return;
+                          }
+                          final buffer = StringBuffer('📅 Event\n$name\n');
+                          buffer.write(
+                              '\n🗓 ${_formatEventDate(selectedDate!)}');
+                          if (selectedTime != null) {
+                            buffer.write('\n🕒 ${selectedTime!.format(ctx)}');
+                          }
+                          if (locationCtrl.text.trim().isNotEmpty) {
+                            buffer.write('\n📍 ${locationCtrl.text.trim()}');
+                          }
+                          if (descCtrl.text.trim().isNotEmpty) {
+                            buffer.write('\n\n${descCtrl.text.trim()}');
+                          }
+                          Navigator.pop(ctx);
+                          _sendFormattedText(buffer.toString());
+                        },
+                        child: CustomText('Send event',
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _eventPickerTile({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: AppColors.primaryColor),
+            const SizedBox(width: 8),
+            Expanded(
+              child: CustomText(
+                label,
+                fontSize: 13.5,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
