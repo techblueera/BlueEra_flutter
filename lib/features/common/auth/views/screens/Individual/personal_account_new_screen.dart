@@ -133,32 +133,32 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
       authController.fetchIndividualFields(
           tagId: _selectedProfessionTagId ?? '');
     }
-    _prefillGuestData();
+    // _prefillGuestData();
   }
 
   /// Pre-fills the name + profile image from the existing guest user (if any)
   /// so a guest upgrading to a full account doesn't re-enter what they already
   /// gave. Best-effort only — any failure leaves the fields empty and the
   /// normal manual-entry flow is unaffected.
-  Future<void> _prefillGuestData() async {
-    final guest = await authController.getGuestUserDetail();
-    if (!mounted || guest?.user == null) return;
-
-    final name = guest!.user?.name ?? '';
-    if (name.isNotEmpty && _nameTextController.text.trim().isEmpty) {
-      _nameTextController.text = name;
-    }
-
-    final imageUrl = guest.user?.profileImage ?? '';
-    if (imageUrl.isNotEmpty && (_imagePath?.isEmpty ?? true)) {
-      final localPath = await downloadImageToTempFile(imageUrl);
-      if (!mounted || localPath == null) return;
-      setState(() {
-        _imagePath = localPath;
-        UserSession().imagePath = localPath;
-      });
-    }
-  }
+  // Future<void> _prefillGuestData() async {
+  //   final guest = await authController.getGuestUserDetail();
+  //   if (!mounted || guest?.user == null) return;
+  //
+  //   final name = guest!.user?.name ?? '';
+  //   if (name.isNotEmpty && _nameTextController.text.trim().isEmpty) {
+  //     _nameTextController.text = name;
+  //   }
+  //
+  //   final imageUrl = guest.user?.profileImage ?? '';
+  //   if (imageUrl.isNotEmpty && (_imagePath?.isEmpty ?? true)) {
+  //     final localPath = await downloadImageToTempFile(imageUrl);
+  //     if (!mounted || localPath == null) return;
+  //     setState(() {
+  //       _imagePath = localPath;
+  //       UserSession().imagePath = localPath;
+  //     });
+  //   }
+  // }
 
   clearTextFiled() {
     _CourseTextController.clear();

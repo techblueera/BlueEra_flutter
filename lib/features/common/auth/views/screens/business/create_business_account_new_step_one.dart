@@ -56,7 +56,7 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
       isServiceOrManufacturing = true;
     }
     log('is Service or manufacturer -- $isServiceOrManufacturing');
-    _prefillGuestData();
+    // _prefillGuestData();
   }
 
   /// Pre-fills the business name + logo from the existing guest user (if any)
@@ -64,28 +64,28 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
   /// already gave. Best-effort only — any failure leaves the fields empty and
   /// the normal manual-entry flow is unaffected. Skipped when GST auto-fill is
   /// active so it never overrides the verified trade name / logo.
-  Future<void> _prefillGuestData() async {
-    final guest = await authController.getGuestUserDetail();
-    if (!mounted || guest?.user == null) return;
-
-    final name = guest!.user?.name ?? '';
-    if (name.isNotEmpty &&
-        !authController.isHaveGstApprove.value &&
-        authController.businessNameTextController.text.trim().isEmpty) {
-      authController.businessNameTextController.text = name;
-      authController.businessName.value = name;
-    }
-
-    final imageUrl = guest.user?.profileImage ?? '';
-    if (imageUrl.isNotEmpty && (_imagePath?.isEmpty ?? true)) {
-      final localPath = await downloadImageToTempFile(imageUrl);
-      if (!mounted || localPath == null) return;
-      setState(() {
-        _imagePath = localPath;
-        UserSession().imagePath = localPath;
-      });
-    }
-  }
+  // Future<void> _prefillGuestData() async {
+  //   final guest = await authController.getGuestUserDetail();
+  //   if (!mounted || guest?.user == null) return;
+  //
+  //   final name = guest!.user?.name ?? '';
+  //   if (name.isNotEmpty &&
+  //       !authController.isHaveGstApprove.value &&
+  //       authController.businessNameTextController.text.trim().isEmpty) {
+  //     authController.businessNameTextController.text = name;
+  //     authController.businessName.value = name;
+  //   }
+  //
+  //   final imageUrl = guest.user?.profileImage ?? '';
+  //   if (imageUrl.isNotEmpty && (_imagePath?.isEmpty ?? true)) {
+  //     final localPath = await downloadImageToTempFile(imageUrl);
+  //     if (!mounted || localPath == null) return;
+  //     setState(() {
+  //       _imagePath = localPath;
+  //       UserSession().imagePath = localPath;
+  //     });
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
