@@ -376,28 +376,30 @@ class AppConstants {
 }
 
 class DocumentKeys {
-  static const aadhar = "aadhar";
-  static const pan = "pan";
-  static const addressProof = "addressProof";
-  static const noc = "noc";
-  static const drivingLicense = "drivingLicense";
-  static const bankDetails = "bankDetails";
-  static const bankersCancelledCheque = "bankersCancelledCheque";
+  // Values are the backend document `type` identifiers (UPPER_SNAKE_CASE)
+  // sent on upload/verification and returned in the document-status response.
+  static const aadhar = "AADHAR";
+  static const pan = "PAN";
+  static const addressProof = "ADDRESS_PROOF";
+  static const noc = "NOC";
+  static const drivingLicense = "DRIVING_LICENSE";
+  static const bankDetails = "BANK_DETAILS";
+  static const bankersCancelledCheque = "BANKER_CANCEL_CHECK";
 
   // Vehicle Keys
-  static const vehicleRC = "vehicleRC";
+  static const vehicleRC = "RC";
   static const insuranceDocument = "insuranceDocument";
   static const puc = "puc";
   static const vehicleFitnessCertificate = "fitnessCertificate";
 
   // Business Keys
-  static const gstCertificate = "gstCertificate";
-  static const fssaiLicense = "fssaiLicense";
-  static const medicalLicense = "medicalLicense";
-  static const fireSafetyCertificate = "fireSafetyCertificate";
-  static const municipalCorpCertificate = "municipalCorpCertificate";
-  static const msmeCertificate = "msmeCertificate";
-  static const shopActCertificate = "shopActCertificate";
+  static const gstCertificate = "GST_CERTIFICATE";
+  static const fssaiLicense = "FSSAI_LICENSE";
+  static const medicalLicense = "MEDICAL_LICENSE";
+  static const fireSafetyCertificate = "FIRE_SAFETY_CERTIFICATE";
+  static const municipalCorpCertificate = "MUNICIPAL_CORP_CERTIFICATE";
+  static const msmeCertificate = "MSME_CERTIFICATE";
+  static const shopActCertificate = "SHOP_ACT_CERTIFICATE";
 
   // Hotel & Home Stay keys
   static const hotelTradeLicense = "hotelTradeLicense";

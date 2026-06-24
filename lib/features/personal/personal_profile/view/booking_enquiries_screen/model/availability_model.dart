@@ -35,6 +35,7 @@ class AvailabilityData {
   String? updatedAt;
   FeeDetails? feeDetails;
   String? instructions;
+  LiveState? liveState;
 
   AvailabilityData(
       {this.sId,
@@ -51,7 +52,8 @@ class AvailabilityData {
         this.timezone,
         this.updatedAt,
         this.feeDetails,
-        this.instructions});
+        this.instructions,
+        this.liveState});
 
   AvailabilityData.fromJson(Map<String, dynamic> json) {
     sId = json['_id'];
@@ -83,6 +85,8 @@ class AvailabilityData {
         ? new FeeDetails.fromJson(json['feeDetails'])
         : null;
     instructions = json['instructions'];
+    liveState =
+        json['liveState'] != null ? LiveState.fromJson(json['liveState']) : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -111,6 +115,9 @@ class AvailabilityData {
       data['feeDetails'] = this.feeDetails!.toJson();
     }
     data['instructions'] = this.instructions;
+    if (this.liveState != null) {
+      data['liveState'] = this.liveState!.toJson();
+    }
     return data;
   }
 }
@@ -143,13 +150,22 @@ class Location {
 class Schedule {
   String? day;
   bool? isOpen;
+  String? shopOpenTime; // "HH:MM" — explicit open time for the day
+  String? shopCloseTime; // "HH:MM" — explicit close time for the day
   List<TimeSlots>? timeSlots;
 
-  Schedule({this.day, this.isOpen, this.timeSlots});
+  Schedule(
+      {this.day,
+      this.isOpen,
+      this.shopOpenTime,
+      this.shopCloseTime,
+      this.timeSlots});
 
   Schedule.fromJson(Map<String, dynamic> json) {
     day = json['day'];
     isOpen = json['isOpen'];
+    shopOpenTime = json['shopOpenTime'];
+    shopCloseTime = json['shopCloseTime'];
     if (json['timeSlots'] != null) {
       timeSlots = <TimeSlots>[];
       json['timeSlots'].forEach((v) {
@@ -162,11 +178,43 @@ class Schedule {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['day'] = this.day;
     data['isOpen'] = this.isOpen;
+    // Open/close times are only meaningful (and required by the backend)
+    // for open days; emit them additively without breaking existing
+    // consumers that still rely on timeSlots.
+    if (this.shopOpenTime != null) data['shopOpenTime'] = this.shopOpenTime;
+    if (this.shopCloseTime != null) data['shopCloseTime'] = this.shopCloseTime;
     if (this.timeSlots != null) {
       data['timeSlots'] = this.timeSlots!.map((v) => v.toJson()).toList();
     }
     return data;
   }
+}
+
+/// Per-day go-live state mirrored onto the availability document. The flag
+/// is per calendar day — confirm [liveDate] equals today before trusting
+/// [isLive].
+class LiveState {
+  bool? isLive;
+  String? wentLiveAt; // ISO date-time
+  String? liveDate; // "YYYY-MM-DD"
+  String? reminderSentForDate;
+
+  LiveState(
+      {this.isLive, this.wentLiveAt, this.liveDate, this.reminderSentForDate});
+
+  factory LiveState.fromJson(Map<String, dynamic> json) => LiveState(
+        isLive: json['isLive'] ?? false,
+        wentLiveAt: json['wentLiveAt'],
+        liveDate: json['liveDate'],
+        reminderSentForDate: json['reminderSentForDate'],
+      );
+
+  Map<String, dynamic> toJson() => {
+        'isLive': isLive,
+        'wentLiveAt': wentLiveAt,
+        'liveDate': liveDate,
+        'reminderSentForDate': reminderSentForDate,
+      };
 }
 
 class TimeSlots {
@@ -190,14 +238,26 @@ class TimeSlots {
 
 class SpecialOverrides {
   String? date;
+  String? dateKey; // "YYYY-MM-DD" key the override is stored under
   bool? isOpen;
+  String? shopOpenTime; // "HH:MM"
+  String? shopCloseTime; // "HH:MM"
   List<TimeSlots>? timeSlots;
 
-  SpecialOverrides({this.date, this.isOpen, this.timeSlots});
+  SpecialOverrides(
+      {this.date,
+      this.dateKey,
+      this.isOpen,
+      this.shopOpenTime,
+      this.shopCloseTime,
+      this.timeSlots});
 
   SpecialOverrides.fromJson(Map<String, dynamic> json) {
     date = json['date'];
+    dateKey = json['dateKey'];
     isOpen = json['isOpen'];
+    shopOpenTime = json['shopOpenTime'];
+    shopCloseTime = json['shopCloseTime'];
     if (json['timeSlots'] != null) {
       timeSlots = <TimeSlots>[];
       json['timeSlots'].forEach((v) {
@@ -209,7 +269,10 @@ class SpecialOverrides {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
     data['date'] = this.date;
+    if (this.dateKey != null) data['dateKey'] = this.dateKey;
     data['isOpen'] = this.isOpen;
+    if (this.shopOpenTime != null) data['shopOpenTime'] = this.shopOpenTime;
+    if (this.shopCloseTime != null) data['shopCloseTime'] = this.shopCloseTime;
     if (this.timeSlots != null) {
       data['timeSlots'] = this.timeSlots!.map((v) => v.toJson()).toList();
     }

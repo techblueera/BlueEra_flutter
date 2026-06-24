@@ -160,6 +160,14 @@ class AppStrings {
   static const addDocuments = "addDocuments";
   static const view = "view";
   static const noDocumentUploaded = "noDocumentUploaded";
+  static const documentVerificationFailed =
+      "Document verification failed. Please upload a valid document.";
+  static const docTypeMismatch =
+      "The uploaded document doesn't match the selected document type. Please upload the correct document.";
+  static const docNumberNotReadable =
+      "The document number isn't clearly readable. Please upload a clearer image.";
+  static const docNumberMismatch =
+      "The document number you entered doesn't match the uploaded document.";
   static const info = "info";
   static const policeVerificationNoc = "policeVerificationNoc";
   static const uploadPoliceVerificationNoc = "uploadPoliceVerificationNoc";
@@ -7264,4 +7272,19 @@ class AppStrings {
   static const String fieldRequired = "fieldRequired";
   static const String cancelRide = "cancelRide";
   static const String areYouSureCancelRide = "areYouSureCancelRide";
+
+  // ── Grocery shop availability (go-live) ──────────────────────────
+  static const String weekly = "weekly";
+  static const String today = "today";
+  static const String shopAvailability = "shopAvailability";
+  static const String setYourShopTimings = "setYourShopTimings";
+  static const String shopTimingsSubtitle = "shopTimingsSubtitle";
+  static const String openEveryDay = "openEveryDay";
+  static const String openingTime = "openingTime";
+  static const String closingTime = "closingTime";
+  static const String saveAndGoLive = "saveAndGoLive";
+  static const String youAreNowLive = "youAreNowLive";
+  static const String keepAtLeastOneDayOpen = "keepAtLeastOneDayOpen";
+  static const String closingTimeMustBeAfterOpening =
+      "closingTimeMustBeAfterOpening";
 }
