@@ -1,16 +1,15 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/ongoing_ride_store.dart';
 import 'package:BlueEra/core/services/pip_service.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:get/get.dart';
@@ -28,19 +27,27 @@ import '../../../../chat/view/call_screen/rider_call/ride_navigation_overlay_con
 import '../../../bottomNavigationBar/controller/bottom_bar_controller.dart';
 import '../../controller/discover_controller.dart';
 
-/// Customer-side fare-call screen.
+/// Customer-side tracking screen for **multi-shop goods orders** (cloned from
+/// FareCallQueueScreen). Differs from the standard fare-call screen in two ways
+/// per RIDER_FRONTEND_INTEGRATION_GUIDE §8:
+///   • the live-tracking panel shows the **rider's** info (DP, name, mobile +
+///     call) instead of an emergency contact;
+///   • it surfaces the **drop / delivery OTP** (held by the customer, read out
+///     to the rider at the drop) instead of the pickup OTP.
 /// Phase 1: Calling UI with queue progress, call controls, ringing animation.
 /// Phase 2: After rider accepts — map showing rider's live location heading to pickup.
-class FareCallQueueScreen extends StatefulWidget {
+class GoodsMultiCallTrackingScreen extends StatefulWidget {
   final String orderId;
 
-  const FareCallQueueScreen({super.key, required this.orderId});
+  const GoodsMultiCallTrackingScreen({super.key, required this.orderId});
 
   @override
-  State<FareCallQueueScreen> createState() => _FareCallQueueScreenState();
+  State<GoodsMultiCallTrackingScreen> createState() =>
+      _GoodsMultiCallTrackingScreenState();
 }
 
-class _FareCallQueueScreenState extends State<FareCallQueueScreen>
+class _GoodsMultiCallTrackingScreenState
+    extends State<GoodsMultiCallTrackingScreen>
     with TickerProviderStateMixin, WidgetsBindingObserver {
   final discoverController = getOrPut(() => DiscoverController());
   late final CallController _callController;
@@ -64,14 +71,6 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
   final RxBool _rideCompleted = false.obs;
   Map<String, dynamic>? _acceptedRiderInfo;
 
-  // Emergency contact (safety) — persisted locally and shown on the live
-  // tracking panel. Falls back to the national emergency number when unset.
-  static const String _kEmergencyName = 'emergency_contact_name';
-  static const String _kEmergencyNumber = 'emergency_contact_number';
-  static const String _emergencyFallbackNumber = '112';
-  String? _emergencyName;
-  String? _emergencyNumber;
-
   // Map state (after rider accepted)
   GoogleMapController? _mapController;
   final Set<Marker> _markers = {};
@@ -91,7 +90,6 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _loadEmergencyContact();
     // Hide floating overlay after first frame to avoid setState during build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (Get.isRegistered<RideNavigationOverlayController>()) {
@@ -603,55 +601,14 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
     Get.toNamed(RouteHelper.getHomeScreenRoute());
   }
 
-  /// Load the saved emergency contact (name + number) from secure storage.
-  Future<void> _loadEmergencyContact() async {
-    final name = await SharedPreferenceUtils.getSecureValue(_kEmergencyName);
-    final number = await SharedPreferenceUtils.getSecureValue(_kEmergencyNumber);
-    if (!mounted) return;
-    setState(() {
-      _emergencyName = (name is String && name.trim().isNotEmpty) ? name : null;
-      _emergencyNumber =
-          (number is String && number.trim().isNotEmpty) ? number : null;
-    });
-  }
-
-  /// Open the device contact list, let the user pick one, and save it as the
-  /// emergency contact ("open contact list and submit").
-  Future<void> _pickEmergencyContact() async {
-    try {
-      if (!await FlutterContacts.requestPermission()) {
-        commonSnackBar(message: 'Contacts permission denied');
-        return;
-      }
-      final contact = await FlutterContacts.openExternalPick();
-      if (contact == null) return; // user cancelled
-      final number =
-          contact.phones.isNotEmpty ? contact.phones.first.number.trim() : '';
-      if (number.isEmpty) {
-        commonSnackBar(message: 'Selected contact has no phone number');
-        return;
-      }
-      await SharedPreferenceUtils.setSecureValue(
-          _kEmergencyName, contact.displayName);
-      await SharedPreferenceUtils.setSecureValue(_kEmergencyNumber, number);
-      if (!mounted) return;
-      setState(() {
-        _emergencyName = contact.displayName;
-        _emergencyNumber = number;
-      });
-      commonSnackBar(message: 'Emergency contact saved');
-    } catch (e) {
-      debugPrint('pick emergency contact error: $e');
-      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
+  /// Dial the assigned rider's mobile number.
+  void _callRider() {
+    final number =
+        (_acceptedRiderInfo?['contact'] ?? '').toString().trim();
+    if (number.isEmpty) {
+      commonSnackBar(message: 'Rider contact number not available');
+      return;
     }
-  }
-
-  /// Dial the saved emergency contact, or the national emergency number (112)
-  /// when none is set.
-  void _callEmergency() {
-    final number = (_emergencyNumber?.trim().isNotEmpty ?? false)
-        ? _emergencyNumber!.trim()
-        : _emergencyFallbackNumber;
     launchUrl(Uri.parse('tel:$number'));
   }
 
@@ -903,9 +860,94 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
     );
   }
 
+  /// Rider info row on the tracking panel — DP, name, mobile number + a call
+  /// button that dials the rider. Replaces the emergency-contact row.
+  Widget _buildRiderInfoRow() {
+    final name =
+        (_acceptedRiderInfo?['name'] ?? AppStrings.riderLabel.tr).toString();
+    final image = (_acceptedRiderInfo?['profileImage'] ?? '').toString();
+    final mobile = (_acceptedRiderInfo?['contact'] ?? '').toString().trim();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        children: [
+          // Rider DP
+          Container(
+            width: 48,
+            height: 48,
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.primaryColor.withValues(alpha: 0.1),
+              border: Border.all(
+                color: AppColors.primaryColor.withValues(alpha: 0.4),
+                width: 2,
+              ),
+            ),
+            child: image.isNotEmpty
+                ? Image.network(
+                    image,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => const Icon(
+                        Icons.person, color: AppColors.primaryColor, size: 26),
+                  )
+                : const Icon(Icons.person,
+                    color: AppColors.primaryColor, size: 26),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'OpenSans',
+                    color: Color(0xFF1A1A2E),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  mobile.isNotEmpty ? mobile : 'Mobile not available',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade600,
+                    fontFamily: 'OpenSans',
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          // Call rider button
+          GestureDetector(
+            onTap: _callRider,
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: const Color(0xFF00C853).withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.call_rounded,
+                  color: Color(0xFF00C853), size: 20),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildMapBottomPanel() {
     return Obx(() {
-    final otp = discoverController.fareCallPickupOtp.value;
+    // Customer holds the DROP (delivery) OTP, read out to the rider at drop.
+    final otp = discoverController.fareCallDeliveryOtp.value;
     final rideStarted = discoverController.isFareCallRideStarted.value;
 
     return Container(
@@ -935,100 +977,9 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
           ),
           const SizedBox(height: 16),
 
-          // Emergency contact person + emergency call button. Replaces the
-          // rider name here — the rider's name still shows in the map top bar.
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-              children: [
-                // Emergency icon
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: const Color(0xFFEA4335).withValues(alpha: 0.1),
-                    border: Border.all(
-                      color: const Color(0xFFEA4335).withValues(alpha: 0.5),
-                      width: 2,
-                    ),
-                  ),
-                  child: const Icon(Icons.emergency_share_rounded,
-                      color: Color(0xFFEA4335), size: 24),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Emergency Contact Person',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          fontFamily: 'OpenSans',
-                          color: Color(0xFF1A1A2E),
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        (_emergencyNumber?.trim().isNotEmpty ?? false)
-                            ? ((_emergencyName?.trim().isNotEmpty ?? false)
-                                ? '${_emergencyName!.trim()} • ${_emergencyNumber!.trim()}'
-                                : _emergencyNumber!.trim())
-                            : 'Not added • Emergency $_emergencyFallbackNumber',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
-                          fontFamily: 'OpenSans',
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      // Add / change the emergency contact (opens contact list).
-                      GestureDetector(
-                        onTap: _pickEmergencyContact,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.person_add_alt_1_rounded,
-                                size: 14, color: Color(0xFF4285F4)),
-                            const SizedBox(width: 4),
-                            Text(
-                              (_emergencyNumber?.trim().isNotEmpty ?? false)
-                                  ? 'Change contact'
-                                  : 'Add emergency contact',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                fontFamily: 'OpenSans',
-                                color: Color(0xFF4285F4),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Emergency call button
-                GestureDetector(
-                  onTap: _callEmergency,
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEA4335).withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(Icons.call_rounded,
-                        color: Color(0xFFEA4335), size: 20),
-                  ),
-                ),
-              ],
-            ),
-          ),
+          // Rider information — DP, name, mobile number + call button.
+          // Replaces the emergency-contact row for goods/multi-shop orders.
+          _buildRiderInfoRow(),
 
           const SizedBox(height: 16),
 
@@ -1053,8 +1004,8 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
                     const Icon(Icons.pin_rounded,
                         color: Color(0xFF4285F4), size: 20),
                     const SizedBox(width: 10),
-                    Text(
-                      AppStrings.pickupOtp.tr,
+                    const Text(
+                      'Drop OTP',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,

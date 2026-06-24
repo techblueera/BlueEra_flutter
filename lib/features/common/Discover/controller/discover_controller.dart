@@ -10,6 +10,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/core/services/ongoing_ride_store.dart';
 import 'package:BlueEra/core/utils/fetch_cache.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/business_filter_res_model.dart';
@@ -188,6 +189,10 @@ class DiscoverController extends GetxController {
   Rxn<Map<String, dynamic>>();
   RxString fareCallAcceptedRiderId = ''.obs;
   RxString fareCallPickupOtp = ''.obs;
+  // Delivery (drop) OTP — held by the customer and read out to the rider at the
+  // drop. Goods/multi-shop orders surface this on the customer tracking screen
+  // instead of the pickup OTP (see RIDER_FRONTEND_INTEGRATION_GUIDE §8).
+  RxString fareCallDeliveryOtp = ''.obs;
   RxBool isFareCallRideStarted = false.obs;
   Rxn<Map<String, dynamic>> fareCallRideStartedData =
   Rxn<Map<String, dynamic>>();
@@ -1444,6 +1449,7 @@ class DiscoverController extends GetxController {
         fareCallOrderId.value =
             (data['orderId'] ?? data['_id'] ?? '').toString();
         fareCallPickupOtp.value = (data['pickupOTP'] ?? '').toString();
+        fareCallDeliveryOtp.value = (data['deliveryOTP'] ?? '').toString();
       }
       isFareCallInProgress.value = true;
       fareCallTotalRiders.value = selectedRiders.length;
@@ -1605,6 +1611,7 @@ class DiscoverController extends GetxController {
         // Save pickup OTP from order creation response so the customer
         // can see it even if ride:queue:accepted socket event is missed.
         fareCallPickupOtp.value = (data['pickupOTP'] ?? '').toString();
+        fareCallDeliveryOtp.value = (data['deliveryOTP'] ?? '').toString();
       }
       isFareCallInProgress.value = true;
       fareCallTotalRiders.value = selectedRiders.length;
@@ -1680,6 +1687,7 @@ class DiscoverController extends GetxController {
       fareCallAcceptedRiderId.value =
           data['riderId'] ?? data['riderInfo']?['riderId'] ?? '';
       fareCallPickupOtp.value = data['pickupOTP']?.toString() ?? '';
+      fareCallDeliveryOtp.value = data['deliveryOTP']?.toString() ?? '';
       isFareCallInProgress.value = false;
     });
 
@@ -1708,6 +1716,9 @@ class DiscoverController extends GetxController {
         final overlayCtrl = Get.find<RideNavigationOverlayController>();
         overlayCtrl.clearRideData();
       }
+      // Drop the persisted ongoing-ride snapshot so the card doesn't reappear
+      // on the next app launch after the ride finished.
+      OngoingRideStore.clear();
     });
   }
 
@@ -1734,6 +1745,7 @@ class DiscoverController extends GetxController {
     fareCallAcceptedRiderInfo.value = null;
     fareCallAcceptedRiderId.value = '';
     fareCallPickupOtp.value = '';
+    fareCallDeliveryOtp.value = '';
     isFareCallRideStarted.value = false;
     fareCallRideStartedData.value = null;
     isFareCallRideCompleted.value = false;
@@ -1748,6 +1760,8 @@ class DiscoverController extends GetxController {
     if (Get.isRegistered<RideNavigationOverlayController>()) {
       Get.find<RideNavigationOverlayController>().clearRideData();
     }
+    // Forget the persisted ongoing-ride snapshot too.
+    OngoingRideStore.clear();
   }
 
   /// Loads ALL rentals (unpaginated) for the map view.

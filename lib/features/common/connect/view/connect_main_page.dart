@@ -55,6 +55,11 @@ import '../../../chat/view/lock_chat/locked_chats_screen.dart';
 import '../../../chat/view/widget/chat_flag_bottom_sheet.dart';
 import '../../../personal/personal_profile/controller/languge_list_controller.dart';
 import 'inquiry_ride_order_selection_screen.dart';
+import '../widget/customer_ongoing_ride_card.dart';
+import '../../../../core/services/ongoing_ride_store.dart';
+import '../../../chat/auth/repo/chat_view_repo.dart';
+import '../../../chat/view/call_screen/rider_call/ride_navigation_overlay_controller.dart';
+import '../../Discover/controller/discover_controller.dart';
 
 enum SavedFeedTab {
   posts;
@@ -136,6 +141,9 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
     chatViewController.getChatExportAll();
 
     _loadContactsFromStorage();
+    // Restore the customer "Your Ongoing Ride/Booking" card after an app
+    // relaunch (the in-memory overlay state is lost when the app is killed).
+    _restoreOngoingRideIfNeeded();
     // First-time-only contacts sync. On entry to the connect tab we ask for
     // contacts permission, upload the phone book, and persist the response.
     // Subsequent entries short-circuit on the Hive cache and never hit the
@@ -208,6 +216,77 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
       Map<String, dynamic> decoded = await compute(jsonDecode, storedData) as Map<String, dynamic>;
       chatViewController.loadContactsFromLocalStorage(decoded);
     }
+  }
+
+  /// Rebuild the customer ongoing-ride card from the persisted snapshot on app
+  /// relaunch, then confirm with the order-status API that the ride is still
+  /// active (clearing it if it ended while the app was closed). Re-seeds the
+  /// [DiscoverController] fare-call state so tapping the card resumes the live
+  /// tracking screen.
+  Future<void> _restoreOngoingRideIfNeeded() async {
+    final overlayCtrl = getOrPut(() => RideNavigationOverlayController());
+    // Already tracking this session (e.g. minimized just now) — nothing to do.
+    if (overlayCtrl.hasOngoingCustomerRide) return;
+
+    final snap = await OngoingRideStore.read();
+    if (snap == null) return;
+    final orderId = (snap['orderId'] ?? '').toString();
+    if (orderId.isEmpty) {
+      await OngoingRideStore.clear();
+      return;
+    }
+
+    double toD(dynamic v) =>
+        (v is num) ? v.toDouble() : double.tryParse('$v') ?? 0.0;
+
+    // 1) Optimistically rebuild the card from the snapshot.
+    overlayCtrl.restoreCustomerRide(
+      orderId: orderId,
+      riderName: (snap['riderName'] ?? '').toString(),
+      riderImageVal: (snap['riderImage'] ?? '').toString(),
+      riderContactVal: (snap['riderContact'] ?? '').toString(),
+      pickupLabel: (snap['pickupLabel'] ?? '').toString(),
+      dropLabelVal: (snap['dropLabel'] ?? '').toString(),
+      bookingTimeLabelVal: (snap['bookingTimeLabel'] ?? '').toString(),
+      riderLatVal: toD(snap['riderLat']),
+      riderLngVal: toD(snap['riderLng']),
+      pickupLat: toD(snap['pickupLat']),
+      pickupLng: toD(snap['pickupLng']),
+    );
+
+    // 2) Re-seed DiscoverController so opening the card resumes live tracking.
+    final dc = getOrPut(() => DiscoverController());
+    final riderId = (snap['riderId'] ?? '').toString();
+    if (riderId.isNotEmpty) dc.fareCallAcceptedRiderId.value = riderId;
+    dc.fareCallAcceptedRiderInfo.value = {
+      'riderId': riderId,
+      'name': (snap['riderName'] ?? '').toString(),
+      'profileImage': (snap['riderImage'] ?? '').toString(),
+      'contact': (snap['riderContact'] ?? '').toString(),
+    };
+    dc.fareCallOrderId.value = orderId;
+    dc.selectedFromLat?.value = toD(snap['pickupLat']);
+    dc.selectedFromLong?.value = toD(snap['pickupLng']);
+    dc.selectedFromAddress?.value = (snap['pickupLabel'] ?? '').toString();
+    dc.selectedToLat?.value = toD(snap['dropLat']);
+    dc.selectedToLong?.value = toD(snap['dropLng']);
+    dc.selectedToAddress?.value = (snap['dropLabel'] ?? '').toString();
+
+    // 3) Confirm the ride is still ongoing via the suitable API. A terminal
+    // status clears the card; transient failures keep the optimistic card.
+    try {
+      final res = await ChatViewRepo().checkTrackOrderStatusSilentApi(orderId);
+      if (res.isSuccess) {
+        final status =
+            res.response?.data?['status']?.toString().toLowerCase() ?? '';
+        if (status == 'completed' ||
+            status == 'cancelled' ||
+            status == 'rejected') {
+          await OngoingRideStore.clear();
+          overlayCtrl.clearRideData();
+        }
+      }
+    } catch (_) {}
   }
 
   void _handleTabChange() {
@@ -567,7 +646,17 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
                     physics: isSelectionMode ? const NeverScrollableScrollPhysics() : null,
                     controller: _tabController,
                     children: [
-                      PersonalChatsList(isForwardUI: false),
+                      // Chat tab: same customer "Your Ongoing Ride/Booking"
+                      // card sits above the personal chat list (collapses to
+                      // nothing when there is no ongoing ride).
+                      Column(
+                        children: [
+                          const CustomerOngoingRideCard(),
+                          Expanded(
+                            child: PersonalChatsList(isForwardUI: false),
+                          ),
+                        ],
+                      ),
                       // Inquiry tab: the business lane. Now that `order` is
                       // merged into `business`, former order threads also
                       // surface here. This is the buyer/general business view,
@@ -583,11 +672,23 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
                       // and silently drops every row whose latest message was
                       // sent by the other party (e.g. "New self-pickup food
                       // order" from a customer), emptying the tab.
-                      BusinessChatsList(
-                        isForwardUI: false,
-                        // Flag conversations created in the last 4 hours with a
-                        // "New" label below the time in the Inquiry tab.
-                        showNewIfRecentlyCreated: true,
+                      // Inquiry tab: a customer "Your Ongoing Ride/Booking"
+                      // card (when a ride/goods booking is being tracked) sits
+                      // above the business chat list. The card collapses to
+                      // nothing when there is no ongoing ride.
+                      Column(
+                        children: [
+                          const CustomerOngoingRideCard(),
+                          Expanded(
+                            child: BusinessChatsList(
+                              isForwardUI: false,
+                              // Flag conversations created in the last 4 hours
+                              // with a "New" label below the time in the
+                              // Inquiry tab.
+                              showNewIfRecentlyCreated: true,
+                            ),
+                          ),
+                        ],
                       ),
                       // Call tab. CallHistoryScreen owns its own scrollable;
                       // detach it from the parent NestedScrollView's inherited

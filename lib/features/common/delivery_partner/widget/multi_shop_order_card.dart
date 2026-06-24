@@ -66,7 +66,6 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
   // the SSE stream catches up.
   final Set<String> _arrived = {};
   final Set<String> _pickedLocal = {};
-  final Set<String> _verifyingShop = {};
 
   RiderOrdersDetailsModel get _order => widget.order;
 
@@ -272,7 +271,6 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
     final shop = _shops[index];
     final picked = _isShopPicked(shop);
     final arrived = _arrived.contains(shop.businessId);
-    final verifying = _verifyingShop.contains(shop.businessId);
     final name = shop.businessName.isNotEmpty
         ? shop.businessName
         : 'Shop ${index + 1}';
@@ -344,12 +342,15 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
                     ),
                   ],
                   // Per-stop pickup workflow only while the ride is ongoing.
+                  // Flipped direction: the rider taps "Arrived", then this shop's
+                  // pickup OTP is shown read-only for the rider to read out to the
+                  // shopkeeper, who enters it on their side to release the goods.
                   if (_isOngoing && !picked) ...[
                     SizedBox(height: SizeConfig.size8),
                     if (!arrived)
                       _arrivedButton(shop)
                     else
-                      _shopOtpBox(shop, verifying),
+                      _shopOtpDisplay(shop),
                   ],
                   if (picked) ...[
                     SizedBox(height: SizeConfig.size4),
@@ -482,39 +483,51 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
     );
   }
 
-  Widget _shopOtpBox(BusinessOrder shop, bool verifying) {
+  /// Read-only display of this shop's pickup OTP. The rider reads it out to the
+  /// shopkeeper, who enters it on their side (`multiShopStopPickup`); the SSE
+  /// `ride:stop:update` then flips the stop to "Picked up".
+  Widget _shopOtpDisplay(BusinessOrder shop) {
+    final otp = _order.pickupOtpForBusiness(shop.businessId) ?? '';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CustomText(
-          'Enter shop pickup OTP',
+          'Show this pickup OTP to the shopkeeper',
           fontSize: SizeConfig.small11,
           fontWeight: FontWeight.w500,
           color: AppColors.secondaryTextColor,
         ),
         SizedBox(height: SizeConfig.size6),
-        Row(
-          children: [
-            Flexible(
-              child: AbsorbPointer(
-                absorbing: verifying,
-                child: Opacity(
-                  opacity: verifying ? 0.6 : 1,
-                  child: _otpPinput(
-                    onCompleted: (pin) => _onShopOtp(shop, pin),
-                  ),
+        if (otp.isEmpty)
+          CustomText(
+            'OTP not available yet',
+            fontSize: SizeConfig.small11,
+            fontWeight: FontWeight.w500,
+            color: AppColors.grey9A,
+          )
+        else
+          Row(
+            children: otp.split('').map((digit) {
+              return Container(
+                width: 34,
+                height: 40,
+                margin: EdgeInsets.only(right: SizeConfig.size6),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: AppColors.primaryColor.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                      color: AppColors.primaryColor.withValues(alpha: 0.3)),
                 ),
-              ),
-            ),
-            SizedBox(width: SizeConfig.size8),
-            if (verifying)
-              const SizedBox(
-                height: 18,
-                width: 18,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-          ],
-        ),
+                child: CustomText(
+                  digit,
+                  fontSize: SizeConfig.large,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primaryColor,
+                ),
+              );
+            }).toList(),
+          ),
       ],
     );
   }
@@ -697,18 +710,6 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
     if (ok && mounted) {
       setState(() => _arrived.add(shop.businessId));
     }
-  }
-
-  Future<void> _onShopOtp(BusinessOrder shop, String pin) async {
-    if (pin.length != 4) return;
-    setState(() => _verifyingShop.add(shop.businessId));
-    final ok =
-        await controller.multiShopStopPickup(_orderId, shop.businessId, pin);
-    if (!mounted) return;
-    setState(() {
-      _verifyingShop.remove(shop.businessId);
-      if (ok) _pickedLocal.add(shop.businessId);
-    });
   }
 
   String _formatTime(String isoString) {

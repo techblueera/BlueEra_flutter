@@ -393,4 +393,15 @@ class ChatViewRepo extends BaseService {
     return response;
   }
 
+  /// Same as [checkTrackOrderStatusApi] but without the blocking progress
+  /// dialog — used for the silent ongoing-ride restore check on app launch.
+  Future<ResponseModel> checkTrackOrderStatusSilentApi(String orderId) async {
+    final response = await ApiBaseHelper().getHTTP(
+        checkTrackOrderStatus(orderId),
+        showProgress: false,
+        onError: (error) {},
+        onSuccess: (data) {});
+    return response;
+  }
+
 }

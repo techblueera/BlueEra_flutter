@@ -16,6 +16,7 @@ import '../../../../widgets/custom_text_cm.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../order_main_chat_screen.dart';
+import 'chat_video_pip_controller.dart';
 import 'component_widgets.dart';
 import 'phone_user_preview.dart';
 class MessageBubble extends StatefulWidget {
@@ -313,8 +314,14 @@ class _MessageBubbleState extends State<MessageBubble> {
                                   final match = regExp.firstMatch(widget.message);
                                   if (match != null) {
                                     final url = match.group(0)!;
-                                    final isBlueEra = url.contains('blueera');
-                                    launchUrl(Uri.parse(url), mode: isBlueEra ? LaunchMode.inAppBrowserView : LaunchMode.inAppWebView);
+                                    if (url.contains('blueera')) {
+                                      launchUrl(Uri.parse(url), mode: LaunchMode.inAppBrowserView);
+                                    } else {
+                                      // YouTube / social / other links open in
+                                      // the in-app player and dock to a
+                                      // WhatsApp-style bottom PiP on back.
+                                      ChatVideoPipController.to.openInApp(url);
+                                    }
                                   }
                                 },
                                 child: buildLinkPreview(widget.message),

@@ -51,7 +51,18 @@
       "Bash(git *)",
       "Bash(echo \"EXIT: $?\")",
       "Bash(echo \"exit: $?\")",
-      "Bash(echo \"exit:$?\")"
+      "Bash(echo \"exit:$?\")",
+      "Bash(rm -f /tmp/pip_run.log)",
+      "Bash(nohup flutter run -t lib/pip_verify_main.dart -d emulator-5554 --debug)",
+      "Bash(echo \"launched pid $!\")",
+      "Read(//private/tmp/**)",
+      "Bash(pkill -f \"pip_verify_main.dart\")",
+      "Bash(pkill -f \"flutter_tools.snapshot run\")",
+      "Bash(rm -f /tmp/pip_run2.log)",
+      "Bash(pkill -f \"pip_verify_main\")",
+      "Bash(adb kill-server *)",
+      "Bash(adb start-server *)",
+      "Bash(nohup flutter emulators --launch Pixel_8_Pro)"
     ]
   }
 }

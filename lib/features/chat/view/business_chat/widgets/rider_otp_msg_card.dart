@@ -1,25 +1,35 @@
+import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
+import 'package:BlueEra/features/chat/auth/repo/make_order_repo.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:pinput/pinput.dart';
 
-/// Renders a chat-dispatch handoff OTP card (`message_type: "rider_otp"`).
+/// Renders a chat handoff OTP card (`message_type: "rider_otp"`).
 ///
-/// Two private variants arrive over the chat socket (server-filtered via
-/// `visible_to`, so this widget never has to hide one itself):
-///   • pickup   → shown to the shop; "Show this OTP to the rider at pickup".
-///   • delivery → shown to the customer; "Give this OTP to the rider on delivery".
+/// Per the flipped-direction handoff (RIDER_FRONTEND_INTEGRATION_GUIDE §8) the
+/// OTP travels from the person receiving the service to the person performing
+/// the action, so the two private variants (server-filtered via `visible_to`)
+/// render differently:
+///   • pickup   → shown to the SHOP as an OTP **input + confirm** (`mode:enter`).
+///                The rider reads the digits out; the shop types them to release
+///                the goods → `POST /riders/orders/:id/pickup` (single shop) or
+///                `PATCH /fare/multi-shop/orders/:id/stops/:businessId/pickup`.
+///   • delivery → shown to the CUSTOMER as the **digits** (`mode:show`) to read
+///                to the rider, who enters them in the rider app.
 ///
-/// The card is display-only: the rider verifies the OTP through the existing
-/// pickup/deliver endpoints, and the server flips `status` to "consumed" via
-/// the `riderOtpUpdated` socket, at which point this card greys out with a
-/// "Picked up" / "Delivered" check. See
-/// docs/backend/CHAT_DISPATCH_RIDER_FRONTEND_GUIDE.md.
-class RiderOtpMsgCard extends StatelessWidget {
+/// When the server flips `status` to "consumed" (via the `riderOtpUpdated`
+/// socket, handled in ChatViewController), the card greys out with a
+/// "Picked up" / "Delivered" check.
+class RiderOtpMsgCard extends StatefulWidget {
   final Messages message;
   final String time;
 
@@ -30,8 +40,70 @@ class RiderOtpMsgCard extends StatelessWidget {
   });
 
   @override
+  State<RiderOtpMsgCard> createState() => _RiderOtpMsgCardState();
+}
+
+class _RiderOtpMsgCardState extends State<RiderOtpMsgCard> {
+  final _otpController = TextEditingController();
+  bool _submitting = false;
+
+  RiderOtpInfo? get _otp => widget.message.metadata?.riderOtp;
+
+  @override
+  void dispose() {
+    _otpController.dispose();
+    super.dispose();
+  }
+
+  /// Shop confirms the pickup OTP the rider read out. Routes to the multi-shop
+  /// per-stop endpoint when the card belongs to one shop of a multi-stop order,
+  /// otherwise the single-shop pickup endpoint.
+  Future<void> _confirmPickup() async {
+    final otp = _otp;
+    if (otp == null) return;
+    final entered = _otpController.text.trim();
+    if (entered.length < 4) {
+      commonSnackBar(message: 'Please enter the 4-digit OTP');
+      return;
+    }
+    final orderId = otp.rideOrderId ?? otp.selfpickupOrderId ?? '';
+    if (orderId.isEmpty) {
+      commonSnackBar(message: 'Order reference missing');
+      return;
+    }
+
+    FocusScope.of(context).unfocus();
+    setState(() => _submitting = true);
+    try {
+      final repo = MakeOrderRepo();
+      ResponseModel res;
+      if (otp.isMultiStop && (otp.businessId ?? '').isNotEmpty) {
+        res = await repo.multiShopStopPickupApi(
+          orderId: orderId,
+          businessId: otp.businessId!,
+          pickupOTP: entered,
+        );
+      } else {
+        res = await repo.uploadThePickupOtp({'pickupOTP': entered}, orderId);
+      }
+
+      if (res.isSuccess) {
+        commonSnackBar(message: AppStrings.pickupOrderVerifiedSuccessfully.tr);
+        // Optimistic flip; the `riderOtpUpdated` socket also marks it consumed.
+        setState(() => otp.status = 'consumed');
+      } else {
+        commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong.tr);
+      }
+    } catch (_) {
+      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final otp = message.metadata?.riderOtp;
+    final otp = _otp;
     // Defensive: a malformed card without OTP data renders nothing rather than
     // a broken bubble.
     if (otp == null) return const SizedBox.shrink();
@@ -39,11 +111,12 @@ class RiderOtpMsgCard extends StatelessWidget {
     final isPickup = otp.isPickup;
     final consumed = otp.isConsumed;
     final accent = consumed ? AppColors.grey9B : AppColors.primaryColor;
+    // Pickup cards on the shop side now collect the OTP (no digits to show).
+    final showInput = otp.wantsInput && !consumed;
 
-    final title =
-        isPickup ? AppStrings.riderOtpPickupTitle.tr : AppStrings.riderOtpDeliveryTitle.tr;
-    final hint =
-        isPickup ? AppStrings.riderOtpPickupHint.tr : AppStrings.riderOtpDeliveryHint.tr;
+    final title = isPickup
+        ? AppStrings.riderOtpPickupTitle.tr
+        : AppStrings.riderOtpDeliveryTitle.tr;
     final consumedLabel =
         isPickup ? AppStrings.riderOtpPickedUp.tr : AppStrings.riderOtpDelivered.tr;
 
@@ -120,33 +193,9 @@ class RiderOtpMsgCard extends StatelessWidget {
           ),
           SizedBox(height: SizeConfig.size10),
 
-          // OTP digits — spaced for readability; struck/greyed once consumed.
-          Container(
-            width: double.infinity,
-            padding: EdgeInsets.symmetric(
-              vertical: SizeConfig.size10,
-              horizontal: SizeConfig.size12,
-            ),
-            decoration: BoxDecoration(
-              color: accent.withValues(alpha: 0.06),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: accent.withValues(alpha: 0.25)),
-            ),
-            child: Center(
-              child: Text(
-                otp.otp ?? '----',
-                style: TextStyle(
-                  fontFamily: AppConstants.OpenSans,
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 8,
-                  color: accent,
-                  decoration:
-                      consumed ? TextDecoration.lineThrough : TextDecoration.none,
-                ),
-              ),
-            ),
-          ),
+          // Body: either the shop's OTP input (pickup/enter) or the holder's
+          // digits (delivery/show, and consumed pickup cards).
+          if (showInput) _buildOtpInput(accent) else _buildOtpDigits(accent, consumed),
           SizedBox(height: SizeConfig.size8),
 
           // Status line: hint while active, "Picked up"/"Delivered" once done.
@@ -165,7 +214,11 @@ class RiderOtpMsgCard extends StatelessWidget {
             )
           else
             CustomText(
-              hint,
+              showInput
+                  ? 'Enter the pickup OTP the rider gives you to release the order.'
+                  : (isPickup
+                      ? AppStrings.riderOtpPickupHint.tr
+                      : AppStrings.riderOtpDeliveryHint.tr),
               fontSize: 11.5,
               fontWeight: FontWeight.w500,
               color: AppColors.secondaryTextColor,
@@ -196,13 +249,76 @@ class RiderOtpMsgCard extends StatelessWidget {
           Align(
             alignment: Alignment.bottomRight,
             child: CustomText(
-              time,
+              widget.time,
               fontSize: 10,
               color: AppColors.grey9B,
             ),
           ),
         ],
       ),
+    );
+  }
+
+  /// Digit display — the holder's card (delivery/customer) and consumed cards.
+  Widget _buildOtpDigits(Color accent, bool consumed) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        vertical: SizeConfig.size10,
+        horizontal: SizeConfig.size12,
+      ),
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: accent.withValues(alpha: 0.25)),
+      ),
+      child: Center(
+        child: Text(
+          _otp?.otp ?? '----',
+          style: TextStyle(
+            fontFamily: AppConstants.OpenSans,
+            fontSize: 26,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 8,
+            color: accent,
+            decoration:
+                consumed ? TextDecoration.lineThrough : TextDecoration.none,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// OTP input + confirm — the verifier's card (pickup/shop side).
+  Widget _buildOtpInput(Color accent) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Pinput(
+          length: 4,
+          controller: _otpController,
+          keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          enabled: !_submitting,
+          onCompleted: (_) => _confirmPickup(),
+          defaultPinTheme: PinTheme(
+            width: 44,
+            height: 44,
+            textStyle: const TextStyle(fontSize: 18, color: Colors.black),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: accent.withValues(alpha: 0.4)),
+            ),
+          ),
+        ),
+        SizedBox(height: SizeConfig.size10),
+        CustomBtn(
+          bgColor: AppColors.primaryColor,
+          isLoading: _submitting,
+          onTap: _confirmPickup,
+          title: AppStrings.submit.tr,
+        ),
+      ],
     );
   }
 }

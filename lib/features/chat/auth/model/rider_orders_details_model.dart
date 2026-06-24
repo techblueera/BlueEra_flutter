@@ -146,6 +146,8 @@ class RiderOrdersDetailsModel {
     this.rejectedRiders,
     this.groceryOrderDetails,
     this.jobInfo,
+    this.isMultiStop,
+    this.stops,
     this.version,
   });
 
@@ -204,6 +206,15 @@ class RiderOrdersDetailsModel {
     jobInfo = json['jobInfo'] != null
         ? JobInfo.fromJson(Map<String, dynamic>.from(json['jobInfo']))
         : JobInfo.fromOrderFor(orderFor);
+
+    // Multi-shop: one pickup OTP per shop, carried in `stops[]` keyed by
+    // businessId (RIDER_FRONTEND_INTEGRATION_GUIDE §5 / §8.3).
+    isMultiStop = json['isMultiStop'] == true;
+    stops = json['stops'] is List
+        ? (json['stops'] as List)
+            .map((e) => RideStop.fromJson(Map<String, dynamic>.from(e)))
+            .toList()
+        : null;
   }
 
   String? orderId;
@@ -244,6 +255,20 @@ class RiderOrdersDetailsModel {
 
   JobInfo? jobInfo;
 
+  bool? isMultiStop;
+  List<RideStop>? stops;
+
+  /// That shop's pickup OTP from `stops[]` (matched by businessId). Falls back
+  /// to the order-level [pickupOTP] for legacy orders without per-stop OTPs.
+  String? pickupOtpForBusiness(String businessId) {
+    final stop = stops?.firstWhere(
+      (s) => s.businessId == businessId,
+      orElse: () => RideStop(),
+    );
+    final otp = stop?.pickupOTP;
+    return (otp != null && otp.isNotEmpty) ? otp : pickupOTP;
+  }
+
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
     map['orderId'] = orderId;
@@ -271,6 +296,8 @@ class RiderOrdersDetailsModel {
     map['rejectedRiders'] = rejectedRiders;
     map['groceryOrderDetails'] = groceryOrderDetails;
     map['jobInfo'] = jobInfo?.toJson();
+    map['isMultiStop'] = isMultiStop;
+    map['stops'] = stops?.map((e) => e.toJson()).toList();
 
     if (groceryOrderDetails != null) {
       map['groceryOrderDetails'] = groceryOrderDetails!.toJson();
@@ -289,6 +316,47 @@ class RiderOrdersDetailsModel {
     }
     return map;
   }
+}
+
+/// One pickup stop of a multi-shop order. Each shop carries its own
+/// [pickupOTP] (shown read-only to the rider, entered by that shopkeeper) and
+/// a [sequence] (0 = furthest, visited first). See guide §5 / §8.3.
+class RideStop {
+  RideStop({
+    this.businessId,
+    this.shopName,
+    this.address,
+    this.sequence,
+    this.status,
+    this.pickupOTP,
+  });
+
+  RideStop.fromJson(Map<String, dynamic> json) {
+    businessId = json['businessId']?.toString();
+    shopName = json['shopName']?.toString();
+    address = json['address']?.toString();
+    sequence = json['sequence'] is int
+        ? json['sequence'] as int
+        : int.tryParse(json['sequence']?.toString() ?? '');
+    status = json['status']?.toString();
+    pickupOTP = json['pickupOTP']?.toString();
+  }
+
+  String? businessId;
+  String? shopName;
+  String? address;
+  int? sequence;
+  String? status;
+  String? pickupOTP;
+
+  Map<String, dynamic> toJson() => {
+        'businessId': businessId,
+        'shopName': shopName,
+        'address': address,
+        'sequence': sequence,
+        'status': status,
+        'pickupOTP': pickupOTP,
+      };
 }
 
 /* ---------------- SUB MODELS ---------------- */
