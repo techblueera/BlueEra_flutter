@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:dio/dio.dart' as dio;
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -18,6 +19,7 @@ import '../../../../widgets/custom_text_cm.dart';
 import '../../../common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
+import '../../auth/repo/chat_view_repo.dart';
 import '../../auth/model/GetChatListModel.dart';
 import '../business_chat/business_chat_list.dart';
 import '../widget/component_widgets.dart';
@@ -25,11 +27,16 @@ import '../add_symbol/add_symbol_screen.dart';
 import '../personal_chat/personal_chat_list.dart';
 
 class ChatForwardScreen extends StatefulWidget {
-  const ChatForwardScreen({super.key, this.sharedText, this.sharedFiles, this.maxSelectionCount, this.stopChatNav});
+  const ChatForwardScreen({super.key, this.sharedText, this.sharedFiles, this.maxSelectionCount, this.stopChatNav, this.documentFilePath});
   final String? sharedText;
   final List<SharedAttachment?>? sharedFiles;
   final int? maxSelectionCount;
   final bool? stopChatNav;
+
+  /// Local path of a generated document (e.g. a packing-list PDF) to forward as
+  /// a `document` chat message to each selected conversation. When set, the
+  /// forward action sends this file instead of forwarding selected messages.
+  final String? documentFilePath;
 
   @override
   State<ChatForwardScreen> createState() => _ChatForwardScreenState();
@@ -71,6 +78,38 @@ class _ChatForwardScreenState extends State<ChatForwardScreen> {
   void dispose() {
     _searchCtrl.dispose();
     super.dispose();
+  }
+
+  /// Sends the document at [filePath] as a `document` chat message to every
+  /// conversation the user selected on this screen. Posts straight through the
+  /// repo (not [ChatViewController.sendMessage]) so the file is delivered to the
+  /// recipients without being optimistically appended to the chat we forwarded
+  /// from — otherwise it would briefly appear as a sent message in our own
+  /// (unrelated) open chat. A fresh MultipartFile is built per recipient because
+  /// its byte stream is consumed once per send.
+  Future<void> _sendDocumentToSelected(String filePath) async {
+    final fileName = filePath.split('/').last;
+    final repo = ChatViewRepo();
+    for (final chat in chatViewController.selectedChatList) {
+      final recipientId = chat?.sender?.id ?? '';
+      final convId = chat?.conversationId ?? '';
+      if (recipientId.isEmpty && convId.isEmpty) continue;
+
+      final multipartFile = await dio.MultipartFile.fromFile(
+        filePath,
+        filename: fileName,
+      );
+      final data = <String, dynamic>{
+        ApiKeys.conversation_id: convId,
+        ApiKeys.other_user_id: recipientId,
+        ApiKeys.message: '',
+        ApiKeys.message_type: 'document',
+        ApiKeys.files: [multipartFile],
+      };
+      await repo.sendMessageToUser(data);
+    }
+    chatViewController.emitEvent(
+        ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.personal_Chat_Type});
   }
 
   Widget build(BuildContext context) {
@@ -386,7 +425,12 @@ class _ChatForwardScreenState extends State<ChatForwardScreen> {
               _isSending = true;
               // Forward to selected contacts first (if any)
               if(chatViewController.selectedUserIds.isNotEmpty){
-                if(widget.sharedFiles!=null||widget.sharedText!=null){
+                if(widget.documentFilePath!=null){
+                  // Send the generated PDF as a `document` message to each
+                  // selected conversation (same payload as the chat input's
+                  // document send — see SelfPickupMsgCard packing flow).
+                  await _sendDocumentToSelected(widget.documentFilePath!);
+                }else if(widget.sharedFiles!=null||widget.sharedText!=null){
                   if (widget.sharedText != null) {
                     for (final chat in chatViewController.selectedChatList) {
                       final recipientId = chat?.sender?.id ?? '';

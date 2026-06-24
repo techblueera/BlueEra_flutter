@@ -7,7 +7,6 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/order_controllar.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
@@ -15,7 +14,7 @@ import 'package:BlueEra/features/chat/auth/model/saved_address_model.dart';
 import 'package:BlueEra/features/chat/auth/model/self_pickup_order_model.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/ride_drop_location_sheet.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/payment_qr_bottom_sheet.dart';
-import 'package:BlueEra/features/chat/view/order_main_chat_screen.dart';
+import 'package:BlueEra/features/chat/view/forward_screen/chat_forward_screen.dart';
 import 'package:BlueEra/features/chat/view/widget/component_widgets.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/product_order_booking_rider_main.dart';
@@ -1926,13 +1925,16 @@ class _PackingPdfPreviewScreen extends StatelessWidget {
     );
   }
 
+  /// Share within BlueEra — open the forward screen and send this packing-list
+  /// PDF as a `document` message to the conversations the user selects.
   void _shareWithinBlueEra(BuildContext context) {
-    final chatThemeController = Get.find<ChatThemeController>();
-    chatThemeController.activateSelection(message);
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => OrderMainChatScreen(isForwardUI: true),
+        builder: (context) => ChatForwardScreen(
+          documentFilePath: filePath,
+          stopChatNav: true,
+        ),
       ),
     );
   }

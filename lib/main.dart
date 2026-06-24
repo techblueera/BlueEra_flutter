@@ -54,6 +54,7 @@ import 'features/chat/auth/controller/call_controller.dart';
 import 'features/chat/view/call_screen/audio_calling_handler.dart';
 import 'features/chat/view/call_screen/call_activity_main.dart' as call_entry;
 import 'features/chat/view/call_screen/rider_call/ride_navigation_floating_overlay.dart';
+import 'features/chat/view/widget/chat_video_pip_overlay.dart';
 import 'package:flutter_overlay_window/flutter_overlay_window.dart';
 import 'features/personal/personal_profile/controller/languge_list_controller.dart';
 
@@ -986,6 +987,8 @@ class _MyAppState extends State<MyApp> {
 //               const OngoingCallOverlay(),
 // Floating mini-map for ride navigation
               const RideNavigationFloatingOverlay(),
+// Floating PiP mini-player for video links tapped in chat
+              const ChatVideoPipOverlay(),
             ],
           );
         },

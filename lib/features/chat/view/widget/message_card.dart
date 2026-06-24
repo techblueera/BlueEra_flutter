@@ -51,6 +51,7 @@ import '../media_view_page/medias_slider_page.dart';
 import '../symbol_view/symbol_view_images.dart';
 import '../orders_chat/widget/order_common_widgets.dart';
 import 'audio_type_message_ui.dart';
+import 'chat_video_pip_controller.dart';
 import 'component_widgets.dart';
 import 'document_message_card.dart';
 import 'live_location_message_card.dart';
@@ -436,8 +437,14 @@ class _MessageCardState extends State<MessageCard>
                     final match = regExp.firstMatch(widget.message.message ?? '');
                     if (match != null) {
                       final url = match.group(0)!;
-                      final isBlueEra = url.contains('blueera');
-                      launchUrl(Uri.parse(url), mode: isBlueEra ? LaunchMode.inAppBrowserView : LaunchMode.inAppWebView);
+                      // Video links (YouTube / any web video) open in the in-app
+                      // player so they can be minimised to a floating PiP.
+                      if (ChatVideoPipController.isVideoLink(url)) {
+                        ChatVideoPipController.to.openInApp(url);
+                      } else {
+                        final isBlueEra = url.contains('blueera');
+                        launchUrl(Uri.parse(url), mode: isBlueEra ? LaunchMode.inAppBrowserView : LaunchMode.inAppWebView);
+                      }
                     }
                   }
                 }

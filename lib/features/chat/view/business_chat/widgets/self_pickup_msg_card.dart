@@ -20,8 +20,7 @@ import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:dio/dio.dart' as dio;
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart';
-import 'package:BlueEra/features/chat/view/order_main_chat_screen.dart';
+import 'package:BlueEra/features/chat/view/forward_screen/chat_forward_screen.dart';
 import 'package:BlueEra/features/chat/view/widget/component_widgets.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/ride_drop_location_sheet.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/payment_qr_bottom_sheet.dart';
@@ -2076,14 +2075,16 @@ class _PackingPdfPreviewScreen extends StatelessWidget {
     );
   }
 
-  /// Forward within BlueEra — select message and open forward screen
+  /// Share within BlueEra — open the forward screen and send this packing-list
+  /// PDF as a `document` message to the conversations the user selects.
   void _shareWithinBlueEra(BuildContext context) {
-    final chatThemeController = Get.find<ChatThemeController>();
-    chatThemeController.activateSelection(message);
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => OrderMainChatScreen(isForwardUI: true),
+        builder: (context) => ChatForwardScreen(
+          documentFilePath: filePath,
+          stopChatNav: true,
+        ),
       ),
     );
   }
