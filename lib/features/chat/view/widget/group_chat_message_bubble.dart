@@ -5,10 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_constant.dart';
 import '../../../../widgets/custom_text_cm.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
+import '../../auth/model/group_details_model.dart';
+import 'chat_bubble_painter.dart';
 import 'component_widgets.dart';
+import 'phone_user_preview.dart';
 
 class GroupChatMessageBubble extends StatefulWidget {
   final String message;
@@ -16,12 +20,21 @@ class GroupChatMessageBubble extends StatefulWidget {
   final Messages messages;
   final bool isReceiveMsg;
 
+  /// True only for the first message of a consecutive run from the same sender.
+  /// Drives the WhatsApp-style tail nub.
+  final bool showTail;
+
+  /// True only for the first message of a run — shows the avatar + sender name.
+  final bool showSenderInfo;
+
   const GroupChatMessageBubble({
     super.key,
     required this.message,
     required this.messages,
     required this.isReceiveMsg,
     required this.time,
+    this.showTail = true,
+    this.showSenderInfo = true,
   });
 
   @override
@@ -32,9 +45,147 @@ class _GroupChatMessageBubbleState extends State<GroupChatMessageBubble> {
   final chatViewController = Get.find<ChatViewController>();
   final chatThemeController = Get.find<ChatThemeController>();
 
+  // Tap handlers attached to @mention spans. Rebuilt every frame, so we keep
+  // references and dispose them to avoid leaking gesture recognizers.
+  final List<TapGestureRecognizer> _mentionRecognizers = [];
+
+  @override
+  void dispose() {
+    _disposeMentionRecognizers();
+    super.dispose();
+  }
+
+  void _disposeMentionRecognizers() {
+    for (final r in _mentionRecognizers) {
+      r.dispose();
+    }
+    _mentionRecognizers.clear();
+  }
+
+  List<GroupMembersListModel> _groupMembers() {
+    final data = chatViewController.getGroupMembersResponse.value.data;
+    if (data is List<GroupMembersListModel>) return data;
+    if (data is List) return data.whereType<GroupMembersListModel>().toList();
+    return const [];
+  }
+
+  bool _isMentionWordChar(String c) =>
+      RegExp(r'[A-Za-z0-9_]').hasMatch(c);
+
+  void _openMentionContact(GroupMembersListModel member) {
+    final number = member.contact?.trim() ?? '';
+    if (number.isNotEmpty) {
+      // Open the SAME contact-link sheet a tapped phone number opens: resolves
+      // the number to a BlueEra user (Chat / Call / Save), or offers to save it
+      // as a new contact when there's no BlueEra account.
+      chatViewController.openUserDetailsByPhone(number);
+      return;
+    }
+    // No phone number on the member → fall back to their BlueEra profile.
+    final id = member.id ?? '';
+    if (id.isEmpty) return;
+    navigateToProfileFromChat(
+      authorId: id,
+      type: member.accountType ?? AppConstants.individual,
+    );
+  }
+
+  /// Top-level span builder: first carves out Indian mobile numbers (rendered
+  /// as a tappable [PhoneUserPreview], same as personal chat), then runs the
+  /// @mention pass on the remaining text segments.
+  List<InlineSpan> _buildMessageSpans(String text, TextStyle baseStyle) {
+    final phoneReg = RegExp(
+      r'(?<!\d)(?:\+?91[\s-]?|0)?[6-9]\d(?:[\s-]?\d){8}(?!\d)',
+    );
+    final matches = phoneReg.allMatches(text).toList();
+    if (matches.isEmpty) {
+      return _mentionSpans(text, baseStyle);
+    }
+    final spans = <InlineSpan>[];
+    int last = 0;
+    for (final m in matches) {
+      if (m.start > last) {
+        spans.addAll(_mentionSpans(text.substring(last, m.start), baseStyle));
+      }
+      spans.add(WidgetSpan(
+        alignment: PlaceholderAlignment.middle,
+        child: PhoneUserPreview(rawPhone: m.group(0)!, baseStyle: baseStyle),
+      ));
+      last = m.end;
+    }
+    if (last < text.length) {
+      spans.addAll(_mentionSpans(text.substring(last), baseStyle));
+    }
+    return spans;
+  }
+
+  /// Splits [text] into normal spans plus blue, tappable spans for any
+  /// `@MemberName` token that matches a known group member (longest match
+  /// wins, so names containing spaces resolve correctly) — WhatsApp-style.
+  List<InlineSpan> _mentionSpans(String text, TextStyle baseStyle) {
+    final members = _groupMembers();
+    if (members.isEmpty || !text.contains('@')) {
+      return [TextSpan(text: text, style: baseStyle)];
+    }
+    final named = members
+        .where((m) => (m.name?.isNotEmpty ?? false))
+        .toList()
+      ..sort((a, b) => (b.name!.length).compareTo(a.name!.length));
+
+    final mentionStyle = baseStyle.copyWith(
+      color: const Color(0xFF1E88E5),
+      fontWeight: FontWeight.w600,
+    );
+
+    final spans = <InlineSpan>[];
+    final buffer = StringBuffer();
+    int i = 0;
+    while (i < text.length) {
+      if (text[i] == '@') {
+        GroupMembersListModel? matched;
+        for (final m in named) {
+          final token = '@${m.name}';
+          final end = i + token.length;
+          if (end <= text.length &&
+              text.substring(i, end).toLowerCase() == token.toLowerCase() &&
+              (end == text.length || !_isMentionWordChar(text[end]))) {
+            matched = m;
+            break;
+          }
+        }
+        if (matched != null) {
+          if (buffer.isNotEmpty) {
+            spans.add(TextSpan(text: buffer.toString(), style: baseStyle));
+            buffer.clear();
+          }
+          final token = '@${matched.name}';
+          final member = matched;
+          final recognizer = TapGestureRecognizer()
+            ..onTap = () => _openMentionContact(member);
+          _mentionRecognizers.add(recognizer);
+          spans.add(TextSpan(
+            text: token,
+            style: mentionStyle,
+            recognizer: recognizer,
+          ));
+          i += token.length;
+          continue;
+        }
+      }
+      buffer.write(text[i]);
+      i++;
+    }
+    if (buffer.isNotEmpty) {
+      spans.add(TextSpan(text: buffer.toString(), style: baseStyle));
+    }
+    return spans;
+  }
+
   @override
   Widget build(BuildContext context) {
     chatThemeController.isMessageSelectionActive;
+    // Recognizers are recreated below for this frame's @mention spans.
+    _disposeMentionRecognizers();
     return GestureDetector(
       onLongPress: () {
         chatThemeController.activateSelection(widget.messages);
@@ -60,22 +211,26 @@ class _GroupChatMessageBubbleState extends State<GroupChatMessageBubble> {
             children: [
               (!widget.isReceiveMsg)
                   ? SizedBox()
-                  : Container(
-                      margin: EdgeInsets.only(right: 6),
-                      height: 26,
-                      width: 26,
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(26),
-                          color: chatThemeController.getDarkColorForSender(
-                              widget.messages.senderId ?? "unknown", 0.1)),
-                      child: Center(
-                          child: CustomText(
-                        "${(widget.messages.sender?.name=='')?'NA':widget.messages.sender?.name?.split('')[0]}",
-                        fontSize: 13.2,
-                        color: chatThemeController.getDarkColorForSender(
-                            widget.messages.senderId ?? "unknown"),
-                      )),
-                    ),
+                  : (!widget.showSenderInfo)
+                      // Reserve the avatar's footprint so grouped messages stay
+                      // left-aligned with the first bubble of the run.
+                      ? const SizedBox(width: 32)
+                      : Container(
+                          margin: EdgeInsets.only(right: 6),
+                          height: 26,
+                          width: 26,
+                          decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(26),
+                              color: chatThemeController.getDarkColorForSender(
+                                  widget.messages.senderId ?? "unknown", 0.1)),
+                          child: Center(
+                              child: CustomText(
+                            "${(widget.messages.sender?.name=='')?'NA':widget.messages.sender?.name?.split('')[0]}",
+                            fontSize: 13.2,
+                            color: chatThemeController.getDarkColorForSender(
+                                widget.messages.senderId ?? "unknown"),
+                          )),
+                        ),
               Container(
                 width: 250,
                 // margin: EdgeInsets.only(left: (widget.isReceiveMsg)?0:50,right:  (widget.isReceiveMsg)?50:0),
@@ -86,30 +241,30 @@ class _GroupChatMessageBubbleState extends State<GroupChatMessageBubble> {
                       : Alignment.centerRight,
                   child: IntrinsicWidth(
                     // stepWidth: 200,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                          horizontal: 11,
-                          vertical: (widget.isReceiveMsg) ? 5 : 8),
-                      decoration: BoxDecoration(
+                    child: CustomPaint(
+                      painter: ChatBubblePainter(
                         color: (widget.isReceiveMsg)
                             ? chatThemeController.getColorForSender(
                                 widget.messages.senderId ?? "unknown")
                             : chatThemeController.myMessageBgColor.value,
-                        // color: (widget.isReceiveMsg) ? chatThemeController.receiveMessageBgColor.value: chatThemeController.myMessageBgColor.value ,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(12),
-                          topRight: Radius.circular(12),
-                          bottomRight:
-                              Radius.circular((widget.isReceiveMsg) ? 12 : 0),
-                          bottomLeft:
-                              Radius.circular((widget.isReceiveMsg) ? 0 : 12),
-                        ),
+                        isReceive: widget.isReceiveMsg,
+                        showTail: widget.showTail,
                       ),
+                      child: Padding(
+                      padding: EdgeInsets.only(
+                          // Reserve the tail's footprint on its side so text
+                          // never overlaps the nub.
+                          left: 11 +
+                              (widget.isReceiveMsg && widget.showTail ? 6 : 0),
+                          right: 11 +
+                              (!widget.isReceiveMsg && widget.showTail ? 6 : 0),
+                          top: (widget.isReceiveMsg) ? 5 : 8,
+                          bottom: (widget.isReceiveMsg) ? 5 : 8),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          (widget.isReceiveMsg)
+                          (widget.isReceiveMsg && widget.showSenderInfo)
                               ? Container(
                                   child: Row(
                                     children: [
@@ -127,7 +282,7 @@ class _GroupChatMessageBubbleState extends State<GroupChatMessageBubble> {
                                   ),
                                 )
                               : SizedBox(),
-                          (widget.isReceiveMsg)
+                          (widget.isReceiveMsg && widget.showSenderInfo)
                               ? SizedBox(
                                   height: 2,
                                 )
@@ -200,11 +355,11 @@ class _GroupChatMessageBubbleState extends State<GroupChatMessageBubble> {
                             child: RichText(
                               text: TextSpan(
                                 children: [
-                                  TextSpan(
-                                    text: (widget.message.length <= 100)
+                                  ..._buildMessageSpans(
+                                    (widget.message.length <= 100)
                                         ? widget.message
                                         : widget.message.substring(0, 100),
-                                    style: chatThemeController.chatTextStyle(
+                                    chatThemeController.chatTextStyle(
                                       fontWeight: FontWeight.w500,
                                       isMyMessage: !widget.isReceiveMsg,
                                     ),
@@ -358,6 +513,7 @@ class _GroupChatMessageBubbleState extends State<GroupChatMessageBubble> {
                           ),*/
                         ],
                       ),
+                    ),
                     ),
                   ),
                 ),

@@ -1,9 +1,13 @@
+import 'dart:io';
+
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
+import 'package:BlueEra/features/chat/auth/model/user_by_phone_model.dart';
+import 'package:BlueEra/features/chat/auth/service/call_activity_service.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_contacts/contact.dart';
-import 'package:flutter_contacts/properties/name.dart';
-import 'package:flutter_contacts/properties/phone.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
@@ -28,7 +32,9 @@ class GroupMessageCard extends StatefulWidget {
     this.profileImage,
     this.name,
     required this.isInitialMessage,
-    this.contactNo});
+    this.contactNo,
+    this.showTail = true,
+    this.showSenderInfo = true});
   final Messages message;
   final String? conversationId;
   final String? userId;
@@ -36,6 +42,12 @@ class GroupMessageCard extends StatefulWidget {
   final String? name;
   final bool isInitialMessage;
   final String? contactNo;
+
+  /// First message of a consecutive same-sender run — drives the bubble tail.
+  final bool showTail;
+
+  /// First message of a run — shows the avatar + sender name (WhatsApp grouping).
+  final bool showSenderInfo;
 
   @override
   State<GroupMessageCard> createState() => _GroupMessageCardState();
@@ -249,6 +261,8 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
       message: text,
       time: time,
       isReceiveMsg: isReceive,
+      showTail: widget.showTail,
+      showSenderInfo: widget.showSenderInfo,
     );
   }
 
@@ -633,17 +647,18 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
                   height: 40,
                   child: Row(
                     children: [
-                      // Message button
+                      // Chat button — opens an in-app BlueEra chat when the
+                      // number belongs to a BlueEra user, otherwise native SMS.
                       Expanded(
                         child: InkWell(
                           onTap: () {
                             if (displayNumber != AppStrings.noNumber.tr) {
-                              _launchSms(displayNumber);
+                              _onContactChatTap(displayName, displayNumber);
                             }
                           },
                           child: Center(
                             child: CustomText(
-                              AppStrings.messageLabel.tr,
+                              "Chat",
                               color: isReceiveMsg
                                   ? theme.colorScheme.primary
                                   : Colors.white,
@@ -661,17 +676,18 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
                             ? Colors.grey.shade300
                             : Colors.white.withValues(alpha: 0.3),
                       ),
-                      // Call button
+                      // Call button — in-app BlueEra audio call when the number
+                      // belongs to a BlueEra user, otherwise the native dialer.
                       Expanded(
                         child: InkWell(
                           onTap: () {
                             if (displayNumber != AppStrings.noNumber.tr) {
-                              _launchCall(displayNumber);
+                              _onContactCallTap(displayName, displayNumber);
                             }
                           },
                           child: Center(
                             child: CustomText(
-                              AppStrings.callLabel.tr,
+                              "Call",
                               color: isReceiveMsg
                                   ? theme.colorScheme.primary
                                   : Colors.white,
@@ -697,12 +713,14 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
                           },
                           child: Center(
                             child: CustomText(
-                              AppStrings.saveLabel.tr,
+                              "Add to contact",
+                              textAlign: TextAlign.center,
+                              maxLines: 2,
                               color: isReceiveMsg
                                   ? theme.colorScheme.primary
                                   : Colors.white,
                               fontWeight: FontWeight.w600,
-                              fontSize: 13.5,
+                              fontSize: 12,
                             ),
                           ),
                         ),
@@ -730,6 +748,107 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     }
+  }
+
+  /// Shared-contact "Chat" action. Looks the number up on BlueEra: a registered
+  /// user opens (or creates) an in-app personal chat; anyone else falls back to
+  /// the native SMS app.
+  Future<void> _onContactChatTap(String name, String number) async {
+    final UserByPhoneModel? user =
+        await chatViewController.resolveBlueEraUserByPhone(number);
+    if (user != null) {
+      chatViewController.checkChatConnectionAndOpenChat(
+        userId: user.id,
+        name: user.name.isNotEmpty ? user.name : name,
+        conductNo: user.contactNo ?? number,
+        profile: user.profileImage,
+        route: AppConstants.route_contact,
+      );
+    } else {
+      _launchSms(number);
+    }
+  }
+
+  /// Shared-contact "Call" action. Looks the number up on BlueEra: a registered
+  /// user gets an in-app audio call; anyone else falls back to the native phone
+  /// dialer.
+  Future<void> _onContactCallTap(String name, String number) async {
+    final UserByPhoneModel? user =
+        await chatViewController.resolveBlueEraUserByPhone(number);
+    if (user != null) {
+      _startBlueEraAudioCall(user, name);
+    } else {
+      _launchCall(number);
+    }
+  }
+
+  /// Start an in-app BlueEra audio call to [user]. On Android the call runs in
+  /// the native CallActivity (with an in-app fallback if it can't launch),
+  /// elsewhere it goes straight to the in-app CallRoomScreen.
+  void _startBlueEraAudioCall(UserByPhoneModel user, String fallbackName) {
+    final targetUserId = user.id;
+    if (targetUserId.isEmpty) return;
+    final targetUserName = user.name.isNotEmpty ? user.name : fallbackName;
+    final targetUserImage = user.profileImage ?? '';
+
+    if (Platform.isAndroid) {
+      CallController.isCallActivityActive = true;
+      CallActivityService.launchCallActivity(
+        callId: '',
+        roomId: '',
+        conversationId: '',
+        callType: 'audio',
+        callerName: targetUserName,
+        callerImage: targetUserImage,
+        remoteUserId: targetUserId,
+        remoteUserName: targetUserName,
+        remoteUserImage: targetUserImage,
+        isCaller: true,
+      ).then((launched) {
+        if (!launched) {
+          CallController.isCallActivityActive = false;
+          _initiateContactCallInApp(
+              targetUserId, targetUserName, targetUserImage);
+        }
+      });
+      return;
+    }
+
+    _initiateContactCallInApp(targetUserId, targetUserName, targetUserImage);
+  }
+
+  void _initiateContactCallInApp(
+      String otherUserId, String userName, String userImage) async {
+    if (!Get.isRegistered<CallController>()) {
+      Get.put(CallController());
+    }
+    final callController = Get.find<CallController>();
+    final success = await callController.initiateCall(
+      type: CallType.audio,
+      otherUserId: otherUserId,
+      userName: userName,
+      userImage: userImage,
+    );
+    if (success) {
+      Get.toNamed('/CallRoomScreen');
+    }
+  }
+
+  /// Normalize a raw phone string to Indian E.164 format (`+91XXXXXXXXXX`) so
+  /// the contact is saved with the country code.
+  String _toIndianNumber(String raw) {
+    String digits = raw.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.isEmpty) return raw;
+    if (digits.length == 12 && digits.startsWith('91')) {
+      return '+$digits';
+    }
+    if (digits.length == 10) {
+      return '+91$digits';
+    }
+    if (digits.length > 10) {
+      return '+91${digits.substring(digits.length - 10)}';
+    }
+    return raw;
   }
 
   String formatChatHistoryTime(String isoDateString) {
@@ -760,10 +879,10 @@ class _GroupMessageCardState extends State<GroupMessageCard>  with SingleTickerP
     if (permissionStatus.isGranted) {
       final contact = Contact()
         ..name = Name(first: name)
-        ..phones = [Phone(phoneNumber)];
+        ..phones = [Phone(_toIndianNumber(phoneNumber))];
 
-      // Opens the native contact editor with prefilled data
-      await contact.insert();
+      // Opens the native contact editor with prefilled data so user can review.
+      await FlutterContacts.openExternalInsert(contact);
     } else {
       // Permission denied
       ScaffoldMessenger.of(context).showSnackBar(

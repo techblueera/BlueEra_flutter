@@ -188,7 +188,10 @@ class _GroupChatListTabPageState extends State<GroupChatListTabPage> {
     final name = chat?.groupName;
     final initial = (name != null && name.isNotEmpty) ? name[0] : '';
 
-    return CircleAvatar(
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        CircleAvatar(
       backgroundColor: theme.colorScheme.primary,
       radius: 22,
       child: (profileUrl == null || profileUrl.isEmpty || profileUrl == "null")
@@ -234,6 +237,32 @@ class _GroupChatListTabPageState extends State<GroupChatListTabPage> {
                       fit: BoxFit.cover,
                     ),
             ),
+        ),
+        // Group marker at the top-right (45° from 12 o'clock).
+        Positioned(
+          top: -1,
+          right: -1,
+          child: Container(
+            padding: const EdgeInsets.all(1.5),
+            decoration: const BoxDecoration(
+              color: AppColors.white,
+              shape: BoxShape.circle,
+            ),
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: const BoxDecoration(
+                color: AppColors.primaryColor,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.groups_rounded,
+                size: 9,
+                color: AppColors.white,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 

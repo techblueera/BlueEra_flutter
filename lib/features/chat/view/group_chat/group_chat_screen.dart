@@ -62,7 +62,32 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
     chatViewController.getGroupMembersApi({
       ApiKeys.conversation_id: widget.conversationId,
     });
+
+    // WhatsApp-style "jump to latest" affordance.
+    chatViewController.scrollController.addListener(_onScroll);
   }
+
+  /// List is `reverse: true`, so the newest message sits at offset 0. Once the
+  /// user scrolls up past a threshold we surface the scroll-to-bottom button.
+  void _onScroll() {
+    if (!chatViewController.scrollController.hasClients) return;
+    final show = chatViewController.scrollController.offset > 300;
+    if (show != _showScrollDown) {
+      setState(() => _showScrollDown = show);
+    }
+  }
+
+  void _scrollToBottom() {
+    if (chatViewController.scrollController.hasClients) {
+      chatViewController.scrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+  }
+
+  bool _showScrollDown = false;
 
   Future<void> _checkPendingMessages() async {
     final connected = await NetworkUtils.isConnected();
@@ -73,6 +98,7 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
 
   @override
   void dispose() {
+    chatViewController.scrollController.removeListener(_onScroll);
     NetworkUtils.removeListener((connected) {});
     super.dispose();
   }
@@ -182,6 +208,11 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                         const SizedBox(height: 14),
                       ],
                     ),
+                    Positioned(
+                      right: 12,
+                      bottom: 92,
+                      child: _buildScrollToBottomButton(),
+                    ),
                   ],
                 ),
               );
@@ -192,10 +223,25 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
                   children: [
                     Obx(() => chatThemeController.chatBackground()),
                     Center(
-                      child: SizedBox(
-                        height: 22,
-                        width: 22,
-                        child: CircularProgressIndicator(),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.08),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: const SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2.2),
+                        ),
                       ),
                     ),
                   ],
@@ -205,6 +251,43 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
           }),
         );
       }),
+    );
+  }
+
+  Widget _buildScrollToBottomButton() {
+    return IgnorePointer(
+      ignoring: !_showScrollDown,
+      child: AnimatedSlide(
+        duration: const Duration(milliseconds: 200),
+        offset: _showScrollDown ? Offset.zero : const Offset(0, 1.5),
+        child: AnimatedOpacity(
+          duration: const Duration(milliseconds: 200),
+          opacity: _showScrollDown ? 1 : 0,
+          child: GestureDetector(
+            onTap: _scrollToBottom,
+            child: Container(
+              height: 42,
+              width: 42,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.18),
+                    blurRadius: 5,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.keyboard_arrow_down_rounded,
+                color: AppColors.primaryColor,
+                size: 26,
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -219,32 +302,49 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
           });
         },
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+          margin: const EdgeInsets.symmetric(horizontal: 40),
           decoration: BoxDecoration(
-            color: Colors.grey.withValues(alpha: 0.5),
-            borderRadius: BorderRadius.circular(8),
+            color: const Color(0xFFFFF5C4), // WhatsApp soft-amber notice tone
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 6,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-          child: RichText(
-            text: TextSpan(
-              children: [
-                TextSpan(
-                  text: AppStrings.noConversationYet.tr,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                  ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.waving_hand_rounded,
+                  color: AppColors.primaryColor, size: 28),
+              const SizedBox(height: 10),
+              RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: AppStrings.noConversationYet.tr,
+                      style: const TextStyle(
+                        color: Colors.black87,
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    TextSpan(
+                      text: AppStrings.sayNamaste.tr,
+                      style: TextStyle(
+                        color: AppColors.primaryColor,
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
                 ),
-                TextSpan(
-                  text: AppStrings.sayNamaste.tr,
-                  style: TextStyle(
-                    color: AppColors.primaryColor,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -258,7 +358,15 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 10),
       itemCount: messages.length,
       itemBuilder: (context, index) {
-        final message = messages[messages.length - 1 - index];
+        final pos = messages.length - 1 - index;
+        final message = messages[pos];
+        // The message rendered visually ABOVE this one (older, since the list
+        // is sorted ascending). A run "starts" when the sender changes or a
+        // date divider sits above — that first bubble gets the tail + name.
+        final olderAbove = pos - 1 >= 0 ? messages[pos - 1] : null;
+        final isFirstInGroup = olderAbove == null ||
+            olderAbove.senderId != message.senderId ||
+            olderAbove.messageType == 'date';
         return GroupMessageCard(
           message: message,
           isInitialMessage: false,
@@ -267,6 +375,8 @@ class _GroupChatScreenState extends State<GroupChatScreen> {
           name: widget.name,
           contactNo: '',
           profileImage: widget.profileImage,
+          showTail: isFirstInGroup,
+          showSenderInfo: isFirstInGroup,
         );
       },
     );

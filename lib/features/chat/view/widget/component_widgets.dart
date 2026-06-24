@@ -450,6 +450,9 @@ Widget  ChatListTile({
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
           InkWell(
             onTap: () {
               if(chat?.symbolData?.isNotEmpty??false){
@@ -652,6 +655,34 @@ Widget  ChatListTile({
               ),
             )
             ,
+          ),
+              // Small badge at the top-right (45° from 12 o'clock) marking the
+              // row as a group conversation.
+              if (isGroupChat)
+                Positioned(
+                  top: -1,
+                  right: -1,
+                  child: Container(
+                    padding: const EdgeInsets.all(1.5),
+                    decoration: const BoxDecoration(
+                      color: AppColors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Container(
+                      padding: const EdgeInsets.all(2),
+                      decoration: const BoxDecoration(
+                        color: AppColors.primaryColor,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.groups_rounded,
+                        size: 9,
+                        color: AppColors.white,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
           SizedBox(width: SizeConfig.size12),
           Expanded(
@@ -1241,6 +1272,12 @@ Widget messageTypeIconWithLabel(Messages message) {
     fontSize: SizeConfig.size13,
   );
 }
+
+/// Public entry so chat widgets (e.g. tapping an @mention) can open a member's
+/// profile using the same routing as the chat list.
+void navigateToProfileFromChat(
+        {required String authorId, required String type}) =>
+    _navigateToProfile(authorId: authorId, type: type);
 
 void _navigateToProfile({required String authorId, required String type}) {
   if (type.toUpperCase() == AppConstants.business) {
