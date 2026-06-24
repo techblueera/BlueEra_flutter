@@ -14,6 +14,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/services/local_strorage_helper.dart';
+import 'package:BlueEra/core/services/notification/pending_deep_link.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/features/chat/auth/model/symbol_details_model.dart';
@@ -615,6 +616,23 @@ class AppNotificationHandler {
   /// SplashScreen awaits this before deciding its own navigation.
   static Completer<void>? notificationNavigationCompleter;
 
+  /// The deep link currently being routed (set the moment a launch / tap
+  /// payload is detected, BEFORE the home boot decisions run). main()'s
+  /// `_initDeferred` reads this to defer the heavy background batch on a
+  /// notification cold-start. See
+  /// docs/backend/notification_fast_open_design.md (Phase 1 & 3).
+  static PendingDeepLink? pendingDeepLink;
+
+  /// Public, thin entry point onto the existing routing switch. Used by
+  /// [NotificationRouter.route] so deep-link routing has a single owner while
+  /// the per-type openers keep living in `_onTapNotificationFromStatusBar`.
+  static Future<void> routeNotificationData(
+    Map<String, dynamic> data, {
+    bool fromColdStart = false,
+  }) {
+    return _onTapNotificationFromStatusBar(data, fromColdStart: fromColdStart);
+  }
+
   /// Holds an FCM device token that couldn't be POSTed because the user
   /// wasn't authenticated yet (e.g. token fetched during the cold-start
   /// pre-login window). `flushPendingTokenSync()` drains it right after
@@ -631,6 +649,13 @@ class AppNotificationHandler {
       if (payLoad != null && payLoad.isNotEmpty) {
         launchedFromNotification = true;
         notificationNavigationCompleter = Completer<void>();
+        // Record the deep link as early as possible so main()'s deferred-init
+        // can skip the heavy home/background batch on a notification open.
+        // Best-effort: a parse failure must not block launch detection.
+        try {
+          final data = jsonDecode(payLoad) as Map<String, dynamic>;
+          pendingDeepLink = PendingDeepLink.fromData(data) ?? pendingDeepLink;
+        } catch (_) {}
         return;
       }
     }
@@ -651,6 +676,8 @@ class AppNotificationHandler {
         if (initial != null && initial.data.isNotEmpty) {
           launchedFromNotification = true;
           notificationNavigationCompleter = Completer<void>();
+          pendingDeepLink =
+              PendingDeepLink.fromData(initial.data) ?? pendingDeepLink;
         }
       } catch (e) {
         print('[iOS-checkNotificationLaunch] getInitialMessage error: $e');
@@ -2147,6 +2174,10 @@ class AppNotificationHandler {
     Map<String, dynamic> data, {
     bool fromColdStart = false,
   }) async {
+    // Record the deep link being routed so the cold-start boot can make its
+    // essential-vs-background decisions. Never throws; safe for all payloads.
+    pendingDeepLink = PendingDeepLink.fromData(data) ?? pendingDeepLink;
+
     // Parse sender_user if it's a JSON string
 
     if (data['sender_user'] is String) {
@@ -2158,7 +2189,10 @@ class AppNotificationHandler {
     if (fromColdStart) {
       Get.offAllNamed(
         RouteHelper.getBottomNavigationBarScreenRoute(),
-        arguments: {'initialIndex': 0},
+        // deferHeavyInit: the home is only the background host here, so its
+        // Discover categories fetch waits until the user navigates a tab
+        // instead of booting behind the deep-link target screen.
+        arguments: {'initialIndex': 0, 'deferHeavyInit': true},
       );
       // Small delay for home screen to settle before pushing target
       await Future.delayed(const Duration(milliseconds: 200));

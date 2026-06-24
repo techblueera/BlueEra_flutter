@@ -65,7 +65,19 @@ class BottomNavigationBarScreen extends StatefulWidget {
   final int? initialIndex;
   final SharedMedia? sharedMedia;
 
-  const BottomNavigationBarScreen({super.key, this.initialIndex = 1, this.sharedMedia});
+  /// When `true` this screen was created only as the BACKGROUND host while a
+  /// notification deep link is being routed on top of it. In that case the
+  /// Discover-only eager startup work (categories API) is skipped at cold
+  /// start and runs the first time the user actually navigates a tab — so a
+  /// notification open doesn't boot the home feed behind the target screen.
+  /// See docs/backend/notification_fast_open_design.md (Phase 2).
+  final bool deferHeavyInit;
+
+  const BottomNavigationBarScreen(
+      {super.key,
+      this.initialIndex = 1,
+      this.sharedMedia,
+      this.deferHeavyInit = false});
 
   @override
   State<BottomNavigationBarScreen> createState() => _BottomNavigationBarScreenState();
@@ -115,7 +127,13 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     //   logs("DIALOGE CALL");
     //   _checkAndShowDialog();
     // }
-    _getAllCategories();
+    // On a notification deep-link open this screen is just the background
+    // host — skip the Discover categories fetch until the user navigates a
+    // tab (see _ensureHeavyInit). On a normal launch it runs as before.
+    if (!widget.deferHeavyInit) {
+      _getAllCategories();
+      _heavyInitDone = true;
+    }
     _initializeControllers();
     _initializeUserData();
     _initializeSocketConnections();
@@ -259,6 +277,19 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     if (LocationService.lat == 0.0 && LocationService.lng == 0.0) {
       await LocationService.fetchLocation();
     }
+  }
+
+  /// One-shot guard for the deferred (deep-link) home init. On a normal launch
+  /// this is set in initState; on a deferred open it stays false until the
+  /// user first taps a bottom-nav tab.
+  bool _heavyInitDone = false;
+
+  /// Runs the home init that was skipped because this screen was created as a
+  /// deep-link background host. Safe to call repeatedly — only fires once.
+  void _ensureHeavyInit() {
+    if (_heavyInitDone) return;
+    _heavyInitDone = true;
+    _getAllCategories();
   }
 
   void _getAllCategories() {
@@ -470,6 +501,10 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
                               // AppLifecycleHandler), so tab changes no longer gate
                               // on lat/lng — gating blocked navigation when the
                               // first-launch fetch hadn't completed yet.
+                              // If this screen was a deep-link background host,
+                              // run the home init that cold start skipped now
+                              // that the user is actually navigating.
+                              _ensureHeavyInit();
                               bottomBarController.onChangeIndex(index);
                             },
                             chatNotificationCount: chatNotificationCount,

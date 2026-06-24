@@ -23,6 +23,7 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/common/auth/model/business_category_response_model.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/auth/model/guest_res_model.dart';
+import 'package:BlueEra/features/common/auth/model/guest_user_detail_model.dart';
 import 'package:BlueEra/features/common/auth/model/individual_field_response_model.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
@@ -553,8 +554,10 @@ class AuthController extends GetxController {
               categoryOfBusiness == "CLINICS") {
             pending.add(getOrPut(() => HospitalServiceAiController())
                 .createHospitalServiceController(reqData: reqBody));
-          } else if (categoryOfBusiness == "SUPPORT_SERVICES" ||
-              typeOfBusiness == BusinessType.Service.name.toUpperCase()) {
+          } else if (
+          categoryOfBusiness == "SUPPORT_SERVICES" ||
+              typeOfBusiness == BusinessType.Service.name.toUpperCase()
+          ) {
             final controller = getOrPut(() => BusinessProfileFullController());
             reqBody['profileName'] = reqData?[ApiKeys.business_name];
             reqBody['type'] = "other";
@@ -936,6 +939,26 @@ class AuthController extends GetxController {
     } catch (e) {
       createGuestProfileResponse.value = ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);
+    }
+  }
+
+  /// Fetches the logged-in guest user's profile (name + image) so the
+  /// individual / business account-creation screens can pre-fill it during a
+  /// guest → full-account upgrade. Returns `null` on any failure so callers
+  /// silently fall back to empty fields — pre-fill is a convenience, never a
+  /// blocker for the creation flow.
+  Future<GuestUserDetailModel?> getGuestUserDetail() async {
+    try {
+      if (userId.isEmpty) return null;
+      final ResponseModel response =
+          await AuthRepo().getGuestUserRepo(userId: userId);
+      if (response.isSuccess) {
+        return GuestUserDetailModel.fromJson(response.response?.data ?? {});
+      }
+      return null;
+    } catch (e) {
+      logs("getGuestUserDetail ERROR: $e");
+      return null;
     }
   }
 

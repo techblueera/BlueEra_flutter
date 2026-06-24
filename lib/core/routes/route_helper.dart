@@ -828,10 +828,12 @@ class RouteHelper {
         final args = settings.arguments as Map<dynamic, dynamic>?;
         int? initialIndex = args?[ApiKeys.initialIndex];
         SharedMedia? sharedMedia = args?['sharedMedia'] as SharedMedia?;
+        final bool deferHeavyInit = args?['deferHeavyInit'] == true;
         return MaterialPageRoute(
           builder: (_) => BottomNavigationBarScreen(
             initialIndex: initialIndex,
             sharedMedia: sharedMedia,
+            deferHeavyInit: deferHeavyInit,
           ),
           settings: RouteSettings(
               name: RouteHelper.getBottomNavigationBarScreenRoute()),
