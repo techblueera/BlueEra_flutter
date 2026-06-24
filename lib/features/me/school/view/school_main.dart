@@ -2,7 +2,6 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/me/school/view/v2/school_home_screen_v2.dart';
-import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/features/me/school/controller/school_controller.dart';
 import 'package:BlueEra/features/me/school/repo/school_repo.dart';
@@ -62,8 +61,7 @@ class _SchoolMainState extends State<SchoolMain> with RouteAware {
     return Scaffold(
         backgroundColor: AppColors.white,
         body: SafeArea(
-            child: BottomNavHideOnScroll(
-              child: SchoolHomeScreenV2()/*NestedScrollView(
+            child: SchoolHomeScreenV2()/*NestedScrollView(
                 headerSliverBuilder: (context, _) => [
                   SliverToBoxAdapter(
                     child: SizedBox(
@@ -126,7 +124,6 @@ class _SchoolMainState extends State<SchoolMain> with RouteAware {
                   ],
                 ),
               ),*/
-            ),
           ));
   }
 }

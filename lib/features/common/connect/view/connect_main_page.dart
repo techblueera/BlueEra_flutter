@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:ui' show ImageFilter;
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
@@ -28,7 +29,6 @@ import 'package:BlueEra/features/chat/view/wallet_chat/wallet_chat_screen.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/home/controller/symbol_feed_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/manage_notification/notification.dart';
-import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -405,6 +405,8 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
 
   Widget _buildCustomAppBar() {
     return CommonBackAppBar(
+      // Transparent so the frosted-glass flexibleSpace behind it shows through.
+      appBarColor: Colors.transparent,
       showElevation: 0,
       isLeading: false,
       // Hide the "+" icon on the Chat tab — its slot is replaced by
@@ -435,11 +437,10 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
   /// header. Shown only on the Inquiry tab.
   Widget _buildInquiryTabActions() {
     return Padding(
-      padding: const EdgeInsets.only(top: 10, right: 14.0),
+      padding: const EdgeInsets.only(right: 10.0),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-
           InkWell(
             onTap: () async {
               // Open the same drop-location bottom sheet used by the
@@ -451,31 +452,37 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
                     InquiryRideOrderSelectionScreen(dropAddress: drop));
               }
             },
-            borderRadius: BorderRadius.circular(20),
-            child: SvgPicture.asset(
-              AppIconAssets.riderIcon,
-              width: 34,
-              height: 26,
-              colorFilter:
-                  const ColorFilter.mode(Colors.blue, BlendMode.srcIn),
+            customBorder: const CircleBorder(),
+            child: _glassCircle(
+              child: SvgPicture.asset(
+                AppIconAssets.riderIcon,
+                width: 22,
+                height: 18,
+                colorFilter:
+                    const ColorFilter.mode(Colors.blue, BlendMode.srcIn),
+              ),
             ),
           ),
-          const SizedBox(width: 16),
-
+          const SizedBox(width: 8),
           InkWell(
             onTap: () {
               // TODO: wire to the basket/orders destination.
               commonSnackBar(message: "Coming soon....");
             },
-            borderRadius: BorderRadius.circular(20),
-            child: const Icon(Icons.shopping_cart_outlined,
-                size: 24, color: Colors.black),
+            customBorder: const CircleBorder(),
+            child: _glassCircle(
+              child: const Icon(Icons.shopping_cart_outlined,
+                  size: 18, color: Colors.black87),
+            ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 8),
           InkWell(
             onTap: () => Get.to(() => const OrderFlaggedChatsScreen()),
-            borderRadius: BorderRadius.circular(20),
-            child: const Icon(Icons.flag_outlined, size: 24, color: Colors.black),
+            customBorder: const CircleBorder(),
+            child: _glassCircle(
+              child: const Icon(Icons.flag_outlined,
+                  size: 18, color: Colors.black87),
+            ),
           ),
         ],
       ),
@@ -484,37 +491,33 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
 
   Widget _buildChatTabActions() {
     return Padding(
-      padding: const EdgeInsets.only(top: 10, right: 14.0),
+      padding: const EdgeInsets.only(right: 10.0),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           InkWell(
             onTap: () => Get.to(() => const ChatSearchScreen()),
-            borderRadius: BorderRadius.circular(20),
-            child: const Icon(
-              Icons.search,
-              size: 24,
-              color: Colors.black,
+            customBorder: const CircleBorder(),
+            child: _glassCircle(
+              child: const Icon(Icons.search, size: 18, color: Colors.black87),
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 8),
           InkWell(
             onTap: () => Get.to(() => const ReminderTodoScreen()),
-            borderRadius: BorderRadius.circular(20),
-            child: const Icon(
-              Icons.lock_clock,
-              size: 24,
-              color: Colors.black,
+            customBorder: const CircleBorder(),
+            child: _glassCircle(
+              child:
+                  const Icon(Icons.lock_clock, size: 18, color: Colors.black87),
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 8),
           InkWell(
             onTap: () => Get.to(() => const PersonalFlaggedChatsScreen()),
-            borderRadius: BorderRadius.circular(20),
-            child: const Icon(
-              Icons.flag_outlined,
-              size: 24,
-              color: Colors.black,
+            customBorder: const CircleBorder(),
+            child: _glassCircle(
+              child: const Icon(Icons.flag_outlined,
+                  size: 18, color: Colors.black87),
             ),
           ),
         ],
@@ -525,13 +528,46 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
   Widget _buildSymbolAvatar() {
     return InkWell(
       onTap: () => _openProfileDrawer(context),
-      borderRadius: BorderRadius.circular(20),
+      customBorder: const CircleBorder(),
       child: Padding(
-        padding: const EdgeInsets.all(6.0),
-        child: const Icon(
-          Icons.more_vert,
-          size: 26,
-          color: Colors.black,
+        padding: const EdgeInsets.all(4.0),
+        child: _glassCircle(
+          child: const Icon(Icons.more_vert, size: 18, color: Colors.black87),
+        ),
+      ),
+    );
+  }
+
+  /// Circular frosted-glass chip for the header icons — same recipe as the
+  /// order_main_chat header chips (translucent white over the blurred banner,
+  /// hairline border, faint lift).
+  Widget _glassCircle({required Widget child}) {
+    return Container(
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x14000000),
+            blurRadius: 4,
+            offset: Offset(0, 1),
+          ),
+        ],
+      ),
+      child: ClipPath(
+        clipper: const ShapeBorderClipper(shape: CircleBorder()),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+          child: Container(
+            height: 36,
+            width: 36,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withValues(alpha: 0.6),
+              border: Border.all(color: const Color(0xFFC9CDD5), width: 1),
+            ),
+            child: child,
+          ),
         ),
       ),
     );
@@ -539,7 +575,12 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
 
   @override
   Widget build(BuildContext context) {
+    final topInset = MediaQuery.of(context).padding.top;
     return SafeArea(
+      // Top inset is handled by the frosted status-bar strip sliver so the
+      // glass header extends behind the status bar (like the Me tab) while the
+      // app bar + tabs stay below the notch.
+      top: false,
       child: Obx(() {
         // Selection mode is only meaningful on chat-style tabs (Chat /
         // Inquiry). The Orders tab uses its own filter UI and never enters
@@ -555,6 +596,9 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
             return true;
           },
           child: Scaffold(
+            // Transparent so the app-wide background banner (AppHomeBackground)
+            // shows through and the glass header can frost it.
+            backgroundColor: Colors.transparent,
             // The "+" FAB starts a new chat/group — only meaningful on the
             // Chat / Inquiry tabs, not the Call tab.
             floatingActionButton: selectedIndex == 2
@@ -604,25 +648,49 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
                           ),
                         )),
                   ),
-            body: BottomNavHideOnScroll(
-              child: NestedScrollView(
+            body: NestedScrollView(
                 headerSliverBuilder: (context, innerBoxIsScrolled) {
                   return [
+                    // Frosted status-bar strip — always pinned so the glass
+                    // extends behind the notch and the app bar / tabs never
+                    // slide under the status bar.
+                    SliverPersistentHeader(
+                      pinned: true,
+                      delegate: _StatusBarGlassDelegate(topInset),
+                    ),
                     if (isSelectionMode)
                       _buildSelectionSliverAppBar()
                     else
                       SliverAppBar(
-                        backgroundColor: Colors.white,
+                        backgroundColor: Colors.transparent,
+                        surfaceTintColor: Colors.transparent,
                         elevation: 0,
                         floating: true,
                         snap: true,
                         pinned: false,
+                        // Status-bar inset is owned by the strip above.
+                        primary: false,
                         automaticallyImplyLeading: false,
                         titleSpacing: 0,
-                        expandedHeight: 72,
-                        flexibleSpace: Container(
-                          color: Colors.white,
-                          child: _buildCustomAppBar(),
+                        // Snug to the app bar (~56) so there isn't a big empty
+                        // band below the header before the tabs.
+                        expandedHeight: 56,
+                        // Frosted-glass header that blurs the app-wide banner,
+                        // mirroring the Me-screen headers. removePadding stops
+                        // the inner AppBar from re-adding the status-bar inset
+                        // (already handled by the strip above).
+                        flexibleSpace: ClipRect(
+                          child: BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+                            child: Container(
+                              color: Colors.white.withValues(alpha: 0.45),
+                              child: MediaQuery.removePadding(
+                                context: context,
+                                removeTop: true,
+                                child: _buildCustomAppBar(),
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     if (!isSelectionMode)
@@ -701,7 +769,6 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
                   ),
                 ),
               ),
-            ),
           ),
         );
       }),
@@ -727,6 +794,8 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
       elevation: 0.5,
       floating: false,
       pinned: true,
+      // Status-bar inset is owned by the pinned glass strip above.
+      primary: false,
       automaticallyImplyLeading: false,
       titleSpacing: 0,
       title: Row(
@@ -1160,6 +1229,38 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
   }
 }
 
+/// Pinned frosted-glass strip occupying the status-bar inset, so the glass
+/// chrome extends behind the notch while the app bar / tabs stay below it.
+class _StatusBarGlassDelegate extends SliverPersistentHeaderDelegate {
+  final double height;
+
+  _StatusBarGlassDelegate(this.height);
+
+  @override
+  double get minExtent => height;
+
+  @override
+  double get maxExtent => height;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    if (height <= 0) return const SizedBox.shrink();
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+        child: Container(
+          height: height,
+          color: Colors.white.withValues(alpha: 0.45),
+        ),
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant _StatusBarGlassDelegate oldDelegate) =>
+      oldDelegate.height != height;
+}
+
 class _HomeTabBarDelegate extends SliverPersistentHeaderDelegate {
   final TabController tabController;
   final List<String> iconTab;
@@ -1175,7 +1276,7 @@ class _HomeTabBarDelegate extends SliverPersistentHeaderDelegate {
     required this.onTabTapped,
   });
 
-  static const double _tabsHeight = 32;
+  static const double _tabsHeight = 36;
 
   @override
   double get maxExtent => _tabsHeight;
@@ -1193,7 +1294,9 @@ class _HomeTabBarDelegate extends SliverPersistentHeaderDelegate {
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
           child: Row(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+            // Stretch each tab to the full strip height so the per-tab Column
+            // can center its label and pin the underline to the bottom.
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: List.generate(postTab.length, (index) {
               bool isSelected = selectedIndex == index;
               return Flexible(
@@ -1202,39 +1305,44 @@ class _HomeTabBarDelegate extends SliverPersistentHeaderDelegate {
                   child: GestureDetector(
                     onTap: () => onTabTapped(index),
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            LocalAssets(
-                              imagePath: iconTab[index],
-                              width: 16,
-                              height: 16,
-                              imgColor: isSelected ? AppColors.black28 : AppColors.secondaryTextColor,
+                        // Label vertically centered in the cell; the underline
+                        // pinned to the bottom — same text↔underline gap as the
+                        // Material TabBar on order_main_chat.
+                        Expanded(
+                          child: Center(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                LocalAssets(
+                                  imagePath: iconTab[index],
+                                  width: 16,
+                                  height: 16,
+                                  imgColor: isSelected ? AppColors.black28 : AppColors.secondaryTextColor,
+                                ),
+                                const SizedBox(width: 3),
+                                Flexible(
+                                  child: CustomText(
+                                    postTab[index].tr,
+                                    fontSize: 14,
+                                    maxLines: 1,
+                                    fontWeight: FontWeight.w500,
+                                    overflow: TextOverflow.ellipsis,
+                                    color: isSelected ? AppColors.black28 : AppColors.secondaryTextColor,
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 3),
-                            Flexible(
-                              child: CustomText(
-                                postTab[index].tr,
-                                fontSize: 14,
-                                maxLines: 1,
-                                fontWeight: FontWeight.w500,
-                                overflow: TextOverflow.ellipsis,
-                                color: isSelected ? AppColors.black28 : AppColors.secondaryTextColor,
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
-                        const SizedBox(height: 3),
                         AnimatedContainer(
                           duration: const Duration(milliseconds: 200),
                           height: 3,
                           width: isSelected ? 90 : 0,
                           color: AppColors.primaryColor,
-                        )
+                        ),
                       ],
                     ),
                   ),

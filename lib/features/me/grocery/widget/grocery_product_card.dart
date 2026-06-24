@@ -1,8 +1,6 @@
 import 'dart:ui';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -10,13 +8,14 @@ import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_rider_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
+import 'package:BlueEra/features/me/grocery/widget/grocery_top_selling_product_card.dart'
+    show GroceryFallbackImage;
+import 'package:BlueEra/features/me/grocery/widget/grocery_variants_sheet.dart';
 import 'package:BlueEra/widgets/price_row.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/dashed_border_container.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/api/model/images.dart';
@@ -57,6 +56,23 @@ class GroceryProductCard extends StatelessWidget {
     return variants;
   }
 
+  /// First variant that carries its OWN image url — used as the card's image
+  /// fallback when the product image is missing or fails to load. Skips images
+  /// equal to the product image, since the [_variants] getter merges the
+  /// product image into image-less variants (we want a real variant photo here).
+  String? _firstVariantImageUrl() {
+    final productImg = (groceryProducts.images?.isNotEmpty ?? false)
+        ? groceryProducts.images!.first.url
+        : null;
+    for (final v in (groceryProducts.variants ?? const <ProductVariants>[])) {
+      if (v.images != null && v.images!.isNotEmpty) {
+        final url = v.images!.first.url;
+        if ((url ?? '').isNotEmpty && url != productImg) return url;
+      }
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final price = _groceryController.getPriceDetails(
@@ -64,12 +80,17 @@ class GroceryProductCard extends StatelessWidget {
           ? groceryProducts.variants![0].pricing
           : null,
     );
-    final imageUrl = groceryProducts.images?.isNotEmpty == true
-        ? groceryProducts.images![0].url ?? ''
-        : '';
+    final productImageUrl = groceryProducts.images?.isNotEmpty == true
+        ? groceryProducts.images![0].url
+        : null;
+    // Product image first; fall back to a real variant image when the product
+    // image is missing or lives in a bucket that doesn't load.
+    final variantImageUrl = _firstVariantImageUrl();
 
     return InkWell(
-      onTap: () => _showVariantsBottomSheet(Get.context!, _variants),
+      onTap: () => flowType == GroceryCardFlowType.myStore
+          ? _showAdminVariantsSheet(Get.context!)
+          : _showVariantsBottomSheet(Get.context!, _variants),
       borderRadius: BorderRadius.circular(10),
       child: Container(
         decoration: BoxDecoration(
@@ -77,6 +98,10 @@ class GroceryProductCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
         ),
         child: Column(
+          // Size to content so the card isn't stretched when placed in a
+          // fixed-height horizontal rail (e.g. the store top-selling section);
+          // harmless in the masonry grids where height is unbounded anyway.
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // ── Image + badges ────────────────────────────────────────
@@ -87,25 +112,12 @@ class GroceryProductCard extends StatelessWidget {
                   child: SizedBox(
                     height: SizeConfig.size140,
                     width: double.infinity,
-                    child: imageUrl.isNotEmpty
-                        ? CachedNetworkImage(
-                            imageUrl: imageUrl,
-                            fit: BoxFit.cover,
-                            placeholder: (_, __) => Container(
-                              color: Colors.grey.shade200,
-                              child: const Center(
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              ),
-                            ),
-                            errorWidget: (_, __, ___) => LocalAssets(
-                              imagePath: AppIconAssets.place_holder_image,
-                              boxFix: BoxFit.cover,
-                            ),
-                          )
-                        : LocalAssets(
-                            imagePath: AppIconAssets.place_holder_image,
-                            boxFix: BoxFit.cover,
-                          ),
+                    child: GroceryFallbackImage(
+                      // contain so the full product packshot is visible (cover
+                      // would crop the package/bottle).
+                      fit: BoxFit.contain,
+                      urls: [productImageUrl, variantImageUrl],
+                    ),
                   ),
                 ),
 
@@ -134,23 +146,6 @@ class GroceryProductCard extends StatelessWidget {
                   ),
                 ),
 
-                // 3-dot menu — top-right (myStore only)
-                if (flowType == GroceryCardFlowType.myStore)
-                  Positioned(
-                    top: 4,
-                    right: 4,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: AppColors.blackMite,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Icon(
-                        Icons.more_vert,
-                        size: 18,
-                        color: AppColors.whiteFE,
-                      ),
-                    ),
-                  ),
               ],
             ),
 
@@ -297,6 +292,19 @@ class GroceryProductCard extends StatelessWidget {
         ),
       );
     });
+  }
+
+  /// myStore (admin) flow: open the shared variants sheet with edit +
+  /// swipe-to-delete (same sheet used by the top-selling rail).
+  void _showAdminVariantsSheet(BuildContext context) {
+    showGroceryVariantsSheet(
+      context: context,
+      productName: groceryProducts.name ?? '',
+      productImageUrl: (groceryProducts.images?.isNotEmpty ?? false)
+          ? groceryProducts.images!.first.url
+          : null,
+      variants: _variants,
+    );
   }
 
   void _showVariantsBottomSheet(
@@ -519,6 +527,27 @@ class _VariantsSheetContentState extends State<_VariantsSheetContent> {
     );
   }
 
+  /// The variant's OWN image (skips the merged product image).
+  String? _variantOwnImage(ProductVariants variant, String productImage) {
+    if (variant.images?.isNotEmpty ?? false) {
+      final u = variant.images!.first.url;
+      if ((u ?? '').isNotEmpty && u != productImage) return u;
+    }
+    return null;
+  }
+
+  /// First sibling variant carrying a real (non-product) image — last-resort
+  /// fallback so an image-less variant still shows a photo of the product.
+  String? _anyVariantImage(String productImage) {
+    for (final v in widget.variants) {
+      if (v.images?.isNotEmpty ?? false) {
+        final u = v.images!.first.url;
+        if ((u ?? '').isNotEmpty && u != productImage) return u;
+      }
+    }
+    return null;
+  }
+
   Widget _variantTile(ProductVariants variant, String productImage) {
     final price = widget.groceryController.getPriceDetails(variant.pricing);
     final isSelected = _draftIds.contains(variant.sId ?? '');
@@ -533,23 +562,24 @@ class _VariantsSheetContentState extends State<_VariantsSheetContent> {
       ),
       child: Row(
         children: [
-          (productImage.isNotEmpty)
-              ? CustomImageSlideshow(
-                  isLoading: false,
-                  width: SizeConfig.size50,
-                  height: SizeConfig.size50,
-                  imagePaths: [productImage],
-                  borderRadius: BorderRadius.circular(6),
-                )
-              : ClipRRect(
-                  borderRadius: BorderRadius.circular(6),
-                  child: LocalAssets(
-                    imagePath: AppIconAssets.place_holder_image,
-                    boxFix: BoxFit.fill,
-                    width: SizeConfig.size50,
-                    height: SizeConfig.size50,
-                  ),
-                ),
+          // Variant's own image first, then any sibling variant image, then the
+          // product image (the product image often lives in a bucket that
+          // doesn't load), then a placeholder.
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: SizedBox(
+              width: SizeConfig.size50,
+              height: SizeConfig.size50,
+              child: GroceryFallbackImage(
+                fit: BoxFit.contain,
+                urls: [
+                  _variantOwnImage(variant, productImage),
+                  _anyVariantImage(productImage),
+                  productImage,
+                ],
+              ),
+            ),
+          ),
           SizedBox(width: SizeConfig.size10),
           Expanded(
             child: Column(

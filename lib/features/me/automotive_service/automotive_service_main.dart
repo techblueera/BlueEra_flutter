@@ -2,7 +2,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/me/automotive_service/controller/business_profile_full_controller.dart';
 import 'package:BlueEra/features/me/automotive_service/view/v2/other_home_screen_v2.dart';
-import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -56,9 +55,7 @@ class _AutomotiveServiceMainState extends State<AutomotiveServiceMain>
     return Scaffold(
       backgroundColor: AppColors.white,
       body: SafeArea(
-        child: BottomNavHideOnScroll(
-          child: OtherHomeScreenV2(),
-        ),
+        child: OtherHomeScreenV2(),
       ),
     );
   }

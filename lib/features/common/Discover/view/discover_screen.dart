@@ -29,7 +29,6 @@ import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/qr_code/view/emergency_qr_screen.dart';
 import 'package:BlueEra/features/common/qr_code/view/qr_design_options_widget.dart';
 import 'package:BlueEra/features/personal/emergency/controller/emergency_profile_controller.dart';
-import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
@@ -185,8 +184,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         child: Scaffold(
           body: SafeArea(
             top: false,
-            child: BottomNavHideOnScroll(
-              child: CustomScrollView(
+            child: CustomScrollView(
                 controller: _scrollController,
                 physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
@@ -313,7 +311,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                     SliverPadding(padding: EdgeInsets.only(bottom: 100)),
                 ],
               ),
-            ),
           ),
         ));
   }

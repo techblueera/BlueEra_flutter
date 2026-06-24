@@ -88,6 +88,15 @@ class Post {
   final num? media_width;
   final String? channelName;
 
+  /// Mixed post/reel feed discriminator: "post", "reel", or null (flag-off /
+  /// legacy posts-only response). Branch rendering on [isReel].
+  final String? itemType;
+
+  /// Reel payload — present only when [isReel] is true; null for posts.
+  final FeedReel? reel;
+
+  bool get isReel => itemType == 'reel';
+
   Post({
     required this.id,
     this.message,
@@ -128,11 +137,26 @@ class Post {
     this.channel,
     this.media_width,
     this.media_height,
+    this.itemType,
+    this.reel,
   });
 
   factory Post.fromJson(Map<String, dynamic> json) {
+    // Mixed post/reel feed: a reel item is tagged item_type:"reel" and nests
+    // its payload under `reel` (it has no post fields at top level). Wrap it in
+    // a marker Post that only carries the reel; the UI branches on [isReel].
+    // See docs/backend/REELS_IN_FEED_FRONTEND_GUIDE.md.
+    if (json['item_type'] == 'reel') {
+      final reelJson = (json['reel'] as Map<String, dynamic>?) ?? const {};
+      return Post(
+        id: reelJson['id']?.toString() ?? '',
+        itemType: 'reel',
+        reel: FeedReel.fromJson(reelJson),
+      );
+    }
     return Post(
       id: json['_id']?? json['id'] ?? ""??"",
+      itemType: json['item_type'],
       channelName: json['channelName'],
       is_reposted: json['is_reposted'],
       message: json['message'],
@@ -269,6 +293,8 @@ class Post {
     bool? is_reposted,
     num? media_height,
     num? media_width,
+    String? itemType,
+    FeedReel? reel,
   }) {
     return Post(
       id: id ?? this.id,
@@ -309,6 +335,114 @@ class Post {
       visibilityDuration: visibilityDuration ?? this.visibilityDuration,
       media_width: media_width ?? this.media_width,
       media_height: media_height ?? this.media_height,
+      itemType: itemType ?? this.itemType,
+      reel: reel ?? this.reel,
+    );
+  }
+}
+
+/// A short video injected into the mixed post/reel feed. Carried on a [Post]
+/// whose `item_type == "reel"` (see docs/backend/REELS_IN_FEED_FRONTEND_GUIDE.md).
+/// Every field can be null/0 — always render with fallbacks.
+class FeedReel {
+  final String? id;
+  final String? userId;
+  final String? channelId;
+  final String? title;
+  final String? caption;
+  final String? description;
+  final String? coverUrl;
+  final String? videoUrl;
+  final int? duration;
+  final String? type;
+  final String? createdAt;
+  final dynamic song;
+  final Map<String, dynamic>? thumbnails;
+  final FeedReelStats stats;
+
+  FeedReel({
+    this.id,
+    this.userId,
+    this.channelId,
+    this.title,
+    this.caption,
+    this.description,
+    this.coverUrl,
+    this.videoUrl,
+    this.duration,
+    this.type,
+    this.createdAt,
+    this.song,
+    this.thumbnails,
+    FeedReelStats? stats,
+  }) : stats = stats ?? const FeedReelStats();
+
+  factory FeedReel.fromJson(Map<String, dynamic> json) {
+    return FeedReel(
+      id: json['id']?.toString(),
+      userId: json['user_id']?.toString(),
+      channelId: json['channel_id']?.toString(),
+      title: json['title']?.toString(),
+      caption: json['caption']?.toString(),
+      description: json['description']?.toString(),
+      coverUrl: json['coverUrl']?.toString(),
+      videoUrl: json['videoUrl']?.toString(),
+      duration: int.tryParse(json['duration']?.toString() ?? '') ?? 0,
+      type: json['type']?.toString(),
+      createdAt: _parseReelTimestamp(json['created_at']),
+      song: json['song'],
+      thumbnails: (json['thumbnails'] as Map?)?.cast<String, dynamic>(),
+      stats: FeedReelStats.fromJson(
+          (json['stats'] as Map?)?.cast<String, dynamic>() ?? const {}),
+    );
+  }
+
+  /// `created_at` arrives as a gRPC timestamp object `{ seconds, nanos }`
+  /// (`seconds` is a numeric string), not an ISO string. Normalise it to an ISO
+  /// string so downstream date formatting works; tolerate a legacy ISO string
+  /// and null. See REELS_IN_FEED_FRONTEND_GUIDE.md §3.
+  static String? _parseReelTimestamp(dynamic raw) {
+    if (raw == null) return null;
+    if (raw is String) return raw;
+    if (raw is Map) {
+      final seconds = int.tryParse(raw['seconds']?.toString() ?? '');
+      if (seconds != null) {
+        return DateTime.fromMillisecondsSinceEpoch(seconds * 1000)
+            .toIso8601String();
+      }
+    }
+    return null;
+  }
+
+  /// Text to show under the cover: caption first, then title.
+  String get displayText {
+    final c = caption?.trim() ?? '';
+    if (c.isNotEmpty) return c;
+    return title?.trim() ?? '';
+  }
+}
+
+/// Reel engagement counters — always present, default 0.
+class FeedReelStats {
+  final int views;
+  final int likes;
+  final int shares;
+  final int comments;
+
+  const FeedReelStats({
+    this.views = 0,
+    this.likes = 0,
+    this.shares = 0,
+    this.comments = 0,
+  });
+
+  factory FeedReelStats.fromJson(Map<String, dynamic> json) {
+    int parse(dynamic v) => int.tryParse(v?.toString() ?? '') ?? 0;
+    return FeedReelStats(
+      views: parse(json['views']),
+      likes: parse(json['likes']),
+      shares: parse(json['shares']),
+      comments: parse(json['comments']),
     );
   }
 }

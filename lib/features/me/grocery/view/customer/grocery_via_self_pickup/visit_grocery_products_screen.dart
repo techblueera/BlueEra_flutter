@@ -1,6 +1,5 @@
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
@@ -227,24 +226,22 @@ class _VisitGroceryProductsScreenState extends State<VisitGroceryProductsScreen>
                 ? CustomScrollView(
               controller: scrollController,
               slivers: [
-                ...buildNativeAdGridSlivers(
-                  itemCount: controller.globalGroceryProductsList.length,
-                  keyPrefix: 'grocery_products_visit_native_ad',
-                  adPadding: EdgeInsets.zero,
-                  gridSliverBuilder: (start, end) => SliverPadding(
-                    padding: EdgeInsets.only(
-                        bottom: SizeConfig.size15 + kBottomNavigationBarHeight),
-                    sliver: SliverMasonryGrid.count(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 6,
-                      mainAxisSpacing: 6,
-                      childCount: end - start,
-                      itemBuilder: (context, i) => GroceryProductCard(
-                        groceryProducts:
-                            controller.globalGroceryProductsList[start + i],
-                        flowType: GroceryCardFlowType.selfPickup,
-                        bId: widget.visitBusinessId,
-                      ),
+                // Plain 2-column grid (no native-ad slivers) so the products
+                // fill cleanly — the ad inserter splits after the 1st item,
+                // which left the first card alone with an empty slot beside it.
+                SliverPadding(
+                  padding: EdgeInsets.only(
+                      bottom: SizeConfig.size15 + kBottomNavigationBarHeight),
+                  sliver: SliverMasonryGrid.count(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 6,
+                    mainAxisSpacing: 6,
+                    childCount: controller.globalGroceryProductsList.length,
+                    itemBuilder: (context, i) => GroceryProductCard(
+                      groceryProducts:
+                          controller.globalGroceryProductsList[i],
+                      flowType: GroceryCardFlowType.selfPickup,
+                      bId: widget.visitBusinessId,
                     ),
                   ),
                 ),

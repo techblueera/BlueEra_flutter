@@ -6,7 +6,6 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/earn_service_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_service_screen.dart';
-import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:flutter/material.dart';
 
 import '../../cab_and_transport_partner/view/cab_and_transport_partner.dart';
@@ -70,7 +69,7 @@ class _GigWorkOptionsScreenState extends State<GigWorkOptionsScreen>
     // cover section (matches the self-employee / professionals layout),
     // so this wrapper just hosts the body.
     return Scaffold(
-      body: BottomNavHideOnScroll(child: body),
+      body: body,
     );
   }
 }

@@ -6,7 +6,6 @@ import 'package:BlueEra/features/me/laboratory/controller/lab_full_details_contr
 import 'package:BlueEra/features/me/laboratory/controller/lab_service_ai_controller.dart';
 import 'package:BlueEra/features/me/laboratory/repo/lab_service_repo.dart';
 import 'package:BlueEra/features/me/laboratory/view/v2/lab_home_screen_v2.dart';
-import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -64,9 +63,7 @@ class _LaboratoryMainState extends State<LaboratoryMain> with RouteAware {
         // Subscribe to the creation flag so this rebuilds when it flips.
         labServiceAiController.hasLabCreated.value;
         return SafeArea(
-          child: BottomNavHideOnScroll(
-            child: LabHomeScreenV2(),
-          ),
+          child: LabHomeScreenV2(),
         );
       }),
     );

@@ -26,6 +26,12 @@ class BusinessProductData {
   num? minMrp;
   num? avgDiscount;
 
+  /// Full variant list for this product. Populated when the backend enriches
+  /// the business-products response (see docs/backend/GROCERY_TOP_SELLING_VARIANTS.md).
+  /// Until then it's null and the UI falls back to grouping the flat rows by
+  /// product and collecting their single [productVariant].
+  List<ProductVariants>? variants;
+
   BusinessProductData({
     this.sId,
     this.productVariant,
@@ -37,6 +43,7 @@ class BusinessProductData {
     this.minSellingPrice,
     this.minMrp,
     this.avgDiscount,
+    this.variants,
   });
 
   BusinessProductData.fromJson(Map<String, dynamic> json) {
@@ -44,6 +51,10 @@ class BusinessProductData {
     productVariant = json['productVariant'] != null
         ? ProductVariants.fromJson(json['productVariant'])
         : null;
+    if (json['variants'] != null) {
+      variants = <ProductVariants>[];
+      json['variants'].forEach((v) => variants!.add(ProductVariants.fromJson(v)));
+    }
     cityName = json['cityName'];
     if (json['batches'] != null) {
       batches = <Batches>[];
@@ -106,6 +117,62 @@ class BusinessProductData {
     }
     return null;
   }
+
+  /// Product-level image only (no variant fallback). Used as the variant
+  /// sheet's per-variant fallback when a variant has no image of its own.
+  String? get productImageUrlOnly {
+    final imgs = product?.images;
+    if (imgs != null && imgs.isNotEmpty) {
+      final url = imgs.first.url;
+      if (url != null && url.isNotEmpty) return url;
+    }
+    return null;
+  }
+}
+
+/// One product plus all of its variants, after collapsing the (possibly
+/// per-variant) flat business-products list. See
+/// docs/backend/GROCERY_TOP_SELLING_VARIANTS.md.
+class GroceryProductVariantGroup {
+  final BusinessProductData product;
+  final List<ProductVariants> variants;
+
+  GroceryProductVariantGroup({required this.product, required this.variants});
+}
+
+/// Collapse a flat business-products list (one row per variant) into one entry
+/// per product, gathering that product's variants. Prefers a backend-provided
+/// full `variants[]`; otherwise collects each row's single representative
+/// [BusinessProductData.productVariant]. De-dupes variants by id.
+List<GroceryProductVariantGroup> groupBusinessProductsByProduct(
+    List<BusinessProductData> items) {
+  final order = <String>[];
+  final reps = <String, BusinessProductData>{};
+  final variants = <String, List<ProductVariants>>{};
+  final seen = <String, Set<String>>{};
+
+  for (final item in items) {
+    final pid = item.product?.sId ?? item.sId ?? '';
+    if (!reps.containsKey(pid)) {
+      order.add(pid);
+      reps[pid] = item;
+      variants[pid] = [];
+      seen[pid] = <String>{};
+    }
+    final fromItem = item.variants ??
+        (item.productVariant != null
+            ? [item.productVariant!]
+            : const <ProductVariants>[]);
+    for (final v in fromItem) {
+      final vid = v.sId ?? '${v.variantName}-${v.quantity}-${v.unit}';
+      if (seen[pid]!.add(vid)) variants[pid]!.add(v);
+    }
+  }
+
+  return order
+      .map((pid) =>
+          GroceryProductVariantGroup(product: reps[pid]!, variants: variants[pid]!))
+      .toList();
 }
 
 class Product {
@@ -145,11 +212,25 @@ class Batches {
 
 class ProductImage {
   String? url;
-  ProductImage.fromJson(Map<String, dynamic> json) { url = json['url']; }
+  ProductImage({this.url});
+
+  /// Tolerant of both shapes the API uses: `product.images` comes back as plain
+  /// strings (`["https://..."]`) while variant images are objects
+  /// (`[{ "url": "https://..." }]`). See GROCERY_TOP_SELLING_VARIANTS_INTEGRATION.md.
+  factory ProductImage.fromJson(dynamic json) {
+    if (json is String) return ProductImage(url: json);
+    if (json is Map) return ProductImage(url: json['url']?.toString());
+    return ProductImage();
+  }
 }
 
 class Category {
   String? sId;
   String? name;
-  Category.fromJson(Map<String, dynamic> json) { sId = json['_id']; name = json['name']; }
+  String? image;
+  Category.fromJson(Map<String, dynamic> json) {
+    sId = json['_id'];
+    name = json['name'];
+    image = json['image'];
+  }
 }

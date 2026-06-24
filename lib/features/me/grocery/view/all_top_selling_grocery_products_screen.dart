@@ -11,8 +11,10 @@ import 'package:BlueEra/features/me/grocery/widget/customer_grocery_self_pickup_
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_business_products_model.dart';
+import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/grocery_qty_stepper.dart';
-import 'package:BlueEra/features/me/grocery/widget/grocery_top_selling_tile.dart';
+import 'package:BlueEra/features/me/grocery/widget/grocery_top_selling_product_card.dart';
+import 'package:BlueEra/features/me/grocery/widget/grocery_variants_sheet.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:flutter/material.dart';
@@ -147,6 +149,43 @@ class _AllTopSellingGroceryProductsScreenState
     );
   }
 
+  /// Add a **specific** variant to the cart (used by the variants sheet, where
+  /// the customer picks the exact variant). Mirrors [_onAddToCart] but for an
+  /// explicit variant rather than the product's representative one.
+  void _onAddVariantToCart(BusinessProductData product, ProductVariants variant) {
+    final ctrl = _groceryCustomerController;
+    if (ctrl == null) return;
+    final bDetails =
+        _viewBusinessDetailsController?.visitedBusinessProfileDetails?.data;
+    ctrl.addToCart(
+      variant,
+      inventoryId: product.sId,
+      productId: variant.sId,
+      businessId: widget.visitBusinessId,
+      businessName: bDetails?.businessName,
+      businessLogo: bDetails?.logo,
+      businessAddress: bDetails?.address,
+      productImage: variant.images?.isNotEmpty ?? false
+          ? variant.images!.first.url
+          : product.primaryImageUrl,
+    );
+  }
+
+  /// Open the variants sheet for a product. Customer mode wires the cart;
+  /// owner mode shows view + edit/delete.
+  void _openVariantsSheet(GroceryProductVariantGroup group) {
+    showGroceryVariantsSheet(
+      context: context,
+      productName: group.product.product?.name ?? '',
+      productImageUrl: group.product.productImageUrlOnly,
+      variants: group.variants,
+      cartController: _isCustomerMode ? _groceryCustomerController : null,
+      onAddToCart: _isCustomerMode
+          ? (variant) => _onAddVariantToCart(group.product, variant)
+          : null,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -163,6 +202,9 @@ class _AllTopSellingGroceryProductsScreenState
         children: [
           Obx(() {
             final items = controller.groceryBusinessProductsList;
+            // One card per product (the list can carry one row per variant);
+            // tapping a card opens the variants sheet.
+            final groups = groupBusinessProductsByProduct(items.toList());
             final status =
                 controller.fetchGroceryBusinessProductsResponse.value.status;
             final isInitialLoading =
@@ -203,16 +245,21 @@ class _AllTopSellingGroceryProductsScreenState
                       crossAxisCount: 2,
                       mainAxisSpacing: 6,
                       crossAxisSpacing: 6,
-                      childCount: items.length,
-                      itemBuilder: (context, index) => _TopSellingProductTile(
-                        item: items[index],
-                        customerController: _isCustomerMode
-                            ? _groceryCustomerController
-                            : null,
-                        onIncrement: _isCustomerMode
-                            ? () => _onAddToCart(items[index])
-                            : null,
-                      ),
+                      childCount: groups.length,
+                      itemBuilder: (context, index) {
+                        final group = groups[index];
+                        return _TopSellingProductTile(
+                          item: group.product,
+                          variants: group.variants,
+                          customerController: _isCustomerMode
+                              ? _groceryCustomerController
+                              : null,
+                          onIncrement: _isCustomerMode
+                              ? () => _onAddToCart(group.product)
+                              : null,
+                          onTapTile: () => _openVariantsSheet(group),
+                        );
+                      },
                     ),
                   ),
                   if (isLoadingMore)
@@ -253,6 +300,7 @@ class _AllTopSellingGroceryProductsScreenState
 
 class _TopSellingProductTile extends StatelessWidget {
   final BusinessProductData item;
+  final List<ProductVariants> variants;
 
   final GrocerySelfPickupConsumerController? customerController;
 
@@ -260,59 +308,45 @@ class _TopSellingProductTile extends StatelessWidget {
   /// inline against [customerController].
   final VoidCallback? onIncrement;
 
+  /// Opens the variants sheet for this product (pick a variant to add, or
+  /// view/edit/delete in owner mode).
+  final VoidCallback? onTapTile;
+
   const _TopSellingProductTile({
     required this.item,
+    required this.variants,
     this.customerController,
     this.onIncrement,
+    this.onTapTile,
   });
 
   bool get _isCustomerMode => customerController != null;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.greyE5),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(10),
-              topRight: Radius.circular(10),
-            ),
-            child: AspectRatio(
-              aspectRatio: 1.05,
-              child: GroceryTopSellingImage(
-                item: item,
-                cartOverlay: _isCustomerMode
-                    ? Padding(
-                        padding: const EdgeInsets.all(8),
-                        child: Obx(() {
-                          final variant = item.productVariant;
-                          // Live quantity → stepper rebuilds on every
-                          // add / remove / qty change.
-                          final qty = customerController!
-                              .getQuantity(variant?.sId);
-                          return GroceryQtyStepper(
-                            quantity: qty,
-                            onIncrement: onIncrement ?? () {},
-                            onDecrement: () {
-                              if (variant == null) return;
-                              customerController!.removeFromCart(variant);
-                            },
-                          );
-                        }),
-                      )
-                    : null,
-              ),
-            ),
-          ),
-          GroceryTopSellingInfoSection(item: item),
-        ],
+    // Same shared card as the admin home top-selling rail so both surfaces
+    // look identical. Customer mode shows the add/remove stepper over the
+    // image; the whole card taps through to the variants sheet.
+    return GestureDetector(
+      onTap: onTapTile,
+      behavior: HitTestBehavior.opaque,
+      child: GroceryTopSellingProductCard(
+        product: item,
+        variants: variants,
+        imageOverlay: _isCustomerMode
+            ? Obx(() {
+                final variant = item.productVariant;
+                final qty = customerController!.getQuantity(variant?.sId);
+                return GroceryQtyStepper(
+                  quantity: qty,
+                  onIncrement: onIncrement ?? () {},
+                  onDecrement: () {
+                    if (variant == null) return;
+                    customerController!.removeFromCart(variant);
+                  },
+                );
+              })
+            : null,
       ),
     );
   }

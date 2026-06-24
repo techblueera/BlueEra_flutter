@@ -13,7 +13,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/core/services/share_service.dart';
-import 'package:BlueEra/widgets/bottom_nav_hide_on_scroll.dart';
 import 'package:BlueEra/features/business/widgets/business_card_ui.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
@@ -92,8 +91,7 @@ class _SocialMainScreenState extends State<SocialMainScreen>
         final tabCtrl = _tabController;
         if (tabCtrl == null) return const SizedBox.shrink();
 
-        return BottomNavHideOnScroll(
-          child: NestedScrollView(
+        return NestedScrollView(
           headerSliverBuilder: (context, innerBoxIsScrolled) {
             return [
               SliverToBoxAdapter(child: _buildCoverSection(context)),
@@ -155,7 +153,6 @@ class _SocialMainScreenState extends State<SocialMainScreen>
               ),
             ],
           ),
-        ),
         );
       })),
     );

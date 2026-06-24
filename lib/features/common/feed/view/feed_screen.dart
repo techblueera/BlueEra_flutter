@@ -13,6 +13,7 @@ import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/view/feed_shimmer_card.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
+import 'package:BlueEra/features/common/feed/widget/feed_reel_card.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/load_error_widget.dart';
@@ -171,16 +172,28 @@ class _FeedScreenState extends State<FeedScreen> {
     }
 
     final int postIndex = row.contentIndex;
+    final post = posts[postIndex];
+
+    // Mixed post/reel feed: a reel item renders as a reel card instead of a
+    // post card, and is not view-tracked as a post. See
+    // docs/backend/REELS_IN_FEED_FRONTEND_GUIDE.md.
+    if (post.isReel && post.reel != null) {
+      return FeedReelCard(
+        reel: post.reel!,
+        horizontalPadding: widget.horizontalPaddingChannel,
+        bottomPadding: widget.bottomPaddingChannel,
+      );
+    }
 
     return VisibilityDetector(
       key: Key('post_$postIndex'),
       onVisibilityChanged: (visibilityInfo) {
         if (visibilityInfo.visibleFraction > 0.5) {
-          trackPostView(posts[postIndex].id);
+          trackPostView(post.id);
         }
       },
       child: FeedCard(
-        post: posts[postIndex],
+        post: post,
         index: postIndex,
         postFilteredType: widget.postFilterType,
         bottomPadding: widget.bottomPaddingChannel,

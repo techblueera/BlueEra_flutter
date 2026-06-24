@@ -15,6 +15,12 @@ mixin GroceryServiceApi {
   final String globalGroceryProducts =
       'grocery-service/api/inventory/public/global-grocery-products';
   final String addGroceryProductVariant = 'grocery-service/api/inventory';
+
+  /// Update / delete a single inventory record (one variant) by its inventory
+  /// id. `PUT|DELETE grocery-service/api/inventory/{id}` (grocery mirror of the
+  /// product service's `updateProductInventory`).
+  String updateGroceryInventory(String id) =>
+      'grocery-service/api/inventory/$id';
   final String groceryCategoryWithInventory =
       'grocery-service/api/categories/with-inventory';
   final String publicGroceryCategoryWithInventory =
