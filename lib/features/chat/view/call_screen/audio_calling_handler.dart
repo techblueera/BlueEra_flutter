@@ -31,7 +31,13 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
   late Worker _callStatusWorker;
   late Worker _switchTypeWorker;
   late Worker _ringingStateWorker;
+  late Worker _volumeWorker;
   Timer? _terminalDismissTimer;
+
+  // Transient hardware-volume indicator state.
+  bool _showVolumeIndicator = false;
+  double _volumeLevelShown = 0.7;
+  Timer? _volumeIndicatorTimer;
   final AudioPlayer _ringbackPlayer = AudioPlayer();
 
   // Ripple animation controllers (staggered — used for outgoing ringing view)
@@ -203,6 +209,20 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
           }
         });
       }
+    });
+
+    // Flash the volume indicator whenever the hardware volume buttons change
+    // the in-call gain. `ever` fires on change only, so it stays hidden on open.
+    _volumeWorker = ever(controller.callVolumeLevel, (level) {
+      if (!mounted) return;
+      setState(() {
+        _volumeLevelShown = level;
+        _showVolumeIndicator = true;
+      });
+      _volumeIndicatorTimer?.cancel();
+      _volumeIndicatorTimer = Timer(const Duration(milliseconds: 1200), () {
+        if (mounted) setState(() => _showVolumeIndicator = false);
+      });
     });
 
     // Watch for incoming switch type requests
@@ -392,7 +412,9 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
     _callStatusWorker.dispose();
     _switchTypeWorker.dispose();
     _ringingStateWorker.dispose();
+    _volumeWorker.dispose();
     _terminalDismissTimer?.cancel();
+    _volumeIndicatorTimer?.cancel();
     _ripple1Controller.dispose();
     _ripple2Controller.dispose();
     _ripple3Controller.dispose();
@@ -429,7 +451,9 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
       },
       child: Scaffold(
         backgroundColor: const Color(0xFF0B141A),
-        body: Obx(() {
+        body: Stack(
+          children: [
+            Obx(() {
           final status = controller.callStatus.value;
           final isConnected = status == CallStatus.connected;
           final isVideo = controller.callType.value == CallType.video;
@@ -496,7 +520,67 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
 
           // Active call — audio
           return _buildAudioCallView(controller);
-        }),
+            }),
+            // Transient volume indicator (hardware volume buttons). Shown only
+            // while not in PiP, since the native volume HUD is suppressed during
+            // a call (we consume the keys to drive the WebRTC gain).
+            if (!_isInPipMode) _buildVolumeIndicator(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ==================== VOLUME INDICATOR ====================
+
+  Widget _buildVolumeIndicator() {
+    return Positioned(
+      top: MediaQuery.of(context).padding.top + 12,
+      left: 0,
+      right: 0,
+      child: IgnorePointer(
+        child: AnimatedOpacity(
+          opacity: _showVolumeIndicator ? 1.0 : 0.0,
+          duration: const Duration(milliseconds: 200),
+          child: Center(
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.7),
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    _volumeLevelShown <= 0.001
+                        ? Icons.volume_off_rounded
+                        : _volumeLevelShown < 0.5
+                            ? Icons.volume_down_rounded
+                            : Icons.volume_up_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 10),
+                  SizedBox(
+                    width: 120,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(3),
+                      child: LinearProgressIndicator(
+                        value: _volumeLevelShown,
+                        minHeight: 5,
+                        backgroundColor: Colors.white.withValues(alpha: 0.25),
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                            Color(0xFF25D366)),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

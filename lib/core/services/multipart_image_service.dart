@@ -3,6 +3,32 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:dio/dio.dart';
 import 'package:http_parser/http_parser.dart';
+import 'package:path_provider/path_provider.dart';
+
+/// Downloads a remote image [url] into a local temp file and returns its path.
+///
+/// Lets callers treat an already-uploaded (network) profile image exactly like
+/// a freshly picked local image — the existing multipart-upload flow keeps
+/// working unchanged because it always receives a real on-disk file.
+///
+/// Returns `null` on any failure (not a network URL, network error, empty
+/// download) so callers can safely fall back to manual image selection.
+Future<String?> downloadImageToTempFile(String? url) async {
+  if (!isNetworkImage(url)) return null;
+  try {
+    final dir = await getTemporaryDirectory();
+    final savePath =
+        '${dir.path}/guest_prefill_${DateTime.now().millisecondsSinceEpoch}.jpg';
+    await Dio().download(url!, savePath);
+    final file = File(savePath);
+    if (await file.exists() && await file.length() > 0) {
+      return savePath;
+    }
+    return null;
+  } catch (_) {
+    return null;
+  }
+}
 
 Future<MultipartFile?> multiPartImage({required String? imagePath}) async {
   MultipartFile? imageByPart;

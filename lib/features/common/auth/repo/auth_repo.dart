@@ -127,6 +127,17 @@ class AuthRepo extends BaseService {
     return response;
   }
 
+  ///Get Guest User detail REPO...
+  Future<ResponseModel> getGuestUserRepo({required String userId}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      getGuestUser(userId),
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   //createGuestAccount...
   Future<ResponseModel> createGuestAccountRepo(
       {required Map<String, dynamic> params}) async {

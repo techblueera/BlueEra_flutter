@@ -14,6 +14,7 @@ import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
 import android.util.Rational
+import android.view.KeyEvent
 import android.view.WindowManager
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -24,12 +25,17 @@ class CallActivity : FlutterActivity() {
     companion object {
         const val CALL_BRIDGE_CHANNEL = "com.bluehr.call/bridge"
         const val CALL_PIP_CHANNEL = "com.bluehr.call/pip"
+        const val CALL_VOLUME_CHANNEL = "com.bluehr.call/volume"
         const val RINGTONE_CHANNEL = "com.bluehr.ringtone/default"
         private const val ACTION_MUTE_TOGGLE = "ai.bluecs.app.calling.MUTE_TOGGLE"
         private const val ACTION_HANGUP = "ai.bluecs.app.calling.HANGUP"
     }
 
     private var pipChannel: MethodChannel? = null
+    private var volumeChannel: MethodChannel? = null
+    // While true, the hardware volume rocker is forwarded to Flutter (to drive
+    // the WebRTC call gain) instead of adjusting the OS stream volume.
+    private var callVolumeActive = false
     private var isInPip = false
     private var ringtone: Ringtone? = null
 
@@ -174,6 +180,44 @@ class CallActivity : FlutterActivity() {
                 else -> result.notImplemented()
             }
         }
+
+        // Volume channel — Flutter toggles interception on/off for the duration
+        // of a call. While active, dispatchKeyEvent() forwards the hardware
+        // volume rocker to Flutter as `onVolumeKey` instead of letting the OS
+        // change the (Bluetooth-locked) call-stream volume.
+        volumeChannel = MethodChannel(
+            flutterEngine.dartExecutor.binaryMessenger,
+            CALL_VOLUME_CHANNEL
+        )
+        volumeChannel?.setMethodCallHandler { call, result ->
+            when (call.method) {
+                "setCallVolumeActive" -> {
+                    callVolumeActive = call.argument<Boolean>("active") ?: false
+                    result.success(null)
+                }
+                else -> result.notImplemented()
+            }
+        }
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (callVolumeActive && !isInPip) {
+            val keyCode = event.keyCode
+            if (keyCode == KeyEvent.KEYCODE_VOLUME_UP ||
+                keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
+            ) {
+                if (event.action == KeyEvent.ACTION_DOWN) {
+                    volumeChannel?.invokeMethod(
+                        "onVolumeKey",
+                        if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) "up" else "down"
+                    )
+                }
+                // Consume so the OS doesn't also adjust the call stream (which a
+                // Bluetooth/CarPlay device can lock) — gain is handled in Dart.
+                return true
+            }
+        }
+        return super.dispatchKeyEvent(event)
     }
 
     private fun playDefaultRingtone() {

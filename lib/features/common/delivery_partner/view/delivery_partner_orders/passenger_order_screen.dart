@@ -728,6 +728,7 @@ class _PassengerOrderScreenState extends State<PassengerOrderScreen> {
   /// the goods multi-order flow) get the purpose-built [MultiShopOrderCard];
   /// everything else keeps the generic [OrderCard].
   Widget _orderCard(RiderOrdersDetailsModel order, PickUpTab tab) {
+
     if (isMultiShopGoodsOrder(order)) {
       return MultiShopOrderCard(order: order, selectedPickUp: tab);
     }

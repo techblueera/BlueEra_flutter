@@ -33,6 +33,9 @@ mixin UserServiceApi {
   // tapped inside a chat message needs to be resolved to a BlueEra user.
   String getUserByPhone(String phone) => 'user-service/user/by-phone/$phone';
   final String createGuestAccount = "/user-service/user/create-guest-account";
+  // Fetch an existing guest user's profile (name + image) so the
+  // account-creation screens can pre-fill it during a guest → full upgrade.
+  String getGuestUser(String id) => "user-service/user/getGuestUser/$id";
   final String updateIndividualAccountUser =
       "user-service/user/updateIndividualAccountUser/";
   final String updateDeviceToken = "user-service/user/me/device-token";

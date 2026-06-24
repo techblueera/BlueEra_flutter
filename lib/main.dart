@@ -845,21 +845,42 @@ bool _isNetworkImageError(FlutterErrorDetails details) {
 // ═══════════════════════════════════════════════════════════════════════════
 
 Future<void> _initDeferred(LocalizationService localizationService) async {
-  /// Kick off the location fetch as early as possible on cold start so
-  /// lat/lng are populated before the default Discover tab fires its
-  /// location-based APIs. Fire-and-forget — must not block the first frame.
-  unawaited(LocationService.fetchLocation());
+  /// Detect a notification launch FIRST (cheap platform-channel call) so we can
+  /// decide whether to defer the heavy background batch. Sets the flag the
+  /// splash screen reads AND `AppNotificationHandler.pendingDeepLink`.
+  /// See docs/backend/notification_fast_open_design.md (Phase 3).
+  await AppNotificationHandler.checkNotificationLaunch();
 
-  /// Initialise the AdMob SDK + preload the first interstitial. Fire-and-forget
-  /// — ads must never block startup; the end-of-call hook shows whatever is
-  /// ready by then (and preloads the next).
-  unawaited(InterstitialAdManager.instance.initialize());
+  /// When the app is opened by tapping a notification, the target screen
+  /// (chat / post / ride …) should render without competing against a full
+  /// home boot. We postpone the heavy, first-frame-irrelevant batch
+  /// (location, ads SDK, device info, channel data, service-provider status)
+  /// until just after the deep-link target has been pushed. On a normal launch
+  /// nothing changes — the batch runs inline exactly as before.
+  final bool deferForDeepLink =
+      AppNotificationHandler.pendingDeepLink != null;
 
-  /// Fire-and-forget parallel batch -- none of these block the UI
+  if (!deferForDeepLink) {
+    /// Kick off the location fetch as early as possible on cold start so
+    /// lat/lng are populated before the default Discover tab fires its
+    /// location-based APIs. Fire-and-forget — must not block the first frame.
+    unawaited(LocationService.fetchLocation());
+
+    /// Initialise the AdMob SDK + preload the first interstitial. Fire-and-forget
+    /// — ads must never block startup; the end-of-call hook shows whatever is
+    /// ready by then (and preloads the next).
+    unawaited(InterstitialAdManager.instance.initialize());
+  }
+
+  /// Essential batch -- Hive/localization boxes + package info that the first
+  /// frame and the deep-link target screen depend on. The deferrable network
+  /// calls (device info / channel data / service-provider status) only join
+  /// this batch on a normal launch; on a deep-link open they move to
+  /// [_initBackgroundBatch] below.
   await Future.wait<void>([
-    getDeviceInfo(),
-    getChannelData(),
-    getServiceProviderStatusUtils(),
+    if (!deferForDeepLink) getDeviceInfo(),
+    if (!deferForDeepLink) getChannelData(),
+    if (!deferForDeepLink) getServiceProviderStatusUtils(),
     HiveServices.init(),
     HomeCacheService.init(),
     AddressCacheService.init(),
@@ -868,10 +889,8 @@ Future<void> _initDeferred(LocalizationService localizationService) async {
     Hive.openBox('localizationBox').then((_) {}),
   ]);
 
-  /// Check early if app was launched from a notification tap (sets flag for splash screen)
-  await AppNotificationHandler.checkNotificationLaunch();
-
-  /// Notification setup (depends on Firebase, which is already initialized)
+  /// Notification setup (depends on Firebase, which is already initialized).
+  /// Stays in the essential path so the cold-start deep-link routing fires.
   AppNotificationHandler().firebaseNotificationSetup();
 
   /// Start the pending-message drainer. Watches connectivity and retries any
@@ -905,6 +924,28 @@ Future<void> _initDeferred(LocalizationService localizationService) async {
     Get.addTranslations(localizationService.keys);
     Get.updateLocale(Locale(savedLang));
   }
+
+  /// On a notification open, run the deferred heavy batch only after the
+  /// first frame has settled (and a short grace period) so it never competes
+  /// with rendering the deep-link target. Everything still runs — just later.
+  if (deferForDeepLink) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 1200), _initBackgroundBatch);
+    });
+  }
+}
+
+/// Heavy, first-frame-irrelevant startup work. On a normal launch this runs
+/// inline inside [_initDeferred]; on a notification open it is postponed via a
+/// post-frame callback so the deep-link target renders first.
+Future<void> _initBackgroundBatch() async {
+  unawaited(LocationService.fetchLocation());
+  unawaited(InterstitialAdManager.instance.initialize());
+  await Future.wait<void>([
+    getDeviceInfo(),
+    getChannelData(),
+    getServiceProviderStatusUtils(),
+  ]);
 }
 
 void debugPrintKeys() {

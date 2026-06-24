@@ -16,6 +16,7 @@ import 'package:BlueEra/core/controller/location_controller.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
+import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
@@ -55,6 +56,35 @@ class _CreateBusinessAccountNewStepOneState extends State<CreateBusinessAccountN
       isServiceOrManufacturing = true;
     }
     log('is Service or manufacturer -- $isServiceOrManufacturing');
+    _prefillGuestData();
+  }
+
+  /// Pre-fills the business name + logo from the existing guest user (if any)
+  /// so a guest upgrading to a business account doesn't re-enter what they
+  /// already gave. Best-effort only — any failure leaves the fields empty and
+  /// the normal manual-entry flow is unaffected. Skipped when GST auto-fill is
+  /// active so it never overrides the verified trade name / logo.
+  Future<void> _prefillGuestData() async {
+    final guest = await authController.getGuestUserDetail();
+    if (!mounted || guest?.user == null) return;
+
+    final name = guest!.user?.name ?? '';
+    if (name.isNotEmpty &&
+        !authController.isHaveGstApprove.value &&
+        authController.businessNameTextController.text.trim().isEmpty) {
+      authController.businessNameTextController.text = name;
+      authController.businessName.value = name;
+    }
+
+    final imageUrl = guest.user?.profileImage ?? '';
+    if (imageUrl.isNotEmpty && (_imagePath?.isEmpty ?? true)) {
+      final localPath = await downloadImageToTempFile(imageUrl);
+      if (!mounted || localPath == null) return;
+      setState(() {
+        _imagePath = localPath;
+        UserSession().imagePath = localPath;
+      });
+    }
   }
 
   @override

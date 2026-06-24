@@ -17,6 +17,7 @@ import android.graphics.Path
 import android.graphics.drawable.Icon
 import android.os.Build
 import android.util.Rational
+import android.view.KeyEvent
 import androidx.annotation.NonNull
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -40,12 +41,19 @@ class MainActivity: FlutterActivity() {
     private val CALL_LAUNCHER_CHANNEL = "com.bluehr.call/launcher"
     private val INCOMING_CALL_NOTIF_CHANNEL = "com.bluehr.incoming_call_notification"
     private val MEDIA_SCANNER_CHANNEL = "ai.bluecs.app/media_scanner"
+    private val CALL_VOLUME_CHANNEL = "com.bluehr.call/volume"
 
     private var ringtone: Ringtone? = null
 
     private val CHANNEL = "com.vahcare.lab/pip"
     private val ACTION_COMPLETE_RIDE = "ACTION_COMPLETE_RIDE"
     private var isPipEnabled = false
+
+    private var volumeChannel: MethodChannel? = null
+    // While true (set by Flutter for the duration of an in-app call), the
+    // hardware volume rocker is forwarded to Flutter to drive the WebRTC call
+    // gain instead of changing the OS stream volume.
+    private var callVolumeActive = false
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -277,6 +285,42 @@ class MainActivity: FlutterActivity() {
                 else -> result.notImplemented()
             }
         }
+
+        // ------------------------------
+        // CALL VOLUME CHANNEL — intercept the hardware volume rocker during an
+        // in-app call so it drives the WebRTC software gain (works on Bluetooth/
+        // CarPlay where the OS call-stream volume is locked by the accessory).
+        // ------------------------------
+        volumeChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CALL_VOLUME_CHANNEL)
+        volumeChannel?.setMethodCallHandler { call, result ->
+            when (call.method) {
+                "setCallVolumeActive" -> {
+                    callVolumeActive = call.argument<Boolean>("active") ?: false
+                    result.success(null)
+                }
+                else -> result.notImplemented()
+            }
+        }
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (callVolumeActive) {
+            val keyCode = event.keyCode
+            if (keyCode == KeyEvent.KEYCODE_VOLUME_UP ||
+                keyCode == KeyEvent.KEYCODE_VOLUME_DOWN
+            ) {
+                if (event.action == KeyEvent.ACTION_DOWN) {
+                    volumeChannel?.invokeMethod(
+                        "onVolumeKey",
+                        if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) "up" else "down"
+                    )
+                }
+                // Consume so the OS doesn't also adjust the call stream — the
+                // gain change is applied in Dart and covers every audio route.
+                return true
+            }
+        }
+        return super.dispatchKeyEvent(event)
     }
 
     // ------------------------------
