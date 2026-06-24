@@ -6,6 +6,7 @@ import 'package:BlueEra/core/services/ads/interstitial_ad_manager.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:BlueEra/widgets/global_message_service.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
 import 'package:flutter_callkit_incoming/entities/android_params.dart';
 import 'package:flutter_callkit_incoming/entities/call_kit_params.dart';
@@ -133,6 +134,20 @@ class CallController extends GetxController {
   // Guards the `ondevicechange` subscription so we attach/detach exactly once
   // per call and never leak it across calls.
   bool _audioMonitoringActive = false;
+
+  // ── In-call volume (hardware volume buttons) ────────────────────────────
+  // The hardware volume rocker is intercepted natively (see CallActivity /
+  // MainActivity dispatchKeyEvent) and routed here. We apply the change as a
+  // WebRTC software gain on the remote audio tracks, which works on every
+  // output — earpiece, speaker, Bluetooth (SCO), wired and CarPlay — unlike the
+  // OS stream volume, which a Bluetooth/CarPlay device can lock via absolute
+  // volume. 0.0 = muted, 1.0 = max. Exposed reactively so the call UI can flash
+  // a volume indicator.
+  static const MethodChannel _volumeChannel =
+      MethodChannel('com.bluehr.call/volume');
+  static const double _volumeStep = 0.1;
+  final callVolumeLevel = 0.7.obs;
+  bool _volumeInterceptActive = false;
 
   // Remote user media state (1-to-1)
   var remoteAudioEnabled = true.obs;
@@ -307,6 +322,7 @@ class CallController extends GetxController {
     _socket = ChatSocketService();
     _setupCallSocketListeners();
     _setupCallKitListeners();
+    _setupVolumeKeyChannel();
     // Ensure socket is connected so incoming `call:incoming` events are
     // delivered even when the user hasn't opened chat yet. Without this,
     // the server falls back to FCM and CallKit's ring timer can elapse,
@@ -2135,6 +2151,19 @@ class CallController extends GetxController {
     // Sync isCameraOn with actual media state (fixes video:true on audio calls)
     isCameraOn.value = isVideo;
 
+    // Put Android into voice-communication audio mode (MODE_IN_COMMUNICATION,
+    // STREAM_VOICE_CALL). Without this the OS leaves the call in the normal
+    // media mode, so the hardware volume up/down buttons adjust the media/ring
+    // stream instead of the live call audio — i.e. they appear "dead" on
+    // earpiece, speaker and Bluetooth alike. Setting it routes the volume
+    // rocker to the in-call voice stream so users can raise/lower call volume.
+    await _enableCommunicationAudioMode();
+
+    // Start intercepting the hardware volume buttons so they drive the WebRTC
+    // software gain. This is what makes volume adjustable on Bluetooth/CarPlay,
+    // where the OS call-stream volume is locked by the accessory.
+    await _setVolumeInterceptActive(true);
+
     try {
       // Only create video renderer for video calls
       if (isVideo) {
@@ -2394,16 +2423,59 @@ class CallController extends GetxController {
     }
   }
 
-  /// WebRTC remote-audio gain (0–10, 1.0 = normal). Loudspeaker is across the
-  /// room, so it gets a boosted gain; the earpiece and headsets sit on/near the
-  /// ear, so they stay quiet.
-  static const double _speakerVolume = 8.0;
-  static const double _earpieceVolume = 1.0;
+  /// Switch the Android audio session into voice-communication mode so the
+  /// hardware volume buttons control the live call (STREAM_VOICE_CALL) instead
+  /// of the media stream. No-op on iOS, where AVAudioSession already maps the
+  /// volume rocker to the call while the playAndRecord category is active.
+  Future<void> _enableCommunicationAudioMode() async {
+    if (!Platform.isAndroid) return;
+    try {
+      await Helper.setAndroidAudioConfiguration(
+        AndroidAudioConfiguration.communication,
+      );
+    } catch (e) {
+      if (kDebugMode) print('_enableCommunicationAudioMode failed: $e');
+    }
+  }
 
-  /// Apply the per-route playback gain to every remote audio track.
+  /// Restore the Android audio session to the normal media mode after the call
+  /// ends, releasing the in-call volume routing and audio focus.
+  Future<void> _restoreMediaAudioMode() async {
+    if (!Platform.isAndroid) return;
+    try {
+      await Helper.setAndroidAudioConfiguration(
+        AndroidAudioConfiguration.media,
+      );
+      await Helper.clearAndroidCommunicationDevice();
+    } catch (e) {
+      if (kDebugMode) print('_restoreMediaAudioMode failed: $e');
+    }
+  }
+
+  /// Maximum WebRTC remote-audio gain (0–10, 1.0 = normal) for each route,
+  /// reached when [callVolumeLevel] is 1.0. The loudspeaker is across the room
+  /// so it gets the biggest headroom; the earpiece sits on the ear so it stays
+  /// quiet. Bluetooth / wired headsets land in between. The effective gain is
+  /// this value scaled by the user's volume level, so the hardware volume
+  /// buttons can raise/lower every route.
+  double _routeMaxGain(AudioRoute route) {
+    switch (route) {
+      case AudioRoute.speaker:
+        return 10.0;
+      case AudioRoute.bluetooth:
+        return 8.0;
+      case AudioRoute.wiredHeadset:
+        return 6.0;
+      case AudioRoute.earpiece:
+        return 2.0;
+    }
+  }
+
+  /// Apply the per-route playback gain (route ceiling × user volume level) to
+  /// every remote audio track.
   void _applyRouteVolume(AudioRoute route) {
     final volume =
-        route == AudioRoute.speaker ? _speakerVolume : _earpieceVolume;
+        (_routeMaxGain(route) * callVolumeLevel.value).clamp(0.0, 10.0);
     for (final stream in remoteStreams.values) {
       for (final track in stream.getAudioTracks()) {
         try {
@@ -2413,6 +2485,46 @@ class CallController extends GetxController {
         }
       }
     }
+  }
+
+  // ==================== HARDWARE VOLUME BUTTONS ====================
+
+  /// Wire the native volume-key bridge. The host Activity intercepts the
+  /// hardware volume rocker during a call and forwards `up`/`down` here; we map
+  /// it to a WebRTC software gain so the call volume is adjustable on every
+  /// output, including Bluetooth/CarPlay devices that lock the OS stream volume.
+  void _setupVolumeKeyChannel() {
+    if (!Platform.isAndroid) return;
+    _volumeChannel.setMethodCallHandler((call) async {
+      if (call.method == 'onVolumeKey') {
+        _onHardwareVolumeKey(call.arguments == 'up');
+      }
+      return null;
+    });
+  }
+
+  /// Start/stop native interception of the hardware volume rocker. While active
+  /// the Activity consumes volume up/down and routes them to [_onHardwareVolumeKey]
+  /// instead of letting the OS adjust the (Bluetooth-locked) call stream.
+  Future<void> _setVolumeInterceptActive(bool active) async {
+    if (!Platform.isAndroid) return;
+    if (_volumeInterceptActive == active) return;
+    _volumeInterceptActive = active;
+    try {
+      await _volumeChannel
+          .invokeMethod('setCallVolumeActive', {'active': active});
+    } catch (e) {
+      if (kDebugMode) print('_setVolumeInterceptActive failed: $e');
+    }
+  }
+
+  /// Handle a hardware volume up/down press: step the level and re-apply gain.
+  void _onHardwareVolumeKey(bool up) {
+    final next =
+        (callVolumeLevel.value + (up ? _volumeStep : -_volumeStep)).clamp(0.0, 1.0);
+    if (next == callVolumeLevel.value) return;
+    callVolumeLevel.value = next;
+    _applyRouteVolume(currentAudioRoute.value);
   }
 
   /// iOS routing. The AVAudioSession picks the physical port; we only steer it
@@ -3008,6 +3120,12 @@ class CallController extends GetxController {
 
     // Stop live audio-device monitoring and reset routing state for next call.
     _stopAudioRouteMonitoring();
+
+    // Hand the Android audio session back to normal media mode so the volume
+    // buttons stop pointing at STREAM_VOICE_CALL once the call is over, and stop
+    // intercepting the hardware volume rocker.
+    _restoreMediaAudioMode();
+    _setVolumeInterceptActive(false);
 
     // --- 2. Cancel all notifications & overlays ---
     _cancelOngoingNotification();
