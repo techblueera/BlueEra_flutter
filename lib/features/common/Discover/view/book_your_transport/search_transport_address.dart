@@ -14,6 +14,7 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/Discover/repo/favorite_location_repo.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/map_pick_address_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/book_your_transport/passenger_booking_main.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/search_address_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -31,7 +32,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../../core/constants/getx_utils.dart';
 import '../../../auth/controller/auth_controller.dart';
 import '../../controller/discover_controller.dart';
-import 'book_transport_main.dart';
 
 enum _ActiveField { none, pickup, drop }
 
@@ -2162,7 +2162,7 @@ class _SearchTransportAddressState extends State<SearchTransportAddress> {
                         discoverController.selectedToLat?.value != 0.0),
                 onTap: () {
                   discoverController.getBookingRidersApi();
-                  Get.off(() => BookTransportMain(
+                  Get.off(() => PassengerBookingMain(
                         vehicleType: widget.vehicleType,
                       ));
                 },

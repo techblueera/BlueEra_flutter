@@ -18,6 +18,7 @@ import 'package:BlueEra/features/chat/view/order_main_chat_screen.dart';
 import 'package:BlueEra/features/chat/view/widget/component_widgets.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/product_order_booking_rider_main.dart';
+import 'package:BlueEra/features/common/connect/view/inquiry_ride_order_selection_screen.dart';
 import 'package:BlueEra/features/me/food/repo/food_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/repo/earn_profile_repo.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
@@ -1165,8 +1166,13 @@ class _FoodSelfPickupMsgCardState extends State<FoodSelfPickupMsgCard> {
               onTap: () async {
                 final drop = await showRideDropLocationSheet(context);
                 if (drop != null) {
-                  await _startRideToDrop(drop);
+                  Get.to(() =>
+                      InquiryRideOrderSelectionScreen(dropAddress: drop));
                 }
+                // final drop = await showRideDropLocationSheet(context);
+                // if (drop != null) {
+                //   await _startRideToDrop(drop);
+                // }
               },
             ),
         ],

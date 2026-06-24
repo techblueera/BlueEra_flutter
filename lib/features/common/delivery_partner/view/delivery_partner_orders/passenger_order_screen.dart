@@ -18,7 +18,8 @@ import '../../../../chat/view/call_screen/rider_call/rider_ride_navigation_scree
 import '../../controller/pip_floating_page_controller.dart';
 
 
-class PickupOrderScreen extends StatefulWidget {
+
+class PassengerOrderScreen extends StatefulWidget {
   /// When true, the widget skips its [Scaffold] chrome, drops the
   /// inner [Expanded] around the tab body, and switches its
   /// [ListView]s to `shrinkWrap: true` + `NeverScrollableScrollPhysics`
@@ -27,13 +28,13 @@ class PickupOrderScreen extends StatefulWidget {
   /// bounded and fills the screen via `Expanded`.
   final bool isInParentScroll;
 
-  const PickupOrderScreen({super.key, this.isInParentScroll = false});
+  const PassengerOrderScreen({super.key, this.isInParentScroll = false});
 
   @override
-  State<PickupOrderScreen> createState() => _PickupOrderScreenState();
+  State<PassengerOrderScreen> createState() => _PassengerOrderScreenState();
 }
 
-class _PickupOrderScreenState extends State<PickupOrderScreen> {
+class _PassengerOrderScreenState extends State<PassengerOrderScreen> {
   final controller = getOrPut(() => DeliverPartnerOrdersController());
 
   @override
@@ -657,7 +658,7 @@ class _PickupOrderScreenState extends State<PickupOrderScreen> {
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 12),
             child: CustomText(
-              'ONGOING',
+              'PASSENGER ORDER',
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),

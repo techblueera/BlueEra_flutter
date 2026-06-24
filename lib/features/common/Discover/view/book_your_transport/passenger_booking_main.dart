@@ -20,16 +20,16 @@ import '../../controller/discover_controller.dart';
 import 'fare_call_queue_screen.dart';
 import '../../model/get_booking_rider_model.dart';
 
-class BookTransportMain extends StatefulWidget {
-  const BookTransportMain({super.key, this.vehicleType});
+class PassengerBookingMain extends StatefulWidget {
+  const PassengerBookingMain({super.key, this.vehicleType});
 
   final String? vehicleType;
 
   @override
-  State<BookTransportMain> createState() => _BookTransportMainState();
+  State<PassengerBookingMain> createState() => _PassengerBookingMainState();
 }
 
-class _BookTransportMainState extends State<BookTransportMain> {
+class _PassengerBookingMainState extends State<PassengerBookingMain> {
   final discoverController = getOrPut(() => DiscoverController());
 
   List<TransportCategoryDetailsModel> get inCityVehicleList => [
