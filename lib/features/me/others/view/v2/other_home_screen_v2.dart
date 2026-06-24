@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/business/go_live/go_live_availability_mixin.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_flag_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
@@ -35,11 +36,10 @@ class OtherHomeScreenV2 extends StatefulWidget {
 }
 
 class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, GoLiveAvailabilityMixin {
   late final BusinessProfileFullController _otherController;
   final _businessController   = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
-  bool _isGoLive = false;
   late final TabController _tabController;
 
   // Built as a getter so `.tr` is re-evaluated on locale change rather
@@ -87,6 +87,10 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
       ChatEmitEvents.ChatList,
       {ApiKeys.type: AppConstants.business_Chat_Type},
     );
+    // Remind business sellers to set shop availability if they never have.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      maybeShowAvailabilityReminder();
+    });
   }
 
   @override
@@ -245,7 +249,7 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
 
   Widget _goLivePill() {
     return GestureDetector(
-      onTap: () => setState(() => _isGoLive = !_isGoLive),
+      onTap: handleGoLiveTap,
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
@@ -285,7 +289,7 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
                     height: 18,
                     padding: const EdgeInsets.all(2),
                     decoration: BoxDecoration(
-                      color: _isGoLive
+                      color: isShopGoLive
                           ? AppColors.primaryColor
                           : Colors.white,
                       borderRadius: BorderRadius.circular(20),
@@ -297,14 +301,14 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
                     ),
                     child: AnimatedAlign(
                       duration: const Duration(milliseconds: 180),
-                      alignment: _isGoLive
+                      alignment: isShopGoLive
                           ? Alignment.centerRight
                           : Alignment.centerLeft,
                       child: Container(
                         height: 14,
                         width: 14,
                         decoration: BoxDecoration(
-                            color: _isGoLive
+                            color: isShopGoLive
                                 ? Colors.white
                                 : AppColors.secondaryTextColor,
                             shape: BoxShape.circle),

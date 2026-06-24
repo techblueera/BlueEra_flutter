@@ -215,4 +215,72 @@ class BusinessProfileRepo extends BaseService {
     return response;
   }
 
+  // ── Availability hours & go-live ────────────────────────────────────
+  // Replace the stored weekly schedule. Send the full 7-day array each save
+  // (JSON, not multipart). Open days must carry shopOpenTime/shopCloseTime.
+  Future<ResponseModel> setBusinessHours(Map<String, dynamic> params) async {
+    return await ApiBaseHelper().putHTTP(
+      businessAvailabilityHours,
+      params: params,
+      isMultipart: false,
+      showProgress: true,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+  }
+
+  // Read the schedule + liveState (used to hydrate the availability editor).
+  Future<ResponseModel> getBusinessHours() async {
+    return await ApiBaseHelper().getHTTP(
+      businessAvailabilityHours,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+  }
+
+  // Override TODAY's hours only (beats the weekly schedule for today and
+  // auto-reverts tomorrow). Body: {isOpen, shopOpenTime?, shopCloseTime?}.
+  Future<ResponseModel> setTodayHours(Map<String, dynamic> params) async {
+    return await ApiBaseHelper().putHTTP(
+      businessAvailabilityToday,
+      params: params,
+      isMultipart: false,
+      showProgress: true,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+  }
+
+  // Clear today's override immediately, reverting to the weekly hours.
+  Future<ResponseModel> clearTodayHours() async {
+    return await ApiBaseHelper().deleteHTTP(
+      businessAvailabilityToday,
+      showProgress: true,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+  }
+
+  // Mark the business live for today.
+  Future<ResponseModel> goLive() async {
+    return await ApiBaseHelper().postHTTP(
+      businessGoLive,
+      params: {},
+      showProgress: true,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+  }
+
+  // Mark the business offline.
+  Future<ResponseModel> endLive() async {
+    return await ApiBaseHelper().postHTTP(
+      businessEndLive,
+      params: {},
+      showProgress: true,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+  }
 }

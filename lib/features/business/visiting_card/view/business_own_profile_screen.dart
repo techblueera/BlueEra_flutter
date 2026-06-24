@@ -33,6 +33,14 @@ class _BusinessOwnProfileScreenState extends State<BusinessOwnProfileScreen> {
     ///GET PROFILE API CALLING...
     viewProfileController.viewBusinessProfile();
     viewProfileController.getAllCategories();
+    // Deep-link from the `business_go_live_reminder` notification: auto-prompt
+    // go-live once the profile is on screen.
+    final args = Get.arguments;
+    if (args is Map && args['open_go_live'] == true) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        viewProfileController.goLiveNow();
+      });
+    }
     super.initState();
   }
 

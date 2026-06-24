@@ -9,6 +9,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/model/upload_document_response.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/repo/my_document_repo.dart';
@@ -123,26 +124,44 @@ class MyDocumentsController extends GetxController {
     data.forEach((apiKey, value) {
       String? localKey;
 
+      // Match both the new backend `type` identifiers (UPPER_SNAKE_CASE) and
+      // the legacy camelCase keys so a backend still mid-migration keeps
+      // working.
       switch (apiKey) {
+        case 'AADHAR':
         case 'aadhar': localKey = DocumentKeys.aadhar; break;
+        case 'PAN':
         case 'pan': localKey = DocumentKeys.pan; break;
+        case 'DRIVING_LICENSE':
         case 'drivingLicense': localKey = DocumentKeys.drivingLicense; break;
+        case 'ADDRESS_PROOF':
         case 'addressProof': localKey = DocumentKeys.addressProof; break;
+        case 'NOC':
         case 'noc': localKey = DocumentKeys.noc; break;
+        case 'BANK_DETAILS':
         case 'bankDetails': localKey = DocumentKeys.bankDetails; break;
+        case 'BANKER_CANCEL_CHECK':
         case 'bankersCancelledCheque': localKey = DocumentKeys.bankersCancelledCheque; break;
 
+        case 'RC':
         case 'vehicleRC': localKey = DocumentKeys.vehicleRC; break;
         case 'insuranceDocument': localKey = DocumentKeys.insuranceDocument; break;
         case 'puc': localKey = DocumentKeys.puc; break;
         case 'fitnessCertificate': localKey = DocumentKeys.vehicleFitnessCertificate; break;
 
+        case 'GST_CERTIFICATE':
         case 'gstCertificate': localKey = DocumentKeys.gstCertificate; break;
+        case 'FSSAI_LICENSE':
         case 'fssaiLicense': localKey = DocumentKeys.fssaiLicense; break;
+        case 'MEDICAL_LICENSE':
         case 'medicalLicense': localKey = DocumentKeys.medicalLicense; break;
+        case 'FIRE_SAFETY_CERTIFICATE':
         case 'fireSafetyCertificate': localKey = DocumentKeys.fireSafetyCertificate; break;
+        case 'MUNICIPAL_CORP_CERTIFICATE':
         case 'municipalCorpCertificate': localKey = DocumentKeys.municipalCorpCertificate; break;
+        case 'MSME_CERTIFICATE':
         case 'msmeCertificate': localKey = DocumentKeys.msmeCertificate; break;
+        case 'SHOP_ACT_CERTIFICATE':
         case 'shopActCertificate': localKey = DocumentKeys.shopActCertificate; break;
 
         case 'hotelTradeLicense': localKey = DocumentKeys.hotelTradeLicense; break;
@@ -350,6 +369,27 @@ class MyDocumentsController extends GetxController {
     try {
       isGenericDocumentLoading.value = true;
 
+      // ---------- 2.5️⃣ AI DOCUMENT VERIFICATION ----------
+      // Only Aadhar / PAN / Driving License / RC support AI verification.
+      // Validate that the uploaded images actually match the entered number
+      // before spending bandwidth on the S3 upload.
+      final verifyDocName = _getVerifiableDocumentName(documentType);
+      if (verifyDocName != null) {
+        final isValid = await _verifyDocument(
+          documentName: verifyDocName,
+          documentNumber: genericDocumentController.text.trim(),
+          images: [
+            genericDocumentsFrontImage.value!,
+            if (backImage && genericDocumentsBackImage.value != null)
+              genericDocumentsBackImage.value!,
+          ],
+        );
+        if (!isValid) {
+          isGenericDocumentLoading.value = false;
+          return; // Stop — invalid document, message already shown.
+        }
+      }
+
       // ---------- 3️⃣ UPLOAD IMAGES ----------
 
       String? frontImageUrl;
@@ -402,6 +442,103 @@ class MyDocumentsController extends GetxController {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
 
+    }
+  }
+
+  /// Maps a local [DocumentKeys] type to the `document_name` expected by the
+  /// AI verification endpoint. Returns null for document types that are not
+  /// verifiable (so the upload proceeds without a verification step).
+  String? _getVerifiableDocumentName(String docType) {
+    switch (docType) {
+      case DocumentKeys.aadhar:
+        return "Aadhar";
+      case DocumentKeys.pan:
+        return "PAN";
+      case DocumentKeys.drivingLicense:
+        return "Driving License";
+      case DocumentKeys.vehicleRC:
+        return "RC";
+      default:
+        return null;
+    }
+  }
+
+  /// Calls the AI document-verification API. Returns true when the document is
+  /// valid (or the API could not be reached for a non-validation reason),
+  /// false when the document is rejected — in which case a snackbar with the
+  /// reason is shown to the user.
+  Future<bool> _verifyDocument({
+    required String documentName,
+    required String documentNumber,
+    required List<File> images,
+  }) async {
+    try {
+      final imageParts = await multiPartMultipleImages(arrImages: images);
+
+      final params = <String, dynamic>{
+        'document_name': documentName,
+        'document_number': documentNumber,
+        ApiKeys.images: imageParts,
+      };
+
+      final response = await MyDocumentRepo().verifyDocument(params: params);
+
+      // Network / server error (non-2xx) — surface the message and stop.
+      if (!response.isSuccess) {
+        commonSnackBar(
+          message: (response.message?.toString().isNotEmpty ?? false)
+              ? response.message
+              : AppStrings.documentVerificationFailed,
+        );
+        return false;
+      }
+
+      // The verifier returns per-check booleans:
+      //   document_type_matches  — the image is the document we asked for
+      //   number_readable        — the number on the image is legible
+      //   document_number_matches — it matches the number the user typed
+      //   is_verified            — overall pass/fail
+      // They sit under `data` (or at the body root). Show the most actionable
+      // message for whichever check failed, and only proceed when all pass.
+      final body = response.response?.data;
+      final Map verifyData = (body is Map)
+          ? (body['data'] is Map ? body['data'] as Map : body)
+          : <String, dynamic>{};
+
+      // Missing flags default to true so documents without that check (e.g. no
+      // number entered) aren't blocked by an absent field.
+      bool flag(String key) {
+        final v = verifyData[key];
+        return v is bool ? v : true;
+      }
+
+      final documentTypeMatches = flag('document_type_matches');
+      final numberReadable = flag('number_readable');
+      final documentNumberMatches = flag('document_number_matches');
+      final isVerified = flag('is_verified');
+
+      String? failureMessage;
+      if (!documentTypeMatches) {
+        failureMessage = AppStrings.docTypeMismatch;
+      } else if (!numberReadable) {
+        failureMessage = AppStrings.docNumberNotReadable;
+      } else if (!documentNumberMatches) {
+        failureMessage = AppStrings.docNumberMismatch;
+      } else if (!isVerified) {
+        failureMessage = (response.message?.toString().isNotEmpty ?? false)
+            ? response.message
+            : AppStrings.documentVerificationFailed;
+      }
+
+      if (failureMessage != null) {
+        commonSnackBar(message: failureMessage);
+        return false;
+      }
+      return true;
+    } catch (e) {
+      log('document verification error -- $e');
+      commonSnackBar(message: AppStrings.documentVerificationFailed);
+      return false;
     }
   }
 

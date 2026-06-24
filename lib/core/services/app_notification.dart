@@ -40,6 +40,7 @@ import '../../features/chat/auth/controller/call_controller.dart';
 import '../../features/common/Discover/controller/discover_controller.dart';
 import '../../features/chat/view/ai_chat/view/ai_chat_screen.dart';
 import '../routes/route_helper.dart';
+import '../routes/route_constant.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_orders_controller.dart';
 
 String notificationSound = 'sound/hangouts_call.mp3';
@@ -1267,6 +1268,19 @@ class AppNotificationHandler {
       return;
     }
 
+    // Business go-live action button — deep-link to the business own profile
+    // and auto-prompt go-live. Covers foreground, background, and killed taps.
+    if (actionId == 'go_live') {
+      Get.toNamed(
+        RouteConstant.BusinessOwnProfileScreen,
+        arguments: {
+          'business_id': data['business_id'],
+          'open_go_live': true,
+        },
+      );
+      return;
+    }
+
     // Route-order claim (ROUTE_ORDER_AVAILABLE notification → "Claim Order").
     // Must precede the generic ride block so it isn't swallowed by it.
     if (actionId.startsWith('claim_order_')) {
@@ -2374,6 +2388,18 @@ class AppNotificationHandler {
 
       // Forced-logout signal — NOT a tap target. Intentionally no navigation.
       case 'session_displaced':
+        break;
+
+      // Business go-live reminder — deep-link to the business own profile
+      // (which hosts the Go Live button) and ask it to auto-prompt go-live.
+      case 'business_go_live_reminder':
+        Get.toNamed(
+          RouteConstant.BusinessOwnProfileScreen,
+          arguments: {
+            'business_id': data['business_id'],
+            'open_go_live': true,
+          },
+        );
         break;
 
       default:

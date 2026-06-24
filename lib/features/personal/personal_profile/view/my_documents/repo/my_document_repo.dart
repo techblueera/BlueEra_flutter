@@ -19,6 +19,22 @@ class MyDocumentRepo extends BaseService {
     return response;
   }
 
+  /// Verifies an uploaded document (Aadhar / PAN / Driving License / RC)
+  /// against its number via the AI document-verification service.
+  /// Sends a multipart request: document_name, document_number and the
+  /// front/back image file(s).
+  Future<ResponseModel> verifyDocument({required Map<String, dynamic> params}) async {
+    var response = await ApiBaseHelper().postHTTP(
+      aiDocumentVerify,
+      params: params,
+      isMultipart: true,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   /// ridersOnboardingPersonalIdentificationRepo
   Future<ResponseModel> addDocument({required Map<String, dynamic> params}) async {
     var response = await ApiBaseHelper().postHTTP(

@@ -15,6 +15,7 @@ import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/business/go_live/go_live_availability_mixin.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
@@ -47,11 +48,10 @@ class AutomotivePartsScreen extends StatefulWidget {
 }
 
 class _AutomotivePartsScreenState extends State<AutomotivePartsScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, GoLiveAvailabilityMixin {
   TabController? _tabController;
   int _selectedTab = 1; // matches grocery's default (Overview)
   bool _isLoading = true;
-  bool _isGoLive = false;
 
   late final List<String> _tabs;
   late final List<Widget> _tabViews;
@@ -71,6 +71,10 @@ class _AutomotivePartsScreenState extends State<AutomotivePartsScreen>
       ChatEmitEvents.ChatList,
       {ApiKeys.type: AppConstants.business_Chat_Type},
     );
+    // Remind business sellers to set shop availability if they never have.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      maybeShowAvailabilityReminder();
+    });
   }
 
   void _initializeData() {
@@ -948,7 +952,7 @@ class _AutomotivePartsScreenState extends State<AutomotivePartsScreen>
   /// the grocery v2 top bar uses.
   Widget _goLivePill() {
     return GestureDetector(
-      onTap: () => setState(() => _isGoLive = !_isGoLive),
+      onTap: handleGoLiveTap,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
         child: BackdropFilter(
@@ -979,7 +983,7 @@ class _AutomotivePartsScreenState extends State<AutomotivePartsScreen>
                   height: 18,
                   padding: const EdgeInsets.all(2),
                   decoration: BoxDecoration(
-                    color: _isGoLive ? AppColors.primaryColor : Colors.white,
+                    color: isShopGoLive ? AppColors.primaryColor : Colors.white,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: AppColors.secondaryTextColor
@@ -989,14 +993,14 @@ class _AutomotivePartsScreenState extends State<AutomotivePartsScreen>
                   ),
                   child: AnimatedAlign(
                     duration: const Duration(milliseconds: 180),
-                    alignment: _isGoLive
+                    alignment: isShopGoLive
                         ? Alignment.centerRight
                         : Alignment.centerLeft,
                     child: Container(
                       height: 14,
                       width: 14,
                       decoration: BoxDecoration(
-                        color: _isGoLive
+                        color: isShopGoLive
                             ? Colors.white
                             : AppColors.secondaryTextColor,
                         shape: BoxShape.circle,

@@ -568,6 +568,30 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
 
   final visitingcontroller = Get.put(VisitProfileController());
 
+  // ── Go-live state ───────────────────────────────────────────────────
+  // Reflects whether the business is currently live for today. Driven by the
+  // availability go-live / end-live endpoints; hydrate from the profile's
+  // `availability.liveState` when available.
+  final RxBool isLive = false.obs;
+
+  /// Mark the business live for today. Used by the dashboard Go-Live button
+  /// and the `business_go_live_reminder` notification deep-link.
+  Future<void> goLiveNow() async {
+    final res = await BusinessProfileRepo().goLive();
+    if (res.isSuccess) {
+      isLive.value = res.response?.data['data']?['isLive'] ?? true;
+      commonSnackBar(message: AppStrings.youAreNowLive.tr);
+    } else {
+      commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong.tr);
+    }
+  }
+
+  /// Mark the business offline.
+  Future<void> endLiveNow() async {
+    final res = await BusinessProfileRepo().endLive();
+    if (res.isSuccess) isLive.value = false;
+  }
+
   /// Freshness guard for the visited business profile, keyed per business id.
   final FetchCache _visitedProfileCache = FetchCache();
 

@@ -18,6 +18,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/business/go_live/go_live_availability_mixin.dart';
 import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_verfication.dart';
@@ -64,10 +65,12 @@ class MedicalHomeScreenV2 extends StatefulWidget {
 }
 
 class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, GoLiveAvailabilityMixin {
+  @override
+  String get goLiveBusinessId => widget.businessId;
+
   MedicalHomeResponseModel? _data;
   bool _isLoading = true;
-  bool _isGoLive = false;
   // Default landing tab unchanged: Overview (index 2 — Inquiry is at 0).
   late final TabController _tabController;
 
@@ -114,6 +117,10 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
       {ApiKeys.type: AppConstants.business_Chat_Type},
     );
     _fetchData();
+    // Remind business sellers to set shop availability if they never have.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      maybeShowAvailabilityReminder();
+    });
   }
 
   void _ensureProductsLoaded() {
@@ -835,7 +842,7 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
 
   Widget _goLivePill() {
     return GestureDetector(
-      onTap: () => setState(() => _isGoLive = !_isGoLive),
+      onTap: handleGoLiveTap,
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
         decoration: BoxDecoration(
@@ -853,12 +860,12 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
               height: 18,
               padding: const EdgeInsets.all(2),
               decoration: BoxDecoration(
-                color: _isGoLive ? AppColors.primaryColor : Colors.grey.shade400,
+                color: isShopGoLive ? AppColors.primaryColor : Colors.grey.shade400,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: AnimatedAlign(
                 duration: const Duration(milliseconds: 180),
-                alignment: _isGoLive ? Alignment.centerRight : Alignment.centerLeft,
+                alignment: isShopGoLive ? Alignment.centerRight : Alignment.centerLeft,
                 child: Container(
                   height: 14,
                   width: 14,

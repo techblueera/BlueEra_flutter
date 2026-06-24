@@ -71,6 +71,19 @@ mixin UserServiceApi {
   final String removeBusinessLivePhotos =
       'user-service/business/remove-live-image';
 
+  // ── Availability hours & go-live ────────────────────────────────────
+  // Weekly day-by-day open/close schedule, plus going live at open time.
+  // The PUT/GET write/read the same Availability document the business
+  // profile already exposes under `availability`.
+  final String businessAvailabilityHours =
+      '/user-service/business/availability/hours';
+  // Override / clear TODAY's hours only (auto-reverts tomorrow). PUT to set,
+  // DELETE to revert immediately.
+  final String businessAvailabilityToday =
+      '/user-service/business/availability/today';
+  final String businessGoLive = '/user-service/business/availability/go-live';
+  final String businessEndLive = '/user-service/business/availability/end-live';
+
 
   // too — the same id keys a business account or an individual profile.
   String chatClickRecord(String userId) =>

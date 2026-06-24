@@ -529,6 +529,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   Widget resolveBusinessScreen() {
     logs("businessTypeGlobal=== ${businessTypeGlobal}");
     logs("businessCategoryGlobal=== ${businessCategoryGlobal}");
+    logs("businessCategoryGlobal2222=== ${BusinessType.Grocery.name}");
     // 1. First, check if it is a Food business
     if (businessTypeGlobal.toUpperCase() == BusinessType.Food.name.toUpperCase()) {
       return const FoodMainScreen(fromBottomNavBar: true);

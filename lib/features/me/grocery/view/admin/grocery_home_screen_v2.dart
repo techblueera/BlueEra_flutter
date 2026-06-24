@@ -13,6 +13,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/business/go_live/go_live_availability_mixin.dart';
 import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
 import 'package:BlueEra/features/business/widgets/business_description_card.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
@@ -59,8 +60,10 @@ class GroceryHomeScreenV2 extends StatefulWidget {
 }
 
 class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
-    with SingleTickerProviderStateMixin {
-  bool _isGoLive = false;
+    with SingleTickerProviderStateMixin, GoLiveAvailabilityMixin {
+  @override
+  String get goLiveBusinessId => widget.businessId;
+
   int _selectedTab = 1;
   late final TabController _tabController;
 
@@ -100,6 +103,11 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
     // default). Switching tabs later will fire other tabs' APIs lazily
     // via [_onTabTapped] â€” mirrors product_screen's per-tab discipline.
     _fetchForTab(_selectedTab);
+    // After the first frame (so a context is available), remind business
+    // grocery sellers to set their shop availability if they never have.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      maybeShowAvailabilityReminder();
+    });
   }
 
   /// Per-tab API dispatcher. Each tab owns a different data set, so we
@@ -201,6 +209,9 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
     // once the user has scrolled past the original (in-flow) tabs.
     final topBarHeight = topInset + 56;
     return Scaffold(
+      // floatingActionButton: FloatingActionButton(onPressed: (){
+      //   Get.to(() => const GroceryShopAvailabilityScreen());
+      // }),
       body: SafeArea(
         top: false,
         child: Stack(
@@ -1149,9 +1160,13 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
     );
   }
 
+  // Go-Live + shop-availability flow now lives in [GoLiveAvailabilityMixin]
+  // (handleGoLiveTap / openAvailabilityFlow / showSetAvailabilityDialog /
+  // maybeShowAvailabilityReminder), shared across every business surface.
+
   Widget _goLivePill() {
     return GestureDetector(
-      onTap: () => setState(() => _isGoLive = !_isGoLive),
+      onTap: handleGoLiveTap,
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
@@ -1188,7 +1203,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
                     height: 18,
                     padding: const EdgeInsets.all(2),
                     decoration: BoxDecoration(
-                      color: _isGoLive ? AppColors.primaryColor : Colors.white,
+                      color: isShopGoLive ? AppColors.primaryColor : Colors.white,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
                         color: AppColors.secondaryTextColor.withValues(alpha: 0.4),
@@ -1197,12 +1212,12 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
                     ),
                     child: AnimatedAlign(
                       duration: const Duration(milliseconds: 180),
-                      alignment: _isGoLive ? Alignment.centerRight : Alignment.centerLeft,
+                      alignment: isShopGoLive ? Alignment.centerRight : Alignment.centerLeft,
                       child: Container(
                         height: 14,
                         width: 14,
                         decoration: BoxDecoration(
-                            color: _isGoLive ? Colors.white : AppColors.secondaryTextColor,
+                            color: isShopGoLive ? Colors.white : AppColors.secondaryTextColor,
                             shape: BoxShape.circle),
                       ),
                     ),

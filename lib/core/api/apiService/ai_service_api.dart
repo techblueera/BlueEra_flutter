@@ -31,4 +31,5 @@ mixin AiServiceApi {
   final String generateProductBusiness =
       "ai-service/api/ai-store/generate-store";
   final String aiExpertise = 'ai-service/api/ai-expertise/generate';
+  final String aiDocumentVerify = 'ai-service/api/ai-document/verify';
 }

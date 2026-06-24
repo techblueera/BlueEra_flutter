@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/business/go_live/go_live_availability_mixin.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_flag_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
@@ -33,12 +34,10 @@ class HospitalHomeScreenV2 extends StatefulWidget {
 }
 
 class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, GoLiveAvailabilityMixin {
   late final HospitalServiceAiController _hospitalController;
   final _businessController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
   late final TabController _tabController;
-
-  bool _isGoLive = false;
 
   static final _tabs = [
     AppStrings.hospitalInquiry.tr,
@@ -81,6 +80,10 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2>
       ChatEmitEvents.ChatList,
       {ApiKeys.type: AppConstants.business_Chat_Type},
     );
+    // Remind business sellers to set shop availability if they never have.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      maybeShowAvailabilityReminder();
+    });
   }
 
   @override
@@ -213,7 +216,7 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2>
 
   Widget _goLivePill() {
     return GestureDetector(
-      onTap: () => setState(() => _isGoLive = !_isGoLive),
+      onTap: handleGoLiveTap,
       child: Container(
         padding: EdgeInsets.symmetric(
           horizontal: SizeConfig.size10,
@@ -238,12 +241,12 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2>
               height: 18,
               padding: const EdgeInsets.all(2),
               decoration: BoxDecoration(
-                color: _isGoLive ? AppColors.primaryColor : Colors.grey.shade400,
+                color: isShopGoLive ? AppColors.primaryColor : Colors.grey.shade400,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: AnimatedAlign(
                 duration: const Duration(milliseconds: 180),
-                alignment: _isGoLive ? Alignment.centerRight : Alignment.centerLeft,
+                alignment: isShopGoLive ? Alignment.centerRight : Alignment.centerLeft,
                 child: Container(
                   height: 14,
                   width: 14,

@@ -98,6 +98,10 @@ class SharedPreferenceUtils {
   static const channelOwner = 'channelOwner';
   static const businessOwnerAddress = 'businessOwnerAddress';
   static const availabilityDetails = 'availabilityDetails';
+  // Per-business local flag: has this grocery seller set their shop
+  // availability at least once? Drives the "set availability" reminder
+  // shown on the grocery admin home. Composed with the businessId.
+  static const groceryAvailabilitySetPrefix = 'grocery_availability_set_';
   static const businessCategory = 'businessCategory';
   static const businessSubCategory = 'businessSubCategory';
   static const serviceProviderStatus = 'serviceProviderStatus';
@@ -274,6 +278,21 @@ class SharedPreferenceUtils {
   static Future<String?> getBookingAvailabilityDetail() async {
     return await SharedPreferenceUtils.getSecureValue(
         SharedPreferenceUtils.availabilityDetails);
+  }
+
+  /// Marks (locally) that the given business has set its grocery shop
+  /// availability, so the set-availability reminder stops showing.
+  static Future<void> setGroceryAvailabilitySet(String businessId) async {
+    await setSecureValue(
+        '$groceryAvailabilitySetPrefix$businessId', 'true');
+  }
+
+  /// Whether the given business has already set its grocery shop
+  /// availability locally. Defaults to false when nothing is stored.
+  static Future<bool> isGroceryAvailabilitySet(String businessId) async {
+    final value =
+        await getSecureValue('$groceryAvailabilitySetPrefix$businessId');
+    return value == 'true';
   }
 
   /// Wipe ONLY the Keychain (flutter_secure_storage) without touching

@@ -126,7 +126,26 @@ class _PassengerBookingMainState extends State<PassengerBookingMain> {
   Widget build(BuildContext context) {
     return Obx(() {
       return Scaffold(
-        appBar: CommonBackAppBar(),
+        appBar: CommonBackAppBar(
+          buildCustomActionWidget: () => Obx(
+            () => IconButton(
+              tooltip: AppStrings.refresh.tr,
+              onPressed: discoverController.findRiderDetailsLoading.value
+                  ? null
+                  : () => discoverController.getBookingRidersApi(),
+              icon: discoverController.findRiderDetailsLoading.value
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.primaryColor,
+                      ),
+                    )
+                  : const Icon(Icons.refresh, color: AppColors.black),
+            ),
+          ),
+        ),
         backgroundColor: AppColors.white,
         bottomNavigationBar: SafeArea(
           child: Padding(
