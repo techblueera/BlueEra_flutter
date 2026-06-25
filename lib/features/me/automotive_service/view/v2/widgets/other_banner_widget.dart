@@ -16,9 +16,9 @@ import 'package:get/get.dart';
 /// Other-business cover-banner block — visually mirrors the medical/
 /// hospital v2 banner widget. Picker → compress → upload via the
 /// existing `uploadSchoolLogoOrBannerImage(uploadVia: 'coverUrl')`
-/// helper on `BusinessProfileFullController`.
+/// helper on `AutomotiveBusinessProfileFullController`.
 class OtherBannerWidget extends StatefulWidget {
-  final BusinessProfileFullController controller;
+  final AutomotiveBusinessProfileFullController controller;
 
   const OtherBannerWidget({super.key, required this.controller});
 

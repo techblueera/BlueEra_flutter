@@ -36,7 +36,6 @@ import 'package:BlueEra/features/common/auth/views/screens/create_account_type_s
 import 'package:BlueEra/features/common/Discover/view/go_live_permission_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_bar_screen.dart';
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
-import 'package:BlueEra/features/me/grocery/view/admin/grocery_shop_availability_screen.dart';
 import 'package:BlueEra/permissionCentralize/go_live_permission_service.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_service_controller.dart';
@@ -1276,6 +1275,14 @@ class AuthController extends GetxController {
     businessOnboardingFoodsCategories.assignAll(foods);
     businessOnboardingManufacturingCategories.assignAll(manufacturing);
     businessOnboardingAutomotiveServicesCategories.assignAll(automotive);
+    // // DEBUG: dump the automotive-services categories so we can see exactly what
+    // log('[AutomotiveCat] total=${automotive.length}');
+    // for (final c in automotive) {
+    //   log('[AutomotiveCat] name="${c.name}" tagId="${c.tagId}" id="${c.id}" '
+    //       'type="${c.type}" '
+    //       'subs=${c.subCategories?.map((s) => s.name).toList()}');
+    // }
+
     businessOnboardingHealthcareSectorsCategories.assignAll(healthcare);
     businessOnboardingHospitalityStayCategories.assignAll(hospitality);
     businessOnboardingEducationTrainingCategories.assignAll(education);

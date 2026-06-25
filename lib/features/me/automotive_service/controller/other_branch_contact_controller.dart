@@ -110,7 +110,7 @@ class OtherBranchContactController extends GetxController {
 
   void _refreshHomeScreen() {
     try {
-      Get.find<BusinessProfileFullController>().getBusinessProfileFull();
+      Get.find<AutomotiveBusinessProfileFullController>().getBusinessProfileFull();
     } catch (_) {}
   }
 

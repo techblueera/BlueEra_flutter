@@ -10,7 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 class OtherHeaderView extends StatefulWidget {
-  final BusinessProfileFullController schoolAboutUsController;
+  final AutomotiveBusinessProfileFullController schoolAboutUsController;
 
   const OtherHeaderView({
     super.key,

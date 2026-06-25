@@ -114,7 +114,9 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
               topBar: _buildTopBar(),
               topBarHeight: MediaQuery.of(context).padding.top + 56,
               tabViews: [
-                _tabScroll(const OtherInquiryTabV2()),
+                _tabScroll(OtherInquiryTabV2(
+                  onAddServices: () => _tabController.animateTo(2),
+                )),
                 _tabScroll(OtherOverviewTabV2(controller: _otherController)),
                 _tabScroll(const OtherServicesTabV2()),
                 _tabScroll(const OtherPostsTabV2()),
