@@ -20,6 +20,7 @@ import 'package:pinput/pinput.dart';
 import '../../auth/controller/call_controller.dart';
 import '../../auth/service/call_activity_service.dart';
 import '../../auth/controller/chat_flag_controller.dart';
+import '../../auth/controller/chat_pin_archive_controller.dart';
 import 'chat_flag_bottom_sheet.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_constant.dart';
@@ -2259,8 +2260,24 @@ AppBar getChatTitleAppBar(BuildContext context, {
             elevation: 8,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             onSelected: (value) {
-              if(value == "clear_chat"){
+              if(value == "group_info"){
+                Get.to(() => ViewGroupMembers(
+                      conversationId: conversationId,
+                      type: type,
+                    ));
+              } else if(value == "clear_chat"){
                 showDeleteChatDialog(conversationId ?? '');
+              } else if(value == "background_change"){
+                Get.to(() => ChatBackgroundScreen());
+              } else if(value == "exit_group"){
+                showExitGroupDialog(conversationId ?? '');
+              } else if(value == "pin_group"){
+                // Pin/unpin from the conversation list.
+                final pinCtrl = Get.isRegistered<ChatPinArchiveController>()
+                    ? Get.find<ChatPinArchiveController>()
+                    : Get.put(ChatPinArchiveController());
+                pinCtrl.togglePin(conversationId ?? '');
+                commonSnackBar(message: "Group pin updated");
               }
             },
             itemBuilder: (context) => PopupMenuBuilders.popPupMenuForGroupChat(),
@@ -2282,6 +2299,77 @@ void showDeleteChatDialog(String conId) {
       child:DeleteChatHistoryDialog(conversationId:conId ,),
     ),
     barrierDismissible: false, // user must tap button
+  );
+}
+
+/// Confirmation before leaving a group. Backend leave endpoint is not yet
+/// wired, so on confirm we clear the local conversation view and return the
+/// user to the chat list. Replace the body of [onConfirm] with the REST/socket
+/// call once `chat-service/group/leave` lands.
+void showExitGroupDialog(String conId) {
+  final chatViewController = Get.find<ChatViewController>();
+  Get.dialog(
+    Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.logout, color: AppColors.red, size: 22),
+                const SizedBox(width: 8),
+                CustomText(
+                  "Exit Group",
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            CustomText(
+              "Are you sure you want to exit this group? You will no longer receive messages from it.",
+              fontSize: 14,
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: CustomBtn(
+                    onTap: () => Get.back(),
+                    title: AppStrings.cancel.tr,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: CustomBtn(
+                    isValidate: true,
+                    bgColor: AppColors.red,
+                    textColor: AppColors.white,
+                    onTap: () {
+                      Get.back();
+                      chatViewController.leaveConversation();
+                      chatViewController.emitEvent(
+                          ChatEmitEvents.ChatList, {ApiKeys.type: "group"});
+                      // Pop back to the chat list (group info + chat screen).
+                      Get.until((route) => route.isFirst ||
+                          route.settings.name ==
+                              RouteHelper.getBottomNavigationBarScreenRoute());
+                      commonSnackBar(message: "You exited the group");
+                    },
+                    title: "Exit",
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ),
+    barrierDismissible: false,
   );
 }
 

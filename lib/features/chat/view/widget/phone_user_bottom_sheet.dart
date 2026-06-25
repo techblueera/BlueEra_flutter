@@ -10,10 +10,13 @@ import 'package:BlueEra/features/chat/auth/service/call_activity_service.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
+
+import 'component_widgets.dart' show navigateToProfileFromChat;
 
 /// Bottom sheet shown after a phone number tapped inside a chat message is
 /// resolved to a BlueEra user via `user-service/user/by-phone/{phone}`.
@@ -38,82 +41,121 @@ class _PhoneUserSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool hasImage =
         user.profileImage != null && user.profileImage!.isNotEmpty;
+    final bool isBusiness =
+        (user.accountType ?? '').toUpperCase() == AppConstants.business;
 
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Drag handle
-            Center(
-              child: Container(
-                width: 42,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            // Header: avatar + name + username
-            Row(
+      top: false,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _dragHandle(),
+          // ── Hero header ─────────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 6, 20, 0),
+            child: Column(
               children: [
-                CircleAvatar(
-                  radius: 32,
-                  backgroundColor: AppColors.fillColor,
-                  backgroundImage:
-                      hasImage ? NetworkImage(user.profileImage!) : null,
-                  child: hasImage
-                      ? null
-                      : const Icon(Icons.person,
-                          size: 34, color: AppColors.grayText),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CustomText(
-                        user.name.isEmpty ? 'User' : user.name,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      if ((user.subtitle ?? '').isNotEmpty) ...[
-                        const SizedBox(height: 2),
-                        CustomText(
-                          user.subtitle!,
-                          fontSize: 13,
-                          color: AppColors.grayText,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                Stack(
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          colors: [
+                            AppColors.primaryColor,
+                            AppColors.primaryColor.withValues(alpha: 0.55),
+                          ],
                         ),
-                      ],
+                      ),
+                      padding: const EdgeInsets.all(3),
+                      child: CircleAvatar(
+                        radius: 40,
+                        backgroundColor: AppColors.fillColor,
+                        backgroundImage:
+                            hasImage ? NetworkImage(user.profileImage!) : null,
+                        child: hasImage
+                            ? null
+                            : CustomText(
+                                user.name.isNotEmpty
+                                    ? user.name[0].toUpperCase()
+                                    : '?',
+                                fontSize: 32,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.primaryColor,
+                              ),
+                      ),
+                    ),
+                    // "On BlueEra" verified badge.
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.verified,
+                            color: AppColors.primaryColor, size: 22),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                CustomText(
+                  user.name.isEmpty ? 'BlueEra User' : user.name,
+                  fontSize: 19,
+                  fontWeight: FontWeight.w800,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if ((user.subtitle ?? '').isNotEmpty) ...[
+                  const SizedBox(height: 3),
+                  CustomText(
+                    user.subtitle!,
+                    fontSize: 13,
+                    color: AppColors.grayText,
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+                const SizedBox(height: 8),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryColor.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(isBusiness ? Icons.storefront : Icons.person,
+                          size: 13, color: AppColors.primaryColor),
+                      const SizedBox(width: 5),
+                      CustomText(
+                        isBusiness ? 'Business · On BlueEra' : 'On BlueEra',
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primaryColor,
+                      ),
                     ],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            if ((user.contactNo ?? '').isNotEmpty)
-              _infoRow(Icons.phone_outlined, user.contactNo!),
-            if ((user.location ?? '').isNotEmpty)
-              _infoRow(Icons.location_on_outlined, user.location!),
-            if ((user.bio ?? '').isNotEmpty)
-              _infoRow(Icons.info_outline, user.bio!),
-            const SizedBox(height: 18),
-            // Quick actions — in-app Chat / Audio call / Video call to this
-            // BlueEra user (call flow mirrors the chat appbar in
-            // component_widgets.dart).
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 6),
+          ),
+          const SizedBox(height: 18),
+          // ── Quick actions: Chat / Audio / Video ─────────────────────────
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 8),
               decoration: BoxDecoration(
-                color: AppColors.fillColor.withValues(alpha: 0.4),
-                borderRadius: BorderRadius.circular(14),
+                color: AppColors.fillColor.withValues(alpha: 0.45),
+                borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
                 children: [
@@ -122,7 +164,6 @@ class _PhoneUserSheet extends StatelessWidget {
                     color: AppColors.primaryColor,
                     label: 'Chat',
                     onTap: () {
-                      // Close the sheet, then open / create the personal thread.
                       Get.back();
                       Get.find<ChatViewController>()
                           .checkChatConnectionAndOpenChat(
@@ -134,6 +175,7 @@ class _PhoneUserSheet extends StatelessWidget {
                       );
                     },
                   ),
+                  _verticalSep(),
                   _quickAction(
                     icon: Icons.call,
                     color: Colors.green,
@@ -143,6 +185,7 @@ class _PhoneUserSheet extends StatelessWidget {
                       _startBlueEraCall(user, CallType.audio);
                     },
                   ),
+                  _verticalSep(),
                   _quickAction(
                     icon: Icons.videocam,
                     color: Colors.blue,
@@ -155,8 +198,52 @@ class _PhoneUserSheet extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
-            Row(
+          ),
+          const SizedBox(height: 16),
+          // ── Details card ────────────────────────────────────────────────
+          if ((user.contactNo ?? '').isNotEmpty ||
+              (user.location ?? '').isNotEmpty ||
+              (user.bio ?? '').isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: AppColors.fillColor),
+                ),
+                child: Column(
+                  children: [
+                    if ((user.contactNo ?? '').isNotEmpty)
+                      _infoRow(
+                        Icons.phone_outlined,
+                        user.contactNo!,
+                        trailing: IconButton(
+                          icon: const Icon(Icons.copy_rounded, size: 17),
+                          color: AppColors.grayText,
+                          visualDensity: VisualDensity.compact,
+                          onPressed: () {
+                            Clipboard.setData(
+                                ClipboardData(text: user.contactNo!));
+                            commonSnackBar(message: 'Number copied');
+                          },
+                        ),
+                      ),
+                    if ((user.location ?? '').isNotEmpty)
+                      _infoRow(Icons.location_on_outlined, user.location!),
+                    if ((user.bio ?? '').isNotEmpty)
+                      _infoRow(Icons.info_outline, user.bio!),
+                  ],
+                ),
+              ),
+            ),
+          const SizedBox(height: 18),
+          // ── Primary actions ─────────────────────────────────────────────
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+            child: Row(
               children: [
                 Expanded(
                   child: CustomBtn(
@@ -183,11 +270,17 @@ class _PhoneUserSheet extends StatelessWidget {
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
+
+  Widget _verticalSep() => Container(
+        width: 1,
+        height: 38,
+        color: AppColors.fillColor.withValues(alpha: 0.8),
+      );
 
   Widget _quickAction({
     required IconData icon,
@@ -227,21 +320,35 @@ class _PhoneUserSheet extends StatelessWidget {
     );
   }
 
-  // TODO: wire up to the real profile screen once available.
-  // Dummy handler for now — closes the sheet and shows a placeholder.
+  /// Open the resolved user's visiting profile, reusing the app-wide chat
+  /// profile navigation. Business accounts route through their [businessId];
+  /// individuals through their user id.
   void _onViewProfile() {
     Get.back();
-    commonSnackBar(message: 'View Profile coming soon');
+    final isBusiness =
+        (user.accountType ?? '').toUpperCase() == AppConstants.business;
+    if (isBusiness) {
+      final businessId = (user.businessId?.isNotEmpty == true)
+          ? user.businessId!
+          : user.id;
+      if (businessId.isEmpty) return;
+      navigateToProfileFromChat(
+          authorId: businessId, type: AppConstants.business);
+    } else {
+      if (user.id.isEmpty) return;
+      navigateToProfileFromChat(
+          authorId: user.id, type: AppConstants.individual);
+    }
   }
 
-  Widget _infoRow(IconData icon, String value) {
+  Widget _infoRow(IconData icon, String value, {Widget? trailing}) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Icon(icon, size: 18, color: AppColors.grayText),
-          const SizedBox(width: 10),
+          Icon(icon, size: 18, color: AppColors.primaryColor),
+          const SizedBox(width: 12),
           Expanded(
             child: CustomText(
               value,
@@ -249,11 +356,22 @@ class _PhoneUserSheet extends StatelessWidget {
               color: AppColors.mainTextColor,
             ),
           ),
+          if (trailing != null) trailing,
         ],
       ),
     );
   }
 }
+
+Widget _dragHandle() => Container(
+      width: 42,
+      height: 4,
+      margin: const EdgeInsets.only(top: 12, bottom: 14),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade300,
+        borderRadius: BorderRadius.circular(2),
+      ),
+    );
 
 /// Bottom sheet shown when a tapped phone number is NOT a BlueEra user
 /// (API returns `{"status":false,"message":"User not found"}`). Offers to
@@ -277,79 +395,93 @@ class _AddNewContactSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Drag handle
-            Center(
-              child: Container(
-                width: 42,
-                height: 4,
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            Row(
+      top: false,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _dragHandle(),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 6, 20, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                CircleAvatar(
-                  radius: 32,
-                  backgroundColor: AppColors.fillColor,
-                  child: const Icon(Icons.person_off_outlined,
-                      size: 32, color: AppColors.grayText),
+                Container(
+                  width: 76,
+                  height: 76,
+                  decoration: BoxDecoration(
+                    color: AppColors.fillColor.withValues(alpha: 0.5),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.person_search_outlined,
+                      size: 36, color: AppColors.grayText),
                 ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                const SizedBox(height: 14),
+                const CustomText(
+                  'Not on BlueEra yet',
+                  fontSize: 17,
+                  fontWeight: FontWeight.w800,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 4),
+                CustomText(
+                  'No BlueEra account is linked to',
+                  fontSize: 13,
+                  color: AppColors.grayText,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: AppColors.fillColor.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      const CustomText(
-                        'No BlueEra user found',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 2),
+                      const Icon(Icons.phone_outlined,
+                          size: 14, color: AppColors.grayText),
+                      const SizedBox(width: 6),
                       CustomText(
                         phone,
                         fontSize: 14,
-                        color: AppColors.grayText,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.mainTextColor,
                       ),
                     ],
                   ),
                 ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: CustomBtn(
+                    title: 'Add New Contact',
+                    bgColor: AppColors.primaryColor,
+                    onTap: () {
+                      Get.back();
+                      _saveContactWithEditor(phone: phone);
+                    },
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: CustomBtn(
+                    title: 'Invite to BlueEra',
+                    bgColor: Colors.white,
+                    textColor: AppColors.primaryColor,
+                    borderColor: AppColors.primaryColor,
+                    onTap: () {
+                      Get.back();
+                      _inviteToBlueEra();
+                    },
+                  ),
+                ),
               ],
             ),
-            const SizedBox(height: 22),
-            CustomBtn(
-              title: 'Add New Contact',
-              bgColor: AppColors.primaryColor,
-              onTap: () {
-                Get.back();
-                _saveContactWithEditor(phone: phone);
-              },
-            ),
-            const SizedBox(height: 12),
-            CustomBtn(
-              title: 'Invite to BlueEra',
-              bgColor: Colors.white,
-              textColor: AppColors.primaryColor,
-              borderColor: AppColors.primaryColor,
-              onTap: () {
-                Get.back();
-                _inviteToBlueEra();
-              },
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

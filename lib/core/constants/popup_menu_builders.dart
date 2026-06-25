@@ -735,6 +735,7 @@ class PopupMenuBuilders {
 
   static List<PopupMenuEntry<String>> popPupMenuForGroupChat() {
     final items = <Map<String, dynamic>>[
+      {'title': "Group Info", "slud_id": 'group_info'},
       {'title': "Clear Chat", "slud_id": 'clear_chat'},
       {'title': "Background Change", "slud_id": "background_change"},
       {'title': "Exit Group", "slud_id": "exit_group"},
