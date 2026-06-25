@@ -22,17 +22,36 @@ import 'package:get/get.dart';
 /// Public Discover-side listing of vehicles.
 ///
 /// Hits `GET /vehicles` (the only public catalogue exposed by the
-/// vehicle service per `lib/docs/FLUTTER_INTEGRATION_GUIDE.md` §1) and
-/// supports the same filters the API documents: free-text query,
-/// category, sub-category and pincode. Pagination is infinite-scroll
-/// driven, so we keep on calling [VehicleController.loadMorePublicVehicles]
-/// while the scroll is within 300px of the bottom and `hasMore` is
-/// true.
+/// vehicle service) and supports the filters the API documents:
+/// free-text query, **category** (L0 root: `2W` / `4W` / …),
+/// **sub_category** (L1 vehicle type: `MOTORCYCLE` / `SUV` / …),
+/// optionally **type** (L2 segment leaf: `SPORTS_BIKE` / `COMPACT_SUV`
+/// / …), and pincode.
+///
+/// Taxonomy is a **3-level tree** (per `UI_CHANGES_taxonomy-level2.md` →
+/// supersedes the brief flatten doc): `category` → `sub_category` →
+/// `type`. The sticky header chips drive the **category** filter; the
+/// strip just below drives the **sub_category** (vehicle type) filter.
+/// A third segment picker is intentionally not surfaced here yet — the
+/// catalog (Brand → Model → Variant) narrows the rest. ⚠️ Vehicle-type
+/// keys (e.g. `MOTORCYCLE`) are L1 `sub_category`s, so chip taps must
+/// send `sub_category=`; `?type=MOTORCYCLE` returns empty under the
+/// level-2 split (`type=` is only for segment leaves like `SPORTS_BIKE`).
+///
+/// Pagination is infinite-scroll driven, so we keep on calling
+/// [VehicleController.loadMorePublicVehicles] while the scroll is within
+/// 300px of the bottom and `hasMore` is true.
 class VehicleListingScreen extends StatefulWidget {
-  /// Optional pre-applied category — wired up so the Discover home tile
-  /// for "Cars", "Bikes", etc. can drop the user into a pre-filtered
-  /// listing without an extra dropdown tap.
+  /// Optional pre-applied **root category** (L0, e.g. `2W`, `4W`) —
+  /// wired up so the Discover home tile for "Cars", "Bikes", etc. can
+  /// drop the user into a pre-filtered listing without an extra dropdown
+  /// tap.
   final String? initialCategory;
+
+  /// Optional pre-applied **vehicle type** (L1, e.g. `MOTORCYCLE`,
+  /// `SUV`) — sent as `sub_category=` on `GET /vehicles`, which expands
+  /// to every segment underneath. Legacy mid-tier keys (`2W_PETROL`,
+  /// `LCV`, `PASSENGER*`) are gone server-side and return empty.
   final String? initialSubCategory;
 
   /// Condition the entry-point implies — `VehicleCondition.isNew` ("NEW")
@@ -65,12 +84,22 @@ class _VehicleListingScreenState extends State<VehicleListingScreen> {
   final TextEditingController _searchCtrl = TextEditingController();
 
   String? _category;
+
+  /// Selected **vehicle type** (L1, e.g. `MOTORCYCLE`, `SUV`) — sent as
+  /// `sub_category=` on `GET /vehicles`. The chip strip below the root
+  /// header is the picker for this. Per the level-2 taxonomy, vehicle
+  /// types are L1 `sub_category`s; segment leaves are L2 `type`s and
+  /// are not surfaced as their own picker yet (catalog Brand/Model/
+  /// Variant narrows the rest).
   String? _subCategory;
   int? _pincode;
 
-  /// Server-driven taxonomy from `GET /vehicles/types`. A tab's
-  /// [VehicleType.value] is sent as the `category` filter, which is exactly
-  /// what create/update writes to a vehicle's `category` field.
+  /// Server-driven taxonomy from `GET /vehicles/types` — a 3-deep nested
+  /// tree (`category` → `sub_category` → `type`). The screen uses the
+  /// first two levels: a root's [VehicleType.value] (e.g. `2W`) drives
+  /// the `category` filter, and its direct children (`MOTORCYCLE`,
+  /// `SUV`, …) drive the `sub_category` filter. Segment leaves are
+  /// reachable via `children.children` if/when we add a third picker.
   List<VehicleType> _types = const <VehicleType>[];
 
   /// Fires once `GET /vehicles/types` resolves so the sticky header can be
@@ -87,12 +116,15 @@ class _VehicleListingScreenState extends State<VehicleListingScreen> {
         ],
       );
 
-  // Vehicle-themed banners — shared with AllVehicleServiceScreen so every
-  // vehicle entry-point in Discover shows the same hero imagery.
+  // Banners tuned to this screen's intent — vehicle showroom imagery
+  // (browse a catalogue) plus vehicle service / mechanic imagery
+  // (post-purchase support). All URLs verified live (HTTP 200, real
+  // image/jpeg payload) at the time of this edit; if any goes missing
+  // later, swap with another freepik vehicle-themed slug.
   final List<String> _bannerImages = const [
-    'https://img.freepik.com/free-photo/red-car-with-trunk-that-says-toyota-it_1340-39044.jpg?w=1380',
-    'https://img.freepik.com/free-photo/black-suv-car-front-view_114579-4153.jpg?w=1380',
-    'https://img.freepik.com/free-photo/big-truck-road_181624-37941.jpg?w=1380',
+    'https://img.magnific.com/free-vector/seller-talking-customer-about-car-dealer-future-vehicle-owner-rental-center-service_575670-280.jpg?semt=ais_hybrid&w=740&q=80',
+    'https://img.magnific.com/free-photo/benchman-fixing-engine-car_114579-2807.jpg',
+    'https://img.magnific.com/free-photo/hands-female-mechanic-using-laptop_1170-1248.jpg',
   ];
 
   @override
@@ -132,35 +164,39 @@ class _VehicleListingScreenState extends State<VehicleListingScreen> {
     if (value == _category) return;
     setState(() {
       _category = value;
-      // The old sub-category belongs to the previous parent; drop it so
-      // the two filters can't contradict each other.
+      // The previous sub_category belongs to the previous root; drop it
+      // so the two filters can't contradict each other.
       _subCategory = null;
     });
     _refresh();
   }
 
-  /// Toggle behavior — tapping the active chip clears the sub-category
-  /// filter so the user can broaden back to the whole parent category.
+  /// Toggle behavior — tapping the active chip clears the sub_category
+  /// filter so the user can broaden back to the whole root category.
   void _onSubCategoryTap(VehicleType child) {
     final next = _subCategory == child.value ? null : child.value;
     setState(() => _subCategory = next);
     _refresh();
   }
 
-  /// Children of the currently selected parent type. Empty when no parent
-  /// is picked or the parent is a leaf — the chip row hides in both cases.
-  List<VehicleType> get _activeSubTypes {
+  /// Direct children of the currently selected root — the L1 vehicle
+  /// types (`MOTORCYCLE`, `SUV`, …). Empty when no root is picked or
+  /// the root has no children — the chip row hides in both cases.
+  List<VehicleType> get _activeSubCategories {
     if (_category == null) return const <VehicleType>[];
-    final parent = _types.firstWhere(
+    final root = _types.firstWhere(
       (t) => t.value == _category,
       orElse: () => VehicleType(value: '', label: ''),
     );
-    return parent.children;
+    return root.children;
   }
 
   Future<void> _refresh() async {
     await _ctrl.fetchPublicVehicles(
       category: _category,
+      // L1 vehicle-type pick → `sub_category=`. The server expands it to
+      // every L2 segment under that vehicle type. Sending it as `type=`
+      // would hit the segment slot and return empty.
       subCategory: _subCategory,
       condition: widget.initialCondition,
       pincode: _pincode,
@@ -174,12 +210,24 @@ class _VehicleListingScreenState extends State<VehicleListingScreen> {
     final stickyCategories = <StickyCategory>[
       StickyCategory(
         id: _allOptionId,
-        name: AppStrings.all.tr,
+        // Vehicle-screen label override — kept inline so the shared
+        // `AppStrings.all` ("All") used by every other Discover surface is
+        // untouched.
+        name: 'All Vehicles',
         imageUrl: AppImageAssets.all,
       ),
-      ..._types.map(
-        (t) => StickyCategory(id: t.value, name: t.label),
-      ),
+      ..._types.map((t) {
+        // Server returns "Commercial" (1 word) for the COMMERCIAL root,
+        // while every other root label is 2 words ("Two Wheeler", "Three
+        // Wheeler", "Four Wheeler"). The sticky-header delegate renders
+        // 2-word labels on two lines and 1-word labels on one with a
+        // FittedBox scale-down — the lone "Commercial" then sits at the
+        // top of an oversized 2-line slot and looks visually clipped vs
+        // its neighbours. Promote it to "Commercial Vehicle" so the
+        // last tab matches the rest.
+        final name = t.value == 'COMMERCIAL' ? 'Commercial Vehicle' : t.label;
+        return StickyCategory(id: t.value, name: name);
+      }),
     ];
     final selectedId = _category ?? _allOptionId;
 
@@ -227,9 +275,9 @@ class _VehicleListingScreenState extends State<VehicleListingScreen> {
                   onNotification: _onScrollNotification,
                   child: Column(
                     children: [
-                      if (_activeSubTypes.isNotEmpty)
+                      if (_activeSubCategories.isNotEmpty)
                         _SubCategoryBar(
-                          subs: _activeSubTypes,
+                          subs: _activeSubCategories,
                           selectedValue: _subCategory,
                           onSelected: _onSubCategoryTap,
                         ),
@@ -333,9 +381,10 @@ class _VehicleListingScreenState extends State<VehicleListingScreen> {
   }
 }
 
-/// Horizontal-scrolling strip of L2 sub-category chips. Labels mirror what
-/// the server stores as `sub_category_label` on each vehicle, so the filter
-/// and the list rows read the same.
+/// Horizontal-scrolling strip of L1 vehicle-type chips (the children of
+/// the active root). Labels mirror what the server returns as
+/// `sub_category_label` on each vehicle, so the filter and the list rows
+/// read the same.
 class _SubCategoryBar extends StatelessWidget {
   final List<VehicleType> subs;
   final String? selectedValue;

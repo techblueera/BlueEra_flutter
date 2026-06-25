@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -10,18 +9,15 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
-import 'package:BlueEra/features/common/delivery_partner/view/rider_service_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/me/grocery/view/admin/grocery_shop_availability_screen.dart';
 import 'package:BlueEra/features/me/vehicle/controller/vehicle_controller.dart';
-import 'package:BlueEra/features/me/vehicle/view/v2/actions/vehicle_owner_actions.dart';
 import 'package:BlueEra/features/me/vehicle/view/v2/tabs/vehicle_inquiry_tab_v2.dart';
 import 'package:BlueEra/features/me/vehicle/view/v2/tabs/vehicle_overview_tab_v2.dart';
 import 'package:BlueEra/features/me/vehicle/view/v2/tabs/vehicle_posts_tab_v2.dart';
 import 'package:BlueEra/features/me/vehicle/view/v2/tabs/vehicle_stats_tab_v2.dart';
 import 'package:BlueEra/features/me/vehicle/view/v2/tabs/vehicle_vehicles_tab_v2.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/widgets/profile_top_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
@@ -31,11 +27,10 @@ import 'package:get/get.dart';
 /// Vehicle "me" profile home (v2) — owner-side dashboard for the
 /// `vehicle-service` microservice.
 ///
-/// Redesigned to match the architecture of `HospitalHomeScreenV2`: a thin
-/// shell (gradient top bar + pill tab strip) that delegates each tab to a
-/// dedicated file under `tabs/`, with shared building blocks in
-/// `widgets/` and owner CRUD flows in `actions/`. Five tabs adapted to
-/// vehicle ownership: Inquiry, Overview, Vehicles, Posts, Stats.
+/// UI scaffolding mirrors `SchoolHomeScreenV2` / `HospitalHomeScreenV2`:
+/// a thin shell (gradient top bar + pill tab strip) that delegates each
+/// tab to a dedicated file under `tabs/`. Five tabs adapted to vehicle
+/// ownership: Inquiry, Overview, Vehicles, Posts, Stats.
 class VehicleHomeScreenV2 extends StatefulWidget {
   const VehicleHomeScreenV2({super.key});
 
@@ -45,34 +40,31 @@ class VehicleHomeScreenV2 extends StatefulWidget {
 
 class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2>
     with SingleTickerProviderStateMixin, MeTabBackHandlerMixin {
+  /// Local live state backing the Go-Live toggle/pill.
+  bool isShopGoLive = false;
+
   final VehicleController _ctrl =
       getOrPut(() => VehicleController(), permanent: true);
+
+  late final TabController _tabController;
+
+  List<String> get _tabs => [
+        AppStrings.inquiryTab.tr,
+        AppStrings.overview.tr,
+        AppStrings.vehiclesTab.tr,
+        AppStrings.posts.tr,
+        AppStrings.statsTab.tr,
+      ];
 
   // Drives the inquiry list shown under the Inquiry tab — same controller
   // the Connect screen uses, so socket-driven updates land on both.
   final ChatViewController _chatViewController =
       getOrPut(() => ChatViewController());
 
-  int _selectedTab = 0; // default to first tab
-  late final TabController _tabController;
-
-  final List<String> _tabs = [
-    AppStrings.inquiryTab.tr,
-    AppStrings.overview.tr,
-    AppStrings.vehiclesTab.tr,
-    AppStrings.posts.tr,
-    AppStrings.statsTab.tr,
-  ];
-  bool isShopGoLive = false;
-
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(
-      length: _tabs.length,
-      initialIndex: _selectedTab,
-      vsync: this,
-    )..addListener(_handleTabChange);
+    _tabController = TabController(length: _tabs.length, vsync: this);
     registerMeTabBackHandler(_tabController);
     // ProfileTopBar's Go-Live pill resolves ViewPersonalDetailsController via
     // Get.find during the header build, so make sure it's registered before
@@ -89,16 +81,8 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2>
     );
   }
 
-  /// Keep [_selectedTab] synced so the Vehicles-tab FAB shows/hides correctly.
-  void _handleTabChange() {
-    if (_selectedTab != _tabController.index) {
-      setState(() => _selectedTab = _tabController.index);
-    }
-  }
-
   @override
   void dispose() {
-    _tabController.removeListener(_handleTabChange);
     _tabController.dispose();
     super.dispose();
   }
@@ -111,7 +95,6 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2>
     ]);
   }
 
-  /// Wraps a tab body in a refreshable scroll view for the [TabBarView].
   Widget _tabScroll(Widget child) {
     return RefreshIndicator(
       onRefresh: _refreshAll,
@@ -123,48 +106,6 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2>
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor:  Colors.transparent,
-      // backgroundColor: const Color(0xFFEAF2FB),
-
-      body: SafeArea(
-        top: false,
-        child: HomeTabScaffold(
-          controller: _tabController,
-          tabLabels: _tabs,
-          topBar: _buildTopBar(),
-
-          // topBar: ProfileTopBar(
-          //   onGoLiveTap: handleGoLiveTap,
-          //   showGoLivePill: Platform.isAndroid,
-          // ),
-          topBarHeight: MediaQuery.of(context).padding.top + 56,
-          tabViews: [
-            _tabScroll(const VehicleInquiryTabV2()),
-            _tabScroll(VehicleOverviewTabV2(controller: _ctrl)),
-            _tabScroll(VehicleVehiclesTabV2(controller: _ctrl)),
-            _tabScroll(const VehiclePostsTabV2()),
-            _tabScroll(VehicleStatsTabV2(controller: _ctrl)),
-          ],
-        ),
-      ),
-      // floatingActionButton: _selectedTab == 2
-      //     ? FloatingActionButton.extended(
-      //         backgroundColor: AppColors.primaryColor,
-      //         icon: const Icon(Icons.add, color: Colors.white),
-      //         label: CustomText(
-      //           AppStrings.addVehicleLabel.tr,
-      //           color: Colors.white,
-      //           fontSize: 13,
-      //           fontWeight: FontWeight.w700,
-      //         ),
-      //         onPressed: () => VehicleOwnerActions.addVehicle(context, _ctrl),
-      //       )
-      //     : null,
-    );
-  }
   Widget _buildTopBar() {
     final topInset = MediaQuery.of(context).padding.top;
     return DecoratedBox(
@@ -202,10 +143,12 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2>
                 SizedBox(width: SizeConfig.size6),
                 // Pills wrapped in Flexible so their inner text can ellipsize
                 // instead of pushing the row past its width.
-                SizedBox(width: SizeConfig.size6),
                 Flexible(child: const ReferEarnPill()),
                 const Spacer(),
-                _circleIconButton(icon: Icons.notifications_none, onTap: _openNotifications),
+                _circleIconButton(
+                  icon: Icons.notifications_none,
+                  onTap: _openNotifications,
+                ),
                 SizedBox(width: SizeConfig.size6),
                 _goLivePill(),
               ],
@@ -236,7 +179,10 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2>
     Navigator.pushNamed(context, RouteHelper.getNotificationScreenRoute());
   }
 
-  Widget _circleIconButton({required IconData icon, required VoidCallback onTap}) {
+  Widget _circleIconButton({
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
     return InkWell(
       onTap: onTap,
       customBorder: const CircleBorder(),
@@ -273,9 +219,26 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2>
       ),
     );
   }
+
+  /// Drive the Go-Live toggle. Turning ON opens the shop-availability
+  /// (set-time) form directly — no permission gate. The form persists the
+  /// hours and goes live via the backend, popping back `true` on success.
+  /// Turning OFF just flips the local toggle.
+  Future<void> handleGoLiveTap() async {
+    if (isShopGoLive) {
+      setState(() => isShopGoLive = false);
+      return;
+    }
+
+    final result = await Get.to(() => const GroceryShopAvailabilityScreen());
+    if (result == true && mounted) {
+      setState(() => isShopGoLive = true);
+    }
+  }
+
   Widget _goLivePill() {
     return GestureDetector(
-      onTap: handleGoLiveTap_,
+      onTap: handleGoLiveTap,
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(24),
@@ -292,7 +255,8 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2>
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
             child: Container(
-              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
+              padding: EdgeInsets.symmetric(
+                  horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(24),
@@ -305,28 +269,36 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   CustomText(AppStrings.goLive.tr,
-                      fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.secondaryTextColor),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.secondaryTextColor),
                   SizedBox(width: SizeConfig.size6),
                   Container(
                     width: 30,
                     height: 18,
                     padding: const EdgeInsets.all(2),
                     decoration: BoxDecoration(
-                      color: isShopGoLive ? AppColors.primaryColor : Colors.white,
+                      color:
+                          isShopGoLive ? AppColors.primaryColor : Colors.white,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                        color: AppColors.secondaryTextColor.withValues(alpha: 0.4),
+                        color: AppColors.secondaryTextColor
+                            .withValues(alpha: 0.4),
                         width: 0.5,
                       ),
                     ),
                     child: AnimatedAlign(
                       duration: const Duration(milliseconds: 180),
-                      alignment: isShopGoLive ? Alignment.centerRight : Alignment.centerLeft,
+                      alignment: isShopGoLive
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
                       child: Container(
                         height: 14,
                         width: 14,
                         decoration: BoxDecoration(
-                            color: isShopGoLive ? Colors.white : AppColors.secondaryTextColor,
+                            color: isShopGoLive
+                                ? Colors.white
+                                : AppColors.secondaryTextColor,
                             shape: BoxShape.circle),
                       ),
                     ),
@@ -339,16 +311,31 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2>
       ),
     );
   }
-  Future<void> handleGoLiveTap_() async {
-    if (isShopGoLive) {
-      setState(() => isShopGoLive = false);
-      return;
-    }
 
-    final result = await Get.to(() => const GroceryShopAvailabilityScreen());
-    if (result == true && mounted) {
-      setState(() => isShopGoLive = true);
-    }
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFEAF2FB),
+      body: SafeArea(
+        top: false,
+        child: Stack(
+          children: [
+            HomeTabScaffold(
+              controller: _tabController,
+              tabLabels: _tabs,
+              topBar: _buildTopBar(),
+              topBarHeight: MediaQuery.of(context).padding.top + 56,
+              tabViews: [
+                _tabScroll(const VehicleInquiryTabV2()),
+                _tabScroll(VehicleOverviewTabV2(controller: _ctrl)),
+                _tabScroll(VehicleVehiclesTabV2(controller: _ctrl)),
+                _tabScroll(const VehiclePostsTabV2()),
+                _tabScroll(VehicleStatsTabV2(controller: _ctrl)),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
-
 }
