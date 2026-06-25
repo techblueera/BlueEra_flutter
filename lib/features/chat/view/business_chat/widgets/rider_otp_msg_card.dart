@@ -72,12 +72,21 @@ class _RiderOtpMsgCardState extends State<RiderOtpMsgCard> {
       return;
     }
 
+    // A multi-shop card MUST go to the per-stop endpoint with its own
+    // businessId. Falling back to the single-shop POST for a multi-stop order
+    // is the bug this card guards against — it 404s ("Order not found"). If the
+    // card is multi-stop but the businessId is missing, fail loud instead.
+    if (otp.isMultiStop && (otp.businessId ?? '').isEmpty) {
+      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
+      return;
+    }
+
     FocusScope.of(context).unfocus();
     setState(() => _submitting = true);
     try {
       final repo = MakeOrderRepo();
       ResponseModel res;
-      if (otp.isMultiStop && (otp.businessId ?? '').isNotEmpty) {
+      if (otp.isMultiStop) {
         res = await repo.multiShopStopPickupApi(
           orderId: orderId,
           businessId: otp.businessId!,
