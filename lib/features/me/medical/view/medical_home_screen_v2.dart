@@ -25,7 +25,6 @@ import 'package:BlueEra/features/business/widgets/business_verify_now_button.dar
 import 'package:BlueEra/features/chat/auth/controller/chat_flag_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
-import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/view/self_employee_view_discover_screen.dart';
@@ -40,6 +39,7 @@ import 'package:BlueEra/features/me/medical/model/medical_home_response_model.da
 import 'package:BlueEra/features/me/medical/model/my_medical_super_category_model.dart';
 import 'package:BlueEra/features/me/medical/repo/medical_repo.dart';
 import 'package:BlueEra/features/me/medical/view/medical_gallery/medical_gallery_list_screen.dart';
+import 'package:BlueEra/features/me/medical/view/medical_inquiry_tab_v2.dart';
 import 'package:BlueEra/features/me/others/model/other_service_gallery_res_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
@@ -219,7 +219,11 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
                     // overflow).
                     topBarHeight: MediaQuery.of(context).padding.top + 132,
                     tabViews: [
-                      _tabScroll(_buildInquiryTab()),
+                      _tabScroll([
+                        MedicalInquiryTabV2(
+                          onAddProducts: () => _tabController.animateTo(2),
+                        ),
+                      ]),
                       // ProfileStatisticsScreen(userId: userId),
                       _tabScroll(_buildOverviewSlivers()),
                       _tabScroll(_buildProductsTab()),
@@ -252,19 +256,6 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
   // it must live inside a bounded box; we use a fraction of the
   // screen height to play nicely with the parent SingleChildScrollView.
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  List<Widget> _buildInquiryTab() {
-    final screenHeight = MediaQuery.of(context).size.height;
-    return [
-      SizedBox(
-        height: screenHeight * 0.75,
-        child: BusinessChatsList(
-          isForwardUI: false,
-          excludeSenderId: userId,
-        ),
-      ),
-    ];
-  }
-
   List<Widget> _buildOverviewSlivers() {
     return [
       _buildBannerSection(_data?.businessProfile),

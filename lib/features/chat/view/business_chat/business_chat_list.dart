@@ -478,6 +478,10 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
           .toList();
     }
 
+    // Whether there are any incoming orders/enquiries at all (before the date
+    // window is applied). Drives whether the date filter is worth showing.
+    final bool hasOrdersToFilter = chatList.isNotEmpty;
+
     // Date-range filter (provider/seller order tabs only). No-op when the
     // filter row isn't shown, since `_selectedDateFilter` stays `all`.
     if (widget.showDateFilter) {
@@ -608,6 +612,26 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
     // filter on, prepend the chip row and re-apply that same wrapping here so
     // the bounded (Connect) and parent-scroll (provider) layouts both hold.
     if (!widget.showDateFilter) return listBody;
+
+    // The date filter only earns its space when there are order rows actually
+    // shown. Hide it when the visible order list is empty — whether the bucket
+    // had nothing to begin with, OR an applied date window narrowed it down to
+    // zero — instead of floating a dropdown over an empty list.
+    if (chatList.isEmpty) {
+      // If an *applied* filter is what emptied a non-empty bucket, reset it so
+      // the user lands back on the full list rather than being stuck on an
+      // empty filtered view with no visible control to clear it.
+      if (_selectedDateFilter != _OrderDateFilter.all && hasOrdersToFilter) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          setState(() {
+            _selectedDateFilter = _OrderDateFilter.all;
+            _customRange = null;
+          });
+        });
+      }
+      return listBody;
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

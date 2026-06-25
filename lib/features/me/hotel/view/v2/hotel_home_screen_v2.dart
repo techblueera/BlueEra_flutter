@@ -123,7 +123,9 @@ class _HotelHomeScreenV2State extends State<HotelHomeScreenV2>
               topBar: _buildTopBar(),
               topBarHeight: MediaQuery.of(context).padding.top + 56,
               tabViews: [
-                _tabScroll(const HotelInquiryTabV2()),
+                _tabScroll(HotelInquiryTabV2(
+                  onAddRooms: () => _tabController.animateTo(2),
+                )),
                 _tabScroll(HotelOverviewTabV2(controller: _hotelController)),
                 _tabScroll(HotelRoomsTabV2(controller: _hotelController)),
                 _tabScroll(HotelAmenitiesTabV2(controller: _hotelController)),

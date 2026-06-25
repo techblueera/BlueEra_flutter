@@ -10,7 +10,6 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/constants/string_utils.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/core/services/chat_media_storage_service.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
@@ -26,6 +25,7 @@ import 'package:BlueEra/features/common/connect/view/connect_main_page.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/gig_work_options_screen.dart';
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
+import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_parts_screen.dart';
 import 'package:BlueEra/features/me/automotive_service/automotive_service_main.dart';
 import 'package:BlueEra/features/me/food/view/admin/food_main_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/admin/grocery_screen.dart';
@@ -581,7 +581,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   Widget resolveBusinessScreen() {
     logs("businessTypeGlobal=== ${businessTypeGlobal}");
     logs("businessCategoryGlobal=== ${businessCategoryGlobal}");
-    logs("businessCategoryGlobal2222=== ${BusinessType.Grocery.name}");
     // 1. First, check if it is a Food business
     if (businessTypeGlobal.toUpperCase() == BusinessType.Food.name.toUpperCase()) {
       return const FoodMainScreen(fromBottomNavBar: true);
@@ -649,17 +648,26 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     } else if (businessTypeGlobal.toUpperCase() == BusinessType.Manufacturing.name.toUpperCase()) {
       // return const ManufactureMain();
       return const ManufacturerProductScreen();
-    } else if (_isSpecificServiceAutomotive()) {
-      return const VehicleHomeScreenV2();
-    } else if (_isSpecificServiceSpecialAutomotive()) {
-      // VEHICLE_SERVICE / TRANSPORT_LOGISTIC / VEHICLE_SUPPORT now have
-      // their own module entry that currently reuses the OthersMain UI
-      // (and therefore other_repo.dart APIs). Lives in a separate
-      // directory so the UI can diverge in the future without touching
-      // the shared `OthersMain` tree.
-      return const AutomotiveServiceMain();
-    } else if (_isSpecificProductAutomotive()) {
-      return const ProductScreen();
+    } else if (businessTypeGlobal.toUpperCase() == BusinessType.Automotive.name.toUpperCase()) {
+      // All Automotive sub-categories route from this single branch based on
+      // the business category. Order matters — a category can satisfy more
+      // than one check (e.g. VEHICLE_SALES), and the first match wins, same
+      // precedence as the previous separate else-if chain.
+      final category = businessCategoryGlobal.toUpperCase();
+      logs("AUTOMOTIVE -> category= $category");
+      if (_isSpecificServiceAutomotive()) {
+        // VEHICLE_SALES → vehicle showroom.
+        return const VehicleHomeScreenV2();
+      } else if (_isSpecificServiceSpecialAutomotive()) {
+        // VEHICLE_SERVICE / TRANSPORT_LOGISTIC / VEHICLE_SUPPORT — their own
+        // module entry that currently reuses the OthersMain UI (other_repo.dart
+        // APIs), in a separate directory so the UI can diverge later.
+        return const AutomotiveServiceMain();
+      } else if (_isSpecificProductAutomotive()) {
+        // "AUTO PARTS" category → product/parts catalog screen.
+        return const AutomotivePartsScreen();
+      }
+      return const _UnknownBusinessFallback();
     } else {
       return const _UnknownBusinessFallback();
     }
@@ -671,12 +679,12 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     // 1. Define the Automotive sectors that count as "Others"
     final automotiveOthersSectors = {
       "VEHICLE_SALES",
-      "VEHICLE_PARTS",
-      "VEHICLE_RENTAL",
       "VEHICLE SALES",
-      "AUTO PARTS",
-      "VEHICLE RENTAL",
-      "AUTO RENTAL",
+      // "VEHICLE_PARTS",
+      // "VEHICLE_RENTAL",
+      // "AUTO PARTS",
+      // "VEHICLE RENTAL",
+      // "AUTO RENTAL",
     };
 
     // 2. Check if it's Automotive AND in one of those sectors
@@ -690,8 +698,8 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     final automotiveOthersSpecialSectors = {
       "VEHICLE SERVICE",
       "VEHICLE_SERVICE",
-      "TRANSPORT_LOGISTIC",
-      "TRANSPORT LOGISTIC",
+      // "TRANSPORT_LOGISTIC",
+      // "TRANSPORT LOGISTIC",
       "VEHICLE_SUPPORT",
       "VEHICLE SUPPORT",
       "TRANSPORT_LOGISTICS_PARKING",
@@ -704,12 +712,12 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   bool _isSpecificProductAutomotive() {
-    final type = businessTypeGlobal.toUpperCase();
     final category = businessCategoryGlobal.toUpperCase();
-    final isAutoEligible = type.equalsIgnoreCase(BusinessType.Automotive.name) &&
-        [AppConstants.SALES_SECTOR, AppConstants.PARTS_SECTOR].any((s) => s.equalsIgnoreCase(category));
 
-    return isAutoEligible;
+    // The "AUTO PARTS" category (with its space, as the API returns it) maps
+    // to the parts catalog screen.
+    return businessTypeGlobal.toUpperCase() == BusinessType.Automotive.name.toUpperCase() &&
+        category.toUpperCase().contains('AUTO PARTS');
   }
 
   Widget resolveIndividualScreen() {

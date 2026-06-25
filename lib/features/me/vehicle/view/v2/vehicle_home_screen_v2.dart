@@ -142,7 +142,9 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2>
           // ),
           topBarHeight: MediaQuery.of(context).padding.top + 56,
           tabViews: [
-            _tabScroll(const VehicleInquiryTabV2()),
+            _tabScroll(VehicleInquiryTabV2(
+              onAddVehicles: () => _tabController.animateTo(2),
+            )),
             _tabScroll(VehicleOverviewTabV2(controller: _ctrl)),
             _tabScroll(VehicleVehiclesTabV2(controller: _ctrl)),
             _tabScroll(const VehiclePostsTabV2()),
