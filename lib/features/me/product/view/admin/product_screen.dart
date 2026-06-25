@@ -16,9 +16,8 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
-import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
-import 'package:BlueEra/widgets/order_actions_carousel.dart';
+import 'package:BlueEra/features/me/product/view/admin/widget/orders_tab_body.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
@@ -55,7 +54,6 @@ class _ProductScreenState extends State<ProductScreen>
   bool _isGoLive = false;
 
   late final List<String> _tabs;
-  late final List<Widget> _tabViews;
 
   final inventoryController = getOrPut(() => InventoryController());
   final viewBusinessDetailsController = Get.find<ViewBusinessDetailsController>();
@@ -85,16 +83,8 @@ class _ProductScreenState extends State<ProductScreen>
       AppStrings.staticsTab.tr,
     ];
 
-    _tabViews = [
-      _OrdersTabBody(),
-      const ProductHomeScreen(),
-      _ProductsTabBody(onAddProduct: _onAddProduct),
-      _PostTabBody(),
-      ProfileStatisticsScreen(userId: userId),
-    ];
-
     _tabController = TabController(
-      length: _tabViews.length,
+      length: _tabs.length,
       initialIndex: _selectedTab,
       vsync: this,
     )..addListener(_onTabChanged);
@@ -191,7 +181,9 @@ class _ProductScreenState extends State<ProductScreen>
               topBar: _buildTopBar(),
               topBarHeight: topBarHeight,
               tabViews: [
-                _tabScroll(_buildOrderTab()),
+                _tabScroll([
+                  OrdersTabBody(onAddProducts: () => _tabController?.animateTo(2)),
+                ]),
                 _tabScroll(const [ProductHomeScreen()]),
                 _tabScroll([_ProductsTabBody(onAddProduct: _onAddProduct)]),
                 _tabScroll([_PostTabBody()]),
@@ -232,48 +224,6 @@ class _ProductScreenState extends State<ProductScreen>
     );
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // ORDER TAB â€” top slot hosts the OrderActionsCarousel (which now
-  // builds its own contribution card internally) plus the add-catalog
-  // action card.
-  // Below the slot sits the orders list region. Outer CustomScrollView
-  // owns the scroll â€” body is a fixed-height window so the merchant
-  // sees the orders list within the same surface.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  List<Widget> _buildOrderTab() {
-    return [
-      Padding(
-        padding: EdgeInsets.only(right: SizeConfig.size12),
-        child: OrderActionsCarousel(
-          onAddCatalog: () => _tabController?.animateTo(2),
-          catalogIcon: Icons.inventory_2_rounded,
-          catalogTitle: AppStrings.addProduct.tr,
-          catalogSubtitle: 'List items customers can order',
-        ),
-      ),
-      SizedBox(height: SizeConfig.size12),
-      // Incoming orders â€” same widget the Connect screen renders under
-      // its Orders tab. Wrapped in a SizedBox because OrdersTabView
-      // uses an Expanded ListView internally and needs a bounded
-      // height. Translated -20 on x (and given matching width) to
-      // neutralise the parent SliverToBoxAdapter's left:20 padding so
-      // the filter pills and chat tiles align edge-to-edge like on
-      // ConnectMainPage. `excludeSenderId: userId` hides chats whose
-      // last message was authored by the merchant, leaving only
-      // incoming order pings â€” same approach as the Grocery screen.
-      // `isInParentScroll: true` makes OrdersTabView drop its inner
-      // `Expanded` and switch the orders ListView to
-      // NeverScrollableScrollPhysics so the surrounding
-      // CustomScrollView owns the scroll â€” no fixed height needed.
-      // The parent SliverToBoxAdapter's left: 20 padding insets the
-      // orders list naturally â€” no Transform needed.
-      BusinessChatsList(
-        excludeSenderId: userId,
-        isInParentScroll: true,
-        showDateFilter: true,
-      ),
-    ];
-  }
 
   // TOP BAR â€” glass-morphic chrome mirroring the grocery v2 home:
   // backdrop blur (50), translucent white fill (#FFFFFF33), white
@@ -1014,42 +964,3 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
   }
 }
 
-// ORDERS TAB â€” placeholder until product orders ships.
-class _OrdersTabBody extends StatelessWidget {
-  const _OrdersTabBody();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: SizeConfig.size12,
-        vertical: SizeConfig.size40,
-      ),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.receipt_long_outlined,
-              size: 48,
-              color: AppColors.secondaryTextColor,
-            ),
-            SizedBox(height: SizeConfig.size10),
-            CustomText(
-              AppStrings.orders.tr,
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: AppColors.mainTextColor,
-            ),
-            SizedBox(height: SizeConfig.size4),
-            CustomText(
-              AppStrings.comingSoon.tr,
-              fontSize: 12,
-              color: AppColors.secondaryTextColor,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

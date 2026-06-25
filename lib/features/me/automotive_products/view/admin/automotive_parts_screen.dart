@@ -16,8 +16,8 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
-import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
+import 'package:BlueEra/features/me/automotive_products/view/admin/widget/automotive_orders_tab_body.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
@@ -32,7 +32,6 @@ import 'package:BlueEra/features/me/automotive_products/view/admin/widget/automo
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/order_actions_carousel.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -185,7 +184,7 @@ class _AutomotivePartsScreenState extends State<AutomotivePartsScreen>
               topBar: _buildTopBar(),
               topBarHeight: topBarHeight,
               tabViews: [
-                _tabScroll([_AutomotiveOrdersTabBody(onAddProducts: () => _tabController?.animateTo(2))]),
+                _tabScroll([AutomotiveOrdersTabBody(onAddProducts: () => _tabController?.animateTo(2))]),
                 _tabScroll(const [AutomotiveProductHomeScreen()]),
                 _tabScroll([_AutomotiveProductsTabBody(onAddProduct: _onAddProduct)]),
                 _tabScroll([_AutomotivePostTabBody()]),
@@ -981,35 +980,3 @@ class _AutomotiveProductsTabBodyState extends State<_AutomotiveProductsTabBody> 
   }
 }
 
-// ORDERS TAB â€” contribution actions carousel followed by the incoming
-// orders list (same widget the Connect screen renders).
-class _AutomotiveOrdersTabBody extends StatelessWidget {
-  const _AutomotiveOrdersTabBody({required this.onAddProducts});
-
-  /// Switches the host screen's TabController to the Products tab.
-  final VoidCallback onAddProducts;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: EdgeInsets.only(right: SizeConfig.size12),
-          child: OrderActionsCarousel(
-            onAddCatalog: onAddProducts,
-            catalogIcon: Icons.inventory_2_rounded,
-            catalogTitle: AppStrings.addProduct.tr,
-            catalogSubtitle: 'List items customers can order',
-          ),
-        ),
-        SizedBox(height: SizeConfig.size12),
-        BusinessChatsList(
-          excludeSenderId: userId,
-          isInParentScroll: true,
-          showDateFilter: true,
-        ),
-      ],
-    );
-  }
-}
