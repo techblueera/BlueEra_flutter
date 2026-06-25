@@ -78,9 +78,10 @@ class _SplashScreenState extends State<SplashScreen> {
             (Route<dynamic> route) => false,
           );
         } else {
+          // Business cold-starts onto its own Me tab (0); individuals → Discover.
           Navigator.of(context).pushNamedAndRemoveUntil(
             RouteHelper.getBottomNavigationBarScreenRoute(),
-            arguments: {ApiKeys.initialIndex: 1},
+            arguments: {ApiKeys.initialIndex: 0},
             (Route<dynamic> route) => false,
           );
         }
@@ -146,10 +147,11 @@ class _SplashScreenState extends State<SplashScreen> {
               (Route<dynamic> route) => false,
             );
           } else {
+            // Business cold-starts onto its own Me tab (0); individuals → Discover.
             Navigator.of(context).pushNamedAndRemoveUntil(
               RouteHelper.getBottomNavigationBarScreenRoute(),
               arguments: {
-                ApiKeys.initialIndex: 1,
+                ApiKeys.initialIndex: 0,
                 if (sharedMedia != null) 'sharedMedia': sharedMedia,
               },
               (Route<dynamic> route) => false,

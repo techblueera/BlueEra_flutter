@@ -27,6 +27,7 @@ import 'package:BlueEra/features/chat/auth/controller/chat_flag_controller.dart'
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/view/self_employee_view_discover_screen.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
@@ -65,13 +66,13 @@ class MedicalHomeScreenV2 extends StatefulWidget {
 }
 
 class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
-    with SingleTickerProviderStateMixin, GoLiveAvailabilityMixin {
+    with SingleTickerProviderStateMixin, GoLiveAvailabilityMixin, MeTabBackHandlerMixin {
   @override
   String get goLiveBusinessId => widget.businessId;
 
   MedicalHomeResponseModel? _data;
   bool _isLoading = true;
-  // Default landing tab unchanged: Overview (index 2 — Inquiry is at 0).
+  // Lands on the first tab (Inquiry, index 0) on open.
   late final TabController _tabController;
 
   late final MedicalGalleryController _galleryController;
@@ -105,8 +106,9 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _tabs.length, initialIndex: 2, vsync: this)
+    _tabController = TabController(length: _tabs.length, initialIndex: 0, vsync: this)
       ..addListener(_handleTabChange);
+    registerMeTabBackHandler(_tabController);
     _galleryController = Get.put(MedicalGalleryController());
     _medicalController = getOrPut(() => MedicalController());
     // Hydrate the business chat list so the Inquiry tab has data ready

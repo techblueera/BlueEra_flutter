@@ -19,6 +19,17 @@ class BottomBarController extends GetxController {
   /// true on forward scroll (user pulled back up).
   final RxBool isBottomNavVisible = true.obs;
 
+  /// Set by the currently-mounted "Me" tab home screen (food, grocery,
+  /// hospital, school, …) so the global back handler can collapse that
+  /// screen's internal tabs back to the first (Order / Inquiry) tab before
+  /// the bottom-nav back logic runs.
+  ///
+  /// Returns `true` when it consumed the back press (i.e. it moved off a
+  /// non-first internal tab); `false` when it was already on the first tab
+  /// and the press should fall through to the normal bottom-nav handling.
+  /// Cleared by the owning screen on dispose.
+  bool Function()? meTabBackHandler;
+
   void onChangeIndex(int index) {
     // Pause and release feed video when leaving Home tab to free GPU buffers
     if (currentIndex.value == 0 && index != 0) {

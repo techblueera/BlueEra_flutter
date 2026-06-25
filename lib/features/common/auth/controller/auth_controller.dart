@@ -228,9 +228,10 @@ class AuthController extends GetxController {
               Get.offNamedUntil(
                 RouteHelper.getBottomNavigationBarScreenRoute(),
                 (route) => false,
-                // Land on the Discover tab (index 1) after login, same as the
-                // individual branch below.
-                arguments: {ApiKeys.initialIndex: 1},
+                // Business logs in onto the Me tab (index 0) so the merchant's
+                // own shop/dashboard is front and centre. (Individuals still
+                // land on Discover — see the branch below.)
+                arguments: {ApiKeys.initialIndex: 0},
               );
             } else if (data.data?.accountType?.toUpperCase() == AppConstants.individual) {
               await SharedPreferenceUtils.setSecureValue(

@@ -8,6 +8,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_flag_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_full_details_controller.dart';
 import 'package:BlueEra/features/me/laboratory/view/v2/tabs/lab_facilities_tab_v2.dart';
@@ -34,7 +35,7 @@ class LabHomeScreenV2 extends StatefulWidget {
 }
 
 class _LabHomeScreenV2State extends State<LabHomeScreenV2>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, MeTabBackHandlerMixin {
   late final LabFullDetailsController _labController;
   final _businessController =
       getOrPut(() => ViewBusinessDetailsController(), permanent: true);
@@ -70,6 +71,7 @@ class _LabHomeScreenV2State extends State<LabHomeScreenV2>
   void initState() {
     super.initState();
     _tabController = TabController(length: _tabs.length, vsync: this);
+    registerMeTabBackHandler(_tabController);
     if (!Get.isRegistered<LabFullDetailsController>()) {
       _labController = Get.put(LabFullDetailsController(), permanent: true);
     } else {

@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_service_screen.dart';
 import 'package:BlueEra/features/me/vehicle/controller/vehicle_controller.dart';
 import 'package:BlueEra/features/me/vehicle/view/v2/actions/vehicle_owner_actions.dart';
@@ -37,7 +38,7 @@ class VehicleHomeScreenV2 extends StatefulWidget {
 }
 
 class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, MeTabBackHandlerMixin {
   final VehicleController _ctrl =
       getOrPut(() => VehicleController(), permanent: true);
 
@@ -46,7 +47,7 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2>
   final ChatViewController _chatViewController =
       getOrPut(() => ChatViewController());
 
-  int _selectedTab = 1; // default to Overview
+  int _selectedTab = 0; // default to first tab
   late final TabController _tabController;
 
   final List<String> _tabs = [
@@ -65,6 +66,7 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2>
       initialIndex: _selectedTab,
       vsync: this,
     )..addListener(_handleTabChange);
+    registerMeTabBackHandler(_tabController);
     // ProfileTopBar's Go-Live pill resolves ViewPersonalDetailsController via
     // Get.find during the header build, so make sure it's registered before
     // the first frame regardless of which tab body builds first.

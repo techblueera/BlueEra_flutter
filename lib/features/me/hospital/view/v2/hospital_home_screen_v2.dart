@@ -9,6 +9,7 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/business/go_live/go_live_availability_mixin.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_flag_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_departments_tab_v2.dart';
@@ -34,7 +35,7 @@ class HospitalHomeScreenV2 extends StatefulWidget {
 }
 
 class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2>
-    with SingleTickerProviderStateMixin, GoLiveAvailabilityMixin {
+    with SingleTickerProviderStateMixin, GoLiveAvailabilityMixin, MeTabBackHandlerMixin {
   late final HospitalServiceAiController _hospitalController;
   final _businessController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
   late final TabController _tabController;
@@ -64,6 +65,7 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2>
   void initState() {
     super.initState();
     _tabController = TabController(length: _tabs.length, vsync: this);
+    registerMeTabBackHandler(_tabController);
     _hospitalController = getOrPut(() => HospitalServiceAiController());
     if (_hospitalController.hospitalDataResModel?.value.data == null) {
       _hospitalController.getHospitalFullDetailsController();

@@ -17,11 +17,12 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
+import 'package:BlueEra/widgets/order_actions_carousel.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
-import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
 import 'package:BlueEra/features/common/statistics/view/profile_statistics_screen.dart';
 import 'package:BlueEra/features/me/manufacturer/controller/manufacturer_inventory_controller.dart';
 import 'package:BlueEra/features/me/product/model/product_category_with_inventory_model.dart';
@@ -47,9 +48,9 @@ class ManufacturerProductScreen extends StatefulWidget {
 }
 
 class _ProductScreenState extends State<ManufacturerProductScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, MeTabBackHandlerMixin {
   TabController? _tabController;
-  int _selectedTab = 1; // matches grocery's default (Overview)
+  int _selectedTab = 0; // land on the first tab (Order) on open
   bool _isLoading = true;
   bool _isGoLive = false;
 
@@ -91,6 +92,7 @@ class _ProductScreenState extends State<ManufacturerProductScreen>
       initialIndex: _selectedTab,
       vsync: this,
     )..addListener(_onTabChanged);
+    registerMeTabBackHandler(_tabController!);
     setState(() => _isLoading = false);
   }
 
@@ -225,43 +227,22 @@ class _ProductScreenState extends State<ManufacturerProductScreen>
   }
 
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // ORDER TAB â€” top slot is reactive to the contribution status:
-  //   â€¢ Active recharge present â†’ premium "membership peek" card with
-  //     plan name, perks-remaining strip, and a forward chevron that
-  //     pushes ContributionScreen.
-  //   â€¢ Otherwise â†’ the lavender "Contribute now" CTA, identical to
-  //     grocery v2.
+  // ORDER TAB â€” top slot hosts the shared OrderActionsCarousel, which
+  // builds its own contribution card internally. This host only wires
+  // the add-catalog action and labels.
   // Below the slot sits the orders list region. Outer CustomScrollView
   // owns the scroll â€” body is a fixed-height window so the merchant
   // sees the orders list within the same surface.
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildOrderTab() {
-    // Lazy-register the contribution controller â€” its `onInit` fires
-    // /recharge/plans + /recharge/current. Bound here (only when the
-    // Order tab actually builds) so the APIs don't run on every Me-tab
-    // landing or on bottom-nav startup. Subsequent rebuilds reuse the
-    // existing instance, so the calls fire at most once per session.
-    final contributionController = getOrPut(() => ContributionController());
-
     return [
       Padding(
         padding: EdgeInsets.only(right: SizeConfig.size12),
-        child: Center(
-          child: Obx(() {
-            final status = contributionController.currentStatus.value;
-            // While /recharge/current is resolving, hold the slot
-            // with a skeleton instead of flashing the contribute
-            // banner first and then swapping to the active card.
-            if (status == Status.INITIAL || status == Status.LOADING) {
-              return _planPeekSkeleton();
-            }
-            final hasPlan = contributionController.hasActiveRecharge.value;
-            final data = contributionController.currentRecharge.value;
-            if (hasPlan && data != null && data.isNotEmpty) {
-              return _activePlanPeekCard(data);
-            }
-            return _contributeNowBanner();
-          }),
+        child: OrderActionsCarousel(
+          onAddCatalog: () => _tabController?.animateTo(2),
+          catalogIcon: Icons.inventory_2_rounded,
+          catalogTitle: AppStrings.addProduct.tr,
+          catalogSubtitle: 'List items customers can order',
         ),
       ),
       SizedBox(height: SizeConfig.size12),
@@ -286,457 +267,6 @@ class _ProductScreenState extends State<ManufacturerProductScreen>
         showDateFilter: true,
       ),
     ];
-  }
-
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // PEEK SKELETON â€” placeholder shown while /recharge/current is
-  // in-flight. Matches the active-plan peek silhouette (badge â–¸ two
-  // text bars â–¸ chevron â–¸ progress strip) so the slot doesn't jump
-  // height when the answer lands. Uses a shimmering frosted-glass
-  // gradient so it reads as "loading" without looking like a CTA.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  Widget _planPeekSkeleton() {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x42001120),
-            blurRadius: 10,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size14,
-            vertical: SizeConfig.size12,
-          ),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFFEFEAF7),
-                Color(0xFFE3D9F4),
-                Color(0xFFEFEAF7),
-              ],
-              stops: [0.0, 0.55, 1.0],
-            ),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: const Color(0xFF844CD5).withValues(alpha: 0.18),
-              width: 0.5,
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  _shimmerBox(width: 44, height: 44, radius: 22),
-                  SizedBox(width: SizeConfig.size10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _shimmerBox(width: 140, height: 14, radius: 4),
-                        const SizedBox(height: 6),
-                        _shimmerBox(width: 80, height: 10, radius: 4),
-                      ],
-                    ),
-                  ),
-                  SizedBox(width: SizeConfig.size8),
-                  const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor:
-                          AlwaysStoppedAnimation(Color(0xFF844CD5)),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: SizeConfig.size12),
-              _shimmerBox(
-                width: double.infinity,
-                height: 5,
-                radius: 4,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _shimmerBox({
-    required double width,
-    required double height,
-    required double radius,
-  }) {
-    return Container(
-      width: width,
-      height: height,
-      decoration: BoxDecoration(
-        color: const Color(0xFFCDBCE9).withValues(alpha: 0.55),
-        borderRadius: BorderRadius.circular(radius),
-      ),
-    );
-  }
-
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // ACTIVE PLAN PEEK â€” compact aurora card mirroring the hero on
-  // ContributionScreen so recognition is instant. Gold tier badge on
-  // the left, plan name + ACTIVE pill on top, perks-remaining strip
-  // on the bottom, and a glass forward chevron on the right. Tapping
-  // anywhere pushes ContributionScreen for the full membership view.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  Widget _activePlanPeekCard(Map<String, dynamic> data) {
-    final plan = (data['rechargePlanId'] is Map<String, dynamic>)
-        ? data['rechargePlanId'] as Map<String, dynamic>
-        : <String, dynamic>{};
-
-    final name = (plan['name'] ?? 'Active Contribution').toString();
-    final tier = (plan['tier'] ?? '').toString();
-    final perkType = (plan['perk_type'] ?? '').toString();
-    final totalPerks = _asInt(data['total_perks']);
-    final perksRemaining = _asInt(data['perks_remaining']);
-    final progress = totalPerks > 0 ? perksRemaining / totalPerks : 0.0;
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () => Get.to(() => const ContributionScreen()),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x42001120),
-              blurRadius: 10,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: SizeConfig.size14,
-              vertical: SizeConfig.size12,
-            ),
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  // Aurora â€” same indigo â†’ violet â†’ magenta tri-stop
-                  // the ContributionScreen hero card uses.
-                  Color(0xFF1F1B5C),
-                  Color(0xFF5E2BA8),
-                  Color(0xFFB2308C),
-                ],
-                stops: [0.0, 0.55, 1.0],
-              ),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // Gold tier badge â€” warm sun gradient with glow.
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Color(0xFFFCD34D),
-                            Color(0xFFF59E0B),
-                            Color(0xFFB7781F),
-                          ],
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Color(0x66FCD34D),
-                            blurRadius: 14,
-                            offset: Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.workspace_premium_rounded,
-                        size: 24,
-                        color: Color(0xFF6B3A00),
-                      ),
-                    ),
-                    SizedBox(width: SizeConfig.size10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Row(
-                            children: [
-                              Flexible(
-                                child: CustomText(
-                                  name,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.white,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              SizedBox(width: SizeConfig.size6),
-                              _activePill(),
-                            ],
-                          ),
-                          const SizedBox(height: 2),
-                          CustomText(
-                            tier.isNotEmpty
-                                ? '${tier.toUpperCase()} MEMBER'
-                                : 'MEMBER',
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFFE9D9FF),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(width: SizeConfig.size8),
-                    // Glass forward chevron â€” translucent disc with a
-                    // 1px white rim so it pops on the aurora.
-                    Container(
-                      width: 34,
-                      height: 34,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withValues(alpha: 0.18),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.5),
-                          width: 1,
-                        ),
-                      ),
-                      child: const Icon(
-                        Icons.arrow_forward_rounded,
-                        size: 18,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-                if (totalPerks > 0) ...[
-                  SizedBox(height: SizeConfig.size12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      CustomText(
-                        perkType.isEmpty
-                            ? 'Perks remaining'
-                            : '${perkType[0].toUpperCase()}${perkType.substring(1)} remaining',
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFFE9D9FF),
-                      ),
-                      CustomText(
-                        '$perksRemaining of $totalPerks',
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        color: const Color(0xFFFCD34D),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: SizeConfig.size6),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(4),
-                    child: LinearProgressIndicator(
-                      value: progress.clamp(0.0, 1.0),
-                      minHeight: 5,
-                      backgroundColor: Colors.white.withValues(alpha: 0.18),
-                      valueColor: const AlwaysStoppedAnimation(
-                        Color(0xFFFCD34D),
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _activePill() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF047857),
-            Color(0xFF065F46),
-            Color(0xFF064E3B),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: const Color(0xFF34D399).withValues(alpha: 0.5),
-          width: 0.5,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 5,
-            height: 5,
-            decoration: const BoxDecoration(
-              color: Color(0xFF34D399),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Color(0xFF34D399),
-                  blurRadius: 4,
-                  offset: Offset(0, 0),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 4),
-          const Text(
-            'ACTIVE',
-            style: TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.w800,
-              color: Colors.white,
-              letterSpacing: 0.6,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  int _asInt(dynamic v) {
-    if (v is int) return v;
-    if (v is num) return v.toInt();
-    return int.tryParse(v?.toString() ?? '') ?? 0;
-  }
-
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // CONTRIBUTE-NOW BANNER â€” frosted lavender CTA, identical to the
-  // grocery v2 implementation. Tapping pushes ContributionScreen.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  Widget _contributeNowBanner() {
-    return GestureDetector(
-      onTap: () => Get.to(() => const ContributionScreen()),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x42001120),
-              blurRadius: 10,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 100, sigmaY: 100),
-            child: Container(
-              padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size14,
-                  vertical: SizeConfig.size12),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                  colors: [
-                    Color(0xFFFAF3FF),
-                    Color(0xFFE7C8FF),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: const Color(0xFF844CD5),
-                  width: 0.5,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ClipOval(
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 1000, sigmaY: 1000),
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: const LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              Color(0xFF543680),
-                              Color(0xFF311E52),
-                            ],
-                          ),
-                          border: Border.all(
-                            color: const Color(0xFFD4BAFF),
-                            width: 1,
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.workspace_premium_rounded,
-                          size: 22,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: SizeConfig.size12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      CustomText(
-                        'Contribute now',
-                        fontSize: 26,
-                        fontWeight: FontWeight.w800,
-                        color: const Color(0xFF221831),
-                      ),
-                      const SizedBox(height: 2),
-                      CustomText(
-                        'to get order & Visibility',
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF6E5F8E),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
   }
 
   // TOP BAR â€” glass-morphic chrome mirroring the grocery v2 home:
