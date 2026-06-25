@@ -38,7 +38,7 @@ class SchoolHomeScreenV2 extends StatefulWidget {
 }
 
 class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, MeTabBackHandlerMixin {
   /// Local live state backing the Go-Live toggle/pill.
   bool isShopGoLive = false;
 

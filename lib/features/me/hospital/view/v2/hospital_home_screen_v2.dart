@@ -37,7 +37,7 @@ class HospitalHomeScreenV2 extends StatefulWidget {
 }
 
 class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, MeTabBackHandlerMixin {
   /// Local live state backing the Go-Live toggle/pill.
   bool isShopGoLive = false;
 

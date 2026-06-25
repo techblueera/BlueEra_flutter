@@ -38,7 +38,7 @@ class HotelHomeScreenV2 extends StatefulWidget {
 }
 
 class _HotelHomeScreenV2State extends State<HotelHomeScreenV2>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, MeTabBackHandlerMixin {
   /// Local live state backing the Go-Live toggle/pill.
   bool isShopGoLive = false;
 
