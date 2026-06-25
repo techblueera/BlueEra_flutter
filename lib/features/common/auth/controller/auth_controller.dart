@@ -33,8 +33,11 @@ import 'package:BlueEra/features/common/auth/model/username_res_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/auth/views/screens/complete_guest_profile_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/create_account_type_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/go_live_permission_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_bar_screen.dart';
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
+import 'package:BlueEra/features/me/grocery/view/admin/grocery_shop_availability_screen.dart';
+import 'package:BlueEra/permissionCentralize/go_live_permission_service.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_service_controller.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_service_ai_controller.dart';
@@ -261,6 +264,20 @@ class AuthController extends GetxController {
               // logins.
               final personalController = Get.put(ViewPersonalDetailsController(), permanent: true);
               await personalController.viewPersonalProfile();
+
+              // Riders must be reachable for live dispatch. On login, if the
+              // go-live device permissions aren't all granted yet, walk them
+              // through the permission gate → set-availability screen (which
+              // persists their hours), then land on home.
+              final isRider = userProfessionGlobal == BIKE_RIDER ||
+                  userProfessionGlobal == CAR_TAXI_DRIVER;
+              if (isRider && !await GoLivePermissionService.areAllGranted()) {
+                final granted = await Get.to(() => const GoLivePermissionScreen());
+                // if (granted == true) {
+                //   await Get.to(() => const GroceryShopAvailabilityScreen());
+                // }
+              }
+
               navigatedAway = true;
               Get.offNamedUntil(
                 RouteHelper.getBottomNavigationBarScreenRoute(),

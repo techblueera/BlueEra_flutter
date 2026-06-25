@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -6,10 +8,10 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/business/go_live/go_live_availability_mixin.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_flag_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
+import 'package:BlueEra/features/me/grocery/view/admin/grocery_shop_availability_screen.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_home_detail_controller.dart';
 import 'package:BlueEra/features/me/hotel/view/v2/tabs/hotel_amenities_tab_v2.dart';
 import 'package:BlueEra/features/me/hotel/view/v2/tabs/hotel_inquiry_tab_v2.dart';
@@ -21,7 +23,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get_utils/src/extensions/internacionalization.dart';
+import 'package:get/get.dart';
 
 /// Hotel "me" profile home (v2) — redesigned to mirror the layout used
 /// by `HospitalHomeScreenV2` while preserving every action surfaced by
@@ -35,7 +37,10 @@ class HotelHomeScreenV2 extends StatefulWidget {
 }
 
 class _HotelHomeScreenV2State extends State<HotelHomeScreenV2>
-    with SingleTickerProviderStateMixin, GoLiveAvailabilityMixin {
+    with SingleTickerProviderStateMixin {
+  /// Local live state backing the Go-Live toggle/pill.
+  bool isShopGoLive = false;
+
   late final HotelDetailController _hotelController;
   final _businessController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
   late final TabController _tabController;
@@ -82,10 +87,6 @@ class _HotelHomeScreenV2State extends State<HotelHomeScreenV2>
       ChatEmitEvents.ChatList,
       {ApiKeys.type: AppConstants.business_Chat_Type},
     );
-    // Remind business sellers to set shop availability if they never have.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      maybeShowAvailabilityReminder();
-    });
   }
 
   @override
@@ -136,33 +137,53 @@ class _HotelHomeScreenV2State extends State<HotelHomeScreenV2>
 
   Widget _buildTopBar() {
     final topInset = MediaQuery.of(context).padding.top;
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.fromLTRB(
-        SizeConfig.size12,
-        topInset + SizeConfig.size8,
-        SizeConfig.size12,
-        SizeConfig.size10,
-      ),
+    return DecoratedBox(
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF1E88FF), Color(0xFF0040A0)],
-        ),
-      ),
-      child: Row(
-        children: [
-          _circleIconButton(icon: Icons.menu, onTap: _openDrawer),
-          SizedBox(width: SizeConfig.size6),
-          // Pills wrapped in Flexible so their inner text can ellipsize
-          // instead of pushing the row past its width.
-          Flexible(child: const ReferEarnPill()),
-          const Spacer(),
-          _circleIconButton(icon: Icons.notifications_none, onTap: _openNotifications),
-          SizedBox(width: SizeConfig.size6),
-          _goLivePill(),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x42001120),
+            blurRadius: 16,
+            offset: Offset(0, 0),
+            blurStyle: BlurStyle.outer,
+          ),
         ],
+      ),
+      child: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.fromLTRB(
+              SizeConfig.size12,
+              topInset + SizeConfig.size8,
+              SizeConfig.size12,
+              SizeConfig.size10,
+            ),
+            decoration: BoxDecoration(
+              color: const Color(0x33FFFFFF),
+              border: Border.all(
+                color: Colors.white,
+                width: 1.0,
+              ),
+            ),
+            child: Row(
+              children: [
+                _circleIconButton(icon: Icons.menu, onTap: _openDrawer),
+                SizedBox(width: SizeConfig.size6),
+                // Pills wrapped in Flexible so their inner text can ellipsize
+                // instead of pushing the row past its width.
+                Flexible(child: const ReferEarnPill()),
+                const Spacer(),
+                _circleIconButton(
+                  icon: Icons.notifications_none,
+                  onTap: _openNotifications,
+                ),
+                SizedBox(width: SizeConfig.size6),
+                _goLivePill(),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -195,13 +216,35 @@ class _HotelHomeScreenV2State extends State<HotelHomeScreenV2>
       onTap: onTap,
       customBorder: const CircleBorder(),
       child: Container(
-        height: SizeConfig.size36,
-        width: SizeConfig.size36,
         decoration: const BoxDecoration(
-          color: Colors.white,
           shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Color(0x1A000000),
+              blurRadius: 3,
+              offset: Offset(0, -1),
+            ),
+          ],
         ),
-        child: Icon(icon, size: 20, color: AppColors.mainTextColor),
+        child: ClipPath(
+          clipper: const ShapeBorderClipper(shape: CircleBorder()),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+            child: Container(
+              height: SizeConfig.size36,
+              width: SizeConfig.size36,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white,
+                border: Border.all(
+                  color: const Color(0xFFC9CDD5),
+                  width: 1,
+                ),
+              ),
+              child: Icon(icon, size: 20, color: AppColors.secondaryTextColor),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -210,45 +253,91 @@ class _HotelHomeScreenV2State extends State<HotelHomeScreenV2>
     return GestureDetector(
       onTap: handleGoLiveTap,
       child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size10,
-          vertical: SizeConfig.size6,
-        ),
         decoration: BoxDecoration(
-          color: Colors.white,
           borderRadius: BorderRadius.circular(24),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CustomText(AppStrings.goLive.tr,
-                fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.mainTextColor),
-            SizedBox(width: SizeConfig.size6),
-            Container(
-              width: 30,
-              height: 18,
-              padding: const EdgeInsets.all(2),
-              decoration: BoxDecoration(
-                color: isShopGoLive ? AppColors.primaryColor : Colors.grey.shade400,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: AnimatedAlign(
-                duration: const Duration(milliseconds: 180),
-                alignment: isShopGoLive ? Alignment.centerRight : Alignment.centerLeft,
-                child: Container(
-                  height: 14,
-                  width: 14,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x1A000000),
+              blurRadius: 3,
+              offset: Offset(0, -1),
             ),
           ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                  horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: const Color(0xFFC9CDD5),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CustomText(AppStrings.goLive.tr,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.secondaryTextColor),
+                  SizedBox(width: SizeConfig.size6),
+                  Container(
+                    width: 30,
+                    height: 18,
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color:
+                          isShopGoLive ? AppColors.primaryColor : Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: AppColors.secondaryTextColor
+                            .withValues(alpha: 0.4),
+                        width: 0.5,
+                      ),
+                    ),
+                    child: AnimatedAlign(
+                      duration: const Duration(milliseconds: 180),
+                      alignment: isShopGoLive
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
+                      child: Container(
+                        height: 14,
+                        width: 14,
+                        decoration: BoxDecoration(
+                            color: isShopGoLive
+                                ? Colors.white
+                                : AppColors.secondaryTextColor,
+                            shape: BoxShape.circle),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
   }
 
+  /// Drive the Go-Live toggle. Turning ON opens the shop-availability
+  /// (set-time) form directly — no permission gate. The form persists the
+  /// hours and goes live via the backend, popping back `true` on success.
+  /// Turning OFF just flips the local toggle.
+  Future<void> handleGoLiveTap() async {
+    if (isShopGoLive) {
+      setState(() => isShopGoLive = false);
+      return;
+    }
+
+    final result = await Get.to(() => const GroceryShopAvailabilityScreen());
+    if (result == true && mounted) {
+      setState(() => isShopGoLive = true);
+    }
+  }
 }

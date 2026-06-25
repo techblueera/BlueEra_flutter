@@ -15,7 +15,6 @@ import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/business/go_live/go_live_availability_mixin.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
@@ -28,6 +27,7 @@ import 'package:BlueEra/features/me/automotive_products/controller/automotive_in
 import 'package:BlueEra/features/me/automotive_products/model/automotive_product_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_admin_all_top_selling_products_screen.dart';
 import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_product_home_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/admin/grocery_shop_availability_screen.dart';
 import 'package:BlueEra/features/me/automotive_products/view/admin/widget/automotive_admin_product_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -48,7 +48,10 @@ class AutomotivePartsScreen extends StatefulWidget {
 }
 
 class _AutomotivePartsScreenState extends State<AutomotivePartsScreen>
-    with SingleTickerProviderStateMixin, GoLiveAvailabilityMixin {
+    with SingleTickerProviderStateMixin {
+  /// Local live state backing the Go-Live toggle/pill.
+  bool isShopGoLive = false;
+
   TabController? _tabController;
   int _selectedTab = 1; // matches grocery's default (Overview)
   bool _isLoading = true;
@@ -71,10 +74,6 @@ class _AutomotivePartsScreenState extends State<AutomotivePartsScreen>
       ChatEmitEvents.ChatList,
       {ApiKeys.type: AppConstants.business_Chat_Type},
     );
-    // Remind business sellers to set shop availability if they never have.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      maybeShowAvailabilityReminder();
-    });
   }
 
   void _initializeData() {
@@ -945,6 +944,22 @@ class _AutomotivePartsScreenState extends State<AutomotivePartsScreen>
         ),
       ),
     );
+  }
+
+  /// Drive the Go-Live toggle. Turning ON opens the shop-availability
+  /// (open-timer) form directly — same as the grocery v2 home. The form
+  /// persists the hours and goes live via the backend, popping back `true`
+  /// on success. Turning OFF just flips the local toggle.
+  Future<void> handleGoLiveTap() async {
+    if (isShopGoLive) {
+      setState(() => isShopGoLive = false);
+      return;
+    }
+
+    final result = await Get.to(() => const GroceryShopAvailabilityScreen());
+    if (result == true && mounted) {
+      setState(() => isShopGoLive = true);
+    }
   }
 
   /// Go-live toggle pill. Off-state: white track + grey thumb.

@@ -18,7 +18,6 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/business/go_live/go_live_availability_mixin.dart';
 import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_verfication.dart';
@@ -33,6 +32,7 @@ import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/common/statistics/view/profile_statistics_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/admin/grocery_shop_availability_screen.dart';
 import 'package:BlueEra/features/me/medical/controller/medical_controller.dart';
 import 'package:BlueEra/features/me/medical/controller/medical_gallery_controller.dart';
 import 'package:BlueEra/features/me/medical/model/medical_home_response_model.dart';
@@ -65,9 +65,9 @@ class MedicalHomeScreenV2 extends StatefulWidget {
 }
 
 class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
-    with SingleTickerProviderStateMixin, GoLiveAvailabilityMixin {
-  @override
-  String get goLiveBusinessId => widget.businessId;
+    with SingleTickerProviderStateMixin {
+  /// Local live state backing the Go-Live toggle/pill.
+  bool isShopGoLive = false;
 
   MedicalHomeResponseModel? _data;
   bool _isLoading = true;
@@ -117,10 +117,6 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
       {ApiKeys.type: AppConstants.business_Chat_Type},
     );
     _fetchData();
-    // Remind business sellers to set shop availability if they never have.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      maybeShowAvailabilityReminder();
-    });
   }
 
   void _ensureProductsLoaded() {
@@ -829,13 +825,35 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
       onTap: onTap,
       customBorder: const CircleBorder(),
       child: Container(
-        height: SizeConfig.size36,
-        width: SizeConfig.size36,
         decoration: const BoxDecoration(
-          color: Colors.white,
           shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Color(0x1A000000),
+              blurRadius: 3,
+              offset: Offset(0, -1),
+            ),
+          ],
         ),
-        child: Icon(icon, size: 20, color: AppColors.mainTextColor),
+        child: ClipPath(
+          clipper: const ShapeBorderClipper(shape: CircleBorder()),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+            child: Container(
+              height: SizeConfig.size36,
+              width: SizeConfig.size36,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white,
+                border: Border.all(
+                  color: const Color(0xFFC9CDD5),
+                  width: 1,
+                ),
+              ),
+              child: Icon(icon, size: 20, color: AppColors.secondaryTextColor),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -844,39 +862,92 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
     return GestureDetector(
       onTap: handleGoLiveTap,
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
         decoration: BoxDecoration(
-          color: Colors.white,
           borderRadius: BorderRadius.circular(24),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CustomText(AppStrings.goLive.tr,
-                fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.mainTextColor),
-            SizedBox(width: SizeConfig.size6),
-            Container(
-              width: 30,
-              height: 18,
-              padding: const EdgeInsets.all(2),
-              decoration: BoxDecoration(
-                color: isShopGoLive ? AppColors.primaryColor : Colors.grey.shade400,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: AnimatedAlign(
-                duration: const Duration(milliseconds: 180),
-                alignment: isShopGoLive ? Alignment.centerRight : Alignment.centerLeft,
-                child: Container(
-                  height: 14,
-                  width: 14,
-                  decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-                ),
-              ),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x1A000000),
+              blurRadius: 3,
+              offset: Offset(0, -1),
             ),
           ],
         ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                  horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: const Color(0xFFC9CDD5),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CustomText(AppStrings.goLive.tr,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.secondaryTextColor),
+                  SizedBox(width: SizeConfig.size6),
+                  Container(
+                    width: 30,
+                    height: 18,
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color:
+                          isShopGoLive ? AppColors.primaryColor : Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: AppColors.secondaryTextColor
+                            .withValues(alpha: 0.4),
+                        width: 0.5,
+                      ),
+                    ),
+                    child: AnimatedAlign(
+                      duration: const Duration(milliseconds: 180),
+                      alignment: isShopGoLive
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
+                      child: Container(
+                        height: 14,
+                        width: 14,
+                        decoration: BoxDecoration(
+                            color: isShopGoLive
+                                ? Colors.white
+                                : AppColors.secondaryTextColor,
+                            shape: BoxShape.circle),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
+  }
+
+  /// Drive the Go-Live toggle. Turning ON opens the shop-availability
+  /// (set-time) form directly — no permission gate. The form persists the
+  /// hours and goes live via the backend, popping back `true` on success.
+  /// Turning OFF just flips the local toggle.
+  Future<void> handleGoLiveTap() async {
+    if (isShopGoLive) {
+      setState(() => isShopGoLive = false);
+      return;
+    }
+
+    final result = await Get.to(() => const GroceryShopAvailabilityScreen());
+    if (result == true && mounted) {
+      setState(() => isShopGoLive = true);
+    }
   }
 
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

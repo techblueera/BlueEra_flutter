@@ -8,10 +8,10 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/business/go_live/go_live_availability_mixin.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_flag_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
+import 'package:BlueEra/features/me/grocery/view/admin/grocery_shop_availability_screen.dart';
 import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
 import 'package:BlueEra/features/me/others/view/v2/tabs/other_inquiry_tab_v2.dart';
 import 'package:BlueEra/features/me/others/view/v2/tabs/other_overview_tab_v2.dart';
@@ -36,7 +36,10 @@ class OtherHomeScreenV2 extends StatefulWidget {
 }
 
 class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
-    with SingleTickerProviderStateMixin, GoLiveAvailabilityMixin {
+    with SingleTickerProviderStateMixin {
+  /// Local live state backing the Go-Live toggle/pill.
+  bool isShopGoLive = false;
+
   late final BusinessProfileFullController _otherController;
   final _businessController   = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
@@ -87,10 +90,6 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
       ChatEmitEvents.ChatList,
       {ApiKeys.type: AppConstants.business_Chat_Type},
     );
-    // Remind business sellers to set shop availability if they never have.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      maybeShowAvailabilityReminder();
-    });
   }
 
   @override
@@ -245,6 +244,22 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
         ),
       ),
     );
+  }
+
+  /// Drive the Go-Live toggle. Turning ON opens the shop-availability
+  /// (set-time) form directly — no permission gate. The form persists the
+  /// hours and goes live via the backend, popping back `true` on success.
+  /// Turning OFF just flips the local toggle.
+  Future<void> handleGoLiveTap() async {
+    if (isShopGoLive) {
+      setState(() => isShopGoLive = false);
+      return;
+    }
+
+    final result = await Get.to(() => const GroceryShopAvailabilityScreen());
+    if (result == true && mounted) {
+      setState(() => isShopGoLive = true);
+    }
   }
 
   Widget _goLivePill() {

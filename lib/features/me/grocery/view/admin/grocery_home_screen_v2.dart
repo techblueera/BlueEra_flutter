@@ -13,7 +13,6 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/business/go_live/go_live_availability_mixin.dart';
 import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
 import 'package:BlueEra/features/business/widgets/business_description_card.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
@@ -35,6 +34,7 @@ import 'package:BlueEra/features/me/grocery/widget/grocery_top_selling_product_c
 import 'package:BlueEra/features/me/grocery/widget/grocery_variants_sheet.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/grocery/view/all_top_selling_grocery_products_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/admin/grocery_shop_availability_screen.dart';
 import 'package:BlueEra/widgets/common_business_live_photo.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -61,9 +61,9 @@ class GroceryHomeScreenV2 extends StatefulWidget {
 }
 
 class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
-    with SingleTickerProviderStateMixin, GoLiveAvailabilityMixin {
-  @override
-  String get goLiveBusinessId => widget.businessId;
+    with SingleTickerProviderStateMixin {
+  /// Local live state backing the Go-Live toggle/pill.
+  bool isShopGoLive = false;
 
   int _selectedTab = 1;
   late final TabController _tabController;
@@ -104,11 +104,6 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
     // default). Switching tabs later will fire other tabs' APIs lazily
     // via [_onTabTapped] â€” mirrors product_screen's per-tab discipline.
     _fetchForTab(_selectedTab);
-    // After the first frame (so a context is available), remind business
-    // grocery sellers to set their shop availability if they never have.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      maybeShowAvailabilityReminder();
-    });
   }
 
   /// Per-tab API dispatcher. Each tab owns a different data set, so we
@@ -1161,9 +1156,20 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
     );
   }
 
-  // Go-Live + shop-availability flow now lives in [GoLiveAvailabilityMixin]
-  // (handleGoLiveTap / openAvailabilityFlow / showSetAvailabilityDialog /
-  // maybeShowAvailabilityReminder), shared across every business surface.
+  /// Drive the Go-Live toggle. Turning ON opens the shop-availability form
+  /// directly — no dialog and no device permission gate. The form persists
+  /// the hours and goes live via the backend, popping back `true` on success.
+  Future<void> handleGoLiveTap() async {
+    if (isShopGoLive) {
+      setState(() => isShopGoLive = false);
+      return;
+    }
+
+    final result = await Get.to(() => const GroceryShopAvailabilityScreen());
+    if (result == true && mounted) {
+      setState(() => isShopGoLive = true);
+    }
+  }
 
   Widget _goLivePill() {
     return GestureDetector(
