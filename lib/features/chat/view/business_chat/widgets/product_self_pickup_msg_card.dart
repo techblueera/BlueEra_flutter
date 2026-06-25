@@ -1099,19 +1099,22 @@ class _ProductSelfPickupMsgCardState extends State<ProductSelfPickupMsgCard> {
                 }
               },
             ),
-          // Pickup OTP — opens a popup to enter & verify the customer's OTP
-          // (replaces the old "Call" shortcut).
-          _orderActionButton(
-            icon: Icons.password_rounded,
-            label: 'Pickup OTP',
-            color: Colors.green,
-            onTap: () => showPickupOtpDialog(
-              context,
-              orderId: _order?.orderId ??
-                  widget.message.metadata?.productPickupOrderId ??
-                  '',
+          // Pickup OTP — shop-only. Pickup is confirmed by the SHOP (it enters
+          // the customer's OTP to release the goods); the customer must never
+          // invoke pickup. Hidden for the card sender (the customer) so it only
+          // shows to the business owner. See MULTISHOP_PICKUP_OTP_FIX_GUIDE.md.
+          if (!_isMyMessage)
+            _orderActionButton(
+              icon: Icons.password_rounded,
+              label: 'Pickup OTP',
+              color: Colors.green,
+              onTap: () => showPickupOtpDialog(
+                context,
+                orderId: _order?.orderId ??
+                    widget.message.metadata?.productPickupOrderId ??
+                    '',
+              ),
             ),
-          ),
         ],
       ),
     );
