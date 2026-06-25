@@ -123,7 +123,9 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2>
               topBar: _buildTopBar(),
               topBarHeight: MediaQuery.of(context).padding.top + 56,
               tabViews: [
-                _tabScroll(const HospitalInquiryTabV2()),
+                _tabScroll(HospitalInquiryTabV2(
+                  onAddDepartments: () => _tabController.animateTo(2),
+                )),
                 _tabScroll(HospitalOverviewTabV2(controller: _hospitalController)),
                 _tabScroll(
                     HospitalDepartmentsTabV2(controller: _hospitalController)),

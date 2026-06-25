@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -113,7 +115,11 @@ class _LabHomeScreenV2State extends State<LabHomeScreenV2>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFEAF2FB),
+      // No hardcoded background — inherit the themed scaffold background so the
+      // app-wide themeable background (color via the theme, banner via
+      // GetMaterialApp.builder; both driven by AppBackgroundController) shows
+      // through, same as grocery_home_screen_v2. The frosted-glass top bar
+      // lets it through at the header too.
       body: SafeArea(
         top: false,
         child: Stack(
@@ -124,7 +130,9 @@ class _LabHomeScreenV2State extends State<LabHomeScreenV2>
               topBar: _buildTopBar(),
               topBarHeight: MediaQuery.of(context).padding.top + 56,
               tabViews: [
-                _tabScroll(const LabInquiryTabV2()),
+                _tabScroll(LabInquiryTabV2(
+                  onAddTests: () => _tabController.animateTo(2),
+                )),
                 _tabScroll(LabOverviewTabV2(controller: _labController)),
                 _tabScroll(LabTestsTabV2(controller: _labController)),
                 _tabScroll(LabFacilitiesTabV2(controller: _labController)),
@@ -139,38 +147,58 @@ class _LabHomeScreenV2State extends State<LabHomeScreenV2>
   }
 
   // ─── Top bar ───
+  // Frosted-glass header (matches grocery / hospital) so the app-wide
+  // themeable background shows through behind it, instead of a solid blue
+  // gradient that would hide it.
   Widget _buildTopBar() {
     final topInset = MediaQuery.of(context).padding.top;
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.fromLTRB(
-        SizeConfig.size12,
-        topInset + SizeConfig.size8,
-        SizeConfig.size12,
-        SizeConfig.size10,
-      ),
+    return DecoratedBox(
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF1E88FF), Color(0xFF0040A0)],
-        ),
-      ),
-      child: Row(
-        children: [
-          _circleIconButton(icon: Icons.menu, onTap: _openDrawer),
-          SizedBox(width: SizeConfig.size6),
-          // Pills wrapped in Flexible so their inner text can ellipsize
-          // instead of pushing the row past its width.
-          Flexible(child: const ReferEarnPill()),
-          const Spacer(),
-          _circleIconButton(
-            icon: Icons.notifications_none,
-            onTap: _openNotifications,
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x42001120),
+            blurRadius: 16,
+            offset: Offset(0, 0),
+            blurStyle: BlurStyle.outer,
           ),
-          SizedBox(width: SizeConfig.size6),
-          _goLivePill(),
         ],
+      ),
+      child: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.fromLTRB(
+              SizeConfig.size12,
+              topInset + SizeConfig.size8,
+              SizeConfig.size12,
+              SizeConfig.size10,
+            ),
+            decoration: BoxDecoration(
+              color: const Color(0x33FFFFFF),
+              border: Border.all(
+                color: Colors.white,
+                width: 1.0,
+              ),
+            ),
+            child: Row(
+              children: [
+                _circleIconButton(icon: Icons.menu, onTap: _openDrawer),
+                SizedBox(width: SizeConfig.size6),
+                // Pills wrapped in Flexible so their inner text can ellipsize
+                // instead of pushing the row past its width.
+                Flexible(child: const ReferEarnPill()),
+                const Spacer(),
+                _circleIconButton(
+                  icon: Icons.notifications_none,
+                  onTap: _openNotifications,
+                ),
+                SizedBox(width: SizeConfig.size6),
+                _goLivePill(),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -203,13 +231,35 @@ class _LabHomeScreenV2State extends State<LabHomeScreenV2>
       onTap: onTap,
       customBorder: const CircleBorder(),
       child: Container(
-        height: SizeConfig.size36,
-        width: SizeConfig.size36,
         decoration: const BoxDecoration(
-          color: Colors.white,
           shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Color(0x1A000000),
+              blurRadius: 3,
+              offset: Offset(0, -1),
+            ),
+          ],
         ),
-        child: Icon(icon, size: 20, color: AppColors.mainTextColor),
+        child: ClipPath(
+          clipper: const ShapeBorderClipper(shape: CircleBorder()),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+            child: Container(
+              height: SizeConfig.size36,
+              width: SizeConfig.size36,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white,
+                border: Border.all(
+                  color: const Color(0xFFC9CDD5),
+                  width: 1,
+                ),
+              ),
+              child: Icon(icon, size: 20, color: AppColors.secondaryTextColor),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -217,50 +267,78 @@ class _LabHomeScreenV2State extends State<LabHomeScreenV2>
   Widget _goLivePill() {
     return GestureDetector(
       onTap: () => setState(() => _isGoLive = !_isGoLive),
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size10,
-          vertical: SizeConfig.size6,
-        ),
+      child: DecoratedBox(
         decoration: BoxDecoration(
-          color: Colors.white,
           borderRadius: BorderRadius.circular(24),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CustomText(
-              'Go live',
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.mainTextColor,
-            ),
-            SizedBox(width: SizeConfig.size6),
-            Container(
-              width: 30,
-              height: 18,
-              padding: const EdgeInsets.all(2),
-              decoration: BoxDecoration(
-                color:
-                    _isGoLive ? AppColors.primaryColor : Colors.grey.shade400,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: AnimatedAlign(
-                duration: const Duration(milliseconds: 180),
-                alignment: _isGoLive
-                    ? Alignment.centerRight
-                    : Alignment.centerLeft,
-                child: Container(
-                  height: 14,
-                  width: 14,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x1A000000),
+              blurRadius: 3,
+              offset: Offset(0, -1),
             ),
           ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: SizeConfig.size10,
+                vertical: SizeConfig.size6,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: const Color(0xFFC9CDD5),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CustomText(
+                    'Go live',
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.secondaryTextColor,
+                  ),
+                  SizedBox(width: SizeConfig.size6),
+                  Container(
+                    width: 30,
+                    height: 18,
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: _isGoLive ? AppColors.primaryColor : Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color:
+                            AppColors.secondaryTextColor.withValues(alpha: 0.4),
+                        width: 0.5,
+                      ),
+                    ),
+                    child: AnimatedAlign(
+                      duration: const Duration(milliseconds: 180),
+                      alignment: _isGoLive
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
+                      child: Container(
+                        height: 14,
+                        width: 14,
+                        decoration: BoxDecoration(
+                          color: _isGoLive
+                              ? Colors.white
+                              : AppColors.secondaryTextColor,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );

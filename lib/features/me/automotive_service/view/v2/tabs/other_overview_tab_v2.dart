@@ -36,7 +36,7 @@ import '../../../../others/view/timing_screen.dart';
 /// management, gallery, career/jobs CTA, contact, location, share
 /// banner, and the QR-code card pinned at the bottom of the tab.
 class OtherOverviewTabV2 extends StatelessWidget {
-  final BusinessProfileFullController controller;
+  final AutomotiveBusinessProfileFullController controller;
 
   const OtherOverviewTabV2({super.key, required this.controller});
 

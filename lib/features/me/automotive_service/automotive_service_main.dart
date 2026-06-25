@@ -1,4 +1,3 @@
-import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/me/automotive_service/controller/business_profile_full_controller.dart';
 import 'package:BlueEra/features/me/automotive_service/view/v2/other_home_screen_v2.dart';
@@ -31,7 +30,7 @@ class AutomotiveServiceMain extends StatefulWidget {
 
 class _AutomotiveServiceMainState extends State<AutomotiveServiceMain>
     with RouteAware {
-  final controller = Get.put(BusinessProfileFullController());
+  final controller = Get.put(AutomotiveBusinessProfileFullController());
   final viewBusinessDetailsController =
       Get.find<ViewBusinessDetailsController>();
 
@@ -52,11 +51,10 @@ class _AutomotiveServiceMainState extends State<AutomotiveServiceMain>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.white,
-      body: SafeArea(
-        child: OtherHomeScreenV2(),
-      ),
-    );
+    // Return the home screen directly (no wrapper Scaffold), mirroring
+    // `grocery_screen.dart`, so this screen stays out of the way of the
+    // app-wide themeable background painted in `GetMaterialApp.builder`
+    // (driven by AppBackgroundController).
+    return const OtherHomeScreenV2();
   }
 }

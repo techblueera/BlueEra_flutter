@@ -1,3 +1,4 @@
+import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -8,9 +9,10 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_flag_controller.dart';
-import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
+import 'package:BlueEra/features/me/grocery/view/admin/grocery_shop_availability_screen.dart';
 import 'package:BlueEra/features/me/automotive_service/controller/business_profile_full_controller.dart';
 import 'package:BlueEra/features/me/automotive_service/view/v2/tabs/other_inquiry_tab_v2.dart';
 import 'package:BlueEra/features/me/automotive_service/view/v2/tabs/other_overview_tab_v2.dart';
@@ -18,14 +20,15 @@ import 'package:BlueEra/features/me/automotive_service/view/v2/tabs/other_posts_
 import 'package:BlueEra/features/me/automotive_service/view/v2/tabs/other_services_tab_v2.dart';
 import 'package:BlueEra/features/me/automotive_service/view/v2/tabs/other_stats_tab_v2.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// Other-business "me" profile home (v2) — redesigned to mirror the
-/// layout used by `HospitalHomeScreenV2` while preserving every action
-/// surfaced by the legacy `BusinessProfileFullScreen`. Standalone
-/// screen — does NOT touch existing routes or `OthersMain`.
+/// Automotive-service "me" profile home (v2) — structural twin of the generic
+/// `OtherHomeScreenV2` (under `me/others/`). Uses the shared [HomeTabScaffold]
+/// (the same Material tab bar grocery / hospital / lab use) and a frosted-glass
+/// header so the app-wide themeable background shows through.
 class OtherHomeScreenV2 extends StatefulWidget {
   const OtherHomeScreenV2({super.key});
 
@@ -33,36 +36,36 @@ class OtherHomeScreenV2 extends StatefulWidget {
   State<OtherHomeScreenV2> createState() => _OtherHomeScreenV2State();
 }
 
-class _OtherHomeScreenV2State extends State<OtherHomeScreenV2> {
-  late final BusinessProfileFullController _otherController;
-  final _businessController   = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
+    with SingleTickerProviderStateMixin, MeTabBackHandlerMixin {
+  /// Local live state backing the Go-Live toggle/pill.
+  bool isShopGoLive = false;
 
-  bool _isGoLive = false;
-  int _selectedTab = 0;
+  late final AutomotiveBusinessProfileFullController _otherController;
+  final _businessController =
+      getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
-  // Tab labels resolved against AppStrings via .tr so the row stays in sync
-  // with the user's selected locale. Not const because translations are
-  // looked up at runtime.
+  // Nullable (not `late final`) so a stale instance left over by a hot reload
+  // — whose initState never ran under the new field layout — can't throw a
+  // LateInitializationError in dispose/build. Mirrors product_screen.dart.
+  TabController? _tabController;
+
   List<String> get _tabs => [
         AppStrings.inquiry.tr,
         AppStrings.overview.tr,
         AppStrings.services.tr,
         AppStrings.posts.tr,
-        AppStrings.stats.tr,
+        AppStrings.statics.tr,
       ];
 
   // Drives the inquiry list shown under the Inquiry tab — same controller
   // the Connect screen uses, so socket-driven updates land on both.
-  // Mirrors the wiring used by `HospitalHomeScreenV2`, `SchoolHomeScreenV2`,
-  // `MedicalHomeScreenV2`, `LabHomeScreenV2` and the Order tab in
-  // `professionals_main.dart`.
   final ChatViewController _chatViewController =
       getOrPut(() => ChatViewController());
 
   // Pre-registered so the Flagged sub-tab inside `BusinessChatsList`
   // (`BusinessFlagChatList` → `Get.find<ChatFlagController>()`) doesn't
-  // crash when this is the first screen the user touches. Mirrors the
-  // top-level registration in `connect_main_page.dart`.
+  // crash when this is the first screen the user touches.
   // ignore: unused_field
   final ChatFlagController _chatFlagController =
       getOrPut(() => ChatFlagController());
@@ -70,7 +73,9 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2> {
   @override
   void initState() {
     super.initState();
-    _otherController = getOrPut(() => BusinessProfileFullController());
+    _tabController = TabController(length: _tabs.length, vsync: this);
+    registerMeTabBackHandler(_tabController!);
+    _otherController = getOrPut(() => AutomotiveBusinessProfileFullController());
     if (_otherController.businessProfile.value == null) {
       _otherController.getBusinessProfileFull();
     }
@@ -78,73 +83,46 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2> {
       _businessController.viewBusinessProfile();
     }
     // Hydrate the business chat list so the Inquiry tab has data ready
-    // when the user switches to it. Mirrors what the other v2 screens
-    // (Hospital, School, Medical, Lab) and `professionals_main.dart` do.
+    // when the user switches to it.
     _chatViewController.emitEvent(
       ChatEmitEvents.ChatList,
       {ApiKeys.type: AppConstants.business_Chat_Type},
     );
-    // Register a back-press interceptor so the system back button collapses
-    // the internal tabs to the first (Inquiry) tab before the bottom-nav
-    // back routing runs — mirrors `MeTabBackHandlerMixin`, but this screen
-    // uses a custom setState-driven tab switch (no TabController).
-    if (Get.isRegistered<BottomBarController>()) {
-      Get.find<BottomBarController>().meTabBackHandler = _onMeTabBack;
-    }
-  }
-
-  /// Hops back to the first (Inquiry) tab when on any other tab, consuming
-  /// the back press. Returns false when already on the first tab so the
-  /// press falls through to the normal bottom-nav handling.
-  bool _onMeTabBack() {
-    if (!mounted) return false;
-    if (_selectedTab != 0) {
-      setState(() => _selectedTab = 0);
-      return true;
-    }
-    return false;
   }
 
   @override
   void dispose() {
-    if (Get.isRegistered<BottomBarController>()) {
-      final bbc = Get.find<BottomBarController>();
-      if (bbc.meTabBackHandler == _onMeTabBack) bbc.meTabBackHandler = null;
-    }
+    _tabController?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final tabCtrl = _tabController;
+    if (tabCtrl == null) return const SizedBox.shrink();
     return Scaffold(
-      backgroundColor: const Color(0xFFEAF2FB),
+      // No hardcoded background — inherit the themed scaffold background so the
+      // app-wide themeable background (color via the theme, banner via
+      // GetMaterialApp.builder; both driven by AppBackgroundController) shows
+      // through, same as grocery_home_screen_v2. The frosted-glass top bar lets
+      // it through at the header too.
       body: SafeArea(
         top: false,
         child: Stack(
           children: [
-            Column(
-              children: [
-                _buildTopBar(),
-                Expanded(
-                  child: RefreshIndicator(
-                    onRefresh: _otherController.getBusinessProfileFull,
-                    child: SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: EdgeInsets.only(
-                        bottom: kBottomNavigationBarHeight + 30,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: SizeConfig.size10),
-                          _buildTabsCard(),
-                          SizedBox(height: SizeConfig.size12),
-                          _buildTabContent(),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+            HomeTabScaffold(
+              controller: tabCtrl,
+              tabLabels: _tabs,
+              topBar: _buildTopBar(),
+              topBarHeight: MediaQuery.of(context).padding.top + 56,
+              tabViews: [
+                _tabScroll(OtherInquiryTabV2(
+                  onAddServices: () => tabCtrl.animateTo(2),
+                )),
+                _tabScroll(OtherOverviewTabV2(controller: _otherController)),
+                _tabScroll(const OtherServicesTabV2()),
+                _tabScroll(const OtherPostsTabV2()),
+                _tabScroll(const OtherStatsTabV2()),
               ],
             ),
           ],
@@ -153,53 +131,66 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2> {
     );
   }
 
-  Widget _buildTabContent() {
-    switch (_selectedTab) {
-      case 0:
-        return const OtherInquiryTabV2();
-      case 1:
-        return OtherOverviewTabV2(controller: _otherController);
-      case 2:
-        return const OtherServicesTabV2();
-      case 3:
-        return const OtherPostsTabV2();
-      case 4:
-        return const OtherStatsTabV2();
-      default:
-        return const SizedBox.shrink();
-    }
+  Widget _tabScroll(Widget child) {
+    return RefreshIndicator(
+      onRefresh: _otherController.getBusinessProfileFull,
+      child: SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.only(bottom: kBottomNavigationBarHeight + 30),
+        child: child,
+      ),
+    );
   }
 
+  // Frosted-glass header (matches grocery / others) so the app-wide themeable
+  // background shows through behind it.
   Widget _buildTopBar() {
     final topInset = MediaQuery.of(context).padding.top;
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.fromLTRB(
-        SizeConfig.size12,
-        topInset + SizeConfig.size8,
-        SizeConfig.size12,
-        SizeConfig.size10,
-      ),
+    return DecoratedBox(
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF1E88FF), Color(0xFF0040A0)],
-        ),
-      ),
-      child: Row(
-        children: [
-          _circleIconButton(icon: Icons.menu, onTap: _openDrawer),
-          SizedBox(width: SizeConfig.size6),
-          // Pills wrapped in Flexible so their inner text can ellipsize
-          // instead of pushing the row past its width.
-          Flexible(child: const ReferEarnPill()),
-          const Spacer(),
-          _circleIconButton(
-              icon: Icons.notifications_none, onTap: _openNotifications),
-          SizedBox(width: SizeConfig.size6),
-          _goLivePill(),
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x42001120),
+            blurRadius: 16,
+            offset: Offset(0, 0),
+            blurStyle: BlurStyle.outer,
+          ),
         ],
+      ),
+      child: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
+          child: Container(
+            width: double.infinity,
+            padding: EdgeInsets.fromLTRB(
+              SizeConfig.size12,
+              topInset + SizeConfig.size8,
+              SizeConfig.size12,
+              SizeConfig.size10,
+            ),
+            decoration: BoxDecoration(
+              color: const Color(0x33FFFFFF),
+              border: Border.all(
+                color: Colors.white,
+                width: 1.0,
+              ),
+            ),
+            child: Row(
+              children: [
+                _circleIconButton(icon: Icons.menu, onTap: _openDrawer),
+                SizedBox(width: SizeConfig.size6),
+                // Pills wrapped in Flexible so their inner text can ellipsize
+                // instead of pushing the row past its width.
+                Flexible(child: const ReferEarnPill()),
+                const Spacer(),
+                _circleIconButton(
+                    icon: Icons.notifications_none, onTap: _openNotifications),
+                SizedBox(width: SizeConfig.size6),
+                _goLivePill(),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -214,7 +205,10 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2> {
         alignment: Alignment.centerLeft,
         child: SizedBox(
           height: double.infinity,
-          child: Drawer(backgroundColor: Colors.transparent, elevation: 0, child: ProfileMenuDrawer()),
+          child: Drawer(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              child: ProfileMenuDrawer()),
         ),
       ),
     );
@@ -230,118 +224,125 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2> {
       onTap: onTap,
       customBorder: const CircleBorder(),
       child: Container(
-        height: SizeConfig.size36,
-        width: SizeConfig.size36,
         decoration: const BoxDecoration(
-          color: Colors.white,
           shape: BoxShape.circle,
-        ),
-        child: Icon(icon, size: 20, color: AppColors.mainTextColor),
-      ),
-    );
-  }
-
-  Widget _goLivePill() {
-    return GestureDetector(
-      onTap: () => setState(() => _isGoLive = !_isGoLive),
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size10,
-          vertical: SizeConfig.size6,
-        ),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CustomText(AppStrings.goLive.tr,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AppColors.mainTextColor),
-            SizedBox(width: SizeConfig.size6),
-            Container(
-              width: 30,
-              height: 18,
-              padding: const EdgeInsets.all(2),
-              decoration: BoxDecoration(
-                color:
-                    _isGoLive ? AppColors.primaryColor : Colors.grey.shade400,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: AnimatedAlign(
-                duration: const Duration(milliseconds: 180),
-                alignment: _isGoLive
-                    ? Alignment.centerRight
-                    : Alignment.centerLeft,
-                child: Container(
-                  height: 14,
-                  width: 14,
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-              ),
+          boxShadow: [
+            BoxShadow(
+              color: Color(0x1A000000),
+              blurRadius: 3,
+              offset: Offset(0, -1),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-
-
-  Widget _buildTabsCard() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-      child: Container(
-        // padding: EdgeInsets.symmetric(
-        //   horizontal: SizeConfig.size8,
-        //   vertical: SizeConfig.size8,
-        // ),
-        //
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: List.generate(_tabs.length, (i) {
-              final selected = i == _selectedTab;
-              return Padding(
-                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size4),
-                child: GestureDetector(
-                  onTap: () => setState(() => _selectedTab = i),
-                  child: Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: SizeConfig.size16,
-                      vertical: SizeConfig.size6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: selected ? AppColors.primaryColor : Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: selected
-                            ? AppColors.primaryColor
-                            : Colors.grey.shade300,
-                      ),
-                    ),
-                    alignment: Alignment.center,
-                    child: CustomText(
-                      _tabs[i],
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color:
-                          selected ? Colors.white : AppColors.mainTextColor,
-                    ),
-                  ),
+        child: ClipPath(
+          clipper: const ShapeBorderClipper(shape: CircleBorder()),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+            child: Container(
+              height: SizeConfig.size36,
+              width: SizeConfig.size36,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white,
+                border: Border.all(
+                  color: const Color(0xFFC9CDD5),
+                  width: 1,
                 ),
-              );
-            }),
+              ),
+              child: Icon(icon, size: 20, color: AppColors.secondaryTextColor),
+            ),
           ),
         ),
       ),
     );
   }
 
-}
+  /// Drive the Go-Live toggle. Turning ON opens the shop-availability
+  /// (set-time) form directly. Turning OFF just flips the local toggle.
+  Future<void> handleGoLiveTap() async {
+    if (isShopGoLive) {
+      setState(() => isShopGoLive = false);
+      return;
+    }
 
+    final result = await Get.to(() => const GroceryShopAvailabilityScreen());
+    if (result == true && mounted) {
+      setState(() => isShopGoLive = true);
+    }
+  }
+
+  Widget _goLivePill() {
+    return GestureDetector(
+      onTap: handleGoLiveTap,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x1A000000),
+              blurRadius: 3,
+              offset: Offset(0, -1),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                  horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: const Color(0xFFC9CDD5),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CustomText(AppStrings.goLive.tr,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.secondaryTextColor),
+                  SizedBox(width: SizeConfig.size6),
+                  Container(
+                    width: 30,
+                    height: 18,
+                    padding: const EdgeInsets.all(2),
+                    decoration: BoxDecoration(
+                      color: isShopGoLive ? AppColors.primaryColor : Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color:
+                            AppColors.secondaryTextColor.withValues(alpha: 0.4),
+                        width: 0.5,
+                      ),
+                    ),
+                    child: AnimatedAlign(
+                      duration: const Duration(milliseconds: 180),
+                      alignment: isShopGoLive
+                          ? Alignment.centerRight
+                          : Alignment.centerLeft,
+                      child: Container(
+                        height: 14,
+                        width: 14,
+                        decoration: BoxDecoration(
+                            color: isShopGoLive
+                                ? Colors.white
+                                : AppColors.secondaryTextColor,
+                            shape: BoxShape.circle),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

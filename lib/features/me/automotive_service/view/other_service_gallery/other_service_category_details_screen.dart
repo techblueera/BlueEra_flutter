@@ -31,7 +31,7 @@ import 'package:url_launcher/url_launcher.dart';
 ///
 ///   * **Details card** — profile logo, name, location/address, and an
 ///     expandable description, taken from the already-loaded
-///     `BusinessProfileFullController.businessProfile`.
+///     `AutomotiveBusinessProfileFullController.businessProfile`.
 ///   * **QR code card** — encodes the business-profile id (the same id
 ///     used everywhere else in the module). Sharing the screen-shot or
 ///     letting someone scan the QR lands them back on this profile.
@@ -52,8 +52,8 @@ class OtherServiceCategoryDetailsScreen extends StatelessWidget {
   /// already registered the instance, this is a no-op.
   final OtherServicePhotoPhotoController controller =
       getOrPut(() => OtherServicePhotoPhotoController());
-  final BusinessProfileFullController profileController =
-      getOrPut(() => BusinessProfileFullController());
+  final AutomotiveBusinessProfileFullController profileController =
+      getOrPut(() => AutomotiveBusinessProfileFullController());
 
   OtherServiceCategoryDetailsScreen({super.key, required this.categoryData});
 

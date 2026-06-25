@@ -11,7 +11,7 @@ import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class BusinessProfileFullController extends GetxController {
+class AutomotiveBusinessProfileFullController extends GetxController {
   final OtherRepo _repo = OtherRepo();
   var isLoading = false.obs;
   var businessProfile = Rx<BusinessProfileData?>(null);
