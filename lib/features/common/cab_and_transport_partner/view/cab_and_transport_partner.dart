@@ -39,6 +39,7 @@ import 'package:BlueEra/features/personal/personal_profile/widgets/profile_locat
 import 'package:BlueEra/features/personal/personal_profile/widgets/profile_top_bar.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
+import 'package:BlueEra/widgets/order_actions_carousel.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
@@ -421,12 +422,23 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
             SizedBox(height: SizeConfig.size12),
             if (_orderSubTab == _orderSubOrders)
               CabsAndTransportPartnerOrders(isInParentScroll: true)
-            else
+            else ...[
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+                child: OrderActionsCarousel(
+                  onAddCatalog: () => _tabController.animateTo(2),
+                  catalogIcon: Icons.storefront_rounded,
+                  catalogTitle: AppStrings.store.tr,
+                  catalogSubtitle: 'Manage your store',
+                ),
+              ),
+              SizedBox(height: SizeConfig.size12),
               BusinessChatsList(
                 isForwardUI: false,
                 excludeSenderId: userId,
                 isInParentScroll: true,
               ),
+            ],
           ],
         );
       }),

@@ -16,7 +16,7 @@ import '../../../../core/constants/size_config.dart';
 import '../../../../core/language_localization_service/language_controller_new.dart';
 import '../../../../core/routes/route_helper.dart';
 import '../../../business/auth/controller/view_business_details_controller.dart';
-import '../../../contribution/view/contribution_screen.dart';
+import '../../../contribution/view/contribution_screen_v2.dart';
 import '../../../personal/auth/controller/view_personal_details_controller.dart';
 import '../../../personal/personal_profile/view/account_setting_screen/account_settings_screen.dart';
 import '../../../personal/personal_profile/view/app_tutorial/view/app_tutorial.dart';
@@ -560,7 +560,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
             icon: Icons.workspace_premium_rounded,
             color: _gold,
             title: AppStrings.contribution.tr,
-            onTap: () => Get.to(() => const ContributionScreen()),
+            onTap: () => Get.to(() => const ContributionScreenV2()),
           ),
         _DrawerItem(
           icon: Icons.payments_outlined,

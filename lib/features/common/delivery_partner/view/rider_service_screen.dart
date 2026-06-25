@@ -17,12 +17,12 @@ import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_location_search_field.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
+import 'package:BlueEra/widgets/order_actions_carousel.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/features/common/Discover/view/go_live_permission_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
@@ -324,12 +324,23 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
             // (unchanged).
             if (_orderSubTab == _orderSubOrders)
               _buildPreferenceOrOrders(hasActiveOrders)
-            else
+            else ...[
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+                child: OrderActionsCarousel(
+                  onAddCatalog: () => _tabController.animateTo(2),
+                  catalogIcon: Icons.storefront_rounded,
+                  catalogTitle: AppStrings.store.tr,
+                  catalogSubtitle: 'Manage your store',
+                ),
+              ),
+              SizedBox(height: SizeConfig.size12),
               BusinessChatsList(
                 isForwardUI: false,
                 excludeSenderId: userId,
                 isInParentScroll: true,
               ),
+            ],
           ],
         );
       }),

@@ -11,4 +11,24 @@ mixin SubscriptionServiceApi {
       'subscription-service/recharge/verify-payment';
   final String rechargeCurrent = 'subscription-service/recharge/current';
   final String rechargeCancel = 'subscription-service/recharge/cancel';
+
+  /// Security Deposit — the v2 "contribution" flow.
+  /// See docs/backend/SECURITY_DEPOSIT_FRONTEND_INTEGRATION.md.
+  /// Base path for `plan/{tagId}` and `{depositId}/details`; the repo appends
+  /// the path segment.
+  final String securityDepositBase = 'subscription-service/security-deposit/';
+  final String securityDepositPlans =
+      'subscription-service/security-deposit/plans';
+  final String securityDepositInitiate =
+      'subscription-service/security-deposit/initiate';
+  final String securityDepositConfirm =
+      'subscription-service/security-deposit/confirm';
+  final String securityDepositCurrent =
+      'subscription-service/security-deposit/current';
+  final String securityDepositMyDeposits =
+      'subscription-service/security-deposit/my-deposits';
+  final String securityDepositRefundRequest =
+      'subscription-service/security-deposit/refund/request';
+  final String securityDepositCancel =
+      'subscription-service/security-deposit/cancel';
 }
