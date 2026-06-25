@@ -367,18 +367,24 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
   void _handlePostFrameInitialization() {
     if (isBusiness()) {
-      bottomBarController.currentIndex.value = widget.initialIndex ?? 1;
+      // Business users land on the Me tab (0) by default on app open / login /
+      // signup so their own shop/dashboard is front and centre. An explicit
+      // deep-link tab (notification, or a post-action nav that requests a
+      // specific tab) still wins because it passes a non-null initialIndex.
+      bottomBarController.currentIndex.value = widget.initialIndex ?? 0;
       final viewProfileController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
       if (viewProfileController.viewBusinessResponse.status != Status.COMPLETE) {
         viewProfileController.viewBusinessProfile();
       }
     } else {
-      // Riders (bike rider / car-taxi driver) always land on the Me tab
-      // (index 0) on login — regardless of whether their rider profile
-      // has been created yet — so the rider dashboard / onboarding is
-      // front and centre. Everyone else uses the requested initial tab.
+      // Riders (bike rider / car-taxi driver) and gig workers always land on
+      // the Me tab (index 0) on login — regardless of whether their profile
+      // has been created yet — so their dashboard / onboarding is front and
+      // centre. Every other individual type uses the requested initial tab
+      // (Discover by default).
       final isRider = userProfessionGlobal == BIKE_RIDER || userProfessionGlobal == CAR_TAXI_DRIVER;
-      if (isRider) {
+      final isGigWorker = userProfileTypeGlobal == GIG_WORKER;
+      if (isRider || isGigWorker) {
         bottomBarController.currentIndex.value = 0;
       } else {
         bottomBarController.currentIndex.value = widget.initialIndex ?? 1;

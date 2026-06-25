@@ -25,6 +25,7 @@ import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/features/common/Discover/view/go_live_permission_screen.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_orders_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/model/rider_onboarding_status.dart';
@@ -63,7 +64,7 @@ class RiderServiceScreen extends StatefulWidget {
 }
 
 class _RiderServiceScreenState extends State<RiderServiceScreen>
-    with SingleTickerProviderStateMixin, RouteAware {
+    with SingleTickerProviderStateMixin, RouteAware, MeTabBackHandlerMixin {
   final controller = getOrPut(() => DeliveryPartnerController());
   final _ordersCtrl = getOrPut(() => DeliverPartnerOrdersController());
   final _viewCtrl = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
@@ -127,6 +128,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: 5, vsync: this);
+    registerMeTabBackHandler(_tabController);
     _checkRiderStatus();
     // Pre-select the rider's saved service preference as soon as the
     // onboarding status loads (and hydrate immediately if it's already there).
@@ -220,8 +222,8 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
               final tabLabels = <String>[
                 approved ? AppStrings.myOrder.tr : AppStrings.document.tr,
                 AppStrings.overview.tr,
-                AppStrings.post.tr,
                 AppStrings.store.tr,
+                AppStrings.post.tr,
                 AppStrings.statics.tr,
               ];
               return HomeTabScaffold(
@@ -235,8 +237,8 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
                 tabViews: [
                   _tabScroll(_buildOrderTab()),
                   _tabScroll(_buildOverviewTab()),
-                  _tabScroll(_buildPostTab()),
                   _tabScroll(const [EarnStoreCards()]),
+                  _tabScroll(_buildPostTab()),
                   _tabScroll(_buildStaticsTab()),
                 ],
               );

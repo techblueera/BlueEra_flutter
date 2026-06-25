@@ -1,30 +1,51 @@
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
+import 'package:BlueEra/widgets/order_actions_carousel.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get_utils/src/extensions/internacionalization.dart';
 
-/// Inquiry tab — mirrors `HospitalInquiryTabV2` and the inquiry list used
-/// by the Professionals Consultant "Order" tab
-/// (`professionals_main.dart::_buildOrderTab`).
+/// Inquiry tab — mirrors the Order tab on `grocery_home_screen_v2.dart`:
+/// the shared [OrderActionsCarousel] sits on top, followed by the incoming
+/// inquiries list.
 ///
 /// Shows incoming inquiries only — i.e. business chats whose latest
 /// message was authored by *someone else* (`excludeSenderId: userId`),
 /// so the school owner sees who reached out to them.
 ///
-/// `BusinessChatsList` ships an Expanded `ListView` internally, so it
-/// must live inside a bounded box; we use a fraction of the screen
-/// height to play nicely with the parent `SingleChildScrollView`.
+/// The carousel's third (catalog) card is wired to the school's Academics
+/// tab — school has neither a product nor a service tab — via
+/// [onAddAcademics], supplied by the host so it can drive the TabController.
+///
+/// `isInParentScroll: true` makes `BusinessChatsList` drop its internal
+/// `Expanded`/scroll and shrink-wrap, so the parent `SingleChildScrollView`
+/// owns the scroll — no fixed height needed (mirrors grocery's Order tab).
 class SchoolInquiryTabV2 extends StatelessWidget {
-  const SchoolInquiryTabV2({super.key});
+  const SchoolInquiryTabV2({super.key, required this.onAddAcademics});
+
+  /// Switches the host screen's TabController to the Academics tab.
+  final VoidCallback onAddAcademics;
 
   @override
   Widget build(BuildContext context) {
-    final screenHeight = MediaQuery.of(context).size.height;
-    return SizedBox(
-      height: screenHeight * 0.75,
-      child: BusinessChatsList(
-        isForwardUI: false,
-        excludeSenderId: userId,
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(height: SizeConfig.size12),
+        OrderActionsCarousel(
+          onAddCatalog: onAddAcademics,
+          catalogIcon: Icons.menu_book_rounded,
+          catalogTitle: AppStrings.academics.tr,
+          catalogSubtitle: 'Manage academics & calendar',
+        ),
+        SizedBox(height: SizeConfig.size16),
+        BusinessChatsList(
+          excludeSenderId: userId,
+          isInParentScroll: true,
+          showDateFilter: true,
+        ),
+      ],
     );
   }
 }

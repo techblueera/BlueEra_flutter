@@ -109,6 +109,7 @@ class AppStrings {
 
   ///PAYMENT SETTING SCREEN
   static const paymentSetting = "paymentSetting";
+  static const connectBankAccount = "connectBankAccount";
   static const allBankAccounts = "allBankAccounts";
   static const savedPaymentMethods = "savedPaymentMethods";
   static const methodSaved = "methodSaved";

@@ -1,7 +1,6 @@
 ﻿import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/model/personal_profile_details_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -22,6 +21,8 @@ import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
+import 'package:BlueEra/widgets/order_actions_carousel.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
@@ -29,8 +30,6 @@ import 'package:BlueEra/features/common/reel/view/channel/follower_following_scr
 import 'package:BlueEra/features/common/rental/widget/rental_property_card.dart';
 import 'package:BlueEra/features/common/statistics/view/profile_statistics_screen.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting_cards.dart';
-import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
-import 'package:BlueEra/features/contribution/view/contribution_screen.dart';
 import 'package:BlueEra/features/me/professionals_consultant/controller/ai_professionals_controller.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/professionals_service_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
@@ -69,7 +68,7 @@ class ProfessionalsMainScreen extends StatefulWidget {
 }
 
 class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
-    with SingleTickerProviderStateMixin {
+    with SingleTickerProviderStateMixin, MeTabBackHandlerMixin {
   final _ctrl = Get.put(AiProfessionalsController());
   final _personalCtrl = getOrPut(() => PersonalCreateProfileController());
   final _viewCtrl = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
@@ -80,8 +79,8 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
         AppStrings.order.tr,
         AppStrings.overview.tr,
         AppStrings.service.tr,
-        AppStrings.post.tr,
         AppStrings.store.tr,
+        AppStrings.post.tr,
         AppStrings.proConsultTabStatics.tr,
       ];
 
@@ -94,9 +93,10 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
     super.initState();
     _tabController = TabController(
       length: _tabs.length,
-      initialIndex: 1,
+      initialIndex: 0,
       vsync: this,
     );
+    registerMeTabBackHandler(_tabController);
     _ctrl.professionalsFullDetailsController();
     _viewCtrl.UserFollowersAndPostsCount(userId);
     // Hydrate the business chat list so the Order tab's inquiry list
@@ -140,8 +140,8 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
                 _tabScroll(_buildOrderTab()),
                 _tabScroll(_buildOverviewTab()),
                 _tabScroll(_buildServiceTab()),
-                _tabScroll(_buildPostTab()),
                 _tabScroll(const [EarnStoreCards()]),
+                _tabScroll(_buildPostTab()),
                 _tabScroll(_buildStaticsTab()),
               ],
             ),
@@ -1312,23 +1312,14 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
 
   // â”€â”€â”€ ORDER TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildOrderTab() {
-    final contributionController = getOrPut(() => ContributionController());
     return [
       Padding(
         padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-        child: Center(
-          child: Obx(() {
-            final status = contributionController.currentStatus.value;
-            if (status == Status.INITIAL || status == Status.LOADING) {
-              return _planPeekSkeleton();
-            }
-            final hasPlan = contributionController.hasActiveRecharge.value;
-            final data = contributionController.currentRecharge.value;
-            if (hasPlan && data != null && data.isNotEmpty) {
-              return _activePlanPeekCard(data);
-            }
-            return _contributeNowBanner();
-          }),
+        child: OrderActionsCarousel(
+          onAddCatalog: () => _tabController.animateTo(2),
+          catalogIcon: Icons.design_services_rounded,
+          catalogTitle: AppStrings.addService.tr,
+          catalogSubtitle: 'List the services you offer',
         ),
       ),
       SizedBox(height: SizeConfig.size16),
@@ -1338,227 +1329,6 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
         isInParentScroll: true,
       ),
     ];
-  }
-
-  Widget _planPeekSkeleton() {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x42001120),
-            blurRadius: 10,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size14,
-            vertical: SizeConfig.size12,
-          ),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFFEFEAF7),
-                Color(0xFFE3D9F4),
-                Color(0xFFEFEAF7),
-              ],
-              stops: [0.0, 0.55, 1.0],
-            ),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: const Color(0xFF844CD5).withValues(alpha: 0.18),
-              width: 0.5,
-            ),
-          ),
-          child: const SizedBox(
-            height: 24,
-            child: Center(
-              child: SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation(Color(0xFF844CD5)),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _activePlanPeekCard(Map<String, dynamic> data) {
-    final plan = (data['rechargePlanId'] is Map<String, dynamic>)
-        ? data['rechargePlanId'] as Map<String, dynamic>
-        : <String, dynamic>{};
-    final name = (plan['name'] ?? AppStrings.proConsultActiveContribution.tr).toString();
-    final tier = (plan['tier'] ?? '').toString();
-    final perkType = (plan['perk_type'] ?? '').toString();
-    final totalPerks = _asInt(data['total_perks']);
-    final perksRemaining = _asInt(data['perks_remaining']);
-    final progress = totalPerks > 0 ? perksRemaining / totalPerks : 0.0;
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () => Get.to(() => const ContributionScreen()),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size14,
-            vertical: SizeConfig.size12,
-          ),
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Color(0xFF1F1B5C),
-                Color(0xFF5E2BA8),
-                Color(0xFFB2308C),
-              ],
-              stops: [0.0, 0.55, 1.0],
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.workspace_premium_rounded, size: 28, color: Color(0xFFFCD34D)),
-                  SizedBox(width: SizeConfig.size10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CustomText(name,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: Colors.white,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis),
-                        const SizedBox(height: 2),
-                        CustomText(
-                          tier.isNotEmpty ? '${tier.toUpperCase()} ${AppStrings.proConsultMemberLabel.tr}' : AppStrings.proConsultMemberLabel.tr,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFFE9D9FF),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Icon(Icons.arrow_forward_rounded, color: Colors.white),
-                ],
-              ),
-              if (totalPerks > 0) ...[
-                SizedBox(height: SizeConfig.size12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    CustomText(
-                      perkType.isEmpty
-                          ? AppStrings.proConsultPerksRemaining.tr
-                          : '${perkType[0].toUpperCase()}${perkType.substring(1)} ${AppStrings.proConsultRemainingSuffix.tr}',
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFFE9D9FF),
-                    ),
-                    CustomText('$perksRemaining ${AppStrings.proConsultOfConnector.tr} $totalPerks',
-                        fontSize: 12, fontWeight: FontWeight.w800, color: const Color(0xFFFCD34D)),
-                  ],
-                ),
-                SizedBox(height: SizeConfig.size6),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(4),
-                  child: LinearProgressIndicator(
-                    value: progress.clamp(0.0, 1.0),
-                    minHeight: 5,
-                    backgroundColor: Colors.white.withValues(alpha: 0.18),
-                    valueColor: const AlwaysStoppedAnimation(Color(0xFFFCD34D)),
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  int _asInt(dynamic v) {
-    if (v is int) return v;
-    if (v is num) return v.toInt();
-    return int.tryParse(v?.toString() ?? '') ?? 0;
-  }
-
-  Widget _contributeNowBanner() {
-    return GestureDetector(
-      onTap: () => Get.to(() => const ContributionScreen()),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 100, sigmaY: 100),
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size14, vertical: SizeConfig.size12),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-                colors: [Color(0xFFFAF3FF), Color(0xFFE7C8FF)],
-              ),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: const Color(0xFF844CD5),
-                width: 0.5,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: const LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [Color(0xFF543680), Color(0xFF311E52)],
-                    ),
-                    border: Border.all(
-                      color: const Color(0xFFD4BAFF),
-                      width: 1,
-                    ),
-                  ),
-                  child: const Icon(Icons.workspace_premium_rounded, size: 22, color: Colors.white),
-                ),
-                SizedBox(width: SizeConfig.size12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CustomText(AppStrings.proConsultContributeNow.tr,
-                        fontSize: 22, fontWeight: FontWeight.w800, color: const Color(0xFF221831)),
-                    const SizedBox(height: 2),
-                    CustomText(AppStrings.proConsultBannerSubtitle.tr,
-                        fontSize: 14, fontWeight: FontWeight.w600, color: const Color(0xFF6E5F8E)),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
   }
 
   // â”€â”€â”€ POST TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

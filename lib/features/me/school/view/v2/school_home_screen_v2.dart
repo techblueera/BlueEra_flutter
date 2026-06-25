@@ -10,6 +10,8 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_flag_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
+import 'package:BlueEra/features/common/delivery_partner/view/rider_service_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/me/grocery/view/admin/grocery_shop_availability_screen.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
@@ -74,6 +76,7 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2>
   void initState() {
     super.initState();
     _tabController = TabController(length: _tabs.length, vsync: this);
+    registerMeTabBackHandler(_tabController);
     _schoolController = getOrPut(() => SchoolAboutUsController());
     if ((_schoolController.schoolDetailsData?.value.id ?? '').isEmpty) {
       _schoolController.getSchoolByIdController();
@@ -330,7 +333,9 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2>
               // ),
               topBarHeight: MediaQuery.of(context).padding.top + 56,
               tabViews: [
-                _tabScroll(const SchoolInquiryTabV2()),
+                _tabScroll(SchoolInquiryTabV2(
+                  onAddAcademics: () => _tabController.animateTo(2),
+                )),
                 _tabScroll(SchoolOverviewTabV2(controller: _schoolController)),
                 _tabScroll(SchoolAcademicsTabV2(controller: _schoolController)),
                 _tabScroll(const SchoolPostsTabV2()),

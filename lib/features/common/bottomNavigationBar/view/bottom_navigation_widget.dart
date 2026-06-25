@@ -3,11 +3,12 @@ import 'dart:ui';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:get/get_utils/src/extensions/internacionalization.dart';
+import 'package:get/get.dart';
 
 class BottomNavigationBarWidget extends StatelessWidget {
   final Function(bool isVisible) onHeaderVisibilityChanged;
@@ -38,6 +39,15 @@ class BottomNavigationBarWidget extends StatelessWidget {
     if (!isBottomNavVisible) {
       onHeaderVisibilityChanged.call(true);
       return false;
+    }
+    // On the Me tab (0), give the active Me sub-screen (food / grocery /
+    // hospital / …) a chance to consume the back press by collapsing its
+    // internal tabs to the first (Order / Inquiry) tab. Only when it's
+    // already on that first tab does back fall through to the tab routing
+    // below.
+    if (currentIndex == 0 && Get.isRegistered<BottomBarController>()) {
+      final consumed = Get.find<BottomBarController>().meTabBackHandler?.call();
+      if (consumed == true) return false;
     }
     // Discover (1) is the app's "home" tab. Back from any other tab
     // (Me=0, Connect=2, Order=3) routes to Discover instead of exiting.

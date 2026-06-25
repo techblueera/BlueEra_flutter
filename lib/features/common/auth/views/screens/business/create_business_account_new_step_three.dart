@@ -371,7 +371,8 @@ class _CreateBusinessAccountNewStepThreeState
     );
     Get.offAllNamed(
       RouteHelper.getBottomNavigationBarScreenRoute(),
-      arguments: {ApiKeys.initialIndex: 1},
+      // New business lands on its own Me tab (0) right after signup.
+      arguments: {ApiKeys.initialIndex: 0},
     );
   }
 }

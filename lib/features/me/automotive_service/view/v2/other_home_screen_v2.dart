@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_flag_controller.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/me/automotive_service/controller/business_profile_full_controller.dart';
@@ -83,6 +84,34 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2> {
       ChatEmitEvents.ChatList,
       {ApiKeys.type: AppConstants.business_Chat_Type},
     );
+    // Register a back-press interceptor so the system back button collapses
+    // the internal tabs to the first (Inquiry) tab before the bottom-nav
+    // back routing runs — mirrors `MeTabBackHandlerMixin`, but this screen
+    // uses a custom setState-driven tab switch (no TabController).
+    if (Get.isRegistered<BottomBarController>()) {
+      Get.find<BottomBarController>().meTabBackHandler = _onMeTabBack;
+    }
+  }
+
+  /// Hops back to the first (Inquiry) tab when on any other tab, consuming
+  /// the back press. Returns false when already on the first tab so the
+  /// press falls through to the normal bottom-nav handling.
+  bool _onMeTabBack() {
+    if (!mounted) return false;
+    if (_selectedTab != 0) {
+      setState(() => _selectedTab = 0);
+      return true;
+    }
+    return false;
+  }
+
+  @override
+  void dispose() {
+    if (Get.isRegistered<BottomBarController>()) {
+      final bbc = Get.find<BottomBarController>();
+      if (bbc.meTabBackHandler == _onMeTabBack) bbc.meTabBackHandler = null;
+    }
+    super.dispose();
   }
 
   @override

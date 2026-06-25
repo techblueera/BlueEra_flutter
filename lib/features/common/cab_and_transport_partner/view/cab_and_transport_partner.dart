@@ -16,6 +16,7 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
 import 'package:BlueEra/features/common/cab_and_transport_partner/view/widgets/cab_transport_orders_widget.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_service_screen.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_property_card.dart';
@@ -68,7 +69,7 @@ class CabAndTransportPartner extends StatefulWidget {
 }
 
 class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
-    with SingleTickerProviderStateMixin, RouteAware {
+    with SingleTickerProviderStateMixin, RouteAware, MeTabBackHandlerMixin {
   final controller = getOrPut(() => EarnServiceController());
   final deliveryPartnerController = getOrPut(() => DeliveryPartnerController());
   final _viewCtrl =
@@ -94,6 +95,7 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
   void initState() {
     super.initState();
     _tabController = TabController(length: 5, vsync: this);
+    registerMeTabBackHandler(_tabController);
     _checkRiderStatus();
     _viewCtrl.UserFollowersAndPostsCount(userId);
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -156,8 +158,8 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
               final tabLabels = <String>[
                 approved ? AppStrings.myOrder.tr : AppStrings.document.tr,
                 AppStrings.overview.tr,
-                AppStrings.post.tr,
                 AppStrings.store.tr,
+                AppStrings.post.tr,
                 AppStrings.statics.tr,
               ];
               return HomeTabScaffold(
@@ -171,8 +173,8 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
                 tabViews: [
                   _tabScroll(_buildOrderTab()),
                   _tabScroll(_buildOverviewTab()),
-                  _tabScroll(_buildPostTab()),
                   _tabScroll(const [EarnStoreCards()]),
+                  _tabScroll(_buildPostTab()),
                   _tabScroll(_buildStaticsTab()),
                 ],
               );

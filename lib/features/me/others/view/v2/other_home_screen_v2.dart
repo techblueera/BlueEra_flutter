@@ -10,6 +10,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_flag_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/me/grocery/view/admin/grocery_shop_availability_screen.dart';
 import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
@@ -76,6 +77,7 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
   void initState() {
     super.initState();
     _tabController = TabController(length: _tabs.length, vsync: this);
+    registerMeTabBackHandler(_tabController);
     _otherController = getOrPut(() => BusinessProfileFullController());
     if (_otherController.businessProfile.value == null) {
       _otherController.getBusinessProfileFull();
