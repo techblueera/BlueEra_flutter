@@ -69,6 +69,18 @@ class _GoodsMultiOrderBookingMainState
             svgImage: AppIconAssets.transport_big_auto),
       ];
 
+  /// Re-runs the multi-shop riders search with the same pickups + drop so the
+  /// user can pull the latest nearby riders without leaving the screen. Reuses
+  /// [DiscoverController.resolveAndFindMultiShopRiders], which clears the
+  /// previous selection and refreshes the route, vehicle fares and rider list.
+  Future<void> _onRefreshRiders() async {
+    if (discoverController.findRiderDetailsLoading.value) return;
+    await discoverController.resolveAndFindMultiShopRiders(
+      pickups: widget.pickups,
+      drop: widget.dropAddress,
+    );
+  }
+
   Future<void> _onCallToRider() async {
     // Setup queue listeners BEFORE the API call so we don't miss
     // ride:queue:calling if the server fires it immediately after creation.
@@ -120,8 +132,51 @@ class _GoodsMultiOrderBookingMainState
                 _buildVehicleOptions(),
 
                 SizedBox(height: SizeConfig.size16),
-                CustomText(AppStrings.chooseYourRider.tr,
-                    fontSize: 16, fontWeight: FontWeight.w600),
+
+                /// "Choose your rider" header with a refresh action so the user
+                /// can re-fetch the latest nearby riders on demand.
+                Row(
+                  children: [
+                    Expanded(
+                      child: CustomText(AppStrings.chooseYourRider.tr,
+                          fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
+                    Obx(() {
+                      final loading =
+                          discoverController.findRiderDetailsLoading.value;
+                      return InkWell(
+                        onTap: loading ? null : _onRefreshRiders,
+                        borderRadius: BorderRadius.circular(20),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 4),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              loading
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                          strokeWidth: 2),
+                                    )
+                                  : const Icon(Icons.refresh,
+                                      size: 18,
+                                      color: AppColors.primaryColor),
+                              const SizedBox(width: 4),
+                              CustomText(
+                                AppStrings.refresh.tr,
+                                fontSize: SizeConfig.size13,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primaryColor,
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
+                  ],
+                ),
                 SizedBox(height: SizeConfig.size12),
 
                 /// Rider list (from the multi-shop riders response).

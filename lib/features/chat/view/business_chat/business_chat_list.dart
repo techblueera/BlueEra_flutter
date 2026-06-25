@@ -144,7 +144,11 @@ class BusinessChatsList extends StatefulWidget {
 }
 
 class _BusinessChatsListState extends State<BusinessChatsList> {
-  final chatViewController = Get.find<ChatViewController>();
+  // Use getOrPut (not Get.find) so this list works even when reached on a path
+  // where ChatViewController isn't already live — e.g. the medical/provider
+  // home embeds it outside the bottom-nav tab tree. Matches the dominant
+  // pattern used by the other chat lists (personal_chat_list, group_chat_screen).
+  final chatViewController = getOrPut(() => ChatViewController());
   late final ChatPinArchiveController pinArchiveController;
   late final ChatLockController lockController;
 
