@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 
 import '../../../../widgets/custom_text_cm.dart';
 import '../../auth/controller/chat_theme_controller.dart';
+import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
 import '../../auth/model/messageMediaUrl.dart';
 import 'chat_cached_image.dart';
@@ -40,6 +41,57 @@ class _GroupVideoAndImageCardWidgetState extends State<GroupVideoAndImageCardWid
   Widget build(BuildContext context) {
 
     return  buildImageMessage(widget.message,widget.time,widget.isReceive,widget.theme,widget.userId,widget.conversationId);
+  }
+
+  /// Opens the full-screen, swipeable media viewer seeded with EVERY media item
+  /// in the conversation (chronological order), positioned on [tapped]. Swiping
+  /// left/right then walks through the previous/next media messages — the same
+  /// experience as the group info → media gallery. [FullImagePreviewPage]
+  /// renders images and inline videos alike.
+  void _openConversationMediaViewer(MessageMediaUrl tapped) {
+    final chatViewController = Get.find<ChatViewController>();
+
+    // Sort a copy chronologically so the viewer order matches the chat thread.
+    final messages = List<Messages>.from(
+        chatViewController.getListOfMessageData ?? const []);
+    messages.sort((a, b) {
+      final da = (a.createdAt != null && a.createdAt!.isNotEmpty)
+          ? DateTime.parse(a.createdAt!)
+          : DateTime.fromMillisecondsSinceEpoch(0);
+      final db = (b.createdAt != null && b.createdAt!.isNotEmpty)
+          ? DateTime.parse(b.createdAt!)
+          : DateTime.fromMillisecondsSinceEpoch(0);
+      return da.compareTo(db);
+    });
+
+    final List<MessageMediaUrl> allMedia = [];
+    for (final m in messages) {
+      final urls = m.url;
+      if (urls == null) continue;
+      for (final u in urls) {
+        if ((u.url ?? '').isEmpty) continue;
+        allMedia.add(u);
+      }
+    }
+
+    int initialIndex = allMedia.indexWhere(
+        (e) => identical(e, tapped) || (e.url != null && e.url == tapped.url));
+    if (initialIndex < 0) {
+      // Tapped item not in the flattened list (e.g. not yet loaded) — show it
+      // on its own rather than failing.
+      allMedia.insert(0, tapped);
+      initialIndex = 0;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => FullImagePreviewPage(
+          images: allMedia,
+          initialIndex: initialIndex,
+        ),
+      ),
+    );
   }
   Widget buildImageMessage(Messages message, String time, bool isReceive,
       ThemeData theme, String userId, String conversation) {
@@ -234,23 +286,9 @@ class _GroupVideoAndImageCardWidgetState extends State<GroupVideoAndImageCardWid
         if(chatThemeController.isMessageSelectionActive.value){
           chatThemeController.selectMoreMessage(message);
         }else{
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) =>
-                  GroupVideoCommentsPage(chaterName: widget.name??'',videoPath: path.url ?? '', message: message, userId: '${widget.userId}', conversationId: '${widget.conversationId}',),
-            ),
-          );
-          // Navigator.push(
-          //   context,
-          //   MaterialPageRoute(
-          //     builder: (_) =>
-          //         FullImagePreviewPage(
-          //           images: [path],
-          //           initialIndex: 0,
-          //         ),
-          //   ),
-          // );
+          // Image tap → full-screen, swipeable viewer across all conversation
+          // media (prev/next), instead of the single-media comments page.
+          _openConversationMediaViewer(path);
         }
       },
       child: Row(
@@ -426,16 +464,9 @@ class _GroupVideoAndImageCardWidgetState extends State<GroupVideoAndImageCardWid
                           if(chatThemeController.isMessageSelectionActive.value){
                             chatThemeController.selectMoreMessage(message.forwardId==null?message.id:message.forwardId);
                           }else{
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) =>
-                                    FullImagePreviewPage(
-                                      images: paths,
-                                      initialIndex: index,
-                                    ),
-                              ),
-                            );
+                            // Swipe across all conversation media starting from
+                            // this grid tile.
+                            _openConversationMediaViewer(paths[index]);
                           }
                         },
                         child: Stack(

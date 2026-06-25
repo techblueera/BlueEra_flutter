@@ -11,6 +11,10 @@ class UserByPhoneModel {
   final String? bio;
   final String? accountType;
 
+  /// Business profile id (from the sibling `business._id`). Present for BUSINESS
+  /// users; used to open their business visiting profile. Null for individuals.
+  final String? businessId;
+
   /// Business category name from `category_details.name` (e.g. "Watches &
   /// Eyewear"). Present for BUSINESS users; null for individuals.
   final String? categoryName;
@@ -28,6 +32,7 @@ class UserByPhoneModel {
     this.location,
     this.bio,
     this.accountType,
+    this.businessId,
     this.categoryName,
     this.designation,
   });
@@ -55,6 +60,7 @@ class UserByPhoneModel {
       location: json['location']?.toString(),
       bio: json['bio']?.toString(),
       accountType: json['account_type']?.toString(),
+      businessId: business?['_id']?.toString() ?? business?['id']?.toString(),
       categoryName: category is Map ? category['name']?.toString() : null,
       designation: json['designation']?.toString(),
     );

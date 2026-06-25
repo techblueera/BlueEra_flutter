@@ -2,13 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
+import '../../../../../core/api/apiService/api_keys.dart';
 import '../../../../../core/constants/app_colors.dart';
+import '../../../../../core/constants/app_constant.dart';
 import '../../../../../core/constants/app_strings.dart';
 import '../../../../../core/constants/shared_preference_utils.dart';
+import '../../../../../core/routes/route_helper.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../auth/controller/chat_view_controller.dart';
 import '../../../auth/model/group_details_model.dart';
 import '../../contacts/view/be_available_contacts_list.dart';
+import '../../widget/component_widgets.dart' show navigateToProfileFromChat;
 
 class GroupMembersList extends StatefulWidget {
   GroupMembersList({super.key, required this.members, required this.conversationId});
@@ -79,11 +83,15 @@ class _GroupMembersListState extends State<GroupMembersList> {
                 // const Divider(color: AppColors.primaryColor, thickness: 1),
                 // const SizedBox(height: 12),
                 _buildBottomSheetButton(
+                  icon: Icons.person_outline,
+                  text: AppStrings.viewProfile.tr,
+                  onTap: () => _openMemberProfile(context, member),
+                ),
+                const SizedBox(height: 12),
+                _buildBottomSheetButton(
                   icon: Icons.message_outlined,
                   text: AppStrings.messageLabel.tr,
-                  onTap: () {
-                    Navigator.pop(context);
-                  },
+                  onTap: () => _openMemberChat(context, member),
                 ),
                 if (amIAdmin && member.id != userId) ...[
                   const SizedBox(height: 12),
@@ -111,6 +119,61 @@ class _GroupMembersListState extends State<GroupMembersList> {
           ),
         );
       },
+    );
+  }
+
+  /// Open the member's visiting profile, reusing the app-wide chat profile
+  /// navigation (business → [VisitBusinessProfileNew], individual →
+  /// [NewVisitProfileScreen]). Business members route through their
+  /// [businessId]; everyone else through their user [id].
+  void _openMemberProfile(BuildContext context, GroupMembersListModel member) {
+    Navigator.pop(context); // close the member bottom sheet
+
+    final isBusiness =
+        (member.accountType ?? '').toUpperCase() == AppConstants.business;
+    if (isBusiness) {
+      final businessId = (member.businessId?.isNotEmpty == true)
+          ? member.businessId!
+          : (member.id ?? '');
+      if (businessId.isEmpty) return;
+      navigateToProfileFromChat(
+          authorId: businessId, type: AppConstants.business);
+    } else {
+      final id = member.id ?? '';
+      if (id.isEmpty) return;
+      navigateToProfileFromChat(authorId: id, type: AppConstants.individual);
+    }
+  }
+
+  /// Open (or create) a 1-to-1 chat with [member] from the group info screen.
+  ///
+  /// Before opening we pop the group info + group chat screens back to the
+  /// chat list, then push the personal chat on top of it. That way pressing
+  /// back from the personal chat returns to the chat list — not to the group
+  /// chat screen the user came through.
+  void _openMemberChat(BuildContext context, GroupMembersListModel member) {
+    Navigator.pop(context); // close the member bottom sheet
+
+    final memberUserId = member.id ?? '';
+    if (memberUserId.isEmpty || memberUserId == userId) return;
+
+    // Leave the current group room and drop the group screens from the stack.
+    chatViewController.leaveConversation();
+    Get.until((route) =>
+        route.settings.name ==
+            RouteHelper.getBottomNavigationBarScreenRoute() ||
+        route.isFirst);
+    chatViewController.emitEvent(
+        ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.group_Chat_Type});
+
+    // Pushed on top of the chat list (isFromContactList: false → Get.to).
+    chatViewController.checkChatConnectionAndOpenChat(
+      userId: memberUserId,
+      isFromContactList: false,
+      name: member.name,
+      conductNo: member.contact,
+      profile: member.profileImage,
+      route: AppConstants.route_contact,
     );
   }
 
