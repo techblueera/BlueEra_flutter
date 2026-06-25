@@ -1,23 +1,28 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/razor_pay_services.dart';
 import 'package:BlueEra/features/contribution/model/security_deposit_models.dart';
 import 'package:BlueEra/features/contribution/repo/security_deposit_repo.dart';
 import 'package:get/get.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
 
 /// State + workflow for the Security Deposit ("contribution v2") flow.
 ///
 /// Flow (see docs/backend/SECURITY_DEPOSIT_FRONTEND_INTEGRATION.md):
 ///   1. [fetchCurrent] — 200 → user already has a held deposit; 404 → none.
 ///   2. [fetchPlans]   — catalog for the user's account type.
-///   3. [payDeposit]   — `initiate` (records intent) → `confirm` (payment
-///      placeholder until Razorpay lands) → `held`.
+///   3. [payDeposit]   — `initiate` (creates a Razorpay order) → open Razorpay
+///      checkout → `verify-payment` (`created → held`). A zero-deposit tag skips
+///      payment and comes back already `held`.
 ///   4. [requestRefund] — after the refund-lock window; [cancelDeposit] for an
 ///      unpaid `created` intent.
 class SecurityDepositController extends GetxController {
   final SecurityDepositRepo _repo = SecurityDepositRepo();
+  final RazorpayService _razorpay = RazorpayService();
 
   // ── Plans catalog ────────────────────────────────────────────
   final RxList<SecurityDepositPlan> plans = <SecurityDepositPlan>[].obs;
@@ -39,6 +44,11 @@ class SecurityDepositController extends GetxController {
   // ── Action flow (pay / refund / cancel) ──────────────────────
   final RxBool isProcessing = false.obs;
 
+  /// Buyer details for Razorpay prefill — hydrated by the view before pay.
+  String userName = '';
+  String userEmail = '';
+  String userPhone = '';
+
   /// `BUSINESS` / `INDIVIDUAL` — the account-type query the catalog is scoped
   /// to (matches the backend's uppercase values).
   String get accountType => isBusinessUser() ? 'BUSINESS' : 'INDIVIDUAL';
@@ -53,6 +63,12 @@ class SecurityDepositController extends GetxController {
     super.onInit();
     fetchCurrent();
     fetchPlans();
+  }
+
+  @override
+  void onClose() {
+    _razorpay.dispose();
+    super.onClose();
   }
 
   // ─── 1. Plans ─────────────────────────────────────────────────
@@ -104,46 +120,99 @@ class SecurityDepositController extends GetxController {
     }
   }
 
-  // ─── 3. Pay (initiate → confirm) ──────────────────────────────
-  /// Records intent for [plan], then confirms it (payment placeholder).
-  Future<void> payDeposit(SecurityDepositPlan plan) async {
+  // ─── 3. Pay (initiate → Razorpay → verify-payment) ────────────
+  /// Creates a Razorpay order for [plan], opens checkout, and on success
+  /// verifies the payment to flip the deposit to `held`. An optional
+  /// [referralCode] applies the refer-&-earn discount (the server also
+  /// auto-applies a parked onboarding code when none is passed). A
+  /// zero-deposit plan skips Razorpay and is activated immediately.
+  Future<void> payDeposit(SecurityDepositPlan plan, {String? referralCode}) async {
     if (isProcessing.value) return;
     isProcessing.value = true;
-    try {
-      final ResponseModel initRes =
-          await _repo.initiate(securityDepositPlanId: plan.id);
 
-      // "Already has a held deposit" comes back as 400 carrying the existing
-      // deposit id/status — just refresh and surface the active card.
-      if (initRes.statusCode == 400 &&
-          initRes.response?.data?['data']?['security_deposit_id'] != null) {
-        await fetchCurrent();
-        commonSnackBar(
-            message: initRes.message ?? 'You already have an active deposit');
-        return;
-      }
+    final ResponseModel initRes = await _repo.initiate(
+      securityDepositPlanId: plan.id,
+      referralCode: referralCode,
+    );
 
-      if (initRes.statusCode != 200 ||
-          initRes.response?.data?['data']?['security_deposit_id'] == null) {
-        commonSnackBar(
-            message: initRes.message ?? 'Could not start the deposit');
-        return;
-      }
-
-      final depositId =
-          initRes.response!.data['data']['security_deposit_id'].toString();
-
-      final ResponseModel confirmRes = await _repo.confirm(depositId: depositId);
-      if (confirmRes.statusCode == 200) {
-        commonSnackBar(message: 'Security deposit activated');
-        await fetchCurrent();
-      } else {
-        commonSnackBar(
-            message: confirmRes.message ?? 'Could not confirm the deposit');
-      }
-    } finally {
+    // "Already has a held deposit" comes back as 400 carrying the existing
+    // deposit id/status — just refresh and surface the active card.
+    if (initRes.statusCode == 400 &&
+        initRes.response?.data?['data']?['security_deposit_id'] != null) {
       isProcessing.value = false;
+      await fetchCurrent();
+      commonSnackBar(
+          message: initRes.message ?? 'You already have an active deposit');
+      return;
     }
+
+    final data = initRes.response?.data?['data'];
+    if (initRes.statusCode != 200 || data is! Map<String, dynamic>) {
+      isProcessing.value = false;
+      commonSnackBar(message: initRes.message ?? 'Could not start the deposit');
+      return;
+    }
+
+    final order = InitiateSecurityDepositResponse.fromJson(data);
+    if (order.securityDepositId.isEmpty) {
+      isProcessing.value = false;
+      commonSnackBar(message: AppStrings.unexpectedServerResponse.tr);
+      return;
+    }
+    // Zero-deposit tag: no payment needed, already `held`.
+    if (order.isZeroDeposit) {
+      isProcessing.value = false;
+      commonSnackBar(message: 'Security deposit activated');
+      await fetchCurrent();
+      return;
+    }
+
+    // Open Razorpay checkout — verification happens in the success handler.
+    _razorpay.openCheckout(
+      razorpayKeyId: order.keyId,
+      name: AppStrings.appName,
+      description: '${plan.name} security deposit',
+      amount: order.finalAmount.toDouble(), // paise
+      contact: userPhone,
+      email: userEmail,
+      // Empty subscriptionId tells RazorpayService to use the orderId path.
+      subscriptionId: '',
+      orderId: order.orderId,
+      currency: order.currency,
+      onPaymentSuccess: _onRazorpaySuccess,
+      onPaymentError: _onRazorpayError,
+    );
+  }
+
+  Future<void> _onRazorpaySuccess(PaymentSuccessResponse response) async {
+    final orderId = response.orderId ?? '';
+    final paymentId = response.paymentId ?? '';
+    final signature = response.signature ?? '';
+    if (orderId.isEmpty || paymentId.isEmpty || signature.isEmpty) {
+      isProcessing.value = false;
+      commonSnackBar(message: AppStrings.paymentVerificationDataMissing.tr);
+      return;
+    }
+    final ResponseModel res = await _repo.verifyPayment(
+      orderId: orderId,
+      paymentId: paymentId,
+      signature: signature,
+    );
+    isProcessing.value = false;
+    if (res.statusCode == 200) {
+      commonSnackBar(message: 'Security deposit activated');
+    } else {
+      // The webhook is the source of truth and will still activate the
+      // deposit server-side, so re-fetch below surfaces the held state.
+      commonSnackBar(
+          message: res.message ?? AppStrings.paymentVerificationFailedWebhook.tr);
+    }
+    await fetchCurrent();
+  }
+
+  void _onRazorpayError(PaymentFailureResponse response) {
+    isProcessing.value = false;
+    commonSnackBar(message: response.message ?? AppStrings.paymentFailed.tr);
   }
 
   // ─── 4a. Refund ───────────────────────────────────────────────

@@ -28,10 +28,12 @@ is a **Security Deposit Plan** describing:
 The user side is a **`UserSecurityDeposit`** record that moves through a
 lifecycle: `created → held → refund_requested → refunded`.
 
-> ⚠️ **Payment (Razorpay) is NOT wired yet.** Today, `initiate` records intent and
-> `confirm` simulates payment success. When Razorpay lands, `confirm` is replaced
-> by a checkout + signature/webhook step — **the rest of the contract stays the
-> same**, so build your UI against this now.
+> ✅ **Razorpay is LIVE + Refer & Earn is wired.** `initiate` creates a Razorpay
+> order (and applies a referral discount when a valid `referralCode` is present);
+> the app opens Razorpay checkout, then calls `/verify-payment` to flip the deposit
+> to `held`. A webhook is the source of truth. `refund/request` issues a real
+> Razorpay refund after the 6-month lock. Zero-deposit tags skip payment and are
+> returned already `held`.
 
 ---
 
@@ -156,10 +158,18 @@ class SecurityDepositPlan {
 | `securityDepositPlanId` | String \| Object | Plan id, or the **populated plan object** on `current` / `my-deposits` / `details` |
 | `tag_id` | String | Denormalized tag |
 | `account_type` | String | `BUSINESS` / `INDIVIDUAL` |
-| `deposit_amount` | num | Snapshot of deposit, **paise** |
+| `deposit_amount` | num | Catalog deposit snapshot, **paise** |
+| `base_amount` | num | Pre-discount base (referral commission base), **paise** |
+| `referralCode` | String? | Applied code; **cleared** after the referrer is credited |
+| `referral_discount_percent` | num | e.g. `10` |
+| `discount_amount` | num | Referral discount, **paise** |
+| `final_amount` | num | **Amount actually paid AND refunded**, paise (`base − discount`) |
 | `currency` | String | `INR` |
 | `status` | String | See lifecycle below |
 | `isActive` | bool | `true` while `held` |
+| `razorpay_order_id` | String | Order created at `initiate` |
+| `razorpay_payment_id` | String? | Set on payment success |
+| `razorpay_refund_id` | String? | Set when a refund is issued |
 | `held_at` | ISO date? | When deposit became `held` |
 | `refund_after_months` | num | Snapshot (default `6`) |
 | `refund_eligible_at` | ISO date? | Earliest refund date (`held_at + refund_after_months`) |
@@ -168,33 +178,55 @@ class SecurityDepositPlan {
 | `mode` | String | `live` / `test` |
 | `created_at` / `updated_at` | ISO date | |
 
+> **Money fields:** show `final_amount` as the price (what the user pays and later
+> gets back). `base_amount`/`discount_amount` let you render a struck-through
+> original + the referral saving.
+
 ---
 
 ## 4. Status lifecycle (keyword: `status`)
 
 ```
-created ──confirm──▶ held ──refund/request (after 6mo)──▶ refund_requested ──▶ refunded
+created ──Razorpay pay → /verify-payment (or webhook)──▶ held ──refund/request (after 6mo)──▶ refund_requested ──refund.processed──▶ refunded
    │                                                                              
-   └──cancel──▶ cancelled
-
-other terminal states the backend may set: forfeited, expired
+   ├──payment.failed──▶ failed
+   └──cancel / cron──▶ cancelled / expired
 ```
 
 | `status` | Meaning | UI hint |
 |---|---|---|
-| `created` | Intent recorded, **not paid** | Show "Pay deposit" CTA → call `confirm` |
+| `created` | Order created, **payment not captured** | Open Razorpay checkout → `/verify-payment` |
 | `held` | Deposit paid & active | Show "Active", show `refund_eligible_at` |
-| `refund_requested` | Refund asked after lock | Show "Refund in progress" |
-| `refunded` | Money returned | Show "Refunded" |
+| `refund_requested` | Razorpay refund initiated after lock | Show "Refund in progress" |
+| `refunded` | Money returned (refund processed) | Show "Refunded" |
+| `failed` | Payment failed | Allow retry / re-initiate |
 | `forfeited` | Deposit retained | Show "Forfeited" |
 | `cancelled` | Unpaid intent cancelled | Allow re-initiate |
-| `expired` | Stale `created` cleaned up | Allow re-initiate |
+| `expired` | Stale `created` cleaned up by cron | Allow re-initiate |
 
 `isActive == true` only when `status == 'held'`.
 
 ---
 
 ## 5. Endpoint reference
+
+> ### 🔁 Tag / account_type input is tolerant
+> Every endpoint that accepts a **`tag_id`** or **`account_type`** (plans, plan-by-tag,
+> initiate, and the gRPC tag lookups) normalises the value, so the frontend can send
+> the **display name** or any casing and still get a match:
+>
+> | Frontend sends | Backend resolves to |
+> |---|---|
+> | `General Store`, `general store`, `general-store`, `GENERAL_STORE` | `GENERAL_STORE` |
+> | `Vegetable & Fruit` | `VEGETABLE_FRUIT` |
+> | `Multi-Cuisine Restaurant` | `MULTICUISINE_RESTAURANT` (matched by name) |
+> | `Car / Taxi Driver` | `CAR_TAXI_DRIVER` |
+> | `business`, `Business`, `BUSINESS` | `BUSINESS` |
+>
+> Rule: input is upper-cased and any run of non-alphanumeric chars → `_`; if that
+> doesn't match a `tag_id`, the backend also matches the exact **display name**
+> (case-insensitive). **You must still URL-encode** spaces/`&`/`/` in the query string
+> (see the Dart helper below) — Dio/Uri do this for you.
 
 ### 5.1 List plans — `GET /security-deposit/plans`
 
@@ -203,7 +235,37 @@ Query params (both optional): **`tag_id`**, **`account_type`**.
 ```
 GET /security-deposit/plans?account_type=BUSINESS
 GET /security-deposit/plans?tag_id=GENERAL_STORE&account_type=BUSINESS
+# Display name also works (URL-encoded):
+GET /security-deposit/plans?tag_id=General%20Store&account_type=BUSINESS
 ```
+
+**Always pass query values via the client's `queryParameters` (not string concat)** so
+spaces and `&`/`/` are encoded correctly:
+
+```dart
+// ✅ Correct — Dio encodes "General Store" → "General%20Store"
+Future<List<SecurityDepositPlan>> fetchPlans({String? tagId, String? accountType}) async {
+  final res = await dio.get('/security-deposit/plans', queryParameters: {
+    if (tagId != null) 'tag_id': tagId,            // e.g. "General Store" or "GENERAL_STORE"
+    if (accountType != null) 'account_type': accountType,
+  });
+  final list = (res.data['data'] as List);
+  return list.map((e) => SecurityDepositPlan.fromJson(e)).toList();
+}
+
+// For a path param (plan-by-tag), encode the segment explicitly:
+Future<SecurityDepositPlan> fetchPlanByTag(String tag, {String? accountType}) async {
+  final res = await dio.get(
+    '/security-deposit/plan/${Uri.encodeComponent(tag)}',   // "Vegetable & Fruit" → "Vegetable%20%26%20Fruit"
+    queryParameters: { if (accountType != null) 'account_type': accountType },
+  );
+  return SecurityDepositPlan.fromJson(res.data['data']);
+}
+```
+
+> ⚠️ Do **not** build URLs by string interpolation
+> (`'/plans?tag_id=$tag'`) — a `&` or space in the name will corrupt the query.
+> Use `queryParameters` / `Uri.encodeComponent` as above.
 
 **200**
 ```json
@@ -259,32 +321,39 @@ By Mongo `_id`. Returns `data: { "deletedPlanId": "<id>" }`. *(Admin only.)*
 
 ### 5.5 Initiate deposit — `POST /security-deposit/initiate`
 
-Records intent. Provide **either** `securityDepositPlanId` **or** both
-`tag_id` + `account_type`.
+Creates a **Razorpay order**. Provide **either** `securityDepositPlanId` **or**
+both `tag_id` + `account_type`. Optional **`referralCode`** for the discount.
 
 ```json
-{ "tag_id": "GENERAL_STORE", "account_type": "BUSINESS" }
+{ "tag_id": "GENERAL_STORE", "account_type": "BUSINESS", "referralCode": "REF12345" }
 ```
 
-**200**
+**200** (paid deposit)
 ```json
 {
   "success": true,
-  "message": "Security deposit initiated. Payment integration (Razorpay) pending — call /confirm to simulate payment success.",
+  "message": "Security deposit order created. Open Razorpay checkout with order_id.",
   "data": {
-    "security_deposit_id": "66c1...",
-    "tag_id": "GENERAL_STORE",
-    "account_type": "BUSINESS",
-    "deposit_amount": 100000,
+    "order_id": "order_Lv32q9c9XQM8bX",
+    "key_id": "rzp_live_XXXXXXXXXXXX",
     "currency": "INR",
+    "base_amount": 100000,
+    "discount_amount": 10000,
+    "referral_discount_percent": 10,
+    "final_amount": 90000,
     "refund_after_months": 6,
+    "security_deposit_id": "66c1...",
     "status": "created"
   }
 }
 ```
 
-Save **`data.security_deposit_id`** — it's the `depositId` for `confirm`,
-`refund/request`, `cancel`, and `…/details`.
+**200** (zero-deposit tag, e.g. Social Profile) → `order_id: null`, `final_amount: 0`,
+`status: "held"` (no payment needed; already active).
+
+Open Razorpay checkout with `data.order_id` + `data.key_id` for `data.final_amount`.
+Save **`data.security_deposit_id`** — the `depositId` for `refund/request`,
+`cancel`, and `…/details`.
 
 **Error cases**
 | HTTP | When | Body |
@@ -294,23 +363,28 @@ Save **`data.security_deposit_id`** — it's the `depositId` for `confirm`,
 | 400 | Plan inactive | `{ success:false, message:"This security deposit plan is no longer active." }` |
 | 404 | Plan not found | `{ success:false, message:"Security deposit plan not found." }` |
 
-> On the `400 already has` case, read `data.security_deposit_id` / `data.status`
-> and route the user to the existing deposit instead of creating a new one.
+> Referral: an invalid/absent code simply yields `discount_amount: 0` /
+> `final_amount == base_amount` — the call still succeeds.
 
-### 5.6 Confirm deposit — `POST /security-deposit/confirm`
+### 5.6 Verify payment — `POST /security-deposit/verify-payment`
 
-**Placeholder for payment success** (becomes Razorpay verify/webhook later).
-Idempotent `created → held`.
+Call after Razorpay checkout succeeds. Idempotently activates the deposit
+(`created → held`), sets `held_at` / `refund_eligible_at`, and credits the referrer.
 
 ```json
-{ "depositId": "66c1..." }
+{
+  "razorpay_order_id": "order_Lv32q9c9XQM8bX",
+  "razorpay_payment_id": "pay_Lv32q9c9XQM8bX",
+  "razorpay_signature": "2b83499fdd8ecb89c2cf5f..."
+}
 ```
 
-**200** → `data` is the **full updated UserSecurityDeposit** with
-`status: "held"`, `isActive: true`, `held_at`, and `refund_eligible_at` set.
-If already held, returns 200 with the current record (message *"already held"*).
+**200** → `{ "status": "ok", "message": "Verified successfully" }`.
+**400** invalid signature / missing fields. **404** no deposit for that order.
 
-**400** if the deposit isn't in `created`. **404** if not found.
+> The **webhook** (`/security-deposit/webhook/razorpay`) is the source of truth and
+> performs the same activation — so even if the app dies before calling
+> verify-payment, the deposit still becomes `held`. Both are idempotent.
 
 ### 5.7 Get current held deposit — `GET /security-deposit/current`
 
@@ -325,18 +399,22 @@ each with populated plan.
 
 ### 5.9 Deposit details — `GET /security-deposit/{depositId}/details`
 
-**200** → `data: { "local": <UserSecurityDeposit with populated plan> }`.
-*(When Razorpay is added, live order/payment will appear alongside `local`.)*
+**200** → `data: { "local": <UserSecurityDeposit + populated plan>, "razorpay_order": {…}|null, "razorpay_payment": {…}|null }`.
+Live Razorpay objects are best-effort (null when unreachable or zero-deposit).
 
 ### 5.10 Request refund — `POST /security-deposit/refund/request`
+
+Issues a **real Razorpay refund** of `final_amount` after the lock passes.
 
 ```json
 { "depositId": "66c1..." }
 ```
 
-- **200** → `data: { security_deposit_id, status: "refund_requested" }`
-- **400** if not `held`:
-  `"Only a held deposit can be refunded. Current status: created."`
+- **200** → `data: { security_deposit_id, status: "refund_requested" | "refunded", razorpay_refund_id, refund_amount }`.
+  Status is `refunded` if Razorpay processed instantly; otherwise `refund_requested`
+  and the `refund.processed` webhook flips it to `refunded` shortly after.
+- **400** if not `held`: `"Only a held deposit can be refunded. Current status: created."`
+- **400** if no captured payment: `"No captured payment found for this deposit…"`
 - **400** if still within the lock window (the 6-month rule):
   ```json
   {
@@ -346,6 +424,7 @@ each with populated plan.
   }
   ```
   → Show the date from `data.refund_eligible_at`, disable the refund button until then.
+- **502** if Razorpay rejects the refund (transient) → ask the user to retry.
 
 ### 5.11 Cancel deposit — `POST /security-deposit/cancel`
 
@@ -372,48 +451,78 @@ Only a **`created`** (unpaid) deposit can be cancelled.
 │      → show deposit_amount (₹), first_day_free_text,               │
 │        base_metric, terms_and_conditions, refund_after_months      │
 │                                                                    │
-│ 3. User taps "Pay Security Deposit"                                │
-│      POST /security-deposit/initiate {tag_id, account_type}        │
-│      → save data.security_deposit_id                               │
+│ 3. User taps "Pay Security Deposit" (optionally enters referralCode)│
+│      POST /security-deposit/initiate {tag_id, account_type,        │
+│                                       referralCode?}               │
+│      → returns { order_id, key_id, final_amount, security_deposit_id }│
+│      → (order_id == null → zero-deposit, already held → go to 6)   │
 │                                                                    │
-│ 4. (Razorpay later) → for now: POST /security-deposit/confirm      │
-│      {depositId} → status becomes "held"                           │
+│ 4. Open Razorpay checkout (order_id, key_id, final_amount)         │
+│      on success → handler gives order_id, payment_id, signature    │
 │                                                                    │
-│ 5. Show success → refund_eligible_at = held_at + 6 months          │
+│ 5. POST /security-deposit/verify-payment {order_id, payment_id,    │
+│                                           signature}               │
+│      → status becomes "held" (webhook also does this, idempotent)  │
+│                                                                    │
+│ 6. Show success → refund_eligible_at = held_at + 6 months          │
 └────────────────────────────────────────────────────────────────────┘
 
 Refund screen:
   POST /security-deposit/refund/request {depositId}
     400 within lock → show "Refundable on {refund_eligible_at}"
-    200 → "Refund requested"
+    200 → real Razorpay refund issued (status refund_requested → refunded)
 ```
 
-### Example: initiate → confirm
+### Example: initiate → Razorpay checkout → verify
 
 ```dart
-Future<String> initiateDeposit({
+import 'package:razorpay_flutter/razorpay_flutter.dart';
+
+// 1. Create the order (referralCode optional)
+Future<Map<String, dynamic>> initiateDeposit({
   required String tagId,
   required String accountType,
+  String? referralCode,
 }) async {
   final res = await dio.post('/security-deposit/initiate', data: {
     'tag_id': tagId,
     'account_type': accountType,
+    if (referralCode != null) 'referralCode': referralCode,
   });
   final body = res.data as Map<String, dynamic>;
-  if (body['success'] != true) {
-    throw Exception(body['message']);
-  }
-  return body['data']['security_deposit_id'] as String;
+  if (body['success'] != true) throw Exception(body['message']);
+  return body['data'] as Map<String, dynamic>; // { order_id, key_id, final_amount, ... }
 }
 
-// TODO: when Razorpay lands, replace this with checkout + verify.
-Future<Map<String, dynamic>> confirmDeposit(String depositId) async {
-  final res = await dio.post('/security-deposit/confirm', data: {
-    'depositId': depositId,
+// 2. Open Razorpay checkout
+final _razorpay = Razorpay();
+void openCheckout(Map<String, dynamic> order) {
+  if (order['order_id'] == null) return; // zero-deposit: already held
+  _razorpay.open({
+    'key': order['key_id'],
+    'order_id': order['order_id'],
+    'amount': order['final_amount'], // paise
+    'currency': order['currency'],
+    'name': 'BlueEra Security Deposit',
   });
-  return (res.data as Map<String, dynamic>)['data']; // held deposit
 }
+
+// 3. On success, verify with the backend
+void onPaymentSuccess(PaymentSuccessResponse r) async {
+  await dio.post('/security-deposit/verify-payment', data: {
+    'razorpay_order_id': r.orderId,
+    'razorpay_payment_id': r.paymentId,
+    'razorpay_signature': r.signature,
+  });
+  // status is now "held"; refresh the deposit screen
+}
+// _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, onPaymentSuccess);
+// _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, ...);
 ```
+
+> Even if the app is killed before step 3, the **webhook** activates the deposit
+> server-side. On next launch, `GET /security-deposit/current` will return it as
+> `held`.
 
 ### Example: current deposit (handle 404 as "none")
 
@@ -465,12 +574,24 @@ Future<void> requestRefund(String depositId) async {
 
 ---
 
-## 8. What changes when Razorpay is added (forward note)
+## 8. Refer & Earn (how it works for the frontend)
 
-The **only** step that changes is **§5.6 confirm**. It will be replaced by:
-1. `initiate` will additionally return a Razorpay `order_id` + `key_id`.
-2. Frontend opens the Razorpay checkout SDK with that order.
-3. A `verify-payment` call (+ server webhook) flips `created → held`.
+- Pass an optional **`referralCode`** in `/initiate`. If valid, `data.final_amount`
+  is already discounted by `referral_discount_percent` — just charge `final_amount`.
+- If the user has a code parked at onboarding (server-side wallet), you can omit
+  `referralCode` and the server auto-applies it.
+- The **referrer's** earning is handled entirely server-side on payment success —
+  the frontend does nothing extra. The buyer just sees the discounted `final_amount`.
+- Show savings with `base_amount` (struck-through) vs `final_amount` (payable).
+- The full `final_amount` is what gets refunded after the 6-month lock.
 
-All other endpoints, fields, and statuses in this guide remain unchanged — so
-anything you build now stays valid.
+## 9. Razorpay & mode notes
+
+- Razorpay runs in **LIVE** mode by default; the backend can toggle live/test
+  globally (`/razorpay/toggle`). Plans and deposits are scoped per mode, so test
+  in test mode and go live in live mode.
+- `final_amount` and all money fields are **paise** — pass `amount: final_amount`
+  straight to the Razorpay SDK.
+- Webhook is authoritative; `/verify-payment` is your instant-feedback path. Never
+  mark a deposit "paid" purely on the client — always confirm via verify-payment
+  (or re-fetch `current`).

@@ -2,9 +2,11 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/contribution/controller/security_deposit_controller.dart';
 import 'package:BlueEra/features/contribution/model/security_deposit_models.dart';
+import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +24,7 @@ class ContributionScreenV2 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final controller = getOrPut(() => SecurityDepositController());
+    _hydrateBuyerDetails(controller);
     return Scaffold(
       backgroundColor: const Color(0xFFEEF8FF),
       appBar: CommonBackAppBar(
@@ -51,6 +54,20 @@ class ContributionScreenV2 extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Populate the controller's Razorpay prefill (name / email / phone) from the
+  /// personal-details controller, falling back to the global mobile number.
+  void _hydrateBuyerDetails(SecurityDepositController controller) {
+    try {
+      final viewCtrl = Get.find<ViewPersonalDetailsController>();
+      final user = viewCtrl.personalProfileDetails.value.user;
+      controller.userName = user?.name ?? '';
+      controller.userEmail = user?.email ?? '';
+      controller.userPhone = user?.contactNo ?? userMobileGlobal;
+    } catch (_) {
+      controller.userPhone = userMobileGlobal;
+    }
   }
 }
 
@@ -356,7 +373,7 @@ class _ActiveDepositView extends StatelessWidget {
                             ),
                           ),
                           TextSpan(
-                            text: _rupees(deposit.depositAmount),
+                            text: _rupees(deposit.paidAmount),
                             style: const TextStyle(
                               fontSize: 30,
                               fontWeight: FontWeight.w900,
@@ -389,6 +406,18 @@ class _ActiveDepositView extends StatelessWidget {
                       ),
                   ],
                 ),
+                // Refer & earn — surface the savings when a referral discount
+                // was applied at initiate (base struck-through + amount saved).
+                if (deposit.discountAmount > 0) ...[
+                  const SizedBox(height: 12),
+                  _ReferralSavingsChip(
+                    baseAmount: deposit.baseAmount > 0
+                        ? deposit.baseAmount
+                        : deposit.depositAmount,
+                    discountAmount: deposit.discountAmount,
+                    percent: deposit.referralDiscountPercent,
+                  ),
+                ],
               ],
             ),
           ),
@@ -510,6 +539,70 @@ class _StatusPill extends StatelessWidget {
         fontWeight: FontWeight.w800,
         color: Colors.white,
         letterSpacing: 1.0,
+      ),
+    );
+  }
+}
+
+/// Refer-&-earn savings stamp on the active-deposit hero card. Shows the
+/// pre-discount base struck-through and the rupee amount saved via the
+/// referral, mirroring docs §8 ("show base_amount vs final_amount").
+class _ReferralSavingsChip extends StatelessWidget {
+  const _ReferralSavingsChip({
+    required this.baseAmount,
+    required this.discountAmount,
+    required this.percent,
+  });
+
+  final int baseAmount; // paise
+  final int discountAmount; // paise
+  final int percent;
+
+  @override
+  Widget build(BuildContext context) {
+    final savedLabel = '₹${_rupees(discountAmount)}';
+    final percentLabel = percent > 0 ? ' ($percent% off)' : '';
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFF34D399).withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.card_giftcard_rounded,
+              size: 14, color: Color(0xFF6EE7B7)),
+          const SizedBox(width: 6),
+          Flexible(
+            child: RichText(
+              overflow: TextOverflow.ellipsis,
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: '₹${_rupees(baseAmount)} ',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white.withValues(alpha: 0.6),
+                      decoration: TextDecoration.lineThrough,
+                      decorationColor: Colors.white.withValues(alpha: 0.6),
+                    ),
+                  ),
+                  TextSpan(
+                    text: 'Referral saved $savedLabel$percentLabel',
+                    style: const TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFFD1FAE5),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -30,12 +30,16 @@ class SecurityDepositRepo extends BaseService {
     );
   }
 
-  /// `POST /security-deposit/initiate` — provide either [securityDepositPlanId]
-  /// or both [tagId] + [accountType]. Returns `data.security_deposit_id`.
+  /// `POST /security-deposit/initiate` — creates a Razorpay order. Provide
+  /// either [securityDepositPlanId] or both [tagId] + [accountType]; an optional
+  /// [referralCode] applies the refer-&-earn discount. Returns
+  /// `data` = { order_id, key_id, final_amount, security_deposit_id, ... }.
+  /// A zero-deposit tag comes back with `order_id: null`, `status: "held"`.
   Future<ResponseModel> initiate({
     String? securityDepositPlanId,
     String? tagId,
     String? accountType,
+    String? referralCode,
   }) {
     final body = <String, dynamic>{
       if (securityDepositPlanId != null && securityDepositPlanId.isNotEmpty)
@@ -43,6 +47,8 @@ class SecurityDepositRepo extends BaseService {
       if (tagId != null && tagId.isNotEmpty) 'tag_id': tagId,
       if (accountType != null && accountType.isNotEmpty)
         'account_type': accountType,
+      if (referralCode != null && referralCode.isNotEmpty)
+        'referralCode': referralCode,
     };
     return ApiBaseHelper().postHTTP(
       securityDepositInitiate,
@@ -51,12 +57,21 @@ class SecurityDepositRepo extends BaseService {
     );
   }
 
-  /// `POST /security-deposit/confirm` — payment-success placeholder
-  /// (`created → held`). Swapped for Razorpay verify/webhook later.
-  Future<ResponseModel> confirm({required String depositId}) {
+  /// `POST /security-deposit/verify-payment` — called after Razorpay checkout
+  /// succeeds. Idempotently activates the deposit (`created → held`). The
+  /// webhook is the source of truth and performs the same activation.
+  Future<ResponseModel> verifyPayment({
+    required String orderId,
+    required String paymentId,
+    required String signature,
+  }) {
     return ApiBaseHelper().postHTTP(
-      securityDepositConfirm,
-      params: {'depositId': depositId},
+      securityDepositVerifyPayment,
+      params: {
+        'razorpay_order_id': orderId,
+        'razorpay_payment_id': paymentId,
+        'razorpay_signature': signature,
+      },
       showProgress: false,
     );
   }

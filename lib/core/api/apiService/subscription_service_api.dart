@@ -21,8 +21,8 @@ mixin SubscriptionServiceApi {
       'subscription-service/security-deposit/plans';
   final String securityDepositInitiate =
       'subscription-service/security-deposit/initiate';
-  final String securityDepositConfirm =
-      'subscription-service/security-deposit/confirm';
+  final String securityDepositVerifyPayment =
+      'subscription-service/security-deposit/verify-payment';
   final String securityDepositCurrent =
       'subscription-service/security-deposit/current';
   final String securityDepositMyDeposits =
