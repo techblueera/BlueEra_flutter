@@ -36,14 +36,16 @@ class WalletResponseModalClass {
 class WalletResponseModalClassData {
   String? id;
   String? userId;
-  int? withdrawableAmount;
-  int? totalRewardAmount;
-  int? totalWithdrawalAmount;
+  num? withdrawableAmount;
+  num? pendingBalance;
+  num? totalRewardAmount;
+  num? totalWithdrawalAmount;
 
   WalletResponseModalClassData({
     this.id,
     this.userId,
     this.withdrawableAmount,
+    this.pendingBalance,
     this.totalRewardAmount,
     this.totalWithdrawalAmount,
   });
@@ -52,16 +54,20 @@ class WalletResponseModalClassData {
       WalletResponseModalClassData(
         id: json["_id"],
         userId: json["userId"],
-        withdrawableAmount: json["withdrawableAmount"],
-        totalRewardAmount: json["totalRewardAmount"],
-        totalWithdrawalAmount: json["totalWithdrawalAmount"],
+        // API keys are balance / totalEarning / totalWithdrawal — map them
+        // onto the existing field names the UI already reads.
+        withdrawableAmount: json["balance"],
+        pendingBalance: json["pendingBalance"],
+        totalRewardAmount: json["totalEarning"],
+        totalWithdrawalAmount: json["totalWithdrawal"],
       );
 
   Map<String, dynamic> toJson() => {
         "_id": id,
         "userId": userId,
-        "withdrawableAmount": withdrawableAmount,
-        "totalRewardAmount": totalRewardAmount,
-        "totalWithdrawalAmount": totalWithdrawalAmount,
+        "balance": withdrawableAmount,
+        "pendingBalance": pendingBalance,
+        "totalEarning": totalRewardAmount,
+        "totalWithdrawal": totalWithdrawalAmount,
       };
 }

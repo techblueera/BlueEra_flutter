@@ -20,9 +20,8 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
-import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
-import 'package:BlueEra/widgets/order_actions_carousel.dart';
+import 'package:BlueEra/features/me/professionals_consultant/widget/professionals_inquiry_tab.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
@@ -137,7 +136,11 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
               topBar: _buildTopBar(),
               topBarHeight: topBarHeight,
               tabViews: [
-                _tabScroll(_buildOrderTab()),
+                _tabScroll([
+                  ProfessionalsInquiryTab(
+                    onAddServices: () => _tabController.animateTo(2),
+                  ),
+                ]),
                 _tabScroll(_buildOverviewTab()),
                 _tabScroll(_buildServiceTab()),
                 _tabScroll(const [EarnStoreCards()]),
@@ -1308,27 +1311,6 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
         );
       }),
     );
-  }
-
-  List<Widget> _buildOrderTab() {
-    return [
-      Padding(
-        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-        child: OrderActionsCarousel(
-          onAddCatalog: () => _tabController.animateTo(2),
-          catalogIcon: Icons.design_services_rounded,
-          catalogTitle: AppStrings.addService.tr,
-          catalogSubtitle: 'List the services you offer',
-        ),
-      ),
-      SizedBox(height: SizeConfig.size16),
-      BusinessChatsList(
-        isForwardUI: false,
-        excludeSenderId: userId,
-        isInParentScroll: true,
-        listTitle: 'Inquiry',
-      ),
-    ];
   }
 
   List<Widget> _buildPostTab() {

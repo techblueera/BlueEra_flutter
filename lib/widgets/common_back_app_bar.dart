@@ -701,19 +701,19 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                               children: [
                                 InkWell(
                                   onTap: () => transactionFilterOnTap
-                                      ?.call("SUCCESSFUL"),
+                                      ?.call("COMPLETED"),
                                   child: CustomText(
-                                    "Successful",
+                                    "Completed",
                                     textAlign: TextAlign.left,
                                     color: transactionFilterSelectedValue ==
-                                            "SUCCESSFUL"
+                                            "COMPLETED"
                                         ? AppColors.green39
                                         : AppColors.black,
                                     fontWeight: FontWeight.w400,
                                     fontSize: SizeConfig.medium,
                                   ),
                                 ),
-                                transactionFilterSelectedValue == "SUCCESSFUL"
+                                transactionFilterSelectedValue == "COMPLETED"
                                     ? Padding(
                                         padding:
                                             const EdgeInsets.only(left: 8.0),
@@ -734,19 +734,19 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                               children: [
                                 InkWell(
                                   onTap: () =>
-                                      transactionFilterOnTap?.call("FAILED"),
+                                      transactionFilterOnTap?.call("REJECTED"),
                                   child: CustomText(
-                                    "Failed",
+                                    "Rejected",
                                     textAlign: TextAlign.left,
                                     color: transactionFilterSelectedValue ==
-                                            "FAILED"
+                                            "REJECTED"
                                         ? AppColors.green39
                                         : AppColors.black,
                                     fontWeight: FontWeight.w400,
                                     fontSize: SizeConfig.medium,
                                   ),
                                 ),
-                                transactionFilterSelectedValue == "FAILED"
+                                transactionFilterSelectedValue == "REJECTED"
                                     ? Padding(
                                         padding:
                                             const EdgeInsets.only(left: 8.0),

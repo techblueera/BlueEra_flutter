@@ -56,10 +56,15 @@ class WalletTransactionResponseModalClass {
 class WalletTransactionResponseModalClassDatum {
   String? id;
   String? walletId;
-  int? amountInRupees;
-  String? type;
-  String? status;
+  // API key is `amount` (already in rupees, may be a decimal e.g. 0.25).
+  num? amountInRupees;
+  String? type; // CREDIT / DEBIT
+  String? status; // PENDING / COMPLETED
+  // API key is `purpose` (e.g. WITHDRAWAL, REFERRAL_INCOME); `source` kept as a
+  // fallback for any older payloads that still send it.
   String? source;
+  String? purpose;
+  String? description;
   DateTime? createdAt;
   DateTime? updatedAt;
   int? v;
@@ -71,20 +76,57 @@ class WalletTransactionResponseModalClassDatum {
     this.type,
     this.status,
     this.source,
+    this.purpose,
+    this.description,
     this.createdAt,
     this.updatedAt,
     this.v,
   });
+
+  /// True for incoming money (referral income, etc.); false for withdrawals.
+  bool get isCredit => (type ?? '').toUpperCase() == "CREDIT";
+
+  String get _statusUpper => (status ?? '').toUpperCase();
+  bool get isPending => _statusUpper == "PENDING";
+  bool get isRejected => _statusUpper == "REJECTED";
+  bool get isCompleted => _statusUpper == "COMPLETED";
+
+  /// Human label for the status chip (PENDING / COMPLETED / REJECTED).
+  String get statusLabel {
+    if (isPending) return "Pending";
+    if (isRejected) return "Rejected";
+    if (isCompleted) return "Completed";
+    return status ?? "";
+  }
+
+  /// Readable row title: turns `REFERRAL_INCOME` → "Referral Income". Falls
+  /// back to `source`, then `description`.
+  String get title {
+    final raw = (purpose?.isNotEmpty ?? false)
+        ? purpose
+        : (source?.isNotEmpty ?? false)
+            ? source
+            : description;
+    if (raw == null || raw.isEmpty) return "Transaction";
+    if (!raw.contains("_")) return raw;
+    return raw
+        .split("_")
+        .where((w) => w.isNotEmpty)
+        .map((w) => "${w[0].toUpperCase()}${w.substring(1).toLowerCase()}")
+        .join(" ");
+  }
 
   factory WalletTransactionResponseModalClassDatum.fromJson(
       Map<String, dynamic> json) {
     return WalletTransactionResponseModalClassDatum(
       id: json["_id"],
       walletId: json["walletId"],
-      amountInRupees: json["amountInRupees"],
+      amountInRupees: json["amount"] ?? json["amountInRupees"],
       type: json["type"],
       status: json["status"],
       source: json["source"],
+      purpose: json["purpose"],
+      description: json["description"],
       createdAt: json["createdAt"] != null
           ? DateTime.tryParse(json["createdAt"])
           : null,
@@ -98,10 +140,12 @@ class WalletTransactionResponseModalClassDatum {
   Map<String, dynamic> toJson() => {
     "_id": id,
     "walletId": walletId,
-    "amountInRupees": amountInRupees,
+    "amount": amountInRupees,
     "type": type,
     "status": status,
     "source": source,
+    "purpose": purpose,
+    "description": description,
     "createdAt": createdAt?.toIso8601String(),
     "updatedAt": updatedAt?.toIso8601String(),
     "__v": v,

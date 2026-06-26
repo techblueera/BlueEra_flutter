@@ -64,22 +64,25 @@ class GroceryTopSellingProductCard extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Stack(
-            children: [
-              SizedBox(
-                height: imageHeight,
-                width: double.infinity,
-                child: GroceryFallbackImage(
-                  urls: [variantImageUrl, productImageUrl],
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: Stack(
+              children: [
+                SizedBox(
+                  height: imageHeight,
+                  width: double.infinity,
+                  child: GroceryFallbackImage(
+                    urls: [variantImageUrl, productImageUrl],
+                  ),
                 ),
-              ),
-              if (imageOverlay != null)
-                Positioned(
-                  top: SizeConfig.size6,
-                  right: SizeConfig.size6,
-                  child: imageOverlay!,
-                ),
-            ],
+                if (imageOverlay != null)
+                  Positioned(
+                    top: SizeConfig.size6,
+                    right: SizeConfig.size6,
+                    child: imageOverlay!,
+                  ),
+              ],
+            ),
           ),
           Padding(
             padding: EdgeInsets.fromLTRB(

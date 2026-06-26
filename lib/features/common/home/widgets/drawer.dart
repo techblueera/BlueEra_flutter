@@ -24,6 +24,7 @@ import '../../../personal/personal_profile/view/franchise/request_to_franchise.d
 import '../../../personal/personal_profile/view/help_and_support_screen/help_and_support_screen.dart';
 import '../../../personal/personal_profile/view/manage_notification/notification.dart';
 import '../../../personal/personal_profile/view/payment/view/payment_setting_screen.dart';
+import '../../../personal/personal_profile/view/wallet/controller/wallet_controller.dart';
 import '../../../personal/personal_profile/view/wallet/wallet_screen.dart';
 import '../../../personal/personal_profile/view/widget/changes_languages_screen.dart';
 import '../../auth/controller/auth_controller.dart';
@@ -46,6 +47,8 @@ class ProfileMenuDrawer extends StatefulWidget {
 class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
   final viewProfileController = getOrPut(() => ViewPersonalDetailsController());
   final viewBusinessProfileController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+
+  final walletController = getOrPut(() => WalletController());
 
   final lang = getOrPut(() => LanguageControllerNew());
 
@@ -70,6 +73,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
   }
 
   Future<void> _loadInitialData() async {
+    walletController.getWalletApi();
     if (accountTypeGlobal != "BUSINESS") {
       await viewProfileController.viewPersonalProfile();
     } else {
@@ -465,12 +469,17 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
                             color: AppColors.primaryColor,
                           ),
                           const SizedBox(width: 2),
-                          CustomText(
-                            '0',
-                            fontSize: 22,
-                            fontWeight: FontWeight.w900,
-                            color: AppColors.mainTextColor,
-                            letterSpacing: -0.5,
+                          Obx(
+                            () => CustomText(
+                              (walletController.walletResponseModalClass.value
+                                          .data?.withdrawableAmount ??
+                                      0)
+                                  .toString(),
+                              fontSize: 22,
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.mainTextColor,
+                              letterSpacing: -0.5,
+                            ),
                           ),
                           const SizedBox(width: 6),
                           CustomText(

@@ -23,10 +23,9 @@ import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
-import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
-import 'package:BlueEra/widgets/order_actions_carousel.dart';
+import 'package:BlueEra/features/me/food/view/widget/food_order_tab.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
@@ -194,7 +193,11 @@ class _FoodMainScreenState extends State<FoodMainScreen>
               topBar: _buildTopBar(),
               topBarHeight: topBarHeight,
               tabViews: [
-                _tabScroll(_buildOrderTab()),
+                _tabScroll([
+                  FoodOrderTab(
+                    onAddProduct: () => _tabController.animateTo(2),
+                  ),
+                ]),
                 _tabScroll(_buildOverviewSlivers()),
                 _tabScroll(_buildProductsTab()),
                 _tabScroll(_buildPostTab()),
@@ -264,46 +267,6 @@ class _FoodMainScreenState extends State<FoodMainScreen>
         ),
       ),
     );
-  }
-
-  // ORDER TAB â€” top slot is reactive to the contribution status:
-  //   â€¢ Active recharge present â†’ premium "membership peek" card with
-  //     plan name, perks-remaining strip, and a forward chevron that
-  //     pushes ContributionScreen.
-  //   â€¢ Otherwise â†’ the lavender "Contribute now" CTA.
-  // The orders list itself is still a coming-soon placeholder.
-  List<Widget> _buildOrderTab() {
-    return [
-      Padding(
-        padding: EdgeInsets.only(right: SizeConfig.size12),
-        child: OrderActionsCarousel(
-          onAddCatalog: () => _tabController.animateTo(2),
-          catalogIcon: Icons.inventory_2_rounded,
-          catalogTitle: AppStrings.addProduct.tr,
-          catalogSubtitle: 'List items customers can order',
-        ),
-      ),
-      SizedBox(height: SizeConfig.size12),
-
-      // its Orders tab. Wrapped in a SizedBox because OrdersTabView
-      // uses an Expanded ListView internally and needs a bounded
-      // height. Translated -20 on x (and given matching width) to
-      // neutralise the parent SliverToBoxAdapter's left:20 padding so
-      // the filter pills and chat tiles align edge-to-edge like on
-      // ConnectMainPage. `excludeSenderId: userId` hides chats whose
-      // last message was authored by the merchant, leaving only
-      // `isInParentScroll: true` makes OrdersTabView drop its inner
-      // `Expanded` and switch the orders ListView to
-      // NeverScrollableScrollPhysics so the surrounding
-      // CustomScrollView owns the scroll â€” no fixed height needed.
-      // The parent SliverToBoxAdapter's left: 20 padding insets the
-      // orders list naturally â€” no Transform needed.
-      BusinessChatsList(
-        excludeSenderId: userId,
-        isInParentScroll: true,
-        listTitle: 'Orders',
-      ),
-    ];
   }
 
   List<Widget> _buildOverviewSlivers() {

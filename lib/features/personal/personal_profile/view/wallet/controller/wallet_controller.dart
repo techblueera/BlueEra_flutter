@@ -18,7 +18,15 @@ import '../model/bank_details_model.dart';
 import '../repo/wallet_repo.dart';
 
 class WalletController extends GetxController {
+  // See-All list (supports status/type filters + pagination).
   Rx<WalletTransactionResponseModalClass> walletTransactionResponseModalClass=WalletTransactionResponseModalClass().obs;
+
+  // Home preview list — ALWAYS unfiltered and kept separate from the See-All
+  // list, so filtering on See-All never changes what the wallet home shows.
+  Rx<WalletTransactionResponseModalClass> previewTransactionResponseModalClass =
+      WalletTransactionResponseModalClass().obs;
+  Rx<ApiResponse> previewTransactionResponse =
+      ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> viewWalletBalanceResponse =
       ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> viewTransactionHistoryResponse =
@@ -36,6 +44,21 @@ class WalletController extends GetxController {
   String? selectedType;
   String? selectedSource;
   final TextEditingController amountController = TextEditingController();
+
+  /// Mirror of [amountController]'s text as a reactive value so the Withdraw
+  /// button's enabled state can recompute as the user types (a plain
+  /// TextEditingController isn't observable on its own).
+  RxString enteredAmount = ''.obs;
+
+  /// True only when a positive amount within the available balance is entered.
+  bool get isAmountWithinBalance {
+    final amount = double.tryParse(enteredAmount.value.trim());
+    if (amount == null || amount <= 0) return false;
+    final available =
+        (walletResponseModalClass.value.data?.withdrawableAmount ?? 0).toDouble();
+    return amount <= available;
+  }
+
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   WithdrawalResponseModalClass? withdrawalResponseModalClass;
   RxString selectedBank = "Select Payment".obs; // Stores the selected value
@@ -95,8 +118,58 @@ class WalletController extends GetxController {
     }
   }
 
+  // Only valid query values the transactions API accepts. Anything else (e.g. a
+  // legacy "SUCCESSFUL"/"FAILED" left in a shared controller) is dropped so it
+  // never hits the API.
+  static const _allowedStatuses = {"PENDING", "COMPLETED", "REJECTED"};
+  static const _allowedTypes = {"CREDIT", "DEBIT"};
+
+  /// Clears any active transaction filters. The wallet home preview calls this
+  /// so it always shows the full, unfiltered list — the See-All screen shares
+  /// this controller and may have left a status/type filter set.
+  void resetTransactionFilters() {
+    selectedStatus = null;
+    selectedType = null;
+    selectedSource = null;
+  }
+
+  /// Fetches the latest transactions for the wallet home preview — always
+  /// unfiltered (no status/type/source) and independent of the See-All list.
+  Future<void> getPreviewTransactionApi() async {
+    try {
+      previewTransactionResponse.value = ApiResponse.loading();
+      ResponseModel response = await _walletRepo.walletTransactionApi(
+        page: 1,
+        limit: 10,
+      );
+      if (response.isSuccess) {
+        previewTransactionResponseModalClass.value =
+            WalletTransactionResponseModalClass.fromJson(response.response?.data);
+        previewTransactionResponse.value =
+            ApiResponse.complete(previewTransactionResponseModalClass);
+      } else {
+        previewTransactionResponse.value =
+            ApiResponse.error(response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e) {
+      previewTransactionResponse.value =
+          ApiResponse.error(AppStrings.somethingWentWrong);
+    }
+  }
+
   Future<void> getWalletTransactionApi({bool isFromFilter = true}) async {
-    if (isLoadingMore) return;
+    // Only block concurrent PAGINATION loads. A filter/refresh must always go
+    // through, otherwise an in-flight page load swallows the new filter call.
+    if (!isFromFilter && isLoadingMore) return;
+
+    // Sanitize the filters: keep only recognised values and clear the rest so a
+    // stale value can't be sent and the UI highlight stays in sync.
+    if (selectedStatus != null && !_allowedStatuses.contains(selectedStatus)) {
+      selectedStatus = null;
+    }
+    if (selectedType != null && !_allowedTypes.contains(selectedType)) {
+      selectedType = null;
+    }
 
     if (isFromFilter) {
       page = 1;
@@ -171,6 +244,37 @@ class WalletController extends GetxController {
         } else if (bankList.isNotEmpty && upiList.isNotEmpty) {
           // Optional: Default to Bank if both are available
           selectedBank.value = "Bank";
+        }
+
+        // 4. PRE-SELECT the user's default method (falls back to the first item
+        // of each list) so the Withdraw flow starts with a destination chosen.
+        if (bankList.isNotEmpty) {
+          selectedBankDetails.value = bankList.firstWhere(
+            (e) => e.isDefault == true,
+            orElse: () => bankList.first,
+          );
+        }
+        if (upiList.isNotEmpty) {
+          selectedUpiDetails.value = upiList.firstWhere(
+            (e) => e.isDefault == true,
+            orElse: () => upiList.first,
+          );
+        }
+
+        // Open on the tab that owns the default method when both types exist.
+        if (bankList.isNotEmpty && upiList.isNotEmpty) {
+          WithdrawalMethodData? defaultMethod;
+          for (final e in withdrawalMethodDataList) {
+            if (e.isDefault == true) {
+              defaultMethod = e;
+              break;
+            }
+          }
+          if (defaultMethod?.methodType == "UPI") {
+            selectedBank.value = "UPI";
+          } else if (defaultMethod?.methodType == "BANK") {
+            selectedBank.value = "Bank";
+          }
         }
 
         walletWithdrawalMethodResponse.value = ApiResponse.complete(walletWithdrawalMethod);
@@ -331,6 +435,19 @@ class WalletController extends GetxController {
     if (value == null || value.trim().isEmpty) {
       isAmount = false;
       return "Amount is required";
+    }
+    final amount = double.tryParse(value.trim());
+    if (amount == null) {
+      return "Enter a valid amount";
+    }
+    if (amount <= 0) {
+      return "Amount must be greater than 0";
+    }
+    // Can't withdraw more than the available (withdrawable) balance.
+    final available =
+        (walletResponseModalClass.value.data?.withdrawableAmount ?? 0).toDouble();
+    if (amount > available) {
+      return "Amount can't exceed available balance (₹${available.toStringAsFixed(2)})";
     }
     return null;
   }

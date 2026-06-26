@@ -5933,10 +5933,18 @@ class AppStrings {
   static const String rentOutHousesOfficesSpaces = "rentOutHousesOfficesSpaces";
 
   static const String currentBalance = "currentBalance";
+  static const String pendingBalance = "pendingBalance";
   static const String totalRewardAmount = "totalRewardAmount";
   static const String totalWithdrawals = "totalWithdrawals";
   static const String noTransactionFound = "noTransactionFound";
   static const String seeAllTransactions = "seeAllTransactions";
+
+  // Joining Bounce (joining bonus) — see JOINING_BOUNCE_FLUTTER_GUIDE.md
+  static const String joiningBonus = "joiningBonus";
+  static const String businessTab = "businessTab";
+  static const String individualTab = "individualTab";
+  static const String claimNow = "claimNow";
+  static const String noJoiningBonusFound = "noJoiningBonusFound";
 
   static const String generateYourReferralCode = "generateYourReferralCode";
   static const String enterYourReferralCode = "enterYourReferralCode";

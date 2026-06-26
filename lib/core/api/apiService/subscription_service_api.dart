@@ -31,4 +31,46 @@ mixin SubscriptionServiceApi {
       'subscription-service/security-deposit/refund/request';
   final String securityDepositCancel =
       'subscription-service/security-deposit/cancel';
+
+  /// Joining Bounce (joining bonus) — the inverse of the Security Deposit:
+  /// the platform pays the user a one-time joining bonus once genuine
+  /// onboarding is proven. No Razorpay / payment — it's a wallet payout.
+  /// See docs/backend/JOINING_BOUNCE_FLUTTER_GUIDE.md.
+  /// `GET  /joining-bounce/plans?tag_id=&account_type=` — catalog of plans.
+  final String joiningBouncePlans = 'subscription-service/joining-bounce/plans';
+
+  /// `POST /joining-bounce/enroll` — enroll into a plan ({ tag_id, account_type }).
+  final String joiningBounceEnroll =
+      'subscription-service/joining-bounce/enroll';
+
+  /// `POST /joining-bounce/activity` — report hours/tasks/milestone progress.
+  final String joiningBounceActivity =
+      'subscription-service/joining-bounce/activity';
+
+  /// `POST /joining-bounce/milestone` — toggle a single required milestone.
+  final String joiningBounceMilestone =
+      'subscription-service/joining-bounce/milestone';
+
+  /// `GET  /joining-bounce/current` — the user's in_progress/eligible record.
+  final String joiningBounceCurrent =
+      'subscription-service/joining-bounce/current';
+
+  /// `GET  /joining-bounce/my-bounces?status=` — array of the user's records.
+  final String joiningBounceMyBounces =
+      'subscription-service/joining-bounce/my-bounces';
+
+  /// `POST /joining-bounce/claim` — pay an eligible bonus into the wallet.
+  final String joiningBounceClaim = 'subscription-service/joining-bounce/claim';
+
+  /// `POST /joining-bounce/cancel` — cancel an in_progress/eligible record.
+  final String joiningBounceCancel =
+      'subscription-service/joining-bounce/cancel';
+
+  /// `GET  /joining-bounce/plan/:tagId?account_type=` — one plan by tag.
+  String joiningBouncePlanByTag(String tagId) =>
+      'subscription-service/joining-bounce/plan/$tagId';
+
+  /// `GET  /joining-bounce/:joiningBounceId/progress` — detailed progress.
+  String joiningBounceProgressById(String id) =>
+      'subscription-service/joining-bounce/$id/progress';
 }

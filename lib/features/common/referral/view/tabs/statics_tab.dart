@@ -1,9 +1,11 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
 import 'package:BlueEra/features/common/referral/view/referral_history_screen.dart';
 import 'package:BlueEra/features/common/referral/widgets/stat_donut_chart.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/wallet/controller/joining_bounce_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -24,6 +26,10 @@ class _StaticsTabState extends State<StaticsTab> {
   static const _red = Color(0xFFEF4444);
 
   ReferralController get controller => widget.controller;
+
+  /// Drives the Joining Bonus card from the Joining Bounce flow —
+  /// see docs/backend/JOINING_BOUNCE_FLUTTER_GUIDE.md.
+  final _joiningBounceController = getOrPut(() => JoiningBounceController());
 
   static const _filterAll = 'All';
   static const _filterJoining = 'Joining Bonus';
@@ -74,6 +80,8 @@ class _StaticsTabState extends State<StaticsTab> {
   void initState() {
     super.initState();
     controller.fetchDirectReferralIncome();
+    // Active joining bonus (progress + bonus amount) for the Joining Bonus card.
+    _joiningBounceController.getCurrentApi();
   }
 
   @override
@@ -171,12 +179,16 @@ class _StaticsTabState extends State<StaticsTab> {
   }
 
   // ─── Joining Bonus ────────────────────────────────────────────────
+  // Driven by the Joining Bounce flow (GET /joining-bounce/current). The
+  // progress object's `requirements` block carries each metric as
+  // current/required — see docs/backend/JOINING_BOUNCE_FLUTTER_GUIDE.md §5.
   Widget _joiningBonusCard() {
     return Obx(() {
-      final jb = controller.walletStatics.value?.joiningBonus;
-      final days = jb?.progress?.days;
-      final hours = jb?.progress?.workHours;
-      final tasks = jb?.progress?.assignTask;
+      final jb = _joiningBounceController.currentBounce.value;
+      final req = jb?.requirements;
+      final days = req?.days;
+      final hours = req?.hours;
+      final tasks = req?.tasks;
       return _StatsCard(
         title: 'Joining Bonus',
         onViewDetails: () {},
@@ -188,7 +200,7 @@ class _StaticsTabState extends State<StaticsTab> {
               DonutSegment(color: _yellow, value: tasks?.current ?? 0),
             ],
             center: _CenterText(
-              value: _money(jb?.totalBonus),
+              value: _money(jb?.bonusInr),
               label: 'Total Bonus',
             ),
           ),
@@ -197,19 +209,19 @@ class _StaticsTabState extends State<StaticsTab> {
               color: _grey,
               label: 'Days',
               value:
-                  '${_count(days?.current)}/${_count(days?.target)} Days',
+                  '${_count(days?.current)}/${_count(days?.required)} Days',
             ),
             _LegendRow(
               color: _green,
               label: 'Work Hours',
               value:
-                  '${_count(hours?.current)}/${_count(hours?.target)} hrs.',
+                  '${_count(hours?.current)}/${_count(hours?.required)} hrs.',
             ),
             _LegendRow(
               color: _yellow,
               label: 'Assign Task',
               value:
-                  '${_count(tasks?.current)}/${_count(tasks?.target)} Tasks',
+                  '${_count(tasks?.current)}/${_count(tasks?.required)} Tasks',
             ),
           ],
         ),

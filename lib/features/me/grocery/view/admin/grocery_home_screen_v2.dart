@@ -20,7 +20,6 @@ import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
 import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
-import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
@@ -35,6 +34,7 @@ import 'package:BlueEra/features/me/grocery/widget/grocery_variants_sheet.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/grocery/view/all_top_selling_grocery_products_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/admin/grocery_shop_availability_screen.dart';
+import 'package:BlueEra/features/me/grocery/widget/grocery_order_tab.dart';
 import 'package:BlueEra/widgets/common_business_live_photo.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -44,7 +44,6 @@ import 'package:BlueEra/widgets/post_via_dialog.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:BlueEra/features/business/widgets/business_joined_profile_card.dart';
-import 'package:BlueEra/widgets/order_actions_carousel.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -220,7 +219,12 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
               topBar: _buildTopBar(),
               topBarHeight: topBarHeight,
               tabViews: [
-                _tabScroll(_buildOrderTab()),
+                _tabScroll([
+                  GroceryOrderTab(
+                    businessId: widget.businessId,
+                    onAddProduct: () => _tabController.animateTo(2),
+                  ),
+                ]),
                 _tabScroll(_buildOverviewSlivers()),
                 _tabScroll(_buildProductsTab()),
                 _tabScroll(_buildPostTab()),
@@ -254,35 +258,6 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
     );
   }
 
-  // ORDER TAB â€” top slot is reactive to the contribution status:
-  //   â€¢ Active recharge present â†’ premium "membership peek" card with
-  //     plan name, perks-remaining strip, and a forward chevron that
-  //     pushes ContributionScreen.
-  //   â€¢ Otherwise â†’ the lavender "Contribute now" CTA.
-  // Below the slot sits the legacy [MyGroceryOrders] list region.
-  List<Widget> _buildOrderTab() {
-    return [
-      Padding(
-        padding: EdgeInsets.only(right: SizeConfig.size12),
-        child: OrderActionsCarousel(
-          onAddCatalog: () => _tabController.animateTo(2),
-          catalogIcon: Icons.inventory_2_rounded,
-          catalogTitle: AppStrings.addProduct.tr,
-          catalogSubtitle: 'List items customers can order',
-        ),
-      ),
-      SizedBox(height: SizeConfig.size16),
-      Builder(builder: (_) {
-        debugPrint('[GroceryHomeV2] excludeSenderId(userId) = "$userId" '
-            '| businessId="${widget.businessId}"');
-        return BusinessChatsList(
-          excludeSenderId: userId,
-          isInParentScroll: true,
-          listTitle: 'Orders',
-        );
-      }),
-    ];
-  }
 
   List<Widget> _buildOverviewSlivers() {
     return [
@@ -356,12 +331,10 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
     });
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // PRODUCTS TAB â€” top-level "Add Grocery" CTA, then the same
   // top-selling and category-with-inventory cards as Overview.
   // The category section keeps its inline "Update Inventory" link;
   // this top button is the dedicated bulk-upload entry point.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildProductsTab() {
     return [
       _buildTopSellingSection(),
@@ -382,9 +355,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
     }
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // POST TAB â€” embeds FeedScreen filtered to current user's posts.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildPostTab() {
     if (!Get.isRegistered<FeedController>()) {
       Get.put(FeedController());
@@ -522,9 +493,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
     }
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // TOP BAR
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildTopBar() {
     final topInset = MediaQuery.of(context).padding.top;
     return DecoratedBox(
@@ -775,23 +744,12 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
     );
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // PROFILE ROW â€” owner-identity strip per assets/img1.png:
-  // [logo] businessName [+1]   [edit] [eye]
-  //        typeOfBusiness
-  // Fixed at top â€” does NOT scroll with the content.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-
-
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // TOP-SELLING PRODUCTS â€” editorial-style horizontal scroller. Each
   // tile is a ranked chart entry with a brand-tinted image hero, a
   // small "#01" rank pill, the green-gradient discount sticker, a
   // bold name, and a prominent price. A 3-px brand-blue gradient
   // ribbon caps the bottom edge so the section reads as one curated
   // shelf. Header uses the page's vertical-bar pattern + chip CTA.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildTopSellingSection() {
     return Obx(() {
       final isLoading =
@@ -807,53 +765,61 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
           ? grouped.take(GroceryController.businessProductsPreviewLimit).toList()
           : grouped;
 
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-            child: _topSellingSectionHeader(),
-          ),
-          SizedBox(height: SizeConfig.size12),
-          SizedBox(
-            height: 225,
-            child: isLoading
-                ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
-                : ListView.builder(
-                    itemCount: previewGroups.length,
-                    scrollDirection: Axis.horizontal,
-                    padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-                    itemBuilder: (context, index) {
-                      final group = previewGroups[index];
-                      return Padding(
-                        padding: const EdgeInsets.only(right: 12),
-                        // Align stops the horizontal ListView's tight cross-axis
-                        // (height) constraint from stretching the card — it sizes
-                        // to its content instead of filling the rail height.
-                        child: Align(
-                          alignment: Alignment.topCenter,
-                          child: SizedBox(
-                            width: 160,
-                            child: GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onTap: () => showGroceryVariantsSheet(
-                                context: context,
-                                productName: group.product.product?.name ?? '',
-                                productImageUrl: group.product.productImageUrlOnly,
-                                variants: group.variants,
-                              ),
-                              child: GroceryTopSellingProductCard(
-                                product: group.product,
-                                variants: group.variants,
+      return Container(
+        // White-bordered shell wrapping the whole top-selling section
+        // (header + cards rail) with a uniform 10-px inner padding.
+        margin: EdgeInsets.only(right: SizeConfig.size12),
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.white, width: 1),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _topSellingSectionHeader(),
+            SizedBox(height: SizeConfig.size12),
+            SizedBox(
+              height: 225,
+              child: isLoading
+                  ? const Center(child: CircularProgressIndicator(strokeWidth: 2))
+                  : ListView.builder(
+                      itemCount: previewGroups.length,
+                      scrollDirection: Axis.horizontal,
+                      padding: EdgeInsets.zero,
+                      itemBuilder: (context, index) {
+                        final group = previewGroups[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 12),
+                          // Align stops the horizontal ListView's tight cross-axis
+                          // (height) constraint from stretching the card — it sizes
+                          // to its content instead of filling the rail height.
+                          child: Align(
+                            alignment: Alignment.topCenter,
+                            child: SizedBox(
+                              width: 160,
+                              child: GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: () => showGroceryVariantsSheet(
+                                  context: context,
+                                  productName: group.product.product?.name ?? '',
+                                  productImageUrl: group.product.productImageUrlOnly,
+                                  variants: group.variants,
+                                ),
+                                child: GroceryTopSellingProductCard(
+                                  product: group.product,
+                                  variants: group.variants,
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        ],
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
       );
     });
   }
@@ -922,13 +888,13 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
             color: AppColors.primaryColor.withValues(alpha: 0.25),
             width: 1,
           ),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x42001120),
-              blurRadius: 10,
-              offset: Offset(0, 2),
-            ),
-          ],
+          // boxShadow: const [
+          //   BoxShadow(
+          //     color: Color(0x42001120),
+          //     blurRadius: 10,
+          //     offset: Offset(0, 2),
+          //   ),
+          // ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -963,64 +929,65 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
   // and the card is finished with a brand-blue gradient ribbon at
   // the bottom edge to anchor the silhouette.
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // CATEGORIES WITH INVENTORY â€” header strip + two-tone storefront
   // card grid. Same design language used in food's products tab:
   // a vertical brand-accent bar with title + helper, a refined chip
   // CTA on the right, and full-bleed photo cards below with a tinted
   // hero zone and a crisp footer carrying the name + a brand chevron.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildCategoryWithInventorySection() {
     return Obx(() {
       final groceryCategoryList =
           List<GroceryCategoryWithInventoryModel>.from(_groceryController.groceryCategoryList);
 
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-            child: _categorySectionHeader(),
-          ),
-          SizedBox(height: SizeConfig.size16),
-          if (groceryCategoryList.isEmpty)
-            Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: SizeConfig.size12,
-                vertical: SizeConfig.size20,
+      return Container(
+        // White-bordered shell wrapping the whole category section
+        // (header + inventory grid) with a uniform 10-px inner padding —
+        // mirrors the top-selling section's container.
+        margin: EdgeInsets.only(right: SizeConfig.size12),
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.white, width: 1),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _categorySectionHeader(),
+            SizedBox(height: SizeConfig.size16),
+            if (groceryCategoryList.isEmpty)
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  vertical: SizeConfig.size20,
+                ),
+                child: EmptyStateWidget(
+                  message: AppStrings.noProductYetCreateOne.tr,
+                ),
+              )
+            else
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final crossAxisCount = constraints.maxWidth > 600 ? 3 : 2;
+                  return GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: EdgeInsets.only(top: SizeConfig.size4),
+                    itemCount: groceryCategoryList.length,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossAxisCount,
+                      crossAxisSpacing: SizeConfig.size12,
+                      mainAxisSpacing: SizeConfig.size12,
+                      childAspectRatio: 1.0,
+                    ),
+                    itemBuilder: (_, i) => _groceryCategoryCard(
+                      groceryCategoryList[i],
+                      groceryCategoryList,
+                    ),
+                  );
+                },
               ),
-              child: EmptyStateWidget(
-                message: AppStrings.noProductYetCreateOne.tr,
-              ),
-            )
-          else
-            LayoutBuilder(
-              builder: (context, constraints) {
-                final crossAxisCount = constraints.maxWidth > 600 ? 3 : 2;
-                return GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  padding: EdgeInsets.fromLTRB(
-                    SizeConfig.size12,
-                    SizeConfig.size4,
-                    SizeConfig.size12,
-                    0,
-                  ),
-                  itemCount: groceryCategoryList.length,
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: crossAxisCount,
-                    crossAxisSpacing: SizeConfig.size12,
-                    mainAxisSpacing: SizeConfig.size12,
-                    childAspectRatio: 1.0,
-                  ),
-                  itemBuilder: (_, i) => _groceryCategoryCard(
-                    groceryCategoryList[i],
-                    groceryCategoryList,
-                  ),
-                );
-              },
-            ),
-        ],
+          ],
+        ),
       );
     });
   }
@@ -1085,13 +1052,13 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
             color: AppColors.primaryColor.withValues(alpha: 0.25),
             width: 1,
           ),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x42001120),
-              blurRadius: 10,
-              offset: Offset(0, 2),
-            ),
-          ],
+          // boxShadow: const [
+          //   BoxShadow(
+          //     color: Color(0x42001120),
+          //     blurRadius: 10,
+          //     offset: Offset(0, 2),
+          //   ),
+          // ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -1128,33 +1095,33 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
   ) {
     final image = item.image ?? '';
     final hasImage = image.isNotEmpty;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => Get.toNamed(
-          RouteHelper.getGroceryNestedCategoryWithInventoryScreenRoute(),
-          arguments: {
-            ApiKeys.userId: widget.businessId,
-            ApiKeys.argGroceryCategoryWithInventory: all,
-            ApiKeys.argArrGroceryCatKey: item.key,
-            ApiKeys.argArrGroceryCatName: item.name,
-          },
+    return InkWell(
+      onTap: () => Get.toNamed(
+        RouteHelper.getGroceryNestedCategoryWithInventoryScreenRoute(),
+        arguments: {
+          ApiKeys.userId: widget.businessId,
+          ApiKeys.argGroceryCategoryWithInventory: all,
+          ApiKeys.argArrGroceryCatKey: item.key,
+          ApiKeys.argArrGroceryCatName: item.name,
+        },
+      ),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE6E8EE), width: 1),
+          // boxShadow: const [
+          //   BoxShadow(
+          //     color: Color(0x42001120),
+          //     blurRadius: 10,
+          //     offset: Offset(0, 2),
+          //   ),
+          // ],
         ),
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE6E8EE), width: 1),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x42001120),
-                blurRadius: 10,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          clipBehavior: Clip.antiAlias,
+        clipBehavior: Clip.antiAlias,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
           child: Column(
             children: [
               Expanded(
