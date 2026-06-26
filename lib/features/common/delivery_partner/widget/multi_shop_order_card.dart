@@ -751,8 +751,11 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
   ///     (shop pickup + customer delivery) server-side.
   void _respondToOrder(String action) {
     if (_isMultiStop || _order.orderType == 'fare-call') {
-      controller.rideAction(action, _orderId);
+      // rideAction resolves the order by its `orderId` STRING
+      // (findOne({orderId})), not the Mongo _id — pass the string id.
+      controller.rideAction(action, _order.orderId ?? _orderId);
     } else {
+      // `/fare/orders/:id/status` resolves either _id or orderId; _id is fine.
       controller.updateRideOrParcelOrderStatusApi(
         {ApiKeys.action: action},
         _orderId,
