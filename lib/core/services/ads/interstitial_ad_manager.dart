@@ -56,8 +56,12 @@ class InterstitialAdManager {
     if (!_sdkInitialized || _isLoading || _ad != null) return;
     _isLoading = true;
     _loadCompleter ??= Completer<void>();
+    final unitId = _adUnitId;
+    print('[INTERSTITIAL_AD] loading — ${AdConfig.useLiveUnits ? "LIVE" : "TEST"} '
+        'unit=$unitId (platform=${Platform.isIOS ? "iOS" : "Android"}, '
+        'release=$kReleaseMode)');
     InterstitialAd.load(
-      adUnitId: _adUnitId,
+      adUnitId: unitId,
       request: const AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) {
