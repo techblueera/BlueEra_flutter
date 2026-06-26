@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -26,7 +28,6 @@ class ContributionScreenV2 extends StatelessWidget {
     final controller = getOrPut(() => SecurityDepositController());
     _hydrateBuyerDetails(controller);
     return Scaffold(
-      backgroundColor: const Color(0xFFEEF8FF),
       appBar: CommonBackAppBar(
         title: AppStrings.contributionTitle.tr,
         isLeading: true,
@@ -118,29 +119,177 @@ class _PlansView extends StatelessWidget {
           onRetry: controller.fetchPlans,
         );
       }
-      return ListView.separated(
-        padding: EdgeInsets.fromLTRB(
-          SizeConfig.size12,
-          SizeConfig.size12,
-          SizeConfig.size12,
-          SizeConfig.size40,
-        ),
-        itemCount: plans.length,
-        separatorBuilder: (_, __) => SizedBox(height: SizeConfig.size12),
-        itemBuilder: (_, i) => _PlanCard(plan: plans[i], controller: controller),
+      return Column(
+        children: [
+          const _PlansHeader(),
+          Expanded(
+            child: ListView.separated(
+              padding: EdgeInsets.fromLTRB(
+                SizeConfig.size12,
+                SizeConfig.size4,
+                SizeConfig.size12,
+                SizeConfig.size40,
+              ),
+              itemCount: plans.length,
+              separatorBuilder: (_, __) =>
+                  SizedBox(height: SizeConfig.size14),
+              itemBuilder: (_, i) =>
+                  _PlanCard(plan: plans[i], controller: controller),
+            ),
+          ),
+        ],
       );
     });
   }
 }
 
-class _PlanCard extends StatelessWidget {
+/// Pinned intro above the plan list. States the single job of the screen
+/// once — "pick a refundable security-deposit plan" — so the framing no
+/// longer has to repeat above every card.
+class _PlansHeader extends StatelessWidget {
+  const _PlansHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.fromLTRB(
+        SizeConfig.size12,
+        SizeConfig.size12,
+        SizeConfig.size12,
+        SizeConfig.size6,
+      ),
+      padding: EdgeInsets.all(SizeConfig.size14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE6E8EE)),
+        boxShadow: const [
+          BoxShadow(
+              color: Color(0x0F001120), blurRadius: 12, offset: Offset(0, 3)),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  AppColors.primaryColor,
+                  AppColors.primaryColor.withValues(alpha: 0.75),
+                ],
+              ),
+            ),
+            child: const Icon(Icons.shield_moon_outlined,
+                size: 22, color: Colors.white),
+          ),
+          SizedBox(width: SizeConfig.size12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  'CHOOSE YOUR PLAN',
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primaryColor,
+                  letterSpacing: 1.0,
+                ),
+                const SizedBox(height: 3),
+                CustomText(
+                  'Security Deposit',
+                  fontSize: 18,
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.mainTextColor,
+                ),
+                const SizedBox(height: 2),
+                CustomText(
+                  'Fully refundable — released after the lock-in period.',
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.secondaryTextColor,
+                  maxLines: 2,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PlanCard extends StatefulWidget {
   const _PlanCard({required this.plan, required this.controller});
 
   final SecurityDepositPlan plan;
   final SecurityDepositController controller;
 
   @override
+  State<_PlanCard> createState() => _PlanCardState();
+}
+
+class _PlanCardState extends State<_PlanCard>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _anim;
+  late final double _phase;
+
+  @override
+  void initState() {
+    super.initState();
+    // Per-card phase offset so neighbouring cards don't pulse in lockstep.
+    _phase = (widget.plan.id.hashCode.abs() % 1000) / 1000.0;
+    _anim = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 7),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _anim.dispose();
+    super.dispose();
+  }
+
+  /// Ambient animated gradient "splash" — soft radial blobs of brand blue,
+  /// cyan and refund-green drifting and pulsing behind the card content
+  /// (clipped to the card). Falls back to a single static frame when the OS
+  /// has "reduce motion" on.
+  Widget _splashLayer() {
+    final reduceMotion =
+        MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    final colors = <Color>[
+      AppColors.primaryColor,
+      const Color(0xFF22D3EE), // cyan
+      const Color(0xFF059669), // refund green
+    ];
+    if (reduceMotion) {
+      return RepaintBoundary(
+        child: CustomPaint(
+          painter: _SplashPainter(t: 0, phase: _phase, colors: colors),
+        ),
+      );
+    }
+    return RepaintBoundary(
+      child: AnimatedBuilder(
+        animation: _anim,
+        builder: (_, __) => CustomPaint(
+          painter:
+              _SplashPainter(t: _anim.value, phase: _phase, colors: colors),
+        ),
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final plan = widget.plan;
+    final controller = widget.controller;
     final zeroDeposit = plan.depositAmount <= 0;
     final firstDayText = plan.firstDayFreeUnlimited
         ? plan.firstDayFreeText
@@ -157,63 +306,80 @@ class _PlanCard extends StatelessWidget {
           BoxShadow(color: Color(0x14001120), blurRadius: 10, offset: Offset(0, 2)),
         ],
       ),
-      padding: EdgeInsets.all(SizeConfig.size16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
         children: [
-          // Name + refundable deposit amount.
+          // Ambient animated gradient wash behind the content.
+          Positioned.fill(child: _splashLayer()),
+          Padding(
+            padding: EdgeInsets.all(SizeConfig.size16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Plan identity — category eyebrow + name.
+          if (plan.uiCategoryGroup.isNotEmpty) ...[
+            CustomText(
+              plan.uiCategoryGroup.toUpperCase(),
+              fontSize: 10,
+              fontWeight: FontWeight.w700,
+              color: AppColors.primaryColor,
+              letterSpacing: 0.8,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            SizedBox(height: SizeConfig.size4),
+          ],
+          CustomText(
+            plan.name,
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            color: AppColors.mainTextColor,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          SizedBox(height: SizeConfig.size12),
+          // Price + refund guarantee — the card's signature pairing: the
+          // deposit amount alongside the "returns to you" badge.
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Expanded(
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryColor.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: AppColors.primaryColor.withValues(alpha: 0.15),
+                  ),
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     CustomText(
-                      plan.name,
-                      fontSize: 17,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.mainTextColor,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
+                      zeroDeposit ? '₹0' : '₹${_rupees(plan.depositAmount)}',
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.primaryColor,
                     ),
-                    if (plan.uiCategoryGroup.isNotEmpty) ...[
-                      const SizedBox(height: 2),
-                      CustomText(
-                        plan.uiCategoryGroup,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.secondaryTextColor,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
+                    CustomText(
+                      'Security deposit',
+                      fontSize: 9,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.secondaryTextColor,
+                      letterSpacing: 0.3,
+                    ),
                   ],
                 ),
               ),
-              SizedBox(width: SizeConfig.size10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  CustomText(
-                    zeroDeposit ? '₹0' : '₹${_rupees(plan.depositAmount)}',
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    color: AppColors.primaryColor,
-                  ),
-                  CustomText(
-                    'Refundable deposit',
-                    fontSize: 9,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.secondaryTextColor,
-                  ),
-                ],
-              ),
+              const Spacer(),
+              if (!zeroDeposit) const _RefundableBadge(),
             ],
           ),
-          SizedBox(height: SizeConfig.size12),
-          if (firstDayText.isNotEmpty)
+          if (firstDayText.isNotEmpty) ...[
+            SizedBox(height: SizeConfig.size12),
             _Pill(icon: Icons.card_giftcard_rounded, text: firstDayText),
+          ],
           // if (plan.baseMetric.isNotEmpty) ...[
           //   SizedBox(height: SizeConfig.size8),
           //   _InfoLine(label: 'Billed per', value: plan.baseMetric),
@@ -222,13 +388,69 @@ class _PlanCard extends StatelessWidget {
           //   SizedBox(height: SizeConfig.size6),
           //   _InfoLine(label: 'Activation', value: plan.activationCondition),
           // ],
-          _InfoLine(
-            label: 'Refund lock',
-            value: 'After ${plan.refundAfterMonths} months',
+          Row(
+            children: [
+              Expanded(
+                child: _InfoLine(
+                  label: 'Refund lock',
+                  value: 'After ${plan.refundAfterMonths} months',
+                ),
+              ),
+              if (plan.termsAndConditions.isNotEmpty) ...[
+                SizedBox(width: SizeConfig.size8),
+                _InfoChipButton(
+                  icon: Icons.description_outlined,
+                  label: 'T&C',
+                  onTap: () => _showInfoDialog(
+                    context,
+                    titleIcon: Icons.description_outlined,
+                    title: 'Terms & Conditions',
+                    points: plan.termsAndConditions,
+                  ),
+                ),
+              ],
+            ],
           ),
-          if (plan.termsAndConditions.isNotEmpty) ...[
-            SizedBox(height: SizeConfig.size8),
-            _TermsBlock(terms: plan.termsAndConditions),
+          if (plan.why.isNotEmpty) ...[
+            SizedBox(height: SizeConfig.size12),
+            // "Why a security deposit is necessary" — the reasons shown inline
+            // in their own bordered block so they read as a distinct, reassuring
+            // section in the card.
+            Container(
+              width: double.infinity,
+              padding: EdgeInsets.all(SizeConfig.size12),
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: AppColors.primaryColor.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.verified_user_outlined,
+                          size: 16, color: AppColors.primaryColor),
+                      SizedBox(width: SizeConfig.size6),
+                      Expanded(
+                        child: CustomText(
+                          'Why Security Deposit Necessary',
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.mainTextColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: SizeConfig.size8),
+                  _TermsBlock(
+                    terms: plan.why,
+                  ),
+                ],
+              ),
+            ),
           ],
           SizedBox(height: SizeConfig.size14),
           if (zeroDeposit)
@@ -252,7 +474,7 @@ class _PlanCard extends StatelessWidget {
               final busy = controller.isProcessing.value;
               return SizedBox(
                 width: double.infinity,
-                height: 46,
+                height: 50,
                 child: ElevatedButton(
                   onPressed: busy ? null : () => controller.payDeposit(plan),
                   style: ElevatedButton.styleFrom(
@@ -260,7 +482,7 @@ class _PlanCard extends StatelessWidget {
                     disabledBackgroundColor:
                         AppColors.primaryColor.withValues(alpha: 0.5),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
                     ),
                     elevation: 0,
                   ),
@@ -274,16 +496,202 @@ class _PlanCard extends StatelessWidget {
                                 AlwaysStoppedAnimation<Color>(Colors.white),
                           ),
                         )
-                      : CustomText(
-                          'Pay Security Deposit',
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.white,
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CustomText(
+                              'Pay Security Deposit',
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(Icons.arrow_forward_rounded,
+                                size: 18, color: Colors.white),
+                          ],
                         ),
                 ),
               );
             }),
+              ],
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  /// Generic info dialog listing [points] as bullet points under a titled
+  /// header — used by the "T&C" chip next to the Refund lock line.
+  void _showInfoDialog(
+    BuildContext context, {
+    required IconData titleIcon,
+    required String title,
+    required List<String> points,
+  }) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(titleIcon, size: 20, color: AppColors.primaryColor),
+            SizedBox(width: SizeConfig.size8),
+            Expanded(
+              child: CustomText(
+                title,
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: AppColors.mainTextColor,
+              ),
+            ),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: _TermsBlock(terms: points),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: CustomText(
+              'Got it',
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: AppColors.primaryColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Paints the plan card's ambient gradient "splash": three soft radial
+/// colour blobs that drift and gently pulse. [t] is the animation progress
+/// (0→1, looped), [phase] a per-card offset so cards animate out of sync.
+/// Kept subtle (low alpha, fading to transparent) so the card content stays
+/// fully legible over it.
+class _SplashPainter extends CustomPainter {
+  _SplashPainter({required this.t, required this.phase, required this.colors});
+
+  final double t;
+  final double phase;
+  final List<Color> colors;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final base = 2 * math.pi * (t + phase);
+    // (anchorX, anchorY, driftX, driftY, radiusFactor, phaseOffset)
+    _blob(canvas, size, 0.86, 0.10, 0.06, 0.05, 0.60, colors[0], base + 0.0);
+    _blob(canvas, size, 0.10, 0.88, 0.05, 0.06, 0.52, colors[2], base + 2.1);
+    _blob(canvas, size, 0.98, 0.92, 0.05, 0.05, 0.44, colors[1], base + 4.2);
+  }
+
+  void _blob(
+    Canvas canvas,
+    Size size,
+    double ax,
+    double ay,
+    double dx,
+    double dy,
+    double radiusFactor,
+    Color color,
+    double angle,
+  ) {
+    final center = Offset(
+      (ax + dx * math.sin(angle)) * size.width,
+      (ay + dy * math.cos(angle)) * size.height,
+    );
+    final pulse = 0.85 + 0.15 * math.sin(angle * 1.3);
+    final radius = radiusFactor * size.width * pulse;
+    final rect = Rect.fromCircle(center: center, radius: radius);
+    final paint = Paint()
+      ..shader = RadialGradient(
+        colors: [
+          color.withValues(alpha: 0.14),
+          color.withValues(alpha: 0.0),
+        ],
+      ).createShader(rect);
+    canvas.drawCircle(center, radius, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _SplashPainter old) =>
+      old.t != t || old.phase != phase;
+}
+
+/// The card's signature: a green "100% Refundable" stamp with a circular
+/// `autorenew` glyph — the deposit money that loops back to the seller.
+class _RefundableBadge extends StatelessWidget {
+  const _RefundableBadge();
+
+  static const _green = Color(0xFF047857);
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: const Color(0xFF059669).withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _green.withValues(alpha: 0.30)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.autorenew_rounded, size: 13, color: _green),
+          const SizedBox(width: 4),
+          CustomText(
+            '100% Refundable',
+            fontSize: 11,
+            fontWeight: FontWeight.w800,
+            color: _green,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Small pill button (icon + [label]) shown to the right of an info line —
+/// e.g. the "T&C" trigger next to the Refund lock line.
+class _InfoChipButton extends StatelessWidget {
+  const _InfoChipButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: AppColors.primaryColor.withValues(alpha: 0.4),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: AppColors.primaryColor),
+            const SizedBox(width: 4),
+            CustomText(
+              label,
+              fontSize: 11.5,
+              fontWeight: FontWeight.w700,
+              color: AppColors.primaryColor,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -616,7 +1024,11 @@ class _Pill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.only(
+          right: 10,
+          top: 6,
+          bottom: 6,
+      ),
       decoration: BoxDecoration(
         color: AppColors.primaryColor.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(20),
@@ -685,6 +1097,7 @@ class _TermsBlock extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = AppColors.secondaryTextColor;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: terms
@@ -699,7 +1112,7 @@ class _TermsBlock extends StatelessWidget {
                         width: 5,
                         height: 5,
                         decoration: BoxDecoration(
-                          color: AppColors.secondaryTextColor,
+                          color: c,
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -709,7 +1122,7 @@ class _TermsBlock extends StatelessWidget {
                         t,
                         fontSize: 11.5,
                         fontWeight: FontWeight.w500,
-                        color: AppColors.secondaryTextColor,
+                        color: c,
                         maxLines: 4,
                       ),
                     ),

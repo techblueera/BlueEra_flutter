@@ -3,16 +3,15 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/payment/view/payment_setting_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/all_transactions/amount_withdraw_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/all_transactions/wallet_transaction_response.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/controller/wallet_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-
 import '../../../../../core/api/apiService/api_response.dart';
 import '../../../../../core/constants/app_strings.dart';
 import '../../../../../core/constants/getx_utils.dart';
@@ -92,11 +91,11 @@ class _WalletScreenState extends State<WalletScreen> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        SvgPicture.asset(
-                          AppIconAssets.walletIcon,
+                        LocalAssets(
+                          imagePath: AppIconAssets.walletIcon,
                           height: 26, // reduce icon size
                           width: 26,
-                          color: AppColors.white,
+                          imgColor: AppColors.white,
                         ),
                         SizedBox(
                           width: 12,
@@ -207,7 +206,8 @@ class _WalletScreenState extends State<WalletScreen> {
                           Expanded(
                               child: GestureDetector(
                             onTap: () {
-                              Get.toNamed(RouteHelper.getAddBankAccountScreenRoute());
+                              Get.to(() => PaymentSettingScreen());
+                              // Get.toNamed(RouteHelper.getAddBankAccountScreenRoute());
                             },
                             child: Container(
                               height: SizeConfig.size45,

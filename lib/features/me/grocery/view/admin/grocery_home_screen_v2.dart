@@ -278,7 +278,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
         return BusinessChatsList(
           excludeSenderId: userId,
           isInParentScroll: true,
-          showDateFilter: true,
+          listTitle: 'Orders',
         );
       }),
     ];

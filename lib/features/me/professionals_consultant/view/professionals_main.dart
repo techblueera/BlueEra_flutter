@@ -1310,7 +1310,6 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
     );
   }
 
-  // â”€â”€â”€ ORDER TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildOrderTab() {
     return [
       Padding(
@@ -1327,11 +1326,11 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
         isForwardUI: false,
         excludeSenderId: userId,
         isInParentScroll: true,
+        listTitle: 'Inquiry',
       ),
     ];
   }
 
-  // â”€â”€â”€ POST TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   List<Widget> _buildPostTab() {
     if (!Get.isRegistered<FeedController>()) {
       Get.put(FeedController());

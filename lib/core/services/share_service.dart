@@ -143,6 +143,50 @@ class ShareService {
     );
   }
 
+  /// Share a single product via its deep link. Mirrors [shareProfile] —
+  /// opens the OS share sheet with a short body + the product deeplink
+  /// (which auto-carries the signed-in BDM's referral code as a query
+  /// param when eligible). [productName], when supplied, is woven into
+  /// the body and used as the default subject so the share preview reads
+  /// naturally on apps that surface it.
+  Future<void> shareProduct({
+    required String productId,
+    String? productName,
+    String? subject,
+  }) {
+    return openShareSheet(
+      text: _productShareMessage(productId: productId, productName: productName),
+      subject: subject ??
+          ((productName != null && productName.isNotEmpty)
+              ? productName
+              : 'Check out this product on BlueEra'),
+    );
+  }
+
+  /// Builds the product share body. Mirrors [_profileShareMessage]: the
+  /// deeplink already encodes the BDM referral code as a query param, but
+  /// the human-readable referral block is also appended (when eligible)
+  /// so recipients on iOS can enter the code by hand at sign-up.
+  String _productShareMessage({
+    required String productId,
+    String? productName,
+  }) {
+    final buffer = StringBuffer();
+    if (productName != null && productName.isNotEmpty) {
+      buffer.writeln('Check out "$productName" on BlueEra:');
+    } else {
+      buffer.writeln('Check out this product on BlueEra:');
+    }
+    buffer.writeln(productDeepLink(productId: productId));
+    final code = currentBdmReferralCode();
+    if (code != null && code.isNotEmpty) {
+      buffer
+        ..writeln()
+        ..writeln(_referralCodeBlock(code));
+    }
+    return buffer.toString();
+  }
+
   /// Share the "download BlueEra" message with the signed-in user's
   /// BDM referral code embedded (when eligible). Caller can pass an
   /// [overrideReferralCode] to force a specific code — useful on

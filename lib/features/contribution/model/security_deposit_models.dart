@@ -27,6 +27,10 @@ class SecurityDepositPlan {
   final String activationCondition;
   final int refundAfterMonths;
   final List<String> termsAndConditions;
+
+  /// Reasons explaining *why* the deposit / refund-lock exists. Shown as
+  /// bullet points in the "Why?" dialog next to the Refund lock line.
+  final List<String> why;
   final String currency;
   final bool active;
   final String mode; // live / test
@@ -50,6 +54,9 @@ class SecurityDepositPlan {
             j['refund_after_months'] == null ? 6 : _asInt(j['refund_after_months']),
         termsAndConditions = (j['terms_and_conditions'] is List)
             ? (j['terms_and_conditions'] as List).map((e) => e.toString()).toList()
+            : const <String>[],
+        why = (j['why'] is List)
+            ? (j['why'] as List).map((e) => e.toString()).toList()
             : const <String>[],
         currency = (j['currency'] ?? 'INR').toString(),
         active = j['active'] != false,

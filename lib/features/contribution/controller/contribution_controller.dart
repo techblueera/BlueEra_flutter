@@ -255,7 +255,7 @@ class ContributionController extends GetxController {
 
   void _onRazorpayError(PaymentFailureResponse response) {
     isPurchasing.value = false;
-    commonSnackBar(message: response.message ?? AppStrings.paymentFailed.tr);
+    commonSnackBar(message: RazorpayService.humanReadableError(response));
   }
 
   // ─── 3. Current active recharge ───────────────────────────────

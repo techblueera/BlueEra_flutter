@@ -6000,6 +6000,13 @@ class AppStrings {
   static const String paymentVerificationFailedWebhook = "paymentVerificationFailedWebhook";
   static const String contributionSuffix = "contributionSuffix";
 
+  // Human-readable Razorpay failure messages — Razorpay's own
+  // `response.message` is often the literal "undefined", so these are
+  // keyed off the stable integer error code instead.
+  static const String paymentCancelled = "paymentCancelled";
+  static const String paymentNetworkError = "paymentNetworkError";
+  static const String paymentGenericError = "paymentGenericError";
+
   // Other-business v2 dashboard tab label — distinct from the existing
   // `franchiseInquiry` / `bookInquiry` / `hospitalInquiry` keys which
   // are sentence-form labels for specific flows. This one is the bare

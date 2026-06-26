@@ -36,7 +36,7 @@ class OrdersTabBody extends StatelessWidget {
         BusinessChatsList(
           excludeSenderId: userId,
           isInParentScroll: true,
-          showDateFilter: true,
+          listTitle: 'Orders',
         ),
       ],
     );

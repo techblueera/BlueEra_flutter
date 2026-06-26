@@ -301,7 +301,7 @@ class _FoodMainScreenState extends State<FoodMainScreen>
       BusinessChatsList(
         excludeSenderId: userId,
         isInParentScroll: true,
-        showDateFilter: true,
+        listTitle: 'Orders',
       ),
     ];
   }

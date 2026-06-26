@@ -9,11 +9,13 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import 'package:BlueEra/features/common/store/widget/store_km_away_text_widget.dart';
 import 'package:BlueEra/widgets/price_row.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/features/me/product/view/admin/widget/attribute_two_rows.dart';
+import 'package:BlueEra/features/me/product/view/admin/widget/product_share_button.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -42,6 +44,10 @@ class StoreProductCard extends StatelessWidget {
     }
 
     final variants = sellerClassification?.variants ?? [];
+
+    final productId = details.id.isNotEmpty
+        ? details.id
+        : (sellerClassification?.productId ?? '');
 
     final Map<String, List<dynamic>> uniqueAttributes = {};
 
@@ -188,6 +194,14 @@ class StoreProductCard extends StatelessWidget {
                           ),
                         ),
                       ),
+                    Positioned(
+                      top: 6,
+                      right: 6,
+                      child: ProductShareButton(
+                        productId: productId,
+                        productName: details.name,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -290,11 +304,22 @@ class StoreProductCard extends StatelessWidget {
                             maxLines: 2
                           ),
                         ),
-                        Icon(
-                          Icons.more_vert,
-                          size: 20,
-                          color: Colors.grey.shade700,
-                        ),
+                        if (productId.isNotEmpty)
+                          InkWell(
+                            onTap: () => ShareService.instance.shareProduct(
+                              productId: productId,
+                              productName: details.name,
+                            ),
+                            customBorder: const CircleBorder(),
+                            child: Padding(
+                              padding: const EdgeInsets.all(2),
+                              child: Icon(
+                                Icons.share_outlined,
+                                size: 20,
+                                color: AppColors.primaryColor,
+                              ),
+                            ),
+                          ),
                       ],
                     ),
                      SizedBox(height: SizeConfig.size4),

@@ -42,7 +42,7 @@ class VehicleInquiryTabV2 extends StatelessWidget {
         BusinessChatsList(
           excludeSenderId: userId,
           isInParentScroll: true,
-          showDateFilter: true,
+          listTitle: 'Inquiry',
         ),
       ],
     );

@@ -264,7 +264,7 @@ class _ProductScreenState extends State<ManufacturerProductScreen>
       BusinessChatsList(
         excludeSenderId: userId,
         isInParentScroll: true,
-        showDateFilter: true,
+        listTitle: 'Orders',
       ),
     ];
   }

@@ -9,6 +9,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/widget/self_employee_inquiry_tab.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -148,7 +149,9 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
               ),
               topBarHeight: topBarHeight,
               tabViews: [
-                _tabScroll(_buildOrderTab()),
+                _tabScroll(SelfEmployeeInquiryTab(
+                  onAddServices: () => _tabController.animateTo(2),
+                )),
                 _tabScroll(_buildOverviewTab()),
                 _tabScroll(_buildServiceTab()),
                 _tabScroll(_buildEarnTab()),
@@ -194,17 +197,14 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
   /// Wraps a tab's content list in a scrollable body for the [TabBarView].
   /// The per-tab builders return bounded box widgets, so SingleChildScrollView
   /// + Column reproduces the previous SliverToBoxAdapter + Column layout.
-  Widget _tabScroll(List<Widget> children) {
+  Widget _tabScroll(Widget child) {
     return SingleChildScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: EdgeInsets.only(
         top: SizeConfig.size10,
         bottom: kBottomNavigationBarHeight + 30,
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: children,
-      ),
+      child: child,
     );
   }
 
@@ -212,63 +212,45 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
   // product / service). The flavour the user has created shows a rich
   // storefront card that opens the earn dashboard; the rest show an "Add"
   // card that routes to that flavour's create flow.
-  List<Widget> _buildEarnTab() {
+  Widget _buildEarnTab() {
     // Reuses the shared [EarnStoreCards] so the made/add storefront cards are
     // identical across all individual profile screens.
-    return [const EarnStoreCards()];
+    return const EarnStoreCards();
   }
 
-  // Order tab â€” top slot hosts the shared [OrderActionsCarousel]
-  // (which now builds its own contribution card internally), followed
-  // by the legacy [BusinessChatsList] inquiry body.
-  List<Widget> _buildOrderTab() {
-    return [
-      Padding(
-        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-        child: OrderActionsCarousel(
-          onAddCatalog: () => _tabController.animateTo(2),
-          catalogIcon: Icons.design_services_rounded,
-          catalogTitle: AppStrings.addService.tr,
-          catalogSubtitle: 'List the services you offer',
-        ),
-      ),
-      SizedBox(height: SizeConfig.size16),
-      BusinessChatsList(
-        isForwardUI: false,
-        excludeSenderId: userId,
-        isInParentScroll: true,
-      ),
-    ];
-  }
 
   // the parent CustomScrollView so its sections share the page's
   // scroll. That lets the sticky-tab overlay engage when the user
   // scrolls past the top bar (matches the Post tab's behavior).
-  List<Widget> _buildServiceTab() {
-    return const [SelfProfessionServiceScreen()];
+  Widget _buildServiceTab() {
+    return const SelfProfessionServiceScreen();
   }
 
   // POST TAB â€” embeds FeedScreen filtered to the current user's
   // posts. Mirrors grocery v2's post tab so creators see the same
   // CTA + feed treatment across me-section dashboards.
-  List<Widget> _buildPostTab() {
+  Widget _buildPostTab() {
     if (!Get.isRegistered<FeedController>()) {
       Get.put(FeedController());
     }
-    return [
-      Padding(
-        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-        child: _createPostCta(),
-      ),
-      SizedBox(height: SizeConfig.size12),
-      FeedScreen(
-        key: const ValueKey('self_employee_my_posts'),
-        postFilterType: PostType.myPosts,
-        id: userId,
-        isInParentScroll: true,
-        horizontalPaddingChannel: SizeConfig.size12,
-      ),
-    ];
+
+    return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children:  [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+            child: _createPostCta(),
+          ),
+          SizedBox(height: SizeConfig.size12),
+          FeedScreen(
+            key: const ValueKey('self_employee_my_posts'),
+            postFilterType: PostType.myPosts,
+            id: userId,
+            isInParentScroll: true,
+            horizontalPaddingChannel: SizeConfig.size12,
+          ),
+        ],
+      );
   }
 
   Widget _createPostCta() {
@@ -391,15 +373,17 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
   // Statics tab â€” chat-click analytics, same as grocery/medical
   // dashboards' last tab. Uses the current user's id as the analytics
   // key since self-employed accounts don't have a separate businessId.
-  List<Widget> _buildStaticsTab() {
-    return [
-      ProfileStatisticsScreen(userId: userId),
-      SizedBox(height: SizeConfig.size12),
-      // Only renders stat cards for the earn profiles the user actually has
-      // (nothing if none). Shared with the other individual dashboards.
-      const EarnStatSections(),
-      SizedBox(height: SizeConfig.size16),
-    ];
+  Widget _buildStaticsTab() {
+    return Column(
+      children: [
+        ProfileStatisticsScreen(userId: userId),
+        SizedBox(height: SizeConfig.size12),
+        // Only renders stat cards for the earn profiles the user actually has
+        // (nothing if none). Shared with the other individual dashboards.
+        const EarnStatSections(),
+        SizedBox(height: SizeConfig.size16),
+      ],
+    );
   }
 
   // OVERVIEW TAB â€” refined editorial identity dossier:
@@ -410,36 +394,39 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
   //   2. Stats card with hero-typed numerals and primary-color
   //      accent bars stamped beneath each metric.
   //   3. Action row with explicit Share + Business-Card pills.
-  List<Widget> _buildOverviewTab() {
-    return [
-      _buildIdentityCard(context),
-      _buildStatsCard(),
-      Padding(
-        padding: const EdgeInsets.only(top: 10, left: 20, right: 10),
-        child: const ProfileBioCard(margin: EdgeInsets.zero),
-      ),
-      _buildActionRow(),
-      const RentalPropertyCard(
-        margin: EdgeInsets.only(top: 10, left: 20, right: 10),
-      ),
-      Padding(
-        padding: const EdgeInsets.only(top: 10, left: 20, right: 10),
-        child: const ProfileLocationCard(margin: EdgeInsets.zero),
-      ),
-      Padding(
-        padding: const EdgeInsets.only(top: 10, left: 20, right: 10),
-        child: Obx(() => WebsiteOverviewCard(
-              websiteUrl: _viewCtrl.website.value,
-              onSave: (url) => _personalCtrl.updateUserProfileDetails(
-                params: {ApiKeys.website: url},
-                isFromProfileOnly: true,
-              ),
-            )),
-      ),
-      _buildQrCard(),
-      _buildShareBanner(),
-      SizedBox(height: SizeConfig.size16),
-    ];
+  Widget _buildOverviewTab() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildIdentityCard(context),
+        _buildStatsCard(),
+        Padding(
+          padding: const EdgeInsets.only(top: 10, left: 20, right: 10),
+          child: const ProfileBioCard(margin: EdgeInsets.zero),
+        ),
+        _buildActionRow(),
+        const RentalPropertyCard(
+          margin: EdgeInsets.only(top: 10, left: 20, right: 10),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 10, left: 20, right: 10),
+          child: const ProfileLocationCard(margin: EdgeInsets.zero),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 10, left: 20, right: 10),
+          child: Obx(() => WebsiteOverviewCard(
+            websiteUrl: _viewCtrl.website.value,
+            onSave: (url) => _personalCtrl.updateUserProfileDetails(
+              params: {ApiKeys.website: url},
+              isFromProfileOnly: true,
+            ),
+          )),
+        ),
+        _buildQrCard(),
+        _buildShareBanner(),
+        SizedBox(height: SizeConfig.size16),
+      ],
+    );
   }
 
   // V2 opener + inline `_buildRentalCardV2` + `_rentalPropertyTile`

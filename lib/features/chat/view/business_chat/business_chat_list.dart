@@ -99,11 +99,18 @@ class BusinessChatsList extends StatefulWidget {
     this.excludeSenderId,
     this.onlySenderId,
     this.isInParentScroll = false,
-    this.showDateFilter = false,
     this.showNewIfRecentlyCreated = false,
+    this.listTitle,
   });
   final bool? isForwardUI;
   final bool? isNewGroupUI;
+
+  /// Header title shown at the top of the white list card (e.g. "Orders" on
+  /// the seller order tabs, "Inquiry" on the service inquiry tabs). When set,
+  /// the header — title on the left, date-filter dropdown on the right — is
+  /// rendered on every render, whether the list has rows or not. Null on the
+  /// forward / group-add pickers (which keep the flat, card-less list).
+  final String? listTitle;
 
   /// When `true`, each chat row shows a "New" label below the time if the
   /// conversation was created within the last 4 hours. Enabled by the Connect
@@ -130,14 +137,6 @@ class BusinessChatsList extends StatefulWidget {
   /// — the Connect screen and forward / group-add flows continue to
   /// rely on the bounded `Expanded` layout, unchanged.
   final bool isInParentScroll;
-
-  /// Surfaces the date-range filter chip row above the "All" list — the
-  /// feature carried over from the merged-in `OrdersTabView`. Used by the
-  /// provider/seller order tabs (food / grocery / product / manufacturer)
-  /// so a merchant can narrow incoming orders by date. Defaults to `false`
-  /// — the Connect / forward / group-add flows render no date filter,
-  /// unchanged.
-  final bool showDateFilter;
 
   @override
   State<BusinessChatsList> createState() => _BusinessChatsListState();
@@ -482,15 +481,9 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
           .toList();
     }
 
-    // Whether there are any incoming orders/enquiries at all (before the date
-    // window is applied). Drives whether the date filter is worth showing.
-    final bool hasOrdersToFilter = chatList.isNotEmpty;
-
     // Date-range filter (provider/seller order tabs only). No-op when the
     // filter row isn't shown, since `_selectedDateFilter` stays `all`.
-    if (widget.showDateFilter) {
       chatList = chatList.where(_matchesDateFilter).toList();
-    }
 
     // Sort pinned to top
     chatList.sort((a, b) {
@@ -524,9 +517,7 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
         (showHistoryHeader ? 1 : 0) +
         historyList.length;
 
-    final listBody = Container(
-      margin: EdgeInsets.only(bottom: SizeConfig.size70),
-      child:  ListView.builder(
+    final listView = ListView.builder(
         itemCount: itemCount,
         shrinkWrap: true,
         padding: EdgeInsets.zero,
@@ -608,42 +599,86 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
           // Aged-out (History bucket) chats.
           return _buildHistoryChatTile(historyList[i], i, theme);
         },
-      ),
-    );
+      );
 
-    // Without the date filter the list body is returned as-is — the All-tab
-    // branch in `build` handles the Expanded/parent-scroll wrapping. With the
-    // filter on, prepend the chip row and re-apply that same wrapping here so
-    // the bounded (Connect) and parent-scroll (provider) layouts both hold.
-    if (!widget.showDateFilter) return listBody;
-
-    // The date filter only earns its space when there are order rows actually
-    // shown. Hide it when the visible order list is empty — whether the bucket
-    // had nothing to begin with, OR an applied date window narrowed it down to
-    // zero — instead of floating a dropdown over an empty list.
-    if (chatList.isEmpty) {
-      // If an *applied* filter is what emptied a non-empty bucket, reset it so
-      // the user lands back on the full list rather than being stuck on an
-      // empty filtered view with no visible control to clear it.
-      if (_selectedDateFilter != _OrderDateFilter.all && hasOrdersToFilter) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-          setState(() {
-            _selectedDateFilter = _OrderDateFilter.all;
-            _customRange = null;
-          });
-        });
-      }
-      return listBody;
+    // Only the seller's "Me" tabs (which pass [excludeSenderId]) get the
+    // bordered card with the title + date-filter header. The Chat side
+    // (Connect / inquiry) and the forward / group-add pickers keep the
+    // original flat list — no card, no outer border — unchanged.
+    final bool isMeSide = widget.excludeSenderId != null;
+    if (isPicker || !isMeSide) {
+      return Container(
+        margin: EdgeInsets.only(bottom: SizeConfig.size70),
+        child: listView,
+      );
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildDateFilterRow(),
-        const SizedBox(height: 8),
-        widget.isInParentScroll ? listBody : Expanded(child: listBody),
-      ],
+    // Me-side card. The header (title + date-filter dropdown) shows on every
+    // render — empty or not — so the title and the filter never vanish out
+    // from under the user (e.g. when a date window narrows the list to zero).
+    return _wrapInListCard(
+      header: _listCardHeader(),
+      list: listView,
+    );
+  }
+
+  /// Header row at the top of the list card: the section title
+  /// ([BusinessChatsList.listTitle] — "Orders" / "Inquiry") on the left and the
+  /// date-range filter on the right. Rendered whenever either is configured,
+  /// independent of whether the list currently has any rows.
+  Widget _listCardHeader() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 8, 14, 6),
+      child: Row(
+        children: [
+          Expanded(
+            child: widget.listTitle != null
+                ? CustomText(
+                    widget.listTitle!,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.mainTextColor,
+                  )
+                : const SizedBox.shrink(),
+          ),
+          _dateFilterControl(),
+        ],
+      ),
+    );
+  }
+
+  /// Wraps the chat list in the white, rounded "card" surface used on the
+  /// Me-side order tabs and the Chat/Connect page. A single [Divider] sits
+  /// between the (optional) [header] and the list — the one separator the
+  /// design calls for. Adapts to both layout modes: under a bounded parent
+  /// the list is [Expanded] to fill the card; in parent-scroll mode it
+  /// shrink-wraps so the card sizes to its content.
+  Widget _wrapInListCard({Widget? header, required Widget list}) {
+    return Container(
+      margin: EdgeInsets.only(
+        left: SizeConfig.size12,
+        right: SizeConfig.size12,
+        bottom: SizeConfig.size70,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(SizeConfig.size16),
+        border: Border.all(color: AppColors.greyE6),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        mainAxisSize:
+            widget.isInParentScroll ? MainAxisSize.min : MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (header != null)
+            header
+          else
+            SizedBox(height: SizeConfig.size8),
+          Divider(height: 1, thickness: 1, color: AppColors.greyE6),
+          widget.isInParentScroll ? list : Expanded(child: list),
+        ],
+      ),
     );
   }
 
@@ -738,7 +773,7 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
   /// doesn't visually echo the `All / Pinned / …` tab selector directly
   /// above it. A non-`all` selection tints the trigger and exposes a clear
   /// (✕) affordance. "Custom" launches the system date-range picker.
-  Widget _buildDateFilterRow() {
+  Widget _dateFilterControl() {
     const presets = [
       _OrderDateFilter.all,
       _OrderDateFilter.today,
@@ -754,10 +789,8 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
             ? _formatRange(_customRange!)
             : _selectedDateFilter.label;
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
+    return Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           PopupMenuButton<_OrderDateFilter>(
             offset: const Offset(0, 42),
@@ -800,7 +833,7 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
             ],
             child: Container(
               padding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
               decoration: BoxDecoration(
                 color: isFiltered ? AppColors.buttonLiteBlue : Colors.white,
                 border: Border.all(
@@ -808,29 +841,29 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
                       ? AppColors.primaryColor
                       : Colors.grey.shade300,
                 ),
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
                     Icons.date_range,
-                    size: 16,
+                    size: 13,
                     color:
                         isFiltered ? AppColors.primaryColor : Colors.black54,
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 4),
                   CustomText(
                     triggerLabel,
-                    fontSize: 13.5,
+                    fontSize: 12,
                     fontWeight: FontWeight.w500,
                     color:
                         isFiltered ? AppColors.primaryColor : Colors.black87,
                   ),
-                  const SizedBox(width: 2),
+                  const SizedBox(width: 1),
                   Icon(
                     Icons.keyboard_arrow_down,
-                    size: 18,
+                    size: 15,
                     color:
                         isFiltered ? AppColors.primaryColor : Colors.black54,
                   ),
@@ -853,8 +886,7 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
             ),
           ],
         ],
-      ),
-    );
+      );
   }
 
   /// Section heading ("Today" / "History") shown inside the All tab's merged

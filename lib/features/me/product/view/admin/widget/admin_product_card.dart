@@ -11,6 +11,7 @@ import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/features/me/product/view/admin/widget/attribute_two_rows.dart';
 import 'package:BlueEra/features/me/product/view/admin/widget/product_inventory_bottom_sheet.dart';
 import 'package:BlueEra/features/me/product/view/admin/widget/product_preview_eye_button.dart';
+import 'package:BlueEra/features/me/product/view/admin/widget/product_share_button.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/product_price_edit_sheet.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -104,6 +105,9 @@ class AdminProductCard extends StatelessWidget {
     }
 
     ProductDetails? details = product.product.details;
+    final productId = (details?.id.isNotEmpty ?? false)
+        ? details!.id
+        : (product.product.sellerClassification?.productId ?? '');
 
     return GestureDetector(
       onTap: () => ProductInventoryBottomSheet.show(context, product: product),
@@ -149,9 +153,19 @@ class AdminProductCard extends StatelessWidget {
                   Positioned(
                     top: 6,
                     left: 6,
-                    child: ProductPreviewEyeButton(
-                      onTap: () => ProductInventoryBottomSheet.show(context,
-                          product: product),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ProductPreviewEyeButton(
+                          onTap: () => ProductInventoryBottomSheet.show(context,
+                              product: product),
+                        ),
+                        const SizedBox(width: 6),
+                        ProductShareButton(
+                          productId: productId,
+                          productName: details?.name,
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -284,9 +298,19 @@ class AdminProductCard extends StatelessWidget {
                 Positioned(
                   top: 6,
                   left: 6,
-                  child: ProductPreviewEyeButton(
-                    onTap: () => ProductInventoryBottomSheet.show(context,
-                        product: product),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ProductPreviewEyeButton(
+                        onTap: () => ProductInventoryBottomSheet.show(context,
+                            product: product),
+                      ),
+                      const SizedBox(width: 6),
+                      ProductShareButton(
+                        productId: productId,
+                        productName: details?.name,
+                      ),
+                    ],
                   ),
                 ),
               ],
