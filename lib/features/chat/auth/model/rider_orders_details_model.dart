@@ -125,6 +125,7 @@ class RiderOrdersDetailsModel {
     this.status,
     this.orderFor,
     this.orderType,
+    this.orderSource,
     this.modeOfPayment,
     this.assignedRider,
     this.retryCount,
@@ -159,6 +160,7 @@ class RiderOrdersDetailsModel {
     status = json['status'];
     orderFor = json['orderFor'];
     orderType = json['orderType'];
+    orderSource = json['orderSource'];
     modeOfPayment = json['modeOfPayment'];
     assignedRider = json['assignedRider'];
     retryCount = json['retryCount'];
@@ -224,6 +226,11 @@ class RiderOrdersDetailsModel {
   String? status;
   String? orderFor;
   String? orderType;
+
+  /// How the order was created — `"chat-dispatch"` (rider dispatched from a
+  /// self-pickup chat card), `"standard"`, etc. Used to recognise a chat-grocery
+  /// handoff so single-shop orders render the unified rider card.
+  String? orderSource;
   String? modeOfPayment;
   String? assignedRider;
   int? retryCount;
@@ -258,6 +265,20 @@ class RiderOrdersDetailsModel {
   bool? isMultiStop;
   List<RideStop>? stops;
 
+  /// A grocery order that uses the chat → rider handoff (two-OTP) flow: a
+  /// multi-stop order, or a single-shop chat-dispatch order. Such orders have
+  /// their shop(s) chosen at booking, so the rider works them via the unified
+  /// per-shop OTP card instead of re-selecting shops.
+  ///
+  /// Deliberately does NOT key off `groceryOrderDetails.businesses` — legacy
+  /// grocery orders also gain a businesses list once accepted, and those must
+  /// stay on the legacy [OrderCard] flow.
+  bool get isChatGroceryHandoff {
+    final isGrocery = (orderFor ?? '').toLowerCase() == 'grocery';
+    if (!isGrocery) return false;
+    return (isMultiStop == true) || (orderSource == 'chat-dispatch');
+  }
+
   /// That shop's pickup OTP from `stops[]` (matched by businessId). Falls back
   /// to the order-level [pickupOTP] for legacy orders without per-stop OTPs.
   String? pickupOtpForBusiness(String businessId) {
@@ -278,6 +299,7 @@ class RiderOrdersDetailsModel {
     map['status'] = status;
     map['orderFor'] = orderFor;
     map['orderType'] = orderType;
+    map['orderSource'] = orderSource;
     map['modeOfPayment'] = modeOfPayment;
     map['assignedRider'] = assignedRider;
     map['retryCount'] = retryCount;

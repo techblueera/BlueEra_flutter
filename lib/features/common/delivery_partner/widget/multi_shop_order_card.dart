@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -36,7 +37,13 @@ import '../model/grocery_order_details.dart';
 ///   • Completed / cancelled / rejected → read-only summary.
 ///
 /// Use [isMultiShopGoodsOrder] to decide whether to render this card.
+///
+/// Also catches **single-shop** chat-grocery handoff orders (via
+/// [RiderOrdersDetailsModel.isChatGroceryHandoff]) so they ride the same
+/// per-shop OTP card as multi-shop — the rider never re-selects shops; the shop
+/// is already chosen at booking.
 bool isMultiShopGoodsOrder(RiderOrdersDetailsModel order) {
+  if (order.isChatGroceryHandoff) return true;
   final isFareCallGrocery = order.orderType == 'fare-call' &&
       (order.orderFor?.toLowerCase() == AppConstants.grocery);
   final hasMultiplePickups =
@@ -71,8 +78,32 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
 
   String get _orderId => _order.id ?? _order.orderId ?? '';
 
-  List<BusinessOrder> get _shops =>
-      _order.groceryOrderDetails?.businesses ?? const [];
+  /// True multi-stop order (per-stop arrive + pickup endpoints). A single-shop
+  /// chat-grocery handoff is NOT multi-stop — the shop is confirmed via the
+  /// order-level pickup OTP, not the per-stop endpoint.
+  bool get _isMultiStop => _order.isMultiStop == true;
+
+  /// Order-level pickup completed (used for single-shop, where there are no
+  /// per-stop `stops[]`; the shop confirms the one pickup OTP → status flips).
+  bool get _orderPickedUp => _order.status == 'picked-up';
+
+  /// Pickup shops. For single-shop chat-dispatch the order carries no
+  /// `groceryOrderDetails.businesses`, so synthesize one row from the order's
+  /// shop (receiver) — its OTP falls back to the order-level pickupOTP.
+  List<BusinessOrder> get _shops {
+    final list = _order.groceryOrderDetails?.businesses ?? const [];
+    if (list.isNotEmpty) return list;
+    return [
+      BusinessOrder(
+        businessId: _order.receiverUserId ?? '',
+        businessName: _order.receiverUser?.name ?? 'Shop',
+        items: const [],
+        paymentStatus: false,
+        paymentMode: '',
+        amountPaid: 0,
+      ),
+    ];
+  }
 
   bool get _isPending =>
       widget.selectedPickUp == PickUpTab.newOrder ||
@@ -82,11 +113,15 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
 
   bool _isShopPicked(BusinessOrder shop) {
     if (_pickedLocal.contains(shop.businessId)) return true;
+    // Single-shop: rely on the order-level pickup state (no per-stop items).
+    if (!_isMultiStop) return _orderPickedUp;
     return shop.items.isNotEmpty && shop.items.every((i) => i.isPickedUp);
   }
 
-  bool get _allShopsPicked =>
-      _shops.isNotEmpty && _shops.every(_isShopPicked);
+  bool get _allShopsPicked {
+    if (!_isMultiStop) return _orderPickedUp;
+    return _shops.isNotEmpty && _shops.every(_isShopPicked);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -347,7 +382,9 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
                   // shopkeeper, who enters it on their side to release the goods.
                   if (_isOngoing && !picked) ...[
                     SizedBox(height: SizeConfig.size8),
-                    if (!arrived)
+                    // Single-shop has no per-stop "arrive" endpoint — show the
+                    // pickup OTP straight away for the rider to read out.
+                    if (_isMultiStop && !arrived)
                       _arrivedButton(shop)
                     else
                       _shopOtpDisplay(shop),
@@ -659,7 +696,7 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
             bg: AppColors.redLite.withValues(alpha: 0.1),
             border: AppColors.redLite,
             fg: AppColors.redLite,
-            onTap: () => controller.rideAction(AppConstants.reject, _orderId),
+            onTap: () => _respondToOrder(AppConstants.reject),
           ),
         ),
         SizedBox(width: SizeConfig.size10),
@@ -669,7 +706,7 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
             bg: AppColors.green0B.withValues(alpha: 0.1),
             border: AppColors.green0B,
             fg: AppColors.green0B,
-            onTap: () => controller.rideAction(AppConstants.accept, _orderId),
+            onTap: () => _respondToOrder(AppConstants.accept),
           ),
         ),
       ],
@@ -705,6 +742,24 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
   }
 
   // ── Actions ─────────────────────────────────────────────────────
+
+  /// Accept/reject the order via the endpoint that matches its type:
+  ///   • multi-stop / fare-call grocery → `rideAction` (the fare-call queue
+  ///     accept — unchanged, must NOT break).
+  ///   • single-shop chat-dispatch (standard) → `/fare/orders/:id/status`,
+  ///     which assigns the rider AND emits the handoff OTP cards
+  ///     (shop pickup + customer delivery) server-side.
+  void _respondToOrder(String action) {
+    if (_isMultiStop || _order.orderType == 'fare-call') {
+      controller.rideAction(action, _orderId);
+    } else {
+      controller.updateRideOrParcelOrderStatusApi(
+        {ApiKeys.action: action},
+        _orderId,
+      );
+    }
+  }
+
   Future<void> _onArrived(BusinessOrder shop) async {
     final ok = await controller.multiShopStopArrive(_orderId, shop.businessId);
     if (ok && mounted) {
