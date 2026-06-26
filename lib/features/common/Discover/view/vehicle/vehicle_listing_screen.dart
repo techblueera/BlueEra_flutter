@@ -87,11 +87,14 @@ class _VehicleListingScreenState extends State<VehicleListingScreen> {
 
   /// Selected **vehicle type** (L1, e.g. `MOTORCYCLE`, `SUV`) — sent as
   /// `sub_category=` on `GET /vehicles`. The chip strip below the root
-  /// header is the picker for this. Per the level-2 taxonomy, vehicle
-  /// types are L1 `sub_category`s; segment leaves are L2 `type`s and
-  /// are not surfaced as their own picker yet (catalog Brand/Model/
-  /// Variant narrows the rest).
+  /// header is the picker for this.
   String? _subCategory;
+
+  /// Selected **segment leaf** (L2, e.g. `STANDARD_SCOOTER`,
+  /// `SPORTS_BIKE`) — sent as `type=` on `GET /vehicles`. Only valid
+  /// when [_subCategory] is set; the second chip strip is the picker
+  /// for this and hides when the active L1 has no children.
+  String? _type;
   int? _pincode;
 
   /// Server-driven taxonomy from `GET /vehicles/types` — a 3-deep nested
@@ -164,18 +167,32 @@ class _VehicleListingScreenState extends State<VehicleListingScreen> {
     if (value == _category) return;
     setState(() {
       _category = value;
-      // The previous sub_category belongs to the previous root; drop it
-      // so the two filters can't contradict each other.
+      // The previous L1/L2 selections belong to the previous root; drop
+      // them so the three filters can't contradict each other.
       _subCategory = null;
+      _type = null;
     });
     _refresh();
   }
 
   /// Toggle behavior — tapping the active chip clears the sub_category
   /// filter so the user can broaden back to the whole root category.
+  /// Always clears the L2 [_type] because a different L1 means the old
+  /// segment leaf no longer applies.
   void _onSubCategoryTap(VehicleType child) {
     final next = _subCategory == child.value ? null : child.value;
-    setState(() => _subCategory = next);
+    setState(() {
+      _subCategory = next;
+      _type = null;
+    });
+    _refresh();
+  }
+
+  /// Toggle behavior — tapping the active L2 chip clears the [_type]
+  /// filter so the listing broadens back to the whole sub_category.
+  void _onTypeTap(VehicleType leaf) {
+    final next = _type == leaf.value ? null : leaf.value;
+    setState(() => _type = next);
     _refresh();
   }
 
@@ -191,6 +208,72 @@ class _VehicleListingScreenState extends State<VehicleListingScreen> {
     return root.children;
   }
 
+  /// Direct children of the currently selected L1 sub-category — the
+  /// L2 segment leaves (`STANDARD_SCOOTER`, `SPORTS_BIKE`, …). Empty
+  /// when no sub-category is picked or it has no children, in which
+  /// case the second chip strip hides.
+  List<VehicleType> get _activeTypes {
+    if (_subCategory == null) return const <VehicleType>[];
+    final sub = _activeSubCategories.firstWhere(
+      (s) => s.value == _subCategory,
+      orElse: () => VehicleType(value: '', label: ''),
+    );
+    return sub.children;
+  }
+
+  // ─── Active-filter breadcrumb helpers ────────────────────────────
+  // Drive the badge at the top of the filter area so the user always
+  // sees the current selection path and can clear all three levels in
+  // one tap. Each label resolves against [_types] so the breadcrumb
+  // always reads the same as the chips.
+
+  bool get _hasActiveFilters =>
+      _category != null || _subCategory != null || _type != null;
+
+  String? get _categoryLabel {
+    if (_category == null) return null;
+    final root = _types.firstWhere(
+      (t) => t.value == _category,
+      orElse: () => VehicleType(value: '', label: ''),
+    );
+    if (root.value.isEmpty) return _category;
+    // Mirror the sticky-header rename so the breadcrumb matches the chip.
+    return root.value == 'COMMERCIAL' ? 'Commercial Vehicle' : root.label;
+  }
+
+  String? get _subCategoryLabel {
+    if (_subCategory == null) return null;
+    final sub = _activeSubCategories.firstWhere(
+      (s) => s.value == _subCategory,
+      orElse: () => VehicleType(value: '', label: ''),
+    );
+    return sub.value.isEmpty ? _subCategory : sub.label;
+  }
+
+  String? get _typeLabel {
+    if (_type == null) return null;
+    final leaf = _activeTypes.firstWhere(
+      (l) => l.value == _type,
+      orElse: () => VehicleType(value: '', label: ''),
+    );
+    return leaf.value.isEmpty ? _type : leaf.label;
+  }
+
+  List<String> get _activeFilterPath => [
+        if (_categoryLabel != null) _categoryLabel!,
+        if (_subCategoryLabel != null) _subCategoryLabel!,
+        if (_typeLabel != null) _typeLabel!,
+      ];
+
+  void _clearAllFilters() {
+    setState(() {
+      _category = null;
+      _subCategory = null;
+      _type = null;
+    });
+    _refresh();
+  }
+
   Future<void> _refresh() async {
     await _ctrl.fetchPublicVehicles(
       category: _category,
@@ -198,6 +281,9 @@ class _VehicleListingScreenState extends State<VehicleListingScreen> {
       // every L2 segment under that vehicle type. Sending it as `type=`
       // would hit the segment slot and return empty.
       subCategory: _subCategory,
+      // L2 segment-leaf pick → `type=`. Only sent when the user has
+      // drilled down to a specific segment under the chosen L1.
+      type: _type,
       condition: widget.initialCondition,
       pincode: _pincode,
       q: _searchCtrl.text.trim().isEmpty ? null : _searchCtrl.text.trim(),
@@ -226,7 +312,7 @@ class _VehicleListingScreenState extends State<VehicleListingScreen> {
         // its neighbours. Promote it to "Commercial Vehicle" so the
         // last tab matches the rest.
         final name = t.value == 'COMMERCIAL' ? 'Commercial Vehicle' : t.label;
-        return StickyCategory(id: t.value, name: name);
+        return StickyCategory(id: t.value, name: name, imageUrl: t.icon);
       }),
     ];
     final selectedId = _category ?? _allOptionId;
@@ -275,11 +361,32 @@ class _VehicleListingScreenState extends State<VehicleListingScreen> {
                   onNotification: _onScrollNotification,
                   child: Column(
                     children: [
+                      // Active-filter breadcrumb — always visible once
+                      // any level is set, gives a one-tap clear-all.
+                      if (_hasActiveFilters)
+                        _ActiveFiltersBar(
+                          path: _activeFilterPath,
+                          onClear: _clearAllFilters,
+                        ),
                       if (_activeSubCategories.isNotEmpty)
-                        _SubCategoryBar(
+                        _FilterStrip(
+                          label: 'Category',
                           subs: _activeSubCategories,
                           selectedValue: _subCategory,
                           onSelected: _onSubCategoryTap,
+                        ),
+                      // L2 segment-leaf strip — only appears once the
+                      // user picks an L1 sub-category that has children
+                      // (e.g. Scooter → Standard Scooter / Maxi Scooter
+                      // / Retro Scooter). A subtle tint distinguishes it
+                      // as a refinement of L1.
+                      if (_activeTypes.isNotEmpty)
+                        _FilterStrip(
+                          label: 'Type',
+                          subs: _activeTypes,
+                          selectedValue: _type,
+                          onSelected: _onTypeTap,
+                          isRefinement: true,
                         ),
                       Expanded(
                         child: Obx(() {
@@ -378,6 +485,137 @@ class _VehicleListingScreenState extends State<VehicleListingScreen> {
     if (created == true) {
       await _refresh();
     }
+  }
+}
+
+/// Breadcrumb of the currently-applied filter path
+/// (e.g. "Two Wheeler › Scooter › Standard Scooter") with a single
+/// trailing close button that clears every level in one tap. Hidden
+/// when no filter is set, so it never costs vertical space at rest.
+class _ActiveFiltersBar extends StatelessWidget {
+  final List<String> path;
+  final VoidCallback onClear;
+
+  const _ActiveFiltersBar({required this.path, required this.onClear});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      color: AppColors.white,
+      padding: EdgeInsets.fromLTRB(
+        SizeConfig.size12,
+        SizeConfig.size10,
+        SizeConfig.size12,
+        SizeConfig.size8,
+      ),
+      child: Row(
+        children: [
+          CustomText(
+            'Filters:',
+            fontSize: 11,
+            fontWeight: FontWeight.w800,
+            color: AppColors.secondaryTextColor,
+          ),
+          SizedBox(width: SizeConfig.size8),
+          Flexible(
+            child: Container(
+              padding: EdgeInsets.fromLTRB(
+                SizeConfig.size10,
+                SizeConfig.size6,
+                SizeConfig.size6,
+                SizeConfig.size6,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: AppColors.primaryColor.withValues(alpha: 0.20),
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: CustomText(
+                      path.join(' › '),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primaryColor,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  SizedBox(width: SizeConfig.size4),
+                  InkWell(
+                    onTap: onClear,
+                    customBorder: const CircleBorder(),
+                    child: Padding(
+                      padding: const EdgeInsets.all(2),
+                      child: Icon(
+                        Icons.close_rounded,
+                        size: 16,
+                        color: AppColors.primaryColor,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Section-labeled chip strip. Wraps [_SubCategoryBar] with a small
+/// uppercase header so the user can tell L1 ("Category") from L2
+/// ("Type") at a glance. Pass [isRefinement] for the L2 strip — it
+/// switches to a subtle tinted background so it visually nests under
+/// the L1 strip above.
+class _FilterStrip extends StatelessWidget {
+  final String label;
+  final List<VehicleType> subs;
+  final String? selectedValue;
+  final ValueChanged<VehicleType> onSelected;
+  final bool isRefinement;
+
+  const _FilterStrip({
+    required this.label,
+    required this.subs,
+    required this.selectedValue,
+    required this.onSelected,
+    this.isRefinement = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      color: isRefinement ? const Color(0xFFF4F8FC) : AppColors.white,
+      padding: EdgeInsets.only(top: SizeConfig.size8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+            child: CustomText(
+              label.toUpperCase(),
+              fontSize: 10.5,
+              fontWeight: FontWeight.w800,
+              color: AppColors.secondaryTextColor,
+              letterSpacing: 0.6,
+            ),
+          ),
+          _SubCategoryBar(
+            subs: subs,
+            selectedValue: selectedValue,
+            onSelected: onSelected,
+          ),
+        ],
+      ),
+    );
   }
 }
 
