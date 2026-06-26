@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -939,14 +940,56 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
   }
 
   /// Buyer taps "Place Order" → open the connect-style booking sheet
-  /// (`POST /vehicles/bookings`). On success, confirm and offer a jump to
-  /// the buyer's "My Requests" inbox.
+  /// (`POST /vehicles/bookings`). On success, confirm with a snackbar and
+  /// open the discover-lane chat with the seller, auto-sending a product
+  /// card so the seller can see the requested vehicle + buyer's terms
+  /// (intent / offer / note) before the buyer types anything else.
   Future<void> _onPlaceOrderTap(Vehicle v) async {
     if ((v.id ?? '').trim().isEmpty) return;
     final VehicleBooking? booking =
         await VehiclePlaceOrderSheet.show(context, vehicle: v);
     if (booking == null || !mounted) return;
     commonSnackBar(message: AppStrings.bookingRequestSent.tr);
+
+    final targetUserId = (v.userId ?? '').trim();
+    if (targetUserId.isEmpty) return;
+
+    // Build the product-card payload from the listing + just-placed
+    // booking. Shape mirrors `ask_inventory_product_msg_card.dart` so the
+    // existing chat renderer treats this as a regular product card.
+    final mediaUrls = <String>{
+      if ((v.coverImage ?? '').isNotEmpty) v.coverImage!,
+      ...v.images,
+    }.where((u) => u.isNotEmpty).toList();
+    final urlList = mediaUrls.map((u) => {ApiKeys.url: u}).toList();
+    final priceStr = v.price?.toStringAsFixed(0) ?? '';
+
+    final messageBody = <String>[
+      'Booking request: ${booking.intent.label}',
+      if (booking.offerPrice != null)
+        'Offer: ₹${booking.offerPrice!.toStringAsFixed(0)}',
+      if ((booking.note ?? '').trim().isNotEmpty)
+        'Note: ${booking.note!.trim()}',
+    ].join('\n');
+
+    final shareParams = <String, dynamic>{
+      ApiKeys.product_id: v.id ?? '',
+      ApiKeys.price: priceStr,
+      ApiKeys.discount: '',
+      ApiKeys.message: messageBody,
+      ApiKeys.message_type: AppConstants.product,
+      ApiKeys.title: v.name,
+      ApiKeys.mrp: priceStr,
+      ApiKeys.url: urlList,
+    };
+
+    final chatViewController = getOrPut(() => ChatViewController());
+    await chatViewController.checkChatConnectionAndOpenChat(
+      userId: targetUserId,
+      shareProductParams: shareParams,
+      isWithProductSend: true,
+      route: AppConstants.route_discover,
+    );
   }
 
   /// Owner taps "View Requests" → seller-side inbox (Received tab).

@@ -32,9 +32,10 @@ class VehicleOwnerActions {
     BuildContext context,
     VehicleController ctrl,
   ) async {
-    final condition = businessCategoryGlobal.toLowerCase() == 'vehicle rental'
-        ? VehicleCondition.used
-        : VehicleCondition.isNew;
+    print("businessSubCategoryGlobal---${businessSubCategoryGlobal}");
+    final condition =
+        businessSubCategoryGlobal == 'Used Vehicle Dealer' ? VehicleCondition.used : VehicleCondition.isNew;
+
     final created = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
         builder: (_) => VehicleCatalogPickerScreen(condition: condition),
@@ -152,9 +153,7 @@ class VehicleOwnerActions {
       context,
       title: AppStrings.removeContactTitle.tr,
       message: AppStrings.removeNameCannotUndo.trParams({
-        'N': c.locationName.isNotEmpty
-            ? c.locationName
-            : AppStrings.thisContactFallback.tr,
+        'N': c.locationName.isNotEmpty ? c.locationName : AppStrings.thisContactFallback.tr,
       }),
       confirmLabel: AppStrings.remove.tr,
     );

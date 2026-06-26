@@ -52,8 +52,7 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
   final _formKey = GlobalKey<FormState>();
   final _picker = ImagePicker();
   final _scrollController = ScrollController();
-  final VehicleController _ctrl =
-      getOrPut(() => VehicleController(), permanent: true);
+  final VehicleController _ctrl = getOrPut(() => VehicleController(), permanent: true);
 
   late final TextEditingController _nameCtrl;
   late final TextEditingController _descCtrl;
@@ -100,11 +99,9 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
     _modelCtrl = TextEditingController(text: v?.model ?? '');
     _colorCtrl = TextEditingController(text: v?.color ?? '');
     _regCtrl = TextEditingController(text: v?.registrationNo ?? '');
-    _seatsCtrl =
-        TextEditingController(text: v?.seatingCapacity?.toString() ?? '');
+    _seatsCtrl = TextEditingController(text: v?.seatingCapacity?.toString() ?? '');
     _mileageCtrl = TextEditingController(text: v?.mileage ?? '');
-    _priceCtrl =
-        TextEditingController(text: v?.price?.toStringAsFixed(0) ?? '');
+    _priceCtrl = TextEditingController(text: v?.price?.toStringAsFixed(0) ?? '');
     _category = v?.category;
     _subCategory = v?.subCategory;
     _year = v?.year;
@@ -141,8 +138,7 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
   // All non-required fields short-circuit to `null` when empty so the
   // user is never forced to fill optional inputs.
 
-  String? _vName(String? v) =>
-      (v == null || v.trim().isEmpty) ? AppStrings.nameRequiredErr.tr : null;
+  String? _vName(String? v) => (v == null || v.trim().isEmpty) ? AppStrings.nameRequiredErr.tr : null;
 
   String? _vSeats(String? v) {
     if (v == null || v.trim().isEmpty) return null;
@@ -159,8 +155,7 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
   }
 
   Future<void> _pickCover() async {
-    final x =
-        await _picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    final x = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
     if (x != null) {
       setState(() => _coverFile = File(x.path));
     }
@@ -178,14 +173,12 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
     // CommonDropdownDialog isn't a FormField, so validate the taxonomy
     // selection by hand: a parent category is required, and when that
     // parent has children a sub-category must be chosen too.
-    final parent = _ctrl.vehicleTypes
-        .firstWhereOrNull((t) => t.value == _category);
+    final parent = _ctrl.vehicleTypes.firstWhereOrNull((t) => t.value == _category);
     String? catErr;
     String? subErr;
     if (_category == null || _category!.isEmpty) {
       catErr = AppStrings.selectCategory.tr;
-    } else if ((parent?.hasChildren ?? false) &&
-        (_subCategory == null || _subCategory!.isEmpty)) {
+    } else if ((parent?.hasChildren ?? false) && (_subCategory == null || _subCategory!.isEmpty)) {
       subErr = AppStrings.selectSubCategory.tr;
     }
     if (catErr != null || subErr != null) {
@@ -204,20 +197,16 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
       condition: widget.initial?.condition,
       description: _descCtrl.text.trim().isEmpty ? null : _descCtrl.text.trim(),
       category: _category,
-      subCategory: (_subCategory == null || _subCategory!.isEmpty)
-          ? null
-          : _subCategory,
+      subCategory: (_subCategory == null || _subCategory!.isEmpty) ? null : _subCategory,
       brand: _brandCtrl.text.trim().isEmpty ? null : _brandCtrl.text.trim(),
       model: _modelCtrl.text.trim().isEmpty ? null : _modelCtrl.text.trim(),
       year: _year,
       color: _colorCtrl.text.trim().isEmpty ? null : _colorCtrl.text.trim(),
-      registrationNo:
-          _regCtrl.text.trim().isEmpty ? null : _regCtrl.text.trim(),
+      registrationNo: _regCtrl.text.trim().isEmpty ? null : _regCtrl.text.trim(),
       fuelType: _fuel,
       transmission: _transmission,
       seatingCapacity: int.tryParse(_seatsCtrl.text.trim()),
-      mileage:
-          _mileageCtrl.text.trim().isEmpty ? null : _mileageCtrl.text.trim(),
+      mileage: _mileageCtrl.text.trim().isEmpty ? null : _mileageCtrl.text.trim(),
       price: double.tryParse(_priceCtrl.text.trim()),
       currency: 'INR',
       // Location section removed from the form intentionally —
@@ -262,146 +251,143 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
           SizeConfig.size16,
         ),
         child: Form(
-                  key: _formKey,
-                  // onUserInteraction so the user sees the validation
-                  // message inline as they type (after the first attempt)
-                  // rather than only after pressing the submit button.
-                  autovalidateMode: AutovalidateMode.onUserInteraction,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _coverPickerTile(),
-                      SizedBox(height: SizeConfig.size12),
-                      _imagesPickerTile(),
-                      SizedBox(height: SizeConfig.size16),
-                      _label(AppStrings.basicsLabel.tr),
-                      _field(
-                        controller: _nameCtrl,
-                        label: AppStrings.nameRequiredFieldLabel.tr,
-                        validator: _vName,
-                        textInputAction: TextInputAction.next,
-                      ),
-                      _field(
-                        controller: _descCtrl,
-                        label: AppStrings.description.tr,
-                        maxLines: 3,
-                      ),
-                      _categorySection(),
-                      Row(children: [
-                        Expanded(
-                          child: _field(
-                            controller: _brandCtrl,
-                            label: AppStrings.brand.tr,
-                          ),
-                        ),
-                        SizedBox(width: SizeConfig.size10),
-                        Expanded(
-                          child: _field(
-                            controller: _modelCtrl,
-                            label: AppStrings.modelLabel.tr,
-                          ),
-                        ),
-                      ]),
-                      Row(children: [
-                        Expanded(
-                          child: CommonDropdownDialog<int>(
-                            items: _years,
-                            selectedValue: _year,
-                            dialogTitle: AppStrings.yearLabel.tr,
-                            title: AppStrings.yearLabel.tr,
-                            hintText: AppStrings.yearLabel.tr,
-                            displayValue: (y) => y.toString(),
-                            onChanged: (y) => setState(() => _year = y),
-                          ),
-                        ),
-                        SizedBox(width: SizeConfig.size10),
-                        Expanded(
-                          child: _field(
-                            controller: _colorCtrl,
-                            label: AppStrings.color.tr,
-                          ),
-                        ),
-                      ]),
-                      // Registration no. — explicitly NOT mandatory.
-                      // Auto-upper-cased so RC numbers display
-                      // consistently in lists ("MH02AB1234").
-                      _field(
-                        controller: _regCtrl,
-                        label: AppStrings.registrationNoOptional.tr,
-                        textCapitalization: TextCapitalization.characters,
-                        inputFormatters: [
-                          LengthLimitingTextInputFormatter(20),
-                          _UpperCaseFormatter(),
-                        ],
-                      ),
-                      SizedBox(height: SizeConfig.size12),
-                      _label(AppStrings.specsLabel.tr),
-                      Row(children: [
-                        Expanded(
-                          child: CommonDropdownDialog<VehicleFuelType>(
-                            items: VehicleFuelType.values,
-                            selectedValue: _fuel,
-                            dialogTitle: AppStrings.fuelLabel.tr,
-                            title: AppStrings.fuelLabel.tr,
-                            hintText: AppStrings.fuelLabel.tr,
-                            displayValue: (e) => e.wire,
-                            onChanged: (v) => setState(() => _fuel = v),
-                          ),
-                        ),
-                        SizedBox(width: SizeConfig.size10),
-                        Expanded(
-                          child: CommonDropdownDialog<VehicleTransmission>(
-                            items: VehicleTransmission.values,
-                            selectedValue: _transmission,
-                            dialogTitle: AppStrings.transmissionLabel.tr,
-                            title: AppStrings.transmissionLabel.tr,
-                            hintText: AppStrings.transmissionLabel.tr,
-                            displayValue: (e) => e.wire,
-                            onChanged: (v) =>
-                                setState(() => _transmission = v),
-                          ),
-                        ),
-                      ]),
-                      Row(children: [
-                        Expanded(
-                          child: _field(
-                            controller: _seatsCtrl,
-                            label: AppStrings.seats.tr,
-                            keyboardType: TextInputType.number,
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                              LengthLimitingTextInputFormatter(3),
-                            ],
-                            validator: _vSeats,
-                          ),
-                        ),
-                        SizedBox(width: SizeConfig.size10),
-                        Expanded(
-                          child: _field(
-                            controller: _mileageCtrl,
-                            label: AppStrings.mileageLabel.tr,
-                          ),
-                        ),
-                      ]),
-                      _field(
-                        controller: _priceCtrl,
-                        label: AppStrings.priceInrLabel.tr,
-                        keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true),
-                        inputFormatters: [
-                          // Up to 2 decimal places — matches
-                          // `price.toStringAsFixed(0)` echo on edit.
-                          FilteringTextInputFormatter.allow(
-                              RegExp(r'^\d*\.?\d{0,2}')),
-                        ],
-                        validator: _vPrice,
-                      ),
-                      SizedBox(height: SizeConfig.size20),
-                    ],
+          key: _formKey,
+          // onUserInteraction so the user sees the validation
+          // message inline as they type (after the first attempt)
+          // rather than only after pressing the submit button.
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _coverPickerTile(),
+              SizedBox(height: SizeConfig.size12),
+              _imagesPickerTile(),
+              SizedBox(height: SizeConfig.size16),
+              _label(AppStrings.basicsLabel.tr),
+              _field(
+                controller: _nameCtrl,
+                label: AppStrings.nameRequiredFieldLabel.tr,
+                validator: _vName,
+                textInputAction: TextInputAction.next,
+              ),
+              _field(
+                controller: _descCtrl,
+                label: AppStrings.description.tr,
+                maxLines: 3,
+              ),
+              _categorySection(),
+              Row(children: [
+                Expanded(
+                  child: _field(
+                    controller: _brandCtrl,
+                    label: AppStrings.brand.tr,
                   ),
                 ),
+                SizedBox(width: SizeConfig.size10),
+                Expanded(
+                  child: _field(
+                    controller: _modelCtrl,
+                    label: AppStrings.modelLabel.tr,
+                  ),
+                ),
+              ]),
+              Row(children: [
+                Expanded(
+                  child: CommonDropdownDialog<int>(
+                    items: _years,
+                    selectedValue: _year,
+                    dialogTitle: AppStrings.yearLabel.tr,
+                    title: AppStrings.yearLabel.tr,
+                    hintText: AppStrings.yearLabel.tr,
+                    displayValue: (y) => y.toString(),
+                    onChanged: (y) => setState(() => _year = y),
+                  ),
+                ),
+                SizedBox(width: SizeConfig.size10),
+                Expanded(
+                  child: _field(
+                    controller: _colorCtrl,
+                    label: AppStrings.color.tr,
+                  ),
+                ),
+              ]),
+              // Registration no. — explicitly NOT mandatory.
+              // Auto-upper-cased so RC numbers display
+              // consistently in lists ("MH02AB1234").
+              _field(
+                controller: _regCtrl,
+                label: AppStrings.registrationNoOptional.tr,
+                textCapitalization: TextCapitalization.characters,
+                inputFormatters: [
+                  LengthLimitingTextInputFormatter(20),
+                  _UpperCaseFormatter(),
+                ],
               ),
-            );
+              SizedBox(height: SizeConfig.size12),
+              _label(AppStrings.specsLabel.tr),
+              Row(children: [
+                Expanded(
+                  child: CommonDropdownDialog<VehicleFuelType>(
+                    items: VehicleFuelType.values,
+                    selectedValue: _fuel,
+                    dialogTitle: AppStrings.fuelLabel.tr,
+                    title: AppStrings.fuelLabel.tr,
+                    hintText: AppStrings.fuelLabel.tr,
+                    displayValue: (e) => e.wire,
+                    onChanged: (v) => setState(() => _fuel = v),
+                  ),
+                ),
+                SizedBox(width: SizeConfig.size10),
+                Expanded(
+                  child: CommonDropdownDialog<VehicleTransmission>(
+                    items: VehicleTransmission.values,
+                    selectedValue: _transmission,
+                    dialogTitle: AppStrings.transmissionLabel.tr,
+                    title: AppStrings.transmissionLabel.tr,
+                    hintText: AppStrings.transmissionLabel.tr,
+                    displayValue: (e) => e.wire,
+                    onChanged: (v) => setState(() => _transmission = v),
+                  ),
+                ),
+              ]),
+              Row(children: [
+                Expanded(
+                  child: _field(
+                    controller: _seatsCtrl,
+                    label: AppStrings.seats.tr,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(3),
+                    ],
+                    validator: _vSeats,
+                  ),
+                ),
+                SizedBox(width: SizeConfig.size10),
+                Expanded(
+                  child: _field(
+                    controller: _mileageCtrl,
+                    label: AppStrings.mileageLabel.tr,
+                  ),
+                ),
+              ]),
+              _field(
+                controller: _priceCtrl,
+                label: AppStrings.priceInrLabel.tr,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                inputFormatters: [
+                  // Up to 2 decimal places — matches
+                  // `price.toStringAsFixed(0)` echo on edit.
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d{0,2}')),
+                ],
+                validator: _vPrice,
+              ),
+              SizedBox(height: SizeConfig.size20),
+            ],
+          ),
+        ),
+      ),
+    );
 
     final actionBar = Row(
       children: [
@@ -410,8 +396,7 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
             onPressed: () => Navigator.pop(context),
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             child: CustomText(
               AppStrings.cancel.tr,
@@ -428,8 +413,7 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryColor,
               padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               elevation: 0,
             ),
             child: Text(
@@ -512,17 +496,14 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
             if (hasLocal)
               Image.file(_coverFile!, fit: BoxFit.cover)
             else if (remoteUrl != null && remoteUrl.isNotEmpty)
-              Image.network(remoteUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => _coverHint())
+              Image.network(remoteUrl, fit: BoxFit.cover, errorBuilder: (_, __, ___) => _coverHint())
             else
               _coverHint(),
             Positioned(
               right: 8,
               bottom: 8,
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.55),
                   borderRadius: BorderRadius.circular(20),
@@ -530,8 +511,7 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.camera_alt_rounded,
-                        size: 14, color: Colors.white),
+                    const Icon(Icons.camera_alt_rounded, size: 14, color: Colors.white),
                     const SizedBox(width: 6),
                     Text(AppStrings.coverPhoto.tr,
                         style: const TextStyle(
@@ -554,8 +534,7 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.add_a_photo_rounded,
-              size: 28, color: AppColors.primaryColor),
+          Icon(Icons.add_a_photo_rounded, size: 28, color: AppColors.primaryColor),
           SizedBox(height: SizeConfig.size4),
           CustomText(
             AppStrings.tapToAddCoverLabel.tr,
@@ -584,8 +563,7 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
             const Spacer(),
             TextButton.icon(
               onPressed: _pickImages,
-              icon: Icon(Icons.add_photo_alternate_rounded,
-                  size: 18, color: AppColors.primaryColor),
+              icon: Icon(Icons.add_photo_alternate_rounded, size: 18, color: AppColors.primaryColor),
               label: CustomText(
                 AppStrings.addPhotos.tr,
                 color: AppColors.primaryColor,
@@ -623,30 +601,26 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
                 final isRemote = i < remoteImages.length;
                 final widget = isRemote
                     ? Image.network(remoteImages[i], fit: BoxFit.cover)
-                    : Image.file(_imageFiles[i - remoteImages.length],
-                        fit: BoxFit.cover);
+                    : Image.file(_imageFiles[i - remoteImages.length], fit: BoxFit.cover);
                 return Stack(
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(10),
-                      child: SizedBox(
-                          width: 80, height: 80, child: widget),
+                      child: SizedBox(width: 80, height: 80, child: widget),
                     ),
                     if (!isRemote)
                       Positioned(
                         right: 2,
                         top: 2,
                         child: GestureDetector(
-                          onTap: () => setState(() =>
-                              _imageFiles.removeAt(i - remoteImages.length)),
+                          onTap: () => setState(() => _imageFiles.removeAt(i - remoteImages.length)),
                           child: Container(
                             decoration: BoxDecoration(
                               color: Colors.black.withValues(alpha: 0.6),
                               shape: BoxShape.circle,
                             ),
                             padding: const EdgeInsets.all(2),
-                            child: const Icon(Icons.close,
-                                size: 14, color: Colors.white),
+                            child: const Icon(Icons.close, size: 14, color: Colors.white),
                           ),
                         ),
                       ),
@@ -758,7 +732,6 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
       );
     });
   }
-
 }
 
 /// Inline TextInputFormatter that upper-cases incoming text. Used for
@@ -767,8 +740,7 @@ class _VehicleFormSheetState extends State<VehicleFormSheet> {
 /// typed it. Kept private to this file because it has no other caller.
 class _UpperCaseFormatter extends TextInputFormatter {
   @override
-  TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
     if (newValue.text == newValue.text.toUpperCase()) return newValue;
     return newValue.copyWith(text: newValue.text.toUpperCase());
   }

@@ -1,26 +1,26 @@
 import 'dart:io';
 
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/me/vehicle/controller/vehicle_controller.dart';
-import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/photo_picker_service.dart';
+import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
 
-/// Vehicle cover-banner block — visual echo of `HospitalBannerWidget`.
-/// Tapping the empty state or the filled banner opens the gallery
-/// picker; the picked image is uploaded through the vehicle service's
-/// presigned-PUT flow and persisted on the owner's profile
-/// (`coverPicture`), so it stays in sync with the public profile preview.
+/// Vehicle-showroom cover-banner block — behavioural + visual mirror of
+/// `OtherBannerWidget`. Picker → compress → upload via the shared
+/// `uploadSchoolLogoOrBannerImage(uploadVia: 'coverUrl')` helper on
+/// [BusinessProfileFullController], so the banner stays in sync with
+/// the same profile payload that drives Contact Us and Map on the
+/// overview.
 class VehicleBannerWidget extends StatefulWidget {
-  final VehicleController controller;
+  final BusinessProfileFullController controller;
 
   const VehicleBannerWidget({super.key, required this.controller});
 
@@ -29,33 +29,33 @@ class VehicleBannerWidget extends StatefulWidget {
 }
 
 class _VehicleBannerWidgetState extends State<VehicleBannerWidget> {
-  final ViewPersonalDetailsController _viewCtrl =
-      getOrPut(() => ViewPersonalDetailsController(), permanent: true);
-  final PersonalCreateProfileController _personalCtrl =
-      getOrPut(() => PersonalCreateProfileController());
-
   bool _isUploading = false;
 
   Future<void> _onEditCover() async {
     if (_isUploading) return;
     try {
-      final picked = await ImagePicker().pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 85,
+      final newPath = await PhotoPickerService.pickSinglePhoto(
+        context,
+        AppStrings.editCoverPicture.tr,
+        cropAspectRatio: const CropAspectRatio(width: 16, height: 9),
       );
-      if (picked == null) return;
+      if (newPath == null || newPath.isEmpty) return;
 
       setState(() => _isUploading = true);
 
-      final url = await widget.controller.uploadFile(File(picked.path));
-      if (url == null) return;
-      await _personalCtrl.updateUserProfileDetails(
-        params: {ApiKeys.coverimg: url},
-        isFromProfileOnly: true,
+      final file = File(newPath);
+      final compressed = await FlutterImageCompress.compressAndGetFile(
+        file.absolute.path,
+        "${file.path}_compressed.jpg",
+        quality: 75,
+      );
+
+      await widget.controller.uploadSchoolLogoOrBannerImage(
+        uploadFile: File(compressed?.path ?? newPath),
+        uploadVia: 'coverUrl',
       );
     } catch (_) {
-      // Picker / upload failures already surface a snackbar from the
-      // controller; swallow PlatformExceptions so the screen never crashes.
+      commonSnackBar(message: AppStrings.updatePictureFailed.tr);
     } finally {
       if (mounted) setState(() => _isUploading = false);
     }
@@ -66,10 +66,8 @@ class _VehicleBannerWidgetState extends State<VehicleBannerWidget> {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
       child: Obx(() {
-        final cover =
-            _viewCtrl.personalProfileDetails.value.user?.coverPicture ?? '';
-        final hasBanner = cover.trim().isNotEmpty;
-
+        final cover = widget.controller.businessProfile.value?.profile?.coverUrl ?? '';
+        final hasBanner = cover.isNotEmpty;
         return GestureDetector(
           onTap: _onEditCover,
           child: AspectRatio(
@@ -91,8 +89,7 @@ class _VehicleBannerWidgetState extends State<VehicleBannerWidget> {
                       child: const SizedBox(
                         height: 28,
                         width: 28,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2.5, color: Colors.white),
+                        child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
                       ),
                     ),
                 ],
@@ -107,25 +104,25 @@ class _VehicleBannerWidgetState extends State<VehicleBannerWidget> {
   Widget _emptyBanner() {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFE3ECF7),
-        border: Border.all(color: AppColors.primaryColor, width: 1.4),
+        border: Border.all(color: Colors.red.shade400, width: 2),
         borderRadius: BorderRadius.circular(14),
       ),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.photo_camera_outlined,
-                size: 26, color: AppColors.primaryColor),
-            SizedBox(height: SizeConfig.size6),
-            CustomText(
-              AppStrings.coverPhoto.tr,
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
-              color: AppColors.primaryColor,
+      child: Stack(
+        children: [
+          Positioned(
+            right: SizeConfig.size12,
+            bottom: SizeConfig.size12,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.photo_camera_outlined, size: 20, color: AppColors.primaryColor),
+                SizedBox(width: SizeConfig.size6),
+                CustomText(AppStrings.otherAddYourBannerHere.tr,
+                    fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primaryColor),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -152,22 +149,15 @@ class _VehicleBannerWidgetState extends State<VehicleBannerWidget> {
               color: Colors.white,
               borderRadius: BorderRadius.circular(8),
               boxShadow: const [
-                BoxShadow(
-                    color: Colors.black26, blurRadius: 4, offset: Offset(0, 1)),
+                BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 1)),
               ],
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.edit_outlined,
-                    size: 16, color: AppColors.primaryColor),
+                Icon(Icons.edit_outlined, size: 16, color: AppColors.primaryColor),
                 SizedBox(width: SizeConfig.size4),
-                CustomText(
-                  AppStrings.edit.tr,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.primaryColor,
-                ),
+                CustomText(AppStrings.edit, fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primaryColor),
               ],
             ),
           ),
