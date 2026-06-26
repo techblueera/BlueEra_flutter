@@ -1148,7 +1148,10 @@ class _SelfPickupMsgCardState extends State<SelfPickupMsgCard> {
           // the customer's OTP to release the goods); the customer must never
           // invoke pickup. Hidden for the card sender (the customer) so it only
           // shows to the business owner. See MULTISHOP_PICKUP_OTP_FIX_GUIDE.md.
-          if (!_isMyMessage)
+          // Also hidden when a rider has been dispatched — the rider_otp card
+          // handles OTP verification with the correct rideOrderId in that case.
+          if (!_isMyMessage &&
+              (widget.message.metadata?.rideOrderId ?? '').isEmpty)
             _orderActionButton(
               icon: Icons.password_rounded,
               label: 'Pickup OTP',
