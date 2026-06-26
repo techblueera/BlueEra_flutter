@@ -66,14 +66,11 @@ class _RiderOtpMsgCardState extends State<RiderOtpMsgCard> {
       commonSnackBar(message: 'Please enter the 4-digit OTP');
       return;
     }
-    // A multi-shop card MUST use the live ride order id (ORD-… / _id) from the
-    // card payload — never the self-pickup order id. Falling back to
-    // selfpickupOrderId here sent a stale/non-existent id to the per-stop
-    // endpoint → 404 (see MULTISHOP_PICKUP_OTP_FIX_GUIDE.md). Single-shop
-    // pickup keeps the selfpickup fallback.
-    final orderId = otp.isMultiStop
-        ? (otp.rideOrderId ?? '')
-        : (otp.rideOrderId ?? otp.selfpickupOrderId ?? '');
+    // The ride order id (RideOrder._id) from the card payload is the only valid
+    // id for the rider-service pickup endpoint. selfpickupOrderId is the
+    // original grocery/food/product order id from a DIFFERENT service — using it
+    // as a fallback always 404s (see MULTISHOP_PICKUP_OTP_FIX_GUIDE.md).
+    final orderId = otp.rideOrderId ?? '';
     if (orderId.isEmpty) {
       commonSnackBar(message: 'Order reference missing');
       return;
@@ -207,6 +204,18 @@ class _RiderOtpMsgCardState extends State<RiderOtpMsgCard> {
               ),
             ],
           ),
+          // Handoff headline from the customer, e.g. "The order pickup will be
+          // done by the rider Rahul". Sits above the OTP input on the shop card.
+          if ((otp.message ?? '').isNotEmpty) ...[
+            SizedBox(height: SizeConfig.size8),
+            CustomText(
+              otp.message!,
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: AppColors.mainTextColor,
+              maxLines: 3,
+            ),
+          ],
           SizedBox(height: SizeConfig.size10),
 
           // Body: either the shop's OTP input (pickup/enter) or the holder's
