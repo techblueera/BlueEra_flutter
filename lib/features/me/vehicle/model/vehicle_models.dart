@@ -122,7 +122,16 @@ class VehicleType {
   factory VehicleType.fromJson(Map<String, dynamic> j) => VehicleType(
         value: (j['value'] ?? '') as String,
         label: (j['label'] ?? (j['value'] ?? '')) as String,
-        icon: j['icon'] as String?,
+        // The taxonomy endpoint has shipped under different field names
+        // for the icon URL over time. Accept any of the documented keys
+        // so a backend rename can't silently drop the icon from the
+        // chip strip.
+        icon: (j['icon'] ??
+            j['iconUrl'] ??
+            j['icon_url'] ??
+            j['image'] ??
+            j['imageUrl'] ??
+            j['image_url']) as String?,
         children: ((j['children'] as List?) ?? const [])
             .whereType<Map>()
             .map((m) => VehicleType.fromJson(Map<String, dynamic>.from(m)))
@@ -545,7 +554,14 @@ class Vehicle {
 
   factory Vehicle.fromJson(Map<String, dynamic> j) => Vehicle(
         id: j['_id'] as String?,
-        userId: j['user']['id'] as String?,
+        // The wire shape for the owner reference varies by endpoint:
+        // `GET /vehicles/get/:id` returns a nested `user: { id, ... }`
+        // object, but `POST /vehicles/create` and the public list endpoint
+        // return a flat `user_id`. Accept both so this factory doesn't
+        // blow up with `[]` on null when the nested shape is absent.
+        userId: (j['user'] is Map)
+            ? ((j['user'] as Map)['id'] ?? (j['user'] as Map)['_id']) as String?
+            : j['user_id'] as String?,
         businessId: j['business_id'] as String?,
         variantId: j['variant_id'] as String?,
         name: (j['name'] ?? '') as String,
