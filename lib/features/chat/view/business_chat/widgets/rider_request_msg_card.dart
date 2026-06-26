@@ -7,7 +7,9 @@ import 'package:get/get.dart';
 import '../../../../../core/api/apiService/api_keys.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_constant.dart';
+import '../../../../../core/constants/app_enum.dart';
 import '../../../../../core/constants/size_config.dart';
+import '../../../../../core/routes/route_helper.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../../common/delivery_partner/controller/delivery_partner_orders_controller.dart';
 import '../../../auth/controller/chat_view_controller.dart';
@@ -32,12 +34,22 @@ class _RiderRequestMsgCardState extends State<RiderRequestMsgCard> {
   String? pickupLocation;
   String? dropLocation;
 
+  // The accept/reject status endpoint (/riders/orders/:orderId/status) resolves
+  // the order by its Mongo _id, NOT the chat message id. Passing the message id
+  // returned 404 -> accept silently failed (no flip, no navigation). Use the
+  // order's own id from the card metadata; fall back to orderId then message id.
+  String get _orderRefId =>
+      widget.message.metadata?.order?.id ??
+      widget.message.metadata?.order?.orderId ??
+      widget.message.id ??
+      "";
+
   void _handleRejectOrder(
     String messageId,
   ) async {
     bool value = await controller.updateOrderStatusFromPialot(
       {ApiKeys.action: "reject"},
-      widget.message.id ?? "",
+      _orderRefId,
     );
     if (value) {
       Map<String, dynamic> datadd = {
@@ -77,12 +89,13 @@ class _RiderRequestMsgCardState extends State<RiderRequestMsgCard> {
         lng: widget.message.metadata?.order?.dropLocation?.location
                 ?.coordinates?[0] ??
             0);
+    if (mounted) setState(() {});
   }
 
   void _handleAcceptOrder(String messageId) async {
     bool value = await controller.updateOrderStatusFromPialot(
       {ApiKeys.action: "accept"},
-      widget.message.id ?? "",
+      _orderRefId,
     );
     if (value) {
       Map<String, dynamic> datadd = {
@@ -98,6 +111,13 @@ class _RiderRequestMsgCardState extends State<RiderRequestMsgCard> {
         ApiKeys.per_page_message: 30,
         ApiKeys.orders_conversation: true
       });
+      // Accepting from the chat card only flipped the status server-side; the
+      // pickup-OTP (to read out to the shop) and the customer delivery-OTP input
+      // live on the rider's orders screen. Take the rider there and land on the
+      // ongoing tab so the just-accepted order's OTP UI is visible immediately.
+      controller.selectedPickUp.value = PickUpTab.onGoing;
+      controller.fetchStream();
+      Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
     }
   }
 
@@ -194,7 +214,7 @@ class _RiderRequestMsgCardState extends State<RiderRequestMsgCard> {
                         height: SizeConfig.size4,
                       ),
                       CustomText(
-                        "${AppStrings.dropLocation.tr} : ${pickupLocation ?? AppStrings.fetchingLocation.tr}",
+                        "${AppStrings.dropLocation.tr} : ${dropLocation ?? AppStrings.fetchingLocation.tr}",
                         fontSize: SizeConfig.size12,
                         fontWeight: FontWeight.w600,
                         overflow: TextOverflow.ellipsis,
