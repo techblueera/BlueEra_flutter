@@ -91,6 +91,25 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
   /// `groceryOrderDetails.businesses`, so synthesize one row from the order's
   /// shop (receiver) — its OTP falls back to the order-level pickupOTP.
   List<BusinessOrder> get _shops {
+    // Multi-stop fare-call orders carry their shops in `stops[]` (NOT
+    // groceryOrderDetails). Build one row per stop, ordered by sequence, so the
+    // per-stop arrive/pickup endpoints receive each stop's real businessId.
+    // Using receiverUserId here only worked when stops happened to share that
+    // id; a true multi-shop order would 404 on arrive.
+    if (_isMultiStop && (_order.stops?.isNotEmpty ?? false)) {
+      final stops = [..._order.stops!]
+        ..sort((a, b) => (a.sequence ?? 0).compareTo(b.sequence ?? 0));
+      return stops
+          .map((s) => BusinessOrder(
+                businessId: s.businessId ?? '',
+                businessName: s.shopName ?? 'Shop',
+                items: const [],
+                paymentStatus: false,
+                paymentMode: '',
+                amountPaid: 0,
+              ))
+          .toList();
+    }
     final list = _order.groceryOrderDetails?.businesses ?? const [];
     if (list.isNotEmpty) return list;
     return [
@@ -105,6 +124,18 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
     ];
   }
 
+  /// The persisted stop record for [businessId] (multi-stop orders), so the
+  /// card reflects server state (`arrived` / `picked-up`) after a refresh,
+  /// not just this widget's ephemeral local sets.
+  RideStop? _stopFor(String businessId) {
+    final stops = _order.stops;
+    if (stops == null) return null;
+    for (final s in stops) {
+      if (s.businessId == businessId) return s;
+    }
+    return null;
+  }
+
   bool get _isPending =>
       widget.selectedPickUp == PickUpTab.newOrder ||
       widget.selectedPickUp == PickUpTab.orders;
@@ -115,6 +146,9 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
     if (_pickedLocal.contains(shop.businessId)) return true;
     // Single-shop: rely on the order-level pickup state (no per-stop items).
     if (!_isMultiStop) return _orderPickedUp;
+    // Multi-stop: the shop confirms pickup via the per-stop endpoint, which sets
+    // stop.status = 'picked-up' (items aren't flagged), so read the stop status.
+    if (_stopFor(shop.businessId)?.status == 'picked-up') return true;
     return shop.items.isNotEmpty && shop.items.every((i) => i.isPickedUp);
   }
 
@@ -305,7 +339,12 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
   Widget _buildShopStop(int index) {
     final shop = _shops[index];
     final picked = _isShopPicked(shop);
-    final arrived = _arrived.contains(shop.businessId);
+    // Reflect the persisted stop status too, so a refresh / rebuild doesn't lose
+    // the "arrived" state held only in the ephemeral local set.
+    final stopStatus = _stopFor(shop.businessId)?.status;
+    final arrived = _arrived.contains(shop.businessId) ||
+        stopStatus == 'arrived' ||
+        stopStatus == 'picked-up';
     final name = shop.businessName.isNotEmpty
         ? shop.businessName
         : 'Shop ${index + 1}';
@@ -767,6 +806,9 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
     final ok = await controller.multiShopStopArrive(_orderId, shop.businessId);
     if (ok && mounted) {
       setState(() => _arrived.add(shop.businessId));
+      // Re-pull so the persisted stop.status ('arrived') is reflected even after
+      // the widget rebuilds (the local set is ephemeral).
+      controller.fetchStream();
     }
   }
 
