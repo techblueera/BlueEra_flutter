@@ -908,10 +908,10 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
 
   Widget _buildMapBottomPanel() {
     return Obx(() {
-    final otp = discoverController.fareCallPickupOtp.value;
-    // Customer holds the DELIVERY (completion) OTP — read out to the rider at
-    // drop. Visible to the customer only, for both single- and multi-shop
-    // orders, and kept on screen for the whole ride so it is never lost.
+    // Customer holds ONLY the DELIVERY (completion) OTP — read out to the rider
+    // at drop. The pickup OTP belongs to the shop and is never shown here.
+    // Visible to the customer only, for both single- and multi-shop orders, and
+    // kept on screen for the whole ride so it is never lost.
     final deliveryOtp = discoverController.fareCallDeliveryOtp.value;
     final rideStarted = discoverController.isFareCallRideStarted.value;
 
@@ -1046,68 +1046,8 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
             const SizedBox(height: 16),
           ],
 
-          // Show OTP or Share Live Location based on ride started
-          if (rideStarted)
-            _buildShareRiderDetailsButton()
-          else if (otp.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF4285F4).withValues(alpha: 0.06),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: const Color(0xFF4285F4).withValues(alpha: 0.15),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.pin_rounded,
-                        color: Color(0xFF4285F4), size: 20),
-                    const SizedBox(width: 10),
-                    Text(
-                      AppStrings.pickupOtp.tr,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        fontFamily: 'OpenSans',
-                        color: Color(0xFF1A1A2E),
-                      ),
-                    ),
-                    const Spacer(),
-                    // OTP digits
-                    Row(
-                      children: otp.split('').map((digit) {
-                        return Container(
-                          width: 32,
-                          height: 38,
-                          margin: const EdgeInsets.symmetric(horizontal: 3),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: const Color(0xFF4285F4).withValues(alpha: 0.3),
-                            ),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            digit,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'OpenSans',
-                              color: Color(0xFF4285F4),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+          // Share live location once the ride has started.
+          if (rideStarted) _buildShareRiderDetailsButton(),
 
           const SizedBox(height: 16),
 
