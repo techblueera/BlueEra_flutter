@@ -50,11 +50,8 @@ class PharmacyItem {
       openFrom: json['openFrom']?.toString() ?? '',
       openTill: json['openTill']?.toString() ?? '',
       logo: json['logo']?.toString() ?? '',
-      rating: (json['avg_rating'] is num)
-          ? (json['avg_rating'] as num).toDouble()
-          : 0.0,
-      reviews:
-          json['total_ratings'] is int ? json['total_ratings'] : 0,
+      rating: (json['avg_rating'] is num) ? (json['avg_rating'] as num).toDouble() : 0.0,
+      reviews: json['total_ratings'] is int ? json['total_ratings'] : 0,
       inventories: (json['inventories'] as List?) ?? [],
       raw: json,
     );

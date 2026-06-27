@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/business/widgets/business_availability_widget.dart';
@@ -22,8 +23,8 @@ import 'package:BlueEra/widgets/route_map_bottom_sheet.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:BlueEra/core/services/share_service.dart';
 
+import '../core/constants/shared_preference_utils.dart';
 
 /// A reusable business profile header card for visiting any business.
 ///
@@ -50,8 +51,7 @@ class VisitBusinessCommonHeader extends StatefulWidget {
   });
 
   @override
-  State<VisitBusinessCommonHeader> createState() =>
-      _VisitBusinessCommonHeaderState();
+  State<VisitBusinessCommonHeader> createState() => _VisitBusinessCommonHeaderState();
 }
 
 class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
@@ -75,20 +75,16 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
     // profile. Guard against overwriting a pending optimistic toggle by
     // only syncing when the server value actually changed.
     final newValue = widget.details?.is_following ?? false;
-    if (oldWidget.details?.is_following != widget.details?.is_following &&
-        _isFollowed.value != newValue) {
+    if (oldWidget.details?.is_following != widget.details?.is_following && _isFollowed.value != newValue) {
       _isFollowed.value = newValue;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final hasCover =
-        details?.coverimage != null && details!.coverimage!.isNotEmpty;
-    final hasAddress =
-        details?.address != null && details!.address!.trim().isNotEmpty;
-    final hasDietaryType =
-        details?.dietaryType != null && details!.dietaryType!.trim().isNotEmpty;
+    final hasCover = details?.coverimage != null && details!.coverimage!.isNotEmpty;
+    final hasAddress = details?.address != null && details!.address!.trim().isNotEmpty;
+    final hasDietaryType = details?.dietaryType != null && details!.dietaryType!.trim().isNotEmpty;
     final hasAvailability = details?.availability?.schedule != null;
 
     return CustomFormCard(
@@ -117,8 +113,7 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
                             ? Image.network(
                                 details!.coverimage!,
                                 fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) =>
-                                    _buildBannerPlaceholder(),
+                                errorBuilder: (_, __, ___) => _buildBannerPlaceholder(),
                               )
                             : _buildBannerPlaceholder(),
                       ),
@@ -165,11 +160,8 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
                       radius: 38,
                       backgroundColor: AppColors.white,
                       child: details?.logo?.isNotEmpty == true
-                          ? ClipOval(
-                              child: NetWorkOcToAssets(
-                                  imgUrl: details?.logo ?? ""))
-                          : LocalAssets(
-                              imagePath: AppIconAssets.user_out_line),
+                          ? ClipOval(child: NetWorkOcToAssets(imgUrl: details?.logo ?? ""))
+                          : LocalAssets(imagePath: AppIconAssets.user_out_line),
                     ),
                   ),
                 ),
@@ -214,8 +206,7 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
 
           // ─── Details Section ───
           Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
+            padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 12.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -231,30 +222,26 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
                 const SizedBox(height: 8),
 
                 // Dietary + SubCategory chips
-                if (hasDietaryType ||
-                    details?.subCategoryDetails?.name != null) ...[
+                if (hasDietaryType || details?.subCategoryDetails?.name != null) ...[
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      if (hasDietaryType)
-                        ...[
-                          _buildDietaryIndicator(details!.dietaryType!),
-                          const SizedBox(width: 6),
-                        ],
-
+                      if (hasDietaryType) ...[
+                        _buildDietaryIndicator(details!.dietaryType!),
+                        const SizedBox(width: 6),
+                      ],
                       if (details?.subCategoryDetails?.name != null)
-                          BusinessCommonSubCategoryWidget(
-                            label: details?.subCategoryDetails?.name,
-                          )
-
-
+                        BusinessCommonSubCategoryWidget(
+                          label: details?.subCategoryDetails?.name,
+                        )
                     ],
                   ),
                   const SizedBox(height: 10),
                 ],
 
                 // Distance + Address card (tappable for map)
-                if (hasAddress) GestureDetector(
+                if (hasAddress)
+                  GestureDetector(
                     onTap: () => RouteMapBottomSheet.show(
                       context: context,
                       destinationName: details?.businessName ?? 'Business',
@@ -268,21 +255,17 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
                         color: AppColors.primaryColor.withValues(alpha: 0.04),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color:
-                              AppColors.primaryColor.withValues(alpha: 0.12),
+                          color: AppColors.primaryColor.withValues(alpha: 0.12),
                         ),
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.near_me_rounded,
-                              size: 16, color: AppColors.primaryColor),
+                          Icon(Icons.near_me_rounded, size: 16, color: AppColors.primaryColor),
                           const SizedBox(width: 8),
                           CustomText(
                             '${calculateDistance(
-                                  details?.businessLocation?.lat?.toDouble() ??
-                                      0.0,
-                                  details?.businessLocation?.lon?.toDouble() ??
-                                      0.0,
+                                  details?.businessLocation?.lat?.toDouble() ?? 0.0,
+                                  details?.businessLocation?.lon?.toDouble() ?? 0.0,
                                 )?.toStringAsFixed(2) ?? '--'} KM',
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
@@ -294,8 +277,7 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
                               width: 4,
                               height: 4,
                               decoration: BoxDecoration(
-                                color: AppColors.secondaryTextColor
-                                    .withValues(alpha: 0.4),
+                                color: AppColors.secondaryTextColor.withValues(alpha: 0.4),
                                 shape: BoxShape.circle,
                               ),
                             ),
@@ -310,8 +292,7 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
                             ),
                           ),
                           const SizedBox(width: 6),
-                          Icon(Icons.directions_rounded,
-                              size: 18, color: AppColors.primaryColor),
+                          Icon(Icons.directions_rounded, size: 18, color: AppColors.primaryColor),
                         ],
                       ),
                     ),
@@ -370,11 +351,18 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
             // raw openShareSheet entry point so we control the body,
             // but still avoid touching SharePlus / ShareParams
             // directly.
-            final link = profileDeepLink(
-              userId: details?.userId,
-            );
+            final isBusiness = accountTypeGlobal.toUpperCase() == AppConstants.business;
+
+            final shareLink = isBusiness
+                ? businessProfileDeepLink(
+                    userId: details?.userId,
+                  )
+                : profileDeepLink(
+                    userId: details?.userId,
+                  );
+
             await ShareService.instance.openShareSheet(
-              text: "Check out ${details?.businessName ?? 'this business'} on BlueEra:\n$link\n",
+              text: "Check out ${details?.businessName ?? 'this profile'} on BlueEra:\n$shareLink",
               subject: details?.businessName,
             );
           },
@@ -424,11 +412,10 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
       child: Container(
         padding: const EdgeInsets.all(8.0),
         decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: AppColors.white,
-          border: Border.all(color: AppColors.greyE5, width: 0.5),
-          boxShadow: [AppShadows.textFieldShadow]
-        ),
+            shape: BoxShape.circle,
+            color: AppColors.white,
+            border: Border.all(color: AppColors.greyE5, width: 0.5),
+            boxShadow: [AppShadows.textFieldShadow]),
         child: LocalAssets(
           imagePath: AppIconAssets.chat,
           height: 16,
@@ -473,13 +460,10 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
             decoration: BoxDecoration(
               color: _isFollowed.value ? AppColors.white : Colors.blue,
               borderRadius: BorderRadius.circular(20),
-              border: _isFollowed.value
-                  ? Border.all(color: AppColors.greyE5)
-                  : null,
+              border: _isFollowed.value ? Border.all(color: AppColors.greyE5) : null,
               boxShadow: [
                 BoxShadow(
-                  color: (_isFollowed.value ? Colors.black : Colors.blue)
-                      .withValues(alpha: 0.15),
+                  color: (_isFollowed.value ? Colors.black : Colors.blue).withValues(alpha: 0.15),
                   blurRadius: 6,
                   offset: const Offset(0, 2),
                 ),
@@ -487,9 +471,7 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
             ),
             child: CustomText(
               _isFollowed.value ? AppStrings.unfollow : AppStrings.follow,
-              color: _isFollowed.value
-                  ? AppColors.secondaryTextColor
-                  : Colors.white,
+              color: _isFollowed.value ? AppColors.secondaryTextColor : Colors.white,
               fontSize: 12,
               fontWeight: FontWeight.w600,
             ),
@@ -547,15 +529,13 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
             Container(
               height: 7,
               width: 7,
-              decoration: BoxDecoration(
-                  shape: BoxShape.circle, color: AppColors.green00),
+              decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.green00),
             ),
             const SizedBox(width: 4),
             Container(
               height: 7,
               width: 7,
-              decoration: BoxDecoration(
-                  shape: BoxShape.circle, color: AppColors.red00),
+              decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.red00),
             ),
           ],
         ),

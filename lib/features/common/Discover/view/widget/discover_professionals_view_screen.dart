@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart';
@@ -19,11 +20,12 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:BlueEra/widgets/social_gallery_grid.dart';
 import 'package:BlueEra/widgets/website_preview_card.dart';
-import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import '../../../../../core/services/share_service.dart';
 
 /// Public entry point. Pass [professionalConsData] when you already hold the
 /// model (Discover lists), or just a [userId] to have the screen fetch it on
@@ -39,12 +41,10 @@ class DiscoverProfessionalsViewScreen extends StatefulWidget {
   });
 
   @override
-  State<DiscoverProfessionalsViewScreen> createState() =>
-      _DiscoverProfessionalsViewScreenState();
+  State<DiscoverProfessionalsViewScreen> createState() => _DiscoverProfessionalsViewScreenState();
 }
 
-class _DiscoverProfessionalsViewScreenState
-    extends State<DiscoverProfessionalsViewScreen> {
+class _DiscoverProfessionalsViewScreenState extends State<DiscoverProfessionalsViewScreen> {
   ProfessionalConsData? _data;
   bool _loading = false;
 
@@ -89,8 +89,7 @@ class _DiscoverProfessionalsViewScreenState
             : Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.person_off_outlined,
-                      size: 48, color: AppColors.secondaryTextColor),
+                  const Icon(Icons.person_off_outlined, size: 48, color: AppColors.secondaryTextColor),
                   SizedBox(height: SizeConfig.size8),
                   CustomText(
                     AppStrings.noDataFound.tr,
@@ -132,8 +131,7 @@ class _ProfessionalsContent extends StatelessWidget {
               _ReviewsSection(),
               _ContactSection(data: data),
               if (_hasSocialLinks(data)) _SocialLinksSection(data: data),
-              if (_hasWebsite(data))
-                WebsitePreviewCard(url: data.contact!.website!),
+              if (_hasWebsite(data)) WebsitePreviewCard(url: data.contact!.website!),
               if (_hasLocationCoords(data)) _LocationSection(data: data),
               _WorkingHoursSection(data: data),
               SizedBox(height: SizeConfig.size100),
@@ -272,6 +270,8 @@ class _HeaderSection extends StatelessWidget {
                           // share URL today, so this is a no-op until the
                           // backend exposes one. Kept visible for layout
                           // parity with self_employee_view_screen.
+                          final id = data.userDetails?.id;
+                          ShareService.instance.shareProfile(userId: id.toString());
                         },
                       ),
                     ],
@@ -357,9 +357,7 @@ class _HeaderSection extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: AppColors.primaryColor.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                        color:
-                            AppColors.primaryColor.withValues(alpha: 0.3)),
+                    border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.3)),
                   ),
                   child: CustomText(
                     title,
@@ -423,9 +421,7 @@ class _HeaderSection extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(Icons.translate_rounded,
-                    size: SizeConfig.size14,
-                    color: AppColors.primaryColor),
+                Icon(Icons.translate_rounded, size: SizeConfig.size14, color: AppColors.primaryColor),
                 SizedBox(width: SizeConfig.size4),
                 Expanded(
                   child: Wrap(
@@ -434,11 +430,9 @@ class _HeaderSection extends StatelessWidget {
                     children: languages
                         .map(
                           (lang) => Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 3),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
-                              color: AppColors.primaryColor
-                                  .withValues(alpha: 0.07),
+                              color: AppColors.primaryColor.withValues(alpha: 0.07),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: CustomText(
@@ -534,9 +528,7 @@ class _ServicesSectionState extends State<_ServicesSection> {
 
   @override
   Widget build(BuildContext context) {
-    final desc = widget.data.about?.majorProjectsDescription ??
-        widget.data.about?.description ??
-        '';
+    final desc = widget.data.about?.majorProjectsDescription ?? widget.data.about?.description ?? '';
 
     if (desc.isEmpty) {
       return _emptyCard(AppStrings.ourServices.tr, AppStrings.noServicesListedYet.tr,
@@ -677,8 +669,7 @@ class _CertificatesSection extends StatelessWidget {
                 fit: BoxFit.cover,
                 errorWidget: (_, __, ___) => Container(
                   color: Colors.grey[200],
-                  child: Icon(Icons.image_not_supported_outlined,
-                      color: Colors.grey[400], size: 40),
+                  child: Icon(Icons.image_not_supported_outlined, color: Colors.grey[400], size: 40),
                 ),
               ),
             ),
@@ -843,8 +834,7 @@ class _ContactSection extends StatelessWidget {
     );
   }
 
-  Widget _contactRow(String icon, String text,
-      {bool isLink = false, VoidCallback? onTap}) {
+  Widget _contactRow(String icon, String text, {bool isLink = false, VoidCallback? onTap}) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: SizeConfig.size4),
       child: InkWell(
@@ -853,8 +843,7 @@ class _ContactSection extends StatelessWidget {
           children: [
             LocalAssets(
               imagePath: icon,
-              imgColor:
-                  isLink ? AppColors.primaryColor : AppColors.mainTextColor,
+              imgColor: isLink ? AppColors.primaryColor : AppColors.mainTextColor,
               height: 20,
               width: 20,
             ),
@@ -862,12 +851,9 @@ class _ContactSection extends StatelessWidget {
             Expanded(
               child: CustomText(
                 text,
-                color: isLink
-                    ? AppColors.primaryColor
-                    : AppColors.secondaryTextColor,
+                color: isLink ? AppColors.primaryColor : AppColors.secondaryTextColor,
                 fontSize: SizeConfig.size13,
-                decoration:
-                    isLink ? TextDecoration.underline : TextDecoration.none,
+                decoration: isLink ? TextDecoration.underline : TextDecoration.none,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -970,9 +956,8 @@ class _WorkingHoursSection extends StatelessWidget {
 
   Widget _dayRow(String day, dynamic dayData) {
     final isOpen = dayData?.isOpen == true;
-    final text = isOpen
-        ? "${dayData?.openTime ?? ''} - ${dayData?.closeTime ?? ''}"
-        : AppStrings.closedDay.tr;
+    final text =
+        isOpen ? "${dayData?.openTime ?? ''} - ${dayData?.closeTime ?? ''}" : AppStrings.closedDay.tr;
     return Padding(
       padding: EdgeInsets.symmetric(vertical: SizeConfig.size2),
       child: Row(
@@ -1034,8 +1019,7 @@ class _PricingSection extends StatelessWidget {
             ],
           ),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-              color: AppColors.primaryColor.withValues(alpha: 0.18)),
+          border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.18)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1093,21 +1077,16 @@ class _PricingSection extends StatelessWidget {
                 runSpacing: 6,
                 children: _splitModes(mode)
                     .map((m) => Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 6),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                           decoration: BoxDecoration(
                             color: AppColors.white,
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                                color: AppColors.primaryColor
-                                    .withValues(alpha: 0.25)),
+                            border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.25)),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(_iconForMode(m),
-                                  size: SizeConfig.size14,
-                                  color: AppColors.primaryColor),
+                              Icon(_iconForMode(m), size: SizeConfig.size14, color: AppColors.primaryColor),
                               SizedBox(width: SizeConfig.size4),
                               CustomText(
                                 m,
@@ -1146,11 +1125,7 @@ class _PricingSection extends StatelessWidget {
   /// "Online, Hybrid"). Split on `/` and `,` so each modality renders as
   /// its own pill with its own glyph.
   List<String> _splitModes(String mode) {
-    return mode
-        .split(RegExp(r'[/,]'))
-        .map((s) => s.trim())
-        .where((s) => s.isNotEmpty)
-        .toList();
+    return mode.split(RegExp(r'[/,]')).map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
   }
 
   IconData _iconForMode(String mode) {
@@ -1183,8 +1158,7 @@ class _IntroVideoSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _sectionHeader(
-                Icons.play_circle_outline, AppStrings.introductionVideo.tr),
+            _sectionHeader(Icons.play_circle_outline, AppStrings.introductionVideo.tr),
             SizedBox(height: SizeConfig.paddingXS),
             // Tile is its own InkWell so the entire 16:9 area is the
             // tap target (not just the play button). Opens externally so
@@ -1196,8 +1170,7 @@ class _IntroVideoSection extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 onTap: () {
                   final uri = url.startsWith('http') ? url : 'https://$url';
-                  launchUrl(Uri.parse(uri),
-                      mode: LaunchMode.externalApplication);
+                  launchUrl(Uri.parse(uri), mode: LaunchMode.externalApplication);
                 },
                 child: AspectRatio(
                   aspectRatio: 16 / 9,
@@ -1261,8 +1234,7 @@ class _IntroVideoSection extends StatelessWidget {
                         left: 12,
                         bottom: 10,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
                             color: Colors.black.withValues(alpha: 0.45),
                             borderRadius: BorderRadius.circular(6),
@@ -1271,8 +1243,7 @@ class _IntroVideoSection extends StatelessWidget {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(Icons.open_in_new_rounded,
-                                  color: AppColors.white,
-                                  size: SizeConfig.size12),
+                                  color: AppColors.white, size: SizeConfig.size12),
                               SizedBox(width: SizeConfig.size4),
                               CustomText(
                                 AppStrings.watchVideo.tr,
@@ -1380,8 +1351,7 @@ class _SocialLinksSection extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () {
-          final uri =
-              item.url.startsWith('http') ? item.url : 'https://${item.url}';
+          final uri = item.url.startsWith('http') ? item.url : 'https://${item.url}';
           launchUrl(Uri.parse(uri), mode: LaunchMode.externalApplication);
         },
         child: Container(
@@ -1456,13 +1426,10 @@ List<Widget> _withGaps(List<Widget?> children, {required double gap}) {
 bool _hasPricing(ProfessionalConsData d) {
   final p = d.pricing;
   if (p == null) return false;
-  return p.amount != null ||
-      (p.type ?? '').trim().isNotEmpty ||
-      (p.consultationMode ?? '').trim().isNotEmpty;
+  return p.amount != null || (p.type ?? '').trim().isNotEmpty || (p.consultationMode ?? '').trim().isNotEmpty;
 }
 
-bool _hasIntroVideo(ProfessionalConsData d) =>
-    (d.userDetails?.introVideo ?? '').trim().isNotEmpty;
+bool _hasIntroVideo(ProfessionalConsData d) => (d.userDetails?.introVideo ?? '').trim().isNotEmpty;
 
 bool _hasSocialLinks(ProfessionalConsData d) {
   final s = d.userDetails?.socialLinks;
@@ -1474,8 +1441,7 @@ bool _hasSocialLinks(ProfessionalConsData d) {
       (s.website ?? '').trim().isNotEmpty;
 }
 
-bool _hasWebsite(ProfessionalConsData d) =>
-    (d.contact?.website ?? '').trim().isNotEmpty;
+bool _hasWebsite(ProfessionalConsData d) => (d.contact?.website ?? '').trim().isNotEmpty;
 
 bool _hasLocationCoords(ProfessionalConsData d) {
   final c = d.contact?.location?.coordinates;

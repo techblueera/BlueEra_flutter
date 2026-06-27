@@ -16,6 +16,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../core/services/share_service.dart';
+
 /// Public entry point. Pass [service] when you already hold the model (Discover
 /// lists), or just a [userId] to have the screen fetch it on open (visit flow).
 class SelfEmployeeViewDiscoverScreen extends StatefulWidget {
@@ -31,12 +33,10 @@ class SelfEmployeeViewDiscoverScreen extends StatefulWidget {
   });
 
   @override
-  State<SelfEmployeeViewDiscoverScreen> createState() =>
-      _SelfEmployeeViewDiscoverScreenState();
+  State<SelfEmployeeViewDiscoverScreen> createState() => _SelfEmployeeViewDiscoverScreenState();
 }
 
-class _SelfEmployeeViewDiscoverScreenState
-    extends State<SelfEmployeeViewDiscoverScreen> {
+class _SelfEmployeeViewDiscoverScreenState extends State<SelfEmployeeViewDiscoverScreen> {
   ServiceData? _service;
   bool _loading = false;
 
@@ -67,7 +67,10 @@ class _SelfEmployeeViewDiscoverScreenState
     final service = _service;
     if (service != null) {
       return _SelfEmployeeContent(
-          service: service, isSelfPreview: widget.isSelfPreview);
+        service: service,
+        isSelfPreview: widget.isSelfPreview,
+        userId: service.id ?? widget.userId,
+      );
     }
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -82,8 +85,7 @@ class _SelfEmployeeViewDiscoverScreenState
             : Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.person_off_outlined,
-                      size: 48, color: AppColors.secondaryTextColor),
+                  const Icon(Icons.person_off_outlined, size: 48, color: AppColors.secondaryTextColor),
                   SizedBox(height: SizeConfig.size8),
                   CustomText(
                     AppStrings.noDataFound.tr,
@@ -102,10 +104,12 @@ class _SelfEmployeeViewDiscoverScreenState
 class _SelfEmployeeContent extends StatelessWidget {
   final ServiceData service;
   final bool isSelfPreview;
+  final String? userId;
 
   const _SelfEmployeeContent({
     required this.service,
     this.isSelfPreview = false,
+    this.userId,
   });
 
   static const _accent = LinearGradient(
@@ -131,15 +135,11 @@ class _SelfEmployeeContent extends StatelessWidget {
   }
 
   String get priceBadgeText =>
-      (service.priceData?.feeType ?? service.priceData?.priceType ?? '')
-          .capitalizeFirst ??
-      '';
+      (service.priceData?.feeType ?? service.priceData?.priceType ?? '').capitalizeFirst ?? '';
 
-  Color get priceBadgeColor =>
-      _isRange ? AppColors.green1A : AppColors.primaryColor;
+  Color get priceBadgeColor => _isRange ? AppColors.green1A : AppColors.primaryColor;
 
-  Map<String, String> get timingMap =>
-      _getMinMaxTimings(service.service?.effectiveTimings);
+  Map<String, String> get timingMap => _getMinMaxTimings(service.service?.effectiveTimings);
 
   Map<String, String> _getMinMaxTimings(List<Timings>? timingsList) {
     if (timingsList == null || timingsList.isEmpty) {
@@ -148,12 +148,10 @@ class _SelfEmployeeContent extends StatelessWidget {
     Timings? earliest = timingsList.first;
     Timings? latest = timingsList.first;
     for (final t in timingsList) {
-      if (_parse12HourTime(t.start ?? '00:00 AM')
-          .isBefore(_parse12HourTime(earliest?.start ?? '00:00 AM'))) {
+      if (_parse12HourTime(t.start ?? '00:00 AM').isBefore(_parse12HourTime(earliest?.start ?? '00:00 AM'))) {
         earliest = t;
       }
-      if (_parse12HourTime(t.end ?? '00:00 AM')
-          .isAfter(_parse12HourTime(latest?.end ?? '00:00 AM'))) {
+      if (_parse12HourTime(t.end ?? '00:00 AM').isAfter(_parse12HourTime(latest?.end ?? '00:00 AM'))) {
         latest = t;
       }
     }
@@ -212,8 +210,7 @@ class _SelfEmployeeContent extends StatelessWidget {
     return [
       _buildStatsRibbon(),
       // Availability sits right under the price/time ribbon.
-      if (svc?.availability?.schedule?.isNotEmpty ?? false)
-        _buildAvailabilityCard(svc!.availability!),
+      if (svc?.availability?.schedule?.isNotEmpty ?? false) _buildAvailabilityCard(svc!.availability!),
       if (svc?.serviceType?.isNotEmpty == true)
         _buildChipsCard(
           icon: Icons.business_center_outlined,
@@ -337,7 +334,14 @@ class _SelfEmployeeContent extends StatelessWidget {
                 const Spacer(),
                 _glassButton(
                   assetPath: AppIconAssets.profile_share,
-                  onTap: () {},
+                  onTap: () async {
+                    final id = userId ?? service.id;
+                    if (id == null || id.isEmpty) return;
+                    await ShareService.instance.shareProfile(
+                      userId: id,
+                      subject: service.name,
+                    );
+                  },
                 ),
               ],
             ),
@@ -513,13 +517,11 @@ class _SelfEmployeeContent extends StatelessWidget {
 
   Widget _professionPill(String text) {
     return Container(
-      padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size10, vertical: SizeConfig.size4),
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10, vertical: SizeConfig.size4),
       decoration: BoxDecoration(
         color: AppColors.primaryColor.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(20),
-        border:
-            Border.all(color: AppColors.primaryColor.withValues(alpha: 0.25)),
+        border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.25)),
       ),
       child: CustomText(
         text,
@@ -539,8 +541,7 @@ class _SelfEmployeeContent extends StatelessWidget {
         _buildIdentity(),
         SizedBox(height: SizeConfig.size12),
         Container(
-          padding: EdgeInsets.symmetric(
-              horizontal: SizeConfig.size14, vertical: SizeConfig.size14),
+          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size14, vertical: SizeConfig.size14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(18),
             gradient: LinearGradient(
@@ -684,8 +685,7 @@ class _SelfEmployeeContent extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: AppColors.primaryColor.withValues(alpha: 0.10),
                     borderRadius: BorderRadius.circular(9),
-                    border: Border.all(
-                        color: AppColors.primaryColor.withValues(alpha: 0.18)),
+                    border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.18)),
                   ),
                   child: Icon(icon, size: 17, color: AppColors.primaryColor),
                 ),
@@ -730,13 +730,11 @@ class _SelfEmployeeContent extends StatelessWidget {
         runSpacing: SizeConfig.size8,
         children: values
             .map((e) => Container(
-                  padding: EdgeInsets.symmetric(
-                      horizontal: SizeConfig.size12, vertical: SizeConfig.size6),
+                  padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12, vertical: SizeConfig.size6),
                   decoration: BoxDecoration(
                     color: AppColors.primaryColor.withValues(alpha: 0.06),
                     borderRadius: BorderRadius.circular(30),
-                    border: Border.all(
-                        color: AppColors.primaryColor.withValues(alpha: 0.18)),
+                    border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.18)),
                   ),
                   child: CustomText(
                     e,
@@ -767,8 +765,7 @@ class _SelfEmployeeContent extends StatelessWidget {
         children: [
           for (var i = 0; i < values.length; i++)
             Padding(
-              padding: EdgeInsets.only(
-                  bottom: i == values.length - 1 ? 0 : SizeConfig.size10),
+              padding: EdgeInsets.only(bottom: i == values.length - 1 ? 0 : SizeConfig.size10),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -782,8 +779,7 @@ class _SelfEmployeeContent extends StatelessWidget {
                         color: AppColors.primaryColor.withValues(alpha: 0.10),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(Icons.check_rounded,
-                          size: 12, color: AppColors.primaryColor),
+                      child: Icon(Icons.check_rounded, size: 12, color: AppColors.primaryColor),
                     )
                   else
                     Container(
@@ -824,27 +820,19 @@ class _SelfEmployeeContent extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: days.map((d) {
           final dayName = d.day ?? '';
-          final isToday =
-              dayName.toLowerCase() == today.toLowerCase();
+          final isToday = dayName.toLowerCase() == today.toLowerCase();
           final slots = (d.timeSlots ?? const <TimeSlot>[])
-              .where((s) =>
-                  (s.startTime ?? '').isNotEmpty && (s.endTime ?? '').isNotEmpty)
+              .where((s) => (s.startTime ?? '').isNotEmpty && (s.endTime ?? '').isNotEmpty)
               .map((s) => '${_format24(s.startTime)} – ${_format24(s.endTime)}')
               .join(',  ');
           final isOpen = (d.isOpen == true) && slots.isNotEmpty;
           return Container(
             margin: EdgeInsets.only(bottom: SizeConfig.size6),
-            padding: EdgeInsets.symmetric(
-                horizontal: SizeConfig.size10, vertical: SizeConfig.size8),
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10, vertical: SizeConfig.size8),
             decoration: BoxDecoration(
-              color: isToday
-                  ? AppColors.primaryColor.withValues(alpha: 0.05)
-                  : Colors.transparent,
+              color: isToday ? AppColors.primaryColor.withValues(alpha: 0.05) : Colors.transparent,
               borderRadius: BorderRadius.circular(10),
-              border: isToday
-                  ? Border.all(
-                      color: AppColors.primaryColor.withValues(alpha: 0.18))
-                  : null,
+              border: isToday ? Border.all(color: AppColors.primaryColor.withValues(alpha: 0.18)) : null,
             ),
             child: Row(
               children: [
@@ -856,11 +844,8 @@ class _SelfEmployeeContent extends StatelessWidget {
                         child: CustomText(
                           dayName,
                           fontSize: SizeConfig.small,
-                          fontWeight:
-                              isToday ? FontWeight.w800 : FontWeight.w600,
-                          color: isToday
-                              ? AppColors.primaryColor
-                              : AppColors.mainTextColor,
+                          fontWeight: isToday ? FontWeight.w800 : FontWeight.w600,
+                          color: isToday ? AppColors.primaryColor : AppColors.mainTextColor,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -873,9 +858,7 @@ class _SelfEmployeeContent extends StatelessWidget {
                     isOpen ? slots : 'Closed',
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w500,
-                    color: isOpen
-                        ? AppColors.secondaryTextColor
-                        : AppColors.redB4,
+                    color: isOpen ? AppColors.secondaryTextColor : AppColors.redB4,
                   ),
                 ),
                 _openClosedPill(isOpen),
@@ -951,9 +934,7 @@ class _SelfEmployeeContent extends StatelessWidget {
                 color: AppColors.mainTextColor,
               ),
               CustomText(
-                priceBadgeText.isNotEmpty
-                    ? 'Per ${priceBadgeText.toLowerCase()}'
-                    : 'Starting price',
+                priceBadgeText.isNotEmpty ? 'Per ${priceBadgeText.toLowerCase()}' : 'Starting price',
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
                 color: AppColors.secondaryTextColor,
@@ -1038,8 +1019,7 @@ class _SelfEmployeeContent extends StatelessWidget {
   // Inserts `gap` between every rendered child; absent (shrink) sections still
   // get a gap, so filter them before joining.
   List<Widget> _joinWithGap(List<Widget> items, {required Widget gap}) {
-    final visible =
-        items.where((w) => w is! SizedBox || w.height != 0).toList();
+    final visible = items.where((w) => w is! SizedBox || w.height != 0).toList();
     if (visible.isEmpty) return const [];
     final result = <Widget>[];
     for (var i = 0; i < visible.length; i++) {

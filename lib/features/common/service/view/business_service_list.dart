@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/common/service/controller/service_controller.dart';
 import 'package:BlueEra/features/common/service/model/get_service_model.dart';
 import 'package:BlueEra/features/common/service/view/service_details_view_screen.dart';
@@ -8,8 +11,11 @@ import 'package:BlueEra/features/common/service/view/service_upload_screen.dart'
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
@@ -41,6 +47,7 @@ class _BusinessServiceListState extends State<BusinessServiceList> {
   ServiceController serviceController = Get.put(ServiceController());
   final ScrollController scrollController = ScrollController();
   late Map<String, dynamic> queryParams;
+  bool _isSharing = false;
 
   @override
   void initState() {
@@ -207,25 +214,29 @@ class _BusinessServiceListState extends State<BusinessServiceList> {
                               Positioned(
                                 top: 8,
                                 right: 8,
-                                child: _buildIconBox(
-                                  onTap: () async {
-                                    await showCommonDialog(
-                                    context: context,
-                                    text: AppStrings.areYouSureDelete,
-                                    confirmText: AppStrings.delete,
-                                    cancelText: AppStrings.cancel,
-                                    confirmCallback: () {
-                                      serviceController.deleteService(
-                                          serviceId: serviceData.id ?? '',
-                                          isFromEarnWithBlueEra: false
-                                      );
-                                    },
-                                    cancelCallback: () {
-                                      Get.back();
-                                    },
-                                    );
-                                  },
-                                  Icon(Icons.more_vert, color: Colors.white, size: 16),
+                                child: PopupMenuButton<String>(
+                                  padding: EdgeInsets.zero,
+                                  offset: const Offset(0, 32),
+                                  color: AppColors.white,
+                                  elevation: 8,
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10)),
+                                  onSelected: (value) =>
+                                      _onServiceMenuSelected(value, serviceData),
+                                  itemBuilder: (context) =>
+                                      _buildServiceMenuItems(),
+                                  child: Container(
+                                    height: 25,
+                                    width: 25,
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withValues(alpha: 0.5),
+                                      shape: BoxShape.circle,
+                                      boxShadow: [AppShadows.textFieldShadow],
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: const Icon(Icons.more_vert,
+                                        color: Colors.white, size: 16),
+                                  ),
                                 ),
                               ),
                             ],
@@ -454,26 +465,22 @@ class _BusinessServiceListState extends State<BusinessServiceList> {
                                             maxLines: 2,
                                           ),
                                         ),
-                                        IconButton(
-                                            onPressed: () async {
-                                              await showCommonDialog(
-                                                context: context,
-                                                text: AppStrings.areYouSureDelete,
-                                                confirmText: AppStrings.delete,
-                                                cancelText: AppStrings.cancel,
-                                                confirmCallback: () {
-                                                  serviceController.deleteService(
-                                                      serviceId: serviceData.id ?? '',
-                                                      isFromEarnWithBlueEra: false
-                                                  );
-                                                },
-                                                cancelCallback: () {
-                                                  Get.back();
-                                                },
-                                              );
-                                            }, icon: Icon(
-                                          Icons.more_vert, color: Colors.black, size: 20,
-                                        ))
+                                        PopupMenuButton<String>(
+                                          padding: EdgeInsets.zero,
+                                          offset: const Offset(0, 32),
+                                          color: AppColors.white,
+                                          elevation: 8,
+                                          shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10)),
+                                          onSelected: (value) =>
+                                              _onServiceMenuSelected(
+                                                  value, serviceData),
+                                          itemBuilder: (context) =>
+                                              _buildServiceMenuItems(),
+                                          icon: Icon(Icons.more_vert,
+                                              color: Colors.black, size: 20),
+                                        )
                                       ],
                                     ),
                                   ),
@@ -617,22 +624,110 @@ class _BusinessServiceListState extends State<BusinessServiceList> {
     });
   }
 
-  Widget _buildIconBox(Widget child, {VoidCallback? onTap}) {
-    return InkWell(
-      onTap: onTap,
-      child: Container(
-        height: 25,
-        width: 25,
-        decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.5),
-          shape: BoxShape.circle,
-          boxShadow: [AppShadows.textFieldShadow],
+  List<PopupMenuEntry<String>> _buildServiceMenuItems() => [
+        PopupMenuItem<String>(
+          height: SizeConfig.size35,
+          value: 'share',
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.share_outlined,
+                  size: SizeConfig.size18, color: AppColors.black30),
+              SizedBox(width: SizeConfig.size8),
+              CustomText(AppStrings.share,
+                  fontSize: SizeConfig.medium, color: AppColors.black30),
+            ],
+          ),
         ),
-        alignment: Alignment.center,
-        child: child,
-      ),
-    );
+        const PopupMenuItem<String>(
+          enabled: false,
+          padding: EdgeInsets.zero,
+          height: 1,
+          child: Divider(
+            indent: 10,
+            endIndent: 10,
+            height: 1,
+            thickness: 0.2,
+            color: AppColors.grey99,
+          ),
+        ),
+        PopupMenuItem<String>(
+          height: SizeConfig.size35,
+          value: 'delete',
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.delete_outline,
+                  size: SizeConfig.size18, color: AppColors.red),
+              SizedBox(width: SizeConfig.size8),
+              CustomText(AppStrings.delete,
+                  fontSize: SizeConfig.medium, color: AppColors.black30),
+            ],
+          ),
+        ),
+      ];
+
+  Future<void> _onServiceMenuSelected(
+      String value, GetServiceModel serviceData) async {
+    switch (value) {
+      case 'share':
+        await _shareService(serviceData);
+        break;
+      case 'delete':
+        await showCommonDialog(
+          context: context,
+          text: AppStrings.areYouSureDelete,
+          confirmText: AppStrings.delete,
+          cancelText: AppStrings.cancel,
+          confirmCallback: () {
+            serviceController.deleteService(
+              serviceId: serviceData.id ?? '',
+              isFromEarnWithBlueEra: false,
+            );
+          },
+          cancelCallback: () => Get.back(),
+        );
+        break;
+    }
   }
 
+  Future<void> _shareService(GetServiceModel serviceData) async {
+    if (_isSharing) return;
+    try {
+      _isSharing = true;
+      final link = serviceDeepLink(serviceId: serviceData.id);
+
+      XFile? xFile;
+      final imageUrl = (serviceData.photos?.isNotEmpty ?? false)
+          ? serviceData.photos!.first
+          : null;
+      if (imageUrl != null && imageUrl.isNotEmpty) {
+        xFile = await _urlToCachedXFile(imageUrl);
+      }
+
+      await SharePlus.instance.share(ShareParams(
+        text: link,
+        subject: serviceData.title,
+        previewThumbnail: xFile,
+      ));
+
+      if (xFile != null) {
+        final file = File(xFile.path);
+        if (await file.exists()) await file.delete();
+      }
+    } catch (e) {
+      debugPrint("service card share failed $e");
+    } finally {
+      _isSharing = false;
+    }
+  }
+
+  Future<XFile> _urlToCachedXFile(String fileUrl) async {
+    final tempDir = await getTemporaryDirectory();
+    final fileName = fileUrl.split('/').last;
+    final filePath = "${tempDir.path}/$fileName";
+    await Dio().download(fileUrl, filePath);
+    return XFile(filePath);
+  }
 }
 
