@@ -26,6 +26,11 @@ mixin UserServiceApi {
   final String getUserByIdUrlForAddress = "user-service/user/getUserById";
   final String getUserProfileOverviewById =
       "user-service/user/getUserProfileOverview/";
+  // Public share-card overview — backs the deep-link landing screen for
+  // /app/profile/{id} and /app/business/{id}. Returns a trimmed user blob
+  // plus follower/post counts and isFollowing for the viewer.
+  String shareProfileOverview(String userId) =>
+      'user-service/share/users/$userId/profile-overview';
   final String FollowersAndPostsCount =
       'user-service/user/getUserWithFollowersAndPostsCount';
   final String checkUsername = "user-service/user/checkUsername";

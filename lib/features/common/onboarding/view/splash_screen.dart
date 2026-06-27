@@ -9,14 +9,16 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/features/Emergency/view/emergency_profileScreen.dart';
-import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
-import 'package:BlueEra/features/common/onboarding/view/select_language_screen.dart';
-import 'package:BlueEra/features/me/product/view/admin/share_product_screen.dart';
+import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
+import 'package:BlueEra/features/chat/view/business_chat/business_chat_screen_updated.dart';
 import 'package:BlueEra/features/chat/view/forward_screen/chat_forward_screen.dart';
 import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_screen.dart';
-import 'package:BlueEra/features/chat/view/business_chat/business_chat_screen_updated.dart';
-import 'package:BlueEra/core/services/app_notification.dart';
+import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
+import 'package:BlueEra/features/common/onboarding/view/select_language_screen.dart';
+import 'package:BlueEra/features/common/profile_share_preview/view/profile_share_preview_screen.dart';
+import 'package:BlueEra/features/me/product/view/admin/share_product_screen.dart';
 import 'package:BlueEra/main.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -24,7 +26,6 @@ import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:share_handler/share_handler.dart';
-import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -41,12 +42,10 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void _openNextScreen() async {
-    final tempLoginType = await SharedPreferenceUtils.getSecureValue(
-        SharedPreferenceUtils.accountType);
+    final tempLoginType = await SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.accountType);
     accountTypeGlobal = tempLoginType.toString();
 
-    var isLoginStatus = await SharedPreferenceUtils.getSecureValue(
-        SharedPreferenceUtils.isUserLogin);
+    var isLoginStatus = await SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.isUserLogin);
     if (isLoginStatus == null) isLoginStatus = "false";
 
     // ✅ Check if app was updated
@@ -57,9 +56,7 @@ class _SplashScreenState extends State<SplashScreen> {
     if (CallController.launchedForCall.value) return;
 
     // If shared media is pending and user is logged in, skip splash delay
-    if (isLoginStatus == "true" &&
-        pendingSharedMedia != null &&
-        !isGuestUser()) {
+    if (isLoginStatus == "true" && pendingSharedMedia != null && !isGuestUser()) {
       final media = pendingSharedMedia!;
       pendingSharedMedia = null; // consume it so it's never handled again
       // Also reset the platform-level initial media so _getSharedMedia()
@@ -69,8 +66,7 @@ class _SplashScreenState extends State<SplashScreen> {
       } catch (_) {}
       final sharedText = media.content;
       final attachments = media.attachments ?? [];
-      if ((sharedText != null && sharedText.isNotEmpty) ||
-          attachments.isNotEmpty) {
+      if ((sharedText != null && sharedText.isNotEmpty) || attachments.isNotEmpty) {
         if (accountTypeGlobal.toUpperCase() == AppConstants.individual) {
           Navigator.of(context).pushNamedAndRemoveUntil(
             RouteHelper.getBottomNavigationBarScreenRoute(),
@@ -104,8 +100,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
       // If app was launched by tapping a notification, stay on splash screen
       // and wait for notification handler to navigate to the correct screen.
-      if (AppNotificationHandler.launchedFromNotification &&
-          isLoginStatus == "true") {
+      if (AppNotificationHandler.launchedFromNotification && isLoginStatus == "true") {
         // Wait for notification navigation to complete (with a safety timeout)
         if (AppNotificationHandler.notificationNavigationCompleter != null) {
           await AppNotificationHandler.notificationNavigationCompleter!.future
@@ -119,9 +114,8 @@ class _SplashScreenState extends State<SplashScreen> {
       // First-launch (or post-logout) language selection. Logged-in users skip
       // this since they have already picked a language during onboarding.
       if (isLoginStatus != "true") {
-        final hasSelectedLanguage = await SharedPreferenceUtils.getSecureValue(
-                SharedPreferenceUtils.hasSelectedLanguage) ??
-            "false";
+        final hasSelectedLanguage =
+            await SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.hasSelectedLanguage) ?? "false";
         if (hasSelectedLanguage != "true") {
           if (!mounted) return;
           Navigator.of(context).pushAndRemoveUntil(
@@ -207,8 +201,7 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void _handleDeepLink(Uri uri) async {
-    debugPrint(
-        "=====================================Deep link received:========================= $uri");
+    debugPrint("=====================================Deep link received:========================= $uri");
     try {
       // Every BlueEra deeplink carries `?referralCode=…` when shared
       // by a verified BDM. Capture it before path-based routing so it
@@ -224,8 +217,7 @@ class _SplashScreenState extends State<SplashScreen> {
       // The viewer is typically a responder, not the owner, so open the
       // read-only profile view for that explicit id.
       if (uri.host == 'emergency.beapp.in') {
-        final emergencyId =
-            uri.pathSegments.isNotEmpty ? uri.pathSegments.last : '';
+        final emergencyId = uri.pathSegments.isNotEmpty ? uri.pathSegments.last : '';
         if (emergencyId.isNotEmpty && _isValidMongoId(emergencyId)) {
           Get.to(() => EmergencyProfileScreen1(profileId: emergencyId));
         } else {
@@ -284,24 +276,18 @@ class _SplashScreenState extends State<SplashScreen> {
             }
             break;
           case 'profile':
-            // Ensure there is a segment for account type (segments[3])
-            if (segments.length >= 4) {
-              final accountType = segments[3].toUpperCase();
-              final profileId = segments[2];
-
-              // Validate that the account type is either INDIVIDUAL or BUSINESS
-              if (accountType == AppConstants.individual ||
-                  accountType == AppConstants.business) {
-                redirectToProfileScreen(
-                    accountType: accountType,
-                    profileId: profileId,
-                    screenName: AppConstants.deepLinkScreen);
-              } else {
-                logs('Invalid account type in profile deep link: $accountType');
-              }
-            } else {
-              logs('Profile deep link missing account type segment');
-            }
+          case 'business':
+            // Both share-link shapes land on the public share-preview screen.
+            // The URL prefix ('profile' vs 'business') is just a hint for the
+            // account-type pill while the API fetch is in flight — the
+            // /share/users/{id}/profile-overview response is the source of
+            // truth. Older 4-segment 'profile/{id}/{accountType}' links from
+            // pre-launch sharing pass the same id through cleanly.
+            final accountTypeHint = type == 'business' ? AppConstants.business : AppConstants.individual;
+            Get.to(() => ProfileSharePreviewScreen(
+                  userId: id,
+                  accountTypeHint: accountTypeHint,
+                ));
             break;
           default:
             logs('Unknown deep link type: $type');

@@ -1,28 +1,27 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
-import 'package:BlueEra/widgets/route_map_bottom_sheet.dart';
-import 'package:BlueEra/features/common/Discover/view/healthcare/discover_hospital_home_screen.dart';
-import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
-import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
-import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
-import 'package:BlueEra/features/me/hospital/model/hospital_full_details_res_model.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/services/share_service.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
+import 'package:BlueEra/features/common/Discover/view/healthcare/discover_hospital_home_screen.dart';
+import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
+import 'package:BlueEra/features/me/hospital/model/hospital_full_details_res_model.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/route_map_bottom_sheet.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 
 class HospitalListScreen extends StatefulWidget {
   const HospitalListScreen({super.key, required this.serviceType});
@@ -50,80 +49,78 @@ class _HospitalListScreenState extends State<HospitalListScreen> {
     // sticky-category header and the list scrolling as one smooth motion.
     return NotificationListener<ScrollNotification>(
       onNotification: (n) {
-        if (n is ScrollUpdateNotification &&
-            n.metrics.pixels >= n.metrics.maxScrollExtent - 100) {
+        if (n is ScrollUpdateNotification && n.metrics.pixels >= n.metrics.maxScrollExtent - 100) {
           controller.fetchMore(widget.serviceType);
         }
         return false;
       },
       child: Material(
-      color: Colors.transparent,
-      child: Obx(() {
-        if (controller.isLoading.value && controller.profiles.isEmpty) {
-          // One Shimmer drives all skeleton cards. Per-card shimmers flooded
-          // BLASTBufferQueue with redraws (visible as the "Already acquired
-          // max frames" spam in logcat).
-          return buildLoadingShimmer(
-            child: ListView.builder(
-              padding: EdgeInsets.symmetric(vertical: SizeConfig.size8),
-              itemCount: 3,
-              physics: const NeverScrollableScrollPhysics(),
-              itemBuilder: (_, __) => const _HospitalCardSkeletonBody(),
-            ),
-          );
-        }
-        if (controller.error.value.isNotEmpty && controller.profiles.isEmpty) {
-          return Center(
-            child: CustomText(
-              "Failed to load data",
-              fontSize: SizeConfig.medium,
-              color: AppColors.red,
-            ),
-          );
-        }
-        if (controller.profiles.isEmpty) {
-          return Center(
-            child: CustomText(
-              "No hospitals found",
-              fontSize: SizeConfig.medium,
-              color: AppColors.grey9B,
-            ),
-          );
-        }
-        return RefreshIndicator(
-          color: AppColors.primaryColor,
-          onRefresh: () async {
-            await controller.fetchInitial(widget.serviceType);
-          },
-          child: Builder(
-            builder: (context) {
-              final rows = buildNativeAdRows(controller.profiles.length);
-              return ListView.builder(
+        color: Colors.transparent,
+        child: Obx(() {
+          if (controller.isLoading.value && controller.profiles.isEmpty) {
+            // One Shimmer drives all skeleton cards. Per-card shimmers flooded
+            // BLASTBufferQueue with redraws (visible as the "Already acquired
+            // max frames" spam in logcat).
+            return buildLoadingShimmer(
+              child: ListView.builder(
                 padding: EdgeInsets.symmetric(vertical: SizeConfig.size8),
-                itemCount:
-                    rows.length + (controller.isLoadingMore.value ? 1 : 0),
-                itemBuilder: (context, index) {
-                  if (index == rows.length) {
-                    // Load-more footer: wrap a single body in one shimmer.
-                    return buildLoadingShimmer(
-                      child: const _HospitalCardSkeletonBody(),
-                    );
-                  }
-                  final row = rows[index];
-                  if (row.isAd) {
-                    return NativeAdSlot(
-                      adOrdinal: row.adOrdinal,
-                      keyPrefix: 'hospital_native_ad',
-                    );
-                  }
-                  final item = controller.profiles[row.contentIndex];
-                  return _HospitalCard(item: item);
-                },
-              );
+                itemCount: 3,
+                physics: const NeverScrollableScrollPhysics(),
+                itemBuilder: (_, __) => const _HospitalCardSkeletonBody(),
+              ),
+            );
+          }
+          if (controller.error.value.isNotEmpty && controller.profiles.isEmpty) {
+            return Center(
+              child: CustomText(
+                "Failed to load data",
+                fontSize: SizeConfig.medium,
+                color: AppColors.red,
+              ),
+            );
+          }
+          if (controller.profiles.isEmpty) {
+            return Center(
+              child: CustomText(
+                "No hospitals found",
+                fontSize: SizeConfig.medium,
+                color: AppColors.grey9B,
+              ),
+            );
+          }
+          return RefreshIndicator(
+            color: AppColors.primaryColor,
+            onRefresh: () async {
+              await controller.fetchInitial(widget.serviceType);
             },
-          ),
-        );
-      }),
+            child: Builder(
+              builder: (context) {
+                final rows = buildNativeAdRows(controller.profiles.length);
+                return ListView.builder(
+                  padding: EdgeInsets.symmetric(vertical: SizeConfig.size8),
+                  itemCount: rows.length + (controller.isLoadingMore.value ? 1 : 0),
+                  itemBuilder: (context, index) {
+                    if (index == rows.length) {
+                      // Load-more footer: wrap a single body in one shimmer.
+                      return buildLoadingShimmer(
+                        child: const _HospitalCardSkeletonBody(),
+                      );
+                    }
+                    final row = rows[index];
+                    if (row.isAd) {
+                      return NativeAdSlot(
+                        adOrdinal: row.adOrdinal,
+                        keyPrefix: 'hospital_native_ad',
+                      );
+                    }
+                    final item = controller.profiles[row.contentIndex];
+                    return _HospitalCard(item: item);
+                  },
+                );
+              },
+            ),
+          );
+        }),
       ),
     );
   }
@@ -136,8 +133,7 @@ class _HospitalCard extends StatelessWidget {
 
   bool _isEmpty(String? s) => s == null || s.trim().isEmpty;
 
-  String _valueOr(String? s, {String fallback = "Not available"}) =>
-      _isEmpty(s) ? fallback : s!.trim();
+  String _valueOr(String? s, {String fallback = "Not available"}) => _isEmpty(s) ? fallback : s!.trim();
 
   List<String> _collectGalleryPhotos() {
     final photos = <String>[];
@@ -163,10 +159,8 @@ class _HospitalCard extends StatelessWidget {
     return null;
   }
 
-  List<String> _departmentNames() => (item.departments ?? [])
-      .map((d) => d.name ?? '')
-      .where((s) => s.trim().isNotEmpty)
-      .toList();
+  List<String> _departmentNames() =>
+      (item.departments ?? []).map((d) => d.name ?? '').where((s) => s.trim().isNotEmpty).toList();
 
   List<String> _buildFacilities() {
     // The `business/filter` listing supplies facility names directly. Prefer
@@ -224,8 +218,7 @@ class _HospitalCard extends StatelessWidget {
   void _openDetail() {
     try {
       final controller = Get.find<HospitalServiceAiController>();
-      controller.hospitalDataResModel?.value =
-          HospitalFullDetailsResModel(success: true, data: item);
+      controller.hospitalDataResModel?.value = HospitalFullDetailsResModel(success: true, data: item);
       Get.to(() => DiscoverHospitalHomeScreen());
     } on Exception catch (e) {
       logs("ERROR $e");
@@ -258,9 +251,12 @@ class _HospitalCard extends StatelessWidget {
   void _share() {
     final name = item.name ?? 'Hospital';
     final addr = item.location?.name ?? '';
+
+    final shareLink = businessProfileDeepLink(
+      userId: item?.userId,
+    );
     ShareService.instance.openShareSheet(
-      text: 'Check out $name on BlueEra'
-          '${addr.trim().isNotEmpty ? '\n📍 ${addr.trim()}' : ''}',
+      text: 'Check out ${item.name} on BlueEra\n$shareLink',
       subject: name,
     );
   }
@@ -277,9 +273,7 @@ class _HospitalCard extends StatelessWidget {
 
   void _openImageViewer(BuildContext context) {
     final gallery = _collectGalleryPhotos();
-    final images = gallery.isNotEmpty
-        ? gallery
-        : [if (_coverImage() != null) _coverImage()!];
+    final images = gallery.isNotEmpty ? gallery : [if (_coverImage() != null) _coverImage()!];
     if (images.isEmpty) return;
     navigatePushTo(
       context,
@@ -295,8 +289,7 @@ class _HospitalCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: _openDetail,
@@ -309,7 +302,9 @@ class _HospitalCard extends StatelessWidget {
             children: [
               // Cover banner with floating action buttons.
               _coverHeader(context),
-              SizedBox(height: 10,),
+              SizedBox(
+                height: 10,
+              ),
               // Body content pulled up so the logo straddles the cover edge.
               // The translate leaves ~28px of breathing room at the card
               // bottom, which doubles as the bottom padding.
@@ -412,10 +407,9 @@ class _HospitalCard extends StatelessWidget {
           right: 10,
           child: Column(
             children: [
-              _circleAction(Icons.share_outlined, _share),
+              _circleAction(AppIconAssets.share_bold, _share),
               const SizedBox(height: 8),
-              _circleAction(
-                  Icons.directions_outlined, () => _openMapBottomSheet(context)),
+              _circleAction(AppIconAssets.directionIcon, () => _openMapBottomSheet(context)),
             ],
           ),
         ),
@@ -423,7 +417,7 @@ class _HospitalCard extends StatelessWidget {
     );
   }
 
-  Widget _circleAction(IconData icon, VoidCallback onTap) {
+  Widget _circleAction(String icon, VoidCallback onTap) {
     return Material(
       color: Colors.white,
       shape: const CircleBorder(),
@@ -434,7 +428,10 @@ class _HospitalCard extends StatelessWidget {
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(7),
-          child: Icon(icon, size: 18, color: AppColors.primaryColor),
+          child: LocalAssets(
+            imagePath: icon,
+            imgColor: AppColors.black,
+          ),
         ),
       ),
     );
@@ -481,7 +478,10 @@ class _HospitalCard extends StatelessWidget {
                       onTap: () => _openMapBottomSheet(context),
                       child: Row(
                         children: [
-                          LocalAssets(imagePath: AppIconAssets.location_outline,imgColor: AppColors.primaryColor,),
+                          LocalAssets(
+                            imagePath: AppIconAssets.location_outline,
+                            imgColor: AppColors.primaryColor,
+                          ),
                           const SizedBox(width: 3),
                           // Distance highlighted in the primary color, kept
                           // separate from the (secondary) address.
@@ -505,9 +505,7 @@ class _HospitalCard extends StatelessWidget {
                           Expanded(
                             child: CustomText(
                               _isEmpty(address)
-                                  ? (distance == null
-                                      ? 'Address not available'
-                                      : '')
+                                  ? (distance == null ? 'Address not available' : '')
                                   : address!.trim(),
                               fontSize: SizeConfig.small,
                               color: AppColors.secondaryTextColor,
@@ -528,7 +526,7 @@ class _HospitalCard extends StatelessWidget {
         const SizedBox(height: 14),
         // Departments summary.
         _serviceRow(
-          icon:"assets/svg/department.svg" ,
+          icon: "assets/svg/department.svg",
           title: 'Departments',
           items: deptNames,
           count: deptCount,
@@ -562,7 +560,6 @@ class _HospitalCard extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 14),
-
       ],
     );
   }
@@ -597,8 +594,7 @@ class _HospitalCard extends StatelessWidget {
               )
             : Container(
                 color: AppColors.liteWhite,
-                child:
-                    LocalAssets(imagePath: AppIconAssets.place_holder_image),
+                child: LocalAssets(imagePath: AppIconAssets.place_holder_image),
               ),
       ),
     );
@@ -663,9 +659,7 @@ class _HospitalCard extends StatelessWidget {
               CustomText(
                 summary,
                 fontSize: SizeConfig.small,
-                color: items.isEmpty
-                    ? AppColors.grey9B
-                    : AppColors.secondaryTextColor,
+                color: items.isEmpty ? AppColors.grey9B : AppColors.secondaryTextColor,
                 fontWeight: FontWeight.w400,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -710,7 +704,6 @@ class _HospitalCard extends StatelessWidget {
               const SizedBox(width: 6),
               CustomText(
                 AppStrings.chat,
-
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: AppColors.primaryColor,
@@ -754,8 +747,7 @@ class _HospitalCard extends StatelessWidget {
                 color: Colors.white,
               ),
               const SizedBox(width: 8),
-              const Icon(Icons.arrow_forward_rounded,
-                  size: 18, color: Colors.white),
+              const Icon(Icons.arrow_forward_rounded, size: 18, color: Colors.white),
             ],
           ),
         ),
@@ -774,8 +766,7 @@ class _HospitalCardSkeletonBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
       child: CommonCardWidget(
         cardMargin: 0,
         padding: 0,
@@ -795,8 +786,7 @@ class _HospitalCardSkeletonBody extends StatelessWidget {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        shimmerContainer(
-                            width: 62, height: 62, radius: 31),
+                        shimmerContainer(width: 62, height: 62, radius: 31),
                         SizedBox(width: SizeConfig.size12),
                         Expanded(
                           child: Padding(
@@ -806,8 +796,7 @@ class _HospitalCardSkeletonBody extends StatelessWidget {
                               children: [
                                 shimmerContainer(height: SizeConfig.size16),
                                 SizedBox(height: SizeConfig.size8),
-                                shimmerContainer(
-                                    height: SizeConfig.size12, width: 180),
+                                shimmerContainer(height: SizeConfig.size12, width: 180),
                               ],
                             ),
                           ),
@@ -825,13 +814,9 @@ class _HospitalCardSkeletonBody extends StatelessWidget {
                     SizedBox(height: SizeConfig.size16),
                     Row(
                       children: [
-                        Expanded(
-                            flex: 1,
-                            child: shimmerContainer(height: 46, radius: 12)),
+                        Expanded(flex: 1, child: shimmerContainer(height: 46, radius: 12)),
                         const SizedBox(width: 12),
-                        Expanded(
-                            flex: 2,
-                            child: shimmerContainer(height: 46, radius: 12)),
+                        Expanded(flex: 2, child: shimmerContainer(height: 46, radius: 12)),
                       ],
                     ),
                   ],

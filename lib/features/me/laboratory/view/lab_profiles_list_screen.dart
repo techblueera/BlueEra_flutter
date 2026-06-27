@@ -14,7 +14,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../../core/constants/shared_preference_utils.dart';
+import '../../../../core/constants/common_methods.dart';
+import '../../../../core/services/share_service.dart';
 
 class LabProfilesListScreen extends StatefulWidget {
   final String category;
@@ -36,8 +37,7 @@ class _LabProfilesListScreenState extends State<LabProfilesListScreen> {
   @override
   void initState() {
     super.initState();
-    controller =
-        getOrPut(() => NearestPharmaciesController(), tag: 'lab_profiles');
+    controller = getOrPut(() => NearestPharmaciesController(), tag: 'lab_profiles');
     controller.fetchNearest(
       category: widget.category,
       subCategory: widget.subCategory,
@@ -55,8 +55,7 @@ class _LabProfilesListScreenState extends State<LabProfilesListScreen> {
             child: CircularProgressIndicator(color: AppColors.primaryColor),
           );
         }
-        if (controller.error.value.isNotEmpty &&
-            controller.pharmacies.isEmpty) {
+        if (controller.error.value.isNotEmpty && controller.pharmacies.isEmpty) {
           return Center(
             child: CustomText(
               AppStrings.failedToLoadData.tr,
@@ -133,9 +132,19 @@ class _LabCard extends StatelessWidget {
 
   String get _timings {
     if (item.openFrom.isEmpty) return '';
-    return item.openTill.isNotEmpty
-        ? '${item.openFrom} - ${item.openTill}'
-        : item.openFrom;
+    return item.openTill.isNotEmpty ? '${item.openFrom} - ${item.openTill}' : item.openFrom;
+  }
+
+  void _share() {
+    final name = item.name ?? 'Hospital';
+
+    final shareLink = businessProfileDeepLink(
+      userId: item.id,
+    );
+    ShareService.instance.openShareSheet(
+      text: 'Check out ${item.name} on BlueEra\n$shareLink',
+      subject: name,
+    );
   }
 
   @override
@@ -210,8 +219,7 @@ class _LabCard extends StatelessWidget {
                 ? CachedNetworkImage(
                     imageUrl: _banner,
                     fit: BoxFit.cover,
-                    placeholder: (_, __) =>
-                        Container(color: AppColors.liteWhite),
+                    placeholder: (_, __) => Container(color: AppColors.liteWhite),
                     errorWidget: (_, __, ___) => _bannerPlaceholder(),
                   )
                 : _bannerPlaceholder(),
@@ -226,9 +234,9 @@ class _LabCard extends StatelessWidget {
             right: SizeConfig.size10,
             child: Row(
               children: [
-                _circleIcon(Icons.ios_share_outlined),
+                _circleIcon(AppIconAssets.share_bold, _share),
                 SizedBox(width: SizeConfig.size8),
-                _circleIcon(Icons.bookmark_border_rounded),
+                // _circleIcon(AppIconAssets.b),
               ],
             ),
           ),
@@ -262,8 +270,7 @@ class _LabCard extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.star_rounded,
-              color: AppColors.white, size: SizeConfig.size16),
+          Icon(Icons.star_rounded, color: AppColors.white, size: SizeConfig.size16),
           SizedBox(width: SizeConfig.size4),
           CustomText(
             item.rating.toStringAsFixed(1),
@@ -276,15 +283,24 @@ class _LabCard extends StatelessWidget {
     );
   }
 
-  Widget _circleIcon(IconData icon) {
-    return Container(
-      height: SizeConfig.size32,
-      width: SizeConfig.size32,
-      decoration: const BoxDecoration(
-        color: AppColors.white,
-        shape: BoxShape.circle,
+  Widget _circleIcon(String icon, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        height: SizeConfig.size32,
+        width: SizeConfig.size32,
+        decoration: const BoxDecoration(
+          color: AppColors.white,
+          shape: BoxShape.circle,
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: LocalAssets(
+            imagePath: icon,
+            imgColor: AppColors.black,
+          ),
+        ),
       ),
-      child: Icon(icon, color: AppColors.mainTextColor, size: SizeConfig.size18),
     );
   }
 
@@ -310,8 +326,7 @@ class _LabCard extends StatelessWidget {
               SizedBox(height: SizeConfig.size4),
               Row(
                 children: [
-                  Icon(Icons.location_on,
-                      color: AppColors.primaryColor, size: SizeConfig.size16),
+                  Icon(Icons.location_on, color: AppColors.primaryColor, size: SizeConfig.size16),
                   SizedBox(width: SizeConfig.size4),
                   Expanded(
                     child: CustomText(
@@ -355,8 +370,7 @@ class _LabCard extends StatelessWidget {
   Widget _logoPlaceholder() {
     return Container(
       color: AppColors.liteWhite,
-      child: Icon(Icons.business_rounded,
-          color: AppColors.placeHolder, size: SizeConfig.size24),
+      child: Icon(Icons.business_rounded, color: AppColors.placeHolder, size: SizeConfig.size24),
     );
   }
 
@@ -377,8 +391,7 @@ class _LabCard extends StatelessWidget {
             color: AppColors.skyBlueE4,
             borderRadius: BorderRadius.circular(SizeConfig.size8),
           ),
-          child: Icon(icon,
-              color: AppColors.primaryColor, size: SizeConfig.size18),
+          child: Icon(icon, color: AppColors.primaryColor, size: SizeConfig.size18),
         ),
         SizedBox(width: SizeConfig.size10),
         Expanded(
@@ -438,8 +451,7 @@ class _LabCard extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                 ),
                 SizedBox(width: SizeConfig.size8),
-                Icon(Icons.arrow_forward_rounded,
-                    size: SizeConfig.size18, color: AppColors.white),
+                Icon(Icons.arrow_forward_rounded, size: SizeConfig.size18, color: AppColors.white),
               ],
             ),
           ),
@@ -447,7 +459,6 @@ class _LabCard extends StatelessWidget {
       ],
     );
   }
-
 
   Widget _chatButton(PharmacyItem item) {
     return Material(
@@ -469,7 +480,6 @@ class _LabCard extends StatelessWidget {
               const SizedBox(width: 6),
               CustomText(
                 AppStrings.chat,
-
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: AppColors.primaryColor,
@@ -480,7 +490,6 @@ class _LabCard extends StatelessWidget {
       ),
     );
   }
-
 
   void _openChat() {
     final userId = item.user_id ?? '';
