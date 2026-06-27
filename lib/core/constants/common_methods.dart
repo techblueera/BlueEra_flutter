@@ -20,6 +20,7 @@ import 'package:mime/mime.dart';
 import 'package:path/path.dart' as path;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
+
 import '../../features/common/service/model/get_service_model.dart';
 import 'app_colors.dart';
 
@@ -81,24 +82,22 @@ List<String> generateList(int startYear, int endYear) {
 }
 
 ///GENERATE POST DEEPLINK
-String postDeepLink({String? postId}) =>
-    _withBdmReferral('https://beapp.in/app/post/${postId ?? ""}');
+String postDeepLink({String? postId}) => _withBdmReferral('https://beapp.in/app/post/${postId ?? ""}');
 
 /// Generate deep link for a Video item
-String videoDeepLink({String? videoId}) =>
-    _withBdmReferral('https://beapp.in/app/video/${videoId ?? ""}');
+String videoDeepLink({String? videoId}) => _withBdmReferral('https://beapp.in/app/video/${videoId ?? ""}');
 
 /// Generate deep link for a Short/Reel item
-String shortDeepLink({String? shortId}) =>
-    _withBdmReferral('https://beapp.in/app/video/${shortId ?? ""}');
+String shortDeepLink({String? shortId}) => _withBdmReferral('https://beapp.in/app/video/${shortId ?? ""}');
 
 /// Generate deep link for a Job post item
-String jobDeepLink({String? jobId}) =>
-    _withBdmReferral('https://beapp.in/app/job/${jobId ?? ""}');
+String jobDeepLink({String? jobId}) => _withBdmReferral('https://beapp.in/app/job/${jobId ?? ""}');
 
 /// Generate deep link for a Profile.
-String profileDeepLink({String? userId}) =>
-    _withBdmReferral('https://beapp.in/app/profile/${userId ?? ""}');
+String profileDeepLink({String? userId}) => _withBdmReferral('https://beapp.in/app/profile/${userId ?? ""}');
+
+String businessProfileDeepLink({String? userId}) =>
+    _withBdmReferral('https://beapp.in/app/business/${userId ?? ""}');
 
 /// Generate deep link for a Product item
 String productDeepLink({String? productId}) =>
@@ -106,7 +105,7 @@ String productDeepLink({String? productId}) =>
 
 /// Generate deep link for a Service item
 String serviceDeepLink({String? serviceId}) =>
-    _withBdmReferral('https://beapp.in/app/food/${serviceId ?? ""}');
+    _withBdmReferral('https://beapp.in/app/service/${serviceId ?? ""}');
 
 /// Generate deep link for a Food Service item
 String foodServiceDeepLink({String? foodServiceId}) =>
@@ -165,18 +164,10 @@ String? _currentUserReferralCodeIfBdmCompleted() {
     // user/business record and tend to load earlier than /wallet-stats.
     if (accountTypeGlobal == AppConstants.business) {
       if (!Get.isRegistered<ViewBusinessDetailsController>()) return null;
-      return Get.find<ViewBusinessDetailsController>()
-          .businessProfileDetails
-          .value
-          ?.data
-          ?.referral_code;
+      return Get.find<ViewBusinessDetailsController>().businessProfileDetails.value?.data?.referral_code;
     }
     if (!Get.isRegistered<ViewPersonalDetailsController>()) return null;
-    return Get.find<ViewPersonalDetailsController>()
-        .personalProfileDetails
-        .value
-        .user
-        ?.referral_code;
+    return Get.find<ViewPersonalDetailsController>().personalProfileDetails.value.user?.referral_code;
   } catch (_) {
     return null;
   }
@@ -273,16 +264,13 @@ Map<String, String?> getFileInfo(File file) {
 
 bool isNetworkImage(dynamic image) =>
     image is String &&
-    (image.trim().toLowerCase().startsWith('http://') ||
-        image.trim().toLowerCase().startsWith('https://'));
+    (image.trim().toLowerCase().startsWith('http://') || image.trim().toLowerCase().startsWith('https://'));
 
-Widget staggeredDotsWaveLoading(
-    {Color color = AppColors.primaryColor, EdgeInsets? padding}) {
+Widget staggeredDotsWaveLoading({Color color = AppColors.primaryColor, EdgeInsets? padding}) {
   return Center(
       child: Padding(
           padding: padding ?? EdgeInsets.all(SizeConfig.size15),
-          child: LoadingAnimationWidget.staggeredDotsWave(
-              size: SizeConfig.size40, color: color)));
+          child: LoadingAnimationWidget.staggeredDotsWave(size: SizeConfig.size40, color: color)));
 }
 
 /// Save user preference (don't show again)
@@ -293,8 +281,7 @@ Future<void> disableGreetingCard() async {
   );
 }
 
-bool isHlsUrl(String? url) =>
-    url?.toLowerCase().endsWith('.m3u8') ?? false;
+bool isHlsUrl(String? url) => url?.toLowerCase().endsWith('.m3u8') ?? false;
 
 Future<void> launchURL(String url) async {
   final Uri uri = Uri.parse(url);
