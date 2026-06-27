@@ -13,6 +13,7 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/services/ongoing_ride_store.dart';
 import 'package:BlueEra/core/utils/fetch_cache.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/chat/auth/repo/chat_view_repo.dart';
 import 'package:BlueEra/features/common/Discover/model/business_filter_res_model.dart';
 import 'package:BlueEra/features/common/Discover/model/food_restaurant_service_model.dart';
 import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
@@ -1732,6 +1733,26 @@ class DiscoverController extends GetxController {
       commonSnackBar(message: 'Ride request cancelled');
     } else {
       commonSnackBar(message: response.message ?? 'Failed to cancel');
+    }
+  }
+
+  /// Re-fetch the customer's delivery OTP from the order so the tracking map
+  /// can show it again after the in-memory value is lost (app restart, or
+  /// leaving and re-entering the map). The backend returns deliveryOTP only to
+  /// the order owner. No-op if we already have it.
+  Future<void> hydrateFareCallDeliveryOtp(String orderId) async {
+    if (fareCallDeliveryOtp.value.isNotEmpty) return;
+    if (orderId.isEmpty) return;
+    try {
+      final res = await ChatViewRepo().checkTrackOrderStatusSilentApi(orderId);
+      if (res.isSuccess) {
+        final data = res.response?.data;
+        final otp =
+            (data is Map ? data['deliveryOTP'] : null)?.toString() ?? '';
+        if (otp.isNotEmpty) fareCallDeliveryOtp.value = otp;
+      }
+    } catch (_) {
+      // Tracking is best-effort; the chat card remains the durable OTP source.
     }
   }
 
