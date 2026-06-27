@@ -3331,10 +3331,6 @@ class ChatViewController extends GetxController {
               (getListOfMessageData?.any((m) => m.id == message.id) ?? false);
      if (!alreadyExists) {
     getListOfMessageData?.add(message);
-    Future.delayed(Duration(seconds: 3),(){
-      getListOfMessageData?.add(message);
-    });
-
     }
           getListOfMessageResponse.value =
               ApiResponse.complete(getListOfMessageData);
