@@ -1156,20 +1156,12 @@ class _FoodSelfPickupMsgCardState extends State<FoodSelfPickupMsgCard> {
                 }
               },
             ),
-          // Pickup OTP — shop-only. Pickup is confirmed by the SHOP (it enters
-          // the customer's OTP to release the goods); the customer must never
-          // invoke pickup. Hidden for the card sender (the customer) so it only
-          // shows to the business owner. See MULTISHOP_PICKUP_OTP_FIX_GUIDE.md.
-          if (!_isMyMessage)
-            _orderActionButton(
-              icon: Icons.password_rounded,
-              label: 'Pickup OTP',
-              color: Colors.green,
-              onTap: () => showPickupOtpDialog(
-                context,
-                orderId: _order?.orderId ?? _pickupOrderId ?? '',
-              ),
-            ),
+          // Pickup OTP button removed: the self-pickup card's orderId is a
+          // food/tiffin/homemade order, NOT a RideOrder — calling the rider-service
+          // pickup endpoint with it always 404s. When a rider is dispatched, the
+          // dedicated rider_otp chat card handles OTP verification with the correct
+          // rideOrderId. For pure self-pickup (no rider), no RideOrder exists.
+
         ],
       ),
     );

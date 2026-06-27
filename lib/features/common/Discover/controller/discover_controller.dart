@@ -13,6 +13,7 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/services/ongoing_ride_store.dart';
 import 'package:BlueEra/core/utils/fetch_cache.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/chat/auth/repo/chat_view_repo.dart';
 import 'package:BlueEra/features/common/Discover/model/business_filter_res_model.dart';
 import 'package:BlueEra/features/common/Discover/model/food_restaurant_service_model.dart';
 import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
@@ -1266,19 +1267,29 @@ class DiscoverController extends GetxController {
     selectedVehicleOptionIndex.value = 0;
 
     try {
-      // Resolve every shop's pickup coordinates. Shops we can't locate are
-      // skipped rather than failing the whole order.
+      // Resolve every shop's pickup coordinates. EVERY selected shop must
+      // resolve — if even one has no pickup location, abort the whole order with
+      // an error instead of silently dropping it, so the rider never gets a
+      // partial order and the user is never confused about which shops are in.
       final resolvedShops = <SortedShop>[];
+      final unresolvedShops = <String>[];
       for (final chat in pickups) {
+        final shopLabel = chat.sender?.name ?? 'Shop';
         // The shop's pickup location is looked up by the business *owner's*
         // user id (`/user-service/business/user/{ownerUserId}`), not the
         // conversation id or the business id.
         final ownerUserId = (chat.businessOwnerUserId?.isNotEmpty ?? false)
             ? chat.businessOwnerUserId!
             : (chat.sender?.id ?? '');
-        if (ownerUserId.isEmpty) continue;
+        if (ownerUserId.isEmpty) {
+          unresolvedShops.add(shopLabel);
+          continue;
+        }
         final loc = await _resolveShopLocation(ownerUserId);
-        if (loc == null) continue;
+        if (loc == null) {
+          unresolvedShops.add(shopLabel);
+          continue;
+        }
         // The order body still identifies each shop by its businessId where
         // available, falling back to the owner user id.
         final shopBusinessId = (chat.sender?.businessId?.isNotEmpty ?? false)
@@ -1286,11 +1297,24 @@ class DiscoverController extends GetxController {
             : ownerUserId;
         resolvedShops.add(SortedShop(
           businessId: shopBusinessId,
-          name: chat.sender?.name ?? 'Shop',
+          name: shopLabel,
           address: loc.$3,
           latitude: loc.$1,
           longitude: loc.$2,
         ));
+      }
+
+      // Any shop without a pickup location => hard stop. Do not proceed with a
+      // partial set of shops.
+      if (unresolvedShops.isNotEmpty) {
+        findRiderDetailsLoading.value = false;
+        bookingRiderListResponse.value = ApiResponse.error('error');
+        commonSnackBar(
+          message:
+              'No pickup location for: ${unresolvedShops.join(', ')}. '
+              'Remove these shop(s) or set their location, then try again.',
+        );
+        return false;
       }
 
       if (resolvedShops.isEmpty) {
@@ -1732,6 +1756,26 @@ class DiscoverController extends GetxController {
       commonSnackBar(message: 'Ride request cancelled');
     } else {
       commonSnackBar(message: response.message ?? 'Failed to cancel');
+    }
+  }
+
+  /// Re-fetch the customer's delivery OTP from the order so the tracking map
+  /// can show it again after the in-memory value is lost (app restart, or
+  /// leaving and re-entering the map). The backend returns deliveryOTP only to
+  /// the order owner. No-op if we already have it.
+  Future<void> hydrateFareCallDeliveryOtp(String orderId) async {
+    if (fareCallDeliveryOtp.value.isNotEmpty) return;
+    if (orderId.isEmpty) return;
+    try {
+      final res = await ChatViewRepo().checkTrackOrderStatusSilentApi(orderId);
+      if (res.isSuccess) {
+        final data = res.response?.data;
+        final otp =
+            (data is Map ? data['deliveryOTP'] : null)?.toString() ?? '';
+        if (otp.isNotEmpty) fareCallDeliveryOtp.value = otp;
+      }
+    } catch (_) {
+      // Tracking is best-effort; the chat card remains the durable OTP source.
     }
   }
 

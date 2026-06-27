@@ -90,6 +90,9 @@ class _GoodsMultiCallTrackingScreenState
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    // Restore the customer's delivery OTP if the in-memory value was lost
+    // (e.g. left the map and came back, or app restart). Best-effort.
+    discoverController.hydrateFareCallDeliveryOtp(widget.orderId);
     // Hide floating overlay after first frame to avoid setState during build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (Get.isRegistered<RideNavigationOverlayController>()) {

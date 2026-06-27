@@ -708,6 +708,9 @@ class RiderOtpInfo {
   final String? riderName;
   final String? rideOrderId;
   final String? selfpickupOrderId;
+  // Headline announcing the handoff, e.g. "The order pickup will be done by the
+  // rider Rahul" (pickup) — rendered above the OTP input on the shop's card.
+  final String? message;
 
   // ─ Multi-shop (multi-stop) fields ─
   // A multi-stop order issues one private pickup OTP card per shop. These tell
@@ -729,6 +732,7 @@ class RiderOtpInfo {
     this.riderName,
     this.rideOrderId,
     this.selfpickupOrderId,
+    this.message,
     this.businessId,
     this.shopName,
     this.sequence,
@@ -780,6 +784,7 @@ class RiderOtpInfo {
       riderName: json['riderName']?.toString(),
       rideOrderId: json['rideOrderId']?.toString(),
       selfpickupOrderId: json['selfpickupOrderId']?.toString(),
+      message: json['message']?.toString(),
       businessId: json['businessId']?.toString(),
       shopName: json['shopName']?.toString(),
       sequence: json['sequence'] is int
@@ -803,6 +808,7 @@ class RiderOtpInfo {
         'riderName': riderName,
         'rideOrderId': rideOrderId,
         'selfpickupOrderId': selfpickupOrderId,
+        'message': message,
         'businessId': businessId,
         'shopName': shopName,
         'sequence': sequence,

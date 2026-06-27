@@ -92,6 +92,9 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _loadEmergencyContact();
+    // Customer holds the delivery (completion) OTP — re-fetch it so it survives
+    // exiting and re-entering this screen (in-memory value is cleared on reset).
+    discoverController.hydrateFareCallDeliveryOtp(widget.orderId);
     // Hide floating overlay after first frame to avoid setState during build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (Get.isRegistered<RideNavigationOverlayController>()) {
@@ -905,7 +908,11 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
 
   Widget _buildMapBottomPanel() {
     return Obx(() {
-    final otp = discoverController.fareCallPickupOtp.value;
+    // Customer holds ONLY the DELIVERY (completion) OTP — read out to the rider
+    // at drop. The pickup OTP belongs to the shop and is never shown here.
+    // Visible to the customer only, for both single- and multi-shop orders, and
+    // kept on screen for the whole ride so it is never lost.
+    final deliveryOtp = discoverController.fareCallDeliveryOtp.value;
     final rideStarted = discoverController.isFareCallRideStarted.value;
 
     return Container(
@@ -1032,68 +1039,15 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
 
           const SizedBox(height: 16),
 
-          // Show OTP or Share Live Location based on ride started
-          if (rideStarted)
-            _buildShareRiderDetailsButton()
-          else if (otp.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Container(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF4285F4).withValues(alpha: 0.06),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: const Color(0xFF4285F4).withValues(alpha: 0.15),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.pin_rounded,
-                        color: Color(0xFF4285F4), size: 20),
-                    const SizedBox(width: 10),
-                    Text(
-                      AppStrings.pickupOtp.tr,
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                        fontFamily: 'OpenSans',
-                        color: Color(0xFF1A1A2E),
-                      ),
-                    ),
-                    const Spacer(),
-                    // OTP digits
-                    Row(
-                      children: otp.split('').map((digit) {
-                        return Container(
-                          width: 32,
-                          height: 38,
-                          margin: const EdgeInsets.symmetric(horizontal: 3),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(
-                              color: const Color(0xFF4285F4).withValues(alpha: 0.3),
-                            ),
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            digit,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              fontFamily: 'OpenSans',
-                              color: Color(0xFF4285F4),
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+          // Delivery (completion) OTP — the customer gives this to the rider at
+          // drop. Shown for both single- and multi-shop orders, the whole ride.
+          if (deliveryOtp.isNotEmpty) ...[
+            _buildDeliveryOtpCard(deliveryOtp),
+            const SizedBox(height: 16),
+          ],
+
+          // Share live location once the ride has started.
+          if (rideStarted) _buildShareRiderDetailsButton(),
 
           const SizedBox(height: 16),
 
@@ -1505,6 +1459,69 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
           ),
           SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
         ],
+      ),
+    );
+  }
+
+  /// Delivery (completion) OTP card — the customer reads this OTP to the rider
+  /// at drop. Customer-only; never shown to the shop/business.
+  Widget _buildDeliveryOtpCard(String otp) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+        decoration: BoxDecoration(
+          color: const Color(0xFF00C853).withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: const Color(0xFF00C853).withValues(alpha: 0.2),
+          ),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.verified_user_rounded,
+                color: Color(0xFF00C853), size: 20),
+            const SizedBox(width: 10),
+            const Expanded(
+              child: Text(
+                'Delivery OTP',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  fontFamily: 'OpenSans',
+                  color: Color(0xFF1A1A2E),
+                ),
+              ),
+            ),
+            Row(
+              children: otp.split('').map((digit) {
+                return Container(
+                  width: 32,
+                  height: 38,
+                  margin: const EdgeInsets.symmetric(horizontal: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: const Color(0xFF00C853).withValues(alpha: 0.3),
+                    ),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    digit,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'OpenSans',
+                      color: Color(0xFF00C853),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -13,6 +14,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:pinput/pinput.dart';
 
+import '../../../chat/auth/controller/call_controller.dart';
 import '../../../chat/auth/model/rider_orders_details_model.dart';
 import '../controller/delivery_partner_orders_controller.dart';
 import '../model/grocery_order_details.dart';
@@ -36,7 +38,13 @@ import '../model/grocery_order_details.dart';
 ///   • Completed / cancelled / rejected → read-only summary.
 ///
 /// Use [isMultiShopGoodsOrder] to decide whether to render this card.
+///
+/// Also catches **single-shop** chat-grocery handoff orders (via
+/// [RiderOrdersDetailsModel.isChatGroceryHandoff]) so they ride the same
+/// per-shop OTP card as multi-shop — the rider never re-selects shops; the shop
+/// is already chosen at booking.
 bool isMultiShopGoodsOrder(RiderOrdersDetailsModel order) {
+  if (order.isChatGroceryHandoff) return true;
   final isFareCallGrocery = order.orderType == 'fare-call' &&
       (order.orderFor?.toLowerCase() == AppConstants.grocery);
   final hasMultiplePickups =
@@ -71,8 +79,150 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
 
   String get _orderId => _order.id ?? _order.orderId ?? '';
 
-  List<BusinessOrder> get _shops =>
-      _order.groceryOrderDetails?.businesses ?? const [];
+  /// True multi-stop order (per-stop arrive + pickup endpoints). A single-shop
+  /// chat-grocery handoff is NOT multi-stop — the shop is confirmed via the
+  /// order-level pickup OTP, not the per-stop endpoint.
+  bool get _isMultiStop => _order.isMultiStop == true;
+
+  /// Order-level pickup completed (used for single-shop, where there are no
+  /// per-stop `stops[]`; the shop confirms the one pickup OTP → status flips).
+  bool get _orderPickedUp => _order.status == 'picked-up';
+
+  /// Pickup shops. For single-shop chat-dispatch the order carries no
+  /// `groceryOrderDetails.businesses`, so synthesize one row from the order's
+  /// shop (receiver) — its OTP falls back to the order-level pickupOTP.
+  List<BusinessOrder> get _shops {
+    // Multi-stop fare-call orders carry their shops in `stops[]` (NOT
+    // groceryOrderDetails). Build one row per stop, ordered by sequence, so the
+    // per-stop arrive/pickup endpoints receive each stop's real businessId.
+    // Using receiverUserId here only worked when stops happened to share that
+    // id; a true multi-shop order would 404 on arrive.
+    if (_isMultiStop && (_order.stops?.isNotEmpty ?? false)) {
+      final stops = [..._order.stops!]
+        ..sort((a, b) => (a.sequence ?? 0).compareTo(b.sequence ?? 0));
+      return stops
+          .map((s) => BusinessOrder(
+                businessId: s.businessId ?? '',
+                businessName: s.shopName ?? 'Shop',
+                items: const [],
+                paymentStatus: false,
+                paymentMode: '',
+                amountPaid: 0,
+              ))
+          .toList();
+    }
+    final list = _order.groceryOrderDetails?.businesses ?? const [];
+    if (list.isNotEmpty) return list;
+    return [
+      BusinessOrder(
+        businessId: _order.receiverUserId ?? '',
+        businessName: _order.receiverUser?.name ?? 'Shop',
+        items: const [],
+        paymentStatus: false,
+        paymentMode: '',
+        amountPaid: 0,
+      ),
+    ];
+  }
+
+  /// The persisted stop record for [businessId] (multi-stop orders), so the
+  /// card reflects server state (`arrived` / `picked-up`) after a refresh,
+  /// not just this widget's ephemeral local sets.
+  RideStop? _stopFor(String businessId) {
+    final stops = _order.stops;
+    if (stops == null) return null;
+    for (final s in stops) {
+      if (s.businessId == businessId) return s;
+    }
+    return null;
+  }
+
+  /// Shop pickup coordinates for the map icon. Multi-stop orders carry per-stop
+  /// `location`; a single-shop order falls back to the order's pickupLocation.
+  (double, double)? _shopLatLng(BusinessOrder shop) {
+    final stop = _stopFor(shop.businessId);
+    if (stop?.latitude != null && stop?.longitude != null) {
+      return (stop!.latitude!, stop.longitude!);
+    }
+    final coords = _order.pickupLocation?.location?.coordinates;
+    if (coords != null && coords.length >= 2) {
+      // GeoJSON order is [longitude, latitude].
+      return (coords[1].toDouble(), coords[0].toDouble());
+    }
+    return null;
+  }
+
+  /// Shop phone for the call icon. Multi-stop orders carry per-stop `contactNo`;
+  /// a single-shop order falls back to the receiver (shop) contact.
+  String? _shopPhone(BusinessOrder shop) {
+    final stop = _stopFor(shop.businessId);
+    final stopPhone = stop?.contactNo;
+    if (stopPhone != null && stopPhone.isNotEmpty) return stopPhone;
+    return _order.receiverUser?.contactNo;
+  }
+
+  /// Open the external maps app at the shop's pickup location.
+  void _navigateToShop(BusinessOrder shop) {
+    final latLng = _shopLatLng(shop);
+    if (latLng == null) {
+      commonSnackBar(message: 'Shop location not available');
+      return;
+    }
+    openGoogleMaps(latitude: latLng.$1, longitude: latLng.$2);
+  }
+
+  /// Dial the shop's number in the phone dialer (shops are external; no in-app
+  /// call). The customer, an app user, is called via the in-app caller instead.
+  void _callShop(BusinessOrder shop) {
+    final phone = _shopPhone(shop);
+    if (phone == null || phone.isEmpty) {
+      commonSnackBar(message: 'Shop contact number not available');
+      return;
+    }
+    openDialer(phone);
+  }
+
+  /// Small circular icon action used next to a shop name (map / call).
+  Widget _shopActionIcon({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(100),
+      child: Container(
+        margin: EdgeInsets.only(left: SizeConfig.size6),
+        padding: EdgeInsets.all(SizeConfig.size6),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          shape: BoxShape.circle,
+          border: Border.all(color: color.withValues(alpha: 0.4)),
+        ),
+        child: Icon(icon, size: SizeConfig.size16, color: color),
+      ),
+    );
+  }
+
+  /// Place an in-app audio call to the customer using the app's caller service
+  /// (WebRTC), not the phone dialer.
+  Future<void> _callCustomerInApp() async {
+    final customerId = _order.user?.id ?? '';
+    if (customerId.isEmpty) {
+      commonSnackBar(message: 'Customer contact not available');
+      return;
+    }
+    final callController = getOrPut(() => CallController());
+    final ok = await callController.initiateCall(
+      type: CallType.audio,
+      otherUserId: customerId,
+      userName: _order.user?.name ?? 'Customer',
+      userImage: _order.user?.profileImage ?? '',
+    );
+    if (!ok) {
+      commonSnackBar(message: 'Could not start the call');
+    }
+  }
 
   bool get _isPending =>
       widget.selectedPickUp == PickUpTab.newOrder ||
@@ -82,11 +232,18 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
 
   bool _isShopPicked(BusinessOrder shop) {
     if (_pickedLocal.contains(shop.businessId)) return true;
+    // Single-shop: rely on the order-level pickup state (no per-stop items).
+    if (!_isMultiStop) return _orderPickedUp;
+    // Multi-stop: the shop confirms pickup via the per-stop endpoint, which sets
+    // stop.status = 'picked-up' (items aren't flagged), so read the stop status.
+    if (_stopFor(shop.businessId)?.status == 'picked-up') return true;
     return shop.items.isNotEmpty && shop.items.every((i) => i.isPickedUp);
   }
 
-  bool get _allShopsPicked =>
-      _shops.isNotEmpty && _shops.every(_isShopPicked);
+  bool get _allShopsPicked {
+    if (!_isMultiStop) return _orderPickedUp;
+    return _shops.isNotEmpty && _shops.every(_isShopPicked);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -270,7 +427,12 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
   Widget _buildShopStop(int index) {
     final shop = _shops[index];
     final picked = _isShopPicked(shop);
-    final arrived = _arrived.contains(shop.businessId);
+    // Reflect the persisted stop status too, so a refresh / rebuild doesn't lose
+    // the "arrived" state held only in the ephemeral local set.
+    final stopStatus = _stopFor(shop.businessId)?.status;
+    final arrived = _arrived.contains(shop.businessId) ||
+        stopStatus == 'arrived' ||
+        stopStatus == 'picked-up';
     final name = shop.businessName.isNotEmpty
         ? shop.businessName
         : 'Shop ${index + 1}';
@@ -330,6 +492,20 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
                           fontWeight: FontWeight.w500,
                           color: AppColors.primaryColor,
                         ),
+                      // Navigate to the shop + call the shop, while the rider is
+                      // still collecting (ongoing and this stop not yet picked).
+                      if (_isOngoing && !picked) ...[
+                        _shopActionIcon(
+                          icon: Icons.directions_rounded,
+                          color: AppColors.primaryColor,
+                          onTap: () => _navigateToShop(shop),
+                        ),
+                        _shopActionIcon(
+                          icon: Icons.call,
+                          color: AppColors.green0B,
+                          onTap: () => _callShop(shop),
+                        ),
+                      ],
                     ],
                   ),
                   if (shop.amountPaid > 0) ...[
@@ -347,7 +523,9 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
                   // shopkeeper, who enters it on their side to release the goods.
                   if (_isOngoing && !picked) ...[
                     SizedBox(height: SizeConfig.size8),
-                    if (!arrived)
+                    // Single-shop has no per-stop "arrive" endpoint — show the
+                    // pickup OTP straight away for the rider to read out.
+                    if (_isMultiStop && !arrived)
                       _arrivedButton(shop)
                     else
                       _shopOtpDisplay(shop),
@@ -420,31 +598,27 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
             ],
           ),
         ),
-        if (_isOngoing && (_order.user?.contactNo?.isNotEmpty ?? false))
-          _callButton(_order.user?.contactNo),
+        // The customer is an app user → call via the in-app caller service
+        // (WebRTC), not the phone dialer. Needs the customer's user id.
+        if (_isOngoing && (_order.user?.id?.isNotEmpty ?? false))
+          _callButton(),
       ],
     );
   }
 
-  Widget _callButton(String? contactNo) {
+  Widget _callButton() {
     return InkWell(
-      onTap: () {
-        if (contactNo?.isNotEmpty ?? false) {
-          openDialer(contactNo ?? '');
-        } else {
-          commonSnackBar(message: 'Contact number not found');
-        }
-      },
+      onTap: _callCustomerInApp,
       child: Container(
         margin: EdgeInsets.only(left: SizeConfig.size6),
         padding: EdgeInsets.all(SizeConfig.size6),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: AppColors.primaryColor.withValues(alpha: 0.1),
           shape: BoxShape.circle,
-          border: Border.all(color: AppColors.secondaryTextColor),
+          border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.4)),
         ),
         child: Icon(Icons.call,
-            size: SizeConfig.size14, color: AppColors.secondaryTextColor),
+            size: SizeConfig.size14, color: AppColors.primaryColor),
       ),
     );
   }
@@ -659,7 +833,7 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
             bg: AppColors.redLite.withValues(alpha: 0.1),
             border: AppColors.redLite,
             fg: AppColors.redLite,
-            onTap: () => controller.rideAction(AppConstants.reject, _orderId),
+            onTap: () => _respondToOrder(AppConstants.reject),
           ),
         ),
         SizedBox(width: SizeConfig.size10),
@@ -669,7 +843,7 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
             bg: AppColors.green0B.withValues(alpha: 0.1),
             border: AppColors.green0B,
             fg: AppColors.green0B,
-            onTap: () => controller.rideAction(AppConstants.accept, _orderId),
+            onTap: () => _respondToOrder(AppConstants.accept),
           ),
         ),
       ],
@@ -705,10 +879,34 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
   }
 
   // ── Actions ─────────────────────────────────────────────────────
+
+  /// Accept/reject the order via the endpoint that matches its type:
+  ///   • multi-stop / fare-call grocery → `rideAction` (the fare-call queue
+  ///     accept — unchanged, must NOT break).
+  ///   • single-shop chat-dispatch (standard) → `/fare/orders/:id/status`,
+  ///     which assigns the rider AND emits the handoff OTP cards
+  ///     (shop pickup + customer delivery) server-side.
+  void _respondToOrder(String action) {
+    if (_isMultiStop || _order.orderType == 'fare-call') {
+      // rideAction resolves the order by its `orderId` STRING
+      // (findOne({orderId})), not the Mongo _id — pass the string id.
+      controller.rideAction(action, _order.orderId ?? _orderId);
+    } else {
+      // `/fare/orders/:id/status` resolves either _id or orderId; _id is fine.
+      controller.updateRideOrParcelOrderStatusApi(
+        {ApiKeys.action: action},
+        _orderId,
+      );
+    }
+  }
+
   Future<void> _onArrived(BusinessOrder shop) async {
     final ok = await controller.multiShopStopArrive(_orderId, shop.businessId);
     if (ok && mounted) {
       setState(() => _arrived.add(shop.businessId));
+      // Re-pull so the persisted stop.status ('arrived') is reflected even after
+      // the widget rebuilds (the local set is ephemeral).
+      controller.fetchStream();
     }
   }
 
