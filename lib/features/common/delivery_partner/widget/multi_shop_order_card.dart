@@ -14,6 +14,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:pinput/pinput.dart';
 
+import '../../../chat/auth/controller/call_controller.dart';
 import '../../../chat/auth/model/rider_orders_details_model.dart';
 import '../controller/delivery_partner_orders_controller.dart';
 import '../model/grocery_order_details.dart';
@@ -134,6 +135,93 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
       if (s.businessId == businessId) return s;
     }
     return null;
+  }
+
+  /// Shop pickup coordinates for the map icon. Multi-stop orders carry per-stop
+  /// `location`; a single-shop order falls back to the order's pickupLocation.
+  (double, double)? _shopLatLng(BusinessOrder shop) {
+    final stop = _stopFor(shop.businessId);
+    if (stop?.latitude != null && stop?.longitude != null) {
+      return (stop!.latitude!, stop.longitude!);
+    }
+    final coords = _order.pickupLocation?.location?.coordinates;
+    if (coords != null && coords.length >= 2) {
+      // GeoJSON order is [longitude, latitude].
+      return (coords[1].toDouble(), coords[0].toDouble());
+    }
+    return null;
+  }
+
+  /// Shop phone for the call icon. Multi-stop orders carry per-stop `contactNo`;
+  /// a single-shop order falls back to the receiver (shop) contact.
+  String? _shopPhone(BusinessOrder shop) {
+    final stop = _stopFor(shop.businessId);
+    final stopPhone = stop?.contactNo;
+    if (stopPhone != null && stopPhone.isNotEmpty) return stopPhone;
+    return _order.receiverUser?.contactNo;
+  }
+
+  /// Open the external maps app at the shop's pickup location.
+  void _navigateToShop(BusinessOrder shop) {
+    final latLng = _shopLatLng(shop);
+    if (latLng == null) {
+      commonSnackBar(message: 'Shop location not available');
+      return;
+    }
+    openGoogleMaps(latitude: latLng.$1, longitude: latLng.$2);
+  }
+
+  /// Dial the shop's number in the phone dialer (shops are external; no in-app
+  /// call). The customer, an app user, is called via the in-app caller instead.
+  void _callShop(BusinessOrder shop) {
+    final phone = _shopPhone(shop);
+    if (phone == null || phone.isEmpty) {
+      commonSnackBar(message: 'Shop contact number not available');
+      return;
+    }
+    openDialer(phone);
+  }
+
+  /// Small circular icon action used next to a shop name (map / call).
+  Widget _shopActionIcon({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(100),
+      child: Container(
+        margin: EdgeInsets.only(left: SizeConfig.size6),
+        padding: EdgeInsets.all(SizeConfig.size6),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          shape: BoxShape.circle,
+          border: Border.all(color: color.withValues(alpha: 0.4)),
+        ),
+        child: Icon(icon, size: SizeConfig.size16, color: color),
+      ),
+    );
+  }
+
+  /// Place an in-app audio call to the customer using the app's caller service
+  /// (WebRTC), not the phone dialer.
+  Future<void> _callCustomerInApp() async {
+    final customerId = _order.user?.id ?? '';
+    if (customerId.isEmpty) {
+      commonSnackBar(message: 'Customer contact not available');
+      return;
+    }
+    final callController = getOrPut(() => CallController());
+    final ok = await callController.initiateCall(
+      type: CallType.audio,
+      otherUserId: customerId,
+      userName: _order.user?.name ?? 'Customer',
+      userImage: _order.user?.profileImage ?? '',
+    );
+    if (!ok) {
+      commonSnackBar(message: 'Could not start the call');
+    }
   }
 
   bool get _isPending =>
@@ -404,6 +492,20 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
                           fontWeight: FontWeight.w500,
                           color: AppColors.primaryColor,
                         ),
+                      // Navigate to the shop + call the shop, while the rider is
+                      // still collecting (ongoing and this stop not yet picked).
+                      if (_isOngoing && !picked) ...[
+                        _shopActionIcon(
+                          icon: Icons.directions_rounded,
+                          color: AppColors.primaryColor,
+                          onTap: () => _navigateToShop(shop),
+                        ),
+                        _shopActionIcon(
+                          icon: Icons.call,
+                          color: AppColors.green0B,
+                          onTap: () => _callShop(shop),
+                        ),
+                      ],
                     ],
                   ),
                   if (shop.amountPaid > 0) ...[
@@ -496,31 +598,27 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
             ],
           ),
         ),
-        if (_isOngoing && (_order.user?.contactNo?.isNotEmpty ?? false))
-          _callButton(_order.user?.contactNo),
+        // The customer is an app user → call via the in-app caller service
+        // (WebRTC), not the phone dialer. Needs the customer's user id.
+        if (_isOngoing && (_order.user?.id?.isNotEmpty ?? false))
+          _callButton(),
       ],
     );
   }
 
-  Widget _callButton(String? contactNo) {
+  Widget _callButton() {
     return InkWell(
-      onTap: () {
-        if (contactNo?.isNotEmpty ?? false) {
-          openDialer(contactNo ?? '');
-        } else {
-          commonSnackBar(message: 'Contact number not found');
-        }
-      },
+      onTap: _callCustomerInApp,
       child: Container(
         margin: EdgeInsets.only(left: SizeConfig.size6),
         padding: EdgeInsets.all(SizeConfig.size6),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: AppColors.primaryColor.withValues(alpha: 0.1),
           shape: BoxShape.circle,
-          border: Border.all(color: AppColors.secondaryTextColor),
+          border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.4)),
         ),
         child: Icon(Icons.call,
-            size: SizeConfig.size14, color: AppColors.secondaryTextColor),
+            size: SizeConfig.size14, color: AppColors.primaryColor),
       ),
     );
   }

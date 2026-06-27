@@ -351,6 +351,8 @@ class RideStop {
     this.sequence,
     this.status,
     this.pickupOTP,
+    this.location,
+    this.contactNo,
   });
 
   RideStop.fromJson(Map<String, dynamic> json) {
@@ -362,6 +364,9 @@ class RideStop {
         : int.tryParse(json['sequence']?.toString() ?? '');
     status = json['status']?.toString();
     pickupOTP = json['pickupOTP']?.toString();
+    location =
+        json['location'] != null ? Location.fromJson(json['location']) : null;
+    contactNo = json['contactNo']?.toString();
   }
 
   String? businessId;
@@ -370,6 +375,20 @@ class RideStop {
   int? sequence;
   String? status;
   String? pickupOTP;
+  Location? location;
+  String? contactNo;
+
+  /// Shop latitude from the GeoJSON `[lng, lat]` coordinate pair, if present.
+  double? get latitude {
+    final c = location?.coordinates;
+    return (c != null && c.length >= 2) ? c[1].toDouble() : null;
+  }
+
+  /// Shop longitude from the GeoJSON `[lng, lat]` coordinate pair, if present.
+  double? get longitude {
+    final c = location?.coordinates;
+    return (c != null && c.length >= 2) ? c[0].toDouble() : null;
+  }
 
   Map<String, dynamic> toJson() => {
         'businessId': businessId,
@@ -378,6 +397,8 @@ class RideStop {
         'sequence': sequence,
         'status': status,
         'pickupOTP': pickupOTP,
+        'location': location?.toJson(),
+        'contactNo': contactNo,
       };
 }
 
