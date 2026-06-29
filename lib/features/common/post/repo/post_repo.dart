@@ -11,6 +11,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/keyed_json_cache.dart';
 import 'package:BlueEra/features/common/post/controller/photo_post_controller.dart';
 import 'package:BlueEra/features/common/post/controller/tag_user_controller.dart';
 import 'package:BlueEra/features/common/reel/models/song_model.dart';
@@ -18,6 +19,13 @@ import 'package:dio/dio.dart';
 import 'package:get/get.dart' as GET;
 
 class PostRepo extends BaseService {
+  /// Creating a post increments the user's posts count, so drop the cached
+  /// own-counts after a successful create — the next profile open refetches
+  /// fresh counts from the server.
+  void _invalidateCountsIfSuccess(ResponseModel res) {
+    if (res.isSuccess) userCountsCache.clear();
+  }
+
   ///ADD POST MSG/PHOTO/QA...
   Future<ResponseModel> addPostRepo(
       {required Map<String, dynamic>? bodyReq,
@@ -30,6 +38,7 @@ class PostRepo extends BaseService {
         showProgress: true,
         isMultipart: isMultiPartPost ?? true);
 
+    _invalidateCountsIfSuccess(response);
     return response;
   }
 
@@ -43,6 +52,7 @@ class PostRepo extends BaseService {
         onSendProgress: (sent, total) {}, onError: (e) {
       commonSnackBar(message: "${e}");
     });
+    _invalidateCountsIfSuccess(response);
     return response;
   }
 
@@ -55,6 +65,7 @@ class PostRepo extends BaseService {
       showProgress: true,
       onSendProgress: (sent, total) {},
     );
+    _invalidateCountsIfSuccess(response);
     return response;
   }
 
@@ -149,6 +160,7 @@ class PostRepo extends BaseService {
           onProgress(progress);
         },
       );
+      _invalidateCountsIfSuccess(response);
       return response;
     } catch (e) {
       logs("ERROR ${e.toString()}");

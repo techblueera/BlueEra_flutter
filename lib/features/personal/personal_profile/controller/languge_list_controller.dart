@@ -41,8 +41,15 @@ class LanguageListController extends GetxController {
       // LanguageModel(code: "ml", name: "Malayalam"),
     ];
 
+    // Cache-first: rebuild from the locally cached list and only hit the
+    // network when nothing is cached yet. This controller is registered on
+    // every launch, so it must not call the languages API each time.
     fetchLanguages();
   }
+
+  /// Hive key under which the raw available-languages list is cached so the
+  /// names endpoint isn't called on every launch.
+  static const String _availableLanguagesKey = 'available_languages';
 
   void _loadSavedLanguage() {
     final savedCode = languageBox.get('selected_language_code', defaultValue: 'en');
@@ -59,8 +66,19 @@ class LanguageListController extends GetxController {
     }
   }
 
-  Future<void> fetchLanguages() async {
+  Future<void> fetchLanguages({bool forceRefresh = false}) async {
     try {
+      // Cache-first: rebuild from the cached list and skip the network unless
+      // an explicit refresh is requested or nothing is cached yet.
+      if (!forceRefresh) {
+        final cached = languageBox.get(_availableLanguagesKey);
+        if (cached is List && cached.isNotEmpty) {
+          languages.value =
+              cached.map((json) => LanguageModel.fromJson(json)).toList();
+          return;
+        }
+      }
+
       final response = await _repo.getLanguagesRaw();
 
 
@@ -79,6 +97,11 @@ class LanguageListController extends GetxController {
         }
 
         languages.value = dataList.map((json) => LanguageModel.fromJson(json)).toList();
+
+        // Persist the raw list so future launches skip the network.
+        try {
+          await languageBox.put(_availableLanguagesKey, dataList);
+        } catch (_) {}
       }
     } catch (e) {
       print("Error fetching languages: $e");

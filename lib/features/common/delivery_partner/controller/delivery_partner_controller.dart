@@ -9,8 +9,10 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/keyed_json_cache.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/chat/auth/model/GetBlueeraPiolotModel.dart';
 import 'package:BlueEra/features/common/delivery_partner/model/associated_shops_model.dart';
@@ -164,52 +166,39 @@ class DeliveryPartnerController extends GetxController {
   Rx<RiderOnboardingStatusData?> riderOnboardingStatusData =
       Rx<RiderOnboardingStatusData?>(null);
 
-  /// ridersOnboardingStatusRepoApi
-  Future<void> ridersOnboardingStatusRepoApi() async {
+  /// Fetches the rider onboarding status.
+  ///
+  /// Cache-first: serves the rider's own status from the local cache and does
+  /// NOT hit the network on normal screen opens. The API is called only when
+  /// [forceRefresh] is true — i.e. when the status actually changes (after a
+  /// document upload/delete or service-preference update) or on an explicit
+  /// pull-to-refresh — and the fresh response is written back to the cache.
+  /// The cache is wiped on logout (`Hive.deleteFromDisk()`), so a re-login
+  /// refetches once.
+  Future<void> ridersOnboardingStatusRepoApi({bool forceRefresh = false}) async {
     try {
+      if (!forceRefresh) {
+        final cached = await riderOnboardingStatusCache.get(userId);
+        if (cached != null) {
+          _applyOnboardingStatus(
+              RiderOnboardingStatusResponse.fromJson(cached));
+          isRiderStatusLoading.value = false;
+          return;
+        }
+      }
+
       ResponseModel response =
           await DeliveryPartnerRepo().ridersOnboardingStatusRepo();
 
       if (response.isSuccess) {
-        ridersOnboardingStatusResponse.value = ApiResponse.complete(response);
-        final riderOnboardingStatusResponse =
-            RiderOnboardingStatusResponse.fromJson(response.response?.data);
-        riderOnboardingStatusData.value = riderOnboardingStatusResponse.data;
-        riderVerificationStatus =
-            riderOnboardingStatusResponse.data?.verificationStatus;
-        stepStatus.assignAll({
-          RiderProfileStep.personalInfo:
-              riderOnboardingStatusData.value?.personalInformation ?? false,
-          RiderProfileStep.addressInfo:
-              riderOnboardingStatusData.value?.address ?? false,
-          RiderProfileStep.aadharInfo:
-              riderOnboardingStatusData.value?.aadhar ?? false,
-          RiderProfileStep.panInfo:
-              riderOnboardingStatusData.value?.pan ?? false,
-          RiderProfileStep.drivingInfo:
-              riderOnboardingStatusData.value?.dl ?? false,
-          RiderProfileStep.rcInfo: riderOnboardingStatusData.value?.rc ?? false,
-          RiderProfileStep.vehicleImagesInfo:
-              riderOnboardingStatusData.value?.vehicleImages ?? false,
-          RiderProfileStep.vehicleInfo:
-              riderOnboardingStatusData.value?.vehicleInformation ?? false,
-        });
-
-        /*     stepStatus.assignAll({
-          RiderProfileStep.personalInfo:
-              riderOnboardingStatusResponse.data?.personalInformation ?? false,
-          RiderProfileStep.addressInfo:
-              riderOnboardingStatusResponse.data?.address ?? false,
-          RiderProfileStep.personalIdentificationInfo:
-              riderOnboardingStatusResponse.data?.personalIdentification ??
-                  false,
-          RiderProfileStep.drivingInfo:
-              riderOnboardingStatusResponse.data?.drivingVerification ?? false,
-          RiderProfileStep.vehicleImagesInfo:
-              riderOnboardingStatusResponse.data?.vehicleImages ?? false,
-          RiderProfileStep.vehicleInfo:
-              riderOnboardingStatusResponse.data?.vehicleInformation ?? false,
-        });*/
+        _applyOnboardingStatus(
+            RiderOnboardingStatusResponse.fromJson(response.response?.data));
+        // Cache the raw response so subsequent screen opens skip the network.
+        final raw = response.response?.data;
+        if (raw is Map) {
+          await riderOnboardingStatusCache.save(
+              userId, Map<String, dynamic>.from(raw));
+        }
       } else {
         ridersOnboardingStatusResponse.value = ApiResponse.error('error');
         commonSnackBar(
@@ -221,6 +210,27 @@ class DeliveryPartnerController extends GetxController {
     } finally {
       isRiderStatusLoading.value = false;
     }
+  }
+
+  /// Applies a parsed onboarding-status response (from cache or API) to the
+  /// observable UI state.
+  void _applyOnboardingStatus(RiderOnboardingStatusResponse parsed) {
+    ridersOnboardingStatusResponse.value = ApiResponse.complete();
+    riderOnboardingStatusData.value = parsed.data;
+    riderVerificationStatus = parsed.data?.verificationStatus;
+    stepStatus.assignAll({
+      RiderProfileStep.personalInfo:
+          parsed.data?.personalInformation ?? false,
+      RiderProfileStep.addressInfo: parsed.data?.address ?? false,
+      RiderProfileStep.aadharInfo: parsed.data?.aadhar ?? false,
+      RiderProfileStep.panInfo: parsed.data?.pan ?? false,
+      RiderProfileStep.drivingInfo: parsed.data?.dl ?? false,
+      RiderProfileStep.rcInfo: parsed.data?.rc ?? false,
+      RiderProfileStep.vehicleImagesInfo:
+          parsed.data?.vehicleImages ?? false,
+      RiderProfileStep.vehicleInfo:
+          parsed.data?.vehicleInformation ?? false,
+    });
   }
 
   RxBool isRiderDeleteDocumentLoading = false.obs;
@@ -236,7 +246,7 @@ class DeliveryPartnerController extends GetxController {
           .ridersOnboardingDeleteDocumentRepo(documentType: documentType);
       if (response.isSuccess) {
         commonSnackBar(message: AppStrings.documentDeletedSuccessfully.tr);
-        await ridersOnboardingStatusRepoApi();
+        await ridersOnboardingStatusRepoApi(forceRefresh: true);
       } else {
         commonSnackBar(
             message: response.message ?? AppStrings.somethingWentWrong);
@@ -583,7 +593,7 @@ class DeliveryPartnerController extends GetxController {
           ridersOnboardingVehicleInformationResponse.value =
               ApiResponse.complete(response);
 
-          await ridersOnboardingStatusRepoApi();
+          await ridersOnboardingStatusRepoApi(forceRefresh: true);
           // From the tab view we're already on the bottom-nav route, so
           // there's nothing to pop — refreshing status is enough for the
           // parent Obx to swap the tab body to RiderProfileStatusScreen
@@ -652,7 +662,7 @@ class DeliveryPartnerController extends GetxController {
           message: response.message ?? AppStrings.somethingWentWrong,
         );
       }
-      await ridersOnboardingStatusRepoApi();
+      await ridersOnboardingStatusRepoApi(forceRefresh: true);
     } catch (e, s) {
       debugPrint('❌ ridersOnboardingPersonalIdentificationApi error: $e\n$s');
       ridersOnboardingPersonalIdentificationResponse.value =
@@ -1059,7 +1069,7 @@ class DeliveryPartnerController extends GetxController {
       if (response.isSuccess) {
         // Refresh status so the saved preference is reflected everywhere
         // (and the Set Preference card stays in sync after a relaunch).
-        await ridersOnboardingStatusRepoApi();
+        await ridersOnboardingStatusRepoApi(forceRefresh: true);
         return true;
       }
       commonSnackBar(
@@ -1203,7 +1213,7 @@ class DeliveryPartnerController extends GetxController {
   }
 
   checkStatusManageRoute() async {
-    await ridersOnboardingStatusRepoApi();
+    await ridersOnboardingStatusRepoApi(forceRefresh: true);
     final allCompleted = stepStatus.values.every((status) => status == true);
     if (allCompleted) {
       Get.offNamedUntil(

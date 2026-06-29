@@ -10,6 +10,7 @@ import 'package:BlueEra/core/api/model/gst_verify_model.dart';
 import 'package:BlueEra/core/api/model/individual_user_response_model.dart';
 import 'package:BlueEra/core/api/model/otp_verify_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/language_localization_service/language_controller_new.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -285,6 +286,15 @@ class AuthController extends GetxController {
                 arguments: {ApiKeys.initialIndex: 1},
               );
             }
+
+            // One-time post-login language refresh (names list + current
+            // language). Fires once per login lifecycle, then served from the
+            // local cache until the next logout/login or a manual language
+            // change. assumeLoggedIn bypasses the in-memory login flag, which
+            // may not be refreshed yet this session. Fire-and-forget — must
+            // not block the post-login navigation.
+            unawaited(getOrPut(() => LanguageControllerNew())
+                .refreshAfterLoginOnce(assumeLoggedIn: true));
 
             // Now that the setup is done and we're navigating to the
             // bottom-nav, surface the success message — the snackbar
@@ -1004,7 +1014,14 @@ class AuthController extends GetxController {
   RxBool isInitialCategoriesLoading = true.obs;
 
   /// Cache-first loader for the master onboarding lists.
-  Future<void> loadCategoriesCacheFirstThenRefresh() async {
+  ///
+  /// The categories / professions master lists change rarely, so the network
+  /// is hit **only when the local Hive cache is empty** — i.e. once after
+  /// login (logout wipes the Hive boxes via `Hive.deleteFromDisk()`, so the
+  /// next login refetches). Every other launch serves purely from cache and
+  /// makes no `getAllcategories` / professions API call. Pass
+  /// [forceRefresh] = true (e.g. pull-to-refresh) to fetch even when cached.
+  Future<void> loadCategoriesCacheFirstThenRefresh({bool forceRefresh = false}) async {
     final hive = HiveServices();
 
     final cachedBusiness = hive.getAllCategories();
@@ -1022,25 +1039,28 @@ class AuthController extends GetxController {
       updateIndividualCategoriesFromApi(cachedProfessions);
     }
 
-    // If we have any cache, render immediately and let the network
-    // refresh happen silently in the background.
+    // If we have any cache, render immediately so no shimmer lingers.
     if (hasCachedBusiness || hasCachedProfessions) {
       isInitialCategoriesLoading.value = false;
     }
 
-    // Silent refresh — `_getAllBusinessCategories` / `_getAllIndividualProfession`
-    // both write through to Hive on success and rebuild the in-memory
-    // buckets. Consumers that are already on screen during this refresh
-    // keep showing the cached snapshot until the next natural rebuild
-    // (tab change, navigation pop, pull-to-refresh) — that's acceptable
-    // because category data changes rarely. Fresh data is always visible
-    // on the next launch via the cache hit. These two methods are private
-    // so external callers must always go through this cache-first entry
-    // point — single source of truth, no path that bypasses Hive.
-    await Future.wait<void>([
-      _getAllBusinessCategories(),
-      _getAllIndividualProfession(),
-    ]);
+    // Fetch from the network ONLY for the lists whose local cache is empty
+    // (or when an explicit refresh is requested). `_getAllBusinessCategories`
+    // / `_getAllIndividualProfession` both write through to Hive on success
+    // and rebuild the in-memory buckets, so the next launch is a pure cache
+    // hit with no API call. These methods are private so external callers
+    // always go through this cache-first entry point — single source of
+    // truth, no path that bypasses Hive.
+    final pending = <Future<void>>[];
+    if (forceRefresh || !hasCachedBusiness) {
+      pending.add(_getAllBusinessCategories());
+    }
+    if (forceRefresh || !hasCachedProfessions) {
+      pending.add(_getAllIndividualProfession());
+    }
+    if (pending.isNotEmpty) {
+      await Future.wait<void>(pending);
+    }
 
     // First-launch path: no cache existed, so the shimmer was still
     // visible. Drop it now that the network has filled the buckets.

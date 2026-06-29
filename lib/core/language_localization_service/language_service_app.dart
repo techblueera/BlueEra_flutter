@@ -16,6 +16,14 @@ class LocalizationService extends Translations {
 
   static const String _boxName = 'translations';
   static const String fallbackLanguage = 'en';
+
+  /// Hive key for the once-per-login refresh gate. While `true`, the app
+  /// serves translations purely from local cache and never hits the network
+  /// on launch. The whole `translations` box is wiped on logout
+  /// (`LogoutHelper.clearAllLocalData()` → `Hive.deleteFromDisk()`), so this
+  /// flag auto-resets — the next login triggers exactly one refresh.
+  static const String _loginRefreshKey = 'langRefreshedThisLogin';
+
   static late Box box; // we’ll open it in init()
 
   final Map<String, Map<String, String>> _translations = {};
@@ -38,6 +46,37 @@ class LocalizationService extends Translations {
   void clearInMemoryTranslations() {
     _translations.clear();
   }
+
+  /// Whether a one-time post-login refresh is still pending. Returns true when
+  /// the gate flag isn't set yet (fresh install, or right after a logout wiped
+  /// the box). Callers should refresh once, then call [markLoginRefreshDone].
+  Future<bool> needsLoginRefresh() async {
+    try {
+      final safeBox = await _safeBox();
+      return safeBox.get(_loginRefreshKey) != true;
+    } catch (_) {
+      return false; // On error, don't force a network call.
+    }
+  }
+
+  /// Marks the once-per-login translation refresh as completed so subsequent
+  /// cold launches serve purely from local cache.
+  Future<void> markLoginRefreshDone() async {
+    try {
+      final safeBox = await _safeBox();
+      await safeBox.put(_loginRefreshKey, true);
+    } catch (_) {}
+  }
+
+  /// Force-refreshes the currently selected language from the API and updates
+  /// the local cache + GetX translations in the background. Used by the
+  /// one-time post-login refresh hook.
+  Future<void> refreshCurrentLanguageFromApi() async {
+    final safeBox = await _safeBox();
+    final saved =
+        safeBox.get('selectedLanguage', defaultValue: fallbackLanguage) as String;
+    await loadTranslations(saved, forceRefresh: true);
+  }
   /// Loads local asset translations as a base fallback
   Future<Map<String, String>> _loadAssetTranslations(String languageCode) async {
     try {
@@ -49,14 +88,23 @@ class LocalizationService extends Translations {
     }
   }
 
-  /// Loads translations — returns cached data instantly, fetches API in background.
-  /// This avoids blocking the UI on network calls during language switch.
-  Future<Map<String, String>> loadTranslations(String languageCode) async {
+  /// Loads translations — returns cached data instantly.
+  ///
+  /// By default this is **cache-only** (memory → asset+Hive) and never touches
+  /// the network when local data exists, so app launches stay fast and the
+  /// language API is not called on every start. Pass [forceRefresh] = true to
+  /// additionally kick off a background API refresh — used only once after
+  /// login and on explicit language change/download. A genuine first-time
+  /// cache miss (no asset and no Hive data for the language) still fetches
+  /// synchronously regardless of [forceRefresh].
+  Future<Map<String, String>> loadTranslations(String languageCode,
+      {bool forceRefresh = false}) async {
     try {
       // Step 1: return from memory instantly
       if (_translations.containsKey(languageCode)) {
-        // Still refresh from API in background for next time
-        _refreshFromApiInBackground(languageCode);
+        // Only refresh from the network when explicitly asked (post-login /
+        // language change). Normal launches stay offline-cheap.
+        if (forceRefresh) _refreshFromApiInBackground(languageCode);
         return _translations[languageCode]!;
       }
 
@@ -83,7 +131,9 @@ class LocalizationService extends Translations {
       final localMerged = {...assetData, ...localData};
       if (localMerged.isNotEmpty) {
         _translations[languageCode] = localMerged;
-        _refreshFromApiInBackground(languageCode);
+        // Only refresh from the network when explicitly asked (post-login /
+        // language change). Normal launches stay offline-cheap.
+        if (forceRefresh) _refreshFromApiInBackground(languageCode);
         return localMerged;
       }
 

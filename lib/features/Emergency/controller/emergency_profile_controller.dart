@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/services/emergency_profile_cache.dart';
 import 'package:BlueEra/features/personal/emergency/repo/emergency_service_repo.dart';
 import 'package:get/get.dart';
 import '../model/emergency_profile_model.dart';
@@ -43,9 +44,27 @@ class EmergencyProfileViewController extends GetxController {
     }
   }
 
-  Future<void> getEmergencyProfile1() async {
+  /// Loads the emergency profile.
+  ///
+  /// For the user's OWN profile this is cache-first: it serves from the local
+  /// cache when present and only hits the API when the cache is empty (once
+  /// after login), writing through to the cache on success. Deep-linked /
+  /// scanned profiles of OTHER users are always fetched live (never cached).
+  /// Pass [forceRefresh] = true (e.g. after editing) to bypass the cache.
+  Future<void> getEmergencyProfile1({bool forceRefresh = false}) async {
     try {
       profileResponse.value = ApiResponse.loading('Fetching data');
+
+      // Own profile → cache-first.
+      if (isOwnProfile && !forceRefresh) {
+        final cached = await EmergencyProfileCache().get(_effectiveId);
+        if (cached != null) {
+          emergencyProfileData.value = EmergencyProfileModel.fromJson(cached);
+          profileResponse.value = ApiResponse.complete();
+          return;
+        }
+      }
+
       final responseModel =
           await EmergencyServiceRepo().getEmergencyProfileById(_effectiveId);
 
@@ -53,6 +72,11 @@ class EmergencyProfileViewController extends GetxController {
         final data = responseModel.response?.data['data'];
         if (data != null) {
           emergencyProfileData.value = EmergencyProfileModel.fromJson(data);
+          // Cache only the user's OWN profile, never other users' profiles.
+          if (isOwnProfile && data is Map) {
+            await EmergencyProfileCache()
+                .save(_effectiveId, Map<String, dynamic>.from(data));
+          }
           profileResponse.value = ApiResponse.complete(responseModel);
         } else {
           profileResponse.value = ApiResponse.complete(responseModel);

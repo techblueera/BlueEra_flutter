@@ -7,6 +7,7 @@ import 'package:BlueEra/core/api/model/user_testimonial_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/keyed_json_cache.dart';
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/common/store/controller/store_controller.dart';
@@ -149,6 +150,9 @@ class VisitProfileController extends GetxController {
         followUnFollowResponse.value = ApiResponse.complete(responseModel);
         followerCount.value++;
 
+        // Following someone changes the logged-in user's followingCount, so
+        // drop the cached own-counts — the next profile open refetches fresh.
+        userCountsCache.clear();
 
         /// Update follow status in store screen
         updateFollowStatusForStore(candidateResumeId, true);
@@ -184,6 +188,10 @@ class VisitProfileController extends GetxController {
         isFollow.value = false;
         followUnFollowResponse.value = ApiResponse.complete(responseModel);
         followerCount--;
+
+        // Unfollowing changes the logged-in user's followingCount, so drop the
+        // cached own-counts — the next profile open refetches fresh.
+        userCountsCache.clear();
 
         /// Update Unfollow status in store screen
         updateFollowStatusForStore(candidateResumeId, false);

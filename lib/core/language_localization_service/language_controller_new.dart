@@ -18,6 +18,11 @@ import 'package:http/http.dart' as http;
 class LanguageControllerNew extends GetxController {
   static const String _boxName = 'translations';
   static const String _fallbackLang = 'en';
+
+  /// Hive key under which the raw `.../languages/names` response is cached so
+  /// the names endpoint is only hit once per login (or on explicit refresh)
+  /// instead of on every screen open / launch.
+  static const String _namesCacheKey = 'languageNames';
   static const List<String> _supportedLangCodes = [
     'en',
     'hi',
@@ -62,36 +67,90 @@ class LanguageControllerNew extends GetxController {
     await loadLanguages();
   }
 
-  Future<void> loadLanguages() async {
+  /// Loads the available-languages list.
+  ///
+  /// Cache-first: builds the list from the Hive-cached names response and does
+  /// NOT hit the network on normal launches / screen opens. The
+  /// `.../languages/names` endpoint is only called when [forceRefresh] is true
+  /// (the once-per-login refresh) or when no cached names exist yet.
+  Future<void> loadLanguages({bool forceRefresh = false}) async {
     try {
       final box = await _safeBox();
       final savedLangCode =
           box.get('selectedLanguage', defaultValue: _fallbackLang) as String;
       selectedLang.value = savedLangCode;
 
-      final langsParam = _supportedLangCodes.join(',');
-      final uri = Uri.parse('${baseUrl}language-service/languages/names')
-          .replace(queryParameters: {'languages': langsParam});
-      final response = await http.get(uri);
-      if (response.statusCode == 200) {
-        final List data = jsonDecode(response.body);
-        final freshBox = await _safeBox();
+      List? data;
 
-        languages.value = data.map((e) {
-          final code = e['languageCode'];
-          final isDownloaded = freshBox.get(code) != null;
-          final isSelected = freshBox.get('selectedLanguage') == code;
-          return LanguageModelNew(
-            name: e['languageName'],
-            code: code,
-            isDownloaded: code == _fallbackLang ? true : isDownloaded,
-            isSelected: isSelected,
-          );
-        }).toList();
+      // Use the cached names list unless an explicit refresh is requested.
+      if (!forceRefresh) {
+        final cached = box.get(_namesCacheKey);
+        if (cached is List) data = cached;
       }
+
+      // Fetch from the network only when forced or when nothing is cached.
+      if (data == null) {
+        final langsParam = _supportedLangCodes.join(',');
+        final uri = Uri.parse('${baseUrl}language-service/languages/names')
+            .replace(queryParameters: {'languages': langsParam});
+        final response = await http.get(uri);
+        if (response.statusCode == 200) {
+          data = jsonDecode(response.body) as List;
+          // Persist the raw list so future launches skip the network.
+          try {
+            await box.put(_namesCacheKey, data);
+          } catch (_) {}
+        }
+      }
+
+      if (data == null) return;
+
+      final freshBox = await _safeBox();
+      languages.value = data.map((e) {
+        final code = e['languageCode'];
+        final isDownloaded = freshBox.get(code) != null;
+        final isSelected = freshBox.get('selectedLanguage') == code;
+        return LanguageModelNew(
+          name: e['languageName'],
+          code: code,
+          isDownloaded: code == _fallbackLang ? true : isDownloaded,
+          isSelected: isSelected,
+        );
+      }).toList();
     } catch (e) {
       print('⚠️ loadLanguages failed: $e');
       selectedLang.value = _fallbackLang;
+    }
+  }
+
+  /// Refreshes the available-languages list + the current language's
+  /// translations from the server exactly **once per login lifecycle**.
+  ///
+  /// The language API is otherwise never called on launch — translations are
+  /// served from the local Hive cache. This single refresh keeps them fresh
+  /// after each login. The gate flag lives in the `translations` box, which is
+  /// wiped on logout (`LogoutHelper.clearAllLocalData()`), so the next login
+  /// triggers one fresh refresh again.
+  ///
+  /// Safe to call on every launch: it no-ops when logged out or when the gate
+  /// is already satisfied. [assumeLoggedIn] skips the in-memory login check —
+  /// pass it from the OTP login-success path, where the just-issued token
+  /// proves the user is logged in but `isUserLoginGlobal` may not have been
+  /// refreshed yet this session.
+  Future<void> refreshAfterLoginOnce({bool assumeLoggedIn = false}) async {
+    if (!assumeLoggedIn && isUserLoginGlobal != "true") return;
+
+    final localizationService = LocalizationService();
+    if (!await localizationService.needsLoginRefresh()) return;
+
+    try {
+      await loadLanguages(forceRefresh: true);
+      await localizationService.refreshCurrentLanguageFromApi();
+      await localizationService.markLoginRefreshDone();
+    } catch (e) {
+      // Network/parse failure — leave the gate unset so the next launch or
+      // login retries. Local cache continues to serve translations meanwhile.
+      log('refreshAfterLoginOnce failed: $e');
     }
   }
 

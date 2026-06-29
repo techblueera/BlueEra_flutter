@@ -1,0 +1,72 @@
+import 'dart:convert';
+
+import 'package:hive/hive.dart';
+
+/// A tiny reusable Hive-backed cache for small JSON blobs keyed by a string
+/// (typically the logged-in user's id).
+///
+/// Used to make "fetch once after login, then serve from cache" flows trivial:
+/// a controller reads [get] first and only hits the network on a miss, writing
+/// back via [save]. The box opens lazily and reopens itself if it was closed
+/// (e.g. after logout via `Hive.deleteFromDisk()`), so callers never touch a
+/// closed box and the cache auto-resets on logout — the next login refetches.
+/// Call [clear] to invalidate after a mutation that changes the cached data.
+class KeyedJsonCache {
+  final String boxName;
+
+  const KeyedJsonCache(this.boxName);
+
+  Future<Box> _safeBox() async {
+    if (Hive.isBoxOpen(boxName)) return Hive.box(boxName);
+    return await Hive.openBox(boxName);
+  }
+
+  /// Caches [data] under [key]. No-op on empty key or any storage error.
+  Future<void> save(String key, Map<String, dynamic> data) async {
+    if (key.isEmpty) return;
+    try {
+      final box = await _safeBox();
+      await box.put(key, jsonEncode(data));
+    } catch (_) {}
+  }
+
+  /// Returns the cached map for [key], or null on miss / parse error.
+  Future<Map<String, dynamic>?> get(String key) async {
+    if (key.isEmpty) return null;
+    try {
+      final box = await _safeBox();
+      final raw = box.get(key);
+      if (raw is! String) return null;
+      final decoded = jsonDecode(raw);
+      if (decoded is Map) return Map<String, dynamic>.from(decoded);
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Clears all entries in this cache box (used to invalidate after a mutation
+  /// or on logout).
+  Future<void> clear() async {
+    try {
+      final box = await _safeBox();
+      await box.clear();
+    } catch (_) {}
+  }
+}
+
+/// Caches the logged-in rider's onboarding status response (keyed by user id).
+/// Served from cache on screen opens; refreshed only when the status changes
+/// (document mutations / pull-to-refresh).
+const KeyedJsonCache riderOnboardingStatusCache =
+    KeyedJsonCache('rider_onboarding_status_box');
+
+/// Caches the logged-in user's followers / following / posts counts (keyed by
+/// user id). Served from cache; invalidated on follow/unfollow and post
+/// creation, and refreshed on pull-to-refresh.
+const KeyedJsonCache userCountsCache = KeyedJsonCache('user_counts_box');
+
+/// Caches the rider's booking-orders list (keyed by user id) so the rider
+/// dashboard renders the last-known orders instantly on open, then refreshes
+/// in the background (stale-while-revalidate). Stored as `{'orders': [...]}`.
+const KeyedJsonCache riderOrdersCache = KeyedJsonCache('rider_orders_box');

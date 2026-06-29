@@ -156,7 +156,7 @@ class _AppBar extends StatelessWidget {
               onTap: () {
                 Get.to(() => const EmergencyBasicInfoScreen())?.then((_) {
                   Get.find<EmergencyProfileViewController>()
-                      .getEmergencyProfile1();
+                      .getEmergencyProfile1(forceRefresh: true);
                 });
               },
               child: Container(
@@ -560,7 +560,7 @@ class _EmergencyContactsCard extends StatelessWidget {
                         );
                         if (result == true) {
                           Get.find<EmergencyProfileViewController>()
-                              .getEmergencyProfile1();
+                              .getEmergencyProfile1(forceRefresh: true);
                         }
                       },
                       child: Container(

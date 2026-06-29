@@ -29,6 +29,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/shared_preference_utils.dart';
+import '../../../../core/services/keyed_json_cache.dart';
 import '../../../chat/auth/service/location_update_service.dart';
 import '../../personal_profile/view/widget/ai_suggestion_field.dart';
 import '../../personal_profile/view/widget/introduction_video_widget.dart';
@@ -426,9 +427,30 @@ class ViewPersonalDetailsController extends GetxController {
     }
   }
 
-  Future<void> UserFollowersAndPostsCount(String? userId) async {
+  /// Loads the logged-in user's followers / following / posts counts.
+  ///
+  /// Cache-first: serves the counts from the local cache and does NOT hit the
+  /// network on normal screen opens (this is the same own-user data on every
+  /// screen, so it was previously re-fetched redundantly on each open). The
+  /// API is called only on a cache miss (once after login) or when
+  /// [forceRefresh] is true — pull-to-refresh, or after the counts change
+  /// (follow/unfollow or creating a post invalidate the cache; see
+  /// [userCountsCache]). The cache is wiped on logout, so a re-login refetches.
+  Future<void> UserFollowersAndPostsCount(String? userId,
+      {bool forceRefresh = false}) async {
     if (!isLoggedIn()) return;
     try {
+      if (!forceRefresh) {
+        final cached = await userCountsCache.get(userId ?? '');
+        if (cached != null) {
+          followersCount.value = cached['followersCount'] ?? 0;
+          followingCount.value = cached['followingCount'] ?? 0;
+          postsCount.value = cached['totalPosts'] ?? 0;
+          getFollowerViewCountResponse.value = ApiResponse.complete();
+          return;
+        }
+      }
+
       ResponseModel responseModel =
           await PersonalProfileRepo().getUserWithFollowersAndPostsCount(userId);
 
@@ -441,6 +463,13 @@ class ViewPersonalDetailsController extends GetxController {
           postsCount.value = data['totalPosts'] ?? 0;
           getFollowerViewCountResponse.value =
               ApiResponse.complete(responseModel);
+
+          // Cache the counts so subsequent screen opens skip the network.
+          await userCountsCache.save(userId ?? '', {
+            'followersCount': followersCount.value,
+            'followingCount': followingCount.value,
+            'totalPosts': postsCount.value,
+          });
 
           // if (data['user'] != null) {
           //   personalProfileDetails.value =

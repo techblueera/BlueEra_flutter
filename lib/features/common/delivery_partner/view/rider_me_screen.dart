@@ -1,6 +1,8 @@
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -46,23 +48,37 @@ class _RiderMeScreenState extends State<RiderMeScreen> {
   _OrderStatusFilter _statusFilter = _OrderStatusFilter.all;
   _OrderPeriodFilter _periodFilter = _OrderPeriodFilter.today;
 
+  /// How many orders to render right now. Grows in steps via "Show more" so a
+  /// long history renders incrementally instead of building every row at once.
+  static const int _orderPageSize = 8;
+  int _visibleOrderCount = _orderPageSize;
+
   @override
   void initState() {
     super.initState();
-    _bootstrap();
+    // Defer to after the first frame so the screen paints immediately (from
+    // cache) and the network work never blocks the first build.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _bootstrap());
   }
 
-  Future<void> _bootstrap() async {
-    _riderCtrl.ridersOnboardingStatusRepoApi();
+  Future<void> _bootstrap({bool forceRefresh = false}) async {
+    // Each of these reads its local cache and renders instantly, then refreshes
+    // in the background — so fire them together instead of awaiting in
+    // sequence. A pull-to-refresh passes forceRefresh: true to skip the cache.
+    _viewCtrl.UserFollowersAndPostsCount(userId, forceRefresh: forceRefresh);
+    _ordersCtrl.getRidersBookingOrders(forceRefresh: forceRefresh);
+
+    // Onboarding status is cache-first (instant on a hit); await only this one
+    // because the live-orders stream decision depends on the verification
+    // state it produces.
+    await _riderCtrl.ridersOnboardingStatusRepoApi(forceRefresh: forceRefresh);
     if (_riderCtrl.riderVerificationState == RiderVerificationState.completed) {
-      await _ordersCtrl.fetchStream();
+      _ordersCtrl.fetchStream();
     }
-    await _ordersCtrl.getRidersBookingOrders();
-    _viewCtrl.UserFollowersAndPostsCount(userId);
   }
 
   Future<void> _onRefresh() async {
-    await _bootstrap();
+    await _bootstrap(forceRefresh: true);
   }
 
   @override
@@ -734,20 +750,49 @@ class _RiderMeScreenState extends State<RiderMeScreen> {
           _periodFilterRow(),
           SizedBox(height: SizeConfig.size12),
           Obx(() {
-            // Touch reactive lists so Obx tracks them.
-            final _ = _ordersCtrl.completedOrders.length +
-                _ordersCtrl.cancelledOrders.length +
-                _ordersCtrl.onGoingOrders.length;
+            final status = _ordersCtrl.ordersListResponse.value.status;
             final filtered = _filteredOrders();
-            if (filtered.isEmpty) return _emptyOrders();
-            return ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: filtered.length,
-              separatorBuilder: (_, __) =>
-                  SizedBox(height: SizeConfig.size10),
-              itemBuilder: (_, index) =>
-                  _orderHistoryTile(filtered[index]),
+
+            if (filtered.isEmpty) {
+              // First load with no cached data yet → skeleton, not a spinner.
+              if (status == Status.LOADING || status == Status.INITIAL) {
+                return _orderHistorySkeleton();
+              }
+              return _emptyOrders();
+            }
+
+            final visible = filtered.length < _visibleOrderCount
+                ? filtered.length
+                : _visibleOrderCount;
+            return Column(
+              children: [
+                ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: visible,
+                  separatorBuilder: (_, __) =>
+                      SizedBox(height: SizeConfig.size10),
+                  // RepaintBoundary keeps each row's painting isolated so
+                  // scrolling stays smooth as the list grows.
+                  itemBuilder: (_, index) => RepaintBoundary(
+                    child: _orderHistoryTile(filtered[index]),
+                  ),
+                ),
+                if (filtered.length > visible)
+                  Padding(
+                    padding: EdgeInsets.only(top: SizeConfig.size12),
+                    child: GestureDetector(
+                      onTap: () => setState(
+                          () => _visibleOrderCount += _orderPageSize),
+                      child: CustomText(
+                        'Show more',
+                        fontSize: SizeConfig.small,
+                        color: AppColors.primaryColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+              ],
             );
           }),
         ],
@@ -903,8 +948,26 @@ class _RiderMeScreenState extends State<RiderMeScreen> {
       final bd = _parseDate(b.createdAt) ?? DateTime(1970);
       return bd.compareTo(ad);
     });
-    // Limit so the dashboard scroll stays reasonable.
-    return filtered.take(20).toList();
+    // No hard cap here — the UI renders an incremental window
+    // (`_visibleOrderCount`) and grows it via "Show more", so even a long
+    // history paints cheaply.
+    return filtered;
+  }
+
+  /// Skeleton placeholder shown on the very first load when there's no cached
+  /// orders yet — far less jarring than a full-screen spinner.
+  Widget _orderHistorySkeleton() {
+    return Column(
+      children: List.generate(
+        3,
+        (_) => Padding(
+          padding: EdgeInsets.only(bottom: SizeConfig.size10),
+          child: buildLoadingShimmer(
+            child: shimmerContainer(height: SizeConfig.size90, radius: 12),
+          ),
+        ),
+      ),
+    );
   }
 
   DateTime? _periodCutoff() {

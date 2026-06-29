@@ -14,6 +14,7 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
+import 'package:BlueEra/core/language_localization_service/language_controller_new.dart';
 import 'package:BlueEra/core/language_localization_service/language_service_app.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/app_lifecycle_handler.dart';
@@ -912,18 +913,30 @@ Future<void> _initDeferred(LocalizationService localizationService) async {
   Get.put(LanguageListController());
   await localizationService.preloadCachedLanguages();
   await checkAppVersionAndResetIfNeeded();
-  if (kDebugMode) {
-    await resetLanguageLocalization();
-  } else {
-// In release mode, re-apply translations to GetX after deferred init
-// to ensure they survive GetMaterialApp initialization inside runZonedGuarded
-    final savedLang =
-        LocalizationService.box.get('selectedLanguage', defaultValue: 'en');
-    await localizationService.loadTranslations(savedLang);
-    Get.clearTranslations();
-    Get.addTranslations(localizationService.keys);
-    Get.updateLocale(Locale(savedLang));
-  }
+
+  /// Re-apply the saved language's cached translations to GetX after deferred
+  /// init so they survive GetMaterialApp initialization inside
+  /// runZonedGuarded. Cache-only (no forceRefresh) — the language API is NOT
+  /// hit here, in debug or release.
+  ///
+  /// NOTE: debug builds used to call `resetLanguageLocalization()` here, which
+  /// wiped the entire `translations` box (cached strings + the once-per-login
+  /// refresh gate) on EVERY launch. That forced a fresh `.../languages/{code}`
+  /// download on every debug start. We now use the same cache-first re-apply
+  /// in both modes so the API is only hit once after login.
+  final savedLang =
+      LocalizationService.box.get('selectedLanguage', defaultValue: 'en');
+  await localizationService.loadTranslations(savedLang);
+  Get.clearTranslations();
+  Get.addTranslations(localizationService.keys);
+  Get.updateLocale(Locale(savedLang));
+
+  /// One-time post-login language refresh. Fires exactly once per login
+  /// lifecycle (the gate flag lives in the `translations` box, which is wiped
+  /// on logout), and only while logged in. Every other launch serves
+  /// translations purely from local cache, so the language API is no longer
+  /// called on every app start. Fire-and-forget — must not block startup.
+  unawaited(getOrPut(() => LanguageControllerNew()).refreshAfterLoginOnce());
 
   /// On a notification open, run the deferred heavy batch only after the
   /// first frame has settled (and a short grace period) so it never competes

@@ -9,6 +9,7 @@ import '../../../../core/api/apiService/response_model.dart';
 import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/snackbar_helper.dart';
+import '../../../../core/services/keyed_json_cache.dart';
 import '../../../../core/services/location/location_service.dart';
 import '../../../../core/services/location_permission_handler.dart';
 import '../../../chat/auth/model/rider_orders_details_model.dart';
@@ -336,43 +337,86 @@ class DeliverPartnerOrdersController extends GetxController {
     }
   }
 
-  Future<void> getRidersBookingOrders() async {
+  /// Guards against overlapping network fetches (e.g. screen re-entry /
+  /// pull-to-refresh firing while a previous request is still in flight).
+  bool _ordersInFlight = false;
+
+  /// Loads the rider's booking-orders list.
+  ///
+  /// Stale-while-revalidate so the dashboard opens smoothly: on first load it
+  /// renders the last-cached orders instantly (no spinner), then refreshes
+  /// from the network in the background and re-caches. The cache is keyed by
+  /// user id and wiped on logout. Concurrent calls are de-duplicated, and the
+  /// LOADING/ERROR state is only surfaced when there's nothing cached to show.
+  Future<void> getRidersBookingOrders({bool forceRefresh = false}) async {
+    // 1) Instant render from cache on the first load.
+    final hasData =
+        completedOrders.isNotEmpty || cancelledOrders.isNotEmpty;
+    if (!forceRefresh && !hasData) {
+      final cached = await riderOrdersCache.get(userId);
+      final cachedList = cached?['orders'];
+      if (cachedList is List && cachedList.isNotEmpty) {
+        ordersListResponse.value = ApiResponse.complete(_applyOrders(cachedList));
+      }
+    }
+
+    // 2) De-dupe concurrent network refreshes.
+    if (_ordersInFlight) return;
+    _ordersInFlight = true;
+
+    // Only show a loading state when we have nothing on screen yet; otherwise
+    // refresh silently behind the already-rendered (cached) list.
+    final hasAnythingToShow =
+        completedOrders.isNotEmpty || cancelledOrders.isNotEmpty;
+    if (!hasAnythingToShow) {
+      ordersListResponse.value = ApiResponse.loading('loading');
+    }
+
     try {
-      ordersListResponse.value = ApiResponse.initial('initial');
       ResponseModel? response = await MakeOrderRepo().getRidersBookingOrders();
-      if (response.isSuccess ) {
+      if (response.isSuccess) {
         if (response.response?.data is List) {
-          final parsedList = (response.response?.data as List)
-              .map((item) => RiderOrdersDetailsModel.fromJson(
-            Map<String, dynamic>.from(item),
-          ))
-              .toList();
-
-          // List<RiderOrdersDetailsModel> riderOrdersDetailsModel = parsedList;
-
-          completedOrders.value =
-              parsedList.where((e) => e.status?.toLowerCase() == 'completed').toList();
-
-          cancelledOrders.value =
-              parsedList.where((e) => e.status?.toLowerCase() == 'cancelled').toList();
-
-          ordersListResponse.value = ApiResponse.complete(parsedList);
-        }else{
-          ordersListResponse.value=ApiResponse.error();
+          final rawList = response.response?.data as List;
+          ordersListResponse.value = ApiResponse.complete(_applyOrders(rawList));
+          // Cache the raw list for an instant render next time.
+          await riderOrdersCache.save(userId, {'orders': rawList});
+        } else if (!hasAnythingToShow) {
+          ordersListResponse.value = ApiResponse.error();
         }
-
-      } else {
-        ordersListResponse.value = ApiResponse.error(response.message ?? AppStrings.somethingWentWrong);
-
+      } else if (!hasAnythingToShow) {
+        // Surface the error only when there's no cached list to fall back on.
+        ordersListResponse.value = ApiResponse.error(
+            response.message ?? AppStrings.somethingWentWrong);
         commonSnackBar(
           message: response.message ?? AppStrings.somethingWentWrong,
         );
       }
-
     } catch (e) {
-      ordersListResponse.value = ApiResponse.error(AppStrings.somethingWentWrong);
-      commonSnackBar(message: AppStrings.somethingWentWrong);
+      if (!hasAnythingToShow) {
+        ordersListResponse.value =
+            ApiResponse.error(AppStrings.somethingWentWrong);
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+      }
+    } finally {
+      _ordersInFlight = false;
     }
+  }
+
+  /// Parses a raw orders list (from cache or API) into the bucketed reactive
+  /// lists and returns the flat parsed list.
+  List<RiderOrdersDetailsModel> _applyOrders(List rawList) {
+    final parsedList = rawList
+        .map((item) => RiderOrdersDetailsModel.fromJson(
+              Map<String, dynamic>.from(item),
+            ))
+        .toList();
+    completedOrders.value = parsedList
+        .where((e) => e.status?.toLowerCase() == 'completed')
+        .toList();
+    cancelledOrders.value = parsedList
+        .where((e) => e.status?.toLowerCase() == 'cancelled')
+        .toList();
+    return parsedList;
   }
   Future<void> getRiderRejectOrderList() async {
     try {
