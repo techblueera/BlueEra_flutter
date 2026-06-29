@@ -116,6 +116,9 @@ class _PriceEditSheetBodyState extends State<_PriceEditSheetBody> {
     if (!mounted) return;
     setState(() => _saving[i] = false);
     commonSnackBar(message: ok ? AppStrings.updatedLabel.tr : AppStrings.updateFailed.tr);
+    // Close the editor once the price is saved so the merchant returns to the
+    // product details sheet instead of being stuck on an open editor.
+    if (ok) Navigator.of(context).pop();
   }
 
   @override

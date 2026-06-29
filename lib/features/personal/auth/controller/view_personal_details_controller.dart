@@ -17,6 +17,7 @@ import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
+import 'package:BlueEra/features/common/joining_bounce/model/joining_bounce_model.dart';
 import 'package:BlueEra/features/common/map/repo/map_service_repo.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/email_verification_controller.dart';
@@ -157,6 +158,10 @@ class ViewPersonalDetailsController extends GetxController {
 
   Rx<ApiResponse> changeShopStatusResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> viewPersonalResponse = ApiResponse.initial('Initial').obs;
+
+  /// Joining-bonus object embedded in the `user/get` response. Drives the
+  /// app-open claim popup; null until the profile loads (or when absent).
+  final Rxn<JoiningBounce> joiningBounce = Rxn<JoiningBounce>();
   Rx<ApiResponse> getFollowerViewCountResponse =
       ApiResponse.initial('Initial').obs;
   Rx<PersonalProfileDetailsModel> personalProfileDetails =
@@ -226,6 +231,12 @@ class ViewPersonalDetailsController extends GetxController {
         if (data is Map<String, dynamic>) {
           await _applyPersonalProfileData(data, personalController,
               persistPrefs: true);
+          // Capture the joining-bonus object (sibling of `user`) for the
+          // app-open claim popup — no separate API call needed.
+          final jb = data['joining_bounce_id'];
+          joiningBounce.value = (jb is Map)
+              ? JoiningBounce.fromJson(Map<String, dynamic>.from(jb))
+              : null;
           final freshKey = userId;
           await PersonalProfileCache.write(freshKey, data);
 

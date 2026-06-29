@@ -6694,5 +6694,9 @@
   "riderOtpPickupHint": "The rider will ask for this code when collecting the order.",
   "riderOtpDeliveryHint": "Share this code with the rider when your order arrives.",
   "riderOtpPickedUp": "Picked up",
-  "riderOtpDelivered": "Delivered"
+  "riderOtpDelivered": "Delivered",
+  "referralAppliedTitle": "You've been referred!",
+  "referralAppliedSubtitle": "Referral applied",
+  "referralAppliedDesc": "You installed BlueEra through a referral. Code @code has been applied to your account - enjoy your reward!",
+  "referralAppliedGotIt": "Got it"
 }

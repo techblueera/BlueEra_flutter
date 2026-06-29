@@ -59,6 +59,10 @@ dependencies:
   package_info_plus: ^8.3.0
   share_plus: ^11.1.0
   app_links: ^6.4.1
+  # Google Play Install Referrer — reads the `referrer=` param from a
+  # shared Play Store link after install so referral codes auto-fill at
+  # signup (Android only; no-op on iOS).
+  android_play_install_referrer: ^0.4.0
 #  workmanager: ^0.7.0
   loading_animation_widget: ^1.3.0
   flutter_rating_bar: ^4.0.1

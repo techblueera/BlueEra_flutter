@@ -97,19 +97,6 @@ class ApiBaseHelper {
 
   ///DIO INTERCEPTOR...
   static Dio addInterceptors(Dio dio) {
-    print("DIO LINK ${dio.options.baseUrl}");
-    ///For Print Logs
-    // if (!kReleaseMode) {
-    dio.interceptors.add(
-      LogInterceptor(
-        request: true,
-        error: true,
-        responseHeader: false,
-        requestHeader: false,
-      ),
-    );
-    // }
-
     ///For Show Hide Progress Dialog
     return dio
       ..interceptors.add(
@@ -145,8 +132,6 @@ class ApiBaseHelper {
                 (authTokenGlobal?.isNotEmpty ?? false)) {
               options.headers[ApiKeys.authorization] =
                   "Bearer $authTokenGlobal";
-
-              logs("AUTH TOKEN===> ${options.headers[ApiKeys.authorization]}");
             }
             options.headers[ApiKeys.contentType] = "application/json";
             return requestInterceptor(options, handler);

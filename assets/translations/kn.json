@@ -2691,5 +2691,9 @@
   "updatePrice": "ಬೆಲೆ ಅಪ್‌ಡೇಟ್ ಮಾಡಿ",
   "sellingPriceLabel": "ಮಾರಾಟ ಬೆಲೆ",
   "mrpLabel": "MRP",
-  "variantLabel": "ರೂಪಾಂತರ"
+  "variantLabel": "ರೂಪಾಂತರ",
+  "referralAppliedTitle": "You've been referred!",
+  "referralAppliedSubtitle": "Referral applied",
+  "referralAppliedDesc": "You installed BlueEra through a referral. Code @code has been applied to your account - enjoy your reward!",
+  "referralAppliedGotIt": "Got it"
 }

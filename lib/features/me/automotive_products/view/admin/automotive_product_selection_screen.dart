@@ -6,11 +6,9 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
 import 'package:BlueEra/features/me/automotive_products/controller/automotive_product_controller.dart';
-import 'package:BlueEra/features/me/product/model/get_product_model.dart' as gpm;
-import 'package:BlueEra/features/me/automotive_products/model/automotive_product_catalog_response.dart';
 import 'package:BlueEra/features/me/automotive_products/model/automotive_product_nested_category_response.dart';
-import 'package:BlueEra/features/me/product/view/admin/widget/product_inventory_bottom_sheet.dart';
-import 'package:BlueEra/features/me/automotive_products/view/admin/widget/automotive_product_variant_grid_card.dart';
+import 'package:BlueEra/features/me/automotive_products/view/admin/widget/automotive_product_selection_product_card.dart';
+import 'package:BlueEra/features/me/automotive_products/view/admin/widget/automotive_product_selection_variant_sheet.dart';
 import 'package:BlueEra/features/me/automotive_products/view/customer/widget/automotive_product_floating_cart.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -254,6 +252,8 @@ class _AutomotiveProductSelectionScreenState extends State<AutomotiveProductSele
         );
       }
 
+      // 2-column masonry grid, grocery-style cards. Tapping a card's Add
+      // button opens the variant picker sheet to tick individual variants.
       return MasonryGridView.count(
         controller: scrollController,
         itemCount: products.length +
@@ -275,58 +275,16 @@ class _AutomotiveProductSelectionScreenState extends State<AutomotiveProductSele
               ),
             );
           }
-          return Obx(() => AutomotiveProductVariantGridCard(
-                variantData: products[i],
-                isSelected: controller.isProductSelected(products[i].id),
-                onTap: () => controller.toggleProductSelection(products[i]),
-                onPreviewTap: () => _openPreview(products[i]),
-              ));
+          return AutomotiveProductSelectionProductCard(
+            product: products[i],
+            controller: controller,
+            onShowVariants: (p) => AutomotiveProductSelectionVariantSheet.show(
+              product: p,
+              controller: controller,
+            ),
+          );
         },
       );
-    });
-  }
-
-  void _openPreview(AutomotiveSelectedVariant variantData) {
-    ProductInventoryBottomSheet.show(
-      context,
-      product: _toGetProductData(variantData),
-    );
-  }
-
-  /// Adapts a catalog [AutomotiveSelectedVariant] (product + variants) into the
-  /// [gpm.GetProductData] the shared inventory bottom sheet renders.
-  gpm.GetProductData _toGetProductData(AutomotiveSelectedVariant data) {
-    final p = data.product;
-    return gpm.GetProductData.fromJson({
-      'product': {
-        'details': {
-          '_id': p.id,
-          'name': p.name,
-          'description': p.description,
-          'media': p.media,
-          'tags': p.tags,
-          'product_warranty': p.productWarranty,
-          'add_more_details': p.additionalDetails
-              .map((d) => {'title': d.title, 'details': d.details})
-              .toList(),
-          'add_product_features':
-              p.features.map((f) => {'title': f.title}).toList(),
-          'category': const <String, dynamic>{},
-        },
-        'sellerCalsification': {
-          'variants': p.variants
-              .map((v) => {
-                    '_id': v.id,
-                    'attributes': v.attributes,
-                    'stock': true,
-                    'sellingPrice': v.sellingPrice,
-                    'mrp': v.mrp,
-                    'media_related_to_varient': v.media,
-                    'varientIsActive': true,
-                  })
-              .toList(),
-        },
-      },
     });
   }
 }

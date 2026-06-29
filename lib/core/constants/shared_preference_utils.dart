@@ -123,6 +123,12 @@ class SharedPreferenceUtils {
   /// promo-code dialog. Cleared after onboarding consumes it.
   static const deferredReferralCodeKey = 'deferred_referral_code';
 
+  /// One-shot guard so the Google Play install referrer is queried only
+  /// once per install. Set after the first successful query so a referral
+  /// code already consumed (and cleared) by onboarding can't be revived
+  /// from the unchanging install referrer on a later launch.
+  static const installReferrerCheckedKey = 'install_referrer_checked';
+
   /// Persist a referral code that arrived via deeplink before the user
   /// completed onboarding. No-op for empty / whitespace-only input so
   /// a malformed query param can't overwrite a previously-valid one.

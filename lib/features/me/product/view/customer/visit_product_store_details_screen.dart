@@ -13,10 +13,9 @@ import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/me/product/controller/product_selfpickup_controller.dart';
-import 'package:BlueEra/features/me/product/view/admin/widget/product_inventory_bottom_sheet.dart';
-import 'package:BlueEra/features/me/product/view/admin/widget/product_top_selling_tile.dart';
 import 'package:BlueEra/features/me/product/view/customer/customer_all_top_selling_products_screen.dart';
 import 'package:BlueEra/features/me/product/view/customer/visit_product_products_screen.dart';
+import 'package:BlueEra/features/me/product/view/customer/widget/product_customer_card.dart';
 import 'package:BlueEra/features/me/product/view/customer/widget/product_self_pickup_cart.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -71,32 +70,6 @@ class _VisitProductStoreDetailsScreenState
       userId: widget.visitUserId,
       source: ChatClickSource.storeDetail,
     );
-  }
-
-  /// First variant id of a product — the key the cart uses.
-  String? _firstVariantId(dynamic product) {
-    final variants = product.product.sellerClassification?.variants;
-    if (variants == null || variants.isEmpty) return null;
-    final id = variants.first.id;
-    return id is String && id.isNotEmpty ? id : null;
-  }
-
-  void _onToggleTopSellingCart(dynamic product) {
-    final id = _firstVariantId(product);
-    if (id == null) return;
-    final bDetails =
-        viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
-    if (cartController.isVariantInCart(id)) {
-      cartController.removeFromCart(product);
-    } else {
-      cartController.addToCart(
-        product,
-        userId: widget.visitUserId,
-        businessName: bDetails?.businessName,
-        businessLogo: bDetails?.logo,
-        businessAddress: bDetails?.address,
-      );
-    }
   }
 
   @override
@@ -308,7 +281,7 @@ class _VisitProductStoreDetailsScreenState
           ),
           SizedBox(height: SizeConfig.paddingXSL),
           SizedBox(
-            height: SizeConfig.size240,
+            height: ProductCustomerCard.railCardHeight,
             child: Builder(builder: (context) {
               // Preview only — cap to first 20 items; "View All" opens
               // the paginated grid.
@@ -321,63 +294,27 @@ class _VisitProductStoreDetailsScreenState
                 itemCount: previewCount,
                 itemBuilder: (context, index) {
                   final product = controller.allProducts[index];
-
-                  return GestureDetector(
-                    onTap: () => ProductInventoryBottomSheet.show(context,
-                        product: product),
-                    child: Container(
-                      width: SizeConfig.size160,
-                      margin: const EdgeInsets.only(right: 8.0),
-                      decoration: BoxDecoration(
-                        // color: AppColors.whiteEE,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: SizeConfig.size4),
-                          Expanded(
-                            child: ProductTopSellingImage(
-                              product: product,
-                              onPreviewTap: () => ProductInventoryBottomSheet
-                                  .show(context, product: product),
-                              cartOverlay: Obx(() {
-                                final cart =
-                                    cartController.selectedProductVariants;
-                                // ignore: unused_local_variable
-                                final _ = cart.length;
-                                final id = _firstVariantId(product);
-                                final added =
-                                cartController.isVariantInCart(id);
-                                return IconButton(
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(
-                                      minWidth: 28, minHeight: 28),
-                                  onPressed: id == null
-                                      ? null
-                                      : () => _onToggleTopSellingCart(
-                                      product),
-                                  icon: Container(
-                                    padding: const EdgeInsets.all(4),
-                                    decoration: BoxDecoration(
-                                      color: added
-                                          ? AppColors.greenShade
-                                          : AppColors.blackMite,
-                                      borderRadius:
-                                      BorderRadius.circular(20),
-                                    ),
-                                    child: Icon(
-                                      added ? Icons.check : Icons.add,
-                                      size: SizeConfig.size16,
-                                      color: AppColors.white,
-                                    ),
-                                  ),
-                                );
-                              }),
-                            ),
+                  // Same card + variants-sheet flow as the products screen,
+                  // so the entry point and the category grid present products
+                  // identically (mirrors grocery's top-selling rail).
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: SizedBox(
+                        width: SizeConfig.size150,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: AppColors.greyE5),
                           ),
-                          ProductTopSellingInfoSection(product: product),
-                        ],
+                          clipBehavior: Clip.antiAlias,
+                          child: ProductCustomerCard(
+                            product: product,
+                            cartController: cartController,
+                            visitBusinessId: widget.visitUserId,
+                          ),
+                        ),
                       ),
                     ),
                   );

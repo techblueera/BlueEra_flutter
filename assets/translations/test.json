@@ -2,5 +2,9 @@
   "anotherKey": "Another Value",
   "languageCode": "test",
   "languageName": "test",
-  "newKey": "New Value"
+  "newKey": "New Value",
+  "referralAppliedTitle": "You've been referred!",
+  "referralAppliedSubtitle": "Referral applied",
+  "referralAppliedDesc": "You installed BlueEra through a referral. Code @code has been applied to your account - enjoy your reward!",
+  "referralAppliedGotIt": "Got it"
 }

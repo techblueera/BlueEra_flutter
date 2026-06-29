@@ -319,14 +319,28 @@ class _FoodMainScreenState extends State<FoodMainScreen>
   List<Widget> _buildProductsTab() {
     return [
       _buildPopularDishesSection(),
+      SizedBox(height: SizeConfig.size12),
+      // --- Menu section header + category cards wrapped in one white
+      // shell — mirrors the grocery v2 home's category container.
       Padding(
-        padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size12,
-            vertical: SizeConfig.size16
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+        child: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.white, width: 1),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _menuSectionHeader(),
+              SizedBox(height: SizeConfig.size16),
+              _buildFoodMenuGrid(),
+            ],
+          ),
         ),
-        child: _menuSectionHeader(),
       ),
-      _buildFoodMenuGrid(),
       SizedBox(height: SizeConfig.size16),
     ];
   }
@@ -395,13 +409,13 @@ class _FoodMainScreenState extends State<FoodMainScreen>
             color: AppColors.primaryColor.withValues(alpha: 0.25),
             width: 1,
           ),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x42001120),
-              blurRadius: 10,
-              offset: Offset(0, 2),
-            ),
-          ],
+          // boxShadow: const [
+          //   BoxShadow(
+          //     color: Color(0x42001120),
+          //     blurRadius: 10,
+          //     offset: Offset(0, 2),
+          //   ),
+          // ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -437,7 +451,6 @@ class _FoodMainScreenState extends State<FoodMainScreen>
       if (menus.isEmpty) {
         return Padding(
           padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size12,
             vertical: SizeConfig.size20,
           ),
           child: EmptyStateWidget(
@@ -454,12 +467,7 @@ class _FoodMainScreenState extends State<FoodMainScreen>
           return GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            padding: EdgeInsets.fromLTRB(
-              SizeConfig.size12,
-              SizeConfig.size4,
-              SizeConfig.size12,
-              0,
-            ),
+            padding: EdgeInsets.only(top: SizeConfig.size4),
             itemCount: menus.length,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: crossAxisCount,
@@ -483,25 +491,18 @@ class _FoodMainScreenState extends State<FoodMainScreen>
     final hasImage = (item.image ?? '').isNotEmpty;
     final isNetwork = hasImage && isNetworkImage(item.image!);
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => _openCategory(item),
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE6E8EE), width: 1),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x42001120),
-                blurRadius: 10,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          clipBehavior: Clip.antiAlias,
+    return InkWell(
+      onTap: () => _openCategory(item),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.greyE5, width: 1),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
           child: Column(
             children: [
               // Hero shelf â€” full-bleed photo covering the entire upper
@@ -1016,9 +1017,7 @@ class _FoodMainScreenState extends State<FoodMainScreen>
   }
 
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // POPULAR DISHES (discount foods, horizontal)
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildPopularDishesSection() {
     return Obx(() {
       final isInitialLoading =
@@ -1031,9 +1030,7 @@ class _FoodMainScreenState extends State<FoodMainScreen>
 
       return _SectionCard(
         title: AppStrings.foodOfferDishDiscount.tr,
-        trailingLabel: AppStrings.viewAll.tr,
-        onTrailingTap: () => Get.to(
-            () => DiscountFoodProductsScreen(businessId: businessId)),
+        trailing: _popularDishesViewAllCta(),
         child: isInitialLoading
             ? const SizedBox(
                 height: 240,
@@ -1043,6 +1040,50 @@ class _FoodMainScreenState extends State<FoodMainScreen>
             : _buildPopularDishesList(),
       );
     });
+  }
+
+  // "View All" chip â€” label on the left, solid primary circular arrow
+  // badge on the right. Mirrors the grocery v2 home's _viewAllCta so the
+  // section CTAs read as one design language across me-section.
+  Widget _popularDishesViewAllCta() {
+    return GestureDetector(
+      onTap: () =>
+          Get.to(() => DiscountFoodProductsScreen(businessId: businessId)),
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(12, 4, 4, 4),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: AppColors.primaryColor.withValues(alpha: 0.25),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CustomText(
+              AppStrings.viewAll.tr,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: AppColors.primaryColor,
+            ),
+            SizedBox(width: SizeConfig.size6),
+            Container(
+              width: 26,
+              height: 26,
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.arrow_forward_rounded,
+                  size: 16, color: Colors.white),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildPopularDishesList() {
@@ -1236,10 +1277,8 @@ class _FoodMainScreenState extends State<FoodMainScreen>
     );
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // BUSINESS LIVE PHOTOS â€” same shared widget the grocery v2 home uses,
   // so styling and behavior stay in sync.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildLivePhotosSection() {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
@@ -1270,15 +1309,15 @@ class _PostMenuEntry {
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class _SectionCard extends StatelessWidget {
   final String title;
-  final String? trailingLabel;
-  final VoidCallback? onTrailingTap;
+  // Optional trailing widget (e.g. the chip-style "View All" CTA) shown
+  // at the end of the header row.
+  final Widget? trailing;
   final Widget child;
 
   const _SectionCard({
     required this.title,
     required this.child,
-    this.trailingLabel,
-    this.onTrailingTap,
+    this.trailing,
   });
 
   @override
@@ -1306,14 +1345,7 @@ class _SectionCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis),
                 ),
-                if (trailingLabel != null)
-                  GestureDetector(
-                    onTap: onTrailingTap,
-                    child: CustomText(trailingLabel!,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.primaryColor),
-                  ),
+                if (trailing != null) trailing!,
               ],
             ),
             SizedBox(height: SizeConfig.size12),

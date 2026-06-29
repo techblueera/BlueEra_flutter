@@ -2599,5 +2599,9 @@
   "updatePrice": "किंमत अपडेट करा",
   "sellingPriceLabel": "विक्री किंमत",
   "mrpLabel": "MRP",
-  "variantLabel": "प्रकार"
+  "variantLabel": "प्रकार",
+  "referralAppliedTitle": "You've been referred!",
+  "referralAppliedSubtitle": "Referral applied",
+  "referralAppliedDesc": "You installed BlueEra through a referral. Code @code has been applied to your account - enjoy your reward!",
+  "referralAppliedGotIt": "Got it"
 }

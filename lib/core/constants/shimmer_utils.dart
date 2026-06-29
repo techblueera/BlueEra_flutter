@@ -69,7 +69,6 @@ Widget buildHorizontalListSkeleton() {
 Widget buildCategoryGridSkeleton() {
   return CustomFormCard(
     padding: const EdgeInsets.all(10),
-    margin: const EdgeInsets.only(top: 10),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

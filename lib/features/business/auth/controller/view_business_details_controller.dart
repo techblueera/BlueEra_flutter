@@ -14,6 +14,7 @@ import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/food/model/get_food_details_model.dart';
+import 'package:BlueEra/features/common/joining_bounce/model/joining_bounce_model.dart';
 import 'package:BlueEra/features/common/service/model/get_service_model.dart';
 import 'package:BlueEra/features/me/product/repo/product_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/profile_controller.dart';
@@ -81,6 +82,10 @@ class ViewBusinessDetailsController extends GetxController {
 
   final Rx<ViewBusinessProfileModel?> businessProfileDetails =
       Rx<ViewBusinessProfileModel?>(null);
+
+  /// Joining-bonus object embedded in the `business/:id` response. Drives the
+  /// app-open claim popup; null until the profile loads (or when absent).
+  final Rxn<JoiningBounce> joiningBounce = Rxn<JoiningBounce>();
 
   Rx<GetBusinessVerifyViewModel>? viewBusinessVerifyStatus =
       GetBusinessVerifyViewModel().obs;
@@ -240,6 +245,13 @@ logs("BUSINESS ID=== ${businessId}");
     required bool persistPrefs,
   }) async {
     businessProfileDetails.value = ViewBusinessProfileModel.fromJson(data);
+
+    // Capture the joining-bonus object for the app-open claim popup — no
+    // separate API call needed.
+    final jb = data['joining_bounce_id'];
+    joiningBounce.value = (jb is Map)
+        ? JoiningBounce.fromJson(Map<String, dynamic>.from(jb))
+        : null;
 
     /// Seed the location fallback from the business profile so nearby APIs
     /// still work when device GPS is off.

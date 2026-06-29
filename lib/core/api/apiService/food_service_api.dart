@@ -9,8 +9,7 @@ mixin FoodServiceApi {
   final String foodServiceProduct = 'food-service/api/foodProduct';
   final String kitchenInventory = 'food-service/api/kitchen-inventory';
   // Delete a single kitchen-inventory entry (a product variant) by its id.
-  String kitchenInventoryById(String inventoryId) =>
-      'food-service/api/kitchen-inventory/$inventoryId';
+  String kitchenInventoryById(String inventoryId) => 'food-service/api/kitchen-inventory/$inventoryId';
   final String foodCustomerSearch = 'food-service/api/kitchen-inventory/all/search';
   final String home = 'food-service/api/home/';
   String discountFoodProducts(String businessId) => 'food-service/api/home/$businessId/discountProducts';
