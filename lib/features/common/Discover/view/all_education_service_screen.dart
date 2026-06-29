@@ -240,20 +240,15 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
     final String name = (service.name?.isNotEmpty ?? false) ? service.name! : na;
     final String address = (service.location?.name?.isNotEmpty ?? false) ? service.location!.name! : na;
     final String distance = _distanceFromUser(service);
-    final String classRange =
-        (service.classRange?.isNotEmpty ?? false) ? service.classRange! : na;
-    final String ratio = (service.studentTeacherRatio?.isNotEmpty ?? false)
-        ? service.studentTeacherRatio!
-        : na;
-    final String medium = (service.mediumOfInstruction?.isNotEmpty ?? false)
-        ? service.mediumOfInstruction!.join(', ')
-        : na;
+    final String classRange = (service.classRange?.isNotEmpty ?? false) ? service.classRange! : na;
+    final String ratio =
+        (service.studentTeacherRatio?.isNotEmpty ?? false) ? service.studentTeacherRatio! : na;
+    final String medium =
+        (service.mediumOfInstruction?.isNotEmpty ?? false) ? service.mediumOfInstruction!.join(', ') : na;
     final String feeLabel = _buildFeeLabel(service);
     final String feeRange = _buildFeeRange(service);
     final double? ratingValue = service.avgRating;
-    final String rating = (ratingValue != null && ratingValue > 0)
-        ? ratingValue.toStringAsFixed(1)
-        : na;
+    final String rating = (ratingValue != null && ratingValue > 0) ? ratingValue.toStringAsFixed(1) : na;
 
     return InkWell(
       onTap: () {
@@ -307,24 +302,25 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
   }
 
   Future<void> _shareSchool(SchoolDetailsData service) async {
-    final name = (service.name?.trim().isNotEmpty ?? false)
-        ? service.name!.trim()
-        : 'this school';
-    final address = service.location?.name?.trim() ?? '';
-    final classRange = service.classRange?.trim() ?? '';
-    final mediums =
-        service.mediumOfInstruction?.where((s) => s.trim().isNotEmpty).toList() ??
-            const [];
-    final fees = service.fees;
+    final name = (service.name?.trim().isNotEmpty ?? false) ? service.name!.trim() : 'this school';
+    // final address = service.location?.name?.trim() ?? '';
+    // final classRange = service.classRange?.trim() ?? '';
+    // final mediums = service.mediumOfInstruction?.where((s) => s.trim().isNotEmpty).toList() ?? const [];
+    // final fees = service.fees;
+
+    final shareLink = businessProfileDeepLink(userId: service.ownerId);
 
     final lines = <String>['Check out $name on BlueEra'];
-    if (address.isNotEmpty) lines.add(address);
-    if (classRange.isNotEmpty) lines.add('Classes: $classRange');
-    if (mediums.isNotEmpty) lines.add('Medium: ${mediums.join(', ')}');
-    if (fees != null) lines.add('Annual fee: ${_formatFee(fees)}');
+    // if (address.isNotEmpty) lines.add(address);
+    // if (classRange.isNotEmpty) lines.add('Classes: $classRange');
+    // if (mediums.isNotEmpty) lines.add('Medium: ${mediums.join(', ')}');
+    // if (fees != null) lines.add('Annual fee: ${_formatFee(fees)}');
+    lines.add(shareLink);
 
-    await ShareService.instance
-        .openShareSheet(text: lines.join('\n'), subject: name);
+    await ShareService.instance.openShareSheet(
+      text: lines.join('\n'),
+      subject: name,
+    );
   }
 
   String _distanceFromUser(SchoolDetailsData service) {
@@ -388,9 +384,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
         (a) => (a.day ?? '').toLowerCase() == order[i].toLowerCase(),
         orElse: () => Availability(),
       );
-      if (slot.isOpen == true &&
-          (slot.openTime ?? '').isNotEmpty &&
-          (slot.closeTime ?? '').isNotEmpty) {
+      if (slot.isOpen == true && (slot.openTime ?? '').isNotEmpty && (slot.closeTime ?? '').isNotEmpty) {
         openSlots.add(MapEntry(i, slot));
       }
     }
@@ -414,8 +408,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
 
     final firstOpen = openSlots.first.value.openTime!;
     final firstClose = openSlots.first.value.closeTime!;
-    final allSame = openSlots.every((e) =>
-        e.value.openTime == firstOpen && e.value.closeTime == firstClose);
+    final allSame = openSlots.every((e) => e.value.openTime == firstOpen && e.value.closeTime == firstClose);
 
     if (allSame) return '$dayRange | $firstOpen - $firstClose';
     return '$dayRange | varies';
@@ -531,8 +524,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 220),
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
                       color: AppColors.white.withValues(alpha: 0.95),
                       borderRadius: BorderRadius.circular(8),
@@ -541,8 +533,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.access_time,
-                            size: 12, color: AppColors.greenShade),
+                        const Icon(Icons.access_time, size: 12, color: AppColors.greenShade),
                         const SizedBox(width: 4),
                         Flexible(
                           child: CustomText(

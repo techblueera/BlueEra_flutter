@@ -18,6 +18,7 @@ import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_screen.da
 import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
 import 'package:BlueEra/features/common/onboarding/view/select_language_screen.dart';
 import 'package:BlueEra/features/common/profile_share_preview/view/profile_share_preview_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/share/grocery_product_share_preview_screen.dart';
 import 'package:BlueEra/features/me/product/view/admin/share_product_screen.dart';
 import 'package:BlueEra/main.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -127,30 +128,42 @@ class _SplashScreenState extends State<SplashScreen> {
       }
 
       if (isLoginStatus == "true") {
-        if (await _initDeepLinks()) {
-          // handled deep link
+        // Resolve any cold-start deep link first, but DO NOT navigate to
+        // it yet — we need to replace the splash with the bottom-nav
+        // before pushing the target on top. Otherwise back-press from
+        // the deep-link screen pops back to splash (which has no further
+        // navigation) and the app appears stuck.
+        final initialDeepLink = await _initDeepLinks();
+        final sharedMedia = await _getSharedMedia();
+
+        if (!mounted) return;
+        if (accountTypeGlobal.toUpperCase() == AppConstants.individual) {
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            RouteHelper.getBottomNavigationBarScreenRoute(),
+            (Route<dynamic> route) => false,
+            arguments: {
+              ApiKeys.initialIndex: 1,
+              if (sharedMedia != null) 'sharedMedia': sharedMedia,
+            },
+          );
         } else {
-          final sharedMedia = await _getSharedMedia();
-          if (accountTypeGlobal.toUpperCase() == AppConstants.individual) {
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              RouteHelper.getBottomNavigationBarScreenRoute(),
-              arguments: {
-                ApiKeys.initialIndex: 1,
-                if (sharedMedia != null) 'sharedMedia': sharedMedia,
-              },
-              (Route<dynamic> route) => false,
-            );
-          } else {
-            // Business cold-starts onto its own Me tab (0); individuals → Discover.
-            Navigator.of(context).pushNamedAndRemoveUntil(
-              RouteHelper.getBottomNavigationBarScreenRoute(),
-              arguments: {
-                ApiKeys.initialIndex: 0,
-                if (sharedMedia != null) 'sharedMedia': sharedMedia,
-              },
-              (Route<dynamic> route) => false,
-            );
-          }
+          // Business cold-starts onto its own Me tab (0); individuals → Discover.
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            RouteHelper.getBottomNavigationBarScreenRoute(),
+            (Route<dynamic> route) => false,
+            arguments: {
+              ApiKeys.initialIndex: 0,
+              if (sharedMedia != null) 'sharedMedia': sharedMedia,
+            },
+          );
+        }
+
+        // Now that the bottom-nav is the root of the navigator stack,
+        // push the deep-link target on top. Back-press from the target
+        // will pop to the bottom-nav instead of leaving the user on the
+        // dead-end splash screen.
+        if (initialDeepLink != null) {
+          _handleDeepLink(initialDeepLink);
         }
       } else {
         Navigator.of(context).pushNamedAndRemoveUntil(
@@ -180,20 +193,20 @@ class _SplashScreenState extends State<SplashScreen> {
 
   late final AppLinks _appLinks;
 
-  Future<bool> _initDeepLinks() async {
+  /// Resolves the cold-start deep link (returns `null` when there isn't
+  /// one) and subscribes to warm-state links. The cold-start URI is
+  /// returned so the caller can replace splash with the home shell first
+  /// and *then* push the target on top — otherwise back-press from the
+  /// target lands on splash and the app appears stuck.
+  Future<Uri?> _initDeepLinks() async {
     _appLinks = AppLinks();
-    // Handle links when app is already running
+    // Warm-state links: app is already running so splash is not on the
+    // stack — `Get.to` from the handler pushes the target normally.
     _appLinks.uriLinkStream.listen((uri) {
       _handleDeepLink(uri);
     });
 
-    var uri = await _appLinks.getInitialLink();
-    if (uri != null) {
-      _handleDeepLink(uri);
-      return true;
-    } else {
-      return false;
-    }
+    return await _appLinks.getInitialLink();
   }
 
   bool _isValidMongoId(String id) {
@@ -243,6 +256,11 @@ class _SplashScreenState extends State<SplashScreen> {
             break;
           case 'product':
             Get.to(() => ShareProductScreen(productId: id));
+            break;
+          case 'grocery':
+            // Public grocery share landing — fetches the product itself
+            // and renders the deep-link-only preview.
+            Get.to(() => GroceryProductSharePreviewScreen(productId: id));
             break;
           case 'chat':
             final conversationId = id;

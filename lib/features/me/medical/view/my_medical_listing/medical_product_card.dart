@@ -2,9 +2,11 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/features/me/medical/controller/medical_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -163,13 +165,38 @@ class MedicalProductCard extends StatelessWidget {
                     ),
                   ),
 
-                  // Arrow icon
+                  // Share + Arrow trailing actions
                   Padding(
                     padding: EdgeInsets.only(top: 4),
-                    child: Icon(
-                      Icons.chevron_right_rounded,
-                      color: AppColors.secondaryTextColor,
-                      size: 22,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        GestureDetector(
+                          onTap: _shareProduct,
+                          behavior: HitTestBehavior.opaque,
+                          child: Container(
+                            width: 32,
+                            height: 32,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryColor.withValues(alpha: 0.08),
+                              shape: BoxShape.circle,
+                            ),
+                            child: LocalAssets(
+                              imagePath: AppIconAssets.share_bold,
+                              imgColor: AppColors.primaryColor,
+                              height: 14,
+                              width: 14,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: SizeConfig.size4),
+                        Icon(
+                          Icons.chevron_right_rounded,
+                          color: AppColors.secondaryTextColor,
+                          size: 22,
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -179,6 +206,19 @@ class MedicalProductCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  /// Opens the native share sheet with the product's BlueEra deep link
+  /// and its name.
+  Future<void> _shareProduct() async {
+    final rawName = medicalProducts.name?.trim() ?? '';
+    final name = rawName.isNotEmpty ? rawName : 'this product';
+    final shareLink = productDeepLink(productId: medicalProducts.sId);
+
+    await ShareService.instance.openShareSheet(
+      text: "Check out $name on BlueEra:\n$shareLink",
+      subject: name,
     );
   }
 

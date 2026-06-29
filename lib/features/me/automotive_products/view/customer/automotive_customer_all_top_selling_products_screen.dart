@@ -1,16 +1,20 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
-import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
+import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/me/automotive_products/controller/automotive_inventory_controller.dart';
 import 'package:BlueEra/features/me/automotive_products/controller/automotive_product_selfpickup_controller.dart';
-import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/features/me/automotive_products/view/admin/widget/automotive_product_top_selling_tile.dart';
 import 'package:BlueEra/features/me/automotive_products/view/customer/widget/automotive_product_self_pickup_cart.dart';
+import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
@@ -34,22 +38,18 @@ class _AutomotiveCustomerAllTopSellingProductsScreenState
   late final AutomotiveProductSelfPickupController _cartController;
 
   ViewBusinessDetailsController? get _viewBusinessDetailsController =>
-      Get.isRegistered<ViewBusinessDetailsController>()
-          ? Get.find<ViewBusinessDetailsController>()
-          : null;
+      Get.isRegistered<ViewBusinessDetailsController>() ? Get.find<ViewBusinessDetailsController>() : null;
 
   @override
   void initState() {
     super.initState();
-    _cartController = getOrPut<AutomotiveProductSelfPickupController>(
-        () => AutomotiveProductSelfPickupController());
+    _cartController =
+        getOrPut<AutomotiveProductSelfPickupController>(() => AutomotiveProductSelfPickupController());
     _scrollController.addListener(_onScroll);
     // Defer the fetch until after the first frame so the controller's
     // observable mutations don't re-enter an in-flight build.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      controller.fetchBusinessProducts(
-          visitUserId: widget.visitUserId,
-          isDiscountedProducts: true);
+      controller.fetchBusinessProducts(visitUserId: widget.visitUserId, isDiscountedProducts: true);
     });
   }
 
@@ -63,8 +63,7 @@ class _AutomotiveCustomerAllTopSellingProductsScreenState
   void _onToggleCart(GetProductData product) {
     final id = _firstVariantId(product);
     if (id == null) return;
-    final bDetails =
-        _viewBusinessDetailsController?.visitedBusinessProfileDetails?.data;
+    final bDetails = _viewBusinessDetailsController?.visitedBusinessProfileDetails?.data;
     if (_cartController.isVariantInCart(id)) {
       _cartController.removeFromCart(product);
     } else {
@@ -92,10 +91,22 @@ class _AutomotiveCustomerAllTopSellingProductsScreenState
       // Controller remembers the active owner id for the paginated run,
       // so we don't need to re-pass `visitBusinessId` here.
       controller.fetchBusinessProducts(
-          visitUserId: widget.visitUserId,
-          isDiscountedProducts: true,
-          isLoadMore: true);
+          visitUserId: widget.visitUserId, isDiscountedProducts: true, isLoadMore: true);
     }
+  }
+
+  /// Opens the native share sheet with the product's BlueEra deep link
+  /// and its name.
+  Future<void> _onShareTap(GetProductData product) async {
+    final details = product.product.details;
+    final rawName = details?.name.trim() ?? '';
+    final name = rawName.isNotEmpty ? rawName : 'this product';
+    final shareLink = productDeepLink(productId: details?.id);
+
+    await ShareService.instance.openShareSheet(
+      text: "Check out $name on BlueEra:\n$shareLink",
+      subject: name,
+    );
   }
 
   Future<void> _onRefresh() async {
@@ -118,10 +129,8 @@ class _AutomotiveCustomerAllTopSellingProductsScreenState
         children: [
           Obx(() {
             final items = controller.allProducts;
-            final status =
-                controller.ownDraftAndPublicProductResponse.value.status;
-            final isInitialLoading =
-                status == Status.INITIAL && items.isEmpty;
+            final status = controller.ownDraftAndPublicProductResponse.value.status;
+            final isInitialLoading = status == Status.INITIAL && items.isEmpty;
             final isLoadingMore = controller.isAllProductsLoadingMore.value;
 
             if (isInitialLoading) {
@@ -154,8 +163,7 @@ class _AutomotiveCustomerAllTopSellingProductsScreenState
                   ...buildNativeAdGridSlivers(
                     itemCount: items.length,
                     keyPrefix: 'auto_top_native_ad',
-                    adPadding: EdgeInsets.symmetric(
-                        horizontal: SizeConfig.size10),
+                    adPadding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
                     gridSliverBuilder: (start, end) => SliverPadding(
                       padding: EdgeInsets.all(SizeConfig.size10),
                       sliver: SliverMasonryGrid.count(
@@ -163,11 +171,11 @@ class _AutomotiveCustomerAllTopSellingProductsScreenState
                         mainAxisSpacing: 10,
                         crossAxisSpacing: 10,
                         childCount: end - start,
-                        itemBuilder: (context, i) =>
-                            _AutomotiveTopSellingProductTile(
+                        itemBuilder: (context, i) => _AutomotiveTopSellingProductTile(
                           product: items[start + i],
                           cartController: _cartController,
                           onToggleCart: _onToggleCart,
+                          onShare: _onShareTap,
                           firstVariantId: _firstVariantId,
                         ),
                       ),
@@ -207,12 +215,14 @@ class _AutomotiveTopSellingProductTile extends StatelessWidget {
   final GetProductData product;
   final AutomotiveProductSelfPickupController cartController;
   final void Function(GetProductData) onToggleCart;
+  final Future<void> Function(GetProductData) onShare;
   final String? Function(GetProductData) firstVariantId;
 
   const _AutomotiveTopSellingProductTile({
     required this.product,
     required this.cartController,
     required this.onToggleCart,
+    required this.onShare,
     required this.firstVariantId,
   });
 
@@ -236,33 +246,56 @@ class _AutomotiveTopSellingProductTile extends StatelessWidget {
               aspectRatio: 1.05,
               child: AutomotiveProductTopSellingImage(
                 product: product,
-                cartOverlay: Obx(() {
-                  final cart = cartController.selectedProductVariants;
-                  // ignore: unused_local_variable
-                  final _ = cart.length;
-                  final id = firstVariantId(product);
-                  final added = cartController.isVariantInCart(id);
-                  return IconButton(
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(
-                        minWidth: 28, minHeight: 28),
-                    onPressed: id == null ? null : () => onToggleCart(product),
-                    icon: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: added
-                            ? AppColors.greenShade
-                            : AppColors.blackMite,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Icon(
-                        added ? Icons.check : Icons.add,
-                        size: SizeConfig.size16,
-                        color: AppColors.white,
+                cartOverlay: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    IconButton(
+                      onPressed: () => onShare(product),
+                      icon: Container(
+                        width: 28,
+                        height: 28,
+                        alignment: Alignment.center,
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: AppColors.white.withValues(alpha: 0.9),
+                          shape: BoxShape.circle,
+                          boxShadow: const [
+                            BoxShadow(color: Color(0x1A000000), blurRadius: 4),
+                          ],
+                        ),
+                        child: LocalAssets(
+                          imagePath: AppIconAssets.share_bold,
+                          imgColor: AppColors.black,
+                        ),
                       ),
                     ),
-                  );
-                }),
+                    Obx(() {
+                      final cart = cartController.selectedProductVariants;
+                      // ignore: unused_local_variable
+                      final _ = cart.length;
+                      final id = firstVariantId(product);
+                      final added = cartController.isVariantInCart(id);
+                      return IconButton(
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                        onPressed: id == null ? null : () => onToggleCart(product),
+                        icon: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            color: added ? AppColors.greenShade : AppColors.blackMite,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Icon(
+                            added ? Icons.check : Icons.add,
+                            size: SizeConfig.size16,
+                            color: AppColors.white,
+                          ),
+                        ),
+                      );
+                    }),
+                  ],
+                ),
               ),
             ),
           ),

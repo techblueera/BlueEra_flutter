@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
+import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/features/common/Discover/view/vehicle/vehicle_detail_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
@@ -440,6 +441,7 @@ class _VehicleListingScreenState extends State<VehicleListingScreen> {
                                 onTap: () => _openDetail(v),
                                 onBook: () => _openDetail(v),
                                 onChat: () => _openDetail(v),
+                                onShare: () => _shareVehicle(v),
                               );
                             },
                           );
@@ -459,6 +461,22 @@ class _VehicleListingScreenState extends State<VehicleListingScreen> {
   void _openDetail(Vehicle v) {
     if (v.id == null) return;
     Get.to(() => VehicleDetailScreen(vehicleId: v.id!));
+  }
+
+  /// Opens the native share sheet with the vehicle's BlueEra deep link
+  /// and a "Brand Model Variant" label (falls back gracefully).
+  Future<void> _shareVehicle(Vehicle v) async {
+    final label = [v.brand, v.model, v.variant]
+        .where((s) => s != null && s.trim().isNotEmpty)
+        .map((s) => s!.trim())
+        .join(' ');
+    final name = label.isNotEmpty ? label : 'this vehicle';
+    final shareLink = vehicleDeepLink(vehicleId: v.id);
+
+    await ShareService.instance.openShareSheet(
+      text: "Check out $name on BlueEra:\n$shareLink",
+      subject: name,
+    );
   }
 
   /// Opens the add-vehicle flow. When the screen was reached from a

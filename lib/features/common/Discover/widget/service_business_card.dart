@@ -162,20 +162,6 @@ class ServiceBusinessCard extends StatelessWidget {
                     child: const Icon(Icons.image_outlined, size: 40, color: Colors.grey),
                   ),
           ),
-          Positioned.fill(
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.center,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    Colors.transparent,
-                    Colors.black.withValues(alpha: 0.55),
-                  ],
-                ),
-              ),
-            ),
-          ),
 
           // ── Rating pill (top-left) ──
           Positioned(
@@ -224,8 +210,8 @@ class ServiceBusinessCard extends StatelessWidget {
 
           // ── Open/Closed pill (straddles hero/body boundary) ──
           Positioned(
-            right: 14,
-            bottom: -14,
+            right: 12,
+            bottom: 12,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
               decoration: BoxDecoration(
@@ -242,14 +228,20 @@ class ServiceBusinessCard extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    width: 7,
-                    height: 7,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: pillColor,
-                    ),
+                  LocalAssets(
+                    imagePath: AppIconAssets.clock_new,
+                    imgColor: AppColors.green0B,
+                    height: 20,
+                    width: 20,
                   ),
+                  // Container(
+                  //   width: 7,
+                  //   height: 7,
+                  //   decoration: BoxDecoration(
+                  //     shape: BoxShape.circle,
+                  //     color: pillColor,
+                  //   ),
+                  // ),
                   const SizedBox(width: 6),
                   CustomText(
                     status.label,
@@ -289,42 +281,139 @@ class ServiceBusinessCard extends StatelessWidget {
   // ─── BODY ────────────────────────────────────────────────────────
   Widget _buildBody() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 22, 14, 14),
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeaderRow(),
-          const SizedBox(height: 8),
-          _buildAddressRow(),
-          const SizedBox(height: 12),
+          // _buildHeaderRow(),
+          // const SizedBox(height: 8),
+          // _buildAddressRow(),
+          _buildHeaderSection(),
+          const SizedBox(height: 10),
+          Divider(indent: 10, endIndent: 10, height: 1, thickness: 0.2, color: AppColors.grey99),
+          const SizedBox(height: 10),
           _buildServiceChips(),
         ],
       ),
     );
   }
 
-  Widget _buildHeaderRow() {
-    return Row(
-      children: [
-        CachedAvatarWidget(
-          imageUrl: _avatarUrl,
-          size: 32,
-          borderRadius: 16,
-          borderColor: AppColors.whiteE0,
-          showProfileOnFullScreen: false,
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: CustomText(
-            _profile?.businessName ?? _profile?.profileName ?? _na,
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-            color: AppColors.mainTextColor,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+  Widget _buildHeaderSection() {
+    final loc = _profile?.businessLocation;
+    final hasCoords = loc?.isValid ?? false;
+    final km = hasCoords ? calculateDistance(loc!.lat!, loc.lng!) : null;
+
+    final distanceText = km != null ? "${km.toStringAsFixed(0)}KM Away" : _na;
+
+    final address = _resolveAddress();
+
+    return GestureDetector(
+      onTap: hasCoords ? () => _showMapBottomSheet(Get.context!) : null,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          CachedAvatarWidget(
+            imageUrl: _avatarUrl,
+            size: 58,
+            borderRadius: 29,
+            borderColor: Colors.white,
+            showProfileOnFullScreen: false,
           ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                /// Business Name
+                CustomText(
+                  _profile?.businessName ?? _profile?.profileName ?? _na,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.mainTextColor,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+
+                // const SizedBox(height: 4),
+
+                /// Address Row
+                Row(
+                  children: [
+                    Icon(
+                      Icons.location_on_outlined,
+                      color: AppColors.primaryColor,
+                      size: 22,
+                    ),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: RichText(
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        text: TextSpan(
+                          children: [
+                            TextSpan(
+                              text: distanceText,
+                              style: TextStyle(
+                                color: AppColors.primaryColor,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            TextSpan(
+                              text: "  |  ",
+                              style: TextStyle(
+                                color: Colors.grey.shade500,
+                                fontSize: 14,
+                              ),
+                            ),
+                            TextSpan(
+                              text: address,
+                              style: TextStyle(
+                                color: Colors.grey.shade600,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeaderRow() {
+    return Column(
+      children: [
+        Row(
+          children: [
+            CachedAvatarWidget(
+              imageUrl: _avatarUrl,
+              size: 32,
+              borderRadius: 16,
+              borderColor: AppColors.whiteE0,
+              showProfileOnFullScreen: false,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: CustomText(
+                _profile?.businessName ?? _profile?.profileName ?? _na,
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+                color: AppColors.mainTextColor,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
         ),
-        Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.grey83),
       ],
     );
   }
@@ -365,7 +454,7 @@ class ServiceBusinessCard extends StatelessWidget {
                       ),
                     ),
                     TextSpan(
-                      text: '  |  ',
+                      text: '  •  ',
                       style: TextStyle(fontSize: 12, color: AppColors.grey83),
                     ),
                     TextSpan(

@@ -235,8 +235,14 @@ class _FinanceCard extends StatelessWidget {
     final types = item.accountType?.where((s) => s.trim().isNotEmpty).toList() ?? const [];
     if (types.isNotEmpty) lines.add('Accounts: ${types.join(', ')}');
     if (website.isNotEmpty) lines.add(website);
+    final shareLink = businessProfileDeepLink(
+      userId: item.userId,
+    );
 
-    await ShareService.instance.openShareSheet(text: lines.join('\n'), subject: name);
+    await ShareService.instance.openShareSheet(
+      text: "Check out ${item.profileName ?? 'this profile'} on BlueEra:\n$shareLink",
+      subject: item.profileName,
+    );
   }
 
   /// Opens a chat with the finance business owner — same behaviour as the

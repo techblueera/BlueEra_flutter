@@ -26,6 +26,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../../core/constants/common_methods.dart';
+import '../../../../../core/services/share_service.dart';
+
 /// Public detail screen for a single vehicle
 /// (`GET /vehicles/get/:id`).
 ///
@@ -61,8 +64,7 @@ class VehicleDetailScreen extends StatefulWidget {
 }
 
 class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
-  final VehicleController _ctrl =
-      getOrPut(() => VehicleController(), permanent: true);
+  final VehicleController _ctrl = getOrPut(() => VehicleController(), permanent: true);
 
   // Cover-banner slider — drives the PageView in the header so the user
   // can swipe through every vehicle photo without leaving the screen.
@@ -223,14 +225,26 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
     );
   }
 
+  Future<void> _shareVehicle(Vehicle v) async {
+    final label = [v.brand, v.model, v.variant]
+        .where((s) => s != null && s.trim().isNotEmpty)
+        .map((s) => s!.trim())
+        .join(' ');
+    final name = label.isNotEmpty ? label : 'this vehicle';
+    final shareLink = vehicleDeepLink(vehicleId: v.id);
+
+    await ShareService.instance.openShareSheet(
+      text: "Check out $name on BlueEra:\n$shareLink",
+      subject: name,
+    );
+  }
+
   // ─── Header (cover slider + avatar + name/category/bio) ──────────
   Widget _buildHeaderSection(BuildContext context, Vehicle v) {
     // Every photo of this vehicle, cover first and de-duped against the
     // images array so the same URL never appears twice in the slider.
     final photos = _galleryImages(v);
-    final ownerImage =
-        ((v.user?['profile_image'] ?? v.business?['logo_image']) ?? '')
-            .toString();
+    final ownerImage = ((v.user?['profile_image'] ?? v.business?['logo_image']) ?? '').toString();
     final statusBarHeight = MediaQuery.of(context).padding.top;
 
     // Soft gradient stand-in when no cover URL is available — same idea
@@ -271,8 +285,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                       : PageView.builder(
                           controller: _coverPageController,
                           itemCount: photos.length,
-                          onPageChanged: (i) =>
-                              setState(() => _coverPageIndex = i),
+                          onPageChanged: (i) => setState(() => _coverPageIndex = i),
                           itemBuilder: (_, i) => CachedNetworkImage(
                             imageUrl: photos[i],
                             fit: BoxFit.cover,
@@ -301,14 +314,12 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                           height: 6,
                           margin: const EdgeInsets.symmetric(horizontal: 3),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(
-                                alpha: i == _coverPageIndex ? 1.0 : 0.55),
+                            color: Colors.white.withValues(alpha: i == _coverPageIndex ? 1.0 : 0.55),
                             borderRadius: BorderRadius.circular(3),
                             boxShadow: i == _coverPageIndex
                                 ? [
                                     BoxShadow(
-                                      color: Colors.black
-                                          .withValues(alpha: 0.25),
+                                      color: Colors.black.withValues(alpha: 0.25),
                                       blurRadius: 4,
                                       offset: const Offset(0, 1),
                                     ),
@@ -329,8 +340,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                     right: 16,
                     bottom: 52,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.45),
                         borderRadius: BorderRadius.circular(20),
@@ -338,8 +348,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.photo_library_outlined,
-                              size: 12, color: Colors.white),
+                          const Icon(Icons.photo_library_outlined, size: 12, color: Colors.white),
                           const SizedBox(width: 4),
                           CustomText(
                             '${_coverPageIndex + 1} / ${photos.length}',
@@ -364,7 +373,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                         onTap: () => Navigator.of(context).pop(),
                       ),
                       const Spacer(),
-                      _coverShareButton(onTap: () {}),
+                      _coverShareButton(onTap: () => _shareVehicle(v)),
                     ],
                   ),
                 ),
@@ -398,7 +407,6 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
               ],
             ),
           ),
-
           _buildProfileInfoContent(v),
         ],
       ),
@@ -437,8 +445,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                       ),
                       if (v.isVerified ?? false) ...[
                         SizedBox(width: SizeConfig.size6),
-                        Icon(Icons.verified_rounded,
-                            color: AppColors.primaryColor, size: 18),
+                        Icon(Icons.verified_rounded, color: AppColors.primaryColor, size: 18),
                       ],
                     ],
                   ),
@@ -446,15 +453,11 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
               if (hasName && hasCategory) SizedBox(width: SizeConfig.size8),
               if (hasCategory)
                 Container(
-                  padding: EdgeInsets.symmetric(
-                      horizontal: SizeConfig.size8,
-                      vertical: SizeConfig.size3),
+                  padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8, vertical: SizeConfig.size3),
                   decoration: BoxDecoration(
                     color: AppColors.primaryColor.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                        color:
-                            AppColors.primaryColor.withValues(alpha: 0.3)),
+                    border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.3)),
                   ),
                   child: CustomText(
                     category,
@@ -538,8 +541,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
             width: 36,
             height: 36,
             alignment: Alignment.center,
-            decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
+            decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
             child: Icon(icon, size: 18, color: color),
           ),
           SizedBox(height: SizeConfig.size4),
@@ -549,17 +551,13 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
               color: AppColors.mainTextColor,
               maxLines: 1,
               overflow: TextOverflow.ellipsis),
-          CustomText(label,
-              fontSize: 10,
-              fontWeight: FontWeight.w400,
-              color: AppColors.secondaryTextColor),
+          CustomText(label, fontSize: 10, fontWeight: FontWeight.w400, color: AppColors.secondaryTextColor),
         ],
       ),
     );
   }
 
-  Widget _buildDivider() =>
-      Container(width: 1, height: 40, color: AppColors.greyE5);
+  Widget _buildDivider() => Container(width: 1, height: 40, color: AppColors.greyE5);
 
   // ─── Info card scaffold (icon + title + divider + child) ──────────
   Widget _buildInfoCard({
@@ -586,9 +584,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
               ),
               SizedBox(width: SizeConfig.size8),
               CustomText(title,
-                  fontSize: SizeConfig.medium,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.mainTextColor),
+                  fontSize: SizeConfig.medium, fontWeight: FontWeight.w600, color: AppColors.mainTextColor),
             ],
           ),
           Divider(color: AppColors.greyE5, height: SizeConfig.size20),
@@ -601,15 +597,13 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
   // ─── Specifications grid ──────────────────────────────────────────
   Widget _specsGrid(Vehicle v) {
     final entries = <MapEntry<String, String>>[
-      if ((v.subCategory ?? '').isNotEmpty)
-        MapEntry(AppStrings.subCategoryShort.tr, v.subCategory!),
+      if ((v.subCategory ?? '').isNotEmpty) MapEntry(AppStrings.subCategoryShort.tr, v.subCategory!),
       if (v.transmission != null)
         MapEntry(AppStrings.transmissionLabel.tr, _humanTransmission(v.transmission!)),
       if (v.seatingCapacity != null) MapEntry(AppStrings.seatingLabel.tr, '${v.seatingCapacity}'),
       if ((v.mileage ?? '').isNotEmpty) MapEntry(AppStrings.mileageLabel.tr, v.mileage!),
       if ((v.color ?? '').isNotEmpty) MapEntry(AppStrings.color.tr, v.color!),
-      if ((v.registrationNo ?? '').isNotEmpty)
-        MapEntry(AppStrings.regNoLabel.tr, v.registrationNo!),
+      if ((v.registrationNo ?? '').isNotEmpty) MapEntry(AppStrings.regNoLabel.tr, v.registrationNo!),
     ];
     if (entries.isEmpty) {
       return CustomText(
@@ -683,20 +677,16 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
             onTap: () => _openMaps(loc.lat!, loc.lon!),
             borderRadius: BorderRadius.circular(20),
             child: Container(
-              padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size10,
-                  vertical: SizeConfig.size6),
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
               decoration: BoxDecoration(
                 color: AppColors.primaryColor.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                    color: AppColors.primaryColor.withValues(alpha: 0.3)),
+                border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.3)),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.directions_rounded,
-                      size: 14, color: AppColors.primaryColor),
+                  Icon(Icons.directions_rounded, size: 14, color: AppColors.primaryColor),
                   SizedBox(width: SizeConfig.size4),
                   CustomText(
                     AppStrings.directions.tr,
@@ -715,11 +705,8 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
 
   // ─── Owner content (avatar + name/type + optional dial) ───────────
   Widget _ownerContent(Vehicle v) {
-    final ownerName =
-        (v.user?['name'] ?? v.business?['business_name'] ?? '').toString();
-    final ownerImage =
-        (v.user?['profile_image'] ?? v.business?['logo_image'] ?? '')
-            .toString();
+    final ownerName = (v.user?['name'] ?? v.business?['business_name'] ?? '').toString();
+    final ownerImage = (v.user?['profile_image'] ?? v.business?['logo_image'] ?? '').toString();
     final ownerPhone = (v.user?['contact_no'] ?? '').toString();
     return Row(
       children: [
@@ -806,13 +793,9 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.error_outline_rounded,
-                  size: 56, color: Colors.red.shade400),
+              Icon(Icons.error_outline_rounded, size: 56, color: Colors.red.shade400),
               SizedBox(height: SizeConfig.size12),
-              CustomText(msg,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.mainTextColor),
+              CustomText(msg, fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.mainTextColor),
               SizedBox(height: SizeConfig.size16),
               ElevatedButton.icon(
                 onPressed: () => _ctrl.fetchVehicleById(widget.vehicleId),
@@ -946,8 +929,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
   /// (intent / offer / note) before the buyer types anything else.
   Future<void> _onPlaceOrderTap(Vehicle v) async {
     if ((v.id ?? '').trim().isEmpty) return;
-    final VehicleBooking? booking =
-        await VehiclePlaceOrderSheet.show(context, vehicle: v);
+    final VehicleBooking? booking = await VehiclePlaceOrderSheet.show(context, vehicle: v);
     if (booking == null || !mounted) return;
     commonSnackBar(message: AppStrings.bookingRequestSent.tr);
 
@@ -966,10 +948,8 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
 
     final messageBody = <String>[
       'Booking request: ${booking.intent.label}',
-      if (booking.offerPrice != null)
-        'Offer: ₹${booking.offerPrice!.toStringAsFixed(0)}',
-      if ((booking.note ?? '').trim().isNotEmpty)
-        'Note: ${booking.note!.trim()}',
+      if (booking.offerPrice != null) 'Offer: ₹${booking.offerPrice!.toStringAsFixed(0)}',
+      if ((booking.note ?? '').trim().isNotEmpty) 'Note: ${booking.note!.trim()}',
     ].join('\n');
 
     final shareParams = <String, dynamic>{
@@ -1030,11 +1010,9 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
         decoration: BoxDecoration(
           color: AppColors.primaryColor.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(SizeConfig.size12),
-          border: Border.all(
-              color: AppColors.primaryColor.withValues(alpha: 0.3)),
+          border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.3)),
         ),
-        child: Icon(Icons.chat_bubble_outline_rounded,
-            color: AppColors.primaryColor, size: 22),
+        child: Icon(Icons.chat_bubble_outline_rounded, color: AppColors.primaryColor, size: 22),
       ),
     );
   }
@@ -1047,8 +1025,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
   }
 
   Future<void> _openMaps(double lat, double lon) async {
-    final uri =
-        Uri.parse('https://www.google.com/maps/search/?api=1&query=$lat,$lon');
+    final uri = Uri.parse('https://www.google.com/maps/search/?api=1&query=$lat,$lon');
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }

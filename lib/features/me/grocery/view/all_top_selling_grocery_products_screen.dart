@@ -3,9 +3,11 @@ import 'dart:developer' as dev;
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/me/grocery/widget/customer_grocery_self_pickup_cart.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
@@ -171,6 +173,22 @@ class _AllTopSellingGroceryProductsScreenState
     );
   }
 
+  /// Opens the native share sheet with the product's BlueEra deep link
+  /// and a short summary (name, price range). Uses the catalog product id
+  /// when available, falling back to the business listing id.
+  Future<void> _shareProduct(BusinessProductData product) async {
+    final name = product.product?.name?.trim().isNotEmpty == true
+        ? product.product!.name!.trim()
+        : 'this product';
+    final productId = product.product?.sId ?? product.sId;
+    final shareLink = groceryDeepLink(productId: productId);
+
+    await ShareService.instance.openShareSheet(
+      text: "Check out $name on BlueEra:\n$shareLink",
+      subject: name,
+    );
+  }
+
   /// Open the variants sheet for a product. Customer mode wires the cart;
   /// owner mode shows view + edit/delete.
   void _openVariantsSheet(GroceryProductVariantGroup group) {
@@ -258,6 +276,7 @@ class _AllTopSellingGroceryProductsScreenState
                               ? () => _onAddToCart(group.product)
                               : null,
                           onTapTile: () => _openVariantsSheet(group),
+                          onShare: () => _shareProduct(group.product),
                         );
                       },
                     ),
@@ -312,12 +331,16 @@ class _TopSellingProductTile extends StatelessWidget {
   /// view/edit/delete in owner mode).
   final VoidCallback? onTapTile;
 
+  /// Opens the share sheet with the product's BlueEra deep link.
+  final VoidCallback? onShare;
+
   const _TopSellingProductTile({
     required this.item,
     required this.variants,
     this.customerController,
     this.onIncrement,
     this.onTapTile,
+    this.onShare,
   });
 
   bool get _isCustomerMode => customerController != null;
@@ -333,6 +356,7 @@ class _TopSellingProductTile extends StatelessWidget {
       child: GroceryTopSellingProductCard(
         product: item,
         variants: variants,
+        onShare: onShare,
         imageOverlay: _isCustomerMode
             ? Obx(() {
                 final variant = item.productVariant;
