@@ -1,10 +1,13 @@
 import 'dart:ui';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
+import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/me/food/controller/food_selfpickup_controller.dart';
 import 'package:BlueEra/features/me/food/controller/restaurant_controller.dart';
@@ -16,6 +19,7 @@ import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -35,10 +39,8 @@ class AllOfferDishScreen extends StatefulWidget {
 
 class _AllOfferDishScreenState extends State<AllOfferDishScreen> {
   final controller = getOrPut(() => RestaurantController());
-  final foodCartController =
-      getOrPut<FoodSelfPickupController>(() => FoodSelfPickupController());
-  final viewBusinessDetailsController =
-      Get.find<ViewBusinessDetailsController>();
+  final foodCartController = getOrPut<FoodSelfPickupController>(() => FoodSelfPickupController());
+  final viewBusinessDetailsController = Get.find<ViewBusinessDetailsController>();
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -69,13 +71,23 @@ class _AllOfferDishScreenState extends State<AllOfferDishScreen> {
   }
 
   Future<void> _onRefresh() async {
-    await controller.fetchDiscountFoodProducts(
-        businessId: widget.businessId);
+    await controller.fetchDiscountFoodProducts(businessId: widget.businessId);
+  }
+
+  /// Opens the native share sheet with the dish's BlueEra deep link
+  /// and its name.
+  Future<void> _shareDish(CategoryFoodProductData dish) async {
+    final name = (dish.name?.trim().isNotEmpty ?? false) ? dish.name!.trim() : 'this dish';
+    final shareLink = foodDishDeepLink(dishId: dish.id);
+
+    await ShareService.instance.openShareSheet(
+      text: "Check out $name on BlueEra:\n$shareLink",
+      subject: name,
+    );
   }
 
   void _onTapItem(CategoryFoodProductData product) {
-    final details =
-        viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
+    final details = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
 
     showFoodSelfPickupVariantsSheet(
       context,
@@ -103,8 +115,7 @@ class _AllOfferDishScreenState extends State<AllOfferDishScreen> {
           Obx(() {
             final items = controller.discountFoodItems;
             final isLoading = controller.isDiscountProductsLoading.value;
-            final isLoadingMore =
-                controller.isDiscountProductsLoadingMore.value;
+            final isLoadingMore = controller.isDiscountProductsLoadingMore.value;
 
             if (isLoading && items.isEmpty) {
               return const Center(
@@ -136,8 +147,7 @@ class _AllOfferDishScreenState extends State<AllOfferDishScreen> {
                   ...buildNativeAdGridSlivers(
                     itemCount: items.length,
                     keyPrefix: 'offer_dish_native_ad',
-                    adPadding: EdgeInsets.symmetric(
-                        horizontal: SizeConfig.size10),
+                    adPadding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
                     gridSliverBuilder: (start, end) => SliverPadding(
                       padding: EdgeInsets.all(SizeConfig.size10),
                       sliver: SliverMasonryGrid.count(
@@ -148,6 +158,7 @@ class _AllOfferDishScreenState extends State<AllOfferDishScreen> {
                         itemBuilder: (context, i) => _OfferDishTile(
                           item: items[start + i],
                           onTap: () => _onTapItem(items[start + i]),
+                          onShare: () => _shareDish(items[start + i]),
                         ),
                       ),
                     ),
@@ -183,24 +194,23 @@ class _AllOfferDishScreenState extends State<AllOfferDishScreen> {
 class _OfferDishTile extends StatelessWidget {
   final CategoryFoodProductData item;
   final VoidCallback onTap;
+  final VoidCallback? onShare;
 
   const _OfferDishTile({
     required this.item,
     required this.onTap,
+    this.onShare,
   });
 
   @override
   Widget build(BuildContext context) {
-    final bool hasVariants =
-        item.variants != null && item.variants!.isNotEmpty;
-    final sellingPrice =
-        hasVariants ? item.variants![0].baseSellingPrice : null;
+    final bool hasVariants = item.variants != null && item.variants!.isNotEmpty;
+    final sellingPrice = hasVariants ? item.variants![0].baseSellingPrice : null;
     final mrp = hasVariants ? item.variants![0].mrp : null;
 
-    final int discountPercent =
-        (mrp != null && sellingPrice != null && mrp > sellingPrice)
-            ? (((mrp - sellingPrice) / mrp) * 100).round()
-            : 0;
+    final int discountPercent = (mrp != null && sellingPrice != null && mrp > sellingPrice)
+        ? (((mrp - sellingPrice) / mrp) * 100).round()
+        : 0;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -226,13 +236,11 @@ class _OfferDishTile extends StatelessWidget {
                     height: 140,
                     width: double.infinity,
                     fit: BoxFit.cover,
-                    placeholder: (_, __) =>
-                        Container(color: Colors.grey.shade200),
+                    placeholder: (_, __) => Container(color: Colors.grey.shade200),
                     errorWidget: (_, __, ___) => Container(
                       height: 140,
                       color: Colors.grey.shade200,
-                      child:
-                          const Icon(Icons.fastfood, color: Colors.grey),
+                      child: const Icon(Icons.fastfood, color: Colors.grey),
                     ),
                   ),
                 ),
@@ -246,11 +254,9 @@ class _OfferDishTile extends StatelessWidget {
                         bottomRight: Radius.circular(10),
                       ),
                       child: BackdropFilter(
-                        filter:
-                            ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+                        filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 10, vertical: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
                               begin: Alignment.centerLeft,
@@ -261,8 +267,7 @@ class _OfferDishTile extends StatelessWidget {
                               ],
                             ),
                             border: Border.all(
-                              color: AppColors.white
-                                  .withValues(alpha: 0.2),
+                              color: AppColors.white.withValues(alpha: 0.2),
                               width: 0.5,
                             ),
                             borderRadius: const BorderRadius.only(
@@ -280,12 +285,36 @@ class _OfferDishTile extends StatelessWidget {
                       ),
                     ),
                   ),
+                if (onShare != null)
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: GestureDetector(
+                      onTap: onShare,
+                      behavior: HitTestBehavior.opaque,
+                      child: Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: AppColors.white.withValues(alpha: 0.9),
+                          shape: BoxShape.circle,
+                          boxShadow: const [
+                            BoxShadow(color: Color(0x1A000000), blurRadius: 4),
+                          ],
+                        ),
+                        padding: const EdgeInsets.all(6),
+                        child: LocalAssets(
+                          imagePath: AppIconAssets.share_bold,
+                          imgColor: AppColors.black,
+                        ),
+                      ),
+                    ),
+                  ),
                 Positioned(
-                  top: 8,
-                  right: 8,
+                  top: 14,
+                  right: onShare != null ? 44 : 8,
                   child: FoodTypeIndicator(
-                    isVegetarian:
-                        item.dietaryType?.toLowerCase() == "veg",
+                    isVegetarian: item.dietaryType?.toLowerCase() == "veg",
                     size: 8,
                   ),
                 ),

@@ -19,10 +19,10 @@ import 'package:BlueEra/features/me/grocery/widget/food_type_or_cooking_method.d
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/model/earn_profile_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/food_item_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/tiffin_meal_model.dart';
-import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/floating_cart_widget.dart';
+import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/price_row.dart';
@@ -32,6 +32,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
+import '../../../../core/services/share_service.dart';
+
 class HmfStoreDetailsDiscoverScreen extends StatefulWidget {
   /// Store owner user id — drives both the home-foods (profile + items) and
   /// tiffins calls (backend resolves the store by userId).
@@ -40,12 +42,10 @@ class HmfStoreDetailsDiscoverScreen extends StatefulWidget {
   const HmfStoreDetailsDiscoverScreen({super.key, required this.userId});
 
   @override
-  State<HmfStoreDetailsDiscoverScreen> createState() =>
-      _HmfStoreDetailsDiscoverScreenState();
+  State<HmfStoreDetailsDiscoverScreen> createState() => _HmfStoreDetailsDiscoverScreenState();
 }
 
-class _HmfStoreDetailsDiscoverScreenState
-    extends State<HmfStoreDetailsDiscoverScreen> {
+class _HmfStoreDetailsDiscoverScreenState extends State<HmfStoreDetailsDiscoverScreen> {
   // App primary color combination (theme-aligned accent for this flow).
   static const Color _primary = AppColors.primaryColor; // 0xFF0086FF
   static const Color _placeholderBg = AppColors.blue5CFF; // 0xFFEBF5FF
@@ -65,8 +65,7 @@ class _HmfStoreDetailsDiscoverScreenState
 
   // Shared cart for the whole home made food flow (registered at the list
   // screen) — found here so adds survive coming back to the list.
-  late final HmfCartController cartController =
-      getOrPut(() => HmfCartController());
+  late final HmfCartController cartController = getOrPut(() => HmfCartController());
 
   // Selected Home Made Food category tab (index into availableCategories).
   final RxInt _selectedCat = 0.obs;
@@ -116,9 +115,7 @@ class _HmfStoreDetailsDiscoverScreenState
         // self-hide on failure instead of erroring the whole screen.
         body: Obx(() {
           if (controller.store.value == null) {
-            return controller.isFoodLoading.value
-                ? _buildStoreShimmer()
-                : _buildStoreError();
+            return controller.isFoodLoading.value ? _buildStoreShimmer() : _buildStoreError();
           }
           return Stack(
             children: [
@@ -162,8 +159,7 @@ class _HmfStoreDetailsDiscoverScreenState
   // ── Loading skeleton (shimmer) — mirrors the real store layout ───────────
   Widget _buildStoreShimmer() {
     final statusBar = MediaQuery.of(context).padding.top;
-    Widget block(double h, {double? w, double r = 10}) =>
-        shimmerContainer(height: h, width: w, radius: r);
+    Widget block(double h, {double? w, double r = 10}) => shimmerContainer(height: h, width: w, radius: r);
 
     return Stack(
       children: [
@@ -227,8 +223,7 @@ class _HmfStoreDetailsDiscoverScreenState
                       LayoutBuilder(
                         builder: (context, constraints) {
                           const spacing = 12.0;
-                          final cardWidth =
-                              (constraints.maxWidth - spacing) / 2;
+                          final cardWidth = (constraints.maxWidth - spacing) / 2;
                           return Wrap(
                             spacing: spacing,
                             runSpacing: spacing,
@@ -274,8 +269,7 @@ class _HmfStoreDetailsDiscoverScreenState
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.storefront_outlined,
-                    size: 48, color: AppColors.secondaryTextColor),
+                Icon(Icons.storefront_outlined, size: 48, color: AppColors.secondaryTextColor),
                 const SizedBox(height: 12),
                 CustomText(
                   AppStrings.somethingWentWrong,
@@ -287,16 +281,13 @@ class _HmfStoreDetailsDiscoverScreenState
                 GestureDetector(
                   onTap: controller.fetchFoodItems,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 22, vertical: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
                     decoration: BoxDecoration(
                       color: _primary,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: CustomText('Retry',
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white),
+                    child:
+                        CustomText('Retry', fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white),
                   ),
                 ),
               ],
@@ -388,11 +379,16 @@ class _HmfStoreDetailsDiscoverScreenState
                 Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _circleButton(
-                        asset: AppIconAssets.star_rounded, onTap: () {}),
+                    _circleButton(asset: AppIconAssets.star_rounded, onTap: () {}),
                     const SizedBox(width: 10),
                     _circleButton(
-                        asset: AppIconAssets.reelShare, onTap: () {}),
+                        asset: AppIconAssets.reelShare,
+                        onTap: () {
+                          final id = widget.userId;
+                          ShareService.instance.shareProfile(
+                            userId: id,
+                          );
+                        }),
                   ],
                 ),
               ],
@@ -413,8 +409,7 @@ class _HmfStoreDetailsDiscoverScreenState
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: Colors.black.withValues(alpha: 0.35),
-          border: Border.all(
-              color: Colors.white.withValues(alpha: 0.25), width: 0.6),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.25), width: 0.6),
         ),
         child: LocalAssets(
           imagePath: asset,
@@ -430,8 +425,7 @@ class _HmfStoreDetailsDiscoverScreenState
     return Container(
       color: _placeholderBg,
       alignment: Alignment.center,
-      child: Icon(Icons.lunch_dining_rounded,
-          size: 56, color: _primary.withValues(alpha: 0.45)),
+      child: Icon(Icons.lunch_dining_rounded, size: 56, color: _primary.withValues(alpha: 0.45)),
     );
   }
 
@@ -439,8 +433,7 @@ class _HmfStoreDetailsDiscoverScreenState
   Widget _buildIdentity() {
     final lat = store.latitude ?? 0.0;
     final lng = store.longitude ?? 0.0;
-    final km = calculateDistanceKm(
-        LocationService.lat, LocationService.lng, lat, lng);
+    final km = calculateDistanceKm(LocationService.lat, LocationService.lng, lat, lng);
     final hasLoc = !(lat == 0.0 && lng == 0.0);
 
     return Stack(
@@ -547,8 +540,7 @@ class _HmfStoreDetailsDiscoverScreenState
               imgColor: Colors.white,
             ),
             const SizedBox(width: 6),
-            CustomText('Chat',
-                fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white),
+            CustomText('Chat', fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white),
           ],
         ),
       ),
@@ -563,10 +555,8 @@ class _HmfStoreDetailsDiscoverScreenState
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.greyE5),
       ),
-      child: CustomText(text,
-          fontSize: 11.5,
-          fontWeight: FontWeight.w700,
-          color: AppColors.secondaryTextColor),
+      child:
+          CustomText(text, fontSize: 11.5, fontWeight: FontWeight.w700, color: AppColors.secondaryTextColor),
     );
   }
 
@@ -582,15 +572,10 @@ class _HmfStoreDetailsDiscoverScreenState
           imgColor: AppColors.yellow,
         ),
         const SizedBox(width: 3),
-        CustomText('4.8',
-            fontSize: 12.5,
-            fontWeight: FontWeight.w800,
-            color: AppColors.mainTextColor),
+        CustomText('4.8', fontSize: 12.5, fontWeight: FontWeight.w800, color: AppColors.mainTextColor),
         const SizedBox(width: 3),
         CustomText('(48 reviews)',
-            fontSize: 11.5,
-            fontWeight: FontWeight.w500,
-            color: AppColors.secondaryTextColor),
+            fontSize: 11.5, fontWeight: FontWeight.w500, color: AppColors.secondaryTextColor),
       ],
     );
   }
@@ -640,8 +625,7 @@ class _HmfStoreDetailsDiscoverScreenState
     }
     final bId = store.id?.trim();
     if (bId != null && bId.isNotEmpty) {
-      ChatClickTracker.track(
-          userId: bId, source: ChatClickSource.searchResult);
+      ChatClickTracker.track(userId: bId, source: ChatClickSource.searchResult);
     }
     final chatViewController = getOrPut(() => ChatViewController());
     chatViewController.checkChatConnectionAndOpenChat(
@@ -659,8 +643,7 @@ class _HmfStoreDetailsDiscoverScreenState
     final diet = (store.foodType ?? '').trim();
     final hasDiet = diet.isNotEmpty;
     final isVeg = !diet.toLowerCase().contains('non');
-    final dietColor =
-        isVeg ? const Color(0xFF1E7D34) : const Color(0xFFC0341D);
+    final dietColor = isVeg ? const Color(0xFF1E7D34) : const Color(0xFFC0341D);
 
     return Container(
       decoration: BoxDecoration(
@@ -672,13 +655,11 @@ class _HmfStoreDetailsDiscoverScreenState
         child: Row(
           children: [
             Expanded(
-              child: _featureCol(Icons.delivery_dining_rounded,
-                  'Home Delivery', dark, cellBg),
+              child: _featureCol(Icons.delivery_dining_rounded, 'Home Delivery', dark, cellBg),
             ),
             _vDivider(),
             Expanded(
-              child: _featureCol(Icons.currency_rupee_rounded,
-                  'Monthly Payment', dark, cellBg),
+              child: _featureCol(Icons.currency_rupee_rounded, 'Monthly Payment', dark, cellBg),
             ),
             _vDivider(),
             Expanded(
@@ -689,8 +670,7 @@ class _HmfStoreDetailsDiscoverScreenState
                       dietColor,
                       dietColor.withValues(alpha: 0.08),
                     )
-                  : _featureCol(
-                      Icons.verified_rounded, 'Verified', _primary, cellBg),
+                  : _featureCol(Icons.verified_rounded, 'Verified', _primary, cellBg),
             ),
           ],
         ),
@@ -728,17 +708,15 @@ class _HmfStoreDetailsDiscoverScreenState
   // NOTE: placeholder content — no testimonials data on the model yet.
   static const List<({String text, String name, String role})> _testimonials = [
     (
-      text:
-          'Qorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc '
-              'vulputate libero et velit interdum, ac aliquet odio mattis. '
-              'Class aptent taciti sociosqu ad litora torquent.',
+      text: 'Qorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc '
+          'vulputate libero et velit interdum, ac aliquet odio mattis. '
+          'Class aptent taciti sociosqu ad litora torquent.',
       name: 'Dr. Ramesh Gupta',
       role: 'Managing Director',
     ),
     (
-      text:
-          'Fresh, home-made and delicious every single time. Ordering tiffin '
-              'here has been a wonderful experience for my whole family.',
+      text: 'Fresh, home-made and delicious every single time. Ordering tiffin '
+          'here has been a wonderful experience for my whole family.',
       name: 'Anita Sharma',
       role: 'Verified Buyer',
     ),
@@ -826,13 +804,9 @@ class _HmfStoreDetailsDiscoverScreenState
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   CustomText('-${t.name}',
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.mainTextColor),
+                      fontSize: 13, fontWeight: FontWeight.w800, color: AppColors.mainTextColor),
                   CustomText(t.role,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.secondaryTextColor),
+                      fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.secondaryTextColor),
                 ],
               ),
             ],
@@ -903,12 +877,10 @@ class _HmfStoreDetailsDiscoverScreenState
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 16),
-                if (website.isNotEmpty)
-                  _contactRow(Icons.language_rounded, website, isLink: true),
+                if (website.isNotEmpty) _contactRow(Icons.language_rounded, website, isLink: true),
                 if (email.isNotEmpty) _contactRow(Icons.email_outlined, email),
                 if (phone.isNotEmpty) _contactRow(Icons.call_rounded, phone),
-                if (address.isNotEmpty)
-                  _contactRow(Icons.location_on_rounded, address, maxLines: 2),
+                if (address.isNotEmpty) _contactRow(Icons.location_on_rounded, address, maxLines: 2),
                 if (hasLoc) ...[
                   const SizedBox(height: 4),
                   ClipRRect(
@@ -928,19 +900,15 @@ class _HmfStoreDetailsDiscoverScreenState
                       decoration: BoxDecoration(
                         color: _primary.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(10),
-                        border:
-                            Border.all(color: _primary.withValues(alpha: 0.3)),
+                        border: Border.all(color: _primary.withValues(alpha: 0.3)),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.directions_rounded,
-                              size: 16, color: _primary),
+                          Icon(Icons.directions_rounded, size: 16, color: _primary),
                           const SizedBox(width: 6),
                           CustomText('Get Directions',
-                              fontSize: 12.5,
-                              fontWeight: FontWeight.w800,
-                              color: _primary),
+                              fontSize: 12.5, fontWeight: FontWeight.w800, color: _primary),
                         ],
                       ),
                     ),
@@ -958,13 +926,11 @@ class _HmfStoreDetailsDiscoverScreenState
     return Container(
       color: _placeholderBg,
       alignment: Alignment.center,
-      child: Icon(Icons.storefront_rounded,
-          size: 26, color: _primary.withValues(alpha: 0.5)),
+      child: Icon(Icons.storefront_rounded, size: 26, color: _primary.withValues(alpha: 0.5)),
     );
   }
 
-  Widget _contactRow(IconData icon, String text,
-      {int maxLines = 1, bool isLink = false}) {
+  Widget _contactRow(IconData icon, String text, {int maxLines = 1, bool isLink = false}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: Row(
@@ -1090,8 +1056,7 @@ class _HmfStoreDetailsDiscoverScreenState
                   spacing: spacing,
                   runSpacing: spacing,
                   children: [
-                    for (final item in items)
-                      SizedBox(width: cardWidth, child: _foodCard(item)),
+                    for (final item in items) SizedBox(width: cardWidth, child: _foodCard(item)),
                   ],
                 );
               },
@@ -1170,8 +1135,7 @@ class _HmfStoreDetailsDiscoverScreenState
                     ? CachedNetworkImage(
                         imageUrl: imageUrl,
                         fit: BoxFit.cover,
-                        placeholder: (_, __) =>
-                            Container(color: Colors.grey.shade200),
+                        placeholder: (_, __) => Container(color: Colors.grey.shade200),
                         errorWidget: (_, __, ___) => _cardImageFallback(),
                       )
                     : _cardImageFallback(),
@@ -1207,9 +1171,7 @@ class _HmfStoreDetailsDiscoverScreenState
                 const SizedBox(height: 8),
                 PriceRow(
                   sellingPrice: '${AppConstants.rupeeSymbol}$sellingPrice',
-                  mrp: mrpPrice.isNotEmpty
-                      ? '${AppConstants.rupeeSymbol}$mrpPrice'
-                      : '',
+                  mrp: mrpPrice.isNotEmpty ? '${AppConstants.rupeeSymbol}$mrpPrice' : '',
                   discount: discount,
                 ),
               ],
@@ -1246,12 +1208,9 @@ class _HmfStoreDetailsDiscoverScreenState
     final currentLabel = currentIsTiffin ? 'tiffin' : 'food';
     Get.dialog(
       AlertDialog(
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: CustomText('Start a new cart?',
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-            color: AppColors.mainTextColor),
+            fontSize: 16, fontWeight: FontWeight.w800, color: AppColors.mainTextColor),
         content: CustomText(
           'Your cart has $currentLabel items. Tiffin and food are ordered '
           'separately, so adding this will clear your cart and start a new one.',
@@ -1261,23 +1220,19 @@ class _HmfStoreDetailsDiscoverScreenState
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: CustomText('Cancel',
-                color: AppColors.secondaryTextColor,
-                fontWeight: FontWeight.w700),
+            child: CustomText('Cancel', color: AppColors.secondaryTextColor, fontWeight: FontWeight.w700),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: _primary,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
             ),
             onPressed: () {
               cartController.clear();
               cartController.add(item, store, isTiffin: isTiffin);
               Get.back();
             },
-            child: CustomText('New cart',
-                color: AppColors.white, fontWeight: FontWeight.w800),
+            child: CustomText('New cart', color: AppColors.white, fontWeight: FontWeight.w800),
           ),
         ],
       ),
@@ -1310,10 +1265,7 @@ class _HmfStoreDetailsDiscoverScreenState
             children: [
               const Icon(Icons.add_rounded, size: 15, color: Colors.white),
               const SizedBox(width: 3),
-              CustomText('Add',
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white),
+              CustomText('Add', fontSize: 12, fontWeight: FontWeight.w800, color: Colors.white),
             ],
           ),
         ),
@@ -1336,18 +1288,14 @@ class _HmfStoreDetailsDiscoverScreenState
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _stepBtn(qty == 1 ? Icons.delete_outline_rounded : Icons.remove,
-              Colors.white, () => cartController.remove(item)),
+          _stepBtn(qty == 1 ? Icons.delete_outline_rounded : Icons.remove, Colors.white,
+              () => cartController.remove(item)),
           Container(
             constraints: const BoxConstraints(minWidth: 18),
             alignment: Alignment.center,
-            child: CustomText('$qty',
-                fontSize: 13,
-                fontWeight: FontWeight.w800,
-                color: Colors.white),
+            child: CustomText('$qty', fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white),
           ),
-          _stepBtn(Icons.add, Colors.white,
-              () => cartController.add(item, store, isTiffin: isTiffin)),
+          _stepBtn(Icons.add, Colors.white, () => cartController.add(item, store, isTiffin: isTiffin)),
         ],
       ),
     );
@@ -1369,15 +1317,13 @@ class _HmfStoreDetailsDiscoverScreenState
     return Container(
       color: _placeholderBg,
       alignment: Alignment.center,
-      child: Icon(Icons.lunch_dining,
-          size: 32, color: _primary.withValues(alpha: 0.45)),
+      child: Icon(Icons.lunch_dining, size: 32, color: _primary.withValues(alpha: 0.45)),
     );
   }
 
   // ── Gallery ──────────────────────────────────────────────────────────────
   Widget _buildGallery() {
-    final images =
-        store.galleryImages.where((p) => p.trim().isNotEmpty).toList();
+    final images = store.galleryImages.where((p) => p.trim().isNotEmpty).toList();
     if (images.isEmpty) return const SizedBox.shrink();
 
     return CustomFormCard(
@@ -1451,5 +1397,4 @@ class _HmfStoreDetailsDiscoverScreenState
     );
     return height != null ? SizedBox(height: height, child: tile) : tile;
   }
-
 }

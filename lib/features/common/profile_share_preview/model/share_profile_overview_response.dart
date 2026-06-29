@@ -41,6 +41,18 @@ class ShareUser {
   final String? name;
   final String? username;
   final String? accountType;
+
+  /// Business sub-category for `accountType == BUSINESS` (e.g. "grocery",
+  /// "food", "medical", "Hostels & Stay Service"). Drives which Discover
+  /// detail screen the "Open Profile in App" CTA opens. Backend should
+  /// populate `business_category` on the share-overview response.
+  final String? businessCategory;
+
+  /// Profession type for `accountType == INDIVIDUAL` (e.g. "Skilled Work",
+  /// "Consultant"). Drives which Discover detail screen the "Open Profile
+  /// in App" CTA opens. Backend should populate `profession_type` on the
+  /// share-overview response.
+  final String? professionType;
   final String? profileImage;
   final String? bio;
   final String? objective;
@@ -58,6 +70,8 @@ class ShareUser {
     this.name,
     this.username,
     this.accountType,
+    this.businessCategory,
+    this.professionType,
     this.profileImage,
     this.bio,
     this.objective,
@@ -77,6 +91,8 @@ class ShareUser {
       name: json['name']?.toString(),
       username: json['username']?.toString(),
       accountType: json['account_type']?.toString(),
+      businessCategory: json['business_category']?.toString(),
+      professionType: json['profession_type']?.toString(),
       profileImage: json['profile_image']?.toString(),
       bio: json['bio']?.toString(),
       objective: json['objective']?.toString(),

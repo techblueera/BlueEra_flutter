@@ -26,6 +26,7 @@ class GroceryTopSellingProductCard extends StatelessWidget {
   final List<ProductVariants> variants;
   final Widget? imageOverlay;
   final double imageHeight;
+  final VoidCallback? onShare;
 
   const GroceryTopSellingProductCard({
     super.key,
@@ -33,24 +34,21 @@ class GroceryTopSellingProductCard extends StatelessWidget {
     required this.variants,
     this.imageOverlay,
     this.imageHeight = 130,
+    this.onShare,
   });
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.isRegistered<GroceryController>()
-        ? Get.find<GroceryController>()
-        : Get.put(GroceryController());
-    final firstVariant =
-        variants.isNotEmpty ? variants.first : product.productVariant;
+    final controller =
+        Get.isRegistered<GroceryController>() ? Get.find<GroceryController>() : Get.put(GroceryController());
+    final firstVariant = variants.isNotEmpty ? variants.first : product.productVariant;
     final price = controller.getPriceDetails(firstVariant?.pricing);
     // Variant image first, product image as fallback (handles missing OR
     // broken variant images).
-    final variantImageUrl = (firstVariant?.images?.isNotEmpty ?? false)
-        ? firstVariant!.images!.first.url
-        : null;
-    final productImageUrl = (product.product?.images?.isNotEmpty ?? false)
-        ? product.product!.images!.first.url
-        : null;
+    final variantImageUrl =
+        (firstVariant?.images?.isNotEmpty ?? false) ? firstVariant!.images!.first.url : null;
+    final productImageUrl =
+        (product.product?.images?.isNotEmpty ?? false) ? product.product!.images!.first.url : null;
     final quantity = firstVariant?.quantity ?? '';
 
     return Container(
@@ -75,6 +73,31 @@ class GroceryTopSellingProductCard extends StatelessWidget {
                     urls: [variantImageUrl, productImageUrl],
                   ),
                 ),
+                if (onShare != null)
+                  Positioned(
+                    top: SizeConfig.size6,
+                    left: SizeConfig.size6,
+                    child: GestureDetector(
+                      onTap: onShare,
+                      behavior: HitTestBehavior.opaque,
+                      child: Container(
+                        width: 28,
+                        height: 28,
+                        decoration: BoxDecoration(
+                          color: AppColors.white.withValues(alpha: 0.9),
+                          shape: BoxShape.circle,
+                          boxShadow: const [
+                            BoxShadow(color: Color(0x1A000000), blurRadius: 4),
+                          ],
+                        ),
+                        padding: const EdgeInsets.all(6),
+                        child: LocalAssets(
+                          imagePath: AppIconAssets.share_bold,
+                          imgColor: AppColors.black,
+                        ),
+                      ),
+                    ),
+                  ),
                 if (imageOverlay != null)
                   Positioned(
                     top: SizeConfig.size6,
@@ -85,8 +108,8 @@ class GroceryTopSellingProductCard extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: EdgeInsets.fromLTRB(
-                SizeConfig.size8, SizeConfig.size6, SizeConfig.size8, SizeConfig.size10),
+            padding:
+                EdgeInsets.fromLTRB(SizeConfig.size8, SizeConfig.size6, SizeConfig.size8, SizeConfig.size10),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -103,22 +126,19 @@ class GroceryTopSellingProductCard extends StatelessWidget {
                 Row(
                   children: [
                     if (firstVariant?.isVegetarian != null) ...[
-                      FoodTypeIndicator(
-                          isVegetarian: firstVariant?.isVegetarian ?? false),
+                      FoodTypeIndicator(isVegetarian: firstVariant?.isVegetarian ?? false),
                       SizedBox(width: SizeConfig.size6),
                     ],
                     Container(
                       decoration: BoxDecoration(
-                          border:
-                              Border.all(color: AppColors.green00, width: 1),
+                          border: Border.all(color: AppColors.green00, width: 1),
                           borderRadius: BorderRadius.circular(2)),
                       padding: const EdgeInsets.all(3.5),
                       child: Container(
                         height: 7,
                         width: 7,
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(7),
-                            color: AppColors.green00),
+                        decoration:
+                            BoxDecoration(borderRadius: BorderRadius.circular(7), color: AppColors.green00),
                       ),
                     ),
                     if (quantity.isNotEmpty) ...[
@@ -126,10 +146,8 @@ class GroceryTopSellingProductCard extends StatelessWidget {
                       Container(
                         decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(4),
-                            border: Border.all(
-                                width: 0.5, color: AppColors.greyE5)),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
+                            border: Border.all(width: 0.5, color: AppColors.greyE5)),
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         child: CustomText(
                           quantity,
                           fontSize: 11,

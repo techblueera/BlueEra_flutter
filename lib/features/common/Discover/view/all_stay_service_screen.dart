@@ -11,6 +11,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
@@ -32,6 +33,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+
+import '../../../../core/constants/app_icon_assets.dart';
+import '../../../../widgets/local_assets.dart';
 
 class AllStayServiceScreen extends StatefulWidget {
   final List<OnboardingCategoryModel> stayCategories;
@@ -605,8 +609,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.near_me_outlined,
-                  size: SizeConfig.size16, color: AppColors.secondaryTextColor),
+              Icon(Icons.near_me_outlined, size: SizeConfig.size16, color: AppColors.secondaryTextColor),
               SizedBox(width: SizeConfig.size2),
               CustomText(
                 '$distanceData KM',
@@ -638,8 +641,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.chat_bubble_outline_rounded,
-                      size: 16, color: AppColors.primaryColor),
+                  Icon(Icons.chat_bubble_outline_rounded, size: 16, color: AppColors.primaryColor),
                   SizedBox(width: SizeConfig.size6),
                   CustomText(
                     AppStrings.chat.tr,
@@ -744,11 +746,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
         []; // Fallback to empty list
 
     // "Starting From" → cheapest room across the listing.
-    final roomPrices = (service.rooms ?? [])
-        .map((r) => r.pricePerDay)
-        .whereType<int>()
-        .toList()
-      ..sort();
+    final roomPrices = (service.rooms ?? []).map((r) => r.pricePerDay).whereType<int>().toList()..sort();
     final startingPrice = roomPrices.isNotEmpty ? roomPrices.first : null;
 
     void openDetails() => Get.to(() => HotelDiscoverHomeScreen(data: service));
@@ -759,6 +757,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
         imageUrls: allImages,
         logoUrl: service.profile?.logoUrl ?? '',
         hotelName: service.profile?.name ?? "N/A",
+        businessId: service.businessId ?? service.profile?.businessId,
         address: [
           service.profile?.address?.street,
           service.profile?.address?.city,
@@ -908,9 +907,9 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
 */
   }
 
-  /// Maps the hotel's boolean amenity flags to (icon, label) pairs for
+  /// Maps the hotel-level boolean amenity flags to (icon, label) pairs for
   /// the card's amenity grid — only enabled amenities are emitted, in a
-  /// stable display order.
+  /// stable display order matching the design.
   List<MapEntry<IconData, String>> _hotelAmenities(Amenities? a) {
     if (a == null) return const [];
     final list = <MapEntry<IconData, String>>[];
@@ -918,17 +917,17 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
       if (on == true) list.add(MapEntry(icon, label));
     }
 
-    add(a.airConditioning, Icons.ac_unit_rounded, 'Air Conditioning');
-    add(a.freeWifi, Icons.wifi_rounded, 'Free Wifi');
-    add(a.television, Icons.tv_rounded, 'Television');
-    add(a.roomService, Icons.room_service_outlined, 'Room Service');
+    add(a.freeParking, Icons.local_parking_rounded, 'Free Parking');
+    add(a.restaurant, Icons.restaurant_rounded, 'Restaurant');
+    add(a.frontDesk24x7, Icons.support_agent_rounded, '24x7 Front Desk');
+    add(a.elevatorLift, Icons.elevator_rounded, 'Elevator/Lift');
+    add(a.cctvSurveillance, Icons.videocam_rounded, 'CCTV Surveillance');
     add(a.powerBackup, Icons.bolt_rounded, 'Power Backup');
-    add(a.balcony, Icons.balcony_outlined, 'Balcony');
-    add(a.attachedBathroom, Icons.bathtub_outlined, 'Attached Bathroom');
-    add(a.wardrobe, Icons.checkroom_rounded, 'Wardrobe');
-    add(a.deskChair, Icons.chair_alt_outlined, 'Desk & Chair');
-    add(a.roomRefrigerators, Icons.kitchen_outlined, 'Refrigerator');
-    add(a.electricKettle, Icons.coffee_rounded, 'Electric Kettle');
+    add(a.laundryService, Icons.local_laundry_service_rounded, 'Laundry Service');
+    add(a.swimmingPool, Icons.pool_rounded, 'Swimming Pool');
+    add(a.airportTransportation, Icons.airport_shuttle_rounded, 'Airport Transport');
+    add(a.bar, Icons.local_bar_rounded, 'Bar');
+    add(a.gym, Icons.fitness_center_rounded, 'Gym');
     return list;
   }
 
@@ -1048,6 +1047,7 @@ class PropertyCard extends StatefulWidget {
   final String checkInTime;
   final String checkOutTime;
   final List<MapEntry<IconData, String>> amenities;
+  final String? businessId;
   final VoidCallback? onBook;
   final VoidCallback? onChat;
 
@@ -1064,6 +1064,7 @@ class PropertyCard extends StatefulWidget {
     required this.checkInTime,
     required this.checkOutTime,
     required this.amenities,
+    this.businessId,
     this.onBook,
     this.onChat,
   });
@@ -1117,6 +1118,16 @@ class _PropertyCardState extends State<PropertyCard> {
     );
   }
 
+  Future<void> _shareBusiness() async {
+    final shareLink = businessProfileDeepLink(userId: widget.businessId);
+    final name = widget.hotelName.trim().isNotEmpty ? widget.hotelName.trim() : 'this stay';
+
+    await ShareService.instance.openShareSheet(
+      text: "Check out $name on BlueEra:\n$shareLink",
+      subject: name,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final hasMultipleImages = widget.imageUrls.length > 1;
@@ -1143,19 +1154,21 @@ class _PropertyCardState extends State<PropertyCard> {
             children: [
               _imageHeader(hasMultipleImages, imageHeight),
               Padding(
-                padding: EdgeInsets.fromLTRB(14,12, 14, 14),
+                padding: EdgeInsets.fromLTRB(14, 12, 14, 14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: [
                         _logoAvatar(logoSize),
-                    SizedBox(width: 12,),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CustomText(
+                        SizedBox(
+                          width: 12,
+                        ),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              CustomText(
                                 widget.hotelName,
                                 fontWeight: FontWeight.w700,
                                 fontSize: 16,
@@ -1163,32 +1176,60 @@ class _PropertyCardState extends State<PropertyCard> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                          if (widget.address.isNotEmpty) ...[
-                            SizedBox(height: SizeConfig.size6),
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Icon(Icons.location_on_outlined,
-                                    size: SizeConfig.size16, color: AppColors.secondaryTextColor),
-                                SizedBox(width: SizeConfig.size2),
-                                Expanded(
-                                  child: CustomText(
-                                    widget.address,
-                                    fontSize: 12,
-                                    color: AppColors.secondaryTextColor,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
+                              if (widget.address.isNotEmpty ||
+                                  (widget.distance.isNotEmpty && widget.distance != '0')) ...[
+                                SizedBox(height: SizeConfig.size6),
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.location_on_rounded,
+                                        size: SizeConfig.size16, color: AppColors.primaryColor),
+                                    SizedBox(width: SizeConfig.size4),
+                                    Expanded(
+                                      child: Text.rich(
+                                        TextSpan(
+                                          children: [
+                                            if (widget.distance.isNotEmpty && widget.distance != '0') ...[
+                                              TextSpan(
+                                                text: '${widget.distance}KM Away',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: AppColors.primaryColor,
+                                                ),
+                                              ),
+                                              if (widget.address.isNotEmpty)
+                                                TextSpan(
+                                                  text: '  |  ',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: AppColors.secondaryTextColor,
+                                                  ),
+                                                ),
+                                            ],
+                                            if (widget.address.isNotEmpty)
+                                              TextSpan(
+                                                text: widget.address,
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w400,
+                                                  color: AppColors.secondaryTextColor,
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
-
                     if (widget.amenities.isNotEmpty) ...[
                       SizedBox(height: SizeConfig.size12),
                       _amenityGrid(),
@@ -1277,42 +1318,33 @@ class _PropertyCardState extends State<PropertyCard> {
                 ),
               ),
             ),
-          if (widget.distance.isNotEmpty && widget.distance != '0')
-            Positioned(
-              right: 10,
-              top: 10,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.55),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.near_me_rounded, size: 12, color: Colors.white),
-                    SizedBox(width: SizeConfig.size4),
-                    CustomText(
-                      '${widget.distance} ${AppStrings.kmAwayLabel.tr}',
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ],
-                ),
-              ),
+
+          Positioned(
+            right: 10,
+            top: 10,
+            child: Column(
+              children: [
+                _circleIconBtn(AppIconAssets.share_bold, onTap: _shareBusiness),
+                const SizedBox(height: 8),
+                _circleIconBtn(AppIconAssets.star, onTap: () {}),
+              ],
             ),
+          ),
           if (widget.checkInTime.isNotEmpty || widget.checkOutTime.isNotEmpty)
             Positioned(
-              left: 0,
-              right: 0,
+              right: 10,
               bottom: 10,
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (widget.checkInTime.isNotEmpty) _timePill(widget.checkInTime),
+                  if (widget.checkInTime.isNotEmpty)
+                    _timePill(
+                      widget.checkOutTime.isNotEmpty
+                          ? '${widget.checkInTime}  -'
+                          : widget.checkInTime,
+                    ),
                   if (widget.checkInTime.isNotEmpty && widget.checkOutTime.isNotEmpty)
-                    SizedBox(width: SizeConfig.size8),
+                    SizedBox(width: SizeConfig.size6),
                   if (widget.checkOutTime.isNotEmpty) _timePill(widget.checkOutTime),
                 ],
               ),
@@ -1333,22 +1365,51 @@ class _PropertyCardState extends State<PropertyCard> {
       );
 
   Widget _timePill(String time) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.greenShade,
           borderRadius: BorderRadius.circular(20),
-          boxShadow: const [BoxShadow(color: Color(0x1A000000), blurRadius: 6)],
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.15),
+              blurRadius: 6,
+            ),
+          ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.schedule_rounded, size: 13, color: AppColors.primaryColor),
+            const Icon(Icons.schedule_rounded, size: 13, color: Colors.white),
             SizedBox(width: SizeConfig.size4),
-            CustomText(time,
-                fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.mainTextColor),
+            CustomText(
+              time,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
           ],
         ),
       );
+
+  Widget _circleIconBtn(String icon, {required VoidCallback onTap}) {
+    return Material(
+      color: Colors.white,
+      shape: const CircleBorder(),
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const CircleBorder(),
+        child: Padding(
+          padding: const EdgeInsets.all(6),
+          child: LocalAssets(
+            imagePath: icon,
+            imgColor: AppColors.black,
+            height: 14,
+            width: 8,
+          ),
+        ),
+      ),
+    );
+  }
 
   // ─── Amenities grid (3 columns) ──────────────────────────────────
   Widget _amenityGrid() {
@@ -1358,9 +1419,13 @@ class _PropertyCardState extends State<PropertyCard> {
     final moreCount = items.length - visible.length;
 
     final cells = <Widget>[
-      ...visible.map((e) => _amenityCell(e.key, e.value)),
+      ...visible.map((e) => _amenityCell(e.key, e.value, isMore: false)),
       if (moreCount > 0)
-        _amenityCell(Icons.more_horiz_rounded, '+$moreCount ${AppStrings.more.tr}'),
+        _amenityCell(
+          Icons.more_horiz_rounded,
+          '+$moreCount ${AppStrings.more.tr}',
+          isMore: true,
+        ),
     ];
 
     final rows = <Widget>[];
@@ -1382,22 +1447,26 @@ class _PropertyCardState extends State<PropertyCard> {
     return Column(children: rows);
   }
 
-  Widget _amenityCell(IconData icon, String label) => Row(
-        children: [
-          Icon(icon, size: 16, color: AppColors.primaryColor),
-          SizedBox(width: SizeConfig.size6),
-          Flexible(
-            child: CustomText(
-              label,
-              fontSize: 11,
-              fontWeight: FontWeight.w500,
-              color: AppColors.secondaryTextColor,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
+  Widget _amenityCell(IconData icon, String label, {required bool isMore}) {
+    final accent = isMore ? const Color(0xFFE53935) : AppColors.primaryColor;
+    final textColor = isMore ? const Color(0xFFE53935) : AppColors.secondaryTextColor;
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: accent),
+        SizedBox(width: SizeConfig.size6),
+        Flexible(
+          child: CustomText(
+            label,
+            fontSize: 11,
+            fontWeight: isMore ? FontWeight.w700 : FontWeight.w500,
+            color: textColor,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-        ],
-      );
+        ),
+      ],
+    );
+  }
 
   // ─── Starting price + Book Now ───────────────────────────────────
   Widget _bottomRow() => Row(
@@ -1426,9 +1495,8 @@ class _PropertyCardState extends State<PropertyCard> {
                             fontWeight: FontWeight.w800,
                             color: AppColors.primaryColor,
                           ),
-                          SizedBox(width: SizeConfig.size2),
                           CustomText(
-                            AppStrings.perDay.tr,
+                            '/Day',
                             fontSize: 11,
                             fontWeight: FontWeight.w500,
                             color: AppColors.secondaryTextColor,
@@ -1453,8 +1521,7 @@ class _PropertyCardState extends State<PropertyCard> {
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: AppColors.primaryColor, width: 0.5),
                 ),
-                child: Icon(Icons.chat_bubble_outline_rounded,
-                    size: 18, color: AppColors.primaryColor),
+                child: Icon(Icons.chat_bubble_outline_rounded, size: 18, color: AppColors.primaryColor),
               ),
             ),
             SizedBox(width: SizeConfig.size10),
@@ -1516,12 +1583,10 @@ class _PropertyCardState extends State<PropertyCard> {
                     width: size,
                     height: size,
                     fit: BoxFit.cover,
-                    placeholder: (_, __) =>
-                        Container(width: size, height: size, color: AppColors.greyE5),
+                    placeholder: (_, __) => Container(width: size, height: size, color: AppColors.greyE5),
                     errorWidget: (_, __, ___) => _brokenHotelLogo(size),
                   ),
           ),
-
         ],
       ),
     );
@@ -1559,7 +1624,6 @@ class _PropertyCardState extends State<PropertyCard> {
           ],
         ),
       );
-
 }
 
 class _ReviewsBottomSheet extends StatelessWidget {

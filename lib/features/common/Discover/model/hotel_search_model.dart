@@ -386,6 +386,16 @@ class Amenities {
     this.deskChair,
     this.roomRefrigerators,
     this.electricKettle,
+    this.freeParking,
+    this.restaurant,
+    this.frontDesk24x7,
+    this.elevatorLift,
+    this.cctvSurveillance,
+    this.laundryService,
+    this.swimmingPool,
+    this.airportTransportation,
+    this.bar,
+    this.gym,
     this.v,});
 
   Amenities.fromJson(dynamic json) {
@@ -403,6 +413,16 @@ class Amenities {
     deskChair = json['deskChair'];
     roomRefrigerators = json['roomRefrigerators'];
     electricKettle = json['electricKettle'];
+    freeParking = json['freeParking'];
+    restaurant = json['restaurant'];
+    frontDesk24x7 = json['frontDesk24x7'];
+    elevatorLift = json['elevatorLift'];
+    cctvSurveillance = json['cctvSurveillance'];
+    laundryService = json['laundryService'];
+    swimmingPool = json['swimmingPool'];
+    airportTransportation = json['airportTransportation'];
+    bar = json['bar'];
+    gym = json['gym'];
     v = json['__v'];
   }
   String? id;
@@ -419,6 +439,16 @@ class Amenities {
   bool? deskChair;
   bool? roomRefrigerators;
   bool? electricKettle;
+  bool? freeParking;
+  bool? restaurant;
+  bool? frontDesk24x7;
+  bool? elevatorLift;
+  bool? cctvSurveillance;
+  bool? laundryService;
+  bool? swimmingPool;
+  bool? airportTransportation;
+  bool? bar;
+  bool? gym;
   int? v;
 
   Map<String, dynamic> toJson() {
@@ -437,6 +467,16 @@ class Amenities {
     map['deskChair'] = deskChair;
     map['roomRefrigerators'] = roomRefrigerators;
     map['electricKettle'] = electricKettle;
+    map['freeParking'] = freeParking;
+    map['restaurant'] = restaurant;
+    map['frontDesk24x7'] = frontDesk24x7;
+    map['elevatorLift'] = elevatorLift;
+    map['cctvSurveillance'] = cctvSurveillance;
+    map['laundryService'] = laundryService;
+    map['swimmingPool'] = swimmingPool;
+    map['airportTransportation'] = airportTransportation;
+    map['bar'] = bar;
+    map['gym'] = gym;
     map['__v'] = v;
     return map;
   }

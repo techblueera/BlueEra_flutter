@@ -4,8 +4,17 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/share_service.dart';
+import 'package:BlueEra/features/common/Discover/view/discover_school_home_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/healthcare/discover_hospital_home_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/others_service_detail_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/self_employee_view_discover_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/widget/discover_professionals_view_screen.dart';
 import 'package:BlueEra/features/common/profile_share_preview/model/share_profile_overview_response.dart';
 import 'package:BlueEra/features/common/profile_share_preview/repo/share_profile_overview_repo.dart';
+import 'package:BlueEra/features/me/food/view/customer/visit_food_store_details_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/customer/grocery_via_self_pickup/visit_grocery_store_screen.dart';
+import 'package:BlueEra/features/me/medical/view/medical_pharmacy_detail_screen.dart';
+import 'package:BlueEra/features/me/product/view/customer/visit_product_store_details_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
@@ -683,10 +692,180 @@ class _ProfileSharePreviewScreenState extends State<ProfileSharePreviewScreen> {
     );
   }
 
+  /// Routes the "Open Profile in App" CTA to the matching Discover detail
+  /// screen based on `accountType` and the user's category/profession.
+  ///
+  /// Falls back to the generic [redirectToProfileScreen] when:
+  ///   - the share response didn't include `business_category` /
+  ///     `profession_type` (backend hasn't extended the payload yet);
+  ///   - the category requires rich data we can't synthesise from a
+  ///     userId alone (Hotel needs `HotelServiceData`, Vehicle needs a
+  ///     `vehicleId` distinct from the user share id).
+  void _openDetailScreen() {
+    final user = _data?.user;
+    final accountType =
+        (user?.accountType ?? widget.accountTypeHint ?? '').toUpperCase();
+
+    if (user == null) {
+      _fallbackToProfile(accountType);
+      return;
+    }
+
+    if (accountType == AppConstants.individual) {
+      _openIndividualDetail(user, accountType);
+    } else if (accountType == AppConstants.business) {
+      _openBusinessDetail(user, accountType);
+    } else {
+      _fallbackToProfile(accountType);
+    }
+  }
+
+  void _openIndividualDetail(ShareUser user, String accountType) {
+    // Individual accounts have two specialised detail screens. The
+    // distinction by `profession_type` mirrors the values used by the
+    // onboarding flow (skilled work vs. consultant). Consultant-style
+    // professions open the dedicated Professionals view; everything
+    // else (skilled work, generic self-employed) falls into the
+    // Self-Employee view.
+    final type = (user.professionType ?? '').trim().toLowerCase();
+    final isConsultant = type == AppConstants.consultant.toLowerCase() ||
+        type.contains('consult') ||
+        type.contains('professional');
+
+    if (isConsultant) {
+      Get.to(() => DiscoverProfessionalsViewScreen(userId: widget.userId));
+    } else {
+      Get.to(() => SelfEmployeeViewDiscoverScreen(userId: widget.userId));
+    }
+  }
+
+  void _openBusinessDetail(ShareUser user, String accountType) {
+    final category = (user.businessCategory ?? '').trim().toLowerCase();
+    if (category.isEmpty) {
+      _fallbackToProfile(accountType);
+      return;
+    }
+
+    // Grocery store
+    if (category.contains('grocery')) {
+      Get.to(() => VisitGroceryStoreScreen(
+            visitBusinessId: widget.userId,
+            userId: widget.userId,
+          ));
+      return;
+    }
+    // Food / restaurant
+    if (category.contains('food') ||
+        category.contains('restaurant') ||
+        category.contains('dhaba') ||
+        category.contains('bakery')) {
+      Get.to(() => VisitFoodStoreDetailsScreen(visitBusinessId: widget.userId));
+      return;
+    }
+    // Medical / pharmacy
+    if (category.contains('pharmacy') ||
+        category == AppConstants.medical ||
+        category.contains('medical store') ||
+        category.contains('chemist')) {
+      Get.to(() => MedicalPharmacyDetailScreen(businessId: widget.userId));
+      return;
+    }
+    // Hospital sector (hospitals, clinics, diagnostic centres). The
+    // hospital screen reads its state from a controller — relying on the
+    // caller to seed it. Until that fetch is wired here, fall back to
+    // the generic redirect so the user always lands on *something*.
+    if (category.contains('hospital') ||
+        category.contains('clinic') ||
+        category.contains('diagnostic') ||
+        category.contains('healthcare')) {
+      // TODO: trigger HospitalController fetch by businessId, then
+      //       Get.to(() => const DiscoverHospitalHomeScreen()).
+      _fallbackToProfile(accountType);
+      return;
+    }
+    // Hotel / stay — needs a fully fetched HotelServiceData. No
+    // server-side path to construct that from just a userId on this
+    // surface, so fall back for now.
+    if (category.contains('hotel') ||
+        category.contains('stay') ||
+        category.contains('hostel') ||
+        category.contains('lodge')) {
+      // TODO: fetch HotelServiceData by businessId, then
+      //       Get.to(() => HotelDiscoverHomeScreen(data: fetched)).
+      _fallbackToProfile(accountType);
+      return;
+    }
+    // School / education
+    if (category.contains('school') ||
+        category.contains('education') ||
+        category.contains('coaching') ||
+        category.contains('college')) {
+      // DiscoverSchoolHomeScreen reads its state from
+      // SchoolAboutUsController. A future improvement: seed the
+      // controller here before navigating. Direct nav still works
+      // (empty state) but the fallback is friendlier today.
+      Get.to(() => DiscoverSchoolHomeScreen());
+      return;
+    }
+    // Vehicle — vehicle detail takes a vehicleId, not a user/business
+    // id. A profile share doesn't map to one specific vehicle, so we
+    // can't open VehicleDetailScreen from here.
+    if (category.contains('vehicle') || category.contains('automotive')) {
+      // TODO: route to a "vehicles by this seller" listing instead.
+      _fallbackToProfile(accountType);
+      return;
+    }
+    // Generic product store (furniture, fashion, electronics, jewellery,
+    // sports, toys, books, pet, construction, etc.). The shared
+    // VisitProductStoreDetailsScreen is the customer-facing store view
+    // for any business whose category is a "Store" or general "Product"
+    // sub-type. Kept above the services catch-all because "Store" can
+    // co-occur with the literal word "Service" in some category labels.
+    if (category.contains('store') ||
+        category.contains('product') ||
+        category.contains('shop') ||
+        category.contains('retail') ||
+        category.contains('furniture') ||
+        category.contains('fashion') ||
+        category.contains('electronic') ||
+        category.contains('jewel') ||
+        category.contains('sports') ||
+        category.contains('toys') ||
+        category.contains('books') ||
+        category.contains('stationery') ||
+        category.contains('pet') ||
+        category.contains('construction')) {
+      Get.to(() => VisitProductStoreDetailsScreen(visitUserId: widget.userId));
+      return;
+    }
+    // Generic services (consulting, IT, beauty, home, etc.) → the
+    // shared "other services" detail.
+    if (category.contains('service') ||
+        category.contains('consulting') ||
+        category.contains('beauty') ||
+        category.contains('logistics') ||
+        category.contains('financial') ||
+        category.contains('event') ||
+        category.contains('media') ||
+        category.contains('travel') ||
+        category.contains('tour')) {
+      Get.to(() => OthersServiceDetailScreen(visitUserId: widget.userId));
+      return;
+    }
+
+    _fallbackToProfile(accountType);
+  }
+
+  void _fallbackToProfile(String accountType) {
+    redirectToProfileScreen(
+      accountType: accountType,
+      profileId: widget.userId,
+      screenName: AppConstants.deepLinkScreen,
+    );
+  }
+
   // ── Sticky bottom CTA ───────────────────────────────────────────────
   Widget _buildBottomBar() {
-    final user = _data!.user!;
-    final accountType = (user.accountType ?? widget.accountTypeHint ?? '').toUpperCase();
     return Container(
       padding: EdgeInsets.fromLTRB(
         SizeConfig.size16,
@@ -706,11 +885,7 @@ class _ProfileSharePreviewScreenState extends State<ProfileSharePreviewScreen> {
         ],
       ),
       child: GestureDetector(
-        onTap: () => redirectToProfileScreen(
-          accountType: accountType,
-          profileId: widget.userId,
-          screenName: AppConstants.deepLinkScreen,
-        ),
+        onTap: _openDetailScreen,
         child: Container(
           height: 48,
           alignment: Alignment.center,

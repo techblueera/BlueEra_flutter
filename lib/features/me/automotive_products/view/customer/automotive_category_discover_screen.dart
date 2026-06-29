@@ -1,12 +1,15 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/share_service.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/me/automotive_products/controller/automotive_discover_controller.dart';
@@ -325,6 +328,7 @@ class _AutomotiveCategoryDiscoverScreenState
                 (context, index) => _AutomotiveProductGridCard(
                   data: products[index],
                   onTap: () => _openStore(products[index]),
+                  onShare: () => _onShareTap(products[index]),
                 ),
                 childCount: products.length,
               ),
@@ -348,6 +352,20 @@ class _AutomotiveCategoryDiscoverScreenState
         ApiKeys.id: data.product.businessId ?? '',
         ApiKeys.providerType: ProviderType.business,
       },
+    );
+  }
+
+  /// Opens the native share sheet with the product's BlueEra deep link
+  /// and its name.
+  Future<void> _onShareTap(GetProductData data) async {
+    final details = data.product.details;
+    final rawName = details?.name.trim() ?? '';
+    final name = rawName.isNotEmpty ? rawName : 'this product';
+    final shareLink = productDeepLink(productId: details?.id);
+
+    await ShareService.instance.openShareSheet(
+      text: "Check out $name on BlueEra:\n$shareLink",
+      subject: name,
     );
   }
 
@@ -385,8 +403,13 @@ class _AutomotiveCategoryDiscoverScreenState
 class _AutomotiveProductGridCard extends StatelessWidget {
   final GetProductData data;
   final VoidCallback? onTap;
+  final VoidCallback? onShare;
 
-  const _AutomotiveProductGridCard({required this.data, this.onTap});
+  const _AutomotiveProductGridCard({
+    required this.data,
+    this.onTap,
+    this.onShare,
+  });
 
   static double get _imageHeight => SizeConfig.size150 - 10;
   static const double _nameLineHeight = 1.3;
@@ -428,20 +451,52 @@ class _AutomotiveProductGridCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Product image
+            // Product image + share overlay
             SizedBox(
               height: _imageHeight,
-              child: ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(10)),
-                child: CustomImageSlideshow(
-                  isLoading: false,
-                  width: double.infinity,
-                  height: _imageHeight,
-                  imagePaths: details?.media ?? const [],
-                  borderRadius: BorderRadius.zero,
-                  onPhotoIndex: (_) {},
-                ),
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: ClipRRect(
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(10)),
+                      child: CustomImageSlideshow(
+                        isLoading: false,
+                        width: double.infinity,
+                        height: _imageHeight,
+                        imagePaths: details?.media ?? const [],
+                        borderRadius: BorderRadius.zero,
+                        onPhotoIndex: (_) {},
+                      ),
+                    ),
+                  ),
+                  if (onShare != null)
+                    Positioned(
+                      top: SizeConfig.size6,
+                      right: SizeConfig.size6,
+                      child: GestureDetector(
+                        onTap: onShare,
+                        behavior: HitTestBehavior.opaque,
+                        child: Container(
+                          width: 28,
+                          height: 28,
+                          alignment: Alignment.center,
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: AppColors.white.withValues(alpha: 0.9),
+                            shape: BoxShape.circle,
+                            boxShadow: const [
+                              BoxShadow(color: Color(0x1A000000), blurRadius: 4),
+                            ],
+                          ),
+                          child: LocalAssets(
+                            imagePath: AppIconAssets.share_bold,
+                            imgColor: AppColors.black,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
 
