@@ -1,8 +1,14 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/product_price_edit_sheet.dart';
+import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
+import 'package:BlueEra/widgets/swipe_to_delete_row.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
@@ -16,29 +22,83 @@ import 'package:flutter/material.dart';
 ///  • the description,
 ///  • and one row per variant with its price / MRP / discount / stock.
 ///
+/// When [isOwner] is true (the admin product card), each variant row gains a
+/// per-variant **edit** action (opens the price editor) and is **swipe-to-
+/// delete** — that's where catalog edits live now, instead of blunt card-level
+/// buttons that could only ever target the first variant.
+///
 /// Intentionally its OWN layout — it does not reuse `ProductPreviewScreen`.
-class ProductInventoryBottomSheet extends StatelessWidget {
+class ProductInventoryBottomSheet extends StatefulWidget {
   final GetProductData product;
 
-  const ProductInventoryBottomSheet({super.key, required this.product});
+  /// Owner (admin) mode — surfaces per-variant edit + swipe-to-delete.
+  final bool isOwner;
+
+  /// Price-update service for the edit sheet. Defaults to the product-service
+  /// inventory endpoint; callers can override (e.g. earn screens).
+  final PriceUpdateCallback? onUpdatePrice;
+
+  /// Fired after a variant is deleted, so the hosting screen can refresh its
+  /// own list too (the controller already purges its bound lists).
+  final VoidCallback? onChanged;
+
+  /// Deletes a variant by its inventory id. Defaults to the product-service
+  /// [InventoryController]; the automotive / manufacturer cards override it so
+  /// the delete hits their own service + purges their own bound lists.
+  final Future<bool> Function(String inventoryId)? onDeleteVariant;
+
+  const ProductInventoryBottomSheet({
+    super.key,
+    required this.product,
+    this.isOwner = false,
+    this.onUpdatePrice,
+    this.onChanged,
+    this.onDeleteVariant,
+  });
 
   /// Opens the sheet as a draggable modal. Call from a card tap.
   static Future<void> show(
     BuildContext context, {
     required GetProductData product,
+    bool isOwner = false,
+    PriceUpdateCallback? onUpdatePrice,
+    VoidCallback? onChanged,
+    Future<bool> Function(String inventoryId)? onDeleteVariant,
   }) {
     return showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => ProductInventoryBottomSheet(product: product),
+      builder: (_) => ProductInventoryBottomSheet(
+        product: product,
+        isOwner: isOwner,
+        onUpdatePrice: onUpdatePrice,
+        onChanged: onChanged,
+        onDeleteVariant: onDeleteVariant,
+      ),
     );
   }
 
-  ProductDetails? get _details => product.product.details;
+  @override
+  State<ProductInventoryBottomSheet> createState() =>
+      _ProductInventoryBottomSheetState();
+}
 
-  List<Variant> get _variants =>
-      product.product.sellerClassification?.variants ?? const [];
+class _ProductInventoryBottomSheetState
+    extends State<ProductInventoryBottomSheet> {
+  late final List<Variant> _variants;
+
+  @override
+  void initState() {
+    super.initState();
+    // Local, mutable copy so a swipe-delete drops the row live without
+    // waiting on a parent rebuild.
+    _variants = List<Variant>.from(
+      widget.product.product.sellerClassification?.variants ?? const [],
+    );
+  }
+
+  ProductDetails? get _details => widget.product.product.details;
 
   List<String> get _productImages => _details?.media ?? const [];
 
@@ -71,6 +131,109 @@ class ProductInventoryBottomSheet extends StatelessWidget {
     return _productImages.isNotEmpty ? _productImages.first : '';
   }
 
+  // ── Owner actions ─────────────────────────────────────────────────────────
+
+  void _editPrices() {
+    ProductPriceEditSheet.show(
+      context: context,
+      product: widget.product,
+      onUpdate: widget.onUpdatePrice ??
+          getOrPut(() => InventoryController()).updateProductVariantPrice,
+    );
+  }
+
+  /// Confirms, then deletes a single variant's inventory record. Returns true
+  /// when the delete succeeded (so the [Dismissible] commits the swipe).
+  ///
+  /// Deleting the LAST variant removes the whole product, so the confirm
+  /// dialog is upgraded to a clear "this removes the product" warning.
+  Future<bool> _confirmAndDeleteVariant(Variant v) async {
+    final inventoryId = v.inventoryId.isNotEmpty ? v.inventoryId : v.id;
+    if (inventoryId.isEmpty) {
+      commonSnackBar(message: "This variant can't be deleted.");
+      return false;
+    }
+
+    final bool isLast = _variants.length <= 1;
+    final productName = _details?.name ?? 'this product';
+
+    final confirmed = await _showDeleteConfirm(
+      title: isLast ? 'Delete product?' : 'Delete variant?',
+      message: isLast
+          ? 'This is the only variant — deleting it will remove the entire '
+              'product "$productName" from your inventory. This can\'t be undone.'
+          : '"${_variantTitle(v)}" will be permanently removed from your '
+              "inventory. This can't be undone.",
+    );
+    if (confirmed != true) return false;
+
+    AppLoader.show();
+    final ok = widget.onDeleteVariant != null
+        ? await widget.onDeleteVariant!(inventoryId)
+        : await getOrPut(() => InventoryController())
+            .deleteInventoryVariant(inventoryId: inventoryId);
+    AppLoader.hide();
+
+    if (!ok) {
+      commonSnackBar(
+          message: isLast
+              ? 'Could not delete the product.'
+              : 'Could not delete the variant.');
+      return false;
+    }
+    commonSnackBar(message: isLast ? 'Product deleted.' : 'Variant deleted.');
+    widget.onChanged?.call();
+    return true;
+  }
+
+  /// Delete confirmation dialog — mirrors the food top-selling variant sheet.
+  Future<bool?> _showDeleteConfirm({
+    required String title,
+    required String message,
+  }) {
+    return showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: CustomText(title,
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+            color: AppColors.mainTextColor),
+        content: CustomText(
+          message,
+          fontSize: 13,
+          color: AppColors.secondaryTextColor,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: CustomText('Cancel',
+                color: AppColors.secondaryTextColor,
+                fontWeight: FontWeight.w700),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.red,
+              shape:
+                  RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: CustomText('Delete',
+                color: AppColors.white, fontWeight: FontWeight.w800),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _onVariantDismissed(Variant v) {
+    setState(() => _variants.removeWhere((x) => x.id == v.id));
+    // Whole product gone — nothing left to show.
+    if (_variants.isEmpty && mounted) {
+      Navigator.of(context).maybePop();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final variants = _variants;
@@ -85,6 +248,11 @@ class ProductInventoryBottomSheet extends StatelessWidget {
             .map((v) => _discountPct(v.sellingPrice, v.mrp))
             .fold<int>(0, (a, b) => a > b ? a : b);
     final bool anyInStock = variants.any((v) => v.stock);
+
+    // Owner mode always lists variants (so each can be edited / deleted);
+    // viewers only see the list for genuinely multi-variant products.
+    final bool showVariantList =
+        widget.isOwner ? variants.isNotEmpty : variants.length > 1;
 
     return DraggableScrollableSheet(
       initialChildSize: 0.7,
@@ -133,11 +301,7 @@ class ProductInventoryBottomSheet extends StatelessWidget {
                         ),
                       ),
                     ],
-                    // Only show the variants list for genuinely multi-variant
-                    // products. A single-variant product is fully described by
-                    // the price summary above, so a "Variants (1)" list would be
-                    // redundant.
-                    if (variants.length > 1) ...[
+                    if (showVariantList) ...[
                       SizedBox(height: SizeConfig.size16),
                       Row(
                         children: [
@@ -149,10 +313,38 @@ class ProductInventoryBottomSheet extends StatelessWidget {
                             fontWeight: FontWeight.w600,
                             color: AppColors.secondaryTextColor,
                           ),
+                          if (widget.isOwner) ...[
+                            const Spacer(),
+                            Icon(Icons.swipe_left_rounded,
+                                size: 14, color: AppColors.secondaryTextColor),
+                            SizedBox(width: SizeConfig.size4),
+                            CustomText(
+                              'Swipe left, then tap Delete',
+                              fontSize: SizeConfig.small11,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.secondaryTextColor,
+                            ),
+                          ],
                         ],
                       ),
                       SizedBox(height: SizeConfig.size10),
-                      ...variants.map(_variantRow),
+                      ...variants.map(
+                        (v) => Padding(
+                          padding: EdgeInsets.only(bottom: SizeConfig.size8),
+                          child: widget.isOwner
+                              // Food-style swipe-to-reveal → tap Delete → confirm.
+                              ? SwipeToDeleteRow(
+                                  key: ValueKey('variant_${v.id}'),
+                                  onDelete: () async {
+                                    if (await _confirmAndDeleteVariant(v)) {
+                                      _onVariantDismissed(v);
+                                    }
+                                  },
+                                  child: _variantRow(v, owner: true),
+                                )
+                              : _variantRow(v),
+                        ),
+                      ),
                     ],
                   ],
                 ),
@@ -356,12 +548,11 @@ class ProductInventoryBottomSheet extends StatelessWidget {
     );
   }
 
-  Widget _variantRow(Variant v) {
+  Widget _variantRow(Variant v, {bool owner = false}) {
     final discount = _discountPct(v.sellingPrice, v.mrp);
     final showStrike = discount > 0;
     final image = _firstVariantImage(v);
     return Container(
-      margin: EdgeInsets.only(bottom: SizeConfig.size8),
       padding: EdgeInsets.all(SizeConfig.size8),
       decoration: BoxDecoration(
         color: AppColors.white,
@@ -441,8 +632,36 @@ class ProductInventoryBottomSheet extends StatelessWidget {
             ),
           ),
           SizedBox(width: SizeConfig.size8),
-          _stockPill(v.stock),
+          if (owner)
+            // Edit opens the per-variant price editor. Delete is the
+            // food-style swipe-to-reveal handled by [SwipeToDeleteRow].
+            _roundIconBtn(
+              icon: Icons.edit_outlined,
+              color: AppColors.primaryColor,
+              onTap: _editPrices,
+            )
+          else
+            _stockPill(v.stock),
         ],
+      ),
+    );
+  }
+
+  Widget _roundIconBtn({
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      customBorder: const CircleBorder(),
+      child: Container(
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.08),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, size: 16, color: color),
       ),
     );
   }

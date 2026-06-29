@@ -1,20 +1,17 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
-import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/me/product/controller/product_selfpickup_controller.dart';
-import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/features/me/product/model/product_category_with_inventory_model.dart';
-import 'package:BlueEra/features/me/product/view/admin/widget/product_inventory_bottom_sheet.dart';
-import 'package:BlueEra/features/me/product/view/admin/widget/product_top_selling_tile.dart';
+import 'package:BlueEra/features/me/product/view/customer/widget/product_customer_card.dart';
 import 'package:BlueEra/features/me/product/view/customer/widget/product_self_pickup_cart.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
 class VisitProductProductsScreen extends StatefulWidget {
@@ -39,11 +36,6 @@ class _VisitProductProductsScreenState
   final ProductSelfPickupController cartController =
       getOrPut<ProductSelfPickupController>(
           () => ProductSelfPickupController());
-
-  ViewBusinessDetailsController? get _viewBusinessDetailsController =>
-      Get.isRegistered<ViewBusinessDetailsController>()
-          ? Get.find<ViewBusinessDetailsController>()
-          : null;
 
   final ScrollController _scrollController = ScrollController();
 
@@ -107,32 +99,6 @@ class _VisitProductProductsScreenState
       isLoadMore: isLoadMore,
       visitBusinessId: widget.visitBusinessId,
     );
-  }
-
-  String? _firstVariantId(GetProductData product) {
-    final variants = product.product.sellerClassification?.variants;
-    if (variants == null || variants.isEmpty) return null;
-    final id = variants.first.id;
-    return id.isEmpty ? null : id;
-  }
-
-  void _onToggleCart(GetProductData product) {
-    final id = _firstVariantId(product);
-    if (id == null) return;
-    final bDetails = _viewBusinessDetailsController
-        ?.visitedBusinessProfileDetails
-        ?.data;
-    if (cartController.isVariantInCart(id)) {
-      cartController.removeFromCart(product);
-    } else {
-      cartController.addToCart(
-        product,
-        userId: widget.visitBusinessId,
-        businessName: bDetails?.businessName,
-        businessLogo: bDetails?.logo,
-        businessAddress: bDetails?.address,
-      );
-    }
   }
 
   @override
@@ -247,39 +213,30 @@ class _VisitProductProductsScreenState
       final isLoadingMore =
           controller.isProductByCategoryLoadingMore.value;
 
+      // 2-column masonry grid of the shared customer card → variants sheet →
+      // add to cart, identical to the grocery products screen.
       return CustomScrollView(
         controller: _scrollController,
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [
-          ...buildNativeAdGridSlivers(
-            itemCount: items.length,
-            keyPrefix: 'product_visit_native_ad',
-            adPadding: EdgeInsets.zero,
-            gridSliverBuilder: (start, end) => SliverPadding(
-              padding: EdgeInsets.zero,
-              // Why: a uniform SliverGrid (was SliverMasonryGrid) so
-              // every tile claims the same cell height — masonry let
-              // 1-line vs 2-line product names produce ragged rows.
-              // The 0.62 ratio matches the proportions of the
-              // top-selling product cards on the store-details screen so
-              // this grid and that preview present products with
-              // consistent dimensions.
-              sliver: SliverGrid(
-                gridDelegate:
-                    const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 10,
-                  crossAxisSpacing: 10,
-                  childAspectRatio: 0.62,
+          SliverPadding(
+            padding: EdgeInsets.only(
+                bottom: SizeConfig.size15 + kBottomNavigationBarHeight),
+            sliver: SliverMasonryGrid.count(
+              crossAxisCount: 2,
+              crossAxisSpacing: 6,
+              mainAxisSpacing: 6,
+              childCount: items.length,
+              itemBuilder: (context, i) => Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.greyE5),
                 ),
-                delegate: SliverChildBuilderDelegate(
-                  (context, index) => _ProductGridTile(
-                    product: items[start + index],
-                    cartController: cartController,
-                    onToggleCart: _onToggleCart,
-                    firstVariantId: _firstVariantId,
-                  ),
-                  childCount: end - start,
+                clipBehavior: Clip.antiAlias,
+                child: ProductCustomerCard(
+                  product: items[i],
+                  cartController: cartController,
+                  visitBusinessId: widget.visitBusinessId,
                 ),
               ),
             ),
@@ -299,83 +256,5 @@ class _VisitProductProductsScreenState
         ],
       );
     });
-  }
-}
-
-class _ProductGridTile extends StatelessWidget {
-  final GetProductData product;
-  final ProductSelfPickupController cartController;
-  final void Function(GetProductData) onToggleCart;
-  final String? Function(GetProductData) firstVariantId;
-
-  const _ProductGridTile({
-    required this.product,
-    required this.cartController,
-    required this.onToggleCart,
-    required this.firstVariantId,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    // Mirrors the top-selling carousel card on
-    // visit_product_store_details_screen — same ProductTopSellingImage
-    // for the thumbnail + cart overlay, same ProductTopSellingInfoSection
-    // for the title + price block — so the entry point and the
-    // category grid present products with identical visuals.
-    return GestureDetector(
-      onTap: () =>
-          ProductInventoryBottomSheet.show(context, product: product),
-      child: Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(height: SizeConfig.size4),
-          Expanded(
-            child: ProductTopSellingImage(
-              product: product,
-              onPreviewTap: () =>
-                  ProductInventoryBottomSheet.show(context, product: product),
-              cartOverlay: Obx(() {
-                // Subscribe to cart list — forces a rebuild on every
-                // add/remove so the toggle affordance stays in sync
-                // with the cart bar.
-                final cart = cartController.selectedProductVariants;
-                // ignore: unused_local_variable
-                final _ = cart.length;
-                final id = firstVariantId(product);
-                final added = cartController.isVariantInCart(id);
-                return IconButton(
-                  padding: EdgeInsets.zero,
-                  constraints:
-                      const BoxConstraints(minWidth: 28, minHeight: 28),
-                  onPressed:
-                      id == null ? null : () => onToggleCart(product),
-                  icon: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: added
-                          ? AppColors.greenShade
-                          : AppColors.blackMite,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Icon(
-                      added ? Icons.check : Icons.add,
-                      size: SizeConfig.size16,
-                      color: AppColors.white,
-                    ),
-                  ),
-                );
-              }),
-            ),
-          ),
-          ProductTopSellingInfoSection(product: product),
-        ],
-      ),
-    ),
-    );
   }
 }

@@ -6370,5 +6370,9 @@
   "updatePrice": "मूल्य अपडेट करें",
   "sellingPriceLabel": "विक्रय मूल्य",
   "mrpLabel": "MRP",
-  "variantLabel": "वेरिएंट"
+  "variantLabel": "वेरिएंट",
+  "referralAppliedTitle": "आपको रेफ़र किया गया है!",
+  "referralAppliedSubtitle": "रेफ़रल लागू हुआ",
+  "referralAppliedDesc": "आपने BlueEra को एक रेफ़रल के ज़रिए इंस्टॉल किया है। कोड @code आपके खाते में लागू कर दिया गया है — अपना इनाम पाएँ!",
+  "referralAppliedGotIt": "ठीक है"
 }

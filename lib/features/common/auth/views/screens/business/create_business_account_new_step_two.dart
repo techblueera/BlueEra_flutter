@@ -20,6 +20,7 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/business/visiting_card/view/widget/contact_number_widget.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/widgets/promo_code_dialog.dart';
+import 'package:BlueEra/widgets/referral_applied_dialog.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -97,6 +98,14 @@ class _CreateBusinessAccountNewStepTwoState
       // Consume-once: prevent a stale code from being re-applied if
       // the user creates a second business on the same device.
       await SharedPreferenceUtils.clearDeferredReferralCode();
+      // Acknowledge it so the user knows they were referred (they
+      // installed via a referral link) rather than applying silently.
+      if (!mounted) return;
+      await showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => ReferralAppliedDialog(code: saved),
+      );
       return;
     }
     if (!mounted) return;

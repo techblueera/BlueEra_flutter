@@ -1,12 +1,6 @@
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/widgets/app_loader.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/price_row.dart';
-import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/features/me/product/view/admin/widget/attribute_two_rows.dart';
 import 'package:BlueEra/features/me/product/view/admin/widget/product_inventory_bottom_sheet.dart';
@@ -110,12 +104,13 @@ class AdminProductCard extends StatelessWidget {
         : (product.product.sellerClassification?.productId ?? '');
 
     return GestureDetector(
-      onTap: () => ProductInventoryBottomSheet.show(context, product: product),
+      onTap: () => _openDetails(context),
       child: (isGridShow) ? Container(
         width: width,
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
           color: AppColors.white,
+          border: Border.all(color: AppColors.greyE5)
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -137,19 +132,6 @@ class AdminProductCard extends StatelessWidget {
                       },
                     ),
                   ),
-                  // Owner card — price-edit + delete shortcuts.
-                  Positioned(
-                    right: 6,
-                    top: 6,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _deleteButton(context),
-                        const SizedBox(width: 6),
-                        _editButton(context),
-                      ],
-                    ),
-                  ),
                   Positioned(
                     top: 6,
                     left: 6,
@@ -157,8 +139,7 @@ class AdminProductCard extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         ProductPreviewEyeButton(
-                          onTap: () => ProductInventoryBottomSheet.show(context,
-                              product: product),
+                          onTap: () => _openDetails(context),
                         ),
                         const SizedBox(width: 6),
                         ProductShareButton(
@@ -302,8 +283,7 @@ class AdminProductCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       ProductPreviewEyeButton(
-                        onTap: () => ProductInventoryBottomSheet.show(context,
-                            product: product),
+                        onTap: () => _openDetails(context),
                       ),
                       const SizedBox(width: 6),
                       ProductShareButton(
@@ -324,34 +304,14 @@ class AdminProductCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    /// Title + 3-dot menu
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: CustomText(
-                              details?.name,
-                              fontSize: SizeConfig.medium,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.mainTextColor,
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 2
-                          ),
-                        ),
-                        InkWell(
-                          onTap: () => _confirmAndDelete(context),
-                          customBorder: const CircleBorder(),
-                          child: Padding(
-                            padding: const EdgeInsets.all(2),
-                            child: Icon(
-                              Icons.delete_outline_rounded,
-                              size: 20,
-                              color: AppColors.red,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                    /// Title
+                    CustomText(
+                        details?.name,
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.mainTextColor,
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 2),
                     SizedBox(height: SizeConfig.size8),
 
                     /// Price Row
@@ -376,117 +336,16 @@ class AdminProductCard extends StatelessWidget {
     );
   }
 
-  // Opens the price-edit sheet. Updates go through the product-service
-  // inventory endpoint by default; callers (earn screens) can override.
-  void _onEditTap(BuildContext context) {
-    ProductPriceEditSheet.show(
-      context: context,
+  /// Opens the product-details sheet in owner mode. Per-variant edit and
+  /// swipe-to-delete live there now — the card no longer carries blunt
+  /// edit/delete buttons that could only ever target the first variant.
+  void _openDetails(BuildContext context) {
+    ProductInventoryBottomSheet.show(
+      context,
       product: product,
-      onUpdate: onUpdatePrice ??
-          getOrPut(() => InventoryController()).updateProductVariantPrice,
+      isOwner: true,
+      onUpdatePrice: onUpdatePrice,
+      onChanged: deleteProductApi,
     );
   }
-
-  Widget _editButton(BuildContext context) {
-    return InkWell(
-      onTap: () => _onEditTap(context),
-      child: Container(
-        padding: const EdgeInsets.all(5),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(5),
-          border: Border.all(color: AppColors.primaryColor, width: 1.0),
-        ),
-        child: LocalAssets(
-          imagePath: AppIconAssets.pen_line,
-          imgColor: AppColors.primaryColor,
-          height: 14,
-          width: 14,
-          boxFix: BoxFit.cover,
-        ),
-      ),
-    );
-  }
-
-  Widget _deleteButton(BuildContext context) {
-    return InkWell(
-      onTap: () => _confirmAndDelete(context),
-      child: Container(
-        padding: const EdgeInsets.all(5),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(5),
-          border: Border.all(color: AppColors.red, width: 1.0),
-        ),
-        child: Icon(Icons.delete_outline_rounded,
-            color: AppColors.red, size: 14),
-      ),
-    );
-  }
-
-  /// Confirms, then deletes this product's inventory variant via
-  /// `DELETE product-service/api/inventory/{inventoryId}`. On success the
-  /// controller drops it from the grid and the parent's [deleteProductApi] hook
-  /// fires so its own list can refresh too.
-  Future<void> _confirmAndDelete(BuildContext context) async {
-    final variants = product.product.sellerClassification?.variants ?? [];
-    final inventoryId = variants.isEmpty
-        ? ''
-        : (variants.first.inventoryId.isNotEmpty
-            ? variants.first.inventoryId
-            : variants.first.id);
-    if (inventoryId.isEmpty) {
-      commonSnackBar(message: "This product can't be deleted.");
-      return;
-    }
-
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: CustomText('Delete product?',
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-            color: AppColors.mainTextColor),
-        content: CustomText(
-          '"${product.product.details?.name ?? 'This item'}" will be '
-          "permanently removed from your inventory. This can't be undone.",
-          fontSize: 13,
-          color: AppColors.secondaryTextColor,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: CustomText('Cancel',
-                color: AppColors.secondaryTextColor,
-                fontWeight: FontWeight.w700),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.red,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-            ),
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: CustomText('Delete',
-                color: AppColors.white, fontWeight: FontWeight.w800),
-          ),
-        ],
-      ),
-    );
-    if (confirmed != true) return;
-
-    AppLoader.show();
-    final ok = await getOrPut(() => InventoryController())
-        .deleteInventoryVariant(inventoryId: inventoryId);
-    AppLoader.hide();
-
-    if (ok) {
-      deleteProductApi(); // let the hosting screen refresh its own list too
-      commonSnackBar(message: 'Product deleted.');
-    } else {
-      commonSnackBar(message: 'Could not delete the product.');
-    }
-  }
-
 }

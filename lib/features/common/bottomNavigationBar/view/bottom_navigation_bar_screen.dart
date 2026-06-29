@@ -18,6 +18,8 @@ import 'package:BlueEra/features/chat/view/order_main_chat_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/auth/views/screens/guest_dashboard_screen.dart';
+import 'package:BlueEra/features/common/joining_bounce/model/joining_bounce_model.dart';
+import 'package:BlueEra/features/common/joining_bounce/view/claim_bonus_dialog.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/ai_chat_guest_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_widget.dart';
@@ -143,6 +145,11 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _handlePostFrameInitialization();
       _maybePromptGuestToCreateProfile();
+      // One-shot per launch: surface the joining-bonus claim popup when the
+      // profile API says so. Skipped on deep-link background hosts.
+      if (!widget.deferHeavyInit) {
+        _maybeShowJoiningBonus();
+      }
       // _setupCallKitEventListener();
     });
   }
@@ -153,6 +160,43 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   /// "Create Profile" CTA reuses the shared [createProfileScreen] helper
   /// which pushes [ChooseAccountTypeScreen]. A static flag prevents the
   /// dialog from re-firing on tab swaps inside the same launch.
+  /// One-shot per launch: show the joining-bonus claim popup. The
+  /// `joining_bounce` object is read from the profile response the app already
+  /// loads (business → business profile, individual → personal profile) — no
+  /// extra API call. The gate is simply a real `joining_bounce_id`; a null id
+  /// means there is nothing to claim. Claiming is handled inside the dialog.
+  static bool _joiningBonusShown = false;
+  Worker? _joiningBonusWorker;
+
+  void _maybeShowJoiningBonus() {
+    if (_joiningBonusShown) return;
+    if (isGuestUser()) return;
+
+    final Rxn<JoiningBounce> source = isBusiness()
+        ? getOrPut(() => ViewBusinessDetailsController(), permanent: true)
+            .joiningBounce
+        : viewPersonalDetailsController.joiningBounce;
+
+    void show(JoiningBounce? bounce) {
+      if (_joiningBonusShown || !mounted) return;
+      if (bounce == null || bounce.joiningBounceId.isEmpty) return;
+      _joiningBonusShown = true;
+      _joiningBonusWorker?.dispose();
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (_) => ClaimBonusDialog(bounce: bounce),
+      );
+    }
+
+    // Already loaded → show now; otherwise show as soon as the profile
+    // response populates `joining_bounce`.
+    show(source.value);
+    if (!_joiningBonusShown) {
+      _joiningBonusWorker = ever<JoiningBounce?>(source, show);
+    }
+  }
+
   static bool _guestPromptShown = false;
 
   void _maybePromptGuestToCreateProfile() {
@@ -443,6 +487,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   @override
   void dispose() {
     _bottomNavVisibilityWorker?.dispose();
+    _joiningBonusWorker?.dispose();
     bottomBarVisibleNotifier.dispose(); // Clean up
     // Only fully dispose socket if no active call — otherwise the socket
     // gets killed when the widget tree rebuilds after returning from CallActivity

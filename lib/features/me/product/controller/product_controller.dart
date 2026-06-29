@@ -19,7 +19,11 @@ import 'package:BlueEra/core/services/serper_image_search_service.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/features/me/product/model/generate_ai_product_content.dart';
 import 'package:BlueEra/features/me/product/model/product_catalog_response.dart';
-import 'package:BlueEra/features/me/product/model/product_nested_category_response.dart';
+// `Product` here refers to the catalog model (product_catalog_response);
+// the nested-category response also declares a `Product`, so hide it to
+// keep the inventory list type unambiguous.
+import 'package:BlueEra/features/me/product/model/product_nested_category_response.dart'
+    hide Product;
 import 'package:BlueEra/features/me/product/model/single_product_model.dart';
 import 'package:BlueEra/features/me/product/repo/product_repo.dart';
 import 'package:BlueEra/features/me/product/view/admin/product_preview_screen.dart';
@@ -1554,7 +1558,10 @@ class ProductController extends GetxController{
   ProviderType? ownerProviderType;
 
   // ── Inventory Product Search by Category ─────────────────────────────
-  RxList<SelectedVariant> inventoryProductList = <SelectedVariant>[].obs;
+  // One entry per PRODUCT (not per variant). The list shows products; the
+  // merchant opens a product to pick its individual variants — mirrors the
+  // food selection flow. Variant-level selection lives in [selectedProducts].
+  RxList<Product> inventoryProductList = <Product>[].obs;
   RxBool isInventoryProductFirstLoading = false.obs;
   RxBool isInventoryProductLoadingMore = false.obs;
   int inventoryProductPage = 1;
@@ -1589,7 +1596,7 @@ class ProductController extends GetxController{
         final response = ProductCatalogResponse.fromJson(
           responseModel.response?.data,
         );
-        final newData = flattenProducts(response.data);
+        final newData = response.data;
 
         if (newData.isNotEmpty) {
           if (isLoadMore) {
@@ -1638,5 +1645,11 @@ class ProductController extends GetxController{
 
   bool isProductSelected(String variantId) {
     return selectedProducts.any((p) => p.id == variantId);
+  }
+
+  /// How many variants of [productId] are currently selected — drives the
+  /// per-product "N in cart" badge in the product card + variant sheet.
+  int selectedVariantCountForProduct(String productId) {
+    return selectedProducts.where((p) => p.product.id == productId).length;
   }
 }

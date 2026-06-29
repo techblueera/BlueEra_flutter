@@ -5898,5 +5898,9 @@
   "pro_consult_add_contact_details_title": "আপনার যোগাযোগের বিবরণ যোগ করুন",
   "pro_consult_contact_empty_body": "ক্লায়েন্টদের জন্য ফোন, ইমেইল বা ওয়েবের মাধ্যমে আপনার কাছে পৌঁছানো সহজ করুন।",
   "pro_consult_set_working_hours": "আপনার কর্মঘণ্টা সেট করুন",
-  "pro_consult_hours_empty_body": "ক্লায়েন্টদের বলুন আপনি কখন উপলব্ধ যাতে বুকিং সঠিক সময়ে আসে।"
+  "pro_consult_hours_empty_body": "ক্লায়েন্টদের বলুন আপনি কখন উপলব্ধ যাতে বুকিং সঠিক সময়ে আসে।",
+  "referralAppliedTitle": "You've been referred!",
+  "referralAppliedSubtitle": "Referral applied",
+  "referralAppliedDesc": "You installed BlueEra through a referral. Code @code has been applied to your account - enjoy your reward!",
+  "referralAppliedGotIt": "Got it"
 }

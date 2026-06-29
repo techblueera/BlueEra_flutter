@@ -19,7 +19,11 @@ import 'package:BlueEra/core/services/serper_image_search_service.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/features/me/automotive_products/model/automotive_generate_ai_product_content.dart';
 import 'package:BlueEra/features/me/automotive_products/model/automotive_product_catalog_response.dart';
-import 'package:BlueEra/features/me/automotive_products/model/automotive_product_nested_category_response.dart';
+// `AutomotiveProduct` here refers to the catalog model
+// (automotive_product_catalog_response); the nested-category response also
+// declares one, so hide it to keep the inventory list type unambiguous.
+import 'package:BlueEra/features/me/automotive_products/model/automotive_product_nested_category_response.dart'
+    hide AutomotiveProduct;
 import 'package:BlueEra/features/me/automotive_products/model/automotive_single_product_model.dart';
 import 'package:BlueEra/features/me/automotive_products/repo/automotive_product_repo.dart';
 import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_product_preview_screen.dart';
@@ -1554,7 +1558,10 @@ class AutomotiveProductController extends GetxController{
   ProviderType? ownerProviderType;
 
   // ── Inventory AutomotiveProduct Search by AutomotiveCategory ─────────────────────────────
-  RxList<AutomotiveSelectedVariant> inventoryProductList = <AutomotiveSelectedVariant>[].obs;
+  // One entry per PRODUCT (not per variant). The list shows products; the
+  // merchant opens a product to pick its individual variants — mirrors the
+  // food selection flow. Variant-level selection lives in [selectedProducts].
+  RxList<AutomotiveProduct> inventoryProductList = <AutomotiveProduct>[].obs;
   RxBool isInventoryProductFirstLoading = false.obs;
   RxBool isInventoryProductLoadingMore = false.obs;
   int inventoryProductPage = 1;
@@ -1589,7 +1596,7 @@ class AutomotiveProductController extends GetxController{
         final response = AutomotiveProductCatalogResponse.fromJson(
           responseModel.response?.data,
         );
-        final newData = flattenProducts(response.data);
+        final newData = response.data;
 
         if (newData.isNotEmpty) {
           if (isLoadMore) {
@@ -1638,5 +1645,11 @@ class AutomotiveProductController extends GetxController{
 
   bool isProductSelected(String variantId) {
     return selectedProducts.any((p) => p.id == variantId);
+  }
+
+  /// How many variants of [productId] are currently selected — drives the
+  /// per-product "N in cart" badge in the product card + variant sheet.
+  int selectedVariantCountForProduct(String productId) {
+    return selectedProducts.where((p) => p.product.id == productId).length;
   }
 }

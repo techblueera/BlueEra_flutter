@@ -106,7 +106,6 @@ class _AutomotivePartsScreenState extends State<AutomotivePartsScreen>
       setState(() => _selectedTab = c.index);
       // Fetch product data lazily â€” only when the merchant actually
       // opens the AutomotiveProducts tab, not on every Me-tab landing.
-      print('index--> ${c.index}');
       if (c.index == 2) {
         inventoryController.fetchAllProductData();
       }
@@ -555,23 +554,37 @@ class _AutomotiveProductsTabBodyState extends State<_AutomotiveProductsTabBody> 
               : const SizedBox.shrink();
         }),
 
-        // --- Section header â€” vertical brand-bar + 2-line title +
-        // refined "Add AutomotiveProduct" chip CTA.
-        Padding(
-          padding: EdgeInsets.symmetric(
-              horizontal: SizeConfig.size4,
-              vertical: SizeConfig.size12),
-          child: _productsSectionHeader(),
-        ),
+        SizedBox(height: SizeConfig.size12),
 
-        // --- AutomotiveCategory â€” two-tone storefront cards.
-        Obx(() {
-          if (controller.fetchProductCategoryResponse.value.status ==
-              Status.INITIAL) {
-            return buildCategoryGridSkeleton();
-          }
-          return _categoryWithInventoryGrid();
-        }),
+        // --- Section header + category cards wrapped in one white
+        // shell — mirrors the grocery v2 home's category container.
+        Container(
+          margin: EdgeInsets.only(right: SizeConfig.size12),
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.white, width: 1),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // --- Section header — vertical brand-bar + 2-line title +
+              // refined "Add AutomotiveProduct" chip CTA.
+              _productsSectionHeader(),
+              SizedBox(height: SizeConfig.size16),
+
+              // --- AutomotiveCategory — two-tone storefront cards.
+              Obx(() {
+                if (controller.fetchProductCategoryResponse.value.status ==
+                    Status.INITIAL) {
+                  return buildCategoryGridSkeleton();
+                }
+                return _categoryWithInventoryGrid();
+              }),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -635,13 +648,13 @@ class _AutomotiveProductsTabBodyState extends State<_AutomotiveProductsTabBody> 
             color: AppColors.primaryColor.withValues(alpha: 0.25),
             width: 1,
           ),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x42001120),
-              blurRadius: 10,
-              offset: Offset(0, 2),
-            ),
-          ],
+          // boxShadow: const [
+          //   BoxShadow(
+          //     color: Color(0x42001120),
+          //     blurRadius: 10,
+          //     offset: Offset(0, 2),
+          //   ),
+          // ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -674,15 +687,21 @@ class _AutomotiveProductsTabBodyState extends State<_AutomotiveProductsTabBody> 
   // pill, three-row info hierarchy, and a brand-blue gradient ribbon
   // at the bottom edge so the entire shelf reads as one curated row.
   Widget _topSellingProduct() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
+    return Container(
+      // White-bordered shell wrapping the whole top-selling section
+      // (header + cards rail) with a uniform 10-px inner padding —
+      // mirrors the grocery v2 home's top-selling container.
+      margin: EdgeInsets.only(top: 8, right: SizeConfig.size12),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.white, width: 1),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size4),
-            child: _topSellingHeader(),
-          ),
+          _topSellingHeader(),
           SizedBox(height: SizeConfig.size12),
           SizedBox(
             height: AutomotiveAdminProductCard.gridCardHeight,
@@ -694,8 +713,7 @@ class _AutomotiveProductsTabBodyState extends State<_AutomotiveProductsTabBody> 
               return ListView.builder(
                 itemCount: previewCount,
                 scrollDirection: Axis.horizontal,
-                padding:
-                    EdgeInsets.symmetric(horizontal: SizeConfig.size4),
+                padding: EdgeInsets.zero,
                 itemBuilder: (context, index) => Padding(
                   padding: EdgeInsets.only(right: SizeConfig.size12),
                   child: SizedBox(
@@ -775,13 +793,13 @@ class _AutomotiveProductsTabBodyState extends State<_AutomotiveProductsTabBody> 
             color: AppColors.primaryColor.withValues(alpha: 0.25),
             width: 1,
           ),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x42001120),
-              blurRadius: 10,
-              offset: Offset(0, 2),
-            ),
-          ],
+          // boxShadow: const [
+          //   BoxShadow(
+          //     color: Color(0x42001120),
+          //     blurRadius: 10,
+          //     offset: Offset(0, 2),
+          //   ),
+          // ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -816,7 +834,6 @@ class _AutomotiveProductsTabBodyState extends State<_AutomotiveProductsTabBody> 
     if (categoryList.isEmpty) {
       return Padding(
         padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size12,
           vertical: SizeConfig.size20,
         ),
         child: EmptyStateWidget(
@@ -830,12 +847,7 @@ class _AutomotiveProductsTabBodyState extends State<_AutomotiveProductsTabBody> 
         return GridView.builder(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          padding: EdgeInsets.fromLTRB(
-            SizeConfig.size4,
-            SizeConfig.size4,
-            SizeConfig.size4,
-            0,
-          ),
+          padding: EdgeInsets.only(top: SizeConfig.size4),
           itemCount: categoryList.length,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
@@ -860,33 +872,26 @@ class _AutomotiveProductsTabBodyState extends State<_AutomotiveProductsTabBody> 
   ) {
     final image = (item.image ?? '').toString();
     final hasImage = image.isNotEmpty;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => Get.toNamed(
-          RouteHelper.getAutomotiveProductNestedCategoryWithInventoryScreenRoute(),
-          arguments: {
-            ApiKeys.userId: businessId,
-            ApiKeys.argProductCategoryWithInventory: categoryList.toList(),
-            ApiKeys.argProductCatKey: item.key ?? '',
-            ApiKeys.argProductCatName: item.name ?? '',
-          },
+    return InkWell(
+      onTap: () => Get.toNamed(
+        RouteHelper.getAutomotiveProductNestedCategoryWithInventoryScreenRoute(),
+        arguments: {
+          ApiKeys.userId: businessId,
+          ApiKeys.argProductCategoryWithInventory: categoryList.toList(),
+          ApiKeys.argProductCatKey: item.key ?? '',
+          ApiKeys.argProductCatName: item.name ?? '',
+        },
+      ),
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.greyE5, width: 1),
         ),
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFFE6E8EE), width: 1),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x42001120),
-                blurRadius: 10,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          clipBehavior: Clip.antiAlias,
+        clipBehavior: Clip.antiAlias,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
           child: Column(
             children: [
               Expanded(

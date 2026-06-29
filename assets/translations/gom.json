@@ -2359,5 +2359,9 @@
   "accountDeletionAlreadyPending": "A deletion request is already in progress for your account.",
   "accountDeletionRateLimited": "Too many attempts. Try again in an hour.",
   "accountDeletionFeatureDisabled": "This feature isn't available yet. Please contact support.",
-  "accountDeletionCancelledBanner": "We've cancelled your pending account deletion. If you still want to delete your account, you'll need to start over from Settings."
+  "accountDeletionCancelledBanner": "We've cancelled your pending account deletion. If you still want to delete your account, you'll need to start over from Settings.",
+  "referralAppliedTitle": "You've been referred!",
+  "referralAppliedSubtitle": "Referral applied",
+  "referralAppliedDesc": "You installed BlueEra through a referral. Code @code has been applied to your account - enjoy your reward!",
+  "referralAppliedGotIt": "Got it"
 }

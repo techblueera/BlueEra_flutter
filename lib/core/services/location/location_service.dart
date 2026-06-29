@@ -28,7 +28,11 @@ class LocationService extends GetxService {
   /// Reactive flag: true only when a real device GPS position was obtained.
   /// Drives the app-wide "turn on location" banner. Profile-seeded coords do
   /// NOT flip this on — they're a silent fallback, not real device location.
-  static final RxBool isDeviceLocationOn = false.obs;
+  ///
+  /// Seeded `true` (assume ON) so the banner stays hidden on launch and only
+  /// appears once a check actually confirms location is OFF — rather than
+  /// flashing before the first check runs.
+  static final RxBool isDeviceLocationOn = true.obs;
 
   /// Bumps whenever usable coordinates first become available (a GPS fix or a
   /// profile seed). Lets screens that were built before location was ready

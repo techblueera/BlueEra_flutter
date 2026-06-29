@@ -5779,5 +5779,9 @@
   "jobVacancy": "Job Vacancy",
   "managementTrust": "Management & Trust",
   "opdDoctors": "OPD Doctors",
-  "otherFacilities": "Other Facilities"
+  "otherFacilities": "Other Facilities",
+  "referralAppliedTitle": "You've been referred!",
+  "referralAppliedSubtitle": "Referral applied",
+  "referralAppliedDesc": "You installed BlueEra through a referral. Code @code has been applied to your account - enjoy your reward!",
+  "referralAppliedGotIt": "Got it"
 }

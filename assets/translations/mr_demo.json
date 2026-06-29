@@ -6039,5 +6039,9 @@
   "viewDocument": "दस्तऐवज पहा",
   "whatHappensNext": "पुढे काय होईल?",
   "yearShort": "वर्ष",
-  "yourArea": "तुमचे क्षेत्र"
+  "yourArea": "तुमचे क्षेत्र",
+  "referralAppliedTitle": "You've been referred!",
+  "referralAppliedSubtitle": "Referral applied",
+  "referralAppliedDesc": "You installed BlueEra through a referral. Code @code has been applied to your account - enjoy your reward!",
+  "referralAppliedGotIt": "Got it"
 }

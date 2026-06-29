@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -23,6 +24,7 @@ import 'package:BlueEra/features/me/product/view/admin/share_product_screen.dart
 import 'package:BlueEra/main.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:android_play_install_referrer/android_play_install_referrer.dart';
 import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -48,6 +50,15 @@ class _SplashScreenState extends State<SplashScreen> {
 
     var isLoginStatus = await SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.isUserLogin);
     if (isLoginStatus == null) isLoginStatus = "false";
+
+    // Fresh install attribution: a shared Play Store link carries the
+    // referrer (`referralCode=…`). Capture it before the user reaches
+    // signup so onboarding can auto-fill the promo code. Only needed for
+    // not-yet-logged-in users; logged-in sessions already have it (or
+    // never will).
+    if (isLoginStatus != "true") {
+      await _captureInstallReferrerOnce();
+    }
 
     // ✅ Check if app was updated
     // final logoutRequired = await _shouldLogoutAfterUpdate();
@@ -188,6 +199,41 @@ class _SplashScreenState extends State<SplashScreen> {
       return null;
     } catch (_) {
       return null;
+    }
+  }
+
+  /// Reads the Google Play install referrer once per install and, if it
+  /// carries a `referralCode`, stashes it via [saveDeferredReferralCode]
+  /// so onboarding auto-fills the promo code. This is the Play-Store
+  /// counterpart to the `?referralCode=` deeplink path in
+  /// [_handleDeepLink]; the shared store link encodes the same code as
+  /// `&referrer=referralCode%3D<code>`, which Play returns (decoded) as
+  /// `referralCode=<code>`.
+  Future<void> _captureInstallReferrerOnce() async {
+    // Install referrer is an Android/Play-Store-only mechanism.
+    if (!Platform.isAndroid) return;
+    try {
+      // Query at most once: the referrer never changes for an install, so
+      // re-reading it after onboarding cleared the code would resurrect a
+      // stale referral on a second account on the same device.
+      final already = await SharedPreferenceUtils.getSecureValue(
+          SharedPreferenceUtils.installReferrerCheckedKey);
+      if (already == "true") return;
+
+      final details = await AndroidPlayInstallReferrer.installReferrer;
+      final referrer = details.installReferrer;
+      if (referrer != null && referrer.isNotEmpty) {
+        final code = Uri.splitQueryString(referrer)['referralCode'];
+        if (code != null && code.trim().isNotEmpty) {
+          await SharedPreferenceUtils.saveDeferredReferralCode(code);
+        }
+      }
+      // Mark checked only after a successful query so a transient failure
+      // (e.g. Play Store not ready yet) retries on the next cold start.
+      await SharedPreferenceUtils.setSecureValue(
+          SharedPreferenceUtils.installReferrerCheckedKey, "true");
+    } catch (e) {
+      logs('Install referrer capture failed: $e');
     }
   }
 

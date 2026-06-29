@@ -2491,6 +2491,12 @@ class AppStrings {
   static const String checking = 'checking';
   static const String noIDontHave = 'noIDontHave';
   static const String referralCodeInvalid = 'referralCodeInvalid';
+  // Referral-applied acknowledgement dialog (referral_applied_dialog.dart),
+  // shown when a code captured from the install/deeplink is auto-applied.
+  static const String referralAppliedTitle = 'referralAppliedTitle';
+  static const String referralAppliedSubtitle = 'referralAppliedSubtitle';
+  static const String referralAppliedDesc = 'referralAppliedDesc';
+  static const String referralAppliedGotIt = 'referralAppliedGotIt';
   static const String enableLocationPermission = 'enableLocationPermission';
   static const String specialCharactersNotAllowed = 'specialCharactersNotAllowed';
   static const String pleaseEnterBusinessSpecialization = 'pleaseEnterBusinessSpecialization';
