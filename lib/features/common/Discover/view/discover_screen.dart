@@ -512,7 +512,13 @@ class _StickySearchBarDelegate extends SliverPersistentHeaderDelegate {
         // (including the status bar area once it's pinned), the blur
         // frosts it. The translucent gradient below tints the blurred
         // content with the brand blue.
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        //
+        // sigma kept at 8 (not 20): gaussian blur cost grows with the radius
+        // and this filter is re-evaluated every scroll frame behind the
+        // pinned header. 8 is visually near-identical to 20 here (the
+        // gradient tint does most of the frosting) but markedly cheaper on
+        // low-end GPUs, removing a real source of scroll jank.
+        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
         child: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(

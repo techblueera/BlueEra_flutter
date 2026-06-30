@@ -31,22 +31,14 @@ class HiveServices{
   static const String _savedProductNestedCategoryBox = 'savedProductNestedCategoryBox';
   static const String _savedFoodNestedCategoryBox = 'savedFoodNestedCategoryBox';
 
-  /// Initialize Hive boxes
+  /// Initialize Hive boxes.
+  ///
+  /// Boxes are independent, so open them concurrently instead of awaiting
+  /// each `openBox` serially. On cold start this collapses 14 sequential
+  /// disk-I/O round-trips into one parallel batch, cutting the deferred-init
+  /// time that competes with the first frame.
   static Future<void> init() async {
-    await Hive.openBox(_savedPosts);
-    await Hive.openBox(_savedVideos);
-    await Hive.openBox(_savedAllNearByStoreFeed);
-    await Hive.openBox(_savedAllNearByStore);
-    await Hive.openBox(_savedAllNearByStoreProduct);
-    await Hive.openBox(_savedAllNearByStoreService);
-    await Hive.openBox(_savedAllNearByStoresFoodServices);
-    await Hive.openBox(_savedBusinessCategoryBox);
-    await Hive.openBox(_savedProfessionTypeBox);
-    await Hive.openBox(_savedAdminVideosBox);
-    await Hive.openBox(_savedGroceryNestedCategoryBox);
-    await Hive.openBox(_savedMedicalNestedCategoryBox);
-    await Hive.openBox(_savedProductNestedCategoryBox);
-    await Hive.openBox(_savedFoodNestedCategoryBox);
+    await Future.wait(allBoxNames.map(Hive.openBox));
   }
 
   static List<String> get allBoxNames => [

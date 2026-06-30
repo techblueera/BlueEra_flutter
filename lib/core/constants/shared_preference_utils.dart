@@ -281,6 +281,22 @@ class SharedPreferenceUtils {
     }
   }
 
+  /// Read the entire secure store in ONE platform-channel call.
+  ///
+  /// On Android `encryptedSharedPreferences` the first decrypt spins up the
+  /// Jetpack-Security keystore; doing ~20 individual `read()`s on the cold
+  /// boot path serialises that cost. `readAll()` pays the keystore setup once
+  /// and returns every key in a single hop. Same swallow-and-default
+  /// behaviour as [getSecureValue].
+  static Future<Map<String, String>> readAllSecure() async {
+    try {
+      return await _secureStorage.readAll();
+    } catch (e) {
+      debugPrint('readAllSecure() failed: $e');
+      return <String, String>{};
+    }
+  }
+
   static Future<String?> getBookingAvailabilityDetail() async {
     return await SharedPreferenceUtils.getSecureValue(
         SharedPreferenceUtils.availabilityDetails);
@@ -484,72 +500,38 @@ Future<String> getUserServiceExistsKey() async {
 // }
 
 ///GET USER DATA....
+///
+/// Reads the whole secure store in ONE `readAll()` hop instead of ~19
+/// sequential `read()`s. On Android encryptedSharedPreferences this collapses
+/// the per-key keystore decrypt round-trips that previously gated the first
+/// frame on cold start. Behaviour is identical: every global keeps the same
+/// default it had with the old per-key `?? "..."` fallbacks.
 getUserLoginData() async {
-  authTokenGlobal = await SharedPreferenceUtils.getSecureValue(
-      SharedPreferenceUtils.authToken);
-  accountTypeGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.accountType) ??
-      '';
+  final all = await SharedPreferenceUtils.readAllSecure();
 
-  // userName = await SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.userName) ?? "";
-  userId = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.loginUserId) ??
-      "";
-  businessId = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.userBusinessId) ??
-      "";
-  userMobileGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.userLoginMobile) ??
-      "";
-
-  userProfileGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.userProfile) ??
-      "";
-
-  userNameGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.userName) ??
-      "";
-  userProfileTypeGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.userProfileType) ??
-      "";
-  userProfessionGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.userProfession) ??
-      "";
-  userDesignationGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.userDesignation) ??
-      "";
+  // authToken kept nullable to match the previous getSecureValue() return.
+  authTokenGlobal = all[SharedPreferenceUtils.authToken];
+  accountTypeGlobal = all[SharedPreferenceUtils.accountType] ?? '';
+  userId = all[SharedPreferenceUtils.loginUserId] ?? "";
+  businessId = all[SharedPreferenceUtils.userBusinessId] ?? "";
+  userMobileGlobal = all[SharedPreferenceUtils.userLoginMobile] ?? "";
+  userProfileGlobal = all[SharedPreferenceUtils.userProfile] ?? "";
+  userNameGlobal = all[SharedPreferenceUtils.userName] ?? "";
+  userProfileTypeGlobal = all[SharedPreferenceUtils.userProfileType] ?? "";
+  userProfessionGlobal = all[SharedPreferenceUtils.userProfession] ?? "";
+  userDesignationGlobal = all[SharedPreferenceUtils.userDesignation] ?? "";
   Get.find<AuthController>().imgPath.value = userProfileGlobal;
-  has_reel_profile_status = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.has_reel_profile) ??
-      "false";
-
-  businessNameGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.businessName) ??
-      "";
-
-  businessOwnerNameGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.businessOwnerName) ??
-      "";
-
-  businessOwnerAddressGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.businessOwnerAddress) ??
-      "";
-
-  userNameAtGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.userNameAtKey) ??
-      "";
-
-  businessCategoryGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.businessCategory) ??
-      "";
-
-  businessSubCategoryGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.businessSubCategory) ??
-      "";
-
-  businessTypeGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.businessType) ??
-      "OTHER";
+  has_reel_profile_status =
+      all[SharedPreferenceUtils.has_reel_profile] ?? "false";
+  businessNameGlobal = all[SharedPreferenceUtils.businessName] ?? "";
+  businessOwnerNameGlobal = all[SharedPreferenceUtils.businessOwnerName] ?? "";
+  businessOwnerAddressGlobal =
+      all[SharedPreferenceUtils.businessOwnerAddress] ?? "";
+  userNameAtGlobal = all[SharedPreferenceUtils.userNameAtKey] ?? "";
+  businessCategoryGlobal = all[SharedPreferenceUtils.businessCategory] ?? "";
+  businessSubCategoryGlobal =
+      all[SharedPreferenceUtils.businessSubCategory] ?? "";
+  businessTypeGlobal = all[SharedPreferenceUtils.businessType] ?? "OTHER";
 }
 
 ///GET USER DATA....
