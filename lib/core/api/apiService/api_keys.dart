@@ -718,6 +718,7 @@ class ApiKeys {
   static const checkOutTime = 'checkOutTime';
   static const fare = 'fare';
   static const categoryKey = 'categoryKey';
+  static const level = 'level';
   static const websiteUrl = 'websiteUrl';
 
   static const securityDeposit = 'securityDeposit';

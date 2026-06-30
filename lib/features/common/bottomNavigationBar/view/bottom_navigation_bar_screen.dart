@@ -149,6 +149,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       // profile API says so. Skipped on deep-link background hosts.
       if (!widget.deferHeavyInit) {
         _maybeShowJoiningBonus();
+      } else {
+        logs("JOINING_BONUS: skip — deferHeavyInit=true "
+            "(deep-link/background host)");
       }
       // _setupCallKitEventListener();
     });
@@ -157,31 +160,73 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   /// One-shot per-session prompt: when the user lands on the home and
   /// their session is in guest mode, surface a friendly dialog asking
   /// them to create a profile so chat / bookings / orders unlock. The
-  /// "Create Profile" CTA reuses the shared [createProfileScreen] helper
-  /// which pushes [ChooseAccountTypeScreen]. A static flag prevents the
   /// dialog from re-firing on tab swaps inside the same launch.
   /// One-shot per launch: show the joining-bonus claim popup. The
   /// `joining_bounce` object is read from the profile response the app already
   /// loads (business → business profile, individual → personal profile) — no
-  /// extra API call. The gate is simply a real `joining_bounce_id`; a null id
-  /// means there is nothing to claim. Claiming is handled inside the dialog.
+  /// extra API call. The gate is the backend's `show_card` flag (surfaced via
+  /// [JoiningBounce.shouldShow]); when it is false there is nothing to show.
+  /// Claiming is handled inside the dialog.
   static bool _joiningBonusShown = false;
   Worker? _joiningBonusWorker;
 
-  void _maybeShowJoiningBonus() {
-    if (_joiningBonusShown) return;
-    if (isGuestUser()) return;
-
-    final Rxn<JoiningBounce> source = isBusiness()
-        ? getOrPut(() => ViewBusinessDetailsController(), permanent: true)
-            .joiningBounce
-        : viewPersonalDetailsController.joiningBounce;
-
-    void show(JoiningBounce? bounce) {
-      if (_joiningBonusShown || !mounted) return;
-      if (bounce == null || bounce.joiningBounceId.isEmpty) return;
+  Future<void> _maybeShowJoiningBonus() async {
+    if (_joiningBonusShown) {
+      logs("JOINING_BONUS: skip — already shown this launch");
+      return;
+    }
+    if (isGuestUser()) {
+      // Guests have no profile (and no real bonus), so show the guest scratch
+      // card — it never exposes an amount; scratching just unlocks the
+      // "Create Profile" CTA. Shown once per launch, like the real card.
+      if (!mounted) return;
+      logs("JOINING_BONUS: guest user — showing GuestClaimBonusDialog");
       _joiningBonusShown = true;
       _joiningBonusWorker?.dispose();
+      showDialog(
+        context: context,
+        barrierDismissible: true,
+        builder: (_) => const GuestClaimBonusDialog(),
+      );
+      return;
+    }
+
+    final bool business = isBusiness();
+    final businessController =
+        business ? getOrPut(() => ViewBusinessDetailsController(), permanent: true) : null;
+    final Rxn<JoiningBounce> source = business
+        ? businessController!.joiningBounce
+        : viewPersonalDetailsController.joiningBounce;
+    logs("JOINING_BONUS: gate started (isBusiness=$business)");
+
+    void show(JoiningBounce? bounce) {
+      if (_joiningBonusShown) {
+        logs("JOINING_BONUS: show() skip — already shown");
+        return;
+      }
+      if (!mounted) {
+        logs("JOINING_BONUS: show() skip — widget not mounted");
+        return;
+      }
+      if (bounce == null) {
+        logs("JOINING_BONUS: show() skip — bounce is null "
+            "(joining_bounce not parsed from profile yet)");
+        return;
+      }
+      logs("JOINING_BONUS: bounce received -> "
+          "joiningBounceId='${bounce.joiningBounceId}', "
+          "isClaimed=${bounce.isClaimed}, showCard=${bounce.showCard}, "
+          "enrolled=${bounce.enrolled}, status='${bounce.status}', "
+          "eligible=${bounce.eligible}, bonusInr=${bounce.bonusInr}, "
+          "shouldShow=${bounce.shouldShow}");
+      if (!bounce.shouldShow) {
+        logs("JOINING_BONUS: show() skip — shouldShow=false "
+            "(backend show_card flag is not true)");
+        return;
+      }
+      _joiningBonusShown = true;
+      _joiningBonusWorker?.dispose();
+      logs("JOINING_BONUS: showing ClaimBonusDialog ✅");
       showDialog(
         context: context,
         barrierDismissible: true,
@@ -189,10 +234,43 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       );
     }
 
-    // Already loaded → show now; otherwise show as soon as the profile
-    // response populates `joining_bounce`.
+    // Fetch-then-check: the profile response carries `joining_bounce`, so we
+    // must have profile data before deciding. If nothing is loaded yet, fetch
+    // and await it here (covers the case where the boot fetch was skipped or
+    // already finished without a value). A fetch already in flight (LOADING)
+    // is left alone — the reactive worker below catches its completion.
+    if (source.value == null) {
+      final Status? status = business
+          ? businessController!.viewBusinessResponse.status
+          : viewPersonalDetailsController.viewPersonalResponse.value.status;
+      logs("JOINING_BONUS: no bounce yet — profile status=$status");
+      if (status == null ||
+          status == Status.INITIAL ||
+          status == Status.ERROR) {
+        logs("JOINING_BONUS: fetching profile before checking…");
+        if (business) {
+          await businessController!.viewBusinessProfile();
+        } else {
+          await viewPersonalDetailsController.viewPersonalProfile();
+        }
+        logs("JOINING_BONUS: profile fetch finished — re-checking");
+      } else {
+        logs("JOINING_BONUS: profile fetch already in flight — "
+            "will check when it completes");
+      }
+    }
+
+    if (!mounted) return;
+
+    // Check against whatever we have now (may have just been fetched)…
+    logs("JOINING_BONUS: source.value is "
+        "${source.value == null ? 'null' : 'present'} after fetch step");
     show(source.value);
+
+    // …and keep listening so a later/concurrent profile refresh still triggers
+    // the card if it wasn't ready yet.
     if (!_joiningBonusShown) {
+      logs("JOINING_BONUS: not shown yet — listening for profile updates");
       _joiningBonusWorker = ever<JoiningBounce?>(source, show);
     }
   }

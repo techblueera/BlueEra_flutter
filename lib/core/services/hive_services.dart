@@ -1,7 +1,6 @@
 ﻿import 'dart:convert';
 import 'dart:developer';
 import 'package:BlueEra/core/api/model/admin_video_model_response.dart';
-import 'package:BlueEra/core/api/model/get_all_store_res_model.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
@@ -15,10 +14,28 @@ import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/features/me/product/model/product_nested_category_response.dart';
 import 'package:hive/hive.dart';
 
+/// A persisted, location-stamped list cache entry (see [HiveServices.getGeoList]).
+/// Holds the raw JSON [items] plus the [lat]/[lng] and [savedAt] of the fetch
+/// so the reader can apply its own TTL + "moved too far" rules.
+class GeoCacheEntry {
+  GeoCacheEntry({
+    required this.items,
+    required this.lat,
+    required this.lng,
+    required this.savedAt,
+  });
+
+  /// Raw JSON list as stored (each element is typically a `Map`). The caller
+  /// maps these into its model type.
+  final List<dynamic> items;
+  final double lat;
+  final double lng;
+  final DateTime savedAt;
+}
+
 class HiveServices{
   static const String _savedPosts = 'savedPosts';
   static const String _savedVideos = 'savedVideos';
-  static const String _savedAllNearByStoreFeed = 'savedAllNearByStoreFeed';
   static const String _savedAllNearByStore = 'savedAllNearByStore';
   static const String _savedAllNearByStoreProduct = 'savedAllNearByStoreProduct';
   static const String _savedAllNearByStoreService = 'savedAllNearByStoreService';
@@ -35,7 +52,6 @@ class HiveServices{
   static Future<void> init() async {
     await Hive.openBox(_savedPosts);
     await Hive.openBox(_savedVideos);
-    await Hive.openBox(_savedAllNearByStoreFeed);
     await Hive.openBox(_savedAllNearByStore);
     await Hive.openBox(_savedAllNearByStoreProduct);
     await Hive.openBox(_savedAllNearByStoreService);
@@ -52,7 +68,6 @@ class HiveServices{
   static List<String> get allBoxNames => [
     _savedPosts,
     _savedVideos,
-    _savedAllNearByStoreFeed,
     _savedAllNearByStore,
     _savedAllNearByStoreProduct,
     _savedAllNearByStoreService,
@@ -256,56 +271,65 @@ class HiveServices{
 
 
   /// All Stores
-  Future<bool> saveAllStore(
-      List<GetAllStoreResModel> allStoresData,
-      String userId,
-      ) async {
+  ///
+  /// Generic location-aware list cache. Persists a JSON list under [key] in
+  /// [boxName] together with the location ([lat]/[lng]) and time it was
+  /// fetched, so a later read can decide whether the data is too old or the
+  /// user has moved too far to reuse it (stale-while-revalidate).
+  ///
+  /// One entry per [key] — callers key by dataset identity (e.g.
+  /// `stores|<user>|<type>|<category>`) so grocery / food / product / service
+  /// caches never clobber each other (the old `user_<id>`-only key did).
+  Future<bool> saveGeoList({
+    required String boxName,
+    required String key,
+    required List<Map<String, dynamic>> jsonList,
+    required double lat,
+    required double lng,
+  }) async {
     try {
-      final box = Hive.box(_savedAllNearByStore);
-      final String key = 'user_$userId'; // Better key naming
-
-      // Convert all items to JSON list
-      final List<Map<String, dynamic>> jsonList =
-      allStoresData.map((item) => item.toJson()).toList();
-
-      await box.put(key, jsonList);
-
-      print('Saved ${jsonList.length} stores feed items for user: $userId');
+      final box = Hive.box(boxName);
+      await box.put(key, {
+        'savedAt': DateTime.now().millisecondsSinceEpoch,
+        'lat': lat,
+        'lng': lng,
+        'items': jsonList,
+      });
+      print('Saved ${jsonList.length} geo-cache items for key: $key');
       return true;
     } catch (e) {
-      print('Error saving stores feed: $e');
+      print('Error saving geo-cache list ($key): $e');
       return false;
     }
   }
 
-  Future<List<GetAllStoreResModel>?> getAllStore(String userId) async {
+  /// Reads the raw geo-cache entry for [key] in [boxName], or null when absent
+  /// / malformed (including legacy bare-list entries). The caller maps
+  /// [GeoCacheEntry.items] into its model type and applies TTL + distance
+  /// rules against [GeoCacheEntry.savedAt] / `lat` / `lng`.
+  GeoCacheEntry? getGeoList({required String boxName, required String key}) {
     try {
-      final box = Hive.box(_savedAllNearByStore);
-      final String key = 'user_$userId';
-
+      final box = Hive.box(boxName);
       final data = box.get(key);
-
-      if (data == null) {
-        print('No cached stores feed found for user: $userId');
-        return null;
-      }
-
-      if (data is! List) {
-        print('Invalid data type in Hive: ${data.runtimeType}');
-        return null;
-      }
-
-      final List<GetAllStoreResModel> storesList = data
-          .map((json) => GetAllStoreResModel.fromJson(jsonDecode(jsonEncode(json)) as Map<String, dynamic>))
-          .toList();
-
-      print('Loaded ${storesList.length} stores feed items for user: $userId');
-      return storesList;
+      if (data is! Map) return null;
+      final items = data['items'];
+      if (items is! List) return null;
+      return GeoCacheEntry(
+        items: items,
+        lat: (data['lat'] as num?)?.toDouble() ?? 0.0,
+        lng: (data['lng'] as num?)?.toDouble() ?? 0.0,
+        savedAt: DateTime.fromMillisecondsSinceEpoch(
+            (data['savedAt'] as num?)?.toInt() ?? 0),
+      );
     } catch (e) {
-      print('Error loading stores feed: $e');
+      print('Error loading geo-cache list ($key): $e');
       return null;
     }
   }
+
+  /// Box name for the near-by store / service geo-cache, exposed so callers
+  /// can pass it to [saveGeoList] / [getGeoList].
+  static String get nearByStoreBox => _savedAllNearByStore;
 
   /// All Stores Products
   Future<bool> saveAllStoreProduct(

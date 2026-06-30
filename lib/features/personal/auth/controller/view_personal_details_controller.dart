@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/api/model/personal_profile_details_model.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/core/services/personal_profile_cache.dart';
@@ -234,10 +235,14 @@ class ViewPersonalDetailsController extends GetxController {
               persistPrefs: true);
           // Capture the joining-bonus object (sibling of `user`) for the
           // app-open claim popup — no separate API call needed.
-          final jb = data['joining_bounce_id'];
+          final jb = data['joining_bounce'];
+          logs("JOINING_BONUS: personal parse — raw joining_bounce=$jb "
+              "(keys=${data.keys.toList()})");
           joiningBounce.value = (jb is Map)
               ? JoiningBounce.fromJson(Map<String, dynamic>.from(jb))
               : null;
+          logs("JOINING_BONUS: personal stored shouldShow="
+              "${joiningBounce.value?.shouldShow}");
           final freshKey = userId;
           await PersonalProfileCache.write(freshKey, data);
 

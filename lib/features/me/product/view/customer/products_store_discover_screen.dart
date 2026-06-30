@@ -66,7 +66,7 @@ class _ProductsStoreDiscoverScreenState extends State<ProductsStoreDiscoverScree
     }
 
     // Skip the call on re-entry when the cached list is still fresh; category
-    // taps below still force a fresh fetch.
+    // taps below are also cache-aware (pull-to-refresh forces fresh).
     controller.getAllStoreNearByIfNeeded();
   }
 
@@ -174,7 +174,9 @@ class _ProductsStoreDiscoverScreenState extends State<ProductsStoreDiscoverScree
   void _onCategoryTap(CategoryData item, int index) {
     _selectedIndex.value = index;
     controller.businessCategoryId = item.tagId;
-    controller.getAllStoreNearBy();
+    // Cache-aware: a recently-viewed category loads instantly from its own
+    // cache entry; pull-to-refresh forces a fresh fetch.
+    controller.getAllStoreNearByIfNeeded();
   }
 
   void _openInventoryAiSearch() {

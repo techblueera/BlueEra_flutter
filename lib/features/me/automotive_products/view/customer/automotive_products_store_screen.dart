@@ -174,7 +174,9 @@ class _AutomotiveProductsStoreScreenState extends State<AutomotiveProductsStoreS
   void _onCategoryTap(CategoryData item, int index) {
     _selectedIndex.value = index;
     controller.businessCategoryId = item.tagId;
-    controller.getAllStoreNearBy();
+    // Cache-aware: a recently-viewed category loads instantly from its own
+    // cache entry; pull-to-refresh forces a fresh fetch.
+    controller.getAllStoreNearByIfNeeded();
   }
 
   void _openInventoryAiSearch() {

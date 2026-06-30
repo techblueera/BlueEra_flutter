@@ -223,7 +223,12 @@ class BusinessContactMapCard extends StatelessWidget {
                               ],
                             ),
                           ),
-                          if (showEditButton) ...[
+                          // Name stays editable only until GST is verified —
+                          // once verified the business name is locked to the
+                          // GST record, so hide the rename chip.
+                          if (showEditButton &&
+                              businessProfileDetails?.gst?.gstVerification !=
+                                  true) ...[
                             const SizedBox(width: 6),
                             _updateChip(() => _openNameEditSheet(context)),
                           ],

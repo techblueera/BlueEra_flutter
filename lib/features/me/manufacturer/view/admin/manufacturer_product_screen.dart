@@ -16,9 +16,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
-import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
-import 'package:BlueEra/widgets/order_actions_carousel.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
@@ -81,7 +79,8 @@ class _ProductScreenState extends State<ManufacturerProductScreen>
     _tabs = const ['Order', 'Overview', 'Products', 'Post', 'Statics'];
 
     _tabViews = [
-      const ManufacturerOrdersTabBody(),
+      ManufacturerOrdersTabBody(
+          onAddProducts: () => _tabController?.animateTo(2)),
       const ManufacturerProductHomeScreen(),
       _ProductsTabBody(onAddProduct: _onAddProduct),
       _PostTabBody(),
@@ -160,9 +159,7 @@ class _ProductScreenState extends State<ManufacturerProductScreen>
     super.dispose();
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // BUILD
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   @override
   Widget build(BuildContext context) {
     if (_isLoading || _tabController == null) {
@@ -185,7 +182,10 @@ class _ProductScreenState extends State<ManufacturerProductScreen>
               topBar: _buildTopBar(),
               topBarHeight: topBarHeight,
               tabViews: [
-                _tabScroll(_buildOrderTab()),
+                _tabScroll([
+                  ManufacturerOrdersTabBody(
+                      onAddProducts: () => _tabController?.animateTo(2)),
+                ]),
                 _tabScroll(const [ManufacturerProductHomeScreen()]),
                 _tabScroll([_ProductsTabBody(onAddProduct: _onAddProduct)]),
                 _tabScroll([_PostTabBody()]),
@@ -198,12 +198,10 @@ class _ProductScreenState extends State<ManufacturerProductScreen>
     );
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // TAB CONTENT â€” rebuilt per tab. Each branch returns the body
   // widgets the inner scroll content should host. Mirrors grocery's
   // _buildTabContent pattern so the outer CustomScrollView controls
   // the scroll for every tab.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   /// Wraps a tab's content list in a refreshable, scrollable body for the
   /// [TabBarView]. The per-tab bodies are content-only (designed for a parent
   /// scroll), so SingleChildScrollView + Column reproduces the previous
@@ -224,49 +222,6 @@ class _ProductScreenState extends State<ManufacturerProductScreen>
         ),
       ),
     );
-  }
-
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // ORDER TAB â€” top slot hosts the shared OrderActionsCarousel, which
-  // builds its own contribution card internally. This host only wires
-  // the add-catalog action and labels.
-  // Below the slot sits the orders list region. Outer CustomScrollView
-  // owns the scroll â€” body is a fixed-height window so the merchant
-  // sees the orders list within the same surface.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  List<Widget> _buildOrderTab() {
-    return [
-      Padding(
-        padding: EdgeInsets.only(right: SizeConfig.size12),
-        child: OrderActionsCarousel(
-          onAddCatalog: () => _tabController?.animateTo(2),
-          catalogIcon: Icons.inventory_2_rounded,
-          catalogTitle: AppStrings.addProduct.tr,
-          catalogSubtitle: 'List items customers can order',
-        ),
-      ),
-      SizedBox(height: SizeConfig.size12),
-      // Incoming orders â€” same widget the Connect screen renders under
-      // its Orders tab. Wrapped in a SizedBox because OrdersTabView
-      // uses an Expanded ListView internally and needs a bounded
-      // height. Translated -20 on x (and given matching width) to
-      // neutralise the parent SliverToBoxAdapter's left:20 padding so
-      // the filter pills and chat tiles align edge-to-edge like on
-      // ConnectMainPage. `excludeSenderId: userId` hides chats whose
-      // last message was authored by the merchant, leaving only
-      // incoming order pings â€” same approach as the Grocery screen.
-      // `isInParentScroll: true` makes OrdersTabView drop its inner
-      // `Expanded` and switch the orders ListView to
-      // NeverScrollableScrollPhysics so the surrounding
-      // CustomScrollView owns the scroll â€” no fixed height needed.
-      // The parent SliverToBoxAdapter's left: 20 padding insets the
-      // orders list naturally â€” no Transform needed.
-      BusinessChatsList(
-        excludeSenderId: userId,
-        isInParentScroll: true,
-        listTitle: 'Orders',
-      ),
-    ];
   }
 
   // TOP BAR â€” glass-morphic chrome mirroring the grocery v2 home:
@@ -521,21 +476,9 @@ class _ProductScreenState extends State<ManufacturerProductScreen>
     );
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // PROFILE ROW
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // TABS â€” solid white card with high-contrast labels and an animated
-  // underline that glides under the selected tab. Mirrors the grocery
-  // v2 home design so styling stays consistent across me-section.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // POST TAB â€” embeds FeedScreen filtered to the current user's posts.
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 class _PostTabBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {

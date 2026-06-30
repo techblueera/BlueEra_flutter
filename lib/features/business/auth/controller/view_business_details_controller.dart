@@ -248,10 +248,14 @@ logs("BUSINESS ID=== ${businessId}");
 
     // Capture the joining-bonus object for the app-open claim popup — no
     // separate API call needed.
-    final jb = data['joining_bounce_id'];
+    final jb = data['joining_bounce'];
+    logs("JOINING_BONUS: business parse — raw joining_bounce=$jb "
+        "(keys=${data.keys.toList()})");
     joiningBounce.value = (jb is Map)
         ? JoiningBounce.fromJson(Map<String, dynamic>.from(jb))
         : null;
+    logs("JOINING_BONUS: business stored shouldShow="
+        "${joiningBounce.value?.shouldShow}");
 
     /// Seed the location fallback from the business profile so nearby APIs
     /// still work when device GPS is off.

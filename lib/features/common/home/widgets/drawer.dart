@@ -115,7 +115,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
     }
   }
 
-  String userDesigination() {
+  String userDesignation() {
     if (accountTypeGlobal != "BUSINESS") {
       return viewProfileController.personalProfileDetails.value.user?.designation ?? '';
     } else {
@@ -211,7 +211,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
   Widget _heroHeader() {
     final image = accountProfileImage();
     final name = accountProfileName();
-    final designation = userDesigination();
+    final designation = userDesignation();
 
     return Container(
       margin: const EdgeInsets.fromLTRB(12, 8, 12, 0),

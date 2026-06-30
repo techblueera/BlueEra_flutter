@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -61,23 +62,34 @@ class StoreController extends GetxController{
   /// Freshness guard for the shared [allStore] list. Both [getAllStoreNearBy]
   /// (stores / grocery / food — distinguished by [typeOfBusiness]) and
   /// [getServiceBusinessesNearBy] (services) write into [allStore], so each one
-  /// stamps this cache with its own signature on success. Re-entering a screen
-  /// then reuses the data only when the signature still matches — a grocery
+  /// stamps this cache with its own identity on success. Re-entering a screen
+  /// then reuses the data only when the identity still matches — a grocery
   /// screen never serves a food screen's leftovers, and vice-versa.
   final FetchCache _allStoreCache = FetchCache();
 
-  /// `stores|<type>|<category>|<lat>|<lng>` — location rounded to ~110m so tiny
-  /// GPS drift between quick navigations doesn't defeat the cache.
-  String get _allStoreSignature =>
-      'stores|${typeOfBusiness ?? ''}|${businessCategoryId ?? ''}|'
-      '${LocationService.lat.toStringAsFixed(3)}|'
-      '${LocationService.lng.toStringAsFixed(3)}';
+  /// `stores|<user>|<type>|<category>` — the dataset *identity*. Location is no
+  /// longer baked into the key; instead it's tracked as a distance delta (see
+  /// [_lastStoreFetchLat]/[_lastStoreFetchLng] + [_moveInvalidationMeters]) so
+  /// a small walk doesn't refetch but a real relocation does. This is also the
+  /// Hive key, so each (user, type, category) gets its own persisted entry.
+  String get _storeIdentity =>
+      'stores|$userId|${typeOfBusiness ?? ''}|${businessCategoryId ?? ''}';
 
-  /// `services|<category>|<lat>|<lng>` — service search ignores [typeOfBusiness].
-  String get _serviceStoreSignature =>
-      'services|${businessCategoryId ?? ''}|'
-      '${LocationService.lat.toStringAsFixed(3)}|'
-      '${LocationService.lng.toStringAsFixed(3)}';
+  /// `services|<user>|<category>` — service search ignores [typeOfBusiness].
+  String get _serviceIdentity => 'services|$userId|${businessCategoryId ?? ''}';
+
+  /// Where the data currently in [allStore] was fetched. Used to detect that
+  /// the user has moved far enough to warrant fresh results.
+  double? _lastStoreFetchLat;
+  double? _lastStoreFetchLng;
+
+  /// A persisted store list older than this triggers a silent background
+  /// refresh on re-entry (the cached list is still shown instantly meanwhile).
+  static const Duration _persistTtl = Duration(hours: 24);
+
+  /// Moving farther than this (metres) from where the list was fetched marks
+  /// the cache stale — the user is effectively shopping a new area.
+  static const double _moveInvalidationMeters = 1500;
 
   /// All Product data
   RxList<GetProductData> productDataList = <GetProductData>[].obs;
@@ -159,15 +171,86 @@ class StoreController extends GetxController{
   /// Fetch the near-by store list only when it isn't already loaded & fresh for
   /// the current request. Use this on screen (re)entry; call [getAllStoreNearBy]
   /// directly for explicit refreshes (pull-to-refresh, category change).
+  ///
+  /// Three tiers, fastest first:
+  ///  1. In-session memory — the list is already loaded for this identity and
+  ///     hasn't gone stale (TTL) or far (distance); nothing to do.
+  ///  2. Persistent disk cache — hydrate [allStore] instantly so the user sees
+  ///     stores with no spinner, then silently revalidate in the background
+  ///     only if the saved entry is too old or was fetched too far away.
+  ///  3. Network — nothing usable cached; do a normal first-load fetch.
   Future<void> getAllStoreNearByIfNeeded() async {
-    if (_allStoreCache.isFresh(_allStoreSignature, hasData: allStore.isNotEmpty)) {
+    // Dropped the in-memory list if the user has relocated since it loaded.
+    if (_movedFarFromLastFetch()) _allStoreCache.invalidate();
+
+    // 1) In-session memory cache still fresh.
+    if (_allStoreCache.isFresh(_storeIdentity, hasData: allStore.isNotEmpty)) {
       return;
     }
+
+    // 2) Persistent disk cache (cold start / disposed controller / switched
+    //    identity). Show instantly, revalidate only when stale.
+    final entry =
+        HiveServices().getGeoList(boxName: HiveServices.nearByStoreBox, key: _storeIdentity);
+    if (entry != null && entry.items.isNotEmpty) {
+      final cachedStores = _decodeStores(entry.items);
+      if (cachedStores.isNotEmpty) {
+        allStore.assignAll(cachedStores);
+        getAllStoreResponse.value = ApiResponse.complete();
+        _lastStoreFetchLat = entry.lat;
+        _lastStoreFetchLng = entry.lng;
+        // Reset paging — page 1 is what we persisted; "load more" continues from 2.
+        allStorePage = 2;
+        allStoreHasMore = true;
+        _allStoreCache.mark(_storeIdentity);
+
+        final tooOld = DateTime.now().difference(entry.savedAt) > _persistTtl;
+        final movedFar =
+            LocationService.metersFromCurrent(entry.lat, entry.lng) >
+                _moveInvalidationMeters;
+        if (tooOld || movedFar) {
+          // Stale-while-revalidate: keep the cached list on screen, refresh
+          // quietly so it swaps to fresh data without a blocking shimmer.
+          unawaited(getAllStoreNearBy(silentRefresh: true));
+        }
+        return;
+      }
+    }
+
+    // 3) Nothing usable cached — normal fetch.
     await getAllStoreNearBy();
   }
 
+  /// Whether the device has moved past [_moveInvalidationMeters] from where the
+  /// in-memory [allStore] data was last fetched.
+  bool _movedFarFromLastFetch() {
+    final lat = _lastStoreFetchLat;
+    final lng = _lastStoreFetchLng;
+    if (lat == null || lng == null) return false;
+    return LocationService.metersFromCurrent(lat, lng) > _moveInvalidationMeters;
+  }
+
+  /// Maps a raw persisted JSON list into store models, normalising nested map
+  /// key types via a JSON round-trip (matches the network parser).
+  List<GetAllStoreResModel> _decodeStores(List<dynamic> raw) {
+    try {
+      return raw
+          .map((e) => GetAllStoreResModel.fromJson(
+              jsonDecode(jsonEncode(e)) as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      log('store cache decode error: $e');
+      return const [];
+    }
+  }
+
   ///GET STORES ONLY....
-  Future<void>  getAllStoreNearBy({bool isLoadMore = false}) async {
+  ///
+  /// [silentRefresh] does a fresh page-1 fetch WITHOUT clearing the list or
+  /// showing the first-load shimmer — used by the stale-while-revalidate path
+  /// so the already-shown cached list swaps to fresh data in place. Pull-to-
+  /// refresh / category change pass the default (visible) refresh.
+  Future<void>  getAllStoreNearBy({bool isLoadMore = false, bool silentRefresh = false}) async {
     // if(typeOfBusiness == null || businessCategoryId == null){
     //   commonSnackBar(message: 'Business Category id not found');
     //   return;
@@ -177,18 +260,12 @@ class StoreController extends GetxController{
       if (isAllStoreLoadingMore.value || !allStoreHasMore) return;
       isAllStoreLoadingMore.value = true;
     } else {
-      isAllStoreFirstLoading.value = true;
-      allStore.clear();
       allStorePage = 1;
       allStoreHasMore = true;
-
-      // if(typeOfBusiness == null && businessCategoryId == null){
-      //   final cachedFood = await HiveServices().getAllStore(userId);
-      //   if (cachedFood != null && cachedFood.isNotEmpty) {
-      //     allStore.assignAll(cachedFood);
-      //     isAllStoreFirstLoading.value = false; // show instantly
-      //   }
-      // }
+      if (!silentRefresh) {
+        isAllStoreFirstLoading.value = true;
+        allStore.clear();
+      }
     }
 
     try {
@@ -199,7 +276,7 @@ class StoreController extends GetxController{
         ApiKeys.lat: LocationService.lat != 0.0 ? "${LocationService.lat}" : "0.0",
         ApiKeys.lng: LocationService.lng != 0.0 ? "${LocationService.lng}" : "0.0",
         ApiKeys.type: typeOfBusiness,
-        ApiKeys.radius: kmRadius1500
+        ApiKeys.radius: kmRadius500
       };
       // if(businessCategoryId!=null) queryParams['categoryOfBusiness'] = businessCategoryId;
       if(businessCategoryId!=null) queryParams[ApiKeys.category_id] = businessCategoryId;
@@ -240,12 +317,20 @@ class StoreController extends GetxController{
             allStore.addAll(newStores);
           } else {
             allStore.assignAll(newStores);
-            // Stamp the freshness cache so a re-entry with the same request
-            // skips the network call instead of refetching identical data.
-            _allStoreCache.mark(_allStoreSignature);
-            // if(typeOfBusiness == null && businessCategoryId == null){
-            //   await HiveServices().saveAllStore(allStore, userId);
-            // }
+            // Stamp the in-memory freshness cache so a re-entry with the same
+            // identity skips the network call instead of refetching, record
+            // where we fetched (for the move-distance check), and persist
+            // page 1 to disk so a cold start shows stores instantly.
+            _lastStoreFetchLat = LocationService.lat;
+            _lastStoreFetchLng = LocationService.lng;
+            _allStoreCache.mark(_storeIdentity);
+            unawaited(HiveServices().saveGeoList(
+              boxName: HiveServices.nearByStoreBox,
+              key: _storeIdentity,
+              jsonList: newStores.map((e) => e.toJson()).toList(),
+              lat: LocationService.lat,
+              lng: LocationService.lng,
+            ));
           }
 
           allStorePage++;
@@ -280,23 +365,54 @@ class StoreController extends GetxController{
   /// `BEAUTY_FITNESS_PERSONAL_CARE`) and maps each business-profile result
   /// into [GetAllStoreResModel] so the existing store card can render it.
   /// Freshness-guarded variant of [getServiceBusinessesNearBy] for screen entry.
+  /// Same three-tier (memory → disk → network) strategy as
+  /// [getAllStoreNearByIfNeeded], keyed by the service identity.
   Future<void> getServiceBusinessesNearByIfNeeded() async {
-    if (_allStoreCache.isFresh(_serviceStoreSignature,
-        hasData: allStore.isNotEmpty)) {
+    if (_movedFarFromLastFetch()) _allStoreCache.invalidate();
+
+    if (_allStoreCache.isFresh(_serviceIdentity, hasData: allStore.isNotEmpty)) {
       return;
     }
+
+    final entry = HiveServices()
+        .getGeoList(boxName: HiveServices.nearByStoreBox, key: _serviceIdentity);
+    if (entry != null && entry.items.isNotEmpty) {
+      final cachedStores = _decodeStores(entry.items);
+      if (cachedStores.isNotEmpty) {
+        allStore.assignAll(cachedStores);
+        getAllStoreResponse.value = ApiResponse.complete();
+        _lastStoreFetchLat = entry.lat;
+        _lastStoreFetchLng = entry.lng;
+        allStorePage = 2;
+        allStoreHasMore = true;
+        _allStoreCache.mark(_serviceIdentity);
+
+        final tooOld = DateTime.now().difference(entry.savedAt) > _persistTtl;
+        final movedFar =
+            LocationService.metersFromCurrent(entry.lat, entry.lng) >
+                _moveInvalidationMeters;
+        if (tooOld || movedFar) {
+          unawaited(getServiceBusinessesNearBy(silentRefresh: true));
+        }
+        return;
+      }
+    }
+
     await getServiceBusinessesNearBy();
   }
 
-  Future<void> getServiceBusinessesNearBy({bool isLoadMore = false}) async {
+  Future<void> getServiceBusinessesNearBy(
+      {bool isLoadMore = false, bool silentRefresh = false}) async {
     if (isLoadMore) {
       if (isAllStoreLoadingMore.value || !allStoreHasMore) return;
       isAllStoreLoadingMore.value = true;
     } else {
-      isAllStoreFirstLoading.value = true;
-      allStore.clear();
       allStorePage = 1;
       allStoreHasMore = true;
+      if (!silentRefresh) {
+        isAllStoreFirstLoading.value = true;
+        allStore.clear();
+      }
     }
 
     try {
@@ -324,8 +440,12 @@ class StoreController extends GetxController{
         }
 
         // Dedupe against what's already loaded so a non-paginated response
-        // (or a repeated page) can't append the same profiles twice.
-        final existingIds = allStore.map((s) => s.id).toSet();
+        // (or a repeated page) can't append the same profiles twice. On a
+        // page-1 fetch we REPLACE the list, so don't dedupe against it —
+        // otherwise a silent refresh (cached list still on screen) would
+        // filter every fresh result out and never update.
+        final existingIds =
+            isLoadMore ? allStore.map((s) => s.id).toSet() : <String?>{};
         final newStores = rawList
             .whereType<Map>()
             .map((e) =>
@@ -340,9 +460,18 @@ class StoreController extends GetxController{
             allStore.addAll(newStores);
           } else {
             allStore.assignAll(newStores);
-            // Shared list — stamp with the service signature so a store screen
-            // re-entry can tell these aren't its results.
-            _allStoreCache.mark(_serviceStoreSignature);
+            // Shared list — stamp with the service identity so a store screen
+            // re-entry can tell these aren't its results, and persist page 1.
+            _lastStoreFetchLat = LocationService.lat;
+            _lastStoreFetchLng = LocationService.lng;
+            _allStoreCache.mark(_serviceIdentity);
+            unawaited(HiveServices().saveGeoList(
+              boxName: HiveServices.nearByStoreBox,
+              key: _serviceIdentity,
+              jsonList: newStores.map((e) => e.toJson()).toList(),
+              lat: LocationService.lat,
+              lng: LocationService.lng,
+            ));
           }
           allStorePage++;
         } else {

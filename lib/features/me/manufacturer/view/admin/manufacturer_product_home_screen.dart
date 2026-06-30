@@ -55,19 +55,16 @@ class _ProductHomeScreenState extends State<ManufacturerProductHomeScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         BusinessJoinedProfileCard(businessController: _businessController),
-        SizedBox(height: SizeConfig.size12),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
           child: CommonBusinessLivePhoto(
             controller: _businessController,
           ),
         ),
-        SizedBox(height: SizeConfig.size12),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
           child: const BusinessDescriptionCard(),
         ),
-        SizedBox(height: SizeConfig.size12),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
           child: Obx(() {
@@ -77,7 +74,7 @@ class _ProductHomeScreenState extends State<ManufacturerProductHomeScreen> {
             );
           }),
         ),
-        SizedBox(height: SizeConfig.size12),
+        SizedBox(height: SizeConfig.size10),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
           child: Obx(() {
@@ -90,9 +87,7 @@ class _ProductHomeScreenState extends State<ManufacturerProductHomeScreen> {
             );
           }),
         ),
-        SizedBox(height: SizeConfig.size12),
         _buildQrCodeSection(),
-        SizedBox(height: SizeConfig.size12),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
           child: const BusinessShareBanner(),

@@ -15,6 +15,7 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
 import '../../../../personal/personal_profile/controller/languge_list_controller.dart';
 import '../../model/get_categories_model.dart';
@@ -55,14 +56,21 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
   late final List<_AccountTab> _tabs;
   late final TabController _tabController;
 
-  /// Debounces the overscroll-auto-advance gesture so a single fling
-  /// doesn't skip past multiple tabs in one go.
-  DateTime _lastAutoAdvance = DateTime.fromMillisecondsSinceEpoch(0);
+  /// Single scroll view holding ALL tabs' content stacked vertically, so a
+  /// scroll flows continuously from one tab straight into the next.
+  final ScrollController _scrollController = ScrollController();
 
-  /// Pull distance (in logical pixels) past the bottom edge required to
-  /// trigger the auto-advance. Tuned so it feels like a deliberate pull,
-  /// not an accidental flick.
-  static const double _autoAdvanceThreshold = 70.0;
+  /// One key per tab block — used to measure each block's scroll offset so the
+  /// active tab can follow the scroll position (and a tab tap can scroll to it).
+  late final List<GlobalKey> _tabKeys;
+
+  /// The tab whose block is currently aligned to the top of the viewport.
+  /// Tracked so we only react when scrolling actually crosses into a new tab.
+  int _activeTab = 0;
+
+  /// True while we animate the scroll in response to a TAB TAP, so the scroll
+  /// listener doesn't fight the animation.
+  bool _isAnimatingToTab = false;
 
   @override
   void initState() {
@@ -70,25 +78,27 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
     authController.loadCategoriesCacheFirstThenRefresh();
 
     _tabs = _buildTabs();
+    _tabKeys = List.generate(_tabs.length, (_) => GlobalKey());
+    _activeTab = _initialTabIndex();
     _tabController = TabController(
       length: _tabs.length,
       vsync: this,
-      initialIndex: _initialTabIndex(),
+      initialIndex: _activeTab,
     );
-    _tabController.addListener(() {
-      if (_tabController.indexIsChanging) return;
-      _onTabChanged(_tabs[_tabController.index]);
-      setState(() {});
-    });
+    // Scroll position drives the active tab (scroll-spy).
+    _scrollController.addListener(_onContentScroll);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _onTabChanged(_tabs[_tabController.index]);
+      _onTabChanged(_tabs[_activeTab]);
+      // Land on the requested initial tab's section (no animation on entry).
+      if (_activeTab != 0) _scrollToTab(_activeTab, animate: false);
     });
   }
 
   @override
   void dispose() {
+    _scrollController.dispose();
     _tabController.dispose();
     super.dispose();
   }
@@ -168,17 +178,80 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
     );
   }
 
-  /// Called by [_OverscrollAdvancer] once the user has pulled past the
-  /// bottom edge by [_autoAdvanceThreshold] pixels. Forward-only — bails
-  /// at the last tab so the user never wraps unexpectedly. Debounced so a
-  /// single fling can't skip past multiple tabs.
-  void _maybeAdvanceTab() {
-    final now = DateTime.now();
-    if (now.difference(_lastAutoAdvance).inMilliseconds < 600) return;
-    final next = _tabController.index + 1;
-    if (next >= _tabs.length) return;
-    _lastAutoAdvance = now;
-    _tabController.animateTo(next);
+  /// Scroll-spy: as the single scroll view moves, pick the tab whose block is
+  /// currently at the top of the viewport and select it (so the indicator
+  /// follows the scroll). Ignored while a tab-tap animation is driving the
+  /// scroll, so the two don't fight.
+  void _onContentScroll() {
+    if (_isAnimatingToTab || !_scrollController.hasClients) return;
+    final active = _computeActiveTab();
+    if (active != _activeTab) _setActiveTab(active);
+  }
+
+  /// The tab whose block top has scrolled nearest to (but not past) the top of
+  /// the viewport. Reaching the very bottom always selects the last tab, so a
+  /// short final section still activates its tab.
+  int _computeActiveTab() {
+    final position = _scrollController.position;
+    if (position.pixels >= position.maxScrollExtent - 4) {
+      return _tabKeys.length - 1;
+    }
+    int active = 0;
+    for (int i = 0; i < _tabKeys.length; i++) {
+      final off = _tabScrollOffset(_tabKeys[i]);
+      if (off == null) continue;
+      if (position.pixels >= off - SizeConfig.size48) active = i;
+    }
+    return active;
+  }
+
+  /// The scroll offset at which [key]'s block reaches the top of the viewport,
+  /// or null when it can't be measured yet.
+  double? _tabScrollOffset(GlobalKey key) {
+    final ctx = key.currentContext;
+    if (ctx == null) return null;
+    final box = ctx.findRenderObject();
+    if (box == null || !box.attached) return null;
+    try {
+      final viewport = RenderAbstractViewport.of(box);
+      return viewport.getOffsetToReveal(box, 0.0).offset;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Make [index] the active tab: slide the indicator and run the tab-change
+  /// side effects (reset selection, switch the parent slug).
+  void _setActiveTab(int index) {
+    _activeTab = index;
+    if (_tabController.index != index) _tabController.animateTo(index);
+    _onTabChanged(_tabs[index]);
+  }
+
+  /// Scrolls the content so [index]'s block sits at the top — used when a tab
+  /// is tapped. Clamps to the scroll range so the last/short tab still lands.
+  Future<void> _scrollToTab(int index, {bool animate = true}) async {
+    if (!_scrollController.hasClients) return;
+    final off = _tabScrollOffset(_tabKeys[index]);
+    if (off == null) return;
+    final position = _scrollController.position;
+    final target =
+        off.clamp(position.minScrollExtent, position.maxScrollExtent);
+    _isAnimatingToTab = true;
+    _setActiveTab(index);
+    try {
+      if (animate) {
+        await _scrollController.animateTo(
+          target,
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeInOut,
+        );
+      } else {
+        _scrollController.jumpTo(target);
+      }
+    } finally {
+      _isAnimatingToTab = false;
+    }
   }
 
   @override
@@ -219,9 +292,30 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
                     // Touch the selection Rx so the body rebuilds when a
                     // pill is tapped (so its highlight state updates).
                     selectedItem.value;
-                    return TabBarView(
-                      controller: _tabController,
-                      children: _tabs.map(_buildBodyForTab).toList(),
+                    // All tabs' content in ONE scroll view, each block keyed so
+                    // the scroll-spy can track / scroll to it. Scrolling flows
+                    // continuously from one tab straight into the next.
+                    return SingleChildScrollView(
+                      controller: _scrollController,
+                      physics: const AlwaysScrollableScrollPhysics(
+                        parent: BouncingScrollPhysics(),
+                      ),
+                      padding: EdgeInsets.fromLTRB(
+                        SizeConfig.size16,
+                        SizeConfig.size16,
+                        SizeConfig.size16,
+                        SizeConfig.size20,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          for (int i = 0; i < _tabs.length; i++)
+                            KeyedSubtree(
+                              key: _tabKeys[i],
+                              child: _buildBodyForTab(_tabs[i]),
+                            ),
+                        ],
+                      ),
                     );
                   }),
                 ),
@@ -264,6 +358,7 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
       color: AppColors.white,
       child: TabBar(
         controller: _tabController,
+        onTap: (index) => _scrollToTab(index),
         isScrollable: true,
         tabAlignment: TabAlignment.start,
         labelColor: AppColors.primaryColor,
@@ -370,11 +465,9 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
         ]);
         break;
     }
-    return _OverscrollAdvancer(
-      threshold: _autoAdvanceThreshold,
-      onTriggered: _maybeAdvanceTab,
-      child: body,
-    );
+    // Content-only — the single parent scroll view (in build) owns the scroll
+    // so all tabs flow together.
+    return body;
   }
 
   Widget _sectionedBusinessBody(List<_Section> sections) {
@@ -382,34 +475,22 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
     if (nonEmpty.isEmpty) {
       return EmptyStateWidget(message: langController.tr('No category found'));
     }
-    return SingleChildScrollView(
-      physics: const AlwaysScrollableScrollPhysics(
-        parent: BouncingScrollPhysics(),
-      ),
-      padding: EdgeInsets.fromLTRB(
-        SizeConfig.size16,
-        SizeConfig.size16,
-        SizeConfig.size16,
-        SizeConfig.size20,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          for (final section in nonEmpty) ...[
-            _sectionCard(
-              title: section.title,
-              child: Wrap(
-                alignment: WrapAlignment.center,
-                spacing: SizeConfig.size10,
-                runSpacing: SizeConfig.size12,
-                children: section.items.map(_businessPill).toList(),
-              ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final section in nonEmpty) ...[
+          _sectionCard(
+            title: section.title,
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              spacing: SizeConfig.size10,
+              runSpacing: SizeConfig.size12,
+              children: section.items.map(_businessPill).toList(),
             ),
-            SizedBox(height: SizeConfig.size16),
-          ],
-          // _endOfListHint(),
+          ),
+          SizedBox(height: SizeConfig.size16),
         ],
-      ),
+      ],
     );
   }
 
@@ -418,34 +499,22 @@ class _CreateAccountTypeScreenState extends State<CreateAccountTypeScreen>
     if (nonEmpty.isEmpty) {
       return EmptyStateWidget(message: langController.tr('No profession found'));
     }
-    return SingleChildScrollView(
-      physics: const AlwaysScrollableScrollPhysics(
-        parent: BouncingScrollPhysics(),
-      ),
-      padding: EdgeInsets.fromLTRB(
-        SizeConfig.size16,
-        SizeConfig.size16,
-        SizeConfig.size16,
-        SizeConfig.size20,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          for (final section in nonEmpty) ...[
-            _sectionCard(
-              title: section.title,
-              child: Wrap(
-                alignment: WrapAlignment.center,
-                spacing: SizeConfig.size10,
-                runSpacing: SizeConfig.size12,
-                children: section.items.map(_individualPill).toList(),
-              ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final section in nonEmpty) ...[
+          _sectionCard(
+            title: section.title,
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              spacing: SizeConfig.size10,
+              runSpacing: SizeConfig.size12,
+              children: section.items.map(_individualPill).toList(),
             ),
-            SizedBox(height: SizeConfig.size16),
-          ],
-          // _endOfListHint(),
+          ),
+          SizedBox(height: SizeConfig.size16),
         ],
-      ),
+      ],
     );
   }
 
@@ -685,67 +754,6 @@ class _IndividualSection {
 class _SubCategoryPickResult {
   final SubCategories? subCategory;
   _SubCategoryPickResult(this.subCategory);
-}
-
-/// Wraps a scrollable child and fires [onTriggered] once the user has
-/// dragged past the bottom edge by [threshold] logical pixels in a single
-/// gesture. Accumulates [OverscrollNotification.overscroll] so a tiny flick
-/// past the edge doesn't count — the user has to deliberately pull. Resets
-/// every time scrolling settles, so each new gesture is fresh.
-class _OverscrollAdvancer extends StatefulWidget {
-  final Widget child;
-  final VoidCallback onTriggered;
-  final double threshold;
-
-  const _OverscrollAdvancer({
-    required this.child,
-    required this.onTriggered,
-    this.threshold = 70.0,
-  });
-
-  @override
-  State<_OverscrollAdvancer> createState() => _OverscrollAdvancerState();
-}
-
-class _OverscrollAdvancerState extends State<_OverscrollAdvancer> {
-  double _pulledPastEnd = 0;
-  bool _firedForGesture = false;
-
-  bool _onNotification(ScrollNotification n) {
-    if (n.metrics.axis != Axis.vertical) return false;
-
-    if (n is OverscrollNotification) {
-      // Positive overscroll == forward direction (dragging past the bottom
-      // edge of a vertical list). Ignore overscroll at the top.
-      if (n.overscroll > 0) {
-        _pulledPastEnd += n.overscroll;
-        if (!_firedForGesture && _pulledPastEnd >= widget.threshold) {
-          _firedForGesture = true;
-          widget.onTriggered();
-        }
-      }
-    } else if (n is ScrollUpdateNotification) {
-      // If the user reverses direction and scrolls back up, throw away the
-      // accumulated pull so they have to start over.
-      final delta = n.scrollDelta;
-      if (delta != null && delta < 0) {
-        _pulledPastEnd = 0;
-        _firedForGesture = false;
-      }
-    } else if (n is ScrollEndNotification) {
-      _pulledPastEnd = 0;
-      _firedForGesture = false;
-    }
-    return false;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return NotificationListener<ScrollNotification>(
-      onNotification: _onNotification,
-      child: widget.child,
-    );
-  }
 }
 
 class BusinessSubCategoryBottomSheet extends StatefulWidget {

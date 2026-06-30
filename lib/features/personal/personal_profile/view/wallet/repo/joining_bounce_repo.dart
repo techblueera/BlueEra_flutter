@@ -18,11 +18,22 @@ class JoiningBounceRepo extends BaseService {
     return response;
   }
 
-  /// `GET /joining-bounce/current` — the active in_progress/eligible record.
-  Future<ResponseModel> getCurrent() async {
+  /// `GET /joining-bounce/current?tag_id=&account_type=` — the active
+  /// in_progress/eligible record.
+  ///
+  /// Passing [tagId] (the user's business category / profession) lets the
+  /// backend AUTO-CREATE the bonus on first visit (otherwise a brand-new user
+  /// gets a 404). [accountType] (BUSINESS | INDIVIDUAL) is optional — resolved
+  /// from the JWT — and sent only when known, to be explicit.
+  Future<ResponseModel> getCurrent({String? tagId, String? accountType}) async {
     final response = await ApiBaseHelper().getHTTP(
       joiningBounceCurrent,
       showProgress: false,
+      params: {
+        if (tagId != null && tagId.isNotEmpty) 'tag_id': tagId,
+        if (accountType != null && accountType.isNotEmpty)
+          'account_type': accountType,
+      },
       onError: (error) {},
       onSuccess: (data) {},
     );
@@ -53,6 +64,31 @@ class JoiningBounceRepo extends BaseService {
       joiningBounceEnroll,
       params: {'tag_id': tagId, 'account_type': accountType},
       isMultipart: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  /// `POST /joining-bounce/createclaim` — activate/claim the joining bonus.
+  ///
+  /// Body: `{ tag_id, account_type? }`. [tagId] comes from the profile card's
+  /// `joining_bounce.tag_id`. [accountType] (BUSINESS | INDIVIDUAL) is optional
+  /// — the backend resolves it from the JWT — and is sent only when known, to
+  /// be explicit. Idempotent: returns the active record if it already exists.
+  Future<ResponseModel> createClaim({
+    required String tagId,
+    String? accountType,
+  }) async {
+    final response = await ApiBaseHelper().postHTTP(
+      joiningBounceCreateClaim,
+      params: {
+        'tag_id': tagId,
+        if (accountType != null && accountType.isNotEmpty)
+          'account_type': accountType,
+      },
+      isMultipart: false,
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );

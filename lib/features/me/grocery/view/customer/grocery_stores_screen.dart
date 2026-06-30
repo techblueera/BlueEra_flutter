@@ -116,8 +116,8 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
     }
 
     // Re-entry no longer refetches: only hits the API when the cached list is
-    // missing or stale for this type/category. Category taps below still force
-    // a fresh fetch via getAllStoreNearBy().
+    // missing or stale for this type/category. Category taps below are also
+    // cache-aware; pull-to-refresh is the explicit force-fresh path.
     controller.getAllStoreNearByIfNeeded();
   }
 
@@ -231,7 +231,10 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                         final cat = _arrCategories.firstWhere((c) => c.tagId == item.id);
                         controller.selectedGroceryCategoryData.value = cat;
                         controller.businessCategoryId = cat.tagId;
-                        controller.getAllStoreNearBy();
+                        // Cache-aware: re-tapping a category you viewed recently
+                        // serves it instantly from its own cache entry instead
+                        // of re-hitting the API. Pull-to-refresh forces fresh.
+                        controller.getAllStoreNearByIfNeeded();
                         setState(() {});
                       },
                       onBack: () => showCartWarning(),

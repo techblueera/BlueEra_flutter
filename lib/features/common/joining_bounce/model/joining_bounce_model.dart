@@ -22,6 +22,9 @@ class JoiningBounce {
   final bool? showCard;
   final bool? isClaimed;
 
+  /// Whether the user is enrolled in the joining-bonus program.
+  final bool? enrolled;
+
   const JoiningBounce({
     required this.joiningBounceId,
     required this.status,
@@ -32,10 +35,12 @@ class JoiningBounce {
     this.accountType,
     this.showCard,
     this.isClaimed,
+    this.enrolled,
   });
 
   factory JoiningBounce.fromJson(Map<String, dynamic> json) {
     int asInt(dynamic v) => v is int ? v : int.tryParse('${v ?? 0}') ?? 0;
+    bool? asBool(dynamic v) => v is bool ? v : null;
     return JoiningBounce(
       joiningBounceId: (json['joining_bounce_id'] ?? '').toString(),
       tagId: json['tag_id']?.toString(),
@@ -44,18 +49,17 @@ class JoiningBounce {
       eligible: json['eligible'] == true,
       progressPercent: asInt(json['progress_percent']),
       bonusInr: asInt(json['bonus_inr']),
-      showCard: json['show_card'] is bool ? json['show_card'] as bool : null,
-      isClaimed: json['is_claimed'] is bool ? json['is_claimed'] as bool : null,
+      showCard: asBool(json['show_card']),
+      isClaimed: asBool(json['is_claimed']),
+      enrolled: asBool(json['enrolled']),
     );
   }
 
   bool get isCredited => status == 'credited';
 
-  /// Whether the claim popup should be surfaced at all. Honours the profile's
-  /// `show_card`/`is_claimed` when present; otherwise derives from `status`.
-  bool get shouldShow {
-    if ((isClaimed ?? false) || isCredited) return false;
-    if (showCard != null) return showCard!;
-    return status == 'in_progress' || status == 'eligible';
-  }
+  /// Whether the scratch card should be surfaced. Driven solely by the
+  /// backend's `show_card` flag — the server already folds in `enrolled`
+  /// and not-claimed, so the client never computes its own gate and the two
+  /// can never disagree.
+  bool get shouldShow => showCard == true;
 }

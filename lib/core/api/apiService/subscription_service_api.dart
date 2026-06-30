@@ -62,6 +62,12 @@ mixin SubscriptionServiceApi {
   /// `POST /joining-bounce/claim` — pay an eligible bonus into the wallet.
   final String joiningBounceClaim = 'subscription-service/joining-bounce/claim';
 
+  /// `POST /joining-bounce/createclaim` — activate/claim the joining bonus
+  /// ({ tag_id, account_type? }). Idempotent: also returns the active record
+  /// if it already exists.
+  final String joiningBounceCreateClaim =
+      'subscription-service/joining-bounce/createclaim';
+
   /// `POST /joining-bounce/cancel` — cancel an in_progress/eligible record.
   final String joiningBounceCancel =
       'subscription-service/joining-bounce/cancel';

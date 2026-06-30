@@ -1506,11 +1506,14 @@ class AutomotiveProductController extends GetxController{
       productsNestedCategoryList.clear();
 
       // 1) Cache-first (super-category list only).
+      //
+      // Parsed inline (not via `compute`): the level-0 list is a small flat
+      // payload, so the isolate spawn + cross-isolate serialisation cost more
+      // than the parse itself — that overhead was the slow cache replay.
       if (isSuper) {
         final cachedRaw = HiveServices().getProductSuperCategoriesRaw();
         if (cachedRaw != null && cachedRaw.isNotEmpty) {
-          final cached =
-              await compute(_parseProductNestedCategories, cachedRaw);
+          final cached = _parseProductNestedCategories(cachedRaw);
           if (cached.isNotEmpty) {
             productsNestedCategoryList.assignAll(cached);
             nestedProductCategoryResponse.value = ApiResponse.complete();
@@ -1519,8 +1522,18 @@ class AutomotiveProductController extends GetxController{
       }
 
       // 2) Silent network refresh.
+      //
+      // Per the categories integration guide, the super-category screen loads
+      // only the FLAT level-0 list (`?level=0`, no `children`) so the payload
+      // stays tiny — the full nested tree is fetched lazily per category via
+      // [fetchProductSubtreeById] when the user drills in. A `groceryCatKey`,
+      // when supplied, fetches that single subtree by key instead.
       Map<String, dynamic> queryParams = {};
-      if (groceryCatKey != null) queryParams[ApiKeys.categoryKey] = groceryCatKey;
+      if (groceryCatKey != null) {
+        queryParams[ApiKeys.categoryKey] = groceryCatKey;
+      } else {
+        queryParams[ApiKeys.level] = 0;
+      }
 
       ResponseModel responseModel = await AutomotiveProductRepo()
           .productNestedCategoryRepo(queryParams: queryParams);
@@ -1530,7 +1543,7 @@ class AutomotiveProductController extends GetxController{
             : const [];
         final parsed = rawList.isEmpty
             ? <AutomotiveProductNestedCategoryResponse>[]
-            : await compute(_parseProductNestedCategories, rawList);
+            : _parseProductNestedCategories(rawList);
 
         productsNestedCategoryList.assignAll(parsed);
         nestedProductCategoryResponse.value =
@@ -1550,6 +1563,36 @@ class AutomotiveProductController extends GetxController{
           nestedProductCategoryResponse.value = ApiResponse.error('error');
         } catch (_) {}
       }
+    }
+  }
+
+  /// Fetch a single category WITH its full nested subtree
+  /// (`GET /categories/nested?categoryId=<id>`). Returns the parsed node
+  /// (its `children` hold level-1, each with their own `children` down to
+  /// leaves) or `null` on failure.
+  ///
+  /// No loader here — the caller (the nested-category screen) owns the
+  /// loading UI so it can show an in-place shimmer instead of a blocking
+  /// global overlay.
+  Future<AutomotiveProductNestedCategoryResponse?> fetchProductSubtreeById(
+      String categoryId) async {
+    if (categoryId.isEmpty) return null;
+    try {
+      final res = await AutomotiveProductRepo().productNestedCategoryRepo(
+        queryParams: {ApiKeys.categoryId: categoryId},
+      );
+      if (res.isSuccess && res.response?.data is Map) {
+        // Round-trip normalises nested map key types (matches the list parser)
+        // so `fromJson` never hits a `_Map<dynamic, dynamic>` cast error.
+        return AutomotiveProductNestedCategoryResponse.fromJson(
+            jsonDecode(jsonEncode(res.response!.data)) as Map<String, dynamic>);
+      }
+      commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
+      return null;
+    } catch (e, s) {
+      log('fetchProductSubtreeById error: $s');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return null;
     }
   }
 

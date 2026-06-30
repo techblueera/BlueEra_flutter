@@ -160,6 +160,10 @@ class _ProductSuperCategoryScreenState
             iconHeight: SizeConfig.size60,
             boxShadow: const [],
             onTap: (item) {
+              // Navigate immediately and let the nested screen fetch this
+              // category's subtree with its own in-place shimmer — no blocking
+              // loader here. The flat level-0 list is forwarded so the nested
+              // screen's top-level switcher can drill elsewhere.
               Get.toNamed(
                 RouteHelper.getProductNestedCategoryScreenRoute(),
                 arguments: {

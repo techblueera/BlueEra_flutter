@@ -112,6 +112,15 @@ class ApiBaseHelper {
             if (kDebugMode) {
               // ====== 🌟 Beautified Request Log ======
 
+              // Full resolved URL (baseUrl + path + query) and method — so
+              // every request shows its endpoint in the run tab, not just its
+              // body. `options.uri` folds in the base URL and query params.
+              log("🌐 ${options.method} ${options.uri}");
+              // Auth token sent on this request. The header is (re)set from
+              // `authTokenGlobal` a few lines below, so log the live global —
+              // that's the exact value about to go out.
+              log("🔑 Authorization: Bearer $authTokenGlobal");
+
               if (isFormData) {
                 final formData = options.data as FormData;
                 log("🔹 FormData Fields:");
@@ -150,15 +159,20 @@ class ApiBaseHelper {
               );
             }
 
+            // Full resolved URL (baseUrl + path + query) this response came
+            // from, so the success/warning log can be matched to its endpoint.
+            final responseUrl =
+                '${response.requestOptions.method} ${response.requestOptions.uri}';
+
             // Decrement the request count and hide the loader if no pending requests
             if (response.statusCode! >= 100 && response.statusCode! <= 199) {
               Logger.printLog(
                   tag: 'WARNING CODE ${response.statusCode} : ',
-                  printLog: response.data.toString(),
+                  printLog: '🌐 $responseUrl\n${response.data}',
                   logIcon: Logger.warning);
             } else {
               log(
-                  'SUCCESS CODE ${response.statusCode} :  ${jsonEncode(response.data)}');
+                  'SUCCESS CODE ${response.statusCode} : 🌐 $responseUrl\n${jsonEncode(response.data)}');
             }
 
             /// change after upgrade

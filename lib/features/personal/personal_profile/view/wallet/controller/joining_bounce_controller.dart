@@ -70,12 +70,16 @@ class JoiningBounceController extends GetxController {
     }
   }
 
-  /// Loads the user's active joining bonus (`GET /joining-bounce/current`).
-  /// A 404 (no active record) is treated as "no bonus" rather than an error.
-  Future<void> getCurrentApi() async {
+  /// Loads the user's active joining bonus
+  /// (`GET /joining-bounce/current?tag_id=&account_type=`). Passing [tagId]
+  /// (business category / profession) lets the backend auto-create the bonus
+  /// on first visit. A 404 (no active record) is treated as "no bonus" rather
+  /// than an error.
+  Future<void> getCurrentApi({String? tagId, String? accountType}) async {
     try {
       currentResponse.value = ApiResponse.loading();
-      final ResponseModel response = await _repo.getCurrent();
+      final ResponseModel response =
+          await _repo.getCurrent(tagId: tagId, accountType: accountType);
       if (response.isSuccess && response.data is Map) {
         currentBounce.value = JoiningBounceProgress.fromJson(
             Map<String, dynamic>.from(response.data));

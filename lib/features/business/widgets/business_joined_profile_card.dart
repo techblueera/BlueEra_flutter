@@ -125,7 +125,7 @@ class BusinessJoinedProfileCard extends StatelessWidget {
         double.tryParse(details?.avg_rating?.toString() ?? '0.0') ?? 0.0;
     final reviews = (details?.total_ratings ?? 0).toInt();
     final subCat =
-        (details?.subCategoryDetails?.name ?? details?.businessType ?? '')
+        (details?.subCategoryDetails?.name ?? details?.typeOfBusiness ?? '')
             .toString();
 
     return Container(

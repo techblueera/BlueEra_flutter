@@ -16,6 +16,18 @@ class LocationService extends GetxService {
   static double lat = 0.0;
   static double lng = 0.0;
   static Rx<UserAddress> userCurrentAddress = UserAddress().obs;
+
+  /// Straight-line metres between [fromLat]/[fromLng] and the device's current
+  /// cached location ([lat]/[lng]).
+  ///
+  /// Returns [double.infinity] when either point is unset (0,0) so callers
+  /// treat "unknown location" as "moved far" — i.e. a cache built at an
+  /// unknown location is never reused for a different unknown location.
+  static double metersFromCurrent(double fromLat, double fromLng) {
+    if (lat == 0.0 && lng == 0.0) return double.infinity;
+    if (fromLat == 0.0 && fromLng == 0.0) return double.infinity;
+    return Geolocator.distanceBetween(fromLat, fromLng, lat, lng);
+  }
   // static RxList<String> userCurrentAddress = <String>[].obs;
   static bool isLoading = false;
 

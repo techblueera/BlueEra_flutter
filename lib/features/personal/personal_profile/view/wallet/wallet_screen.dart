@@ -1,20 +1,21 @@
+import 'dart:ui';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment/view/payment_setting_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/all_transactions/amount_withdraw_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/wallet/all_transactions/wallet_transaction_response.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/controller/wallet_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/wallet/widget/wallet_statics_view.dart';
 import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
-import 'package:BlueEra/features/common/referral/view/tabs/statics_tab.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 import '../../../../../core/api/apiService/api_response.dart';
 import '../../../../../core/constants/app_strings.dart';
 import '../../../../../core/constants/getx_utils.dart';
@@ -30,15 +31,9 @@ class _WalletScreenState extends State<WalletScreen> {
   final controller = getOrPut(() => WalletController());
   final referralController = getOrPut(() => ReferralController());
 
-  /// 0 = Statics tab, 1 = Transactions tab.
-  int _selectedTab = 0;
-
   @override
   void initState() {
     controller.getWalletApi();
-    // Home uses its OWN unfiltered preview list — separate from the See-All
-    // list, so a filter applied on See-All never affects this screen.
-    controller.getPreviewTransactionApi();
     super.initState();
   }
 
@@ -55,13 +50,11 @@ class _WalletScreenState extends State<WalletScreen> {
       body: SafeArea(
         top: false,
         child: Obx(() {
-          bool isInitialLoading = controller.viewWalletBalanceResponse.value.status == Status.LOADING ||
-              controller.previewTransactionResponse.value.status == Status.LOADING;
+          bool isInitialLoading =
+              controller.viewWalletBalanceResponse.value.status == Status.LOADING;
 
           if (isInitialLoading) {
-            return Center(
-              child: CircularProgressIndicator(),
-            );
+            return _buildWalletShimmer(statusBarHeight);
           }
 
           return Column(
@@ -73,28 +66,50 @@ class _WalletScreenState extends State<WalletScreen> {
                 // overflowing a hard-coded height.
                 width: Get.width,
                 padding: EdgeInsets.only(
-                  top: statusBarHeight + SizeConfig.size20,
-                  bottom: SizeConfig.size20,
+                  top: statusBarHeight + SizeConfig.size12,
+                  bottom: SizeConfig.size12,
                 ),
                 decoration: BoxDecoration(
                     image: DecorationImage(
                         image: AssetImage(AppImageAssets.wallet_heater_bg), fit: BoxFit.fill)),
-                child: Column(
+                // Inner translucent "glass frame" inset from the blue edges —
+                // a thin white rounded border wrapping the whole header
+                // content, matching the design.
+                child: Container(
+                  margin: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+                  padding: EdgeInsets.symmetric(
+                    vertical: SizeConfig.size16,
+                    horizontal: SizeConfig.size10,
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.35),
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Padding(
-                          padding: const EdgeInsets.only(left: 12.0),
-                          child: InkWell(
-                            onTap: () {
-                              Get.back();
-                            },
-                            child: Icon(
-                              Icons.arrow_back_ios,
-                              color: AppColors.white,
+                        InkWell(
+                          onTap: () => Get.back(),
+                          customBorder: const CircleBorder(),
+                          child: Container(
+                            height: SizeConfig.size34,
+                            width: SizeConfig.size34,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white.withValues(alpha: 0.18),
+                            ),
+                            alignment: Alignment.center,
+                            child: const Icon(
+                              Icons.arrow_back_ios_new,
+                              size: 16,
+                              color: Colors.white,
                             ),
                           ),
                         ),
@@ -105,7 +120,7 @@ class _WalletScreenState extends State<WalletScreen> {
                           color: Colors.white,
                         ),
                         SizedBox(
-                          width: 40,
+                          width: SizeConfig.size34,
                         )
                       ],
                     ),
@@ -136,145 +151,56 @@ class _WalletScreenState extends State<WalletScreen> {
                       ],
                     ),
                     SizedBox(
-                      height: 8,
+                      height: 10,
                     ),
-                    // Pending balance — shown only when there's money in an
-                    // in-flight withdrawal (hidden at 0).
-                    if (((controller.walletResponseModalClass.value.data
-                                ?.pendingBalance ??
-                            0) >
-                        0)) ...[
-                      _statRow(
-                        AppStrings.pendingBalance.tr,
-                        controller.walletResponseModalClass.value.data
-                                ?.pendingBalance ??
-                            0,
-                      ),
-                      SizedBox(height: 4),
-                    ],
-                    // Row(
-                    //   mainAxisAlignment: MainAxisAlignment.center,
-                    //   children: [
-                    //     CustomText(
-                    //       'Pending Balance:',
-                    //       fontSize: SizeConfig.medium,
-                    //       fontWeight: FontWeight.w600,
-                    //       color: Colors.white,
-                    //     ),
-                    //     SizedBox(
-                    //       width: 4,
-                    //     ),
-                    //     CustomText(
-                    //       '\u{20B9}controller',
-                    //       fontSize: SizeConfig.medium15,
-                    //       fontWeight: FontWeight.w600,
-                    //       color: Colors.white,
-                    //     ),
-                    //     SizedBox(
-                    //       width: 12,
-                    //     ),
-                    //     CustomText(
-                    //       'Total Earning:',
-                    //       fontSize: SizeConfig.medium,
-                    //       fontWeight: FontWeight.w600,
-                    //       color: Colors.white,
-                    //     ),
-                    //     SizedBox(
-                    //       width: 4,
-                    //     ),
-                    //     CustomText(
-                    //       '\u{20B9}2,500',
-                    //       fontSize: SizeConfig.medium15,
-                    //       fontWeight: FontWeight.w600,
-                    //       color: Colors.white,
-                    //     ),
-                    //   ],
-                    // ),
-
-                    _statsStrip(),
+                    // Lifetime figures: Pending Balance + Total Earning on one
+                    // row, Total Withdrawals beneath — matches the new design.
+                    _headerStats(),
                     SizedBox(
-                      height: 14,
+                      height: 16,
                     ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 35.0),
-                      child: Row(
-                        children: [
-                          Expanded(
-                              child: GestureDetector(
-                            onTap: () {
-                              Get.to(() => PaymentSettingScreen());
-                              // Get.toNamed(RouteHelper.getAddBankAccountScreenRoute());
-                            },
-                            child: Container(
-                              height: SizeConfig.size45,
-                              decoration: BoxDecoration(
-                                  border: Border.all(color: AppColors.white),
-                                  borderRadius: BorderRadius.circular(18)),
-                              child: Center(
-                                child: CustomText(
-                                  AppStrings.addAccount.tr,
-                                  fontSize: SizeConfig.medium15,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          )),
-                          SizedBox(
-                            width: SizeConfig.extraLarge,
+                    // Three actions: Add Account | Withdraw | History. History
+                    // opens the transactions list (the old Transactions tab).
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _headerButton(
+                            label: AppStrings.addAccount.tr,
+                            onTap: () => Get.to(() => PaymentSettingScreen()),
                           ),
-                          Expanded(
-                              child: GestureDetector(
+                        ),
+                        SizedBox(width: SizeConfig.size10),
+                        Expanded(
+                          child: _headerButton(
+                            label: AppStrings.withdraw.tr,
                             onTap: () {
                               Get.to(() => AmountWithdrawScreen())?.then(
-                                (value) {
-                                  controller.getPreviewTransactionApi();
-                                  controller.getWalletApi();
-                                },
+                                (value) => controller.getWalletApi(),
                               );
                             },
-                            child: Container(
-                              height: SizeConfig.size45,
-                              decoration: BoxDecoration(
-                                  border: Border.all(color: AppColors.white),
-                                  borderRadius: BorderRadius.circular(18)),
-                              child: Center(
-                                child: CustomText(
-                                  AppStrings.withdraw.tr,
-                                  fontSize: SizeConfig.medium15,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            ),
-                          ))
-                        ],
-                      ),
+                          ),
+                        ),
+                        SizedBox(width: SizeConfig.size10),
+                        Expanded(
+                          child: _headerButton(
+                            label: AppStrings.history.tr,
+                            onTap: () => Get.toNamed(
+                                RouteConstant.allTransactionsScreen),
+                          ),
+                        ),
+                      ],
                     )
                   ],
                 ),
-              ),
-              Expanded(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    // borderRadius: BorderRadiusGeometry.circular(12),
-                  ),
-                  margin: EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-                  padding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-                  child: Column(
-                    children: [
-                      _walletTabBar(),
-                      SizedBox(height: 16),
-                      Expanded(
-                        child: _selectedTab == 0
-                            ? StaticsTab(controller: referralController)
-                            : _transactionsView(),
-                      ),
-                    ],
-                  ),
                 ),
+              ),
+              // Statics body — each section is its own white card (Joining
+              // Bonus + income donuts). Left transparent so the app-wide
+              // background (AppHomeBackground, set in App Background settings)
+              // shows through behind the cards. Transactions moved to the
+              // header "History" button.
+              Expanded(
+                child: WalletStaticsView(controller: referralController),
               )
             ],
           );
@@ -284,193 +210,186 @@ class _WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  /// Two-tab switcher (Statics / Transactions) shown at the top of the white
-  /// card. Selected tab gets a primary-coloured underline.
-  Widget _walletTabBar() {
-    Widget tab(String label, int index) {
-      final selected = _selectedTab == index;
-      return Expanded(
-        child: GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: () => setState(() => _selectedTab = index),
+  /// Full-screen loading placeholder that mirrors the real layout: the blue
+  /// balance header (label / amount / stat / two action buttons) over the same
+  /// background, then the white card with a tab bar and a few transaction rows.
+  Widget _buildWalletShimmer(double statusBarHeight) {
+    return Column(
+      children: [
+        // ── Header (same blue background as the live header) ──────────
+        Container(
+          width: Get.width,
+          padding: EdgeInsets.only(
+            top: statusBarHeight + SizeConfig.size20,
+            bottom: SizeConfig.size20,
+          ),
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage(AppImageAssets.wallet_heater_bg),
+              fit: BoxFit.fill,
+            ),
+          ),
+          child: buildLoadingShimmer(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                shimmerContainer(height: 16, width: 120, radius: 6),
+                SizedBox(height: SizeConfig.size14),
+                shimmerContainer(height: 30, width: 160, radius: 8),
+                SizedBox(height: SizeConfig.size14),
+                shimmerContainer(height: 16, width: 180, radius: 6),
+                SizedBox(height: SizeConfig.size20),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 35.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: shimmerContainer(
+                            height: SizeConfig.size45, radius: 18),
+                      ),
+                      SizedBox(width: SizeConfig.extraLarge),
+                      Expanded(
+                        child: shimmerContainer(
+                            height: SizeConfig.size45, radius: 18),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        // ── White card: tab bar + transaction-row placeholders ────────
+        Expanded(
           child: Container(
-            padding: EdgeInsets.symmetric(vertical: 10),
             decoration: BoxDecoration(
-              border: Border(
-                bottom: BorderSide(
-                  color: selected ? AppColors.primaryColor : AppColors.greyE5,
-                  width: 2,
-                ),
-              ),
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Center(
-              child: CustomText(
-                label,
-                fontSize: SizeConfig.medium15,
-                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                color: selected ? AppColors.primaryColor : AppColors.grayText,
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Row(
-      children: [
-        tab('Statics', 0),
-        tab('Transactions', 1),
-      ],
-    );
-  }
-
-  /// Transactions preview list + "See all" link (the previous wallet body).
-  Widget _transactionsView() {
-    return Column(
-      children: [
-        (controller.previewTransactionResponseModalClass.value.data?.isEmpty ?? true)
-            ? Expanded(
-                child: Center(
-                  child: CustomText(AppStrings.noTransactionFound.tr),
-                ),
-              )
-            : Expanded(
-                child: ListView.separated(
-                  shrinkWrap: true,
-                  padding: EdgeInsets.zero,
-                  itemCount:
-                      ((controller.previewTransactionResponseModalClass.value.data?.length) ??
-                          0),
-                  itemBuilder: (context, index) {
-                    WalletTransactionResponseModalClassDatum data =
-                        controller.previewTransactionResponseModalClass.value.data![index];
-                    return _customContainer(data: data);
-                  },
-                  separatorBuilder: (context, index) => SizedBox(
-                    height: 20,
-                  ),
-                ),
-              ),
-        SizedBox(
-          height: 8,
-        ),
-        InkWell(
-          onTap: () => Get.toNamed(RouteConstant.allTransactionsScreen),
-          child: CustomText(
-            AppStrings.seeAllTransactions.tr,
-            fontSize: 14,
-            decoration: TextDecoration.underline,
-            color: AppColors.skyBlueDF,
-          ),
-        )
-      ],
-    );
-  }
-
-  /// Lifetime figures (cumulative totals, distinct from the live withdrawable
-  /// balance) shown as simple centered rows in the header.
-  Widget _statsStrip() {
-    final data = controller.walletResponseModalClass.value.data;
-    return Column(
-      children: [
-        // _statRow(AppStrings.totalRewardAmount.tr, data?.totalRewardAmount ?? 0),
-        // SizedBox(height: 4),
-        _statRow(AppStrings.totalWithdrawals.tr, data?.totalWithdrawalAmount ?? 0),
-      ],
-    );
-  }
-
-  Widget _statRow(String label, num value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        CustomText(
-          label,
-          fontSize: SizeConfig.medium,
-          fontWeight: FontWeight.w600,
-          color: Colors.white,
-        ),
-        SizedBox(width: 8),
-        CustomText(
-          '\u{20B9}$value',
-          fontSize: SizeConfig.large,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),
-      ],
-    );
-  }
-
-  Widget _customContainer({required WalletTransactionResponseModalClassDatum data}) {
-    return Container(
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: CustomText(
-                  data.title,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              SizedBox(width: 8),
-              CustomText(
-                '${data.isCredit ? '+' : '-'} \u{20B9}${data.amountInRupees ?? 0}',
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: data.isCredit ? AppColors.green39 : AppColors.orange,
-              ),
-            ],
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              CustomText(
-                DateFormat(
-                  'MMM d, hh:mm a',
-                ).format(data.createdAt!.toLocal()),
-                fontSize: 12,
-                fontWeight: FontWeight.w400,
-                color: AppColors.grayText,
-              ),
-              Row(
+            margin: EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+            padding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+            child: buildLoadingShimmer(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    data.isPending
-                        ? Icons.watch_later_outlined
-                        : data.isRejected
-                            ? Icons.cancel_outlined
-                            : Icons.check_circle_outline_outlined,
-                    color: data.isPending
-                        ? AppColors.orange
-                        : data.isRejected
-                            ? AppColors.red
-                            : AppColors.green39,
-                    size: 14,
+                  Row(
+                    children: [
+                      Expanded(child: shimmerContainer(height: 18, radius: 6)),
+                      SizedBox(width: 24),
+                      Expanded(child: shimmerContainer(height: 18, radius: 6)),
+                    ],
                   ),
-                  SizedBox(
-                    width: 4,
-                  ),
-                  CustomText(
-                    data.statusLabel,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w400,
-                    color: data.isPending
-                        ? AppColors.orange
-                        : data.isRejected
-                            ? AppColors.red
-                            : AppColors.green39,
+                  SizedBox(height: 24),
+                  ...List.generate(
+                    6,
+                    (_) => Padding(
+                      padding: const EdgeInsets.only(bottom: 20.0),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              shimmerContainer(
+                                  height: 14, width: 140, radius: 6),
+                              shimmerContainer(height: 14, width: 60, radius: 6),
+                            ],
+                          ),
+                          SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              shimmerContainer(height: 12, width: 90, radius: 6),
+                              shimmerContainer(height: 12, width: 50, radius: 6),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
-            ],
+            ),
           ),
-        ],
+        ),
+      ],
+    );
+  }
+
+  /// Lifetime figures in the blue header: Pending Balance + Total Earning on
+  /// one row, Total Withdrawals beneath.
+  Widget _headerStats() {
+    final data = controller.walletResponseModalClass.value.data;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _statInline(
+                AppStrings.pendingBalance.tr, data?.pendingBalance ?? 0),
+            SizedBox(width: SizeConfig.size16),
+            _statInline(AppStrings.totalEarning.tr, data?.totalRewardAmount ?? 0),
+          ],
+        ),
+        SizedBox(height: 6),
+        _statInline(
+            AppStrings.totalWithdrawals.tr, data?.totalWithdrawalAmount ?? 0),
+      ],
+    );
+  }
+
+  /// "<label>: ₹<value>" inline pair in white, used by [_headerStats].
+  Widget _statInline(String label, num value) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        CustomText(
+          '$label: ',
+          fontSize: SizeConfig.medium,
+          fontWeight: FontWeight.w500,
+          color: Colors.white,
+        ),
+        CustomText(
+          '\u{20B9}$value',
+          fontSize: SizeConfig.medium15,
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
+        ),
+      ],
+    );
+  }
+
+  /// Frosted-glass action button used for the three header actions:
+  /// translucent white fill over a backdrop blur, a soft white border and a
+  /// 12-px radius — matching the design's glass buttons.
+  Widget _headerButton({required String label, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+          child: Container(
+            height: SizeConfig.size40,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.55),
+                width: 1,
+              ),
+            ),
+            alignment: Alignment.center,
+            child: CustomText(
+              label,
+              fontSize: SizeConfig.medium15,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ),
       ),
     );
   }

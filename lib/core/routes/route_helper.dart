@@ -1914,11 +1914,16 @@ class RouteHelper {
                 as List<ProductNestedCategoryResponse>;
         final String catId = args[ApiKeys.argArrProductCatId] as String;
         final String catName = args[ApiKeys.argArrProductCatName] as String;
+        final List<ProductNestedCategoryResponse> nestedChildren =
+            (args[ApiKeys.argProducts] as List?)
+                    ?.cast<ProductNestedCategoryResponse>() ??
+                const [];
         return MaterialPageRoute(
             builder: (_) => ProductNestedCategoryScreen(
                   argArrProductSuperCat: superCats,
                   argArrProductCatId: catId,
                   argArrProductCatName: catName,
+                  children: nestedChildren,
                 ),
             settings:
                 RouteSettings(name: getProductNestedCategoryScreenRoute()));
@@ -2326,11 +2331,16 @@ class RouteHelper {
                 as List<AutomotiveProductNestedCategoryResponse>;
         final String catId = args[ApiKeys.argArrProductCatId] as String;
         final String catName = args[ApiKeys.argArrProductCatName] as String;
+        final List<AutomotiveProductNestedCategoryResponse> nestedChildren =
+            (args[ApiKeys.argProducts] as List?)
+                    ?.cast<AutomotiveProductNestedCategoryResponse>() ??
+                const [];
         return MaterialPageRoute(
             builder: (_) => AutomotiveProductNestedCategoryScreen(
                   argArrProductSuperCat: superCats,
                   argArrProductCatId: catId,
                   argArrProductCatName: catName,
+                  children: nestedChildren,
                 ),
             settings: RouteSettings(
                 name: getAutomotiveProductNestedCategoryScreenRoute()));

@@ -120,7 +120,9 @@ class _RiderLinkStoresScreenState extends State<RiderLinkStoresScreen> {
       onTap: (item, index) {
         controller.selectedGroceryCategoryData.value = item;
         controller.businessCategoryId = item.tagId;
-        controller.getAllStoreNearBy();
+        // Cache-aware: a recently-viewed category loads instantly from its own
+        // cache entry; pull-to-refresh forces a fresh fetch.
+        controller.getAllStoreNearByIfNeeded();
       },
     );
   }
