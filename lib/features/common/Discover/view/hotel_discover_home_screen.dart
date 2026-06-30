@@ -14,6 +14,7 @@ import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
 import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/features/me/hotel/view/widget/hotel_home_gallery_widget.dart';
+import 'package:BlueEra/features/me/hotel/widget/hotel_enquiry_sheet.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/common_rating_row.dart';
@@ -122,10 +123,7 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: PositiveCustomBtn(
-                        onTap: () {
-                          commonSnackBar(
-                              message: AppStrings.comingSoonLabel.tr);
-                        },
+                        onTap: _openHotelEnquirySheet,
                         title: AppStrings.bookInquiry,
                       ),
                     ),
@@ -881,6 +879,35 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
   }
 
   // ─── LAUNCHERS ──────────────────────────────────────────────────────
+
+  /// Opens the hotel-enquiry sheet for the currently-viewed listing. Pulls
+  /// the hotel id, owner id and snapshot fields from [profile] so the
+  /// sheet header — and the eventual in-chat card — renders without an
+  /// extra fetch. See lib/docs/enquiry-flows-ui-integration.md §2a.
+  void _openHotelEnquirySheet() {
+    // `profile.sId` is the hotel-profile's own `_id` (the hotel listing
+    // the customer is enquiring about); `profile.businessId` is the
+    // owner-business id used as the chat counterpart, matching the
+    // existing chat handoff above.
+    final hotelId =
+        (profile?.sId ?? widget.data.businessId ?? '').trim();
+    final ownerId = (profile?.businessId ?? '').trim();
+    if (hotelId.isEmpty || ownerId.isEmpty) {
+      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
+      return;
+    }
+    HotelEnquirySheet.open(
+      context,
+      listing: HotelEnquiryListing(
+        hotelId: hotelId,
+        ownerId: ownerId,
+        ownerName: (profile?.name ?? '').trim(),
+        hotelName: (profile?.name ?? '').trim(),
+        coverImage: profile?.coverUrl,
+        location: profile?.location?.name,
+      ),
+    );
+  }
 
   void _launchCaller(String number) async {
     final cleanNumber = number.replaceAll(RegExp(r'\s+\b|\b\s+'), '');

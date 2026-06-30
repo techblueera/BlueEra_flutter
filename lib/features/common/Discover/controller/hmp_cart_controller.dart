@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/common/order_history/service/local_order_store.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/features/me/product/repo/product_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/model/earn_profile_model.dart';
@@ -195,6 +196,34 @@ class HmpCartController extends GetxController {
 
   // ── Checkout ──────────────────────────────────────────────────────────────
 
+  /// Snapshot a placed seller order into the on-device order history (chat-list
+  /// under "My Orders"). Must run BEFORE the store's cart is cleared. Best-effort.
+  Future<void> _saveLocalOrder(String key, EarnProfileModel store) async {
+    try {
+      final lines = linesOf(key);
+      if (lines.isEmpty) return;
+      final items = lines
+          .map((e) => LocalOrderItem(
+                name: nameOf(e),
+                quantity: qty(idOf(e)),
+                price: sellingPriceOf(e),
+              ))
+          .toList();
+      await LocalOrderStore.addOrder(LocalOrderRecord(
+        orderId: DateTime.now().microsecondsSinceEpoch.toString(),
+        shopId: store.id ?? '',
+        shopOwnerId: store.userId ?? '',
+        shopName: store.serviceName ?? '',
+        shopImage: store.serviceLogo ?? '',
+        orderType: 'product',
+        items: items,
+        totalPrice: priceOf(key),
+        createdAt: DateTime.now().toIso8601String(),
+        status: 'placed',
+      ));
+    } catch (_) {}
+  }
+
   Map<String, dynamic> _payloadFor(String key) => {
         'items': linesOf(key).map((item) {
           final v = _variantOf(item);
@@ -237,6 +266,7 @@ class HmpCartController extends GetxController {
         return;
       }
 
+      await _saveLocalOrder(key, seller);
       clearStore(key);
 
       Get.until((route) =>
@@ -272,9 +302,14 @@ class HmpCartController extends GetxController {
       final keys = storeKeys;
       int placed = 0;
       for (final key in keys) {
+        final store = _storeById[key];
         final response =
             await _repo.placeProductOrderRepo(params: _payloadFor(key));
-        if (response.isSuccess) placed++;
+        if (response.isSuccess) {
+          placed++;
+          // Cart is cleared only after the loop, so lines are still live here.
+          if (store != null) await _saveLocalOrder(key, store);
+        }
       }
       AppLoader.hide();
 

@@ -146,7 +146,11 @@ class VehicleBooking {
   final String? note;
   final List<String> photos;
   final VehicleBookingSnapshot? snapshot;
-  final VehicleBookingStatus status;
+  // Mutable so the in-chat card can optimistically reflect a status flip
+  // (Accept / Decline / Cancel) before the `vehicleBookingStatusUpdated`
+  // socket arrives. The socket event also updates it independently, so
+  // either path lands on the same value.
+  VehicleBookingStatus status;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 

@@ -28,6 +28,7 @@ import 'package:BlueEra/features/chat/view/symbol_view/symbol_view_images.dart';
 import 'package:BlueEra/features/chat/view/wallet_chat/wallet_chat_screen.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/home/controller/symbol_feed_controller.dart';
+import 'package:BlueEra/features/common/order_history/view/local_orders_list_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/manage_notification/notification.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -108,6 +109,15 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
   /// already being opened (e.g. rapid share intents).
   static bool _isHandlingShare = false;
 
+  /// One-shot worker that forces a single rebuild once the Inquiry tab's
+  /// business chat list finishes loading. The "New" tag in each row is
+  /// derived from `updatedAt` at build time; on the very first paint the
+  /// rows are laid out before the freshly-arrived data settles, so the tag
+  /// is missed until something rebuilds the tab. This re-runs the tile
+  /// builders exactly once after the list completes so the tag shows
+  /// without the user having to navigate away and back.
+  Worker? _inquiryNewTagWorker;
+
   @override
   void initState() {
     super.initState();
@@ -136,6 +146,7 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
     // this socket emit, the tab renders blank on first open until the
     // user navigates away and back.
     _emitChatListForTab(initialTab);
+    if (initialTab == 1) _armInquiryNewTagRefresh();
     // Fire-and-forget: fetch the full chat export once on home entry.
     // Response is only logged right now (see ChatViewController.getChatExportAll).
     chatViewController.getChatExportAll();
@@ -303,7 +314,26 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
         selectedSubIndex = 0;
       });
       _emitChatListForTab(selectedIndex);
+      if (selectedIndex == 1) _armInquiryNewTagRefresh();
     }
+  }
+
+  /// Arm a single forced rebuild for when the Inquiry (business) chat list
+  /// next completes loading, so the recently-created "New" tags surface on
+  /// the first visit instead of only after a manual rebuild. Re-armed on
+  /// every entry to the tab; the previous worker is disposed first so we
+  /// never stack listeners.
+  void _armInquiryNewTagRefresh() {
+    _inquiryNewTagWorker?.dispose();
+    _inquiryNewTagWorker = once<ApiResponse>(
+      chatViewController.businessChatListResponse,
+      (_) {
+        if (mounted) setState(() {});
+      },
+      condition: () =>
+          chatViewController.businessChatListResponse.value.status ==
+          Status.COMPLETE,
+    );
   }
 
   /// Hydrate the tab's chat list. Personal is also emitted in `initState`
@@ -326,6 +356,7 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
 
   @override
   void dispose() {
+    _inquiryNewTagWorker?.dispose();
     _tabController.removeListener(_handleTabChange);
     _tabController.dispose();
     searchController.dispose();
@@ -1087,6 +1118,39 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
                           onTap: () {
                             Navigator.pop(context);
                             Get.to(() => ContactsPage(from: "group"));
+                          },
+                        ),
+                        _menuDivider(),
+                        // Opens the locally-held symbols in a WhatsApp
+                        // status-style viewer — tap left/right (or swipe) to
+                        // step through them prev/next and re-view. Uses the
+                        // already-loaded `mySymbols`, so no extra fetch.
+                        _drawerMenuItem(
+                          icon: Icons.web_stories_rounded,
+                          label: AppStrings.symbols.tr,
+                          iconColor: const Color(0xFFE91E63),
+                          bgColor: const Color(0xFFFDE6EF),
+                          onTap: () {
+                            Navigator.pop(context);
+                            if (ctrl.mySymbols.isEmpty) {
+                              commonSnackBar(message: AppStrings.noSymbolsYet.tr);
+                              return;
+                            }
+                            Get.to(() =>
+                                SymbolViewImages(mySymbols: ctrl.mySymbols));
+                          },
+                        ),
+                        _menuDivider(),
+                        // Local order history from the Discover section, shown
+                        // as a WhatsApp-style chat-list (one thread per shop).
+                        _drawerMenuItem(
+                          icon: Icons.receipt_long_rounded,
+                          label: AppStrings.myOrdersTitle.tr,
+                          iconColor: const Color(0xFFE88D1A),
+                          bgColor: const Color(0xFFFFF3E0),
+                          onTap: () {
+                            Navigator.pop(context);
+                            Get.to(() => const LocalOrdersListScreen());
                           },
                         ),
                         _menuDivider(),

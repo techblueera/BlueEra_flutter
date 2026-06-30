@@ -576,6 +576,18 @@ class ApiKeys {
   // Property-enquiry (rental Discover → chat) request key — the listed
   // property the customer is enquiring about.
   static const property_id = 'property_id';
+  // Healthcare-enquiry request keys. `hospital_id` targets the hospital
+  // producer (`hospital-service/hospital-enquiries`); `business_id` (already
+  // defined above) targets the non-hospital producer
+  // (`user-service/business-enquiries`). See
+  // lib/docs/healthcare-enquiry-ui-integration.md.
+  static const hospital_id = 'hospital_id';
+  // Hotel-enquiry request key — the listed hotel the customer is
+  // enquiring about. See lib/docs/enquiry-flows-ui-integration.md §2a.
+  static const hotel_id = 'hotel_id';
+  // Education-enquiry request key — the listed school/college the
+  // customer is enquiring about. See lib/docs/enquiry-flows-ui-integration.md §3.
+  static const listing_id = 'listing_id';
   static const enquiry_id = 'enquiry_id';
   static const house_no = 'house_no';
   static const street = 'street';

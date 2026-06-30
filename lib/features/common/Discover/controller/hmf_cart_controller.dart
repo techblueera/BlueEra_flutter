@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/common/order_history/service/local_order_store.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/model/earn_profile_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/repo/earn_profile_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/food_item_model.dart';
@@ -214,6 +215,36 @@ class HmfCartController extends GetxController {
     };
   }
 
+  /// Snapshot a placed kitchen order into the on-device order history (chat-list
+  /// under "My Orders"). Must be called BEFORE the store's cart is cleared,
+  /// since it reads the live cart lines. Best-effort — never blocks checkout.
+  Future<void> _saveLocalOrder(String key, EarnProfileModel store) async {
+    try {
+      final lines = linesOf(key);
+      if (lines.isEmpty) return;
+      final tiffin = cartIsTiffin ?? false;
+      final items = lines
+          .map((e) => LocalOrderItem(
+                name: e.foodName,
+                quantity: qty(e.id),
+                price: _num(e.sellingPrice),
+              ))
+          .toList();
+      await LocalOrderStore.addOrder(LocalOrderRecord(
+        orderId: DateTime.now().microsecondsSinceEpoch.toString(),
+        shopId: store.id ?? '',
+        shopOwnerId: store.userId ?? '',
+        shopName: store.serviceName ?? '',
+        shopImage: store.serviceLogo ?? '',
+        orderType: tiffin ? 'tiffin' : 'food',
+        items: items,
+        totalPrice: priceOf(key),
+        createdAt: DateTime.now().toIso8601String(),
+        status: 'placed',
+      ));
+    } catch (_) {}
+  }
+
   /// Route a store's order to the correct endpoint based on the cart type.
   Future<ResponseModel> _placeOrder(String key) {
     final params = _payloadFor(key);
@@ -243,6 +274,7 @@ class HmfCartController extends GetxController {
         return;
       }
 
+      await _saveLocalOrder(key, kitchen);
       clearStore(key);
 
       Get.until((route) =>
@@ -276,8 +308,13 @@ class HmfCartController extends GetxController {
       final keys = storeKeys;
       int placed = 0;
       for (final key in keys) {
+        final store = _storeById[key];
         final response = await _placeOrder(key);
-        if (response.isSuccess) placed++;
+        if (response.isSuccess) {
+          placed++;
+          // Cart is cleared only after the loop, so lines are still live here.
+          if (store != null) await _saveLocalOrder(key, store);
+        }
       }
       AppLoader.hide();
 

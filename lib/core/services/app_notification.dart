@@ -2012,6 +2012,15 @@ class AppNotificationHandler {
           (message.data['operation'] ?? '').toString().toLowerCase();
       log("jhsjhsbajhbdasjdhb  For ${message.data}");
 
+      // Single-session: the account was signed in on another device, so this
+      // session was displaced server-side. Log out immediately (full teardown
+      // + route to login) instead of waiting for the next request's 401.
+      if (operation == 'session_displaced' || operation == 'force_logout') {
+        log('[SESSION] $operation push received → forcing logout');
+        await AuthManager.handleLogout(null);
+        return;
+      }
+
       // Incoming call in foreground: show native CallKit UI immediately.
       // This is also a fallback when the socket `call:incoming` listener did
       // not fire (e.g. socket was disposed after a previous call). Without
@@ -2208,6 +2217,13 @@ class AppNotificationHandler {
     // logs("operation==== ${data['payload']['post_id']}");
     // logs("operation==== ${data['payload']['post_id'].runtimeType}");
     switch (operation) {
+      // Single-session: tapped the "signed out on another device" notification
+      // → run the full logout teardown and land on the login screen.
+      case 'session_displaced':
+      case 'force_logout':
+        AuthManager.handleLogout(null);
+        break;
+
       // Call operations
       case 'incoming_call':
         // Body tap on the incoming-call notification → show the in-app

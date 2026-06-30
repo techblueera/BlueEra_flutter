@@ -116,12 +116,17 @@ String foodServiceDeepLink({String? foodServiceId}) =>
     _withBdmReferral('https://beapp.in/app/food/${foodServiceId ?? ""}');
 
 /// Generate deep link for a Food Dish item (offer/regular dish).
-String foodDishDeepLink({String? dishId}) =>
-    _withBdmReferral('https://beapp.in/app/food/${dishId ?? ""}');
+String foodDishDeepLink({String? dishId}) => _withBdmReferral('https://beapp.in/app/food/${dishId ?? ""}');
 
 /// Generate deep link for a Vehicle listing.
 String vehicleDeepLink({String? vehicleId}) =>
     _withBdmReferral('https://beapp.in/app/vehicle/${vehicleId ?? ""}');
+
+String medicalDeepLink({String? medicalProductId}) =>
+    _withBdmReferral('https://beapp.in/app/medical/${medicalProductId ?? ""}');
+
+String automotiveDeepLink({String? automotiveId}) =>
+    _withBdmReferral('https://beapp.in/app/automotive/${automotiveId ?? ""}');
 
 /// Returns the signed-in user's BDM referral code (when their BDM
 /// application status is `COMPLETED`), or `null`. Public companion

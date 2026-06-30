@@ -103,6 +103,18 @@ class GroceryRepo extends BaseService {
     return response;
   }
 
+  /// FETCH A SINGLE GROCERY PRODUCT BY ID (public — grocery share deep link).
+  /// `GET grocery-service/api/products/{productId}`.
+  Future<ResponseModel> fetchGroceryProductByIdRepo(String productId) async {
+    final response = await ApiBaseHelper().getHTTP(
+      groceryProductById(productId),
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   ///FETCH GLOBAL GROCERIES PRODUCTS ....
   Future<ResponseModel> fetchGlobalGroceryProductsRepo(
       {Map<String, dynamic>? queryParam}) async {

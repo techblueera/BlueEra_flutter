@@ -5,6 +5,10 @@ import 'package:BlueEra/features/chat/auth/model/replyParantMessage.dart';
 import 'package:BlueEra/features/chat/auth/model/self_pickup_order_model.dart';
 import 'package:BlueEra/features/chat/auth/model/service_enquiry_model.dart';
 import 'package:BlueEra/features/chat/auth/model/property_enquiry_model.dart';
+import 'package:BlueEra/features/chat/auth/model/healthcare_enquiry_model.dart';
+import 'package:BlueEra/features/chat/auth/model/hotel_enquiry_model.dart';
+import 'package:BlueEra/features/chat/auth/model/education_enquiry_model.dart';
+import 'package:BlueEra/features/me/vehicle/model/vehicle_booking_models.dart';
 import 'package:BlueEra/features/chat/auth/model/symbol_details_model.dart';
 
 import 'Conversation.dart';
@@ -458,6 +462,29 @@ class MessageMetadata {
   String? propertyEnquiryId;
   PropertyEnquiryModel? propertyEnquiry;
 
+  // Healthcare enquiry — unified across hospitals, doctors, labs, pharmacy,
+  // surgical, and any future category. One card / contract regardless of
+  // which REST producer (`/hospital-enquiries` vs `/business-enquiries`)
+  // created the enquiry. See lib/docs/healthcare-enquiry-ui-integration.md.
+  String? healthcareEnquiryId;
+  HealthcareEnquiryModel? healthcareEnquiry;
+
+  // Hotel enquiry (`/hotel-enquiries` → message_type `hotel_enquiry`).
+  // See lib/docs/enquiry-flows-ui-integration.md §2a.
+  String? hotelEnquiryId;
+  HotelEnquiryModel? hotelEnquiry;
+
+  // Vehicle booking (`/vehicles/bookings` → message_type `vehicle_booking`).
+  // The doc's "card data path" is `metadata.booking` with the id at
+  // `metadata.vehicleBookingId`. Buyer can also cancel — see §1.
+  String? vehicleBookingId;
+  VehicleBooking? booking;
+
+  // Education enquiry (`/education-enquiries` → message_type
+  // `education_enquiry`). See lib/docs/enquiry-flows-ui-integration.md §3.
+  String? educationEnquiryId;
+  EducationEnquiryModel? educationEnquiry;
+
   // Call-related fields
   String? callId;
   String? roomId;
@@ -522,6 +549,14 @@ class MessageMetadata {
     this.serviceEnquiry,
     this.propertyEnquiryId,
     this.propertyEnquiry,
+    this.healthcareEnquiryId,
+    this.healthcareEnquiry,
+    this.hotelEnquiryId,
+    this.hotelEnquiry,
+    this.vehicleBookingId,
+    this.booking,
+    this.educationEnquiryId,
+    this.educationEnquiry,
     this.callId,
     this.roomId,
     this.otherUserId,
@@ -613,6 +648,33 @@ class MessageMetadata {
           ? PropertyEnquiryModel.fromJson(
               Map<String, dynamic>.from(json['propertyEnquiry']))
           : null,
+      healthcareEnquiryId: (json['healthcareEnquiryId'] ??
+              json['healthcare_enquiry_id'])
+          ?.toString(),
+      healthcareEnquiry: json['healthcareEnquiry'] is Map
+          ? HealthcareEnquiryModel.fromJson(
+              Map<String, dynamic>.from(json['healthcareEnquiry']))
+          : null,
+      hotelEnquiryId:
+          (json['hotelEnquiryId'] ?? json['hotel_enquiry_id'])?.toString(),
+      hotelEnquiry: json['hotelEnquiry'] is Map
+          ? HotelEnquiryModel.fromJson(
+              Map<String, dynamic>.from(json['hotelEnquiry']))
+          : null,
+      vehicleBookingId: (json['vehicleBookingId'] ??
+              json['vehicle_booking_id'])
+          ?.toString(),
+      booking: json['booking'] is Map
+          ? VehicleBooking.fromJson(
+              Map<String, dynamic>.from(json['booking']))
+          : null,
+      educationEnquiryId: (json['educationEnquiryId'] ??
+              json['education_enquiry_id'])
+          ?.toString(),
+      educationEnquiry: json['educationEnquiry'] is Map
+          ? EducationEnquiryModel.fromJson(
+              Map<String, dynamic>.from(json['educationEnquiry']))
+          : null,
       callId: json['call_id']?.toString(),
       roomId: json['room_id']?.toString(),
       otherUserId: json['other_user_id']?.toString(),
@@ -670,6 +732,16 @@ class MessageMetadata {
       'serviceEnquiry': serviceEnquiry?.toJson(),
       'propertyEnquiryId': propertyEnquiryId,
       'propertyEnquiry': propertyEnquiry?.toJson(),
+      'healthcareEnquiryId': healthcareEnquiryId,
+      'healthcareEnquiry': healthcareEnquiry?.toJson(),
+      'hotelEnquiryId': hotelEnquiryId,
+      'hotelEnquiry': hotelEnquiry?.toJson(),
+      // Vehicle booking — server-created; the model has no toJson, so we
+      // emit only the id round-trip (the full object is rebuilt from the
+      // socket / list-fetch response, never re-uploaded by the client).
+      'vehicleBookingId': vehicleBookingId,
+      'educationEnquiryId': educationEnquiryId,
+      'educationEnquiry': educationEnquiry?.toJson(),
       'call_id': callId,
       'room_id': roomId,
       'other_user_id': otherUserId,

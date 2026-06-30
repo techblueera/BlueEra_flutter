@@ -5177,6 +5177,14 @@ class AppStrings {
 
   ///CHAT CONTROLLERS
   static const String symbolAddedSuccessfully = "symbolAddedSuccessfully";
+  static const String noSymbolsYet = "noSymbolsYet";
+
+  /// Local (on-device) order history — Discovery orders shown as a chat-list.
+  static const String myOrdersTitle = "myOrdersTitle";
+  static const String noOrdersYet = "noOrdersYet";
+  static const String noOrdersYetDesc = "noOrdersYetDesc";
+  static const String orderPlacedStatus = "orderPlacedStatus";
+  static const String orderTotalLabel = "orderTotalLabel";
   static const String cameraMicrophonePermissionRequired = "cameraMicrophonePermissionRequired";
   static const String userBusyOnAnotherCall = "userBusyOnAnotherCall";
   static const String failedToInitiateCall = "failedToInitiateCall";
@@ -6379,7 +6387,7 @@ class AppStrings {
   static const String startDeliveringSubtitle = "startDeliveringSubtitle";
   static const String profileVerified = "profileVerified";
   static const String allSetToAcceptDeliveries = "allSetToAcceptDeliveries";
-  static const String noOrdersYet = "noOrdersYet";
+  // static const String noOrdersYet = "noOrdersYet";
   static const String noOrdersYetSubtitle = "noOrdersYetSubtitle";
   static const String tipsToGetMoreOrders = "tipsToGetMoreOrders";
   static const String tipStayHighDemand = "tipStayHighDemand";
@@ -7132,6 +7140,10 @@ class AppStrings {
   static const String photosLabel = "photosLabel";
   static const String customRequest = "customRequest";
   static const String serviceEnquiry = "serviceEnquiry";
+  static const String healthcareEnquiry = "healthcareEnquiry";
+  static const String tellListingAboutEnquiry = "tellListingAboutEnquiry";
+  static const String sendEnquiryLabel = "sendEnquiryLabel";
+  static const String optionalLabel = "optionalLabel";
   static const String noteLabel = "noteLabel";
   static const String enquiryAccepted = "enquiryAccepted";
   static const String enquiryDeclined = "enquiryDeclined";
@@ -7139,6 +7151,12 @@ class AppStrings {
   static const String acceptedStatus = "acceptedStatus";
   static const String declinedStatus = "declinedStatus";
   static const String pendingStatus = "pendingStatus";
+  static const String cancelledStatus = "cancelledStatus";
+  static const String cancelLabel = "cancelLabel";
+  static const String enquiryCancelled = "enquiryCancelled";
+  static const String hotelEnquiryTitle = "hotelEnquiryTitle";
+  static const String vehicleBookingTitle = "vehicleBookingTitle";
+  static const String educationEnquiryTitle = "educationEnquiryTitle";
   static const String inquiriesLabel = "inquiriesLabel";
   static const String addWebsite = "addWebsite";
   static const String updateWebsite = "updateWebsite";

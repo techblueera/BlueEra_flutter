@@ -30,4 +30,13 @@ mixin HotelServiceApi {
   final String hotelRoomsType = 'hotel-service/api/rooms/type';
   final String hotelHomeFull = 'hotel-service/api/hotels/full';
   final String hotelSearch = 'hotel-service/api/hotels/Search';
+
+  /// Hotel enquiry — `POST` raises an enquiry against a hotel listing
+  /// (creates the in-chat `hotel_enquiry` card + emits
+  /// `newHotelEnquiryReceived`); `PUT` status lets the hotel owner
+  /// accept / decline, emitting `hotelEnquiryStatusUpdated`. See
+  /// lib/docs/enquiry-flows-ui-integration.md §2a.
+  final String hotelEnquiries = 'hotel-service/api/hotel-enquiries';
+  String hotelEnquiryStatus(String enquiryId) =>
+      'hotel-service/api/hotel-enquiries/$enquiryId/status';
 }

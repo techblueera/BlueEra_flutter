@@ -77,4 +77,15 @@ mixin HospitalServiceApi {
   final String hospitalRemovePhotos = 'hospital-service/gallery/';
   String get hospitalGetAllPhotos =>
       'hospital-service/gallery/hospital/$hospitalIDGlobal';
+
+  /// Healthcare enquiry — HOSPITAL endpoint (be_hospital_service producer).
+  /// `POST` raises an enquiry against a Hospital listing (creates the in-chat
+  /// `healthcare_enquiry` card + emits `newHealthcareEnquiryReceived`); the
+  /// `PUT` status lets the hospital owner accept / decline, emitting
+  /// `healthcareEnquiryStatusUpdated`. Non-hospital categories use the
+  /// `businessEnquiries` endpoint instead. See
+  /// lib/docs/healthcare-enquiry-ui-integration.md.
+  final String hospitalEnquiries = 'hospital-service/hospital-enquiries';
+  String hospitalEnquiryStatus(String enquiryId) =>
+      'hospital-service/hospital-enquiries/$enquiryId/status';
 }

@@ -11,6 +11,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/home_cache_service.dart';
+import 'package:BlueEra/core/services/keyed_json_cache.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
@@ -1103,11 +1104,22 @@ class FeedController extends GetxController {
     }
     if (isLoadingHome.value) return;
     if (refresh) {
+      // Only a cold open (nothing on screen yet) benefits from the cache; a
+      // pull-to-refresh that already has content keeps the original spinner so
+      // we don't flash stale posts over live ones.
+      final bool isColdOpen = allPosts.isEmpty;
       cursor.value = "";
       allPosts.clear();
       shortsController?.latestShortsPosts.clear();
       hasMoreData.value = true;
-      feedResponse.value = ApiResponse.loading(); // Set to loading during refresh
+      if (isColdOpen) {
+        // Paint the last-cached feed instantly so the Social tab isn't stuck on
+        // a spinner on first open; the live fetch below replaces it once it
+        // lands. On a cache miss this falls back to the original loading state.
+        await _hydrateFeedFromCache();
+      } else {
+        feedResponse.value = ApiResponse.loading();
+      }
     }
     if (!hasMoreData.value) return;
     isLoadingHome.value = true;
@@ -1115,6 +1127,10 @@ class FeedController extends GetxController {
       // if ((LocationService.lat == 0.0) && (LocationService.lng == 0.0))
       //   await LocationService.fetchOnlyLocation();
       final timestamp = cursor.value;
+      // Empty cursor means we're loading the first page (initial open or
+      // refresh) — that fresh page must REPLACE any cache-hydrated content
+      // rather than append to it (which would duplicate posts).
+      final bool isFirstPage = timestamp.isEmpty;
 
       ResponseModel responseModel = await HomeFeedRepo().homeFeedRepo(queryParam: {
         ApiKeys.limit: limit,
@@ -1127,33 +1143,109 @@ class FeedController extends GetxController {
         final homeFeedResponse = HomeFeedResponse.fromJson(responseModel.response?.data);
 
         if (homeFeedResponse.feed.isNotEmpty) {
-          allPosts.addAll(homeFeedResponse.feed);
-          allPosts.forEach((data) {
+          if (isFirstPage) {
+            // Replace cache-hydrated (stale) content with the live first page.
+            allPosts.assignAll(homeFeedResponse.feed);
+            shortsController?.latestShortsPosts.clear();
+          } else {
+            allPosts.addAll(homeFeedResponse.feed);
+          }
+          for (final data in homeFeedResponse.feed) {
             if (data.type == "short_video") {
               shortsController?.latestShortsPosts.add(getVideoData(data));
             }
-          });
-          if (homeFeedResponse.feed.isNotEmpty) {
-            cursor.value = homeFeedResponse.metaData?.next_cursor ?? "";
           }
+          cursor.value = homeFeedResponse.metaData?.next_cursor ?? "";
           if (homeFeedResponse.feed.length < limit) {
             hasMoreData.value = false;
           }
 
           feedResponse.value = ApiResponse.complete(homeFeedResponse);
+
+          // Cache the live first page (capped to 10 posts) for instant paint on
+          // the next open.
+          if (isFirstPage) {
+            await _cacheFeed(homeFeedResponse.feed);
+          }
         } else {
+          // Server genuinely has nothing — drop any stale cache we hydrated so
+          // the empty state shows correctly.
+          if (isFirstPage) allPosts.clear();
           hasMoreData.value = false;
           feedResponse.value = ApiResponse.complete(homeFeedResponse);
         }
       } else {
-        feedResponse.value = ApiResponse.error('Failed to load feed');
+        // Keep showing cache-hydrated content on failure; only surface an error
+        // when there's nothing cached to fall back on.
+        if (allPosts.isEmpty) {
+          feedResponse.value = ApiResponse.error('Failed to load feed');
+        }
       }
     } catch (e) {
       logs("ERROR===== ${e}");
-      feedResponse.value = ApiResponse.error(e.toString());
+      if (allPosts.isEmpty) {
+        feedResponse.value = ApiResponse.error(e.toString());
+      }
     } finally {
       isLoadingHome.value = false;
     }
+  }
+
+  /// How long a cached Social-tab feed stays usable offline before it's treated
+  /// as stale and re-fetched from scratch.
+  static const Duration _feedCacheTtl = Duration(days: 1);
+
+  /// Loads the last-cached Social-tab feed into [allPosts] so the tab paints
+  /// instantly on open. Sets [feedResponse] to COMPLETE on a fresh hit (content
+  /// is ready to render) or LOADING on a miss / stale entry (original spinner
+  /// behaviour). Stale entries are dropped.
+  Future<void> _hydrateFeedFromCache() async {
+    try {
+      final cached = await socialFeedCache.get(userId);
+      final rawList = cached?['feed'];
+      if (cached != null && rawList is List && rawList.isNotEmpty) {
+        if (_isCacheStale(cached['cachedAt'], _feedCacheTtl)) {
+          await socialFeedCache.clear();
+        } else {
+          final cachedPosts = rawList
+              .map((e) => Post.fromJson(Map<String, dynamic>.from(e as Map)))
+              .toList();
+          allPosts.assignAll(cachedPosts);
+          for (final data in cachedPosts) {
+            if (data.type == "short_video") {
+              shortsController?.latestShortsPosts.add(getVideoData(data));
+            }
+          }
+          feedResponse.value = ApiResponse.complete(
+            HomeFeedResponse(success: true, feed: cachedPosts, metaData: null),
+          );
+          return;
+        }
+      }
+    } catch (e) {
+      logs("feed cache hydrate error: $e");
+    }
+    feedResponse.value = ApiResponse.loading();
+  }
+
+  /// Persists the first [10] posts of the live feed (with a timestamp for
+  /// expiry) for the next cold open.
+  Future<void> _cacheFeed(List<Post> feed) async {
+    try {
+      await socialFeedCache.save(userId, {
+        'cachedAt': DateTime.now().millisecondsSinceEpoch,
+        'feed': feed.take(10).map((p) => p.toJson()).toList(),
+      });
+    } catch (e) {
+      logs("feed cache save error: $e");
+    }
+  }
+
+  /// True when [cachedAtMs] is missing or older than [ttl].
+  bool _isCacheStale(dynamic cachedAtMs, Duration ttl) {
+    if (cachedAtMs is! int) return true;
+    final cachedAt = DateTime.fromMillisecondsSinceEpoch(cachedAtMs);
+    return DateTime.now().difference(cachedAt) > ttl;
   }
 
   void handleScrollToBottomNew() {

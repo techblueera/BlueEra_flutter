@@ -56,7 +56,7 @@ class VisitBusinessCommonHeader extends StatefulWidget {
 
 class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
   final storeController = getOrPut(() => StoreController());
-  final chatViewController = Get.find<ChatViewController>();
+  final chatViewController = getOrPut(() => ChatViewController());
   final RxBool _isFollowed = false.obs;
 
   BusinessProfileDetails? get details => widget.details;

@@ -9,6 +9,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
+import 'package:BlueEra/features/me/school/widget/education_enquiry_sheet.dart';
 import 'package:BlueEra/features/me/school/view/category/acadamics/school_academics_page.dart';
 import 'package:BlueEra/features/me/school/view/category/career_jobs/school_job_listing_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/notice_news/notice_news_screen.dart';
@@ -45,7 +46,7 @@ class DiscoverSchoolHomeScreen extends StatelessWidget {
         appBar: CommonBackAppBar(
           title: AppStrings.school,
         ),
-        bottomNavigationBar: _buildBottomBar(),
+        bottomNavigationBar: _buildBottomBar(context),
         body: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
@@ -111,7 +112,7 @@ class DiscoverSchoolHomeScreen extends StatelessWidget {
     });
   }
 
-  Widget? _buildBottomBar() {
+  Widget? _buildBottomBar(BuildContext context) {
     if (schoolAboutUsController.schoolDetailsData?.value.ownerId == userId) {
       return null;
     }
@@ -142,13 +143,37 @@ class DiscoverSchoolHomeScreen extends StatelessWidget {
             SizedBox(width: SizeConfig.paddingS),
             Expanded(
               child: PositiveCustomBtn(
-                onTap: () =>
-                    commonSnackBar(message: AppStrings.comingSoonLabel.tr),
+                onTap: () => _openSchoolEnquirySheet(context),
                 title: AppStrings.bookInquiry,
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Opens the education-enquiry sheet for the currently-viewed school.
+  /// Pulls the listing id / owner id / name / banner / first-contact
+  /// location from the loaded SchoolDetailsData so the sheet header and
+  /// the eventual in-chat card render without an extra fetch.
+  void _openSchoolEnquirySheet(BuildContext context) {
+    final data = schoolAboutUsController.schoolDetailsData?.value;
+    final listingId = (data?.id ?? '').trim();
+    final ownerId = (data?.ownerId ?? '').trim();
+    if (listingId.isEmpty || ownerId.isEmpty) {
+      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
+      return;
+    }
+    EducationEnquirySheet.open(
+      context,
+      listing: EducationEnquiryListing(
+        listingId: listingId,
+        ownerId: ownerId,
+        ownerName: (data?.name ?? '').trim(),
+        listingName: (data?.name ?? '').trim(),
+        listingImage: data?.bannerUrl ?? data?.logo,
+        location: data?.contacts?.firstOrNull?.branch?.location?.name,
       ),
     );
   }

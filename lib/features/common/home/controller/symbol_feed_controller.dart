@@ -1,5 +1,6 @@
 import 'dart:developer';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/services/keyed_json_cache.dart';
 import 'package:BlueEra/features/chat/auth/repo/symbol_repo.dart';
 import 'package:BlueEra/features/common/home/model/symbol_feed_model.dart';
 import 'package:get/get.dart';
@@ -22,6 +23,14 @@ class SymbolFeedController extends GetxController {
 
   Future<void> fetchSymbolFeed() async {
     try {
+      // Paint the last-cached story row instantly so the Social tab strip isn't
+      // blank on first open while the live symbol feed loads. The story-row
+      // widget only shows its loader when [userGroups] is empty, so a cache hit
+      // suppresses the spinner.
+      if (userGroups.isEmpty) {
+        await _hydrateSymbolsFromCache();
+      }
+
       isLoading.value = true;
 
       final response = await _repo.fetchSymbolFeed(
@@ -29,8 +38,9 @@ class SymbolFeedController extends GetxController {
       );
 
       if (response.isSuccess) {
+        final rawData = response.response?.data['data'] ?? {};
         final parsed =
-            SymbolGroupedData.fromJson(response.response?.data['data'] ?? {});
+            SymbolGroupedData.fromJson(Map<String, dynamic>.from(rawData));
         final groups = parsed.groups ?? [];
 
         // Sort: unseen groups first, then seen groups
@@ -41,12 +51,71 @@ class SymbolFeedController extends GetxController {
         });
 
         userGroups.assignAll(groups);
+
+        // Cache the raw grouped data so the next cold open paints instantly.
+        await _cacheSymbols(rawData);
       }
     } catch (e, s) {
       log('fetchSymbolFeed error: $e\n$s');
     } finally {
       isLoading.value = false;
     }
+  }
+
+  /// How long a cached symbol story row stays usable offline before it's
+  /// treated as stale and dropped.
+  static const Duration _symbolCacheTtl = Duration(days: 1);
+
+  /// Loads the last-cached symbol story row (first 5 user groups) so the Social
+  /// tab strip renders immediately on open. No-op on a cache miss, stale entry,
+  /// or parse error.
+  Future<void> _hydrateSymbolsFromCache() async {
+    try {
+      final cached = await symbolFeedCache.get(userId);
+      if (cached == null) return;
+      if (_isCacheStale(cached['cachedAt'], _symbolCacheTtl)) {
+        await symbolFeedCache.clear();
+        return;
+      }
+      final rawData = cached['data'];
+      if (rawData is Map) {
+        final parsed =
+            SymbolGroupedData.fromJson(Map<String, dynamic>.from(rawData));
+        final groups = (parsed.groups ?? []).take(5).toList();
+        if (groups.isNotEmpty) {
+          groups.sort((a, b) {
+            if (a.hasUnseen && !b.hasUnseen) return -1;
+            if (!a.hasUnseen && b.hasUnseen) return 1;
+            return 0;
+          });
+          userGroups.assignAll(groups);
+        }
+      }
+    } catch (e) {
+      log('hydrateSymbolsFromCache error: $e');
+    }
+  }
+
+  /// Persists the raw symbol grouped-data JSON (with a timestamp for expiry) for
+  /// the next cold open.
+  Future<void> _cacheSymbols(dynamic rawData) async {
+    try {
+      if (rawData is Map) {
+        await symbolFeedCache.save(userId, {
+          'cachedAt': DateTime.now().millisecondsSinceEpoch,
+          'data': Map<String, dynamic>.from(rawData),
+        });
+      }
+    } catch (e) {
+      log('cacheSymbols error: $e');
+    }
+  }
+
+  /// True when [cachedAtMs] is missing or older than [ttl].
+  bool _isCacheStale(dynamic cachedAtMs, Duration ttl) {
+    if (cachedAtMs is! int) return true;
+    final cachedAt = DateTime.fromMillisecondsSinceEpoch(cachedAtMs);
+    return DateTime.now().difference(cachedAt) > ttl;
   }
 
   /// Mark a symbol as viewed
