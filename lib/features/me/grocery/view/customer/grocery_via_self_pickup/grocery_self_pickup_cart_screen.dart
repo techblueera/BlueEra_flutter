@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
@@ -30,7 +31,11 @@ class GrocerySelfPickUpCartScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller = Get.find<GrocerySelfPickupConsumerController>();
+    // Self-register so the cart works regardless of entry path (e.g. reached
+    // directly from the grocery share deep-link's "Buy Now"), not just from
+    // the store/listing screens that normally register this controller.
+    final controller = getOrPut<GrocerySelfPickupConsumerController>(
+        () => GrocerySelfPickupConsumerController());
 
     return Scaffold(
       backgroundColor: Colors.transparent,

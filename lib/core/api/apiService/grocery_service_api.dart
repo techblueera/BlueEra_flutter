@@ -12,6 +12,12 @@ mixin GroceryServiceApi {
   String createNewProductVariant(String productId) =>
       'grocery-service/api/products/$productId/variants';
   final String groceryProducts = 'grocery-service/api/inventory/my-products';
+
+  /// Public single-product fetch used by the grocery share deep-link landing
+  /// (`https://beapp.in/app/grocery/{productId}`).
+  /// `GET grocery-service/api/products/{productId}`.
+  String groceryProductById(String productId) =>
+      'grocery-service/api/products/$productId';
   final String globalGroceryProducts =
       'grocery-service/api/inventory/public/global-grocery-products';
   final String addGroceryProductVariant = 'grocery-service/api/inventory';

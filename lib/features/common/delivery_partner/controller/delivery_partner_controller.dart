@@ -14,6 +14,8 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/keyed_json_cache.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/core/services/multipart_image_service.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/my_documents/repo/my_document_repo.dart';
 import 'package:BlueEra/features/chat/auth/model/GetBlueeraPiolotModel.dart';
 import 'package:BlueEra/features/common/delivery_partner/model/associated_shops_model.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
@@ -93,6 +95,14 @@ class DeliveryPartnerController extends GetxController {
 
   /// step 3
   final GlobalKey<FormState> formKeyStep3 = GlobalKey<FormState>();
+  // Dedicated form keys for each document upload bottom-sheet so the
+  // text-field validators (Aadhar/PAN/DL/RC number) actually fire — matching
+  // the personal-document flow (GenericDocumentWidget wraps its field in a
+  // Form and validates before upload).
+  final GlobalKey<FormState> aadharFormKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> panFormKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> dlFormKey = GlobalKey<FormState>();
+  final GlobalKey<FormState> rcFormKey = GlobalKey<FormState>();
   static const String livePhotoImageId = 'livePhotoImageId';
   final aadharController = TextEditingController();
   final panNumberController = TextEditingController();
@@ -367,6 +377,88 @@ class DeliveryPartnerController extends GetxController {
     }
   }
 
+  /// Calls the AI document-verification API (same flow as the personal
+  /// "My Documents" upload). Returns true when the document is valid (or the
+  /// API could not be reached for a non-validation reason), false when the
+  /// document is rejected — in which case a snackbar with the reason is shown.
+  ///
+  /// [documentName] is the name the verifier expects:
+  ///   "Aadhar" | "PAN" | "Driving License" | "RC".
+  Future<bool> _verifyDocument({
+    required String documentName,
+    required String documentNumber,
+    required List<File> images,
+  }) async {
+    try {
+      final imageParts = await multiPartMultipleImages(arrImages: images);
+
+      final params = <String, dynamic>{
+        'document_name': documentName,
+        'document_number': documentNumber,
+        ApiKeys.images: imageParts,
+      };
+
+      final response = await MyDocumentRepo().verifyDocument(params: params);
+
+      // Network / server error (non-2xx) — surface the message and stop.
+      if (!response.isSuccess) {
+        commonSnackBar(
+          message: (response.message?.toString().isNotEmpty ?? false)
+              ? response.message
+              : AppStrings.documentVerificationFailed,
+        );
+        return false;
+      }
+
+      // The verifier returns per-check booleans:
+      //   document_type_matches  — the image is the document we asked for
+      //   number_readable        — the number on the image is legible
+      //   document_number_matches — it matches the number the user typed
+      //   is_verified            — overall pass/fail
+      // They sit under `data` (or at the body root). Show the most actionable
+      // message for whichever check failed, and only proceed when all pass.
+      final body = response.response?.data;
+      final Map verifyData = (body is Map)
+          ? (body['data'] is Map ? body['data'] as Map : body)
+          : <String, dynamic>{};
+
+      // Missing flags default to true so documents without that check aren't
+      // blocked by an absent field.
+      bool flag(String key) {
+        final v = verifyData[key];
+        return v is bool ? v : true;
+      }
+
+      final documentTypeMatches = flag('document_type_matches');
+      final numberReadable = flag('number_readable');
+      final documentNumberMatches = flag('document_number_matches');
+      final isVerified = flag('is_verified');
+
+      String? failureMessage;
+      if (!documentTypeMatches) {
+        failureMessage = AppStrings.docTypeMismatch;
+      } else if (!numberReadable) {
+        failureMessage = AppStrings.docNumberNotReadable;
+      } else if (!documentNumberMatches) {
+        failureMessage = AppStrings.docNumberMismatch;
+      } else if (!isVerified) {
+        failureMessage = (response.message?.toString().isNotEmpty ?? false)
+            ? response.message
+            : AppStrings.documentVerificationFailed;
+      }
+
+      if (failureMessage != null) {
+        commonSnackBar(message: failureMessage);
+        return false;
+      }
+      return true;
+    } catch (e) {
+      log('rider document verification error -- $e');
+      commonSnackBar(message: AppStrings.documentVerificationFailed);
+      return false;
+    }
+  }
+
   // RxBool isPersonalInformationLoading = false.obs;
   //
   // /// ridersOnboardingPersonalInformationApi (Step 1)
@@ -623,11 +715,28 @@ class DeliveryPartnerController extends GetxController {
   RxBool isRiderPersonalIdentificationLoading = false.obs;
 
   Future<void> ridersPanCardApi() async {
-    // ---------- 1️⃣ VALIDATION ----------
+    // ---------- 1️⃣ TEXT VALIDATION ----------
+    if (!(panFormKey.currentState?.validate() ?? false)) return;
+
     // PAN card image is optional — the number alone can be submitted.
 
     try {
       isRiderPersonalIdentificationLoading.value = true;
+
+      // ---------- 1.5️⃣ AI DOCUMENT VERIFICATION ----------
+      // Only when an image was picked — verify it matches the entered number
+      // before spending bandwidth on the S3 upload.
+      if (panCardImage.value != null) {
+        final isValid = await _verifyDocument(
+          documentName: "PAN",
+          documentNumber: panNumberController.text.trim(),
+          images: [panCardImage.value!],
+        );
+        if (!isValid) {
+          isRiderPersonalIdentificationLoading.value = false;
+          return;
+        }
+      }
 
       // ---------- 2️⃣ INITIALIZE ----------
       String? panCardImageUrl;
@@ -674,8 +783,10 @@ class DeliveryPartnerController extends GetxController {
   }
 
   Future<void> ridersAadharCardApi() async {
-    // ---------- 1️⃣ VALIDATION ----------
+    // ---------- 1️⃣ TEXT VALIDATION ----------
+    if (!(aadharFormKey.currentState?.validate() ?? false)) return;
 
+    // ---------- 2️⃣ IMAGE VALIDATION ----------
     if (aadharFrontImage.value == null) {
       commonSnackBar(message: AppStrings.pleaseSelectAadharFrontImage.tr);
       return;
@@ -687,6 +798,17 @@ class DeliveryPartnerController extends GetxController {
 
     try {
       isRiderPersonalIdentificationLoading.value = true;
+
+      // ---------- 2.5️⃣ AI DOCUMENT VERIFICATION ----------
+      final isValid = await _verifyDocument(
+        documentName: "Aadhar",
+        documentNumber: aadharController.text.trim(),
+        images: [aadharFrontImage.value!, aadharBackImage.value!],
+      );
+      if (!isValid) {
+        isRiderPersonalIdentificationLoading.value = false;
+        return;
+      }
 
       // ---------- 2️⃣ INITIALIZE ----------
       String? aadharFrontImageUrl;
@@ -738,6 +860,9 @@ class DeliveryPartnerController extends GetxController {
 
   /// ridersOnboardingDrivingVerificationApi (Step 4)
   Future<void> ridersDrivingLicenceVerificationApi() async {
+    // ---------- 1️⃣ TEXT VALIDATION ----------
+    if (!(dlFormKey.currentState?.validate() ?? false)) return;
+
     if (drivingLicenseFrontImage.value == null) {
       commonSnackBar(message: AppStrings.pleaseSelectDlFrontImage.tr);
       return;
@@ -749,6 +874,20 @@ class DeliveryPartnerController extends GetxController {
 
     try {
       isRiderDrivingVerificationLoading.value = true;
+
+      // ---------- 1.5️⃣ AI DOCUMENT VERIFICATION ----------
+      final isValid = await _verifyDocument(
+        documentName: "Driving License",
+        documentNumber: drivingLicenseController.text.trim(),
+        images: [
+          drivingLicenseFrontImage.value!,
+          drivingLicenseBackImage.value!,
+        ],
+      );
+      if (!isValid) {
+        isRiderDrivingVerificationLoading.value = false;
+        return;
+      }
 
       // ---------- 2️⃣ INITIALIZE ----------
 
@@ -798,11 +937,31 @@ class DeliveryPartnerController extends GetxController {
   }
 
   Future<void> ridersRcBookVerificationApi() async {
-    // ---------- 1️⃣ VALIDATION ----------
+    // ---------- 1️⃣ TEXT VALIDATION ----------
+    if (!(rcFormKey.currentState?.validate() ?? false)) return;
+
     // RC book images are optional — the RC number alone can be submitted.
 
     try {
       isRiderDrivingVerificationLoading.value = true;
+
+      // ---------- 1.5️⃣ AI DOCUMENT VERIFICATION ----------
+      // Only when at least one image was picked — verify it matches the
+      // entered RC number before spending bandwidth on the S3 upload.
+      if (rcFrontImage.value != null || rcBackImage.value != null) {
+        final isValid = await _verifyDocument(
+          documentName: "RC",
+          documentNumber: rcController.text.trim(),
+          images: [
+            if (rcFrontImage.value != null) rcFrontImage.value!,
+            if (rcBackImage.value != null) rcBackImage.value!,
+          ],
+        );
+        if (!isValid) {
+          isRiderDrivingVerificationLoading.value = false;
+          return;
+        }
+      }
 
       // ---------- 2️⃣ INITIALIZE ----------
       String? rcFrontImageUrl;

@@ -22,7 +22,9 @@ class RcBookCardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomFormCard(
         padding: EdgeInsets.zero,
-        child: Column(
+        child: Form(
+          key: controller.rcFormKey,
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             /// RC
@@ -95,6 +97,6 @@ class RcBookCardWidget extends StatelessWidget {
             ),
             // SizedBox(height: SizeConfig.paddingM),
           ],
-        ));
+        )));
   }
 }

@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
@@ -232,17 +233,40 @@ class ProductSelfPickupController extends GetxController {
 
       final itemsList = buildBulkOrderItems();
 
+      // Guard: the order endpoint rejects items with a blank `inventory`.
+      // When the products API response doesn't carry the per-variant
+      // inventory id, the payload would otherwise go out with an empty
+      // string and the server returns a generic failure ("order not
+      // placed") with no actionable reason. Catch it here instead.
+      final hasEmptyInventory = itemsList.isEmpty ||
+          itemsList.any((it) =>
+              (it['inventory']?.toString().isEmpty ?? true) ||
+              (it['productVariant']?.toString().isEmpty ?? true));
+      if (hasEmptyInventory) {
+        AppLoader.hide();
+        logs('placeProductOrderApi aborted — bad items payload: $itemsList');
+        commonSnackBar(
+          message: AppStrings.somethingWentWrong,
+        );
+        return;
+      }
+
       final Map<String, dynamic> requestBody = {
         "items": itemsList,
         "deliveryType": "self-pickup",
         "discount": totalSavings,
       };
 
+      logs('placeProductOrderApi request: $requestBody');
+
       final response =
           await ProductRepo().placeBulkProductOrderApi(params: requestBody);
 
       if (!response.isSuccess) {
         AppLoader.hide();
+        logs('placeProductOrderApi failed: '
+            'status=${response.response?.statusCode} '
+            'message=${response.message} body=${response.response?.data}');
         commonSnackBar(
           message: response.message ?? AppStrings.somethingWentWrong,
         );
@@ -268,7 +292,9 @@ class ProductSelfPickupController extends GetxController {
           route.settings.name == RouteConstant.BottomNavigationBarScreen);
     } catch (e) {
       AppLoader.hide();
+      logs('placeProductOrderApi exception: $e');
       placeProductOrderResponse.value = ApiResponse.error('error');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       isPlaceProductOrderLoading.value = false;
     }

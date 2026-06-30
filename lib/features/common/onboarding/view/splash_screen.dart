@@ -19,6 +19,7 @@ import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_screen.da
 import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
 import 'package:BlueEra/features/common/onboarding/view/select_language_screen.dart';
 import 'package:BlueEra/features/common/profile_share_preview/view/profile_share_preview_screen.dart';
+import 'package:BlueEra/features/me/food/view/share/food_product_share_preview_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/share/grocery_product_share_preview_screen.dart';
 import 'package:BlueEra/features/me/product/view/admin/share_product_screen.dart';
 import 'package:BlueEra/main.dart';
@@ -286,10 +287,11 @@ class _SplashScreenState extends State<SplashScreen> {
       }
 
       final segments = uri.pathSegments; // e.g., [app, post, 123]
+      print("segments==== ${segments}");
       if (segments.length >= 3 && segments[0] == 'app') {
         final type = segments[1]; // post | video | short | job | product
         final id = segments[2];
-
+print("type==== ${type}");
         // Validate that the ID follows the expected MongoDB ObjectID format (24 hex characters)
         if (!_isValidMongoId(id)) {
           logs('Invalid ID format in deep link: $id');
@@ -307,6 +309,12 @@ class _SplashScreenState extends State<SplashScreen> {
             // Public grocery share landing — fetches the product itself
             // and renders the deep-link-only preview.
             Get.to(() => GroceryProductSharePreviewScreen(productId: id));
+            break;
+          case 'food':
+            // Public food share landing — fetches the food product itself
+            // (`GET /food-service/api/foodProduct/{id}`) and renders the
+            // deep-link-only preview.
+            Get.to(() => FoodProductSharePreviewScreen(foodId: id));
             break;
           case 'chat':
             final conversationId = id;

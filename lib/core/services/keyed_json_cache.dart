@@ -70,3 +70,15 @@ const KeyedJsonCache userCountsCache = KeyedJsonCache('user_counts_box');
 /// dashboard renders the last-known orders instantly on open, then refreshes
 /// in the background (stale-while-revalidate). Stored as `{'orders': [...]}`.
 const KeyedJsonCache riderOrdersCache = KeyedJsonCache('rider_orders_box');
+
+/// Caches the Social-tab home feed (first page, capped to 10 posts) keyed by
+/// user id, so the Social tab paints the last-known feed instantly on open
+/// instead of stalling on a spinner while the live feed loads. Overwritten on
+/// every successful first-page fetch (stale-while-revalidate); auto-reset on
+/// logout. Stored as `{'feed': [<post json>, ...]}`.
+const KeyedJsonCache socialFeedCache = KeyedJsonCache('social_feed_cache_box');
+
+/// Caches the Social-tab symbol story row (raw grouped-data JSON; the row
+/// renders the first 5 user groups) keyed by user id, served instantly on open
+/// while the live symbol feed refreshes. Stored as `{'data': {...}}`.
+const KeyedJsonCache symbolFeedCache = KeyedJsonCache('symbol_feed_cache_box');
