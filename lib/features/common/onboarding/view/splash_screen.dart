@@ -286,10 +286,11 @@ class _SplashScreenState extends State<SplashScreen> {
       }
 
       final segments = uri.pathSegments; // e.g., [app, post, 123]
+      print("segments==== ${segments}");
       if (segments.length >= 3 && segments[0] == 'app') {
         final type = segments[1]; // post | video | short | job | product
         final id = segments[2];
-
+print("type==== ${type}");
         // Validate that the ID follows the expected MongoDB ObjectID format (24 hex characters)
         if (!_isValidMongoId(id)) {
           logs('Invalid ID format in deep link: $id');
