@@ -295,4 +295,18 @@ mixin UserServiceApi {
   // 10. Franchise inquiry
   // ──────────────────────────────────────────────────────────────────────
   final String franchiseInquiry = "user-service/inquiries";
+
+  // ──────────────────────────────────────────────────────────────────────
+  // 11. Healthcare enquiry — non-hospital endpoint
+  // ──────────────────────────────────────────────────────────────────────
+  /// Healthcare enquiry — non-hospital endpoint (be_user_service producer).
+  /// Covers Doctors, Labs, Pharmacy, Surgical, and any future non-hospital
+  /// healthcare category. `POST` accepts JSON only — photos must be uploaded
+  /// first via the `userUploadInit` presign flow and passed as URLs. The
+  /// `PUT` status path lets the listing owner accept / decline. Hospital
+  /// listings use `hospitalEnquiries` instead. See
+  /// lib/docs/healthcare-enquiry-ui-integration.md.
+  final String businessEnquiries = "user-service/business-enquiries";
+  String businessEnquiryStatus(String enquiryId) =>
+      'user-service/business-enquiries/$enquiryId/status';
 }

@@ -23,4 +23,13 @@ mixin EducationServiceApi {
       'education-service/campus-life-categories';
   final String campusLife = 'education-service/campus-life';
   final String schoolUserID = 'education-service/schools/';
+
+  /// Education enquiry — `POST` raises an enquiry against an education
+  /// listing (creates the in-chat `education_enquiry` card + emits
+  /// `newEducationEnquiryReceived`); `PUT` status lets the owner accept /
+  /// decline, emitting `educationEnquiryStatusUpdated`. See
+  /// lib/docs/enquiry-flows-ui-integration.md §3.
+  final String educationEnquiries = 'education-service/education-enquiries';
+  String educationEnquiryStatus(String enquiryId) =>
+      'education-service/education-enquiries/$enquiryId/status';
 }

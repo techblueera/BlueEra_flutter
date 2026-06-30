@@ -7132,6 +7132,10 @@ class AppStrings {
   static const String photosLabel = "photosLabel";
   static const String customRequest = "customRequest";
   static const String serviceEnquiry = "serviceEnquiry";
+  static const String healthcareEnquiry = "healthcareEnquiry";
+  static const String tellListingAboutEnquiry = "tellListingAboutEnquiry";
+  static const String sendEnquiryLabel = "sendEnquiryLabel";
+  static const String optionalLabel = "optionalLabel";
   static const String noteLabel = "noteLabel";
   static const String enquiryAccepted = "enquiryAccepted";
   static const String enquiryDeclined = "enquiryDeclined";
@@ -7139,6 +7143,12 @@ class AppStrings {
   static const String acceptedStatus = "acceptedStatus";
   static const String declinedStatus = "declinedStatus";
   static const String pendingStatus = "pendingStatus";
+  static const String cancelledStatus = "cancelledStatus";
+  static const String cancelLabel = "cancelLabel";
+  static const String enquiryCancelled = "enquiryCancelled";
+  static const String hotelEnquiryTitle = "hotelEnquiryTitle";
+  static const String vehicleBookingTitle = "vehicleBookingTitle";
+  static const String educationEnquiryTitle = "educationEnquiryTitle";
   static const String inquiriesLabel = "inquiriesLabel";
   static const String addWebsite = "addWebsite";
   static const String updateWebsite = "updateWebsite";

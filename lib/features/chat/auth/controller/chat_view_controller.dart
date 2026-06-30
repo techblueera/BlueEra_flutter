@@ -42,6 +42,7 @@ import '../model/ChatRequestsListModel.dart';
 import '../model/GetChatRequestListModel.dart';
 import '../model/GetListOfMessageData.dart';
 import '../model/GetListOfMessageData.dart' as messageModel;
+import 'package:BlueEra/features/me/vehicle/model/vehicle_booking_models.dart';
 import '../model/ai_chat_history_msg_model.dart';
 import '../model/ai_chat_reply_msg_model.dart';
 import '../model/chat_language.dart';
@@ -1319,6 +1320,192 @@ class ChatViewController extends GetxController {
           for (var msg in currentMessages) {
             if (msg.id == messageId) {
               msg.metadata?.propertyEnquiry?.status = status;
+              break;
+            }
+          }
+          getListOfMessageResponse.value =
+              ApiResponse.complete(currentMessages);
+        }
+      });
+
+      // Healthcare Enquiry: new enquiry received (owner side, plus echoed to
+      // the customer's other sessions — dedupe by message._id). One handler
+      // covers every healthcare category since the wire shape is identical
+      // regardless of the REST producer. See
+      // lib/docs/healthcare-enquiry-ui-integration.md §5.
+      chatSocket.listenEvent(ChatEmitEvents.newHealthcareEnquiryReceived,
+          (data) {
+        if (data['message'] != null) {
+          final message = Messages.fromJson(data['message']);
+          final conversationId = message.conversationId ?? '';
+          if (conversationId.isNotEmpty &&
+              conversationId == userOpenConversationId.value) {
+            final currentMessages =
+                getListOfMessageResponse.value.data as List<Messages>? ?? [];
+            final exists = currentMessages.any((m) => m.id == message.id);
+            if (!exists) {
+              currentMessages.add(message);
+              getListOfMessageResponse.value =
+                  ApiResponse.complete(currentMessages);
+              scrollDown();
+            }
+          }
+          // Refresh chat list so the conversation surfaces the new card.
+          emitEvent(ChatEmitEvents.ChatList, {
+            ApiKeys.page: 1,
+            ApiKeys.per_page_message: 30,
+          });
+        }
+      });
+
+      // Healthcare Enquiry: owner accepted / declined → flip the card status
+      // for both parties.
+      chatSocket.listenEvent(ChatEmitEvents.healthcareEnquiryStatusUpdated,
+          (data) {
+        final messageId = data['messageId']?.toString() ?? '';
+        final status = data['status']?.toString();
+        if (messageId.isNotEmpty && status != null) {
+          final currentMessages =
+              getListOfMessageResponse.value.data as List<Messages>? ?? [];
+          for (var msg in currentMessages) {
+            if (msg.id == messageId) {
+              msg.metadata?.healthcareEnquiry?.status = status;
+              break;
+            }
+          }
+          getListOfMessageResponse.value =
+              ApiResponse.complete(currentMessages);
+        }
+      });
+
+      // Hotel Enquiry: new enquiry received (owner side, echoed to the
+      // customer's other sessions — dedupe by message._id).
+      chatSocket.listenEvent(ChatEmitEvents.newHotelEnquiryReceived, (data) {
+        if (data['message'] != null) {
+          final message = Messages.fromJson(data['message']);
+          final conversationId = message.conversationId ?? '';
+          if (conversationId.isNotEmpty &&
+              conversationId == userOpenConversationId.value) {
+            final currentMessages =
+                getListOfMessageResponse.value.data as List<Messages>? ?? [];
+            final exists = currentMessages.any((m) => m.id == message.id);
+            if (!exists) {
+              currentMessages.add(message);
+              getListOfMessageResponse.value =
+                  ApiResponse.complete(currentMessages);
+              scrollDown();
+            }
+          }
+          emitEvent(ChatEmitEvents.ChatList, {
+            ApiKeys.page: 1,
+            ApiKeys.per_page_message: 30,
+          });
+        }
+      });
+
+      // Hotel Enquiry: owner accepted / declined → flip the card status.
+      chatSocket.listenEvent(ChatEmitEvents.hotelEnquiryStatusUpdated,
+          (data) {
+        final messageId = data['messageId']?.toString() ?? '';
+        final status = data['status']?.toString();
+        if (messageId.isNotEmpty && status != null) {
+          final currentMessages =
+              getListOfMessageResponse.value.data as List<Messages>? ?? [];
+          for (var msg in currentMessages) {
+            if (msg.id == messageId) {
+              msg.metadata?.hotelEnquiry?.status = status;
+              break;
+            }
+          }
+          getListOfMessageResponse.value =
+              ApiResponse.complete(currentMessages);
+        }
+      });
+
+      // Vehicle Booking: new booking request received (seller side, echoed
+      // to the buyer's other sessions — dedupe by message._id).
+      chatSocket.listenEvent(ChatEmitEvents.newVehicleBookingReceived,
+          (data) {
+        if (data['message'] != null) {
+          final message = Messages.fromJson(data['message']);
+          final conversationId = message.conversationId ?? '';
+          if (conversationId.isNotEmpty &&
+              conversationId == userOpenConversationId.value) {
+            final currentMessages =
+                getListOfMessageResponse.value.data as List<Messages>? ?? [];
+            final exists = currentMessages.any((m) => m.id == message.id);
+            if (!exists) {
+              currentMessages.add(message);
+              getListOfMessageResponse.value =
+                  ApiResponse.complete(currentMessages);
+              scrollDown();
+            }
+          }
+          emitEvent(ChatEmitEvents.ChatList, {
+            ApiKeys.page: 1,
+            ApiKeys.per_page_message: 30,
+          });
+        }
+      });
+
+      // Vehicle Booking: status flipped — accepted / declined by the seller
+      // OR cancelled by the buyer. Same socket event for all three.
+      chatSocket.listenEvent(ChatEmitEvents.vehicleBookingStatusUpdated,
+          (data) {
+        final messageId = data['messageId']?.toString() ?? '';
+        final status = data['status']?.toString();
+        if (messageId.isNotEmpty && status != null) {
+          final currentMessages =
+              getListOfMessageResponse.value.data as List<Messages>? ?? [];
+          for (var msg in currentMessages) {
+            if (msg.id == messageId) {
+              final parsed = VehicleBookingStatusWire.parse(status);
+              msg.metadata?.booking?.status = parsed;
+              break;
+            }
+          }
+          getListOfMessageResponse.value =
+              ApiResponse.complete(currentMessages);
+        }
+      });
+
+      // Education Enquiry: new enquiry received (owner side, echoed to
+      // the customer's other sessions — dedupe by message._id).
+      chatSocket.listenEvent(ChatEmitEvents.newEducationEnquiryReceived,
+          (data) {
+        if (data['message'] != null) {
+          final message = Messages.fromJson(data['message']);
+          final conversationId = message.conversationId ?? '';
+          if (conversationId.isNotEmpty &&
+              conversationId == userOpenConversationId.value) {
+            final currentMessages =
+                getListOfMessageResponse.value.data as List<Messages>? ?? [];
+            final exists = currentMessages.any((m) => m.id == message.id);
+            if (!exists) {
+              currentMessages.add(message);
+              getListOfMessageResponse.value =
+                  ApiResponse.complete(currentMessages);
+              scrollDown();
+            }
+          }
+          emitEvent(ChatEmitEvents.ChatList, {
+            ApiKeys.page: 1,
+            ApiKeys.per_page_message: 30,
+          });
+        }
+      });
+
+      // Education Enquiry: owner accepted / declined → flip the card status.
+      chatSocket.listenEvent(ChatEmitEvents.educationEnquiryStatusUpdated,
+          (data) {
+        final messageId = data['messageId']?.toString() ?? '';
+        final status = data['status']?.toString();
+        if (messageId.isNotEmpty && status != null) {
+          final currentMessages =
+              getListOfMessageResponse.value.data as List<Messages>? ?? [];
+          for (var msg in currentMessages) {
+            if (msg.id == messageId) {
+              msg.metadata?.educationEnquiry?.status = status;
               break;
             }
           }
