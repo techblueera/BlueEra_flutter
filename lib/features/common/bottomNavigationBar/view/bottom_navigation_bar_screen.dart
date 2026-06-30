@@ -664,43 +664,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     } else if (businessTypeGlobal.toUpperCase() == BusinessType.Siksha.name.toUpperCase()) {
       return const SchoolMain();
     } else if (businessTypeGlobal.toUpperCase() == BusinessType.Healthcare.name.toUpperCase()) {
-      // [log] ------------------ SELECTION DATA ------------------
-      // [log] Business Type    : BusinessType.Healthcare
-      // [log] Category Name    : Hospitals
-      // [log] Category Slug Id  : HOSPITALS
-      // [log] sub category Name : Cancer Hospital
-      // [log] sub category Slug Id : 6a088366c1424a5f4d8ec149
-      ///========
-      // [log] Business Type    : BusinessType.Healthcare
-      // [log] Category Name    : Pharmacy
-      // [log] Category Slug Id  : PHARMACY
-      // [log] sub category Name : Generic Medicine Store
-      // [log] sub category Slug Id : 6a088366c1424a5f4d8ec152
-      ///====================
-      // [log] Business Type    : BusinessType.Healthcare
-      // [log] Category Name    : Doctors
-      // [log] Category Slug Id  : DOCTORS
-      // [log] sub category Name : Ayurvedic Doctor
-      // [log] sub category Slug Id : 6a088366c1424a5f4d8ec167
-      ///=====================
-      // [log] ------------------ SELECTION DATA ------------------
-      // [log] Business Type    : BusinessType.Healthcare
-      // [log] Category Name    : Clinics
-      // [log] Category Slug Id  : CLINICS
-      // [log] sub category Name : IVF & Fertility Clinic
-      // [log] sub category Slug Id : 6a088367c1424a5f4d8ec172
-      ///========================
-      // [log] Business Type    : BusinessType.Healthcare
-      // [log] Category Name    : Diagnostic
-      // [log] Category Slug Id  : DIAGNOSTIC
-      // [log] sub category Name : Health Checkup Center
-      // [log] sub category Slug Id : 6a088367c1424a5f4d8ec181
-      ///================
-      // [log] Business Type    : BusinessType.Healthcare
-      // [log] Category Name    : Alternative Health
-      // [log] Category Slug Id  : ALTERNATIVE_HEALTH
-      // [log] sub category Name : Ayurvedic Center
-      // [log] sub category Slug Id : 6a088367c1424a5f4d8ec185
       if ((businessCategoryGlobal.toUpperCase() == "HOSPITALS") ||
           (businessCategoryGlobal.toUpperCase() == "Alternative Health".toUpperCase()) ||
           (businessCategoryGlobal.toUpperCase() == "Doctors".toUpperCase()) ||

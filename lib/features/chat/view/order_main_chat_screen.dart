@@ -153,16 +153,6 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
               onNotification: _onScrollNotification,
               child: Column(
                 children: [
-                  // Collapsing search-bar header — kept outside the tab
-                  // scrollables so it can't get "stuck" in a half-collapsed
-                  // state. Hides on a sustained scroll-down and returns on the
-                  // first upward scroll; the Social/Community TabBar below stays
-                  // pinned at the top throughout.
-                  // Frosted-glass chrome that blurs the app-wide background
-                  // banner — mirrors the glassmorphic headers on the "Me"
-                  // screens. The status-bar strip is ALWAYS present (so the
-                  // glass extends behind the notch and content never slides
-                  // under it); only the search row collapses on scroll.
                   ClipRect(
                     child: BackdropFilter(
                       filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),

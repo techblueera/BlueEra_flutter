@@ -22,7 +22,9 @@ class AadharCardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomFormCard(
         padding: EdgeInsets.zero,
-        child: Column(
+        child: Form(
+          key: controller.aadharFormKey,
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             /// Aadhar
@@ -95,6 +97,6 @@ class AadharCardWidget extends StatelessWidget {
             ),
             // SizedBox(height: SizeConfig.paddingM),
           ],
-        ));
+        )));
   }
 }

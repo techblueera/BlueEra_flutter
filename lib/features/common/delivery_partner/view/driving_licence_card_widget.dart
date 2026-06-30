@@ -22,7 +22,9 @@ class DrivingLicenceCardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomFormCard(
         padding: EdgeInsets.zero,
-        child: Column(
+        child: Form(
+          key: controller.dlFormKey,
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             CommonTextField(
@@ -94,6 +96,6 @@ class DrivingLicenceCardWidget extends StatelessWidget {
             ),
             // SizedBox(height: SizeConfig.paddingM),
           ],
-        ));
+        )));
   }
 }

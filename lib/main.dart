@@ -588,6 +588,7 @@ Future<void> main() async {
   final box = Hive.box('translations');
   final savedLangCode = box.get('selectedLanguage', defaultValue: 'en');
   await localizationService.loadTranslations(savedLangCode);
+  await localizationService.ensureFallbackLoaded();
   Get.addTranslations(localizationService.keys);
   final locale = Locale(savedLangCode);
 
@@ -927,6 +928,7 @@ Future<void> _initDeferred(LocalizationService localizationService) async {
   final savedLang =
       LocalizationService.box.get('selectedLanguage', defaultValue: 'en');
   await localizationService.loadTranslations(savedLang);
+  await localizationService.ensureFallbackLoaded();
   Get.clearTranslations();
   Get.addTranslations(localizationService.keys);
   Get.updateLocale(Locale(savedLang));

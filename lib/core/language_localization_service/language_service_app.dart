@@ -47,6 +47,26 @@ class LocalizationService extends Translations {
     _translations.clear();
   }
 
+  /// Ensures the English fallback translations are loaded into memory so
+  /// GetX's `fallbackLocale` ('en') lookup can resolve keys that are missing
+  /// from the active (non-English) language.
+  ///
+  /// GetX only falls back to 'en' when `Get.translations['en']` is actually
+  /// present — if the device launched straight into e.g. Hindi and 'en' was
+  /// never cached, any key absent from the Hindi map renders as its raw
+  /// identifier (the "localization not working sometimes" symptom). Loading
+  /// the English asset as a base layer (without clobbering anything already
+  /// loaded) guarantees the fallback resolves. Call this right before
+  /// `Get.addTranslations(keys)` wherever translations are (re)applied.
+  Future<void> ensureFallbackLoaded() async {
+    if (_translations[fallbackLanguage]?.isNotEmpty ?? false) return;
+    final enAsset = await _loadAssetTranslations(fallbackLanguage);
+    if (enAsset.isEmpty) return;
+    final existing = _translations[fallbackLanguage] ?? {};
+    // Existing (Hive/API) values win over the bundled asset baseline.
+    _translations[fallbackLanguage] = {...enAsset, ...existing};
+  }
+
   /// Whether a one-time post-login refresh is still pending. Returns true when
   /// the gate flag isn't set yet (fresh install, or right after a logout wiped
   /// the box). Callers should refresh once, then call [markLoginRefreshDone].
@@ -291,6 +311,10 @@ class LocalizationService extends Translations {
       final putBox = await _safeBox();
       await putBox.put('selectedLanguage', effectiveLang);
     } catch (_) {}
+
+    // Keep the English fallback layer loaded so keys missing from the newly
+    // selected language still resolve via GetX's fallbackLocale.
+    await ensureFallbackLoaded();
 
     Get.clearTranslations();
     Get.addTranslations(_translations);

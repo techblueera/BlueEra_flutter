@@ -22,7 +22,9 @@ class PanCardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomFormCard(
         padding: EdgeInsets.zero,
-        child: Column(
+        child: Form(
+          key: controller.panFormKey,
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
@@ -71,6 +73,6 @@ class PanCardWidget extends StatelessWidget {
               isLoading: controller.isRiderPersonalIdentificationLoading.value,
             ),
           ],
-        ));
+        )));
   }
 }

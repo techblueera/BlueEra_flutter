@@ -19,6 +19,7 @@ import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_screen.da
 import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
 import 'package:BlueEra/features/common/onboarding/view/select_language_screen.dart';
 import 'package:BlueEra/features/common/profile_share_preview/view/profile_share_preview_screen.dart';
+import 'package:BlueEra/features/me/food/view/share/food_product_share_preview_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/share/grocery_product_share_preview_screen.dart';
 import 'package:BlueEra/features/me/product/view/admin/share_product_screen.dart';
 import 'package:BlueEra/main.dart';
@@ -308,6 +309,12 @@ print("type==== ${type}");
             // Public grocery share landing — fetches the product itself
             // and renders the deep-link-only preview.
             Get.to(() => GroceryProductSharePreviewScreen(productId: id));
+            break;
+          case 'food':
+            // Public food share landing — fetches the food product itself
+            // (`GET /food-service/api/foodProduct/{id}`) and renders the
+            // deep-link-only preview.
+            Get.to(() => FoodProductSharePreviewScreen(foodId: id));
             break;
           case 'chat':
             final conversationId = id;
