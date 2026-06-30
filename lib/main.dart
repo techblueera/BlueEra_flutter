@@ -106,6 +106,22 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   logs(
       '[CALL_DEBUG] bg handler received → operation= $operation, data=${message.data}');
 
+  // Single-session: account signed in on another device. We are in a separate
+  // isolate with no UI engine — cannot navigate. Clear the stored credential
+  // directly so the NEXT app launch lands on the login screen.
+  if (operation == 'session_displaced' || operation == 'force_logout') {
+    try {
+      await SharedPreferenceUtils.setSecureValue(
+          SharedPreferenceUtils.authToken, "");
+      await SharedPreferenceUtils.setSecureValue(
+          SharedPreferenceUtils.isUserLogin, "false");
+      logs('[SESSION] bg handler: $operation → cleared auth token');
+    } catch (e) {
+      logs('[SESSION] bg handler: failed to clear token: $e');
+    }
+    return;
+  }
+
   // Handle incoming call in background - show native call UI
   if (operation == 'incoming_call') {
     try {
