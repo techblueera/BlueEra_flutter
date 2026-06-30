@@ -2,11 +2,14 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/features/me/medical/model/medical_home_response_model.dart';
 import 'package:BlueEra/features/me/medical/repo/medical_repo.dart';
+import 'package:BlueEra/features/me/medical/widget/healthcare_enquiry_sheet.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/features/me/medical/view/medical_inventory_category_screen.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -110,6 +113,7 @@ class _MedicalPharmacyDetailScreenState
 
     return Scaffold(
       appBar: CommonBackAppBar(title: profile?.businessName ?? AppStrings.pharmacy.tr),
+      bottomNavigationBar: _buildEnquiryBottomBar(profile),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -912,6 +916,52 @@ class _MedicalPharmacyDetailScreenState
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Sticky bottom CTA — opens the unified healthcare-enquiry sheet for
+  /// this pharmacy listing. Hidden when viewing your own listing (the
+  /// server would reject an enquiry against yourself with 400 anyway).
+  /// Routes through the non-hospital business endpoint with category
+  /// PHARMACY — see lib/docs/healthcare-enquiry-ui-integration.md.
+  Widget? _buildEnquiryBottomBar(BusinessProfile? profile) {
+    final ownerId = (profile?.userId ?? '').trim();
+    if (ownerId.isEmpty) return null;
+    // Hide the CTA on the owner's own listing.
+    if (ownerId == userId) return const SizedBox.shrink();
+
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size12,
+          vertical: SizeConfig.size10,
+        ),
+        child: PositiveCustomBtn(
+          onTap: () => _openPharmacyEnquirySheet(profile),
+          title: AppStrings.sendEnquiryLabel.tr,
+        ),
+      ),
+    );
+  }
+
+  void _openPharmacyEnquirySheet(BusinessProfile? profile) {
+    final ownerId = (profile?.userId ?? '').trim();
+    final listingId = widget.businessId.trim();
+    if (ownerId.isEmpty || listingId.isEmpty) {
+      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
+      return;
+    }
+    HealthcareEnquirySheet.open(
+      context,
+      category: 'PHARMACY',
+      listing: HealthcareEnquiryListing(
+        listingId: listingId,
+        ownerId: ownerId,
+        ownerName: (profile?.businessName ?? AppStrings.pharmacy.tr).trim(),
+        listingName: (profile?.businessName ?? AppStrings.pharmacy.tr).trim(),
+        listingImage: profile?.logo,
+        location: profile?.cityStatePincode,
       ),
     );
   }

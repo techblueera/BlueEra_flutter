@@ -12,6 +12,7 @@ import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
+import 'package:BlueEra/features/me/medical/controller/healthcare_enquiry_controller.dart';
 import 'package:BlueEra/features/me/hospital/model/hospital_full_details_res_model.dart';
 import 'package:BlueEra/features/me/hospital/view/emergency/emergency_critical_care_view.dart';
 import 'package:BlueEra/features/me/hospital/view/gallery/hospital_home_gallery_widget.dart';
@@ -27,6 +28,7 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/me/medical/widget/healthcare_enquiry_sheet.dart';
 import 'package:BlueEra/widgets/visit_business_stats_card.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:BlueEra/widgets/website_preview_card.dart';
@@ -448,10 +450,7 @@ class _DiscoverHospitalHomeScreenState
                   children: [
                     Expanded(
                       child: PositiveCustomBtn(
-                        onTap: () {
-                          commonSnackBar(
-                              message: AppStrings.comingSoonLabel.tr);
-                        },
+                        onTap: () => _openHospitalEnquirySheet(),
                         title: AppStrings.bookInquiry.tr,
                       ),
                     ),
@@ -783,6 +782,34 @@ class _DiscoverHospitalHomeScreenState
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  /// Opens the unified healthcare-enquiry sheet for this hospital. Pulls
+  /// the listing snapshot (id / owner id / name / cover / first-contact
+  /// location) from the loaded hospital model so the sheet header — and
+  /// the eventual in-chat card — renders without an extra fetch. See
+  /// lib/docs/enquiry-flows-ui-integration.md §4.
+  void _openHospitalEnquirySheet() {
+    final data = controller.hospitalDataResModel?.value.data;
+    final listingId = (data?.id ?? '').trim();
+    final ownerId = (data?.userId ?? '').trim();
+    if (listingId.isEmpty || ownerId.isEmpty) {
+      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
+      return;
+    }
+    final firstContact = data?.contacts?.firstOrNull?.branch;
+    HealthcareEnquirySheet.open(
+      context,
+      category: HealthcareEnquiryController.categoryHospital,
+      listing: HealthcareEnquiryListing(
+        listingId: listingId,
+        ownerId: ownerId,
+        ownerName: (data?.name ?? '').trim(),
+        listingName: (data?.name ?? '').trim(),
+        listingImage: data?.coverUrl,
+        location: firstContact?.location?.name,
       ),
     );
   }

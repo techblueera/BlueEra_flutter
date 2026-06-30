@@ -9,7 +9,6 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/share_service.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/me/automotive_products/controller/automotive_discover_controller.dart';
@@ -19,6 +18,7 @@ import 'package:BlueEra/features/me/automotive_products/view/customer/widget/aut
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/price_row.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -361,7 +361,7 @@ class _AutomotiveCategoryDiscoverScreenState
     final details = data.product.details;
     final rawName = details?.name.trim() ?? '';
     final name = rawName.isNotEmpty ? rawName : 'this product';
-    final shareLink = productDeepLink(productId: details?.id);
+    final shareLink = automotiveDeepLink(automotiveId: details?.id);
 
     await ShareService.instance.openShareSheet(
       text: "Check out $name on BlueEra:\n$shareLink",

@@ -101,7 +101,7 @@ class _AutomotiveCustomerAllTopSellingProductsScreenState
     final details = product.product.details;
     final rawName = details?.name.trim() ?? '';
     final name = rawName.isNotEmpty ? rawName : 'this product';
-    final shareLink = productDeepLink(productId: details?.id);
+    final shareLink = automotiveDeepLink(automotiveId: details?.id);
 
     await ShareService.instance.openShareSheet(
       text: "Check out $name on BlueEra:\n$shareLink",

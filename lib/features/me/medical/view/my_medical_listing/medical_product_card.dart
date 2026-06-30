@@ -14,6 +14,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+
 import '../../../../../core/api/model/images.dart';
 import '../../model/my_medical_products_response.dart';
 
@@ -32,9 +33,7 @@ class MedicalProductCard extends StatelessWidget {
     final controller = getOrPut(() => MedicalController());
     final variantCount = medicalProducts.variants?.length ?? 0;
     final firstVariant = medicalProducts.variants?.firstOrNull;
-    final price = firstVariant != null
-        ? controller.getPriceDetails(firstVariant.pricing)
-        : null;
+    final price = firstVariant != null ? controller.getPriceDetails(firstVariant.pricing) : null;
     final imageUrl = medicalProducts.images?.firstOrNull?.url;
 
     return Container(
@@ -66,18 +65,23 @@ class MedicalProductCard extends StatelessWidget {
                             width: 80,
                             fit: BoxFit.cover,
                             placeholder: (_, __) => Container(
-                              height: 80, width: 80,
+                              height: 80,
+                              width: 80,
                               color: Colors.grey.shade100,
                               child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
                             ),
                             errorWidget: (_, __, ___) => LocalAssets(
                               imagePath: AppIconAssets.place_holder_image,
-                              height: 80, width: 80, boxFix: BoxFit.cover,
+                              height: 80,
+                              width: 80,
+                              boxFix: BoxFit.cover,
                             ),
                           )
                         : LocalAssets(
                             imagePath: AppIconAssets.place_holder_image,
-                            height: 80, width: 80, boxFix: BoxFit.cover,
+                            height: 80,
+                            width: 80,
+                            boxFix: BoxFit.cover,
                           ),
                   ),
                   SizedBox(width: SizeConfig.size12),
@@ -201,7 +205,6 @@ class MedicalProductCard extends StatelessWidget {
                   ),
                 ],
               ),
-
             ],
           ),
         ),
@@ -214,7 +217,7 @@ class MedicalProductCard extends StatelessWidget {
   Future<void> _shareProduct() async {
     final rawName = medicalProducts.name?.trim() ?? '';
     final name = rawName.isNotEmpty ? rawName : 'this product';
-    final shareLink = productDeepLink(productId: medicalProducts.sId);
+    final shareLink = medicalDeepLink(medicalProductId: medicalProducts.sId);
 
     await ShareService.instance.openShareSheet(
       text: "Check out $name on BlueEra:\n$shareLink",
@@ -252,8 +255,7 @@ class MedicalProductCard extends StatelessWidget {
 
   String _formatLastUpdate() {
     try {
-      final dateStr = medicalProducts.lastInventoryAddedOrUpdated ??
-          DateTime.now().toIso8601String();
+      final dateStr = medicalProducts.lastInventoryAddedOrUpdated ?? DateTime.now().toIso8601String();
       final date = DateTime.parse(dateStr);
       return '${AppStrings.medicalUpdatedPrefix.tr} ${DateFormat("d MMM, yyyy").format(date)}';
     } catch (_) {

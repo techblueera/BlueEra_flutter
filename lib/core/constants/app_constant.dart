@@ -1133,6 +1133,32 @@ class ChatEmitEvents {
   static const newPropertyEnquiryReceived = "newPropertyEnquiryReceived";
   static const propertyEnquiryStatusUpdated = "propertyEnquiryStatusUpdated";
 
+  // Healthcare enquiry (hospitals + non-hospital healthcare → chat). Single
+  // event contract regardless of which REST producer created the enquiry
+  // (`/hospital-enquiries` vs `/business-enquiries`). The `new…Received`
+  // event is emitted to the owner and echoed to the customer's other
+  // sessions — dedupe by `message._id`. See
+  // lib/docs/healthcare-enquiry-ui-integration.md §5.
+  static const newHealthcareEnquiryReceived = "newHealthcareEnquiryReceived";
+  static const healthcareEnquiryStatusUpdated =
+      "healthcareEnquiryStatusUpdated";
+
+  // Hotel enquiry (hotel listing → chat). See
+  // lib/docs/enquiry-flows-ui-integration.md §2a.
+  static const newHotelEnquiryReceived = "newHotelEnquiryReceived";
+  static const hotelEnquiryStatusUpdated = "hotelEnquiryStatusUpdated";
+
+  // Vehicle booking (vehicle listing → chat, accept/decline + buyer cancel).
+  // See lib/docs/enquiry-flows-ui-integration.md §1.
+  static const newVehicleBookingReceived = "newVehicleBookingReceived";
+  static const vehicleBookingStatusUpdated = "vehicleBookingStatusUpdated";
+
+  // Education enquiry (school/college listing → chat). See
+  // lib/docs/enquiry-flows-ui-integration.md §3.
+  static const newEducationEnquiryReceived = "newEducationEnquiryReceived";
+  static const educationEnquiryStatusUpdated =
+      "educationEnquiryStatusUpdated";
+
   // Chat self-pickup → rider dispatch handoff OTPs. `newRiderOtpReceived`
   // delivers a (private) pickup/delivery OTP card; `riderOtpUpdated` flips an
   // existing card to "consumed" once the rider verifies that leg. See
