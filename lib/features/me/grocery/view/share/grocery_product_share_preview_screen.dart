@@ -1,4 +1,3 @@
-import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -6,7 +5,6 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
-import 'package:BlueEra/features/me/grocery/repo/grocery_repo.dart';
 import 'package:BlueEra/features/me/grocery/view/customer/grocery_via_self_pickup/grocery_self_pickup_cart_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -35,15 +33,12 @@ class GroceryProductSharePreviewScreen extends StatefulWidget {
   });
 
   @override
-  State<GroceryProductSharePreviewScreen> createState() =>
-      _GroceryProductSharePreviewScreenState();
+  State<GroceryProductSharePreviewScreen> createState() => _GroceryProductSharePreviewScreenState();
 }
 
-class _GroceryProductSharePreviewScreenState
-    extends State<GroceryProductSharePreviewScreen> {
+class _GroceryProductSharePreviewScreenState extends State<GroceryProductSharePreviewScreen> {
   final GrocerySelfPickupConsumerController _cart =
-      getOrPut<GrocerySelfPickupConsumerController>(
-          () => GrocerySelfPickupConsumerController());
+      getOrPut<GrocerySelfPickupConsumerController>(() => GrocerySelfPickupConsumerController());
 
   GroceryProductData? _product;
   bool _loading = true;
@@ -53,40 +48,40 @@ class _GroceryProductSharePreviewScreenState
   @override
   void initState() {
     super.initState();
-    _fetch();
+    // _fetch();
   }
-
-  Future<void> _fetch() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
-    final ResponseModel res =
-        await GroceryRepo().fetchGroceryProductByIdRepo(widget.productId);
-    if (!mounted) return;
-    if (res.isSuccess && res.response?.data != null) {
-      // Endpoint returns either the bare product object or a `{ data: {...} }`
-      // envelope. Handle both so the deep-link landing doesn't break if the
-      // backend shape evolves.
-      final raw = res.response!.data;
-      final Map<String, dynamic>? payload = raw is Map<String, dynamic>
-          ? (raw['data'] is Map<String, dynamic>
-              ? raw['data'] as Map<String, dynamic>
-              : raw)
-          : null;
-      if (payload != null) {
-        setState(() {
-          _product = GroceryProductData.fromJson(payload);
-          _loading = false;
-        });
-        return;
-      }
-    }
-    setState(() {
-      _loading = false;
-      _error = AppStrings.noDataFound.tr;
-    });
-  }
+  //
+  // Future<void> _fetch() async {
+  //   setState(() {
+  //     _loading = true;
+  //     _error = null;
+  //   });
+  //   final ResponseModel res =
+  //       await GroceryRepo().fetchGroceryProductByIdRepo(widget.productId);
+  //   if (!mounted) return;
+  //   if (res.isSuccess && res.response?.data != null) {
+  //     // Endpoint returns either the bare product object or a `{ data: {...} }`
+  //     // envelope. Handle both so the deep-link landing doesn't break if the
+  //     // backend shape evolves.
+  //     final raw = res.response!.data;
+  //     final Map<String, dynamic>? payload = raw is Map<String, dynamic>
+  //         ? (raw['data'] is Map<String, dynamic>
+  //             ? raw['data'] as Map<String, dynamic>
+  //             : raw)
+  //         : null;
+  //     if (payload != null) {
+  //       setState(() {
+  //         _product = GroceryProductData.fromJson(payload);
+  //         _loading = false;
+  //       });
+  //       return;
+  //     }
+  //   }
+  //   setState(() {
+  //     _loading = false;
+  //     _error = AppStrings.noDataFound.tr;
+  //   });
+  // }
 
   /// First variant with pricing wins, else first overall — drives the
   /// Current Price card and the two CTAs.
@@ -120,31 +115,28 @@ class _GroceryProductSharePreviewScreenState
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.shopping_basket_outlined,
-              size: 48, color: AppColors.secondaryTextColor),
+          const Icon(Icons.shopping_basket_outlined, size: 48, color: AppColors.secondaryTextColor),
           SizedBox(height: SizeConfig.size8),
           CustomText(
             _error ?? AppStrings.noDataFound.tr,
             color: AppColors.secondaryTextColor,
           ),
           SizedBox(height: SizeConfig.size12),
-          TextButton(
-            onPressed: _fetch,
-            child: CustomText(
-              'Retry',
-              color: AppColors.primaryColor,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
+          // TextButton(
+          //   onPressed: _fetch,
+          //   child: CustomText(
+          //     'Retry',
+          //     color: AppColors.primaryColor,
+          //     fontWeight: FontWeight.w700,
+          //   ),
+          // ),
         ],
       ),
     );
   }
 
   Widget _content(GroceryProductData product) {
-    final imageUrl = (product.images?.isNotEmpty ?? false)
-        ? product.images!.first.url
-        : null;
+    final imageUrl = (product.images?.isNotEmpty ?? false) ? product.images!.first.url : null;
     final inStock = product.isActive == true;
 
     return SingleChildScrollView(
@@ -193,8 +185,7 @@ class _GroceryProductSharePreviewScreenState
                   ? CachedNetworkImage(
                       imageUrl: imageUrl,
                       fit: BoxFit.contain,
-                      placeholder: (_, __) =>
-                          Container(color: const Color(0xFFF4F6FA)),
+                      placeholder: (_, __) => Container(color: const Color(0xFFF4F6FA)),
                       errorWidget: (_, __, ___) => _imageFallback(),
                     )
                   : _imageFallback(),
@@ -205,14 +196,10 @@ class _GroceryProductSharePreviewScreenState
             spacing: SizeConfig.size6,
             runSpacing: SizeConfig.size6,
             children: [
-              if (product.isVegetarian == true)
-                _tagPill('Vegetarian', accent: const Color(0xFF1F7A3F)),
-              if (product.isVegetarian == false)
-                _tagPill('Non-Vegetarian', accent: const Color(0xFFB00020)),
+              if (product.isVegetarian == true) _tagPill('Vegetarian', accent: const Color(0xFF1F7A3F)),
+              if (product.isVegetarian == false) _tagPill('Non-Vegetarian', accent: const Color(0xFFB00020)),
               _tagPill(inStock ? 'In Stock' : 'Out of Stock',
-                  accent: inStock
-                      ? AppColors.primaryColor
-                      : AppColors.secondaryTextColor),
+                  accent: inStock ? AppColors.primaryColor : AppColors.secondaryTextColor),
               if ((product.sId ?? '').isNotEmpty) _tagPill(product.sId!),
             ],
           ),
@@ -290,8 +277,7 @@ class _GroceryProductSharePreviewScreenState
   // ─── Current Price ────────────────────────────────────────────────
   Widget _currentPriceCard() {
     final variant = _firstVariant;
-    final pricing =
-        (variant?.pricing?.isNotEmpty ?? false) ? variant!.pricing!.first : null;
+    final pricing = (variant?.pricing?.isNotEmpty ?? false) ? variant!.pricing!.first : null;
     final selling = pricing?.sellingPrice;
     final mrp = pricing?.mrp;
     final city = (pricing?.cityName ?? '').trim();
@@ -351,13 +337,9 @@ class _GroceryProductSharePreviewScreenState
   // ─── Brand & Origin ───────────────────────────────────────────────
   Widget _brandOriginCard(GroceryProductData product) {
     final rows = <MapEntry<String, String>>[
-      MapEntry('Brand',
-          (product.brand ?? '').trim().isEmpty ? '—' : product.brand!.trim()),
+      MapEntry('Brand', (product.brand ?? '').trim().isEmpty ? '—' : product.brand!.trim()),
       MapEntry(
-          'Country',
-          (product.countryOfOrigin ?? '').trim().isEmpty
-              ? '—'
-              : product.countryOfOrigin!.trim()),
+          'Country', (product.countryOfOrigin ?? '').trim().isEmpty ? '—' : product.countryOfOrigin!.trim()),
       MapEntry('Status', product.isActive == true ? 'Active' : 'Inactive'),
     ];
     return _card(
@@ -399,8 +381,7 @@ class _GroceryProductSharePreviewScreenState
                 ),
               ),
               InkWell(
-                onTap: () =>
-                    setState(() => _variantsExpanded = !_variantsExpanded),
+                onTap: () => setState(() => _variantsExpanded = !_variantsExpanded),
                 borderRadius: BorderRadius.circular(20),
                 child: Container(
                   padding: EdgeInsets.symmetric(
@@ -495,9 +476,7 @@ class _GroceryProductSharePreviewScreenState
                       fontWeight: FontWeight.w800,
                       color: AppColors.mainTextColor,
                     ),
-                  if (mrp != null &&
-                      selling != null &&
-                      _showStrike(mrp, selling))
+                  if (mrp != null && selling != null && _showStrike(mrp, selling))
                     Text(
                       '₹$mrp',
                       style: TextStyle(
@@ -521,8 +500,7 @@ class _GroceryProductSharePreviewScreenState
           if (city.isNotEmpty || currency.isNotEmpty) ...[
             SizedBox(height: SizeConfig.size6),
             CustomText(
-              [if (city.isNotEmpty) city, if (currency.isNotEmpty) currency]
-                  .join('   '),
+              [if (city.isNotEmpty) city, if (currency.isNotEmpty) currency].join('   '),
               fontSize: SizeConfig.small,
               color: AppColors.secondaryTextColor,
               fontWeight: FontWeight.w500,
@@ -565,10 +543,7 @@ class _GroceryProductSharePreviewScreenState
           Wrap(
             spacing: SizeConfig.size8,
             runSpacing: SizeConfig.size8,
-            children: (product.tags ?? [])
-                .where((t) => t.trim().isNotEmpty)
-                .map((t) => _tagPill(t))
-                .toList(),
+            children: (product.tags ?? []).where((t) => t.trim().isNotEmpty).map((t) => _tagPill(t)).toList(),
           ),
         ],
       ),
@@ -667,9 +642,7 @@ class _GroceryProductSharePreviewScreenState
         height: 48,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: enabled
-              ? AppColors.primaryColor
-              : AppColors.primaryColor.withValues(alpha: 0.4),
+          color: enabled ? AppColors.primaryColor : AppColors.primaryColor.withValues(alpha: 0.4),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -706,9 +679,7 @@ class _GroceryProductSharePreviewScreenState
           color: AppColors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: enabled
-                ? AppColors.primaryColor.withValues(alpha: 0.4)
-                : AppColors.greyE5,
+            color: enabled ? AppColors.primaryColor.withValues(alpha: 0.4) : AppColors.greyE5,
           ),
         ),
         child: Row(
