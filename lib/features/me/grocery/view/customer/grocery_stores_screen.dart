@@ -50,8 +50,8 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
   static const int _adRepeatStepAfterLast = 4;
 
   /// Minimum height for a native ad slot. The native layout needs enough room
-  /// for a >=120 media view plus the header/body/CTA, otherwise AdMob reports
-  /// "MediaView is too small for video".
+  /// for the media view plus the header/body/CTA so the Meta native template
+  /// renders without clipping.
   static const double _kMinNativeAdHeight = 300;
 
   static const List<String> _categoryOrderKeywords = [
@@ -394,8 +394,8 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                         // Track the card height (minus the card's own size10
                         // bottom margin, which the ad re-adds itself), but never
                         // go below _kMinNativeAdHeight — the native layout needs
-                        // room for a >=120 media view (else AdMob warns the
-                        // media is too small for video).
+                        // room for the media view so the Meta native template
+                        // renders without clipping.
                         final base = (_measuredCardHeight ?? 0) - SizeConfig.size10;
                         final adHeight =
                             base < _kMinNativeAdHeight ? _kMinNativeAdHeight : base;

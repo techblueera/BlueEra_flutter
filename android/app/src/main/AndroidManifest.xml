@@ -4,8 +4,9 @@
 
     <!-- Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <!-- Advertising ID — required by AdMob/Play; declared explicitly so it
-         doesn't rely on the google_mobile_ads SDK manifest merge. -->
+    <!-- Advertising ID — used by Meta Audience Network (reads the GAID for ad
+         targeting/attribution); declared explicitly rather than relying on the
+         ad SDK's manifest merge. -->
     <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
@@ -222,13 +223,6 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
-        <!-- Google AdMob App ID — injected from local.properties (ADMOB_APP_ID)
-             via the manifestPlaceholder defined in app/build.gradle, so the id
-             is not hardcoded in source. The iOS counterpart lives in
-             ios/Runner/Info.plist as GADApplicationIdentifier. -->
-        <meta-data
-            android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="${admobAppId}" />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/ic_stat" />

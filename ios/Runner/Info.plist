@@ -54,8 +54,6 @@
 	<true/>
 	<key>FlutterDeepLinkingEnabled</key>
 	<false/>
-	<key>GADApplicationIdentifier</key>
-	<string>ca-app-pub-8886065788013100~9120060701</string>
 	<key>GoogleMapsApiKey</key>
 	<string>AIzaSyD4dbz7eaxd8tFF3tZFJwA4y6KvwozkpdU</string>
 	<key>LSRequiresIPhoneOS</key>

@@ -1,4 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -10,6 +12,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/wallet/controlle
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/controller/wallet_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/model/joining_bounce_progress.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -34,6 +37,7 @@ class _WalletStaticsViewState extends State<WalletStaticsView> {
   static const _green = Color(0xFF34C77B);
   static const _yellow = Color(0xFFFFC93C);
   static const _red = Color(0xFFEF4444);
+  static const _purple = Color(0xFF7B61FF);
 
   ReferralController get controller => widget.controller;
 
@@ -96,7 +100,7 @@ class _WalletStaticsViewState extends State<WalletStaticsView> {
           _joiningBonusCard(),
           _directReferralCard(),
           _orderIncomeCard(),
-          _contentCreationCard(),
+          _coinWalletCard(),
         ],
       ),
     );
@@ -116,8 +120,10 @@ class _WalletStaticsViewState extends State<WalletStaticsView> {
       }
 
       final items = _checklistItems(jb);
-      final completed = items.where((e) => e.met).length;
-      final total = items.length;
+      // "X of Y Completed" comes from the backend counts (Y = all 9 metrics),
+      // not just the milestone rows shown in the checklist.
+      final completed = jb.completedCount;
+      final total = jb.totalCount;
       final percent = jb.progressPercent.clamp(0, 100);
 
       return Padding(
@@ -130,7 +136,11 @@ class _WalletStaticsViewState extends State<WalletStaticsView> {
               // ── Reward header: bag + amount + status pill ──────────
               Row(
                 children: [
-                  CustomText('💰', fontSize: 34),
+                  LocalAssets(
+                    imagePath: AppImageAssets.moneyBagIcon,
+                    height: 34,
+                    width: 34,
+                  ),
                   SizedBox(width: SizeConfig.size10),
                   Expanded(
                     child: Column(
@@ -208,12 +218,14 @@ class _WalletStaticsViewState extends State<WalletStaticsView> {
                 SizedBox(height: SizeConfig.size12),
                 _claimButton(jb),
               ],
-              // ── Checklist (expandable) ─────────────────────────────
+              // ── Task checklist + task-completion donut (expandable) ─
               if (_bonusExpanded) ...[
                 SizedBox(height: SizeConfig.size12),
                 const _DashedDivider(),
                 SizedBox(height: SizeConfig.size12),
                 _checklist(items),
+                SizedBox(height: SizeConfig.size12),
+                _taskDonutCard(jb),
               ],
               SizedBox(height: SizeConfig.size8),
               Center(
@@ -237,37 +249,32 @@ class _WalletStaticsViewState extends State<WalletStaticsView> {
     });
   }
 
-  /// Builds the flat checklist (4 metrics + one row per required milestone)
-  /// straight from the bonus `requirements` block.
+  /// Task checklist rows — one per milestone (Profile Update, Inventory, Store
+  /// Open, Ready Order, Completed Order) from `requirements.milestones.items`,
+  /// which carries a friendly label + current/target + met per milestone.
+  /// Falls back to the legacy key lists if the richer `items` aren't present.
   List<_CheckItem> _checklistItems(JoiningBounceProgress jb) {
-    final req = jb.requirements;
-    final items = <_CheckItem>[];
-
-    void addMetric(String label, JoiningBounceRequirement? r, String unit) {
-      if (r == null) return;
-      final value = unit.isEmpty
-          ? '${_count(r.current)}/${_count(r.required)}'
-          : '${_count(r.current)}/${_count(r.required)} $unit';
-      items.add(_CheckItem(label: label, met: r.met, value: value));
+    final ms = jb.requirements?.milestones;
+    if (ms == null) return const [];
+    if (ms.items.isNotEmpty) {
+      return ms.items
+          .map((m) => _CheckItem(
+                label: m.label.isNotEmpty ? m.label : _milestoneLabel(m.key),
+                met: m.met,
+                current: m.current,
+                target: m.target,
+              ))
+          .toList();
     }
-
-    addMetric('Days', req?.days, 'Days');
-    addMetric('Work Hours', req?.hours, 'hrs.');
-    addMetric('Assign Task', req?.tasks, 'Tasks');
-    addMetric('Streak', req?.streak, 'Days');
-
-    final ms = req?.milestones;
-    if (ms != null) {
-      for (final key in ms.required) {
-        final done = ms.completed.contains(key);
-        items.add(_CheckItem(
-          label: _milestoneLabel(key),
-          met: done,
-          value: done ? 'Completed' : 'In Progress',
-        ));
-      }
-    }
-    return items;
+    // Legacy fallback (older API without `items`).
+    return ms.required
+        .map((key) => _CheckItem(
+              label: _milestoneLabel(key),
+              met: ms.completed.contains(key),
+              current: ms.completed.contains(key) ? 1 : 0,
+              target: 1,
+            ))
+        .toList();
   }
 
   /// Friendly label for a backend milestone key (e.g. `inventory_added` →
@@ -362,6 +369,9 @@ class _WalletStaticsViewState extends State<WalletStaticsView> {
   }
 
   Widget _checkRow(_CheckItem item) {
+    // "4/10 (Pending)" — the count in the main text colour, the status suffix
+    // tinted green (Completed) / amber (Pending) like the design.
+    final statusColor = item.met ? _green : _yellow;
     return Padding(
       padding: EdgeInsets.symmetric(
           horizontal: SizeConfig.size12, vertical: SizeConfig.size12),
@@ -384,14 +394,86 @@ class _WalletStaticsViewState extends State<WalletStaticsView> {
             ),
           ),
           CustomText(
-            item.value,
+            '${_count(item.current)}/${_count(item.target)} ',
             fontSize: SizeConfig.small,
             fontWeight: FontWeight.w700,
-            color: item.met ? _green : AppColors.secondaryTextColor,
+            color: AppColors.mainTextColor,
+          ),
+          CustomText(
+            item.met ? '(Completed)' : '(Pending)',
+            fontSize: SizeConfig.small,
+            fontWeight: FontWeight.w700,
+            color: statusColor,
           ),
         ],
       ),
     );
+  }
+
+  /// Task-completion donut card shown under the checklist — Go Live Count,
+  /// Live Hour and Assign Task metrics with a "% Task Complete" centre.
+  Widget _taskDonutCard(JoiningBounceProgress jb) {
+    final r = jb.requirements;
+    final days = r?.days;
+    final hours = r?.hours;
+    final tasks = r?.tasks;
+    final pct = _taskCompletePercent([days, hours, tasks]);
+    return Container(
+      padding: EdgeInsets.all(SizeConfig.size12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.greyE5),
+      ),
+      child: _ChartRow(
+        donut: StatDonutChart(
+          size: 116,
+          strokeWidth: 10,
+          segments: [
+            DonutSegment(color: _green, value: days?.current ?? 0),
+            DonutSegment(color: _purple, value: hours?.current ?? 0),
+            DonutSegment(color: _yellow, value: tasks?.current ?? 0),
+          ],
+          center: _CenterText(value: '$pct%', label: 'Task Complete'),
+        ),
+        rows: [
+          _LegendRow(
+            color: _green,
+            label: days?.label ?? 'Go Live Count (Days)',
+            value: _metricValue(days),
+          ),
+          _LegendRow(
+            color: _purple,
+            label: hours?.label ?? 'Live Hour',
+            value: _metricValue(hours),
+          ),
+          _LegendRow(
+            color: _yellow,
+            label: tasks?.label ?? 'Assign Task',
+            value: _metricValue(tasks),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// "current/required unit" for a requirement metric (e.g. "20/100 Days").
+  String _metricValue(JoiningBounceRequirement? r) {
+    if (r == null) return '-';
+    final unit = (r.unit ?? '').trim();
+    final base = '${_count(r.current)}/${_count(r.required)}';
+    return unit.isEmpty ? base : '$base $unit';
+  }
+
+  /// Average completion (0–100) across the supplied metrics — the donut centre.
+  int _taskCompletePercent(List<JoiningBounceRequirement?> metrics) {
+    final fracs = <double>[];
+    for (final m in metrics) {
+      if (m == null || m.required <= 0) continue;
+      fracs.add((m.current / m.required).clamp(0.0, 1.0).toDouble());
+    }
+    if (fracs.isEmpty) return 0;
+    final avg = fracs.reduce((a, b) => a + b) / fracs.length;
+    return (avg * 100).round();
   }
 
   Widget _claimButton(JoiningBounceProgress jb) {
@@ -443,7 +525,6 @@ class _WalletStaticsViewState extends State<WalletStaticsView> {
     return Obx(() {
       final dr = controller.walletStatics.value?.directReferralIncome;
       final bk = dr?.breakdown;
-      final earn = dr?.earnings;
       return Padding(
         padding: EdgeInsets.only(bottom: SizeConfig.paddingXSL),
         child: _StatsCard(
@@ -453,8 +534,8 @@ class _WalletStaticsViewState extends State<WalletStaticsView> {
             donut: StatDonutChart(
               segments: [
                 DonutSegment(color: _green, value: bk?.subscribed ?? 0),
-                DonutSegment(color: _yellow, value: bk?.pending ?? 0),
-                DonutSegment(color: _grey, value: bk?.unsubscribed ?? 0),
+                DonutSegment(color: _grey, value: bk?.pending ?? 0),
+                DonutSegment(color: _yellow, value: bk?.unsubscribed ?? 0),
                 DonutSegment(color: _red, value: bk?.expired ?? 0),
               ],
               center: _CenterText(
@@ -468,21 +549,16 @@ class _WalletStaticsViewState extends State<WalletStaticsView> {
                   label: 'Subscribe',
                   value: _count(bk?.subscribed)),
               _LegendRow(
-                  color: _yellow,
+                  color: _grey,
                   label: 'Pending',
                   value: _count(bk?.pending)),
               _LegendRow(
-                  color: _grey,
+                  color: _yellow,
                   label: 'Un-Subscribe',
                   value: _count(bk?.unsubscribed)),
               _LegendRow(
                   color: _red, label: 'Expired', value: _count(bk?.expired)),
             ],
-          ),
-          footer: _FooterReferral(
-            estdEarning: _money(earn?.estimatedEarning),
-            totalEarn: _money(earn?.totalEarn),
-            balance: _money(earn?.balance),
           ),
         ),
       );
@@ -522,46 +598,97 @@ class _WalletStaticsViewState extends State<WalletStaticsView> {
                   color: _yellow, label: 'Bonus', value: _money(bk?.bonus)),
             ],
           ),
-          footer: _FooterBalanceWithdraw(balance: _money(oi?.balance)),
         ),
       );
     });
   }
 
-  // ─── Content Creation Income ──────────────────────────────────────
-  Widget _contentCreationCard() {
-    return Obx(() {
-      final cc = controller.walletStatics.value?.contentCreationIncome;
-      return _StatsCard(
-        title: 'Content Creation Income',
-        onViewDetails: () {},
-        body: _ChartRow(
-          donut: StatDonutChart(
-            segments: [
-              DonutSegment(color: _grey, value: cc?.totalVideo ?? 0),
-              DonutSegment(color: _green, value: cc?.viewCount ?? 0),
-              DonutSegment(color: _yellow, value: cc?.bonus ?? 0),
-            ],
-            center: _CenterText(
-              value: _money(cc?.totalIncome),
-              label: 'Total Income',
+  // ─── Coin Wallet ──────────────────────────────────────────────────
+  // Donut of Current / Lifetime / Redeemed coins + XP with a "Total Amount"
+  // centre — no footer (informational card).
+  //
+  // TODO(coins): wire these to the coin-wallet API once it's available. There
+  // is no coin/XP data source in the app yet, so the values below are
+  // placeholders matching the design mock. Replace with the real fields.
+  Widget _coinWalletCard() {
+    const num currentCoins = 0;
+    const num lifetimeCoins = 0;
+    const num redeemedCoins = 0;
+    const num xp = 0;
+    const num totalAmount = 0;
+
+    return CustomFormCard(
+      padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Title row: "Coin Wallet" + "View Details".
+          Padding(
+            padding: EdgeInsets.all(SizeConfig.size10),
+            child: Row(
+              children: [
+                Expanded(
+                  child: CustomText(
+                    'Coin Wallet',
+                    fontSize: SizeConfig.medium,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.mainTextColor,
+                  ),
+                ),
+                InkWell(
+                  onTap: () {},
+                  borderRadius: BorderRadius.circular(6),
+                  child: Padding(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    child: CustomText(
+                      'View Details',
+                      fontSize: SizeConfig.small,
+                      fontWeight: FontWeight.w400,
+                      color: AppColors.skyBlueDF,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          rows: [
-            _LegendRow(
-                color: _grey,
-                label: 'Total Video',
-                value: _count(cc?.totalVideo)),
-            _LegendRow(
-                color: _green,
-                label: 'View Count',
-                value: _count(cc?.viewCount)),
-            _LegendRow(color: _yellow, label: 'Bonus', value: _money(cc?.bonus)),
-          ],
-        ),
-        footer: _FooterBalanceWithdraw(balance: _money(cc?.balance)),
-      );
-    });
+          Container(height: 1, color: AppColors.greyE5),
+          Padding(
+            padding: EdgeInsets.fromLTRB(SizeConfig.size14, SizeConfig.size12,
+                SizeConfig.size14, SizeConfig.size14),
+            child: _ChartRow(
+              donut: StatDonutChart(
+                segments: const [
+                  DonutSegment(color: _green, value: currentCoins),
+                  DonutSegment(color: _purple, value: lifetimeCoins),
+                  DonutSegment(color: _yellow, value: xp),
+                  DonutSegment(color: _red, value: redeemedCoins),
+                ],
+                center: _CenterText(
+                  value: _money(totalAmount),
+                  label: 'Total Amount',
+                ),
+              ),
+              rows: [
+                _LegendRow(
+                    color: _green,
+                    label: 'Current Coins',
+                    value: _count(currentCoins)),
+                _LegendRow(
+                    color: _purple,
+                    label: 'Lifetime Coins',
+                    value: _count(lifetimeCoins)),
+                _LegendRow(
+                    color: _red,
+                    label: 'Redeemed Coins',
+                    value: _count(redeemedCoins)),
+                _LegendRow(color: _yellow, label: 'XP', value: _count(xp)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -569,8 +696,14 @@ class _WalletStaticsViewState extends State<WalletStaticsView> {
 class _CheckItem {
   final String label;
   final bool met;
-  final String value;
-  const _CheckItem({required this.label, required this.met, required this.value});
+  final num current;
+  final num target;
+  const _CheckItem({
+    required this.label,
+    required this.met,
+    required this.current,
+    required this.target,
+  });
 }
 
 // ─────────────────────────────────────────────────────────────────────
@@ -583,12 +716,10 @@ class _StatsCard extends StatelessWidget {
   final String title;
   final VoidCallback onViewDetails;
   final Widget body;
-  final Widget footer;
   const _StatsCard({
     required this.title,
     required this.onViewDetails,
     required this.body,
-    required this.footer,
   });
 
   @override
@@ -634,15 +765,9 @@ class _StatsCard extends StatelessWidget {
           Container(height: 1, color: AppColors.greyE5),
           Padding(
             padding: EdgeInsets.fromLTRB(SizeConfig.size14, SizeConfig.size12,
-                SizeConfig.size14, SizeConfig.size12),
+                SizeConfig.size14, SizeConfig.size14),
             child: body,
           ),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size14),
-            child: const _DashedDivider(),
-          ),
-          SizedBox(height: SizeConfig.size12),
-          footer,
         ],
       ),
     );
@@ -742,148 +867,6 @@ class _CenterText extends StatelessWidget {
           fontWeight: FontWeight.w500,
         ),
       ],
-    );
-  }
-}
-
-// ─── Footer variants ─────────────────────────────────────────────────
-
-/// Three-column "Estd. Earning / Total Earn / Balance" strip on top of a
-/// full-width Withdraw — used by Direct Referral.
-class _FooterReferral extends StatelessWidget {
-  final String estdEarning;
-  final String totalEarn;
-  final String balance;
-  const _FooterReferral({
-    required this.estdEarning,
-    required this.totalEarn,
-    required this.balance,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-          SizeConfig.size14, 0, SizeConfig.size14, SizeConfig.size12),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              Expanded(child: _summaryCell('Estd. Earning', estdEarning)),
-              _vDivider(),
-              Expanded(child: _summaryCell('Total Earn', totalEarn)),
-              _vDivider(),
-              Expanded(child: _summaryCell('Balance', balance)),
-            ],
-          ),
-          SizedBox(height: SizeConfig.size12),
-          Row(
-            children: [
-              const Spacer(),
-              Expanded(child: _WithdrawButton(onTap: () {})),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _summaryCell(String label, String value) {
-    return Column(
-      children: [
-        CustomText(
-          label,
-          fontSize: SizeConfig.extraSmall,
-          color: AppColors.secondaryTextColor,
-          fontWeight: FontWeight.w500,
-        ),
-        const SizedBox(height: 4),
-        CustomText(
-          value,
-          fontSize: SizeConfig.medium,
-          fontWeight: FontWeight.w800,
-          color: AppColors.mainTextColor,
-        ),
-      ],
-    );
-  }
-
-  Widget _vDivider() =>
-      Container(width: 1, height: 28, color: const Color(0xFFEEF1F4));
-}
-
-/// Outlined "Balance - ₹X" pill + filled Withdraw — used by Order Income and
-/// Content Creation Income.
-class _FooterBalanceWithdraw extends StatelessWidget {
-  final String balance;
-  const _FooterBalanceWithdraw({required this.balance});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-          SizeConfig.size20, 0, SizeConfig.size14, SizeConfig.size12),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              height: 36,
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                  color: AppColors.primaryColor.withValues(alpha: 0.45),
-                  width: 1,
-                ),
-              ),
-              alignment: Alignment.center,
-              child: CustomText(
-                'Balance - $balance',
-                fontSize: SizeConfig.small,
-                fontWeight: FontWeight.w700,
-                color: AppColors.primaryColor,
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(child: _WithdrawButton(onTap: () {})),
-        ],
-      ),
-    );
-  }
-}
-
-/// Solid primary-blue Withdraw button (width supplied by the parent).
-class _WithdrawButton extends StatelessWidget {
-  final VoidCallback onTap;
-  const _WithdrawButton({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        height: 36,
-        decoration: BoxDecoration(
-          color: AppColors.primaryColor,
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primaryColor.withValues(alpha: 0.30),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        alignment: Alignment.center,
-        child: CustomText(
-          'Withdraw',
-          fontSize: SizeConfig.small,
-          fontWeight: FontWeight.w500,
-          color: AppColors.white,
-        ),
-      ),
     );
   }
 }

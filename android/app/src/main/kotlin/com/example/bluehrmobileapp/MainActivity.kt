@@ -22,7 +22,6 @@ import androidx.annotation.NonNull
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
-import io.flutter.plugins.googlemobileads.GoogleMobileAdsPlugin
 import android.media.Ringtone
 import android.media.RingtoneManager
 import android.net.Uri
@@ -57,24 +56,6 @@ class MainActivity: FlutterActivity() {
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
-
-        // ------------------------------
-        // NATIVE AD FACTORY — custom layout for the grocery store list.
-        // Referenced from Dart via NativeAdWidget.factoryId ("groceryAdFactory").
-        // ------------------------------
-        GoogleMobileAdsPlugin.registerNativeAdFactory(
-            flutterEngine,
-            "groceryAdFactory",
-            GroceryNativeAdFactory(layoutInflater)
-        )
-
-        // Feed-post-styled native ad layout for the home feed. Referenced from
-        // Dart via NativeAdSlot(factoryId: "feedAdFactory").
-        GoogleMobileAdsPlugin.registerNativeAdFactory(
-            flutterEngine,
-            "feedAdFactory",
-            FeedNativeAdFactory(layoutInflater)
-        )
 
         // ------------------------------
         // MEDIA SCANNER CHANNEL — makes files show in Gallery
@@ -451,12 +432,6 @@ class MainActivity: FlutterActivity() {
 
             enterPictureInPictureMode(params)
         }
-    }
-
-    override fun cleanUpFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
-        GoogleMobileAdsPlugin.unregisterNativeAdFactory(flutterEngine, "groceryAdFactory")
-        GoogleMobileAdsPlugin.unregisterNativeAdFactory(flutterEngine, "feedAdFactory")
-        super.cleanUpFlutterEngine(flutterEngine)
     }
 
     override fun onDestroy() {

@@ -46,32 +46,18 @@ abstract class Env {
   @EnviedField(varName: 'PROD_RAZORPAY_KEY')
   static String prodRazorPayKey = _Env.prodRazorPayKey;
 
-  @EnviedField(varName: 'ADMOB_INTERSTITIAL_AD_UNIT_ANDROID')
-  static String admobInterstitialAdUnitAndroid =
-      _Env.admobInterstitialAdUnitAndroid;
+  // ── Meta (Facebook Audience Network) placement IDs — per platform ──
+  @EnviedField(varName: 'META_NATIVE_PLACEMENT_ANDROID')
+  static String metaNativePlacementAndroid = _Env.metaNativePlacementAndroid;
 
-  @EnviedField(varName: 'ADMOB_INTERSTITIAL_AD_UNIT_IOS')
-  static String admobInterstitialAdUnitIos = _Env.admobInterstitialAdUnitIos;
+  @EnviedField(varName: 'META_NATIVE_PLACEMENT_IOS')
+  static String metaNativePlacementIos = _Env.metaNativePlacementIos;
 
-  @EnviedField(varName: 'ADMOB_TEST_INTERSTITIAL_AD_UNIT_ANDROID')
-  static String admobTestInterstitialAdUnitAndroid =
-      _Env.admobTestInterstitialAdUnitAndroid;
+  @EnviedField(varName: 'META_INTERSTITIAL_PLACEMENT_ANDROID')
+  static String metaInterstitialPlacementAndroid =
+      _Env.metaInterstitialPlacementAndroid;
 
-  @EnviedField(varName: 'ADMOB_TEST_INTERSTITIAL_AD_UNIT_IOS')
-  static String admobTestInterstitialAdUnitIos =
-      _Env.admobTestInterstitialAdUnitIos;
-
-  
-  @EnviedField(varName: 'ADMOB_NATIVE_AD_UNIT_ANDROID')
-  static String admobNativeAdUnitAndroid = _Env.admobNativeAdUnitAndroid;
-
-  @EnviedField(varName: 'ADMOB_NATIVE_AD_UNIT_IOS')
-  static String admobNativeAdUnitIos = _Env.admobNativeAdUnitIos;
-
-  @EnviedField(varName: 'ADMOB_TEST_NATIVE_AD_UNIT_ANDROID')
-  static String admobTestNativeAdUnitAndroid =
-      _Env.admobTestNativeAdUnitAndroid;
-
-  @EnviedField(varName: 'ADMOB_TEST_NATIVE_AD_UNIT_IOS')
-  static String admobTestNativeAdUnitIos = _Env.admobTestNativeAdUnitIos;
+  @EnviedField(varName: 'META_INTERSTITIAL_PLACEMENT_IOS')
+  static String metaInterstitialPlacementIos =
+      _Env.metaInterstitialPlacementIos;
 }

@@ -46,7 +46,7 @@ class _GuestDashBoardScreenState extends State<GuestDashBoardScreen> {
             physics: const BouncingScrollPhysics(),
             padding: EdgeInsets.fromLTRB(
               SizeConfig.size16,
-              SizeConfig.size12,
+              SizeConfig.size20,
               SizeConfig.size16,
               kBottomNavigationBarHeight + SizeConfig.size24,
             ),
@@ -54,6 +54,14 @@ class _GuestDashBoardScreenState extends State<GuestDashBoardScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Center(child: _hero(SizeConfig.size200)),
+                SizedBox(height: SizeConfig.size12),
+                CustomText(
+                  'Scratch & Earn Bonus',
+                  fontSize: SizeConfig.size20,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.primaryColor,
+                  textAlign: TextAlign.center,
+                ),
                 SizedBox(height: SizeConfig.size16),
                 _title(),
                 SizedBox(height: SizeConfig.size10),
@@ -98,155 +106,13 @@ class _GuestDashBoardScreenState extends State<GuestDashBoardScreen> {
   }
 
   Widget _hero(double size) {
-    return SizedBox(
+    // Same footprint as the previous hand-drawn hero (width: size,
+    // height: size * 0.85) — now rendered from the dummy_scratch asset.
+    return LocalAssets(
+      imagePath: AppImageAssets.dummyScratch,
       width: size,
       height: size * 0.85,
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.center,
-        children: [
-          // Soft circle backdrop.
-          Positioned.fill(
-            child: Center(
-              child: Container(
-                width: size * 0.78,
-                height: size * 0.78,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.primaryColor.withValues(alpha: 0.10),
-                ),
-              ),
-            ),
-          ),
-          // Decorative micro-sparkles around the halo.
-          ..._sparkles(size),
-          // White profile card front.
-          Center(
-            child: Container(
-              width: size * 0.55,
-              height: size * 0.7,
-              padding: EdgeInsets.all(SizeConfig.size12),
-              decoration: BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.circular(SizeConfig.size12),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primaryColor.withValues(alpha: 0.12),
-                    blurRadius: 18,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  Container(
-                    width: SizeConfig.size48,
-                    height: SizeConfig.size48,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: AppColors.primaryColor,
-                    ),
-                    child: const Icon(
-                      Icons.person,
-                      color: Colors.white,
-                      size: 28,
-                    ),
-                  ),
-                  SizedBox(height: SizeConfig.size10),
-                  _line(width: size * 0.34),
-                  SizedBox(height: SizeConfig.size6),
-                  _line(width: size * 0.26),
-                ],
-              ),
-            ),
-          ),
-          // Lock badge — top-right corner of the card.
-          Positioned(
-            top: size * 0.08,
-            right: size * 0.18,
-            child: _badge(
-              bg: AppColors.white,
-              child: Icon(
-                Icons.lock,
-                size: 16,
-                color: AppColors.primaryColor,
-              ),
-            ),
-          ),
-          // Verified shield — bottom-left corner of the card.
-          Positioned(
-            bottom: size * 0.06,
-            left: size * 0.16,
-            child: _badge(
-              bg: AppColors.primaryColor,
-              size: SizeConfig.size40,
-              child: const Icon(
-                Icons.verified_user,
-                size: 22,
-                color: Colors.white,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
-  }
-
-  Widget _line({required double width}) {
-    return Container(
-      width: width,
-      height: 6,
-      decoration: BoxDecoration(
-        color: AppColors.primaryColor.withValues(alpha: 0.18),
-        borderRadius: BorderRadius.circular(4),
-      ),
-    );
-  }
-
-  Widget _badge({required Color bg, required Widget child, double? size}) {
-    final s = size ?? SizeConfig.size34;
-    return Container(
-      width: s,
-      height: s,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: bg,
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primaryColor.withValues(alpha: 0.18),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Center(child: child),
-    );
-  }
-
-  List<Widget> _sparkles(double size) {
-    final color = AppColors.primaryColor.withValues(alpha: 0.45);
-    const spots = <Offset>[
-      Offset(0.10, 0.18),
-      Offset(0.86, 0.22),
-      Offset(0.18, 0.78),
-      Offset(0.88, 0.70),
-      Offset(0.50, 0.04),
-    ];
-    return [
-      for (final p in spots)
-        Positioned(
-          left: size * p.dx - 2,
-          top: size * 0.85 * p.dy - 2,
-          child: Container(
-            width: 4,
-            height: 4,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: color,
-            ),
-          ),
-        ),
-    ];
   }
 
   Widget _title() {

@@ -92,36 +92,43 @@ class _WalletScreenState extends State<WalletScreen> {
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    // Top row: back button (left) · centered title · coin
+                    // wallet pill (right). A Stack keeps the title screen-centred
+                    // even though the two side widgets differ in width.
+                    Stack(
+                      alignment: Alignment.center,
                       children: [
-                        InkWell(
-                          onTap: () => Get.back(),
-                          customBorder: const CircleBorder(),
-                          child: Container(
-                            height: SizeConfig.size34,
-                            width: SizeConfig.size34,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.white.withValues(alpha: 0.18),
-                            ),
-                            alignment: Alignment.center,
-                            child: const Icon(
-                              Icons.arrow_back_ios_new,
-                              size: 16,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
                         CustomText(
                           AppStrings.currentBalance.tr,
                           fontSize: SizeConfig.large,
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
                         ),
-                        SizedBox(
-                          width: SizeConfig.size34,
-                        )
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: InkWell(
+                            onTap: () => Get.back(),
+                            customBorder: const CircleBorder(),
+                            child: Container(
+                              height: SizeConfig.size34,
+                              width: SizeConfig.size34,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.white.withValues(alpha: 0.18),
+                              ),
+                              alignment: Alignment.center,
+                              child: const Icon(
+                                Icons.arrow_back_ios_new,
+                                size: 16,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: _coinPill(),
+                        ),
                       ],
                     ),
                     SizedBox(
@@ -141,13 +148,12 @@ class _WalletScreenState extends State<WalletScreen> {
                           width: 12,
                         ),
                         CustomText(
-                          (controller.walletResponseModalClass.value.data?.withdrawableAmount ?? "0")
-                              .toString(),
+                          // Current balance = eligible + awaited amounts.
+                          '\u{20B9}${(controller.walletResponseModalClass.value.data?.eligibleBalance ?? 0) + (controller.walletResponseModalClass.value.data?.awaitedBalance ?? 0)}*',
                           fontSize: SizeConfig.heading,
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
                         ),
-                        // Text('\u{20B9}${200}'),
                       ],
                     ),
                     SizedBox(
@@ -315,8 +321,46 @@ class _WalletScreenState extends State<WalletScreen> {
     );
   }
 
-  /// Lifetime figures in the blue header: Pending Balance + Total Earning on
-  /// one row, Total Withdrawals beneath.
+  /// Coin-wallet pill shown at the top-right of the blue header — a white,
+  /// gold-bordered capsule with a coin icon + the coin balance.
+  ///
+  /// TODO(coins): wire to the coin-wallet API once available. Coins are dummy
+  /// (0) for now, matching the Coin Wallet card.
+  Widget _coinPill() {
+    const num coins = 0;
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size10,
+        vertical: SizeConfig.size6,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFF3C24B), width: 1.2),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          LocalAssets(
+            imagePath: AppImageAssets.coinIcon,
+            height: 20,
+            width: 20,
+          ),
+          SizedBox(width: SizeConfig.size6),
+          CustomText(
+            '$coins',
+            fontSize: SizeConfig.medium15,
+            fontWeight: FontWeight.w800,
+            color: AppColors.mainTextColor,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Header figures: Eligible Withdrawal + Awaited Amount on one row, Total
+  /// Earning beneath — bound to the wallet API (eligibleBalance /
+  /// awaitedBalance / computedTotalEarning).
   Widget _headerStats() {
     final data = controller.walletResponseModalClass.value.data;
     return Column(
@@ -325,15 +369,14 @@ class _WalletScreenState extends State<WalletScreen> {
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _statInline(
-                AppStrings.pendingBalance.tr, data?.pendingBalance ?? 0),
+            _statInline('Eligible Withdrawal', data?.eligibleBalance ?? 0),
             SizedBox(width: SizeConfig.size16),
-            _statInline(AppStrings.totalEarning.tr, data?.totalRewardAmount ?? 0),
+            _statInline('Awaited Amount', data?.awaitedBalance ?? 0),
           ],
         ),
         SizedBox(height: 6),
         _statInline(
-            AppStrings.totalWithdrawals.tr, data?.totalWithdrawalAmount ?? 0),
+            AppStrings.totalEarning.tr, data?.computedTotalEarning ?? 0),
       ],
     );
   }
