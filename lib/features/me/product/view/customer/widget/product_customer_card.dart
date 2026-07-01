@@ -13,6 +13,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../../../core/constants/common_methods.dart';
+import '../../../../../../core/services/share_service.dart';
+
 /// Customer-facing product card for the self-pickup browse flow. Mirrors the
 /// grocery `GroceryProductCard`: one card per PRODUCT, tapping it opens a
 /// variants sheet where the customer ticks individual variants and saves them
@@ -53,18 +56,17 @@ class ProductCustomerCard extends StatelessWidget {
         SizeConfig.size30; // add button
   }
 
-  List<Variant> get _variants =>
-      product.product.sellerClassification?.variants ?? const [];
+  List<Variant> get _variants => product.product.sellerClassification?.variants ?? const [];
 
   @override
   Widget build(BuildContext context) {
     final variants = _variants;
     final first = variants.isNotEmpty ? variants.first : null;
     final imageUrl = product.primaryImageUrl ?? '';
-    final discount = (first != null && first.mrp > 0 && first.sellingPrice > 0 &&
-            first.sellingPrice < first.mrp)
-        ? ((first.mrp - first.sellingPrice) / first.mrp * 100).round()
-        : 0;
+    final discount =
+        (first != null && first.mrp > 0 && first.sellingPrice > 0 && first.sellingPrice < first.mrp)
+            ? ((first.mrp - first.sellingPrice) / first.mrp * 100).round()
+            : 0;
 
     return InkWell(
       onTap: () => _openVariantsSheet(context),
@@ -82,8 +84,7 @@ class ProductCustomerCard extends StatelessWidget {
             Stack(
               children: [
                 ClipRRect(
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(10)),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
                   child: SizedBox(
                     height: SizeConfig.size140,
                     width: double.infinity,
@@ -94,8 +95,7 @@ class ProductCustomerCard extends StatelessWidget {
                   bottom: 8,
                   right: 8,
                   child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
                     decoration: BoxDecoration(
                       color: AppColors.blackMite,
                       borderRadius: BorderRadius.circular(6),
@@ -108,13 +108,34 @@ class ProductCustomerCard extends StatelessWidget {
                     ),
                   ),
                 ),
+                Positioned(
+                  top: 6,
+                  right: 6,
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(20),
+                      onTap: _shareProduct,
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: AppColors.blackMite,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: LocalAssets(
+                          imagePath: AppIconAssets.share_bold,
+                          imgColor: AppColors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
 
             // ── Details ─────────────────────────────────────────────
             Padding(
-              padding:
-                  EdgeInsets.symmetric(horizontal: 9.0, vertical: SizeConfig.size6),
+              padding: EdgeInsets.symmetric(horizontal: 9.0, vertical: SizeConfig.size6),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -171,8 +192,7 @@ class ProductCustomerCard extends StatelessWidget {
     return Obx(() {
       // Subscribe to the cart list so the button flips on every add/remove.
       final _ = cartController.selectedProductVariants.length;
-      final added = _variants
-          .any((v) => cartController.isVariantInCart(v.id));
+      final added = _variants.any((v) => cartController.isVariantInCart(v.id));
       return Container(
         width: double.infinity,
         height: SizeConfig.size30,
@@ -193,8 +213,7 @@ class ProductCustomerCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(added ? Icons.check : Icons.add,
-                  size: 12,
-                  color: added ? AppColors.green00 : AppColors.primaryColor),
+                  size: 12, color: added ? AppColors.green00 : AppColors.primaryColor),
               const SizedBox(width: 3),
               CustomText(
                 added ? 'ADDED' : 'ADD',
@@ -207,6 +226,17 @@ class ProductCustomerCard extends StatelessWidget {
         ),
       );
     });
+  }
+
+  Future<void> _shareProduct() async {
+    final productId = product.product.details?.id ?? '';
+    final name = product.product.details?.name ?? '';
+    final shareLink = productDeepLink(productId: productId);
+
+    await ShareService.instance.openShareSheet(
+      text: "Check out $name on BlueEra:\n$shareLink",
+      subject: name,
+    );
   }
 
   void _openVariantsSheet(BuildContext context) {
@@ -260,8 +290,7 @@ class _ProductVariantsSheetState extends State<_ProductVariantsSheet> {
   late final Set<String> _initialIds;
   late Set<String> _draftIds;
 
-  List<Variant> get _variants =>
-      widget.product.product.sellerClassification?.variants ?? const [];
+  List<Variant> get _variants => widget.product.product.sellerClassification?.variants ?? const [];
 
   @override
   void initState() {
@@ -273,9 +302,7 @@ class _ProductVariantsSheetState extends State<_ProductVariantsSheet> {
     _draftIds = {..._initialIds};
   }
 
-  bool get _hasChanges =>
-      _draftIds.length != _initialIds.length ||
-      !_draftIds.containsAll(_initialIds);
+  bool get _hasChanges => _draftIds.length != _initialIds.length || !_draftIds.containsAll(_initialIds);
 
   void _toggleDraft(Variant v) {
     if (v.id.isEmpty) return;
@@ -293,8 +320,7 @@ class _ProductVariantsSheetState extends State<_ProductVariantsSheet> {
   /// its own line.
   GetProductData _singleVariantClone(String variantId) {
     final clone = GetProductData.fromJson(widget.product.toJson());
-    clone.product.sellerClassification?.variants
-        .retainWhere((v) => v.id == variantId);
+    clone.product.sellerClassification?.variants.retainWhere((v) => v.id == variantId);
     return clone;
   }
 
@@ -303,9 +329,7 @@ class _ProductVariantsSheetState extends State<_ProductVariantsSheet> {
     final toRemove = _initialIds.difference(_draftIds);
 
     final bDetails = Get.isRegistered<ViewBusinessDetailsController>()
-        ? Get.find<ViewBusinessDetailsController>()
-            .visitedBusinessProfileDetails
-            ?.data
+        ? Get.find<ViewBusinessDetailsController>().visitedBusinessProfileDetails?.data
         : null;
 
     for (final id in toRemove) {
@@ -340,8 +364,7 @@ class _ProductVariantsSheetState extends State<_ProductVariantsSheet> {
   }
 
   String _variantImage(Variant v) {
-    if (v.mediaRelatedToVariant.isNotEmpty &&
-        v.mediaRelatedToVariant.first.isNotEmpty) {
+    if (v.mediaRelatedToVariant.isNotEmpty && v.mediaRelatedToVariant.first.isNotEmpty) {
       return v.mediaRelatedToVariant.first;
     }
     return widget.product.primaryImageUrl ?? '';
@@ -384,8 +407,7 @@ class _ProductVariantsSheetState extends State<_ProductVariantsSheet> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: _variants.length,
-                separatorBuilder: (_, __) =>
-                    SizedBox(height: SizeConfig.size10),
+                separatorBuilder: (_, __) => SizedBox(height: SizeConfig.size10),
                 itemBuilder: (_, i) => _variantTile(_variants[i]),
               ),
             ],
@@ -438,9 +460,7 @@ class _ProductVariantsSheetState extends State<_ProductVariantsSheet> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(_variantLabel(v),
-                    fontWeight: FontWeight.w600,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis),
+                    fontWeight: FontWeight.w600, maxLines: 2, overflow: TextOverflow.ellipsis),
                 const SizedBox(height: 4),
                 PriceRow(
                   sellingPrice: '₹${v.sellingPrice.toStringAsFixed(0)}',
@@ -486,8 +506,7 @@ class _ProductVariantsSheetState extends State<_ProductVariantsSheet> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(isSelected ? Icons.remove : Icons.add,
-                  size: 12,
-                  color: isSelected ? AppColors.red : AppColors.primaryColor),
+                  size: 12, color: isSelected ? AppColors.red : AppColors.primaryColor),
               const SizedBox(width: 3),
               CustomText(
                 isSelected ? 'REMOVE' : 'ADD',
@@ -508,8 +527,7 @@ class _ProductVariantsSheetState extends State<_ProductVariantsSheet> {
       decoration: BoxDecoration(
         color: AppColors.white,
         border: Border(
-          top: BorderSide(
-              color: AppColors.greyE5.withValues(alpha: 0.7), width: 0.6),
+          top: BorderSide(color: AppColors.greyE5.withValues(alpha: 0.7), width: 0.6),
         ),
       ),
       child: SafeArea(
@@ -541,9 +559,7 @@ class _ProductVariantsSheetState extends State<_ProductVariantsSheet> {
                     vertical: SizeConfig.size10,
                   ),
                   decoration: BoxDecoration(
-                    color: _hasChanges
-                        ? AppColors.primaryColor
-                        : AppColors.greyE5.withValues(alpha: 0.6),
+                    color: _hasChanges ? AppColors.primaryColor : AppColors.greyE5.withValues(alpha: 0.6),
                     borderRadius: BorderRadius.circular(SizeConfig.size12),
                   ),
                   child: Row(
@@ -551,18 +567,13 @@ class _ProductVariantsSheetState extends State<_ProductVariantsSheet> {
                     children: [
                       CustomText(
                         'Save',
-                        color: _hasChanges
-                            ? AppColors.white
-                            : AppColors.secondaryTextColor,
+                        color: _hasChanges ? AppColors.white : AppColors.secondaryTextColor,
                         fontSize: 14,
                         fontWeight: FontWeight.w800,
                       ),
                       SizedBox(width: SizeConfig.size6),
                       Icon(Icons.arrow_forward_rounded,
-                          size: 16,
-                          color: _hasChanges
-                              ? AppColors.white
-                              : AppColors.secondaryTextColor),
+                          size: 16, color: _hasChanges ? AppColors.white : AppColors.secondaryTextColor),
                     ],
                   ),
                 ),

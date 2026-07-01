@@ -1,8 +1,11 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
-import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
+import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/me/product/controller/product_selfpickup_controller.dart';
@@ -11,6 +14,7 @@ import 'package:BlueEra/features/me/product/view/admin/widget/product_top_sellin
 import 'package:BlueEra/features/me/product/view/customer/widget/product_self_pickup_cart.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
@@ -21,35 +25,27 @@ class CustomerAllTopSellingProductsScreen extends StatefulWidget {
   const CustomerAllTopSellingProductsScreen({super.key, required this.visitUserId});
 
   @override
-  State<CustomerAllTopSellingProductsScreen> createState() =>
-      _CustomerAllTopSellingProductsScreenState();
+  State<CustomerAllTopSellingProductsScreen> createState() => _CustomerAllTopSellingProductsScreenState();
 }
 
-class _CustomerAllTopSellingProductsScreenState
-    extends State<CustomerAllTopSellingProductsScreen> {
-  final InventoryController controller =
-      getOrPut<InventoryController>(() => InventoryController());
+class _CustomerAllTopSellingProductsScreenState extends State<CustomerAllTopSellingProductsScreen> {
+  final InventoryController controller = getOrPut<InventoryController>(() => InventoryController());
   final ScrollController _scrollController = ScrollController();
 
   late final ProductSelfPickupController _cartController;
 
   ViewBusinessDetailsController? get _viewBusinessDetailsController =>
-      Get.isRegistered<ViewBusinessDetailsController>()
-          ? Get.find<ViewBusinessDetailsController>()
-          : null;
+      Get.isRegistered<ViewBusinessDetailsController>() ? Get.find<ViewBusinessDetailsController>() : null;
 
   @override
   void initState() {
     super.initState();
-    _cartController = getOrPut<ProductSelfPickupController>(
-        () => ProductSelfPickupController());
+    _cartController = getOrPut<ProductSelfPickupController>(() => ProductSelfPickupController());
     _scrollController.addListener(_onScroll);
     // Defer the fetch until after the first frame so the controller's
     // observable mutations don't re-enter an in-flight build.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      controller.fetchBusinessProducts(
-          visitUserId: widget.visitUserId,
-          isDiscountedProducts: true);
+      controller.fetchBusinessProducts(visitUserId: widget.visitUserId, isDiscountedProducts: true);
     });
   }
 
@@ -63,8 +59,7 @@ class _CustomerAllTopSellingProductsScreenState
   void _onToggleCart(GetProductData product) {
     final id = _firstVariantId(product);
     if (id == null) return;
-    final bDetails =
-        _viewBusinessDetailsController?.visitedBusinessProfileDetails?.data;
+    final bDetails = _viewBusinessDetailsController?.visitedBusinessProfileDetails?.data;
     if (_cartController.isVariantInCart(id)) {
       _cartController.removeFromCart(product);
     } else {
@@ -92,9 +87,7 @@ class _CustomerAllTopSellingProductsScreenState
       // Controller remembers the active owner id for the paginated run,
       // so we don't need to re-pass `visitBusinessId` here.
       controller.fetchBusinessProducts(
-          visitUserId: widget.visitUserId,
-          isDiscountedProducts: true,
-          isLoadMore: true);
+          visitUserId: widget.visitUserId, isDiscountedProducts: true, isLoadMore: true);
     }
   }
 
@@ -118,10 +111,8 @@ class _CustomerAllTopSellingProductsScreenState
         children: [
           Obx(() {
             final items = controller.allProducts;
-            final status =
-                controller.ownDraftAndPublicProductResponse.value.status;
-            final isInitialLoading =
-                status == Status.INITIAL && items.isEmpty;
+            final status = controller.ownDraftAndPublicProductResponse.value.status;
+            final isInitialLoading = status == Status.INITIAL && items.isEmpty;
             final isLoadingMore = controller.isAllProductsLoadingMore.value;
 
             if (isInitialLoading) {
@@ -154,8 +145,7 @@ class _CustomerAllTopSellingProductsScreenState
                   ...buildNativeAdGridSlivers(
                     itemCount: items.length,
                     keyPrefix: 'product_top_native_ad',
-                    adPadding: EdgeInsets.symmetric(
-                        horizontal: SizeConfig.size10),
+                    adPadding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
                     gridSliverBuilder: (start, end) => SliverPadding(
                       padding: EdgeInsets.all(SizeConfig.size10),
                       sliver: SliverMasonryGrid.count(
@@ -215,6 +205,17 @@ class _TopSellingProductTile extends StatelessWidget {
     required this.firstVariantId,
   });
 
+  Future<void> _shareProduct() async {
+    final productId = product.product.details?.id ?? '';
+    final name = product.product.details?.name ?? '';
+    final shareLink = productDeepLink(productId: productId);
+
+    await ShareService.instance.openShareSheet(
+      text: "Check out $name on BlueEra:\n$shareLink",
+      subject: name,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -233,35 +234,60 @@ class _TopSellingProductTile extends StatelessWidget {
             ),
             child: AspectRatio(
               aspectRatio: 1.05,
-              child: ProductTopSellingImage(
-                product: product,
-                cartOverlay: Obx(() {
-                  final cart = cartController.selectedProductVariants;
-                  // ignore: unused_local_variable
-                  final _ = cart.length;
-                  final id = firstVariantId(product);
-                  final added = cartController.isVariantInCart(id);
-                  return IconButton(
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(
-                        minWidth: 28, minHeight: 28),
-                    onPressed: id == null ? null : () => onToggleCart(product),
-                    icon: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: added
-                            ? AppColors.greenShade
-                            : AppColors.blackMite,
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: ProductTopSellingImage(
+                      product: product,
+                      cartOverlay: Obx(() {
+                        final cart = cartController.selectedProductVariants;
+                        // ignore: unused_local_variable
+                        final _ = cart.length;
+                        final id = firstVariantId(product);
+                        final added = cartController.isVariantInCart(id);
+                        return IconButton(
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                          onPressed: id == null ? null : () => onToggleCart(product),
+                          icon: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: added ? AppColors.greenShade : AppColors.blackMite,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Icon(
+                              added ? Icons.check : Icons.add,
+                              size: SizeConfig.size16,
+                              color: AppColors.white,
+                            ),
+                          ),
+                        );
+                      }),
+                    ),
+                  ),
+                  Positioned(
+                    top: 6,
+                    left: 6,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
                         borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Icon(
-                        added ? Icons.check : Icons.add,
-                        size: SizeConfig.size16,
-                        color: AppColors.white,
+                        onTap: _shareProduct,
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: AppColors.blackMite,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: LocalAssets(
+                            imagePath: AppIconAssets.share_bold,
+                            imgColor: AppColors.white,
+                          ),
+                        ),
                       ),
                     ),
-                  );
-                }),
+                  ),
+                ],
               ),
             ),
           ),

@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
@@ -181,7 +182,7 @@ class _HomeServiceDiscoverDetailsScreenState
                         asset: AppIconAssets.star_rounded, onTap: () {}),
                     const SizedBox(width: 10),
                     _circleButton(
-                        asset: AppIconAssets.reelShare, onTap: () {}),
+                        asset: AppIconAssets.reelShare, onTap: _shareProfile),
                   ],
                 ),
               ],
@@ -416,6 +417,15 @@ class _HomeServiceDiscoverDetailsScreenState
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _shareProfile() async {
+    final uid = (store.userId ?? '').trim();
+    if (uid.isEmpty) return;
+    await ShareService.instance.shareProfile(
+      userId: uid,
+      subject: store.serviceName,
     );
   }
 
