@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/joining_bounce/model/joining_bounce_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/repo/joining_bounce_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/wallet/wallet_screen.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/dashed_border_container.dart';
@@ -40,9 +41,6 @@ class _ClaimBonusDialogState extends State<ClaimBonusDialog> {
   /// Gates the confetti burst and the Claim button.
   bool _revealed = false;
 
-  /// Terms & Conditions accepted — required (with [_revealed]) before claiming.
-  bool _agreed = false;
-
   void _onRevealed() {
     if (_revealed) return;
     setState(() => _revealed = true);
@@ -50,10 +48,6 @@ class _ClaimBonusDialogState extends State<ClaimBonusDialog> {
 
   Future<void> _onClaim() async {
     if (_claiming || !_revealed) return;
-    if (!_agreed) {
-      commonSnackBar(message: 'Please agree to the Terms & Conditions first.');
-      return;
-    }
     // `tag_id` is the only required field for /createclaim; without it the
     // backend can't resolve the plan.
     final tagId = widget.bounce.tagId;
@@ -76,7 +70,10 @@ class _ClaimBonusDialogState extends State<ClaimBonusDialog> {
             message: (serverMsg != null && serverMsg.isNotEmpty)
                 ? serverMsg
                 : 'Joining bonus activated 🎉');
+        // Close the dialog, then take the user to their wallet where the
+        // credited bonus now shows.
         if (mounted) Navigator.of(context).maybePop();
+        Get.to(() => const WalletScreen());
       } else {
         commonSnackBar(
             message: res.message ?? 'Could not claim the bonus right now.');
@@ -162,67 +159,42 @@ class _ClaimBonusDialogState extends State<ClaimBonusDialog> {
                 ),
                 const SizedBox(height: 16),
 
-                // ── T&C agreement (required before claiming) ──────────────
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: Checkbox(
-                        value: _agreed,
-                        activeColor: AppColors.primaryColor,
-                        checkColor: AppColors.white,
-                        materialTapTargetSize:
-                            MaterialTapTargetSize.shrinkWrap,
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(4)),
-                        onChanged: (v) => setState(() => _agreed = v ?? false),
-                      ),
+                // ── T&C notice (informational; tap to open the T&C) ───────
+                RichText(
+                  textAlign: TextAlign.center,
+                  text: TextSpan(
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: AppColors.secondaryTextColor,
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: RichText(
-                        text: TextSpan(
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AppColors.secondaryTextColor,
-                          ),
-                          children: [
-                            const TextSpan(text: 'Agree to the '),
-                            TextSpan(
-                              text: 'Terms & Conditions',
-                              style: TextStyle(
-                                color: AppColors.primaryColor,
-                                fontWeight: FontWeight.w700,
-                              ),
-                              recognizer: TapGestureRecognizer()
-                                ..onTap = _openTnc,
-                            ),
-                            const TextSpan(text: ' before claiming.'),
-                          ],
+                    children: [
+                      const TextSpan(text: 'By claiming, you agree to our '),
+                      TextSpan(
+                        text: 'Terms & Conditions',
+                        style: TextStyle(
+                          color: AppColors.primaryColor,
+                          fontWeight: FontWeight.w700,
                         ),
+                        recognizer: TapGestureRecognizer()..onTap = _openTnc,
                       ),
-                    ),
-                  ],
+                      const TextSpan(text: '.'),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 14),
 
-                // Active only once the card is scratched AND the T&C is agreed.
+                // Active only once the card is scratched.
                 CustomBtn(
                   width: double.infinity,
                   height: SizeConfig.size40,
                   radius: 10,
-                  isValidate: _revealed && _agreed,
-                  bgColor: (_revealed && _agreed)
-                      ? AppColors.primaryColor
-                      : AppColors.whiteF3,
-                  textColor: (_revealed && _agreed)
-                      ? AppColors.white
-                      : AppColors.grey9B,
+                  isValidate: _revealed,
+                  bgColor:
+                      _revealed ? AppColors.primaryColor : AppColors.whiteF3,
+                  textColor: _revealed ? AppColors.white : AppColors.grey9B,
                   isLoading: _claiming,
                   title: 'Claim Bonus',
-                  onTap: (_revealed && _agreed) ? _onClaim : null,
+                  onTap: _revealed ? _onClaim : null,
                 ),
               ],
             ),
@@ -409,9 +381,9 @@ class _GuestClaimBonusDialogState extends State<GuestClaimBonusDialog> {
 
 /// Lays [child] (the reward) under a blue scratchable cover. As the user drags
 /// across it, circular holes are punched into the cover (via [BlendMode.clear])
-/// revealing the child. Once ~40% is scratched, [onRevealed] fires and the
-/// remaining cover fades away. Pass [revealed] back so the cover stays gone
-/// after the parent rebuilds.
+/// revealing the child. Once [threshold] of the card is scratched (default 25%),
+/// [onRevealed] fires and the remaining cover fades away. Pass [revealed] back
+/// so the cover stays gone after the parent rebuilds.
 class _ScratchCard extends StatefulWidget {
   final Widget child;
 
@@ -430,7 +402,7 @@ class _ScratchCard extends StatefulWidget {
     required this.child,
     required this.onRevealed,
     required this.revealed,
-    this.threshold = 0.4,
+    this.threshold = 0.25,
   });
 
   @override
@@ -613,8 +585,9 @@ class _ScratchCoverPainter extends CustomPainter {
 // Confetti
 // ─────────────────────────────────────────────────────────────────────────
 
-/// One-shot confetti burst that falls from the top — played once when the
-/// scratch card is revealed.
+/// One-shot confetti burst — mostly rains down from the top, with a small
+/// secondary burst rising from the bottom. Everything fades out (nothing stays
+/// on screen). Played once when the scratch card is revealed.
 class _Confetti extends StatefulWidget {
   const _Confetti();
 
@@ -639,8 +612,9 @@ class _ConfettiState extends State<_Confetti>
       Color(0xFF8B5CF6),
       Color(0xFFFF7A00),
     ];
-    // Falling burst — drop through and off the bottom.
-    final falling = List.generate(55, (_) {
+    // Main burst — falls from the TOP through and off the bottom (more of
+    // these, so most of the confetti rains down from above).
+    final falling = List.generate(70, (_) {
       return _Particle(
         x0: rnd.nextDouble(),
         drift: (rnd.nextDouble() - 0.5) * 0.5,
@@ -652,23 +626,22 @@ class _ConfettiState extends State<_Confetti>
         rotSpeed: (rnd.nextDouble() - 0.5) * 5,
       );
     });
-    // Resting sparkles — settle near the top and STAY after the burst ends,
-    // spread across the width so a few bits sit on top for a nicer finish.
-    final resting = List.generate(14, (i) {
+    // A smaller burst rising up from the BOTTOM, fading as it climbs — just a
+    // little to complement the main top-down rain.
+    final rising = List.generate(18, (_) {
       return _Particle(
-        x0: (i + 0.5 + (rnd.nextDouble() - 0.5) * 0.6) / 14,
-        drift: 0,
-        delay: rnd.nextDouble() * 0.1,
+        x0: rnd.nextDouble(),
+        drift: (rnd.nextDouble() - 0.5) * 0.4,
+        delay: rnd.nextDouble() * 0.2,
         color: colors[rnd.nextInt(colors.length)],
-        w: 5 + rnd.nextDouble() * 5,
-        h: 8 + rnd.nextDouble() * 6,
+        w: 4 + rnd.nextDouble() * 5,
+        h: 6 + rnd.nextDouble() * 7,
         rot0: rnd.nextDouble() * pi * 2,
-        rotSpeed: (rnd.nextDouble() - 0.5) * 1.2,
-        resting: true,
-        restY: 0.02 + rnd.nextDouble() * 0.10,
+        rotSpeed: (rnd.nextDouble() - 0.5) * 4,
+        fromBottom: true,
       );
     });
-    _particles = [...falling, ...resting];
+    _particles = [...falling, ...rising];
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2600),
@@ -686,8 +659,6 @@ class _ConfettiState extends State<_Confetti>
     return AnimatedBuilder(
       animation: _controller,
       builder: (_, __) {
-        // Keep painting after completion (value stays at 1.0) so the resting
-        // sparkles remain sitting on top.
         return CustomPaint(
           size: Size.infinite,
           painter: _ConfettiPainter(_particles, _controller.value),
@@ -707,11 +678,10 @@ class _Particle {
   final double rot0;
   final double rotSpeed;
 
-  /// A "resting" particle settles near the top and STAYS after the burst, so a
-  /// few sparkles remain sitting on top once the animation ends. A normal
-  /// (falling) particle drops through and off the bottom.
-  final bool resting;
-  final double restY; // 0..1 target y for resting particles
+  /// When true the particle rises up from the bottom (the smaller secondary
+  /// burst) instead of falling from the top. Both fade out — nothing stays on
+  /// screen after the burst.
+  final bool fromBottom;
 
   const _Particle({
     required this.x0,
@@ -722,8 +692,7 @@ class _Particle {
     required this.h,
     required this.rot0,
     required this.rotSpeed,
-    this.resting = false,
-    this.restY = 0,
+    this.fromBottom = false,
   });
 }
 
@@ -737,19 +706,19 @@ class _ConfettiPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..style = PaintingStyle.fill;
     for (final p in particles) {
+      final life = (t - p.delay) / (1 - p.delay);
+      if (life <= 0 || life > 1) continue;
       final double x, y, angle, opacity;
-      if (p.resting) {
-        // Drop from above to the rest position over the first ~40% of the
-        // timeline, then hold there (stays at the end).
-        final prog = ((t - p.delay) / 0.4).clamp(0.0, 1.0);
-        final eased = Curves.easeOut.transform(prog);
-        x = p.x0 * size.width;
-        y = (-0.1 + (p.restY + 0.1) * eased) * size.height;
-        angle = p.rot0 + p.rotSpeed * eased;
-        opacity = 1.0;
+      if (p.fromBottom) {
+        // Rise from just below the bottom up to partway (about half height),
+        // fading out as it climbs — a little accent, nothing stays.
+        x = (p.x0 + p.drift * life) * size.width;
+        y = (1.05 - 0.55 * life) * size.height;
+        angle = p.rot0 + p.rotSpeed * life * pi * 2;
+        opacity =
+            (life < 0.7 ? 1.0 : (1 - (life - 0.7) / 0.3)).clamp(0.0, 1.0);
       } else {
-        final life = (t - p.delay) / (1 - p.delay);
-        if (life <= 0 || life > 1) continue;
+        // Fall from above the top, through and off the bottom.
         x = (p.x0 + p.drift * life) * size.width;
         y = (-0.1 + 1.3 * life) * size.height;
         angle = p.rot0 + p.rotSpeed * life * pi * 2;

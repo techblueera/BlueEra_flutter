@@ -1,0 +1,33 @@
+group 'com.dsi.facebook_audience_network'
+version '1.0-SNAPSHOT'
+
+// Patched for AGP 8 / Flutter (Dart 3): added `namespace`, dropped the legacy
+// buildscript + jcenter() (the root project supplies AGP 8.7.0), and bumped
+// compileSdk. The `package` attribute was removed from AndroidManifest.xml —
+// AGP 8 derives the package from `namespace` instead. Vendored under packages/
+// because these fixes can't live in the (regenerated) pub-cache copy.
+apply plugin: 'com.android.library'
+
+android {
+    namespace 'com.dsi.facebook_audience_network'
+    compileSdkVersion 36
+
+    defaultConfig {
+        minSdkVersion 16
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+    }
+    lintOptions {
+        disable 'InvalidPackage'
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
+
+dependencies {
+    implementation 'androidx.lifecycle:lifecycle-runtime:2.2.0'
+    implementation 'com.facebook.android:audience-network-sdk:6.+'
+    implementation 'androidx.annotation:annotation:1.1.0'
+    compileOnly files('tempLibs/flutter.jar')
+}

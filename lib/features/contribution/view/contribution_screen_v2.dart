@@ -869,6 +869,7 @@ class _ActiveDepositView extends StatelessWidget {
                   side: BorderSide(color: AppColors.primaryColor),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
+
                   ),
                 ),
                 child: busy

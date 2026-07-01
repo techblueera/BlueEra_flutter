@@ -41,6 +41,13 @@ class WalletResponseModalClassData {
   num? totalRewardAmount;
   num? totalWithdrawalAmount;
 
+  /// Header figures — eligible-to-withdraw, amount still awaited/held, and the
+  /// computed lifetime earning (from `eligibleBalance` / `awaitedBalance` /
+  /// `computedTotalEarning`).
+  num? eligibleBalance;
+  num? awaitedBalance;
+  num? computedTotalEarning;
+
   WalletResponseModalClassData({
     this.id,
     this.userId,
@@ -48,6 +55,9 @@ class WalletResponseModalClassData {
     this.pendingBalance,
     this.totalRewardAmount,
     this.totalWithdrawalAmount,
+    this.eligibleBalance,
+    this.awaitedBalance,
+    this.computedTotalEarning,
   });
 
   factory WalletResponseModalClassData.fromJson(Map<String, dynamic> json) =>
@@ -60,6 +70,9 @@ class WalletResponseModalClassData {
         pendingBalance: json["pendingBalance"],
         totalRewardAmount: json["totalEarning"],
         totalWithdrawalAmount: json["totalWithdrawal"],
+        eligibleBalance: json["eligibleBalance"],
+        awaitedBalance: json["awaitedBalance"],
+        computedTotalEarning: json["computedTotalEarning"],
       );
 
   Map<String, dynamic> toJson() => {
@@ -69,5 +82,8 @@ class WalletResponseModalClassData {
         "pendingBalance": pendingBalance,
         "totalEarning": totalRewardAmount,
         "totalWithdrawal": totalWithdrawalAmount,
+        "eligibleBalance": eligibleBalance,
+        "awaitedBalance": awaitedBalance,
+        "computedTotalEarning": computedTotalEarning,
       };
 }

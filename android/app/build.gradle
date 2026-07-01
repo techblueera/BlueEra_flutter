@@ -34,13 +34,6 @@ if (!mapApiKey || mapApiKey.isEmpty()) {
     throw new GradleException("Missing MAP_API_KEY in local.properties")
 }
 
-// AdMob App ID — read from local.properties (kept out of source control) and
-// injected into AndroidManifest.xml via the ${admobAppId} placeholder.
-def admobAppId = localProperties.getProperty('ADMOB_APP_ID')
-if (!admobAppId || admobAppId.isEmpty()) {
-    throw new GradleException("Missing ADMOB_APP_ID in local.properties")
-}
-
 android {
     namespace "ai.bluecs.app"
     compileSdk 36
@@ -70,8 +63,7 @@ android {
         versionCode 275
         versionName "14.0.17"
         manifestPlaceholders = [
-                mapApiKey: mapApiKey,
-                admobAppId: admobAppId
+                mapApiKey: mapApiKey
         ]
         resValue "string", "gemini_api_key", localProperties.getProperty('GEMINI_API_KEY')
     }

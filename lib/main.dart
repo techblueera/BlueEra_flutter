@@ -892,9 +892,9 @@ Future<void> _initDeferred(LocalizationService localizationService) async {
     /// location-based APIs. Fire-and-forget — must not block the first frame.
     unawaited(LocationService.fetchLocation());
 
-    /// Initialise the AdMob SDK + preload the first interstitial. Fire-and-forget
-    /// — ads must never block startup; the end-of-call hook shows whatever is
-    /// ready by then (and preloads the next).
+    /// Initialise the Meta (Audience Network) SDK + preload the first
+    /// interstitial. Fire-and-forget — ads must never block startup; the
+    /// end-of-call hook shows whatever is ready by then (and preloads the next).
     unawaited(InterstitialAdManager.instance.initialize());
   }
 

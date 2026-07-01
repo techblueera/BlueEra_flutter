@@ -12,6 +12,8 @@ class JoiningBounceProgress {
   final int bonusInr; // whole rupees, for display
   final String? currency;
   final int progressPercent; // 0–100
+  final int completedCount; // e.g. "2 of 9 Completed" → 2
+  final int totalCount; //     e.g. "2 of 9 Completed" → 9
   final bool eligible;
   final JoiningBounceRequirements? requirements;
   final int daysActive;
@@ -36,6 +38,8 @@ class JoiningBounceProgress {
     this.bonusInr = 0,
     this.currency,
     this.progressPercent = 0,
+    this.completedCount = 0,
+    this.totalCount = 0,
     this.eligible = false,
     this.requirements,
     this.daysActive = 0,
@@ -62,6 +66,8 @@ class JoiningBounceProgress {
       bonusInr: _toInt(json['bonus_inr']),
       currency: json['currency']?.toString(),
       progressPercent: _toInt(json['progress_percent']),
+      completedCount: _toInt(json['completed_count']),
+      totalCount: _toInt(json['total_count']),
       eligible: json['eligible'] == true,
       requirements: json['requirements'] is Map
           ? JoiningBounceRequirements.fromJson(
@@ -171,11 +177,15 @@ class JoiningBounceRequirements {
 }
 
 class JoiningBounceRequirement {
+  final String? label; // e.g. "Go Live Count (Days)", "Live Hour"
+  final String? unit; //  e.g. "Days", "hrs", "Tasks"
   final num required;
   final num current;
   final bool met;
 
   JoiningBounceRequirement({
+    this.label,
+    this.unit,
     this.required = 0,
     this.current = 0,
     this.met = false,
@@ -183,6 +193,8 @@ class JoiningBounceRequirement {
 
   factory JoiningBounceRequirement.fromJson(Map<String, dynamic> json) {
     return JoiningBounceRequirement(
+      label: json['label']?.toString(),
+      unit: json['unit']?.toString(),
       required: (json['required'] is num) ? json['required'] as num : 0,
       current: (json['current'] is num) ? json['current'] as num : 0,
       met: json['met'] == true,
@@ -196,11 +208,16 @@ class JoiningBounceMilestones {
   final List<String> missing;
   final bool met;
 
+  /// Rich per-milestone rows (key/label/current/target/met) — drives the
+  /// Joining Bonus task checklist. Preferred over the flat key lists above.
+  final List<JoiningBounceMilestoneItem> items;
+
   JoiningBounceMilestones({
     this.required = const [],
     this.completed = const [],
     this.missing = const [],
     this.met = false,
+    this.items = const [],
   });
 
   factory JoiningBounceMilestones.fromJson(Map<String, dynamic> json) {
@@ -211,6 +228,40 @@ class JoiningBounceMilestones {
       required: list(json['required']),
       completed: list(json['completed']),
       missing: list(json['missing']),
+      met: json['met'] == true,
+      items: (json['items'] is List)
+          ? (json['items'] as List)
+              .whereType<Map>()
+              .map((e) => JoiningBounceMilestoneItem.fromJson(
+                  Map<String, dynamic>.from(e)))
+              .toList()
+          : const [],
+    );
+  }
+}
+
+/// One milestone row from `requirements.milestones.items`.
+class JoiningBounceMilestoneItem {
+  final String key;
+  final String label;
+  final num current;
+  final num target;
+  final bool met;
+
+  JoiningBounceMilestoneItem({
+    this.key = '',
+    this.label = '',
+    this.current = 0,
+    this.target = 0,
+    this.met = false,
+  });
+
+  factory JoiningBounceMilestoneItem.fromJson(Map<String, dynamic> json) {
+    return JoiningBounceMilestoneItem(
+      key: json['key']?.toString() ?? '',
+      label: json['label']?.toString() ?? '',
+      current: (json['current'] is num) ? json['current'] as num : 0,
+      target: (json['target'] is num) ? json['target'] as num : 0,
       met: json['met'] == true,
     );
   }
