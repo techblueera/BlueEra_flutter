@@ -161,6 +161,7 @@ class RouteConstant {
   static const String hospitalWardViewCategory = "/GetHospitalWardViewCategory";
   static const String addSelfServiceScreen = "/AddSelfServiceScreen";
   static const String createAccountTypeScreen = "/CreateAccountTypeScreen";
+  static const String createAccountTypeV2Screen = "/CreateAccountTypeV2Screen";
   static const String gigWorkerOptionsScreen = "/GigWorkerOptionsScreen";
   static const String groceryStoresScreen = "/GroceryStoresScreen";
   static const String addGrocerySnapSearchScreen = "/AddGrocerySnapSearchScreen";

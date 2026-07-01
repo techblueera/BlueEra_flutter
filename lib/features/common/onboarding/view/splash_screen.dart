@@ -6,8 +6,12 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/api/model/school_details_res_model.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/features/common/Discover/view/discover_school_home_screen.dart';
+import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
@@ -20,6 +24,7 @@ import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
 import 'package:BlueEra/features/common/onboarding/view/select_language_screen.dart';
 import 'package:BlueEra/features/common/profile_share_preview/view/profile_share_preview_screen.dart';
 import 'package:BlueEra/features/me/food/view/share/food_product_share_preview_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/customer/grocery_via_self_pickup/visit_grocery_store_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/share/grocery_product_share_preview_screen.dart';
 import 'package:BlueEra/features/me/product/view/admin/share_product_screen.dart';
 import 'package:BlueEra/main.dart';
@@ -288,7 +293,46 @@ class _SplashScreenState extends State<SplashScreen> {
 
       final segments = uri.pathSegments; // e.g., [app, post, 123]
       print("segments==== ${segments}");
-      if (segments.length >= 3 && segments[0] == 'app') {
+
+      // Education (school) share/QR links carry an extra `education` segment:
+      //   https://beapp.in/app/business/education/<id>
+      // Route these straight to the Discover school home screen instead of the
+      // generic business share-preview. Checked before the generic `app`
+      // handling below because the id sits at segments[3], not segments[2].
+      if (segments.length >= 4 &&
+          segments[0] == 'app' &&
+          segments[1] == 'business' &&
+          segments[2] == 'education') {
+        final schoolId = segments[3];
+        if (!_isValidMongoId(schoolId)) {
+          logs('Invalid education id in deep link: $schoolId');
+          return;
+        }
+        _openEducationSchool(schoolId);
+        return;
+      }
+
+      // Grocery store share/QR links carry an extra `grocery` segment:
+      //   https://beapp.in/app/business/grocery/<id>
+      // Route these straight to the grocery store screen
+      // ([VisitGroceryStoreScreen]) instead of the generic business
+      // share-preview. Checked before the generic `app` handling below
+      // because the id sits at segments[3], not segments[2]. Mirrors the
+      // education branch above.
+     else if (segments.length >= 4 &&
+          segments[0] == 'app' &&
+          segments[1] == 'business' &&
+          segments[2] == 'grocery') {
+        final groceryBusinessId = segments[3];
+        if (!_isValidMongoId(groceryBusinessId)) {
+          logs('Invalid grocery id in deep link: $groceryBusinessId');
+          return;
+        }
+        _openGroceryStore(groceryBusinessId);
+        return;
+      }
+
+    else   if (segments.length >= 3 && segments[0] == 'app') {
         final type = segments[1]; // post | video | short | job | product
         final id = segments[2];
 print("type==== ${type}");
@@ -378,6 +422,43 @@ print("type==== ${type}");
     } on Exception catch (e) {
       print(e.toString());
     }
+  }
+
+  /// Opens [DiscoverSchoolHomeScreen] for a school reached via deep link / QR
+  /// scan. The link carries a single id (the owner/business id used when the
+  /// school was shared). The screen reads its data from
+  /// [SchoolAboutUsController], so the controller is registered first, reset to
+  /// an empty school (so a previously-viewed school doesn't flash), then the
+  /// fetch is kicked off. The id is passed as both `schoolID` and `ownerID`:
+  /// the controller tries the school-id lookup first and transparently falls
+  /// back to the owner-id lookup, so it resolves regardless of which the id
+  /// actually is — mirroring the in-app tap flow from the education list.
+  void _openEducationSchool(String id) {
+    final schoolAboutUsController = getOrPut(() => SchoolAboutUsController());
+    schoolAboutUsController.schoolDetailsData?.value = SchoolDetailsData();
+    Get.to(() => DiscoverSchoolHomeScreen());
+    schoolAboutUsController.getSchoolByIdController(
+      schoolID: id,
+      ownerID: id,
+    );
+  }
+
+  /// Opens [VisitGroceryStoreScreen] for a grocery store reached via deep
+  /// link / QR scan (`https://beapp.in/app/business/grocery/<id>`). The link
+  /// carries a single id (the owner/business id used when the store was
+  /// shared), passed as both `visitBusinessId` and `userId` — mirroring the
+  /// in-app tap flow from the profile share-preview redirect
+  /// ([ProfileSharePreviewScreen._openBusinessDetail]). The screen fetches
+  /// its own profile + grocery data from its controllers, and the
+  /// cart/checkout flow works exactly as in the normal navigation path.
+  /// Deep links are only resolved for logged-in users (see [_initDeepLinks]
+  /// call site), so the authenticated ordering flow is always available here.
+  void _openGroceryStore(String id) {
+
+    Get.to(() => VisitGroceryStoreScreen(
+          visitBusinessId: id,
+          userId: id,
+        ));
   }
 
   @override

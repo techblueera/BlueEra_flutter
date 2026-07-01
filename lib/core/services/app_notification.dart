@@ -11,6 +11,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/services/session_guard.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/services/local_strorage_helper.dart';
@@ -2014,10 +2015,17 @@ class AppNotificationHandler {
 
       // Single-session: the account was signed in on another device, so this
       // session was displaced server-side. Log out immediately (full teardown
-      // + route to login) instead of waiting for the next request's 401.
+      // + route to login) instead of waiting for the next request's 401 — but
+      // ONLY if the displaced session is our own. SessionGuard filters out the
+      // self-login echo (re-login on the same device displaces its own stale
+      // session), which would otherwise log the user out right after login.
       if (operation == 'session_displaced' || operation == 'force_logout') {
-        log('[SESSION] $operation push received → forcing logout');
-        await AuthManager.handleLogout(null);
+        if (await SessionGuard.shouldForceLogout(message.data)) {
+          log('[SESSION] $operation push for our session → forcing logout');
+          await AuthManager.handleLogout(null);
+        } else {
+          log('[SESSION] $operation push ignored (not our session / self-login echo)');
+        }
         return;
       }
 
@@ -2218,10 +2226,16 @@ class AppNotificationHandler {
     // logs("operation==== ${data['payload']['post_id'].runtimeType}");
     switch (operation) {
       // Single-session: tapped the "signed out on another device" notification
-      // → run the full logout teardown and land on the login screen.
+      // → run the full logout teardown and land on the login screen, but only
+      // if the displaced session is ours (SessionGuard drops the self-login
+      // echo so a re-login on this same device does not log the user out).
       case 'session_displaced':
       case 'force_logout':
-        AuthManager.handleLogout(null);
+        if (await SessionGuard.shouldForceLogout(data)) {
+          AuthManager.handleLogout(null);
+        } else {
+          logs('[SESSION] tap $operation ignored (not our session / self-login echo)');
+        }
         break;
 
       // Call operations

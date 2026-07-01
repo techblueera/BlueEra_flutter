@@ -596,8 +596,10 @@ String getInitials(String? name) {
 }
 
 Future createProfileScreen() async {
-  Get.toNamed(RouteHelper.getCreateAccountTypeScreenRoute());
+  Get.toNamed(RouteHelper.getCreateAccountTypeV2ScreenRoute());
 
+  // New PDF-based onboarding flow. Legacy route kept as a fallback:
+  // Get.toNamed(RouteHelper.getCreateAccountTypeScreenRoute());
   // Get.to(() => const ChooseAccountTypeScreen());
 }
 

@@ -39,9 +39,6 @@ class SchoolHomeScreenV2 extends StatefulWidget {
 
 class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2>
     with SingleTickerProviderStateMixin, MeTabBackHandlerMixin {
-  /// Local live state backing the Go-Live toggle/pill.
-  bool isShopGoLive = false;
-
   late final SchoolAboutUsController _schoolController;
   final _businessController =
       getOrPut(() => ViewBusinessDetailsController(), permanent: true);
@@ -228,19 +225,25 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2>
   /// hours and goes live via the backend, popping back `true` on success.
   /// Turning OFF just flips the local toggle.
   Future<void> handleGoLiveTap() async {
-    if (isShopGoLive) {
-      setState(() => isShopGoLive = false);
+    // Turning OFF persists the end-live to the backend (endLiveNow flips the
+    // controller's isLive on success, which the reactive pill picks up).
+    if (_businessController.isLive.value) {
+      await _businessController.endLiveNow();
       return;
     }
 
+    // Turning ON: the availability form persists the hours and goes live via
+    // the backend, popping back `true` on success.
     final result = await Get.to(() => const GroceryShopAvailabilityScreen());
     if (result == true && mounted) {
-      setState(() => isShopGoLive = true);
+      _businessController.isLive.value = true;
     }
   }
 
   Widget _goLivePill() {
-    return GestureDetector(
+    return Obx(() {
+      final bool isShopGoLive = _businessController.isLive.value;
+      return GestureDetector(
       onTap: handleGoLiveTap,
       child: Container(
         decoration: BoxDecoration(
@@ -313,6 +316,7 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2>
         ),
       ),
     );
+    });
   }
   @override
   Widget build(BuildContext context) {

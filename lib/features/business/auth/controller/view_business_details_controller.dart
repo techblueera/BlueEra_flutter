@@ -281,6 +281,14 @@ logs("BUSINESS ID=== ${businessId}");
     isBusinessVerified.value =
         businessProfileDetails.value?.data?.businessIsVerified ?? false;
 
+    // Hydrate the Go-Live toggle from the profile so the pill reflects the real
+    // server state on load. The API returns `availability.liveState.isLive`;
+    // without this the toggle always renders OFF until the user taps it, even
+    // when the business is already live for today.
+    isLive.value = businessProfileDetails
+            .value?.data?.availability?.liveState?.isLive ??
+        false;
+
     if (Get.isRegistered<AuthController>()) {
       Get.find<AuthController>().imgPath.value =
           businessProfileDetails.value?.data?.logo ?? "";

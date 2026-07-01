@@ -308,7 +308,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
     // final mediums = service.mediumOfInstruction?.where((s) => s.trim().isNotEmpty).toList() ?? const [];
     // final fees = service.fees;
 
-    final shareLink = businessProfileDeepLink(userId: service.ownerId);
+    final shareLink = educationProfileDeepLink(userId: service.ownerId);
 
     final lines = <String>['Check out $name on BlueEra'];
     // if (address.isNotEmpty) lines.add(address);

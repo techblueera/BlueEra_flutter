@@ -150,9 +150,13 @@ class SchoolAboutUsController extends GetxController {
         SchoolDetailsResModel schoolAboutUsModel =
             SchoolDetailsResModel.fromJson(response.response?.data);
 
-        // If the API returns success but data is null, it means the ID was likely
-        // a Business ID that doesn't exist in the Education service.
-        if (schoolAboutUsModel.data != null) {
+        // Accept the direct fetch only when it resolved a real school (has an
+        // id). The by-id endpoint can answer success with a null OR an empty
+        // data object when the supplied id is actually a Business/Owner ID
+        // (e.g. from a deep link) that doesn't exist in the Education service —
+        // in that case fall through to the ownerID fallback below instead of
+        // binding the UI to an empty school.
+        if (schoolAboutUsModel.data?.id != null) {
           final oldData = schoolDetailsData?.value;
           final newData = schoolAboutUsModel.data!;
 
@@ -192,7 +196,7 @@ class SchoolAboutUsController extends GetxController {
           SchoolDetailsResModel schoolAboutUsModel =
               SchoolDetailsResModel.fromJson(fallbackResponse.response?.data);
 
-          if (schoolAboutUsModel.data != null) {
+          if (schoolAboutUsModel.data?.id != null) {
             final oldData = schoolDetailsData?.value;
             final newData = schoolAboutUsModel.data!;
 

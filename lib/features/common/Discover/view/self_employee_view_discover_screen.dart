@@ -77,7 +77,8 @@ class _SelfEmployeeViewDiscoverScreenState extends State<SelfEmployeeViewDiscove
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppColors.mainTextColor),
+        // leading: Icon(Icons.arrow_back_ios_new),
+        iconTheme: const IconThemeData(color: AppColors.mainTextColor,),
       ),
       body: Center(
         child: _loading
@@ -328,7 +329,7 @@ class _SelfEmployeeContent extends StatelessWidget {
             child: Row(
               children: [
                 _glassButton(
-                  icon: Icons.arrow_back_rounded,
+                  icon: Icons.arrow_back_ios_new,
                   onTap: () => Navigator.of(context).pop(),
                 ),
                 const Spacer(),

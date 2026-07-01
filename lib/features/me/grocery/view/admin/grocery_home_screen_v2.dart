@@ -326,7 +326,13 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
       if (details == null) return const SizedBox.shrink();
       return Padding(
         padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-        child: BusinessQrCodeWidget(data: details),
+        child: BusinessQrCodeWidget(
+          data: details,
+          // Grocery-specific deep link so the QR opens the store directly
+          // (`/app/business/grocery/<id>` → VisitGroceryStoreScreen) instead
+          // of routing through the generic profile share-preview.
+          deepLinkOverride: groceryProfileDeepLink(userId: details.userId),
+        ),
       );
     });
   }

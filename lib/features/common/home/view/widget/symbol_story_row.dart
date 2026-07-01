@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
 import 'package:BlueEra/features/common/home/controller/symbol_feed_controller.dart';
 import 'package:BlueEra/features/common/home/model/symbol_feed_model.dart';
@@ -46,6 +47,15 @@ class SymbolStoryRow extends StatelessWidget {
       final int othersCount = raw.length;
       final int totalCount = (userId.isNotEmpty ? 1 : 0) + othersCount;
 
+      // Trailing slot: while a page is loading show shimmer placeholder cards
+      // for the upcoming data; otherwise show a single arrow the user taps to
+      // page in the next batch of user groups.
+      final bool isLoadingMore = controller.isLoadingMore.value;
+      final bool showLoadMore = controller.hasMore.value;
+      const int shimmerCount = 3;
+      final int trailingCount =
+          isLoadingMore ? shimmerCount : (showLoadMore ? 1 : 0);
+
       Future<void> openAddSymbol() async {
         await Get.to(() => AddChatSymbolScreen());
         controller.fetchSymbolFeed();
@@ -54,13 +64,22 @@ class SymbolStoryRow extends StatelessWidget {
       return Container(
         decoration: const BoxDecoration(color: Colors.white),
         padding: const EdgeInsets.only(top: 10, bottom: 12),
-        height: 196,
+        height: 168,
         child: ListView.separated(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          itemCount: totalCount,
-          separatorBuilder: (_, __) => const SizedBox(width: 10),
+          itemCount: totalCount + trailingCount,
+          separatorBuilder: (_, __) => const SizedBox(width: 8),
           itemBuilder: (context, index) {
+            // Trailing slot sits after all the user cards: shimmer placeholders
+            // while paging, otherwise the tappable "load more" arrow.
+            if (index >= totalCount) {
+              if (isLoadingMore) {
+                return const _SymbolShimmerCard();
+              }
+              return _LoadMoreCard(onTap: controller.loadMoreSymbols);
+            }
+
             final bool isSelfSlot = userId.isNotEmpty && index == 0;
             if (isSelfSlot) {
               if (selfGroup != null && selfGroup.symbols.isNotEmpty) {
@@ -130,10 +149,10 @@ class _StatusCard extends StatelessWidget {
   final bool isSelf;
   final VoidCallback? onAddTap;
 
-  static const double _cardWidth = 116;
-  static const double _cardHeight = 174;
-  static const double _radius = 14;
-  static const double _avatarSize = 40;
+  static const double _cardWidth = 88;
+  static const double _cardHeight = 146;
+  static const double _radius = 12;
+  static const double _avatarSize = 36;
   static const double _avatarRingStroke = 2.2;
   static const double _addBadgeSize = 18;
 
@@ -447,11 +466,11 @@ class _AvatarFallback extends StatelessWidget {
 class _AddSymbolCard extends StatelessWidget {
   final VoidCallback onTap;
 
-  static const double _cardWidth = 116;
-  static const double _cardHeight = 174;
-  static const double _radius = 18;
-  static const double _avatarSize = 64;
-  static const double _addBadgeSize = 22;
+  static const double _cardWidth = 88;
+  static const double _cardHeight = 146;
+  static const double _radius = 12;
+  static const double _avatarSize = 52;
+  static const double _addBadgeSize = 20;
 
   const _AddSymbolCard({required this.onTap});
 
@@ -547,6 +566,67 @@ class _AddSymbolCard extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Trailing card in the story row that pages in the next batch of user
+/// groups when tapped. While the page is loading, the row swaps this arrow for
+/// [_SymbolShimmerCard] placeholders instead.
+class _LoadMoreCard extends StatelessWidget {
+  final VoidCallback onTap;
+
+  static const double _cardHeight = 146;
+  static const double _cardWidth = 56;
+  static const double _buttonSize = 44;
+
+  const _LoadMoreCard({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        width: _cardWidth,
+        height: _cardHeight,
+        child: Center(
+          child: Container(
+            width: _buttonSize,
+            height: _buttonSize,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF2F3F5),
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: const Icon(
+              Icons.arrow_forward_ios,
+              color: AppColors.primaryColor,
+              size: 20,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Shimmer placeholder shown in place of a not-yet-loaded story card while the
+/// next page of symbols is being fetched. Matches the story card footprint.
+class _SymbolShimmerCard extends StatelessWidget {
+  const _SymbolShimmerCard();
+
+  static const double _cardWidth = 88;
+  static const double _cardHeight = 146;
+
+  @override
+  Widget build(BuildContext context) {
+    return buildLoadingShimmer(
+      child: shimmerContainer(
+        width: _cardWidth,
+        height: _cardHeight,
+        radius: 12,
       ),
     );
   }
