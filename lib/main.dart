@@ -12,6 +12,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/services/ads/interstitial_ad_manager.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/services/session_guard.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
 import 'package:BlueEra/core/language_localization_service/language_controller_new.dart';
@@ -108,16 +109,23 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
   // Single-session: account signed in on another device. We are in a separate
   // isolate with no UI engine — cannot navigate. Clear the stored credential
-  // directly so the NEXT app launch lands on the login screen.
+  // directly so the NEXT app launch lands on the login screen. Guard against
+  // the self-login echo (re-login on THIS device displaces its own stale
+  // session): only clear when the displaced session is our current one, else
+  // we would wipe a valid token right after the user logged in.
   if (operation == 'session_displaced' || operation == 'force_logout') {
-    try {
-      await SharedPreferenceUtils.setSecureValue(
-          SharedPreferenceUtils.authToken, "");
-      await SharedPreferenceUtils.setSecureValue(
-          SharedPreferenceUtils.isUserLogin, "false");
-      logs('[SESSION] bg handler: $operation → cleared auth token');
-    } catch (e) {
-      logs('[SESSION] bg handler: failed to clear token: $e');
+    if (await SessionGuard.shouldForceLogout(message.data)) {
+      try {
+        await SharedPreferenceUtils.setSecureValue(
+            SharedPreferenceUtils.authToken, "");
+        await SharedPreferenceUtils.setSecureValue(
+            SharedPreferenceUtils.isUserLogin, "false");
+        logs('[SESSION] bg handler: $operation for our session → cleared auth token');
+      } catch (e) {
+        logs('[SESSION] bg handler: failed to clear token: $e');
+      }
+    } else {
+      logs('[SESSION] bg handler: $operation ignored (not our session / self-login echo)');
     }
     return;
   }
