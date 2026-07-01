@@ -9,6 +9,20 @@ class SymbolFeedController extends GetxController {
   final RxList<SymbolUserGroup> userGroups = <SymbolUserGroup>[].obs;
   final RxBool isLoading = false.obs;
 
+  /// True while a "load more" (next page) request is in flight. Drives the
+  /// spinner on the trailing arrow card in the story row.
+  final RxBool isLoadingMore = false.obs;
+
+  /// Whether the server reports more pages after the ones already loaded.
+  /// Controls whether the trailing arrow card is shown.
+  final RxBool hasMore = false.obs;
+
+  /// Last page successfully loaded into [userGroups]. Page 1 is the first
+  /// fetch; [loadMoreSymbols] advances from here.
+  int _currentPage = 1;
+
+  static const int _pageLimit = 10;
+
   /// Comments for the currently viewed symbol
   final RxList<SymbolComment> comments = <SymbolComment>[].obs;
   final RxBool isLoadingComments = false.obs;
@@ -34,7 +48,7 @@ class SymbolFeedController extends GetxController {
       isLoading.value = true;
 
       final response = await _repo.fetchSymbolFeed(
-        params: {'page': 1, 'limit': 20, 'populate': true, 'grouped': true},
+        params: {'page': 1, 'limit': _pageLimit, 'populate': true, 'grouped': true},
       );
 
       if (response.isSuccess) {
@@ -52,6 +66,11 @@ class SymbolFeedController extends GetxController {
 
         userGroups.assignAll(groups);
 
+        // Reset pagination to the first page and record whether more pages
+        // remain so the story row can offer the "load more" arrow.
+        _currentPage = 1;
+        hasMore.value = parsed.pagination?.hasNextPage ?? false;
+
         // Cache the raw grouped data so the next cold open paints instantly.
         await _cacheSymbols(rawData);
       }
@@ -59,6 +78,61 @@ class SymbolFeedController extends GetxController {
       log('fetchSymbolFeed error: $e\n$s');
     } finally {
       isLoading.value = false;
+    }
+  }
+
+  /// Fetches the next page of grouped symbols and appends them to
+  /// [userGroups]. Triggered when the user taps the trailing arrow card in the
+  /// story row. New pages are appended at the end (no global re-sort) so the
+  /// already-visible cards don't jump around; groups for a user already in the
+  /// list are merged rather than duplicated.
+  Future<void> loadMoreSymbols() async {
+    if (isLoadingMore.value || !hasMore.value) return;
+    try {
+      isLoadingMore.value = true;
+      final nextPage = _currentPage + 1;
+
+      final response = await _repo.fetchSymbolFeed(
+        params: {
+          'page': nextPage,
+          'limit': _pageLimit,
+          'populate': true,
+          'grouped': true,
+        },
+      );
+
+      if (response.isSuccess) {
+        final rawData = response.response?.data['data'] ?? {};
+        final parsed =
+            SymbolGroupedData.fromJson(Map<String, dynamic>.from(rawData));
+        final newGroups = parsed.groups ?? [];
+
+        for (final group in newGroups) {
+          final userId = group.user?.id;
+          final existingIdx = userId == null
+              ? -1
+              : userGroups.indexWhere((g) => g.user?.id == userId);
+          if (existingIdx != -1) {
+            // Merge in only symbols we don't already have for this user.
+            final existing = userGroups[existingIdx];
+            for (final symbol in group.symbols) {
+              if (!existing.symbols.any((s) => s.id == symbol.id)) {
+                existing.symbols.add(symbol);
+              }
+            }
+          } else {
+            userGroups.add(group);
+          }
+        }
+        userGroups.refresh();
+
+        _currentPage = nextPage;
+        hasMore.value = parsed.pagination?.hasNextPage ?? false;
+      }
+    } catch (e, s) {
+      log('loadMoreSymbols error: $e\n$s');
+    } finally {
+      isLoadingMore.value = false;
     }
   }
 
