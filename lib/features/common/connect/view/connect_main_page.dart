@@ -24,6 +24,7 @@ import 'package:BlueEra/features/chat/view/personal_chat/chat_search_screen.dart
 import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_list.dart';
 import 'package:BlueEra/features/chat/view/reminder_chat/reminder_todo_screen.dart';
 import 'package:BlueEra/features/chat/view/starred_chat/starred_messages_screen.dart';
+import 'package:BlueEra/features/chat/view/symbol_view/symbol_chat_list_screen.dart';
 import 'package:BlueEra/features/chat/view/symbol_view/symbol_view_images.dart';
 import 'package:BlueEra/features/chat/view/wallet_chat/wallet_chat_screen.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
@@ -1121,10 +1122,10 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
                           },
                         ),
                         _menuDivider(),
-                        // Opens the locally-held symbols in a WhatsApp
-                        // status-style viewer — tap left/right (or swipe) to
-                        // step through them prev/next and re-view. Uses the
-                        // already-loaded `mySymbols`, so no extra fetch.
+                        // Opens the WhatsApp-status-style list of everyone with
+                        // an active symbol (the users shown with the multi-colour
+                        // ring in the chat lists). "Add Symbol" sits on top; each
+                        // row opens that user's symbols in the fullscreen viewer.
                         _drawerMenuItem(
                           icon: Icons.web_stories_rounded,
                           label: AppStrings.symbols.tr,
@@ -1132,12 +1133,7 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
                           bgColor: const Color(0xFFFDE6EF),
                           onTap: () {
                             Navigator.pop(context);
-                            if (ctrl.mySymbols.isEmpty) {
-                              commonSnackBar(message: AppStrings.noSymbolsYet.tr);
-                              return;
-                            }
-                            Get.to(() =>
-                                SymbolViewImages(mySymbols: ctrl.mySymbols));
+                            Get.to(() => const SymbolChatListScreen());
                           },
                         ),
                         _menuDivider(),
