@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -2736,6 +2737,84 @@ class _ServiceMessageCardBusinessState extends State<ServiceMessageCardBusiness>
 
   GetServiceModel? serviceData;
 
+  /// Once the owner taps Accept / Decline we PUT to the appropriate
+  /// `*-enquiries/:id/status` endpoint. On success we patch
+  /// `widget.message.metadata.enquiryStatus` in place AND persist the
+  /// updated message list to Hive — so re-entering the chat replays the
+  /// settled state instead of showing the buttons again.
+  bool _isUpdatingEnquiry = false;
+
+  /// Session-wide cache of the true server-side enquiry status keyed by
+  /// enquiry id. Populated by [_hydrateEnquiryStatus] on the owner side
+  /// so re-entering the chat doesn't need to hit `GET /:id` again per
+  /// card. Kept `static` so every card instance shares the same cache
+  /// even after the chat screen is destroyed and rebuilt.
+  static final Map<String, String> _enquiryStatusCache = {};
+  static final Set<String> _enquiryStatusInFlight = {};
+
+  String? get _persistedEnquiryStatus {
+    final identity = _enquiryIdentity;
+    // Prefer the local latch (survives across app restarts through Hive),
+    // fall back to the session cache populated by the source-of-truth GET.
+    final local = widget.message.metadata?.enquiryStatus;
+    final t = (local ?? _enquiryStatusCache[identity.id] ?? '')
+        .trim()
+        .toLowerCase();
+    return (t == 'accepted' || t == 'declined') ? t : null;
+  }
+
+  /// Kick off a background `GET /:id` so the card renders the true
+  /// server-side status. Runs on **both** buyer and owner sides — the
+  /// buyer needs it too, otherwise their card never reflects the owner's
+  /// Accept / Decline (the `service` + `enquiry_only` fabrication has no
+  /// wire-level status field, and `hotelEnquiryStatusUpdated` etc. keyed
+  /// on `messageId` don't fire for this path). Cached per session by
+  /// enquiry id so it fires once per unique card.
+  Future<void> _hydrateEnquiryStatus() async {
+    final identity = _enquiryIdentity;
+    if (identity.id.isEmpty) return;
+    if (_enquiryStatusCache.containsKey(identity.id)) return;
+    if (_enquiryStatusInFlight.contains(identity.id)) return;
+    _enquiryStatusInFlight.add(identity.id);
+    String? status;
+    try {
+      switch (identity.kind) {
+        case 'hotel':
+          final ctrl = getOrPut(() => HotelEnquiryController());
+          status = await ctrl.fetchHotelEnquiryStatus(identity.id);
+          break;
+        case 'education':
+          final ctrl = getOrPut(() => EducationEnquiryController());
+          status = await ctrl.fetchEducationEnquiryStatus(identity.id);
+          break;
+        case 'healthcare':
+          final ctrl = getOrPut(() => HealthcareEnquiryController());
+          status = await ctrl.fetchHealthcareEnquiryStatus(
+            enquiryId: identity.id,
+            category: identity.category,
+          );
+          break;
+      }
+    } finally {
+      _enquiryStatusInFlight.remove(identity.id);
+    }
+    if (status == null || status.isEmpty) return;
+    _enquiryStatusCache[identity.id] = status;
+    // Also patch the message + Hive so the state is durable across
+    // app restarts, not just this session's cache.
+    widget.message.metadata ??= MessageMetadata();
+    widget.message.metadata!.enquiryStatus = status;
+    final convId = widget.conversationId;
+    if (convId.isNotEmpty) {
+      final list = chatViewController.getListOfMessageData;
+      if (list != null) {
+        unawaited(chatViewController.localStorageHelper
+            .saveMessagesByConversationId(convId, list));
+      }
+    }
+    if (mounted) setState(() {});
+  }
+
   // var kmAway;
 
   @override
@@ -2743,6 +2822,122 @@ class _ServiceMessageCardBusinessState extends State<ServiceMessageCardBusiness>
     // TODO: implement initState
     super.initState();
     serviceData = widget.serviceData;
+    // Owner-side enquiry cards: hydrate the true status from the
+    // enquiry backend so the settled state persists across chat
+    // re-opens / app restarts / fresh installs (the chat wire itself
+    // has no status field on the `service` + `enquiry_only` path).
+    // Scheduled post-frame so the first paint is fast; the fetch fills
+    // in the settled band on the second frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _hydrateEnquiryStatus();
+    });
+  }
+
+  /// Reads the enquiry id + type shipped by the four sheets under the
+  /// `service` + `enquiry_only` fabrication path.
+  ///
+  /// Primary channel is `metadata.variant`, which the sheets pack as:
+  ///   * hotel:      `hotel|<enquiryId>`
+  ///   * education:  `edu|<enquiryId>`
+  ///   * healthcare: `hc|<category>|<enquiryId>`
+  /// (See `_buildShareParams` in each sheet — the top-level
+  /// `hotel_enquiry_id` / `education_enquiry_id` / `healthcare_enquiry_id`
+  /// fields get filtered by the chat metadata builder, so we smuggle
+  /// through a whitelisted string field instead.)
+  ///
+  /// The fallback path reads the typed `metadata.hotelEnquiryId` etc.
+  /// so if the backend metadata builder is ever widened to include
+  /// these fields, the card picks them up automatically.
+  ///
+  /// Returns `(kind, id, category)` where
+  /// `kind` ∈ 'hotel' | 'education' | 'healthcare' | ''.
+  ({String kind, String id, String category}) get _enquiryIdentity {
+    final md = widget.message.metadata;
+    final variant = (md?.variant ?? '').trim();
+    if (variant.isNotEmpty) {
+      final parts = variant.split('|');
+      if (parts.length >= 2) {
+        final head = parts.first;
+        if (head == 'hotel' && parts[1].isNotEmpty) {
+          return (kind: 'hotel', id: parts[1], category: '');
+        }
+        if (head == 'edu' && parts[1].isNotEmpty) {
+          return (kind: 'education', id: parts[1], category: '');
+        }
+        if (head == 'hc' && parts.length >= 3 && parts[2].isNotEmpty) {
+          final cat = parts[1] == '-' ? '' : parts[1];
+          return (kind: 'healthcare', id: parts[2], category: cat);
+        }
+      }
+    }
+    final hotel = (md?.hotelEnquiryId ?? '').trim();
+    if (hotel.isNotEmpty) return (kind: 'hotel', id: hotel, category: '');
+    final edu = (md?.educationEnquiryId ?? '').trim();
+    if (edu.isNotEmpty) return (kind: 'education', id: edu, category: '');
+    final hc = (md?.healthcareEnquiryId ?? '').trim();
+    if (hc.isNotEmpty) {
+      return (
+        kind: 'healthcare',
+        id: hc,
+        category: md?.category ?? '',
+      );
+    }
+    return (kind: '', id: '', category: '');
+  }
+
+  Future<void> _respondToEnquiry(String status) async {
+    final identity = _enquiryIdentity;
+    if (identity.id.isEmpty || _isUpdatingEnquiry) return;
+    setState(() => _isUpdatingEnquiry = true);
+    bool ok = false;
+    switch (identity.kind) {
+      case 'hotel':
+        final ctrl = getOrPut(() => HotelEnquiryController());
+        ok = await ctrl.updateHotelEnquiryStatus(
+          enquiryId: identity.id,
+          status: status,
+        );
+        break;
+      case 'education':
+        final ctrl = getOrPut(() => EducationEnquiryController());
+        ok = await ctrl.updateEducationEnquiryStatus(
+          enquiryId: identity.id,
+          status: status,
+        );
+        break;
+      case 'healthcare':
+        final ctrl = getOrPut(() => HealthcareEnquiryController());
+        ok = await ctrl.updateHealthcareEnquiryStatus(
+          enquiryId: identity.id,
+          category: identity.category,
+          status: status,
+        );
+        break;
+    }
+    if (!mounted) return;
+    if (ok) {
+      // Latch the status onto the message so a rebuild — including
+      // re-opening the chat after back-navigation — replays the
+      // settled state instead of showing the action buttons again.
+      widget.message.metadata ??= MessageMetadata();
+      widget.message.metadata!.enquiryStatus = status;
+      // Session cache — same enquiry id in another chat / after Hive
+      // race conditions still resolves without a stale button flash.
+      _enquiryStatusCache[identity.id] = status;
+      // Persist the whole conversation to Hive so the offline-first
+      // hydration path in `loadOfflineMessages` sees the new status.
+      final convId = widget.conversationId;
+      if (convId.isNotEmpty) {
+        final list = chatViewController.getListOfMessageData;
+        if (list != null) {
+          unawaited(chatViewController.localStorageHelper
+              .saveMessagesByConversationId(convId, list));
+        }
+      }
+    }
+    setState(() {
+      _isUpdatingEnquiry = false;
+    });
   }
 
   @override
@@ -2885,6 +3080,17 @@ class _ServiceMessageCardBusinessState extends State<ServiceMessageCardBusiness>
               ),
               SizedBox(height: SizeConfig.size8),
             ],
+            // Enquiry-only status footer. Owner sees Accept / Decline
+            // while pending, then a settled band. Buyer sees a Pending
+            // waiting band while awaiting the owner's decision, then
+            // the same settled band once the owner acts (both are fed
+            // by the same `_persistedEnquiryStatus` — the buyer-side
+            // hydration path in `_hydrateEnquiryStatus` picks up the
+            // owner's flip on the next render / GET).
+            if (isEnquiry && _enquiryIdentity.id.isNotEmpty) ...[
+              const Divider(height: 1, color: Colors.grey),
+              _buildEnquiryStatusFooter(),
+            ],
             // Available / Unavailable row — only meaningful for real
             // service listings (the owner confirms availability). For
             // inquiries the owner replies via chat directly, so skip it.
@@ -2952,6 +3158,103 @@ class _ServiceMessageCardBusinessState extends State<ServiceMessageCardBusiness>
                 : SizedBox(),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildEnquiryStatusFooter() {
+    final status = _persistedEnquiryStatus;
+    // Settled states render identically on both sides.
+    if (status == 'accepted') {
+      return _enquirySettledBand(
+        icon: Icons.check_circle_rounded,
+        color: Colors.green,
+        label: AppStrings.enquiryAccepted.tr,
+      );
+    }
+    if (status == 'declined') {
+      return _enquirySettledBand(
+        icon: Icons.cancel_rounded,
+        color: Colors.red,
+        label: AppStrings.enquiryDeclined.tr,
+      );
+    }
+
+    // Still pending. Owner sees Accept / Decline; buyer sees a
+    // "waiting for response" band so they can tell the enquiry is live.
+    final isOwner = !(widget.message.myMessage ?? false);
+    if (!isOwner) {
+      return _enquirySettledBand(
+        icon: Icons.access_time_rounded,
+        color: Colors.orange,
+        label: AppStrings.waitingForResponse.tr,
+      );
+    }
+
+    if (_isUpdatingEnquiry) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 10),
+        child: Center(
+          child: SizedBox(
+            width: 20,
+            height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+        ),
+      );
+    }
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Expanded(
+          child: TextButton.icon(
+            onPressed: () => _respondToEnquiry('declined'),
+            icon: const Icon(Icons.close, color: Colors.red),
+            label: CustomText(
+              AppStrings.declineLabel.tr,
+              color: Colors.red,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ),
+        const VerticalDivider(width: 2, color: Colors.grey),
+        Expanded(
+          child: TextButton.icon(
+            onPressed: () => _respondToEnquiry('accepted'),
+            icon: const Icon(Icons.check, color: Colors.blue, size: 22),
+            label: CustomText(
+              AppStrings.acceptLabel.tr,
+              color: Colors.blue,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _enquirySettledBand({
+    required IconData icon,
+    required Color color,
+    required String label,
+  }) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+      color: color.withValues(alpha: 0.10),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 17),
+          const SizedBox(width: 8),
+          Expanded(
+            child: CustomText(
+              label,
+              color: color,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
       ),
     );
   }

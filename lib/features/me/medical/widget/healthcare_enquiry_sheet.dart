@@ -212,35 +212,35 @@ class HealthcareEnquirySheet {
     List<String> photoPaths,
   ) async {
     final controller = getOrPut(() => HealthcareEnquiryController());
-    final ok = await controller.submitHealthcareEnquiry(
+    final enquiryId = await controller.submitHealthcareEnquiry(
       category: category,
       listingId: listing.listingId,
       selections: selections,
       note: note,
       photoPaths: photoPaths,
     );
-    if (!ok) return;
+    if (enquiryId == null) return;
 
-    // Upload the customer-picked photos to S3 so they can land as URLs
-    // on the in-chat card. The controller uploaded them too (multipart
-    // to hospital-service or presign to user-service depending on
-    // category) but those URLs aren't surfaced back — re-uploading via
-    // the shared helper is the cheapest way to get URLs the chat card
-    // can render. Photos that fail to upload are silently skipped.
+    // Re-upload the customer-picked photos via user-service presign so
+    // the fabricated chat card carries public URLs (hospital-service /
+    // business-enquiries store them but don't surface the URLs).
+    // Failures are silently skipped.
     final photoUrls = await uploadFilesViaUserPresign(photoPaths);
 
-    // Mirror the Book Home Service redirect: build a chat-message payload
-    // from the just-submitted enquiry and pass it to
-    // checkChatConnectionAndOpenChat with isWithProductSend:true so the
-    // message lands in the in-memory list BEFORE we navigate — the chat
-    // opens already populated. Same approach as every ask_*_msg_card.dart
-    // in lib/features/chat/view/ai_chat/widget/.
+    // Per Docs/backend/healthcare-enquiry-card.md (revised 2026-07-01),
+    // the chat backend does NOT accept
+    // `message_type: "healthcare_enquiry"` on `send-message-large-file`
+    // today, so the fabricated card is a `service` message tagged
+    // `sub_category: "enquiry_only"`.
     //
-    // The hospital/business service's own async card-creation may also
-    // fire; if it lands the conversation simply holds both. We prefer a
-    // duplicate over an empty screen.
-    final shareParams =
-        _buildShareParams(category, listing, selections, note, photoUrls);
+    // We DO ship `healthcare_enquiry_id` + `category` alongside the
+    // flat params so the owner-side service card can round-trip them
+    // via `MessageMetadata.healthcareEnquiryId` and expose Accept/
+    // Decline buttons that call
+    // `HealthcareEnquiryController.updateHealthcareEnquiryStatus`
+    // (which branches HOSPITAL vs business by category).
+    final shareParams = _buildShareParams(
+        category, listing, enquiryId, selections, note, photoUrls);
     final chatViewController = getOrPut(() => ChatViewController());
     await chatViewController.checkChatConnectionAndOpenChat(
       userId: listing.ownerId,
@@ -254,15 +254,10 @@ class HealthcareEnquirySheet {
     );
   }
 
-  /// Chat-service send-message payload for a healthcare enquiry. Shape
-  /// mirrors `ask_home_service_msg_card.dart` so the existing chat
-  /// renderer (case "service" in [MessageCard]) treats it as a service
-  /// card. [photoUrls] are the customer's uploaded inquiry photos
-  /// (rendered on the card); we fall back to the listing image when
-  /// no photos were attached so the card isn't blank.
   static Map<String, dynamic> _buildShareParams(
     String category,
     HealthcareEnquiryListing listing,
+    String enquiryId,
     Map<String, List<String>> selections,
     String note,
     List<String> photoUrls,
@@ -294,9 +289,19 @@ class HealthcareEnquirySheet {
       ApiKeys.title: listing.listingName.isNotEmpty
           ? listing.listingName
           : listing.ownerName,
-      // 'enquiry_only' marker — see VehicleEnquirySheet and
-      // lib/features/chat/view/widget/message_card.dart for the contract.
+      // Shared marker the chat-side renderer checks to suppress the
+      // Order Now CTA and render the multi-line enquiry body.
       ApiKeys.sub_category: 'enquiry_only',
+      // Enquiry id + category smuggled through the whitelisted
+      // `variant` field — the backend chat metadata builder drops
+      // `healthcare_enquiry_id` / `category` but preserves `variant`.
+      // Format: `hc|<category>|<enquiryId>`. The owner-side
+      // `case "service"` renderer decodes this in `_enquiryIdentity`
+      // and routes Accept / Decline via
+      // `HealthcareEnquiryController.updateHealthcareEnquiryStatus`
+      // (which branches HOSPITAL vs business by category).
+      if (enquiryId.isNotEmpty)
+        ApiKeys.variant: 'hc|${category.isEmpty ? '-' : category}|$enquiryId',
       ApiKeys.url: urlList,
     };
   }

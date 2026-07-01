@@ -20,7 +20,12 @@ class EducationEnquiryController extends GetxController {
   /// checkbox map keyed by section title (Courses / Admission For /
   /// Requirements / Timeline). Known display titles are mapped to the
   /// snake-case keys the server expects; unknown groups ship verbatim.
-  Future<bool> submitEducationEnquiry({
+  ///
+  /// Returns the newly-created enquiry id on success (or a synthetic
+  /// timestamp id in stub mode), and null on failure. The sheet needs
+  /// the id to fabricate the in-chat card metadata — see
+  /// `Docs/backend/education-enquiry-card.md`.
+  Future<String?> submitEducationEnquiry({
     required String listingId,
     required Map<String, List<String>> selections,
     required String note,
@@ -32,7 +37,7 @@ class EducationEnquiryController extends GetxController {
 
       if (_useStub) {
         await Future.delayed(const Duration(milliseconds: 600));
-        return true;
+        return 'stub_${DateTime.now().millisecondsSinceEpoch}';
       }
 
       final cleaned = <String, List<String>>{};
@@ -56,13 +61,26 @@ class EducationEnquiryController extends GetxController {
       if (!res.isSuccess) {
         commonSnackBar(
             message: res.message ?? AppStrings.somethingWentWrong);
-        return false;
+        return null;
       }
-      return true;
+      // Response shape (per lib/docs/enquiry-flows-ui-integration.md §3):
+      // `{ success, data: { enquiryId, status } }`. Accept `_id`/`id` too
+      // in case the backend echoes the raw document.
+      final data = res.response?.data;
+      final inner = (data is Map ? data['data'] : null);
+      if (inner is Map) {
+        final id = (inner['enquiryId'] ?? inner['_id'] ?? inner['id'])
+            ?.toString();
+        if (id != null && id.isNotEmpty) return id;
+      }
+      // Success without an id is unexpected but not fatal — the sheet
+      // will still fabricate the card without one; Accept/Decline just
+      // won't work until the backend response is fixed.
+      return '';
     } catch (e, st) {
       log('[ENQUIRY] education submit threw: $e\n$st');
       commonSnackBar(message: AppStrings.somethingWentWrong);
-      return false;
+      return null;
     } finally {
       AppLoader.hide();
       isSubmitting.value = false;
@@ -101,6 +119,27 @@ class EducationEnquiryController extends GetxController {
       log('[ENQUIRY] education updateStatus threw: $e');
       commonSnackBar(message: AppStrings.somethingWentWrong);
       return false;
+    }
+  }
+
+  /// Fetch the current server-side status of an education enquiry —
+  /// see [HotelEnquiryController.fetchHotelEnquiryStatus] for the
+  /// rationale.
+  Future<String?> fetchEducationEnquiryStatus(String enquiryId) async {
+    if (enquiryId.trim().isEmpty) return null;
+    try {
+      final res =
+          await EducationEnquiryRepo().getEducationEnquiryById(enquiryId);
+      if (!res.isSuccess) return null;
+      final data = res.response?.data;
+      final inner = (data is Map ? (data['data'] ?? data) : null);
+      if (inner is Map) {
+        final status = inner['status']?.toString();
+        if (status != null && status.isNotEmpty) return status.toLowerCase();
+      }
+      return null;
+    } catch (_) {
+      return null;
     }
   }
 

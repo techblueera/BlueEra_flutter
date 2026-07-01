@@ -111,48 +111,42 @@ class _VehicleEnquireFormState extends State<_VehicleEnquireForm> {
   void _removePhoto(String path) =>
       setState(() => _photoPaths.remove(path));
 
-  /// Builds the chat-service send-message payload from a just-placed
-  /// booking. Shape matches `ask_inventory_product_msg_card.dart` so the
-  /// existing chat renderer (case "product" in [MessageCard]) treats
-  /// this as a regular product card. The vehicle's intent / offer / note
-  /// are folded into the human-readable message body — the seller sees
-  /// the listing + the buyer's terms in one card without any custom
-  /// chat-card plumbing.
-  Map<String, dynamic> _buildShareParams(VehicleBooking booking) {
-    final v = widget.vehicle;
-    final snapshot = booking.snapshot;
-    final mediaUrls = <String>{
-      if ((snapshot?.image ?? '').isNotEmpty) snapshot!.image!,
-      if ((v.coverImage ?? '').isNotEmpty) v.coverImage!,
-      ...v.images,
-    }.where((u) => u.isNotEmpty).toList();
-    final urlList = mediaUrls.map((u) => {ApiKeys.url: u}).toList();
-    final priceText =
-        (snapshot?.priceText ?? '').isNotEmpty ? snapshot!.priceText! : '';
-
-    final messageBody = <String>[
-      'Booking request: ${booking.intent.label}',
-      if (booking.offerPrice != null)
-        'Offer: ₹${booking.offerPrice!.toStringAsFixed(0)}',
-      if ((booking.note ?? '').trim().isNotEmpty)
-        'Note: ${booking.note!.trim()}',
-    ].join('\n');
-
-    return <String, dynamic>{
-      ApiKeys.product_id: v.id ?? booking.id,
-      ApiKeys.price: priceText,
-      ApiKeys.discount: '',
-      ApiKeys.message: messageBody,
-      ApiKeys.message_type: AppConstants.product,
-      ApiKeys.title:
-          (snapshot?.title ?? '').isNotEmpty ? snapshot!.title! : v.name,
-      ApiKeys.mrp: priceText,
-      ApiKeys.url: urlList,
-      // Marker the chat-side ProductCard checks to suppress the "Order
-      // Now" CTA — this is an *inquiry*, not a checkout. See
-      // lib/features/chat/view/widget/message_card.dart (case "product"
-      // branch: `subCategory == 'enquiry_only'`).
-      ApiKeys.sub_category: 'enquiry_only',
+  /// Client-side card fabrication: `POST /vehicles/bookings` returns the
+  /// booking record but does not itself push a chat message to the
+  /// buyer↔seller thread. So after the POST succeeds the sheet sends a
+  /// `vehicle_booking` chat message carrying the booking metadata; the
+  /// chat backend persists it (see `_overlayFabricatedEnquiryMetadata` in
+  /// chat_view_controller.dart:2562 for the paired echo-safety patch)
+  /// and emits `newVehicleBookingReceived` to the seller. Shape mirrors
+  /// what `_buildVehicleBookingView` (message_card.dart) reads:
+  /// `metadata.booking` + `metadata.vehicleBookingId` (the enquiry_id).
+  Map<String, dynamic> _buildBookingMetadata(VehicleBooking b) {
+    final snap = b.snapshot;
+    return {
+      'vehicleBookingId': b.id,
+      'booking': {
+        '_id': b.id,
+        'buyerId': b.buyerId,
+        'sellerId': b.sellerId,
+        'sellerType': b.sellerType,
+        'inventoryId': b.inventoryId,
+        'variantId': b.variantId,
+        'intent': b.intent.wire,
+        'offerPrice': b.offerPrice,
+        'note': b.note,
+        'photos': b.photos,
+        if (snap != null)
+          'snapshot': {
+            'title': snap.title,
+            'image': snap.image,
+            'priceText': snap.priceText,
+            'condition': snap.condition,
+            'location': snap.location,
+          },
+        'status': b.status.wire,
+        'created_at': b.createdAt?.toIso8601String(),
+        'updated_at': b.updatedAt?.toIso8601String(),
+      },
     };
   }
 
@@ -196,20 +190,16 @@ class _VehicleEnquireFormState extends State<_VehicleEnquireForm> {
       final targetUserId = (widget.vehicle.userId ?? '').trim();
       if (targetUserId.isEmpty) return;
 
-      // Mirror the working Book Home Service redirect: build a chat
-      // message payload from the just-placed booking and pass it to
-      // checkChatConnectionAndOpenChat with isWithProductSend:true. That
-      // synchronously POSTs `chat-service/chat/send-message-large-file`
-      // (see ChatViewController.sendProductMessages) which saves the
-      // message AND returns it so the client appends it to the in-memory
-      // list before navigating — so the chat opens already populated with
-      // the booking card. This is the same approach used by every
-      // ask_*_msg_card.dart in lib/features/chat/view/ai_chat/widget/.
-      //
-      // Booking-service's own async card-creation may also fire; if it
-      // lands the conversation will simply hold both. We prefer a
-      // duplicate over an empty screen.
-      final shareParams = _buildShareParams(booking);
+      // Fabricate the `vehicle_booking` chat card: send a chat message
+      // whose `message_type` + `metadata` match what
+      // `_buildVehicleBookingView` reads, so the shared EnquiryMsgCard
+      // renders on both sides. `checkChatConnectionAndOpenChat` handles
+      // the "which conversation?" resolution and the message send.
+      final shareParams = <String, dynamic>{
+        ApiKeys.message: AppStrings.vehicleBookingTitle.tr,
+        ApiKeys.message_type: 'vehicle_booking',
+        ApiKeys.metadata: _buildBookingMetadata(booking),
+      };
       final chat = getOrPut(() => ChatViewController());
       await chat.checkChatConnectionAndOpenChat(
         userId: targetUserId,

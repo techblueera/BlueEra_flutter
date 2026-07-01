@@ -39,4 +39,10 @@ mixin HotelServiceApi {
   final String hotelEnquiries = 'hotel-service/api/hotel-enquiries';
   String hotelEnquiryStatus(String enquiryId) =>
       'hotel-service/api/hotel-enquiries/$enquiryId/status';
+
+  /// GET one — used by the owner chat card to fetch the enquiry's true
+  /// current status (`pending` | `accepted` | `declined`) when the
+  /// message metadata's local latch is empty. Doc §2a "Get one".
+  String hotelEnquiryById(String enquiryId) =>
+      'hotel-service/api/hotel-enquiries/$enquiryId';
 }

@@ -426,6 +426,19 @@ class MessageMetadata {
   String? variant;
   String? mrp;
 
+  // Healthcare enquiry-card category (HOSPITAL / DOCTOR / LAB / …).
+  // Shipped with `service` + `sub_category: enquiry_only` messages
+  // originating from HealthcareEnquirySheet so the owner-side card
+  // knows which REST endpoint to Accept/Decline through. Docs/backend/
+  // healthcare-enquiry-card.md §1.
+  String? category;
+
+  // Enquiry-card action latch (owner side). Persisted locally after a
+  // successful Accept / Decline PUT so re-entering the chat replays the
+  // settled state instead of showing the action buttons again. Value ∈
+  // 'accepted' | 'declined' | null.
+  String? enquiryStatus;
+
   PaymentResponseModel? order;
 
   Rider? rider;
@@ -529,6 +542,8 @@ class MessageMetadata {
     this.calories,
     this.variant,
     this.mrp,
+    this.category,
+    this.enquiryStatus,
     this.order,
     this.rider,
     this.selfpickupOrderId,
@@ -591,6 +606,8 @@ class MessageMetadata {
       calories: json['calories']?.toString(),
       variant: json['variant']?.toString(),
       mrp: json['mrp']?.toString(),
+      category: json['category']?.toString(),
+      enquiryStatus: json['enquiry_status']?.toString(),
       order: json['order'] != null
           ? PaymentResponseModel.fromJson(json['order'])
           : null,
@@ -717,6 +734,8 @@ class MessageMetadata {
       'calories': calories,
       'variant': variant,
       'mrp': mrp,
+      'category': category,
+      'enquiry_status': enquiryStatus,
       'order': order?.toJson(),
       'rider': rider?.toJson(),
       'selfpickupOrderId': selfpickupOrderId,

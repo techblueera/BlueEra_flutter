@@ -309,4 +309,9 @@ mixin UserServiceApi {
   final String businessEnquiries = "user-service/business-enquiries";
   String businessEnquiryStatus(String enquiryId) =>
       'user-service/business-enquiries/$enquiryId/status';
+
+  /// GET one — used by the owner chat card to fetch the enquiry's true
+  /// current status when the message metadata's local latch is empty.
+  String businessEnquiryById(String enquiryId) =>
+      'user-service/business-enquiries/$enquiryId';
 }

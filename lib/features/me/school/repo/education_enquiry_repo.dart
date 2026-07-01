@@ -60,4 +60,15 @@ class EducationEnquiryRepo extends BaseService {
       onError: (_) {},
     );
   }
+
+  /// GET one — used by the owner chat card to hydrate the enquiry's
+  /// current server-side status.
+  Future<ResponseModel> getEducationEnquiryById(String enquiryId) async {
+    return ApiBaseHelper().getHTTP(
+      educationEnquiryById(enquiryId),
+      showProgress: false,
+      onSuccess: (_) {},
+      onError: (_) {},
+    );
+  }
 }

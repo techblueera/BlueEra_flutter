@@ -31,24 +31,32 @@ class HealthcareEnquiryController extends GetxController {
   /// Raise a healthcare enquiry. [selections] is the grouped chip-checkbox
   /// map (each key = section title, e.g. "Departments" / "Test Types"). Only
   /// non-empty arrays are sent — mirrors the server-side "at least one
-  /// selection or a note" gating. Returns true on HTTP 2xx (treat 201 as
-  /// success — the backend does not return a conversationId).
-  Future<bool> submitHealthcareEnquiry({
+  /// selection or a note" gating.
+  ///
+  /// Returns the newly-created enquiry id on success (or a synthetic
+  /// timestamp id in stub mode), and null on failure. The sheet needs
+  /// the id to fabricate the in-chat card metadata — see
+  /// `Docs/backend/healthcare-enquiry-card.md`.
+  ///
+  /// Uploaded photo URLs (for non-hospital JSON path) are also surfaced
+  /// through [uploadedPhotoUrls] so the sheet can reuse them in the
+  /// fabricated card without re-uploading.
+  Future<String?> submitHealthcareEnquiry({
     required String category,
     required String listingId,
     required Map<String, List<String>> selections,
     required String note,
     List<String> photoPaths = const [],
+    List<String>? uploadedPhotoUrls,
   }) async {
-    final isHospital =
-        category.toUpperCase() == categoryHospital;
+    final isHospital = category.toUpperCase() == categoryHospital;
     try {
       isSubmitting.value = true;
       AppLoader.show();
 
       if (_useStub) {
         await Future.delayed(const Duration(milliseconds: 600));
-        return true;
+        return 'stub_${DateTime.now().millisecondsSinceEpoch}';
       }
 
       // Drop empty selection groups so the body matches the server contract.
@@ -82,17 +90,17 @@ class HealthcareEnquiryController extends GetxController {
             'success=${res.isSuccess} statusCode=${res.statusCode} '
             'message=${res.message} data=${res.response?.data}');
         if (!res.isSuccess) {
-          commonSnackBar(
-              message: res.message ?? AppStrings.somethingWentWrong);
-          return false;
+          commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
+          return null;
         }
-        return true;
+        return _extractEnquiryId(res.response?.data);
       }
 
       // Non-hospital: JSON only — photos must be pre-uploaded.
-      final photoUrls = photoPaths.isEmpty
-          ? const <String>[]
-          : await repo.uploadPhotosViaPresign(photoPaths);
+      final photoUrls = photoPaths.isEmpty ? const <String>[] : await repo.uploadPhotosViaPresign(photoPaths);
+      // Surface the uploaded URLs to the caller so it can reuse them in
+      // the fabricated card metadata.
+      uploadedPhotoUrls?.addAll(photoUrls);
       final body = <String, dynamic>{
         ApiKeys.business_id: listingId,
         if (cleanedSelections.isNotEmpty) 'selections': cleanedSelections,
@@ -107,19 +115,31 @@ class HealthcareEnquiryController extends GetxController {
           'success=${res.isSuccess} statusCode=${res.statusCode} '
           'message=${res.message} data=${res.response?.data}');
       if (!res.isSuccess) {
-        commonSnackBar(
-            message: res.message ?? AppStrings.somethingWentWrong);
-        return false;
+        commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
+        return null;
       }
-      return true;
+      return _extractEnquiryId(res.response?.data);
     } catch (e, st) {
       log('[ENQUIRY] healthcare submit threw: $e\n$st');
       commonSnackBar(message: AppStrings.somethingWentWrong);
-      return false;
+      return null;
     } finally {
       AppLoader.hide();
       isSubmitting.value = false;
     }
+  }
+
+  /// Reads `data.enquiryId` (or `_id` / `id`) from the standard
+  /// `{ success, data: {…} }` envelope. Returns an empty string when
+  /// success came back without an id — the sheet falls back to a
+  /// null-id card in that case, so submit still lands.
+  String _extractEnquiryId(dynamic data) {
+    final inner = (data is Map ? data['data'] : null);
+    if (inner is Map) {
+      final id = (inner['enquiryId'] ?? inner['_id'] ?? inner['id'])?.toString();
+      if (id != null && id.isNotEmpty) return id;
+    }
+    return '';
   }
 
   /// Owner accepts / declines from the in-chat card. [category] picks the
@@ -154,8 +174,7 @@ class HealthcareEnquiryController extends GetxController {
           'statusCode=${res.statusCode} message=${res.message}');
       if (res.statusCode == 409) return true;
       if (!res.isSuccess) {
-        commonSnackBar(
-            message: res.message ?? AppStrings.somethingWentWrong);
+        commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
         return false;
       }
       return true;
@@ -167,13 +186,40 @@ class HealthcareEnquiryController extends GetxController {
     }
   }
 
+  /// Fetch the current server-side status of a healthcare enquiry.
+  /// Routes by [category] — HOSPITAL uses the hospital-service GET,
+  /// everything else uses the user-service business-enquiries GET. See
+  /// [HotelEnquiryController.fetchHotelEnquiryStatus] for the rationale.
+  Future<String?> fetchHealthcareEnquiryStatus({
+    required String enquiryId,
+    required String category,
+  }) async {
+    if (enquiryId.trim().isEmpty) return null;
+    final isHospital = category.toUpperCase() == categoryHospital;
+    try {
+      final repo = HealthcareEnquiryRepo();
+      final res = isHospital
+          ? await repo.getHospitalEnquiryById(enquiryId)
+          : await repo.getBusinessEnquiryById(enquiryId);
+      if (!res.isSuccess) return null;
+      final data = res.response?.data;
+      final inner = (data is Map ? (data['data'] ?? data) : null);
+      if (inner is Map) {
+        final status = inner['status']?.toString();
+        if (status != null && status.isNotEmpty) return status.toLowerCase();
+      }
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Hospital endpoint takes the legacy named arrays (`departments`,
   /// `purpose`, `timeline`). The sheet stores them under their display
   /// titles ("Departments" / "Purpose" / "Timeline"), so this maps those
   /// titles to the API keys; any unknown title is forwarded verbatim so
   /// future groups still ship without a code change.
-  Map<String, List<String>> _toHospitalNamedFields(
-      Map<String, List<String>> selections) {
+  Map<String, List<String>> _toHospitalNamedFields(Map<String, List<String>> selections) {
     const titleToKey = <String, String>{
       'Departments': 'departments',
       'Department': 'departments',

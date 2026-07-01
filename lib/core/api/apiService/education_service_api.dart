@@ -32,4 +32,9 @@ mixin EducationServiceApi {
   final String educationEnquiries = 'education-service/education-enquiries';
   String educationEnquiryStatus(String enquiryId) =>
       'education-service/education-enquiries/$enquiryId/status';
+
+  /// GET one — used by the owner chat card to fetch the enquiry's true
+  /// current status when the message metadata's local latch is empty.
+  String educationEnquiryById(String enquiryId) =>
+      'education-service/education-enquiries/$enquiryId';
 }

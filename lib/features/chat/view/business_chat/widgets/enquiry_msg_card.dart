@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -95,7 +96,14 @@ class _EnquiryMsgCardState extends State<EnquiryMsgCard> {
 
   Future<void> _updateStatus(String status) async {
     final enquiryId = (_v.enquiryId ?? '').trim();
-    if (enquiryId.isEmpty) return;
+    if (enquiryId.isEmpty) {
+      // Empty id means the create-enquiry response didn't return one
+      // (or the backend didn't echo the fabricated card's metadata).
+      // Surface the failure instead of silently swallowing the tap —
+      // otherwise users see a broken button with no feedback.
+      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
+      return;
+    }
 
     setState(() => _isUpdating = true);
     final ok = await _v.onUpdate(enquiryId, status);

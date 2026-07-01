@@ -88,4 +88,9 @@ mixin HospitalServiceApi {
   final String hospitalEnquiries = 'hospital-service/hospital-enquiries';
   String hospitalEnquiryStatus(String enquiryId) =>
       'hospital-service/hospital-enquiries/$enquiryId/status';
+
+  /// GET one — used by the owner chat card to fetch the enquiry's true
+  /// current status when the message metadata's local latch is empty.
+  String hospitalEnquiryById(String enquiryId) =>
+      'hospital-service/hospital-enquiries/$enquiryId';
 }

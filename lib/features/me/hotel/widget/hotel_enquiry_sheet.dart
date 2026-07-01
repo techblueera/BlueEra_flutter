@@ -118,35 +118,34 @@ class HotelEnquirySheet {
     List<String> photoPaths,
   ) async {
     final controller = getOrPut(() => HotelEnquiryController());
-    final ok = await controller.submitHotelEnquiry(
+    final enquiryId = await controller.submitHotelEnquiry(
       hotelId: listing.hotelId,
       selections: selections,
       note: note,
       photoPaths: photoPaths,
     );
-    if (!ok) return;
+    if (enquiryId == null) return;
 
-    // Upload the customer-picked photos to S3 so they can land as URLs
-    // on the in-chat card. The controller's own multipart submit above
-    // sent the same files to hotel-service, but those URLs aren't
-    // surfaced back to us — uploading once more via the user-service
-    // presign flow is the cheapest way to get URLs the chat card can
-    // render. Photos that fail to upload are silently skipped.
+    // Re-upload the customer-picked photos via user-service presign so
+    // the fabricated chat card carries public URLs (hotel-service stores
+    // them but doesn't surface URLs). Failures are silently skipped.
     final photoUrls = await uploadFilesViaUserPresign(photoPaths);
 
-    // Mirror the Book Home Service redirect: build a chat-message payload
-    // from the just-submitted enquiry and pass it to
-    // checkChatConnectionAndOpenChat with isWithProductSend:true. That
-    // synchronously POSTs `chat-service/chat/send-message-large-file`
-    // (see ChatViewController.sendProductMessages) so the message lands
-    // in the in-memory list BEFORE we navigate — the chat opens already
-    // populated with the enquiry card, exactly like every
-    // ask_*_msg_card.dart in lib/features/chat/view/ai_chat/widget/.
+    // Per Docs/backend/hotel-enquiry-card.md (revised 2026-07-01), the
+    // chat backend does NOT accept `message_type: "hotel_enquiry"` on
+    // `send-message-large-file` today, so the fabricated card is a
+    // `service` message tagged `sub_category: "enquiry_only"` — the
+    // existing `case "service"` renderer handles it and suppresses the
+    // Order Now CTA. Selections + note are flattened into `message`
+    // for a legible preview. The rich `hotel_enquiry` metadata / view
+    // scaffolding stays in the codebase for when backend support lands.
     //
-    // hotel-service's own async card-creation may also fire; if it lands
-    // the conversation simply holds both. We prefer a duplicate over an
-    // empty screen.
-    final shareParams = _buildShareParams(listing, selections, note, photoUrls);
+    // We DO ship `hotel_enquiry_id` alongside the flat params so the
+    // owner-side service card can round-trip it via
+    // `MessageMetadata.hotelEnquiryId` and expose Accept/Decline
+    // buttons that call `HotelEnquiryController.updateHotelEnquiryStatus`.
+    final shareParams =
+        _buildShareParams(listing, enquiryId, selections, note, photoUrls);
     final chatViewController = getOrPut(() => ChatViewController());
     await chatViewController.checkChatConnectionAndOpenChat(
       userId: listing.ownerId,
@@ -160,17 +159,9 @@ class HotelEnquirySheet {
     );
   }
 
-  /// Chat-service send-message payload for a hotel enquiry. Shape matches
-  /// `ask_home_service_msg_card.dart` so the existing chat renderer
-  /// (case "service" in [MessageCard]) treats it as a service card — the
-  /// owner sees the listing snapshot + the customer's selections / note
-  /// in one card without any custom chat-card plumbing.
-  ///
-  /// [photoUrls] are the customer's uploaded inquiry photos (rendered on
-  /// the chat card slider). When the customer didn't attach any photos
-  /// we fall back to the hotel's `coverImage` so the card isn't blank.
   static Map<String, dynamic> _buildShareParams(
     HotelEnquiryListing listing,
+    String enquiryId,
     Map<String, List<String>> selections,
     String note,
     List<String> photoUrls,
@@ -204,12 +195,16 @@ class HotelEnquirySheet {
       ApiKeys.title: listing.hotelName.isNotEmpty
           ? listing.hotelName
           : listing.ownerName,
-      // 'enquiry_only' is the shared marker that the chat-side
-      // ServiceMessageCardBusiness / ProductCard checks to (a) suppress
-      // the Order Now CTA — this is an inquiry, not a checkout — and
-      // (b) render the multi-line form body. See
-      // lib/features/chat/view/widget/message_card.dart.
+      // Shared marker the chat-side renderer checks to suppress the
+      // Order Now CTA and render the multi-line enquiry body.
       ApiKeys.sub_category: 'enquiry_only',
+      // Enquiry id smuggled through the whitelisted `variant` field
+      // (`hotelEnquiryId` / `hotel_enquiry_id` are filtered by the
+      // backend chat metadata builder — `variant` survives). The
+      // owner-side `case "service"` renderer decodes this prefix in
+      // `_enquiryIdentity` and shows Accept / Decline. Format:
+      // `<kind>|<enquiryId>` (healthcare adds `|<category>`).
+      if (enquiryId.isNotEmpty) ApiKeys.variant: 'hotel|$enquiryId',
       ApiKeys.url: urlList,
     };
   }

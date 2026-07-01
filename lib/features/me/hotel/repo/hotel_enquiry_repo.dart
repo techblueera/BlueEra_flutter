@@ -60,4 +60,15 @@ class HotelEnquiryRepo extends BaseService {
       onError: (_) {},
     );
   }
+
+  /// GET one — used by the owner chat card to hydrate the enquiry's
+  /// current server-side status ('pending' / 'accepted' / 'declined').
+  Future<ResponseModel> getHotelEnquiryById(String enquiryId) async {
+    return ApiBaseHelper().getHTTP(
+      hotelEnquiryById(enquiryId),
+      showProgress: false,
+      onSuccess: (_) {},
+      onError: (_) {},
+    );
+  }
 }

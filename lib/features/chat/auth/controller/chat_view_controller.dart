@@ -16,6 +16,9 @@ import 'package:BlueEra/features/chat/auth/model/business_service_ask_ai_model.d
 import 'package:BlueEra/features/chat/auth/model/education_ask_ai_model.dart';
 import 'package:BlueEra/features/chat/auth/model/food_ask_ai_model.dart';
 import 'package:BlueEra/features/chat/auth/model/health_care_ask_ai_model.dart';
+import 'package:BlueEra/features/chat/auth/model/education_enquiry_model.dart';
+import 'package:BlueEra/features/chat/auth/model/healthcare_enquiry_model.dart';
+import 'package:BlueEra/features/chat/auth/model/hotel_enquiry_model.dart';
 import 'package:BlueEra/features/chat/auth/model/messageMediaUrl.dart';
 import 'package:BlueEra/features/chat/auth/model/service_ask_ai_model.dart';
 import 'package:BlueEra/features/chat/auth/model/travel_and_stay_ask_ai_model.dart';
@@ -950,6 +953,60 @@ class ChatViewController extends GetxController {
                 final id = m.id ?? '';
                 if (id.isEmpty || seen.add(id)) {
                   deduped.add(m);
+                }
+              }
+              // Preserve locally-latched enquiry_status on the owner's
+              // service+enquiry_only cards. The chat wire has no field for
+              // it, so a fresh server payload would otherwise wipe an
+              // Accept/Decline the owner just made and cause the buttons to
+              // reappear. Keyed by message id → Hive replay stays in sync.
+              final prevList = getListOfMessageData;
+              if (prevList != null && prevList.isNotEmpty) {
+                final prevStatusById = <String, String>{};
+                for (final m in prevList) {
+                  final id = m.id ?? '';
+                  final s = m.metadata?.enquiryStatus;
+                  if (id.isNotEmpty && s != null && s.isNotEmpty) {
+                    prevStatusById[id] = s;
+                  }
+                }
+                if (prevStatusById.isNotEmpty) {
+                  for (final m in deduped) {
+                    final id = m.id ?? '';
+                    final carried = prevStatusById[id];
+                    if (carried == null) continue;
+                    m.metadata ??= MessageMetadata();
+                    if ((m.metadata!.enquiryStatus ?? '').isEmpty) {
+                      m.metadata!.enquiryStatus = carried;
+                    }
+                  }
+                }
+              }
+              // Also preserve enquiry_status from the Hive snapshot — the
+              // socket replay can run before `loadOfflineMessages` has
+              // finished populating the in-memory list, in which case the
+              // in-memory-diff above finds nothing to carry.
+              final cached = await localStorageHelper
+                  .getMessagesByConversationId(conversationId);
+              if (cached.isNotEmpty) {
+                final cachedStatusById = <String, String>{};
+                for (final m in cached) {
+                  final id = m.id ?? '';
+                  final s = m.metadata?.enquiryStatus;
+                  if (id.isNotEmpty && s != null && s.isNotEmpty) {
+                    cachedStatusById[id] = s;
+                  }
+                }
+                if (cachedStatusById.isNotEmpty) {
+                  for (final m in deduped) {
+                    final id = m.id ?? '';
+                    final carried = cachedStatusById[id];
+                    if (carried == null) continue;
+                    m.metadata ??= MessageMetadata();
+                    if ((m.metadata!.enquiryStatus ?? '').isEmpty) {
+                      m.metadata!.enquiryStatus = carried;
+                    }
+                  }
                 }
               }
               // Resolve local file paths for already-downloaded media
@@ -2494,6 +2551,14 @@ class ChatViewController extends GetxController {
 
         final data = responseModel.response?.data;
         Messages? message = Messages.fromJson(data['data']);
+        // Enquiry / booking cards are fabricated on the client (see
+        // Docs/backend/*-enquiry-card.md). The chat backend may not echo
+        // our custom `metadata` blob back, so the parsed `message.metadata`
+        // would be empty and the shared EnquiryCardView would render blank.
+        // Overlay the sent metadata onto the returned message whenever the
+        // parsed message is missing it — same pattern as the payment-
+        // screenshot overlay in `sendMessageLargeFile` (line ~4661).
+        _overlayFabricatedEnquiryMetadata(message, params);
         if (message.subType != "comment") {
           final alreadyExists = message.id != null &&
               (getListOfMessageData?.any((m) => m.id == message.id) ?? false);
@@ -2537,7 +2602,58 @@ class ChatViewController extends GetxController {
     return null;
   }
 
+  /// Re-hydrates enquiry / booking metadata on a just-sent message from
+  /// the params we sent, when the backend response didn't echo it. Only
+  /// touches metadata that's still missing after `Messages.fromJson` —
+  /// so if the backend does echo, this is a no-op.
+  ///
+  /// See Docs/backend/vehicle-enquiry-card.md §4, hotel/education/
+  /// healthcare-enquiry-card.md — all four flows fabricate the card
+  /// client-side and rely on `metadata.<x>Enquiry` / `metadata.booking`
+  /// being present on the returned message so the shared
+  /// `EnquiryCardView` renders on the sender's side without waiting for
+  /// the recipient socket echo.
+  void _overlayFabricatedEnquiryMetadata(
+      Messages message, Map<String, dynamic> params) {
+    final rawMeta = params[ApiKeys.metadata];
+    if (rawMeta is! Map) return;
+    final sentMeta = Map<String, dynamic>.from(rawMeta);
+    message.metadata ??= MessageMetadata();
+    final md = message.metadata!;
 
+    switch (message.messageType) {
+      case 'vehicle_booking':
+        md.vehicleBookingId ??= sentMeta['vehicleBookingId']?.toString();
+        if (md.booking == null && sentMeta['booking'] is Map) {
+          md.booking = VehicleBooking.fromJson(
+              Map<String, dynamic>.from(sentMeta['booking'] as Map));
+        }
+        break;
+      case 'hotel_enquiry':
+        md.hotelEnquiryId ??= sentMeta['hotelEnquiryId']?.toString();
+        if (md.hotelEnquiry == null && sentMeta['hotelEnquiry'] is Map) {
+          md.hotelEnquiry = HotelEnquiryModel.fromJson(
+              Map<String, dynamic>.from(sentMeta['hotelEnquiry'] as Map));
+        }
+        break;
+      case 'education_enquiry':
+        md.educationEnquiryId ??= sentMeta['educationEnquiryId']?.toString();
+        if (md.educationEnquiry == null &&
+            sentMeta['educationEnquiry'] is Map) {
+          md.educationEnquiry = EducationEnquiryModel.fromJson(
+              Map<String, dynamic>.from(sentMeta['educationEnquiry'] as Map));
+        }
+        break;
+      case 'healthcare_enquiry':
+        md.healthcareEnquiryId ??= sentMeta['healthcareEnquiryId']?.toString();
+        if (md.healthcareEnquiry == null &&
+            sentMeta['healthcareEnquiry'] is Map) {
+          md.healthcareEnquiry = HealthcareEnquiryModel.fromJson(
+              Map<String, dynamic>.from(sentMeta['healthcareEnquiry'] as Map));
+        }
+        break;
+    }
+  }
 
   Future<void> getLocalConversation(String conversationId, userId,
       [String? otherUserId, String? name]) async {

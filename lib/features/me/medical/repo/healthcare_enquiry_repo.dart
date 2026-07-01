@@ -107,6 +107,26 @@ class HealthcareEnquiryRepo extends BaseService {
     );
   }
 
+  /// GET one — used by the owner chat card to hydrate the enquiry's
+  /// current server-side status.
+  Future<ResponseModel> getHospitalEnquiryById(String enquiryId) async {
+    return ApiBaseHelper().getHTTP(
+      hospitalEnquiryById(enquiryId),
+      showProgress: false,
+      onSuccess: (_) {},
+      onError: (_) {},
+    );
+  }
+
+  Future<ResponseModel> getBusinessEnquiryById(String enquiryId) async {
+    return ApiBaseHelper().getHTTP(
+      businessEnquiryById(enquiryId),
+      showProgress: false,
+      onSuccess: (_) {},
+      onError: (_) {},
+    );
+  }
+
   // ── S3 presign helper (for the business endpoint) ───────────────────
 
   /// Upload each local photo via the standard two-step presign flow
