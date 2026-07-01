@@ -177,7 +177,7 @@ class SchoolOverviewTabV2 extends StatelessWidget {
             if (details == null) return const SizedBox.shrink();
             return Padding(
               padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
-              child: BusinessQrCodeWidget(data: details),
+              child: NewBusinessQrCodeWidget(data: details),
             );
           }),
 

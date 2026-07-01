@@ -69,14 +69,19 @@ class CommonImageUploadTile extends StatelessWidget {
                   padding: EdgeInsets.all(SizeConfig.size12),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       LocalAssets(imagePath: AppIconAssets.documentUploadIcon),
                       SizedBox(width: SizeConfig.size8),
-                      CustomText(
-                        title,
-                        fontSize: SizeConfig.medium,
-                        color: AppColors.secondaryTextColor,
-                        fontWeight: FontWeight.w400,
+                      Flexible(
+                        child: CustomText(
+                          title,
+                          fontSize: SizeConfig.medium,
+                          color: AppColors.secondaryTextColor,
+                          fontWeight: FontWeight.w400,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ],
                   ),

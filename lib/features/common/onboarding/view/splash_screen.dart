@@ -24,6 +24,7 @@ import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
 import 'package:BlueEra/features/common/onboarding/view/select_language_screen.dart';
 import 'package:BlueEra/features/common/profile_share_preview/view/profile_share_preview_screen.dart';
 import 'package:BlueEra/features/me/food/view/share/food_product_share_preview_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/customer/grocery_via_self_pickup/visit_grocery_store_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/share/grocery_product_share_preview_screen.dart';
 import 'package:BlueEra/features/me/product/view/admin/share_product_screen.dart';
 import 'package:BlueEra/main.dart';
@@ -310,7 +311,28 @@ class _SplashScreenState extends State<SplashScreen> {
         _openEducationSchool(schoolId);
         return;
       }
-      if (segments.length >= 3 && segments[0] == 'app') {
+
+      // Grocery store share/QR links carry an extra `grocery` segment:
+      //   https://beapp.in/app/business/grocery/<id>
+      // Route these straight to the grocery store screen
+      // ([VisitGroceryStoreScreen]) instead of the generic business
+      // share-preview. Checked before the generic `app` handling below
+      // because the id sits at segments[3], not segments[2]. Mirrors the
+      // education branch above.
+     else if (segments.length >= 4 &&
+          segments[0] == 'app' &&
+          segments[1] == 'business' &&
+          segments[2] == 'grocery') {
+        final groceryBusinessId = segments[3];
+        if (!_isValidMongoId(groceryBusinessId)) {
+          logs('Invalid grocery id in deep link: $groceryBusinessId');
+          return;
+        }
+        _openGroceryStore(groceryBusinessId);
+        return;
+      }
+
+    else   if (segments.length >= 3 && segments[0] == 'app') {
         final type = segments[1]; // post | video | short | job | product
         final id = segments[2];
 print("type==== ${type}");
@@ -419,6 +441,24 @@ print("type==== ${type}");
       schoolID: id,
       ownerID: id,
     );
+  }
+
+  /// Opens [VisitGroceryStoreScreen] for a grocery store reached via deep
+  /// link / QR scan (`https://beapp.in/app/business/grocery/<id>`). The link
+  /// carries a single id (the owner/business id used when the store was
+  /// shared), passed as both `visitBusinessId` and `userId` — mirroring the
+  /// in-app tap flow from the profile share-preview redirect
+  /// ([ProfileSharePreviewScreen._openBusinessDetail]). The screen fetches
+  /// its own profile + grocery data from its controllers, and the
+  /// cart/checkout flow works exactly as in the normal navigation path.
+  /// Deep links are only resolved for logged-in users (see [_initDeepLinks]
+  /// call site), so the authenticated ordering flow is always available here.
+  void _openGroceryStore(String id) {
+
+    Get.to(() => VisitGroceryStoreScreen(
+          visitBusinessId: id,
+          userId: id,
+        ));
   }
 
   @override

@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -119,6 +120,8 @@ class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
                     children: [
                       VisitBusinessCommonHeader(
                         details: details,
+                        shareLink:
+                            groceryProfileDeepLink(userId: details?.userId),
                         onRated: () => viewBusinessDetailsController
                             .viewBusinessProfileById(
                           widget.visitBusinessId,

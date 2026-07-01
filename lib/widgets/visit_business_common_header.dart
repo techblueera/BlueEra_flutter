@@ -43,11 +43,20 @@ class VisitBusinessCommonHeader extends StatefulWidget {
   /// re-fetch the business profile (e.g. to refresh `total_followers`).
   final VoidCallback? onFollowChanged;
 
+  /// Optional pre-built deep link for the share sheet. When non-null and
+  /// non-empty this is used verbatim (e.g. grocery stores pass
+  /// `groceryProfileDeepLink(...)` so the share opens the store directly).
+  /// When null/empty the header falls back to the account-type default:
+  /// `businessProfileDeepLink` for business accounts, `profileDeepLink`
+  /// otherwise.
+  final String? shareLink;
+
   const VisitBusinessCommonHeader({
     super.key,
     required this.details,
     this.onRated,
     this.onFollowChanged,
+    this.shareLink,
   });
 
   @override
@@ -353,13 +362,17 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
             // directly.
             final isBusiness = accountTypeGlobal.toUpperCase() == AppConstants.business;
 
-            final shareLink = isBusiness
-                ? businessProfileDeepLink(
-                    userId: details?.userId,
-                  )
-                : profileDeepLink(
-                    userId: details?.userId,
-                  );
+            // Prefer the caller-supplied deep link; only fall back to the
+            // account-type default when none was provided.
+            final shareLink = (widget.shareLink?.trim().isNotEmpty ?? false)
+                ? widget.shareLink!
+                : isBusiness
+                    ? businessProfileDeepLink(
+                        userId: details?.userId,
+                      )
+                    : profileDeepLink(
+                        userId: details?.userId,
+                      );
 
             await ShareService.instance.openShareSheet(
               text: "Check out ${details?.businessName ?? 'this profile'} on BlueEra:\n$shareLink",
