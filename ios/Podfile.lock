@@ -53,6 +53,10 @@ PODS:
     - SwiftyGif
   - emoji_picker_flutter (0.0.1):
     - Flutter
+  - facebook_audience_network (0.0.1):
+    - FBAudienceNetwork (~> 6.3)
+    - Flutter
+  - FBAudienceNetwork (6.21.1)
   - file_picker (0.0.1):
     - DKImagePickerController/PhotoGallery
     - Flutter
@@ -161,23 +165,16 @@ PODS:
     - libwebp
   - Google-Maps-iOS-Utils (6.1.0):
     - GoogleMaps (~> 9.0)
-  - Google-Mobile-Ads-SDK (12.14.0):
-    - GoogleUserMessagingPlatform (>= 1.1)
   - google_maps_flutter_ios (0.0.1):
     - Flutter
     - Google-Maps-iOS-Utils (< 7.0, >= 5.0)
     - GoogleMaps (< 11.0, >= 8.4)
-  - google_mobile_ads (7.0.0):
-    - Flutter
-    - Google-Mobile-Ads-SDK (~> 12.14.0)
-    - webview_flutter_wkwebview
   - GoogleDataTransport (10.1.0):
     - nanopb (~> 3.30910.0)
     - PromisesObjC (~> 2.4)
   - GoogleMaps (9.4.0):
     - GoogleMaps/Maps (= 9.4.0)
   - GoogleMaps/Maps (9.4.0)
-  - GoogleUserMessagingPlatform (3.1.0)
   - GoogleUtilities/AppDelegateSwizzler (8.1.0):
     - GoogleUtilities/Environment
     - GoogleUtilities/Logger
@@ -304,6 +301,7 @@ DEPENDENCIES:
   - croppy (from `.symlinks/plugins/croppy/ios`)
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - emoji_picker_flutter (from `.symlinks/plugins/emoji_picker_flutter/ios`)
+  - facebook_audience_network (from `.symlinks/plugins/facebook_audience_network/ios`)
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
   - firebase_crashlytics (from `.symlinks/plugins/firebase_crashlytics/ios`)
@@ -326,7 +324,6 @@ DEPENDENCIES:
   - geolocator_apple (from `.symlinks/plugins/geolocator_apple/darwin`)
   - get_thumbnail_video (from `.symlinks/plugins/get_thumbnail_video/ios`)
   - google_maps_flutter_ios (from `.symlinks/plugins/google_maps_flutter_ios/ios`)
-  - google_mobile_ads (from `.symlinks/plugins/google_mobile_ads/ios`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
   - just_audio (from `.symlinks/plugins/just_audio/darwin`)
   - open_file_ios (from `.symlinks/plugins/open_file_ios/ios`)
@@ -357,6 +354,7 @@ SPEC REPOS:
     - CwlCatchExceptionSupport
     - DKImagePickerController
     - DKPhotoGallery
+    - FBAudienceNetwork
     - Firebase
     - FirebaseCore
     - FirebaseCoreExtension
@@ -368,10 +366,8 @@ SPEC REPOS:
     - FirebaseSessions
     - flutter_sound_core
     - Google-Maps-iOS-Utils
-    - Google-Mobile-Ads-SDK
     - GoogleDataTransport
     - GoogleMaps
-    - GoogleUserMessagingPlatform
     - GoogleUtilities
     - libwebp
     - Mantle
@@ -404,6 +400,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/device_info_plus/ios"
   emoji_picker_flutter:
     :path: ".symlinks/plugins/emoji_picker_flutter/ios"
+  facebook_audience_network:
+    :path: ".symlinks/plugins/facebook_audience_network/ios"
   file_picker:
     :path: ".symlinks/plugins/file_picker/ios"
   firebase_core:
@@ -448,8 +446,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/get_thumbnail_video/ios"
   google_maps_flutter_ios:
     :path: ".symlinks/plugins/google_maps_flutter_ios/ios"
-  google_mobile_ads:
-    :path: ".symlinks/plugins/google_mobile_ads/ios"
   image_picker_ios:
     :path: ".symlinks/plugins/image_picker_ios/ios"
   just_audio:
@@ -510,6 +506,8 @@ SPEC CHECKSUMS:
   DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
   emoji_picker_flutter: ece213fc274bdddefb77d502d33080dc54e616cc
+  facebook_audience_network: ca776d93385735b6ed38720a7b38f72f74ed117b
+  FBAudienceNetwork: 85d18a65c9e35bc426bd4664cf3ae2a1172d7b60
   file_picker: a0560bc09d61de87f12d246fc47d2119e6ef37be
   Firebase: f07b15ae5a6ec0f93713e30b923d9970d144af3e
   firebase_core: f1aafb21c14f497e5498f7ffc4dc63cbb52b2594
@@ -542,12 +540,9 @@ SPEC CHECKSUMS:
   geolocator_apple: ab36aa0e8b7d7a2d7639b3b4e48308394e8cef5e
   get_thumbnail_video: 1a754d46b860dffefcc57b7290a43089cd5d7e58
   Google-Maps-iOS-Utils: 0a484b05ed21d88c9f9ebbacb007956edd508a96
-  Google-Mobile-Ads-SDK: 4534fd2dfcd3f705c5485a6633c5188d03d4eed2
   google_maps_flutter_ios: 17552876e72723da1d41accc22f03b5f7afbde69
-  google_mobile_ads: df3008bafbe1f2ad6862f87334e560d2f047f902
   GoogleDataTransport: aae35b7ea0c09004c3797d53c8c41f66f219d6a7
   GoogleMaps: 0608099d4870cac8754bdba9b6953db543432438
-  GoogleUserMessagingPlatform: befe603da6501006420c206222acd449bba45a9c
   GoogleUtilities: 00c88b9a86066ef77f0da2fab05f65d7768ed8e1
   image_picker_ios: 7fe1ff8e34c1790d6fff70a32484959f563a928a
   just_audio: 4e391f57b79cad2b0674030a00453ca5ce817eed
