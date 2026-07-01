@@ -310,7 +310,6 @@ class _SplashScreenState extends State<SplashScreen> {
         _openEducationSchool(schoolId);
         return;
       }
-
       if (segments.length >= 3 && segments[0] == 'app') {
         final type = segments[1]; // post | video | short | job | product
         final id = segments[2];
