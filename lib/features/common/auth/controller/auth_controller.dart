@@ -33,7 +33,7 @@ import 'package:BlueEra/features/common/auth/model/single_business_category_resp
 import 'package:BlueEra/features/common/auth/model/username_res_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/auth/views/screens/complete_guest_profile_screen.dart';
-import 'package:BlueEra/features/common/auth/views/screens/create_account_type_screen.dart';
+import 'package:BlueEra/features/common/auth/views/screens/create_account_type_v2_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/go_live_permission_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_bar_screen.dart';
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
@@ -335,7 +335,9 @@ class AuthController extends GetxController {
           await getGuestUserLoginData();
           // await Future.delayed(Duration(milliseconds: 350));
           // Get.offAll(() => const ChooseAccountTypeScreen());
-          Get.offAll(() => const CreateAccountTypeScreen());
+          Get.offAll(() => const CreateAccountTypeV2Screen());
+          // New PDF-based onboarding flow. Legacy screen kept as a fallback:
+          // Get.offAll(() => const CreateAccountTypeScreen());
           // Get.toNamed(RouteHelper.getCreateAccountTypeScreenRoute());
 
           // Get.offNamedUntil(
