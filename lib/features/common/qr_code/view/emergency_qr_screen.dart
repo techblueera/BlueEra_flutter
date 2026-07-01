@@ -1,6 +1,7 @@
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/personal/emergency/controller/emergency_profile_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -16,7 +17,12 @@ class EmergencyQrWidget extends StatelessWidget {
   final GlobalKey _qrKey = GlobalKey();
 
   String get _qrData => 'https://emergency.beapp.in/$userId';
-  final controller = Get.find<EmergencyProfileController>();
+  // Use getOrPut (not Get.find) so this widget is self-sufficient: it registers
+  // and lazily loads the controller if the host screen hasn't already. Guards
+  // against "controller not found" when the widget is built before/without the
+  // Discover screen's initState registration (e.g. after a hot reload or if the
+  // controller was disposed).
+  final controller = getOrPut(() => EmergencyProfileController());
 
   @override
   Widget build(BuildContext context) {

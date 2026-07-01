@@ -40,14 +40,21 @@ class DiscoverSchoolHomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx(() {
       final data = schoolAboutUsController.schoolDetailsData?.value;
+      // A real school always carries an id. When there's no id yet and a fetch
+      // is in flight (e.g. opened from a deep link / QR with only an id), show a
+      // loader instead of a page full of empty "no data" sections.
+      final hasData = (data?.id ?? '').isNotEmpty;
+      final isLoading = schoolAboutUsController.isDetailLoading.value;
 
       return Scaffold(
         backgroundColor: Colors.transparent,
         appBar: CommonBackAppBar(
           title: AppStrings.school,
         ),
-        bottomNavigationBar: _buildBottomBar(context),
-        body: SingleChildScrollView(
+        bottomNavigationBar: hasData ? _buildBottomBar(context) : null,
+        body: (!hasData && isLoading)
+            ? const Center(child: CircularProgressIndicator())
+            : SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -192,9 +199,19 @@ class _SchoolHeader extends StatelessWidget {
     final bannerUrl = data?.bannerUrl ?? '';
     final logoUrl = data?.logo ?? '';
     final name = data?.name ?? '';
-    final description = data?.aboutId?.visionAndMission ?? '';
+    // Prefer the top-level API `description`; fall back to the About section's
+    // vision & mission when the school hasn't set a short description.
+    final description = (data?.description?.trim().isNotEmpty ?? false)
+        ? data!.description!.trim()
+        : (data?.aboutId?.visionAndMission ?? '');
     final type = data?.type ?? '';
     final estYear = data?.establishmentYear;
+    final address = data?.location?.name?.trim() ?? '';
+    // Show the real rating from the API when it exists; otherwise mark as New.
+    final rating = data?.avgRating;
+    final ratingLabel = (rating != null && rating > 0)
+        ? rating.toStringAsFixed(1)
+        : AppStrings.newLabel.tr;
 
     return CommonCardWidget(
       cardMargin: 0,
@@ -282,6 +299,27 @@ class _SchoolHeader extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
+                if (address.isNotEmpty) ...[
+                  SizedBox(height: SizeConfig.size4),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.location_on,
+                          size: SizeConfig.size14,
+                          color: AppColors.primaryColor),
+                      SizedBox(width: SizeConfig.size4),
+                      Expanded(
+                        child: CustomText(
+                          address,
+                          fontSize: SizeConfig.size12,
+                          color: AppColors.secondaryTextColor,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
                 if (description.isNotEmpty) ...[
                   SizedBox(height: SizeConfig.size4),
                   CustomText(
@@ -306,7 +344,7 @@ class _SchoolHeader extends StatelessWidget {
                 _statChip(
                   icon: Icons.star_rounded,
                   iconColor: Colors.amber,
-                  label: AppStrings.newLabel.tr,
+                  label: ratingLabel,
                 ),
                 SizedBox(width: SizeConfig.paddingS),
                 if (type.isNotEmpty)

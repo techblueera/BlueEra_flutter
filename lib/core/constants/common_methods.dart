@@ -99,6 +99,13 @@ String profileDeepLink({String? userId}) => _withBdmReferral('https://beapp.in/a
 String businessProfileDeepLink({String? userId}) =>
     _withBdmReferral('https://beapp.in/app/business/${userId ?? ""}');
 
+/// Generate deep link for an Education (school) business profile. The extra
+/// `education` path segment routes the link to the Discover school home
+/// screen ([DiscoverSchoolHomeScreen]) instead of the generic business
+/// share-preview, while still carrying the owner/business id.
+String educationProfileDeepLink({String? userId}) =>
+    _withBdmReferral('https://beapp.in/app/business/education/${userId ?? ""}');
+
 /// Generate deep link for a Product item
 String productDeepLink({String? productId}) =>
     _withBdmReferral('https://beapp.in/app/product/${productId ?? ""}');
