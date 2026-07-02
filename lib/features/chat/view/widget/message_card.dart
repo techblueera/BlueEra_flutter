@@ -13,8 +13,7 @@ import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.da
 import 'package:BlueEra/features/me/medical/controller/healthcare_enquiry_controller.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_enquiry_controller.dart';
 import 'package:BlueEra/features/me/school/controller/education_enquiry_controller.dart';
-import 'package:BlueEra/features/me/vehicle/controller/vehicle_controller.dart';
-import 'package:BlueEra/features/me/vehicle/model/vehicle_booking_models.dart';
+import 'package:BlueEra/features/me/others/controller/other_enquiry_controller.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
@@ -47,7 +46,12 @@ import '../../../../widgets/common_box_shadow.dart';
 import '../../../common/food/model/get_food_details_model.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/order_controllar.dart';
-import '../business_chat/widgets/enquiry_msg_card.dart';
+import '../business_chat/widgets/hotel_enquiry_msg_card.dart';
+import '../business_chat/widgets/hotel_booking_msg_card.dart';
+import '../business_chat/widgets/education_enquiry_msg_card.dart';
+import '../business_chat/widgets/healthcare_enquiry_msg_card.dart';
+import '../business_chat/widgets/business_enquiry_msg_card.dart';
+import '../business_chat/widgets/vehicle_booking_msg_card.dart';
 import '../business_chat/widgets/food_self_pickup_msg_card.dart';
 import '../business_chat/widgets/payment_transaction_msg_card.dart';
 import '../business_chat/widgets/product_self_pickup_msg_card.dart';
@@ -332,31 +336,59 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
             message: widget.message, time: time, conversationId: widget.conversationId);
 
       case "healthcare_enquiry":
-        messageWidget = EnquiryMsgCard(
+        // Dedicated healthcare card — clinical/teal design, category
+        // ribbon, prescription-styled chips. Distinct from EnquiryMsgCard.
+        messageWidget = HealthcareEnquiryMsgCard(
           message: widget.message,
           time: time,
-          view: _buildHealthcareEnquiryView(widget.message),
         );
 
       case "hotel_enquiry":
-        messageWidget = EnquiryMsgCard(
+        // Dedicated hotel card — warm amber, cover-image banner,
+        // room/purpose icon rows.
+        messageWidget = HotelEnquiryMsgCard(
           message: widget.message,
           time: time,
-          view: _buildHotelEnquiryView(widget.message),
+        );
+
+      case "hotel_booking":
+        // Dedicated hotel-booking card — carries dates/guests + buyer
+        // cancel while pending. Same amber palette as the enquiry card
+        // above but a distinct metadata key
+        // (`metadata.hotelBooking` / `metadata.hotelBookingId`).
+        // See lib/docs/enquiry-flows-ui-integration.md §2b.
+        messageWidget = HotelBookingMsgCard(
+          message: widget.message,
+          time: time,
         );
 
       case "vehicle_booking":
-        messageWidget = EnquiryMsgCard(
+        // Dedicated vehicle card — charcoal + red automotive palette,
+        // intent ribbon (BUY / TEST_DRIVE / EXCHANGE / INFO), priceText /
+        // condition rows from the listing snapshot. Distinct from the four
+        // enquiry cards because the buyer can also **Cancel** while
+        // pending. See lib/docs/enquiry-verticals-flutter-integration.md.
+        messageWidget = VehicleBookingMsgCard(
           message: widget.message,
           time: time,
-          view: _buildVehicleBookingView(widget.message),
         );
 
       case "education_enquiry":
-        messageWidget = EnquiryMsgCard(
+        // Dedicated education card — indigo crest header, per-section
+        // bullet blocks, timeline emphasis.
+        messageWidget = EducationEnquiryMsgCard(
           message: widget.message,
           time: time,
-          view: _buildEducationEnquiryView(widget.message),
+        );
+
+      case "business_enquiry":
+        // Dedicated business/other card — navy + gold finance palette,
+        // sector ribbon (LOANS_SECTOR / INSURANCE / BANKING /
+        // CAPITAL_MARKET / DATA). Distinct from EnquiryMsgCard. See
+        // lib/docs/other-enquiry-ui-integration.md §5.
+        messageWidget = BusinessEnquiryMsgCard(
+          message: widget.message,
+          time: time,
         );
 
       case "rider_association":
@@ -2745,17 +2777,19 @@ class _ServiceMessageCardBusinessState extends State<ServiceMessageCardBusiness>
   bool _isUpdatingEnquiry = false;
 
   /// Session-wide cache of the true server-side enquiry status keyed by
-  /// enquiry id. Populated by [_hydrateEnquiryStatus] on the owner side
-  /// so re-entering the chat doesn't need to hit `GET /:id` again per
-  /// card. Kept `static` so every card instance shares the same cache
-  /// even after the chat screen is destroyed and rebuilt.
+  /// enquiry id. Written after a successful Accept/Decline PUT so
+  /// re-entering the chat replays the settled state without waiting for
+  /// Hive to catch up. Kept `static` so every card instance shares the
+  /// same cache even after the chat screen is destroyed and rebuilt.
+  /// No GET fires from the chat screen — the only enquiry API call is
+  /// the owner's Accept/Decline PUT.
   static final Map<String, String> _enquiryStatusCache = {};
-  static final Set<String> _enquiryStatusInFlight = {};
 
   String? get _persistedEnquiryStatus {
     final identity = _enquiryIdentity;
     // Prefer the local latch (survives across app restarts through Hive),
-    // fall back to the session cache populated by the source-of-truth GET.
+    // fall back to the session cache populated by [_respondToEnquiry]
+    // after a successful Accept/Decline PUT.
     final local = widget.message.metadata?.enquiryStatus;
     final t = (local ?? _enquiryStatusCache[identity.id] ?? '')
         .trim()
@@ -2763,94 +2797,31 @@ class _ServiceMessageCardBusinessState extends State<ServiceMessageCardBusiness>
     return (t == 'accepted' || t == 'declined') ? t : null;
   }
 
-  /// Kick off a background `GET /:id` so the card renders the true
-  /// server-side status. Runs on **both** buyer and owner sides — the
-  /// buyer needs it too, otherwise their card never reflects the owner's
-  /// Accept / Decline (the `service` + `enquiry_only` fabrication has no
-  /// wire-level status field, and `hotelEnquiryStatusUpdated` etc. keyed
-  /// on `messageId` don't fire for this path). Cached per session by
-  /// enquiry id so it fires once per unique card.
-  Future<void> _hydrateEnquiryStatus() async {
-    final identity = _enquiryIdentity;
-    if (identity.id.isEmpty) return;
-    if (_enquiryStatusCache.containsKey(identity.id)) return;
-    if (_enquiryStatusInFlight.contains(identity.id)) return;
-    _enquiryStatusInFlight.add(identity.id);
-    String? status;
-    try {
-      switch (identity.kind) {
-        case 'hotel':
-          final ctrl = getOrPut(() => HotelEnquiryController());
-          status = await ctrl.fetchHotelEnquiryStatus(identity.id);
-          break;
-        case 'education':
-          final ctrl = getOrPut(() => EducationEnquiryController());
-          status = await ctrl.fetchEducationEnquiryStatus(identity.id);
-          break;
-        case 'healthcare':
-          final ctrl = getOrPut(() => HealthcareEnquiryController());
-          status = await ctrl.fetchHealthcareEnquiryStatus(
-            enquiryId: identity.id,
-            category: identity.category,
-          );
-          break;
-      }
-    } finally {
-      _enquiryStatusInFlight.remove(identity.id);
-    }
-    if (status == null || status.isEmpty) return;
-    _enquiryStatusCache[identity.id] = status;
-    // Also patch the message + Hive so the state is durable across
-    // app restarts, not just this session's cache.
-    widget.message.metadata ??= MessageMetadata();
-    widget.message.metadata!.enquiryStatus = status;
-    final convId = widget.conversationId;
-    if (convId.isNotEmpty) {
-      final list = chatViewController.getListOfMessageData;
-      if (list != null) {
-        unawaited(chatViewController.localStorageHelper
-            .saveMessagesByConversationId(convId, list));
-      }
-    }
-    if (mounted) setState(() {});
-  }
-
-  // var kmAway;
-
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     serviceData = widget.serviceData;
-    // Owner-side enquiry cards: hydrate the true status from the
-    // enquiry backend so the settled state persists across chat
-    // re-opens / app restarts / fresh installs (the chat wire itself
-    // has no status field on the `service` + `enquiry_only` path).
-    // Scheduled post-frame so the first paint is fast; the fetch fills
-    // in the settled band on the second frame.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _hydrateEnquiryStatus();
-    });
   }
 
-  /// Reads the enquiry id + type shipped by the four sheets under the
+  /// Reads the enquiry id + type shipped by the sheets under the
   /// `service` + `enquiry_only` fabrication path.
   ///
   /// Primary channel is `metadata.variant`, which the sheets pack as:
   ///   * hotel:      `hotel|<enquiryId>`
   ///   * education:  `edu|<enquiryId>`
   ///   * healthcare: `hc|<category>|<enquiryId>`
+  ///   * other:      `other|<enquiryId>`
   /// (See `_buildShareParams` in each sheet — the top-level
   /// `hotel_enquiry_id` / `education_enquiry_id` / `healthcare_enquiry_id`
-  /// fields get filtered by the chat metadata builder, so we smuggle
-  /// through a whitelisted string field instead.)
+  /// / `business_enquiry_id` fields get filtered by the chat metadata
+  /// builder, so we smuggle through a whitelisted string field instead.)
   ///
   /// The fallback path reads the typed `metadata.hotelEnquiryId` etc.
   /// so if the backend metadata builder is ever widened to include
   /// these fields, the card picks them up automatically.
   ///
   /// Returns `(kind, id, category)` where
-  /// `kind` ∈ 'hotel' | 'education' | 'healthcare' | ''.
+  /// `kind` ∈ 'hotel' | 'education' | 'healthcare' | 'other' | ''.
   ({String kind, String id, String category}) get _enquiryIdentity {
     final md = widget.message.metadata;
     final variant = (md?.variant ?? '').trim();
@@ -2868,6 +2839,9 @@ class _ServiceMessageCardBusinessState extends State<ServiceMessageCardBusiness>
           final cat = parts[1] == '-' ? '' : parts[1];
           return (kind: 'healthcare', id: parts[2], category: cat);
         }
+        if (head == 'other' && parts[1].isNotEmpty) {
+          return (kind: 'other', id: parts[1], category: '');
+        }
       }
     }
     final hotel = (md?.hotelEnquiryId ?? '').trim();
@@ -2882,6 +2856,8 @@ class _ServiceMessageCardBusinessState extends State<ServiceMessageCardBusiness>
         category: md?.category ?? '',
       );
     }
+    final other = (md?.businessEnquiryId ?? '').trim();
+    if (other.isNotEmpty) return (kind: 'other', id: other, category: '');
     return (kind: '', id: '', category: '');
   }
 
@@ -2910,6 +2886,13 @@ class _ServiceMessageCardBusinessState extends State<ServiceMessageCardBusiness>
         ok = await ctrl.updateHealthcareEnquiryStatus(
           enquiryId: identity.id,
           category: identity.category,
+          status: status,
+        );
+        break;
+      case 'other':
+        final ctrl = getOrPut(() => OtherEnquiryController());
+        ok = await ctrl.updateOtherEnquiryStatus(
+          enquiryId: identity.id,
           status: status,
         );
         break;
@@ -3264,135 +3247,8 @@ void orderNow(BuildContext context, String businessId, Messages message) {
   OrderCommonWidget.showEnterOrderValueDialog(context, businessId, message);
 }
 
-// ─── Enquiry-card adapters ─────────────────────────────────────────────
-// One [EnquiryCardView] builder per supported enquiry/booking message_type.
-// Each pulls the typed metadata, normalises it into the generic view that
-// [EnquiryMsgCard] consumes, and wires the Accept/Decline (and Cancel for
-// vehicle) callbacks to the right controller. See
-// lib/docs/enquiry-flows-ui-integration.md.
-
-EnquiryCardView _buildHealthcareEnquiryView(Messages msg) {
-  final e = msg.metadata?.healthcareEnquiry;
-  final controller = getOrPut(() => HealthcareEnquiryController());
-  return EnquiryCardView(
-    enquiryId: e?.enquiryId ?? msg.metadata?.healthcareEnquiryId,
-    status: (e?.status ?? 'pending'),
-    title: AppStrings.healthcareEnquiry.tr,
-    headerIcon: Icons.medical_services_outlined,
-    listingName: (e?.listingName ?? '').trim(),
-    listingImage: (e?.listingImage ?? '').trim(),
-    location: (e?.location ?? '').trim(),
-    priceText: '',
-    selections: e?.selections ?? const <String, List<String>>{},
-    photos: e?.photos ?? const <String>[],
-    note: e?.note ?? '',
-    canBuyerCancel: false,
-    onUpdate: (enquiryId, status) => controller.updateHealthcareEnquiryStatus(
-      enquiryId: enquiryId,
-      category: e?.category ?? '',
-      status: status,
-    ),
-    applyStatusInPlace: (status) {
-      msg.metadata?.healthcareEnquiry?.status = status;
-    },
-  );
-}
-
-EnquiryCardView _buildHotelEnquiryView(Messages msg) {
-  final e = msg.metadata?.hotelEnquiry;
-  final controller = getOrPut(() => HotelEnquiryController());
-  return EnquiryCardView(
-    enquiryId: e?.enquiryId ?? msg.metadata?.hotelEnquiryId,
-    status: (e?.status ?? 'pending'),
-    title: AppStrings.hotelEnquiryTitle.tr,
-    headerIcon: Icons.hotel_rounded,
-    listingName: (e?.listingName ?? '').trim(),
-    listingImage: (e?.listingImage ?? '').trim(),
-    location: (e?.location ?? '').trim(),
-    priceText: (e?.priceText ?? '').trim(),
-    selections: e?.selections ?? const <String, List<String>>{},
-    photos: e?.photos ?? const <String>[],
-    note: e?.note ?? '',
-    canBuyerCancel: false, // hotel-enquiry doesn't support cancel
-    onUpdate: (enquiryId, status) => controller.updateHotelEnquiryStatus(
-      enquiryId: enquiryId,
-      status: status,
-    ),
-    applyStatusInPlace: (status) {
-      msg.metadata?.hotelEnquiry?.status = status;
-    },
-  );
-}
-
-EnquiryCardView _buildEducationEnquiryView(Messages msg) {
-  final e = msg.metadata?.educationEnquiry;
-  final controller = getOrPut(() => EducationEnquiryController());
-  return EnquiryCardView(
-    enquiryId: e?.enquiryId ?? msg.metadata?.educationEnquiryId,
-    status: (e?.status ?? 'pending'),
-    title: AppStrings.educationEnquiryTitle.tr,
-    headerIcon: Icons.school_rounded,
-    listingName: (e?.listingName ?? '').trim(),
-    listingImage: (e?.listingImage ?? '').trim(),
-    location: (e?.location ?? '').trim(),
-    priceText: '',
-    selections: e?.selections ?? const <String, List<String>>{},
-    photos: e?.photos ?? const <String>[],
-    note: e?.note ?? '',
-    canBuyerCancel: false,
-    onUpdate: (enquiryId, status) => controller.updateEducationEnquiryStatus(
-      enquiryId: enquiryId,
-      status: status,
-    ),
-    applyStatusInPlace: (status) {
-      msg.metadata?.educationEnquiry?.status = status;
-    },
-  );
-}
-
-EnquiryCardView _buildVehicleBookingView(Messages msg) {
-  final b = msg.metadata?.booking;
-  final snap = b?.snapshot;
-  final controller = getOrPut(() => VehicleController(), permanent: true);
-  // Vehicle's intent / offerPrice are first-class fields, not a generic
-  // selections map. Promote them into selections so the generic card
-  // renders them as labeled rows — same row layout, no special case.
-  final selections = <String, List<String>>{};
-  selections['Intent'] = [b?.intent.label ?? ''];
-  if (b?.offerPrice != null) {
-    selections['Offer'] = ['₹${b!.offerPrice!.toStringAsFixed(0)}'];
-  }
-  if ((snap?.condition ?? '').isNotEmpty) {
-    selections['Condition'] = [snap!.condition!];
-  }
-
-  return EnquiryCardView(
-    enquiryId: b?.id ?? msg.metadata?.vehicleBookingId,
-    status: b?.status.wire ?? 'pending',
-    title: AppStrings.vehicleBookingTitle.tr,
-    headerIcon: Icons.directions_car_filled_outlined,
-    listingName: (snap?.title ?? '').trim(),
-    listingImage: (snap?.image ?? '').trim(),
-    location: (snap?.location ?? '').trim(),
-    priceText: (snap?.priceText ?? '').trim(),
-    selections: selections,
-    photos: b?.photos ?? const <String>[],
-    note: b?.note ?? '',
-    canBuyerCancel: true, // §1: buyer can cancel while pending
-    onUpdate: (bookingId, status) {
-      // Buyer 'cancelled' → /cancel endpoint; owner 'accepted/declined' →
-      // /status endpoint via [respondToBooking]. See
-      // lib/docs/enquiry-flows-ui-integration.md §1.
-      if (status == 'cancelled') {
-        return controller.cancelBooking(bookingId);
-      }
-      return controller.respondToBooking(
-        id: bookingId,
-        accept: status == 'accepted',
-      );
-    },
-    applyStatusInPlace: (status) {
-      msg.metadata?.booking?.status = VehicleBookingStatusWire.parse(status);
-    },
-  );
-}
+// Vehicle-booking rendering used to live here as an [EnquiryCardView]
+// adapter fed into the generic [EnquiryMsgCard]. It now has its own
+// dedicated widget ([VehicleBookingMsgCard]) alongside the four enquiry
+// cards — see lib/docs/enquiry-verticals-flutter-integration.md and the
+// switch case above.

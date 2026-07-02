@@ -2366,6 +2366,23 @@ class AppNotificationHandler {
       case 'selfpickup_order_ready':
       case 'homemade_food_pickup_order':
       case 'homemade_food_pickup_order_ready':
+      // Enquiry-card pushes — new card + status change, per
+      // lib/docs/enquiry-verticals-flutter-integration.md §"Push operations".
+      // All five verticals land on the customer↔owner business chat, so the
+      // routing matches the pickup-order pattern above. Vehicle is a booking
+      // (buyer can also cancel) but the push routing is identical.
+      case 'business_enquiry':
+      case 'business_enquiry_status':
+      case 'healthcare_enquiry':
+      case 'healthcare_enquiry_status':
+      case 'hotel_enquiry':
+      case 'hotel_enquiry_status':
+      case 'hotel_booking':
+      case 'hotel_booking_status':
+      case 'education_enquiry':
+      case 'education_enquiry_status':
+      case 'vehicle_booking':
+      case 'vehicle_booking_status':
         if (data['senderId'] != null) {
           _openChatWithUser(data['senderId']!);
         }

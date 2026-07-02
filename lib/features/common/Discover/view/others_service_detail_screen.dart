@@ -1,15 +1,20 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
 import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
+import 'package:BlueEra/features/me/others/widget/business_enquiry_sheet.dart';
 import 'package:BlueEra/features/me/product/controller/inventory_controller.dart';
 import 'package:BlueEra/features/me/product/controller/product_selfpickup_controller.dart';
 import 'package:BlueEra/features/me/product/view/admin/widget/product_inventory_bottom_sheet.dart';
@@ -19,6 +24,7 @@ import 'package:BlueEra/features/me/product/view/customer/visit_product_products
 import 'package:BlueEra/features/me/product/view/customer/widget/product_self_pickup_cart.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -91,10 +97,81 @@ class _OthersServiceDetailScreenState extends State<OthersServiceDetailScreen> {
     }
   }
 
+  /// Open the "other" business enquiry sheet. [details] is the loaded
+  /// [BusinessProfileDetails] snapshot; its `categoryOfBusiness` picks
+  /// the default group catalog (LOANS_SECTOR / INSURANCE / BANKING /
+  /// CAPITAL_MARKET / DATA — see `BusinessEnquirySheet._defaultGroups`).
+  /// `listingId` must be the BusinessProfile._id (`details.id`) per the
+  /// doc — not the owner's user id.
+  void _openEnquirySheet(BusinessProfileDetails details) {
+    final listingId = (details.id ?? '').trim();
+    final ownerId =
+        (details.userId ?? widget.visitUserId).trim();
+    if (listingId.isEmpty || ownerId.isEmpty) return;
+    BusinessEnquirySheet.open(
+      context,
+      category: (details.categoryOfBusiness ?? '').trim(),
+      listing: BusinessEnquiryListing(
+        listingId: listingId,
+        ownerId: ownerId,
+        ownerName: (details.businessName ?? '').trim(),
+        listingName: (details.businessName ?? '').trim(),
+        listingImage: details.logo,
+        location: details.address,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(),
+      bottomNavigationBar: Obx(() {
+        // Subscribe to profile refreshes so the bar appears as soon as
+        // the details load.
+        viewBusinessDetailsController.profileVersion.value;
+        final details =
+            viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
+        // Hide until the profile is loaded; also hide for the owner
+        // viewing their own listing (matches the finance-detail pattern).
+        if (details == null || details.userId == userId) {
+          return const SizedBox.shrink();
+        }
+        return SafeArea(
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: SizeConfig.paddingS,
+              right: SizeConfig.paddingS,
+              bottom: 15,
+              top: 10,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: PositiveCustomBtn(
+                    onTap: () {
+                      final chatViewController =
+                          getOrPut(() => ChatViewController());
+                      chatViewController.checkChatConnectionAndOpenChat(
+                        userId: details.userId ?? widget.visitUserId,
+                        route: AppConstants.route_discover,
+                      );
+                    },
+                    title: AppStrings.chat,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: PositiveCustomBtn(
+                    onTap: () => _openEnquirySheet(details),
+                    title: AppStrings.bookInquiry,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      }),
       body: Stack(
         fit: StackFit.expand,
         children: [

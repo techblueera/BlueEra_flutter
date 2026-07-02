@@ -1,30 +1,30 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/controller/hmf_cart_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/hmf_consumer_controller.dart';
+import 'package:BlueEra/features/common/Discover/model/consumer_tiffin_response_model.dart';
 import 'package:BlueEra/features/common/Discover/view/hmf_cart_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/hmf_store_details_discover_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_dashboard_view.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/hmf_profile_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/me/grocery/widget/discount_badge.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_or_cooking_method.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/earn_service_dashboard_view.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/view/hmf_profile_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/food_item_model.dart';
-import 'package:BlueEra/features/common/Discover/model/consumer_tiffin_response_model.dart';
+import 'package:BlueEra/widgets/blinking_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/floating_cart_widget.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
-import 'package:BlueEra/widgets/blinking_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -85,8 +85,7 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
 
   bool _onScrollNotification(ScrollNotification notification) {
     if (notification is ScrollUpdateNotification &&
-        notification.metrics.pixels >=
-            notification.metrics.maxScrollExtent - 200) {
+        notification.metrics.pixels >= notification.metrics.maxScrollExtent - 200) {
       if (controller.selectedCategoryIndex.value == 0) {
         controller.onTiffinScrollEnd();
       } else {
@@ -115,8 +114,7 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.remove_shopping_cart_rounded,
-                  color: _primary, size: 56),
+              const Icon(Icons.remove_shopping_cart_rounded, color: _primary, size: 56),
               const SizedBox(height: 16),
               CustomText(
                 AppStrings.leaveWithoutOrdering.tr,
@@ -146,8 +144,7 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(color: AppColors.greyE5),
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       child: CustomText(AppStrings.leaveLabel.tr,
                           color: AppColors.secondaryTextColor,
@@ -166,13 +163,10 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _primary,
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       child: CustomText(AppStrings.viewCart.tr,
-                          color: AppColors.white,
-                          fontSize: SizeConfig.small,
-                          fontWeight: FontWeight.w800),
+                          color: AppColors.white, fontSize: SizeConfig.small, fontWeight: FontWeight.w800),
                     ),
                   ),
                 ],
@@ -200,16 +194,57 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
           statusBarBrightness: Brightness.dark,
         ),
         child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Stack(
-          children: [
-            NestedScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              headerSliverBuilder: (context, innerBoxIsScrolled) => [
-                SliverToBoxAdapter(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
+          backgroundColor: Colors.transparent,
+          body: Stack(
+            children: [
+              NestedScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                  SliverToBoxAdapter(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            AppColors.blue5CAF.withValues(alpha: 0.1),
+                            AppColors.blue5CAF.withValues(alpha: 0.8),
+                          ],
+                        ),
+                      ),
+                      child: BannerCarousel(
+                        images: _bannerImages,
+                        onBack: _handleBack,
+                        statusBarHeight: statusBarHeight,
+                        backgroundColor: Colors.transparent,
+                        bottomBorderSide: const BorderSide(
+                          color: AppColors.white,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SliverPersistentHeader(
+                    pinned: true,
+                    delegate: StickyCategoryHeaderDelegate(
+                      topPadding: statusBarHeight,
+                      singleLineLabel: true,
+                      categories: _categories
+                          .map((c) => StickyCategory(
+                                id: c.name,
+                                name: c.labelKey.tr,
+                                imageUrl: c.icon,
+                              ))
+                          .toList(),
+                      selectedId: _categories[controller.selectedCategoryIndex.value].name,
+                      onCategoryTap: (item) {
+                        final idx = _categories.indexWhere((c) => c.name == item.id);
+                        if (idx >= 0) controller.onCategoryChanged(idx);
+                        setState(() {});
+                      },
+                      onBack: _handleBack,
+                      expandedLabelColor: AppColors.white,
+                      backgroundGradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
@@ -218,77 +253,38 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
                         ],
                       ),
                     ),
-                    child: BannerCarousel(
-                      images: _bannerImages,
-                      onBack: _handleBack,
-                      statusBarHeight: statusBarHeight,
-                      backgroundColor: Colors.transparent,
-                      bottomBorderSide: const BorderSide(
-                        color: AppColors.white,
-                        width: 2,
-                      ),
-                    ),
                   ),
+                ],
+                body: NotificationListener<ScrollNotification>(
+                  onNotification: _onScrollNotification,
+                  child: _buildContent(),
                 ),
-                SliverPersistentHeader(
-                  pinned: true,
-                  delegate: StickyCategoryHeaderDelegate(
-                    topPadding: statusBarHeight,
-                    singleLineLabel: true,
-                    categories: _categories.map((c) => StickyCategory(
-                      id: c.name,
-                      name: c.labelKey.tr,
-                      imageUrl: c.icon,
-                    )).toList(),
-                    selectedId: _categories[controller.selectedCategoryIndex.value].name,
-                    onCategoryTap: (item) {
-                      final idx = _categories.indexWhere((c) => c.name == item.id);
-                      if (idx >= 0) controller.onCategoryChanged(idx);
-                      setState(() {});
-                    },
-                    onBack: _handleBack,
-                    expandedLabelColor: AppColors.white,
-                    backgroundGradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        AppColors.blue5CAF.withValues(alpha: 0.1),
-                        AppColors.blue5CAF.withValues(alpha: 0.8),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-              body: NotificationListener<ScrollNotification>(
-                onNotification: _onScrollNotification,
-                child: _buildContent(),
               ),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: SafeArea(child: _buildCartBar()),
-            ),
-            if (isIndividualUser())
               Positioned(
-                right: 16,
+                left: 0,
+                right: 0,
                 bottom: 0,
-                child: SafeArea(
-                  child: Obx(() {
-                    final cartVisible = !cartController.isEmpty;
-                    return AnimatedPadding(
-                      duration: const Duration(milliseconds: 220),
-                      curve: Curves.easeOut,
-                      padding: EdgeInsets.only(bottom: cartVisible ? 84 : 16),
-                      child: BlinkingWidget(child: _buildPostFab()),
-                    );
-                  }),
-                ),
+                child: SafeArea(child: _buildCartBar()),
               ),
-          ],
+              if (isIndividualUser())
+                Positioned(
+                  right: 16,
+                  bottom: 0,
+                  child: SafeArea(
+                    child: Obx(() {
+                      final cartVisible = !cartController.isEmpty;
+                      return AnimatedPadding(
+                        duration: const Duration(milliseconds: 220),
+                        curve: Curves.easeOut,
+                        padding: EdgeInsets.only(bottom: cartVisible ? 84 : 16),
+                        child: BlinkingWidget(child: _buildPostFab()),
+                      );
+                    }),
+                  ),
+                ),
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
@@ -345,8 +341,7 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
   // ── Post FAB ──
   void _onPostTap() {
     if (isGuestUser() || isBusinessUser()) return;
-    final viewProfileController =
-        getOrPut(() => ViewPersonalDetailsController());
+    final viewProfileController = getOrPut(() => ViewPersonalDetailsController());
     if (viewProfileController.earnProfileType.contains('homeMadeFood')) {
       Get.to(() => const EarnServiceDashboardView(earnType: 'homeMadeFood'));
     } else {
@@ -381,8 +376,7 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.add_business_rounded,
-                  color: Colors.white, size: 18),
+              const Icon(Icons.add_business_rounded, color: Colors.white, size: 18),
               const SizedBox(width: 8),
               CustomText(
                 'Add Food',
@@ -411,8 +405,7 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
             verticalMargin: 0,
             unSelectedBackgroundColor: AppColors.white,
             unSelectedBorderColor: AppColors.greyE5,
-            onTabSelected: (index, _) =>
-                controller.onTiffinFilterChanged(index),
+            onTabSelected: (index, _) => controller.onTiffinFilterChanged(index),
           )),
     );
   }
@@ -570,8 +563,7 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
     double? lat,
     double? lng,
   }) {
-    final hasTime =
-        (startTime?.isNotEmpty ?? false) && (endTime?.isNotEmpty ?? false);
+    final hasTime = (startTime?.isNotEmpty ?? false) && (endTime?.isNotEmpty ?? false);
     final showDiscount = discount.isNotEmpty && !discount.startsWith('0');
 
     return _foodCardShell(
@@ -583,88 +575,87 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
           Padding(
             padding: const EdgeInsets.all(12),
             child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _foodImage(imageUrl, foodType),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CustomText(
-                      name,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      color: AppColors.mainTextColor,
-                    ),
-                    if (address.isNotEmpty) ...[
-                      const SizedBox(height: 3),
-                      Row(
-                        children: [
-                          Icon(Icons.location_on_rounded,
-                              size: 12, color: AppColors.greyAF),
-                          const SizedBox(width: 2),
-                          Expanded(
-                            child: CustomText(
-                              address,
-                              fontSize: 11.5,
-                              color: AppColors.secondaryTextColor,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _foodImage(imageUrl, foodType),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        name,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        color: AppColors.mainTextColor,
                       ),
-                    ],
-                    if (cookingMethod.isNotEmpty || hasTime) ...[
+                      if (address.isNotEmpty) ...[
+                        const SizedBox(height: 3),
+                        Row(
+                          children: [
+                            Icon(Icons.location_on_rounded, size: 12, color: AppColors.greyAF),
+                            const SizedBox(width: 2),
+                            Expanded(
+                              child: CustomText(
+                                address,
+                                fontSize: 11.5,
+                                color: AppColors.secondaryTextColor,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                      if (cookingMethod.isNotEmpty || hasTime) ...[
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 4,
+                          children: [
+                            if (cookingMethod.isNotEmpty)
+                              FoodTypeOrCookingMethod(
+                                label: cookingMethod,
+                                icon: AppIconAssets.boiled,
+                              ),
+                            if (hasTime)
+                              FoodTypeOrCookingMethod(
+                                label: '$startTime - $endTime',
+                                icon: AppIconAssets.storeWatch,
+                              ),
+                          ],
+                        ),
+                      ],
                       const SizedBox(height: 8),
                       Wrap(
+                        crossAxisAlignment: WrapCrossAlignment.center,
                         spacing: 6,
                         runSpacing: 4,
                         children: [
-                          if (cookingMethod.isNotEmpty)
-                            FoodTypeOrCookingMethod(
-                              label: cookingMethod,
-                              icon: AppIconAssets.boiled,
+                          CustomText(
+                            '${AppConstants.rupeeSymbol}$sellingPrice',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.mainTextColor,
+                          ),
+                          if (mrpPrice.isNotEmpty)
+                            CustomText(
+                              '${AppConstants.rupeeSymbol}$mrpPrice',
+                              fontSize: 11.5,
+                              color: AppColors.secondaryTextColor,
+                              decoration: TextDecoration.lineThrough,
+                              decorationColor: AppColors.secondaryTextColor,
                             ),
-                          if (hasTime)
-                            FoodTypeOrCookingMethod(
-                              label: '$startTime - $endTime',
-                              icon: AppIconAssets.storeWatch,
-                            ),
+                          if (showDiscount) DiscountBadge(discountText: discount),
                         ],
                       ),
                     ],
-                    const SizedBox(height: 8),
-                    Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: 6,
-                      runSpacing: 4,
-                      children: [
-                        CustomText(
-                          '${AppConstants.rupeeSymbol}$sellingPrice',
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.mainTextColor,
-                        ),
-                        if (mrpPrice.isNotEmpty)
-                          CustomText(
-                            '${AppConstants.rupeeSymbol}$mrpPrice',
-                            fontSize: 11.5,
-                            color: AppColors.secondaryTextColor,
-                            decoration: TextDecoration.lineThrough,
-                            decorationColor: AppColors.secondaryTextColor,
-                          ),
-                        if (showDiscount) DiscountBadge(discountText: discount),
-                      ],
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
           ),
           // ── Footer band (lighter grey, full width) ──
           Container(
@@ -672,12 +663,10 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
             decoration: BoxDecoration(
               color: const Color(0xFFF5F6F8),
               border: Border(
-                top: BorderSide(
-                    color: AppColors.greyE5.withValues(alpha: 0.8)),
+                top: BorderSide(color: AppColors.greyE5.withValues(alpha: 0.8)),
               ),
             ),
-            padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             child: _cardFooter(
               onTap: onTap,
               storeName: storeName,
@@ -722,8 +711,8 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
             ],
           ),
         ),
-        const SizedBox(width: 8),
-        _chatButton(onTap),
+        // const SizedBox(width: 8),
+        // _chatButton(onTap),
         const SizedBox(width: 8),
         _viewProfileButton(onTap),
       ],
@@ -735,8 +724,7 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
   Widget _distanceLine(double? lat, double? lng) {
     final hasLoc = lat != null && lng != null && !(lat == 0.0 && lng == 0.0);
     if (!hasLoc) return const SizedBox.shrink();
-    final km = calculateDistanceKm(
-        LocationService.lat, LocationService.lng, lat, lng);
+    final km = calculateDistanceKm(LocationService.lat, LocationService.lng, lat, lng);
     return Row(
       children: [
         const Icon(Icons.location_on_rounded, size: 13, color: _primary),
@@ -823,8 +811,7 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
                 ? CachedNetworkImage(
                     imageUrl: imageUrl,
                     fit: BoxFit.cover,
-                    placeholder: (_, __) => Container(
-                        color: AppColors.greyE5.withValues(alpha: 0.5)),
+                    placeholder: (_, __) => Container(color: AppColors.greyE5.withValues(alpha: 0.5)),
                     errorWidget: (_, __, ___) => _placeholderIcon(),
                   )
                 : _placeholderIcon(),
@@ -902,8 +889,7 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
         child: CachedNetworkImage(
           imageUrl: logoUrl,
           fit: BoxFit.cover,
-          placeholder: (_, __) =>
-              Container(color: _primary.withValues(alpha: 0.10)),
+          placeholder: (_, __) => Container(color: _primary.withValues(alpha: 0.10)),
           errorWidget: (_, __, ___) => badge(),
         ),
       ),
@@ -919,15 +905,12 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
           colors: [Color(0xFFFFF3E0), Color(0xFFFFE0B2)],
         ),
       ),
-      child: Icon(Icons.restaurant_rounded,
-          size: 32, color: Colors.orange.shade300),
+      child: Icon(Icons.restaurant_rounded, size: 32, color: Colors.orange.shade300),
     );
   }
 
   Color _vegColor(String foodType) =>
-      foodType.toLowerCase().contains('non')
-          ? const Color(0xFFC0341D)
-          : const Color(0xFF1E7D34);
+      foodType.toLowerCase().contains('non') ? const Color(0xFFC0341D) : const Color(0xFF1E7D34);
 
   /// Bare FSSAI-style square marker (border + centered dot).
   Widget _vegMarker(Color color, {double size = 14}) {
@@ -947,7 +930,6 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
       ),
     );
   }
-
 }
 
 class _FoodCategory {

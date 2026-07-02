@@ -155,8 +155,7 @@ class VehicleDiscoverCard extends StatelessWidget {
               top: 12,
               left: 12,
               child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.55),
                   borderRadius: BorderRadius.circular(20),
@@ -164,8 +163,7 @@ class VehicleDiscoverCard extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.verified_rounded,
-                        size: 14, color: Colors.white),
+                    const Icon(Icons.verified_rounded, size: 14, color: Colors.white),
                     const SizedBox(width: 4),
                     CustomText(
                       AppStrings.verified.tr,
@@ -191,7 +189,7 @@ class VehicleDiscoverCard extends StatelessWidget {
                 _circleAction(AppIconAssets.share_bold, onShare),
                 const SizedBox(height: 10),
                 _circleAction(
-               AppIconAssets.star_rounded,
+                  AppIconAssets.star_rounded,
                   onFavorite,
                 ),
               ],
@@ -214,7 +212,10 @@ class VehicleDiscoverCard extends StatelessWidget {
         ),
         child: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: LocalAssets(imagePath: icon,imgColor: AppColors.white,),
+          child: LocalAssets(
+            imagePath: icon,
+            imgColor: AppColors.white,
+          ),
         ),
         // child: Icon(icon, size: 19, color: Colors.white),
       ),
@@ -265,8 +266,7 @@ class VehicleDiscoverCard extends StatelessWidget {
             value: _OwnerAction.delete,
             child: Row(
               children: [
-                Icon(Icons.delete_outline_rounded,
-                    size: 18, color: Colors.red.shade400),
+                Icon(Icons.delete_outline_rounded, size: 18, color: Colors.red.shade400),
                 SizedBox(width: SizeConfig.size10),
                 CustomText(
                   AppStrings.delete.tr,
@@ -299,7 +299,7 @@ class VehicleDiscoverCard extends StatelessWidget {
     }
     if ((vehicle.mileage ?? '').trim().isNotEmpty) {
       out.add(_Spec(
-        icon:"assets/svg/kmroad.svg",
+        icon: "assets/svg/kmroad.svg",
         label: _mileageLabel(vehicle.mileage!.trim()),
       ));
     }
@@ -326,8 +326,7 @@ class VehicleDiscoverCard extends StatelessWidget {
   }
 
   // ─── Price split ───────────────────────────────────────────────────
-  bool get _hasPriceRow =>
-      vehicle.exShowroomPrice != null || vehicle.onRoadPrice != null;
+  bool get _hasPriceRow => vehicle.exShowroomPrice != null || vehicle.onRoadPrice != null;
 
   Widget _buildPriceRow() {
     return Container(
@@ -388,8 +387,7 @@ class VehicleDiscoverCard extends StatelessWidget {
 
   // ─── EMI strip ─────────────────────────────────────────────────────
   bool get _hasEmi =>
-      (vehicle.emiAvailable ?? false) &&
-      (vehicle.downPayment != null || vehicle.monthlyEmi != null);
+      (vehicle.emiAvailable ?? false) && (vehicle.downPayment != null || vehicle.monthlyEmi != null);
 
   Widget _buildEmiStrip() {
     return Container(
@@ -400,8 +398,7 @@ class VehicleDiscoverCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Row(
         children: [
-          Icon(Icons.account_balance_wallet_outlined,
-              size: 16, color: AppColors.mainTextColor),
+          Icon(Icons.account_balance_wallet_outlined, size: 16, color: AppColors.mainTextColor),
           const SizedBox(width: 6),
           CustomText(
             '${AppStrings.emiLabel2.tr} :',
@@ -415,19 +412,14 @@ class VehicleDiscoverCard extends StatelessWidget {
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 if (vehicle.downPayment != null)
-                  _emiPair(AppStrings.downPaymentLabel.tr,
-                      _price(vehicle.downPayment!)),
+                  _emiPair(AppStrings.downPaymentLabel.tr, _price(vehicle.downPayment!)),
                 if (vehicle.downPayment != null && vehicle.monthlyEmi != null)
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 6),
                     child: CustomText('|',
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: const Color(0xFFC4CBD4)),
+                        fontSize: 13, fontWeight: FontWeight.w500, color: const Color(0xFFC4CBD4)),
                   ),
-                if (vehicle.monthlyEmi != null)
-                  _emiPair(
-                      AppStrings.monthly.tr, _price(vehicle.monthlyEmi!)),
+                if (vehicle.monthlyEmi != null) _emiPair(AppStrings.monthly.tr, _price(vehicle.monthlyEmi!)),
               ],
             ),
           ),
@@ -465,10 +457,10 @@ class VehicleDiscoverCard extends StatelessWidget {
   Widget _buildActions() {
     return Row(
       children: [
-        Expanded(
-          child: _chatButton(),
-        ),
-        const SizedBox(width: 12),
+        // Expanded(
+        //   child: _chatButton(),
+        // ),
+        // const SizedBox(width: 12),
         Expanded(
           flex: 2,
           child: GestureDetector(
@@ -490,8 +482,7 @@ class VehicleDiscoverCard extends StatelessWidget {
                     color: Colors.white,
                   ),
                   const SizedBox(width: 8),
-                  const Icon(Icons.arrow_forward_rounded,
-                      size: 18, color: Colors.white),
+                  const Icon(Icons.arrow_forward_rounded, size: 18, color: Colors.white),
                 ],
               ),
             ),
@@ -500,6 +491,7 @@ class VehicleDiscoverCard extends StatelessWidget {
       ],
     );
   }
+
   Widget _chatButton() {
     return Material(
       color: Colors.white,
@@ -520,7 +512,6 @@ class VehicleDiscoverCard extends StatelessWidget {
               const SizedBox(width: 6),
               CustomText(
                 AppStrings.chat,
-
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: AppColors.primaryColor,
@@ -531,7 +522,6 @@ class VehicleDiscoverCard extends StatelessWidget {
       ),
     );
   }
-
 
   void _openChat() {
     final userId = vehicle.userId ?? '';
@@ -555,9 +545,9 @@ class VehicleDiscoverCard extends StatelessWidget {
       route: AppConstants.route_discover,
     );
   }
+
   // ─── Helpers ───────────────────────────────────────────────────────
-  String? get _firstImage =>
-      vehicle.images.isNotEmpty ? vehicle.images.first : null;
+  String? get _firstImage => vehicle.images.isNotEmpty ? vehicle.images.first : null;
 
   String _price(double v) {
     final cur = (vehicle.currency ?? 'INR').toUpperCase();
@@ -581,9 +571,7 @@ class VehicleDiscoverCard extends StatelessWidget {
   /// Drops a trailing ".0" so 5.0 → "5" while 4.22 stays "4.22".
   String _trim(double v) {
     final s = v.toStringAsFixed(2);
-    return s
-        .replaceAll(RegExp(r'0+$'), '')
-        .replaceAll(RegExp(r'\.$'), '');
+    return s.replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
   }
 
   String _humanFuel(VehicleFuelType f) {
@@ -622,7 +610,9 @@ class _SpecTile extends StatelessWidget {
       ),
       child: Column(
         children: [
-          LocalAssets(imagePath: spec.icon,),
+          LocalAssets(
+            imagePath: spec.icon,
+          ),
           SizedBox(height: SizeConfig.size8),
           CustomText(
             spec.label,

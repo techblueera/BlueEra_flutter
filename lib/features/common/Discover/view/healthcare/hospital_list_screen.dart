@@ -546,20 +546,20 @@ class _HospitalCard extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         // Chat + Book Now actions.
-        Row(
-          children: [
-            Expanded(
-              flex: 1,
-              child: _chatButton(),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              flex: 2,
-              child: _bookNowButton(),
-            ),
-          ],
-        ),
-        const SizedBox(height: 14),
+        // Row(
+        //   children: [
+        //     Expanded(
+        //       flex: 1,
+        //       child: _chatButton(),
+        //     ),
+        //     const SizedBox(width: 12),
+        //     Expanded(
+        //       flex: 2,
+        //       child: _bookNowButton(),
+        //     ),
+        //   ],
+        // ),
+        // const SizedBox(height: 14),
       ],
     );
   }

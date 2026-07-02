@@ -7,219 +7,268 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
-import 'package:BlueEra/features/me/medical/controller/healthcare_enquiry_controller.dart';
+import 'package:BlueEra/features/common/Discover/model/finance_search_res_model.dart';
+import 'package:BlueEra/features/me/others/controller/other_enquiry_controller.dart';
+import 'package:BlueEra/features/me/others/model/predefined_enquiry_group.dart';
+import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// One selection group on the healthcare enquiry form. Lives at the top level
-/// so callers building category-specific groups don't reach into private
-/// types. [title] is what the user (and the in-chat card) sees as the
-/// section label; the same string is sent back to the server as the
-/// selections-map key so the card can render it verbatim.
-class HealthcareEnquiryGroup {
+/// One selection group on the finance enquiry form. Kept separate from
+/// [BusinessEnquiryGroup] per the "duplicate sheets per category" pattern
+/// used across Discover verticals — the wire contract to
+/// `POST /other-enquiries` is identical (see
+/// `lib/docs/other-enquiry-ui-integration.md` §2), but the form UX is
+/// finance-specific.
+///
+/// [multiSelect] mirrors the server catalog contract from
+/// `lib/docs/predefined-enquiry-ui-integration.md` §2: `true` → toggle
+/// chips (default), `false` → radio (0..1 selected per group). Static
+/// defaults keep the older shape (all multi-select) — the server catalog
+/// overrides them per category.
+class FinanceEnquiryGroup {
   final String title;
   final List<String> options;
+  final bool multiSelect;
 
-  const HealthcareEnquiryGroup({
+  const FinanceEnquiryGroup({
     required this.title,
     required this.options,
+    this.multiSelect = true,
   });
+
+  factory FinanceEnquiryGroup.fromPredefined(PredefinedEnquiryGroup g) =>
+      FinanceEnquiryGroup(
+        title: g.title,
+        options: g.options,
+        multiSelect: g.multiSelect,
+      );
 }
 
-/// Snapshot of the listing being enquired about. Denormalised into the form
-/// (and onto the eventual chat card) so the customer / owner sees a header
-/// without an extra fetch. Pass the same values whether the listing is a
-/// Hospital (HOSPITAL category) or a Business (any non-hospital category).
-class HealthcareEnquiryListing {
-  final String listingId;
-  final String ownerId;
-  final String ownerName;
-  final String listingName;
-  final String? listingImage;
-  final String? location;
+/// Customer-side enquiry sheet for finance listings served from Discover
+/// (banking / insurance / loans / capital-market / data). Feeds the same
+/// `/other-enquiries` endpoint as `BusinessEnquirySheet` — same
+/// [OtherEnquiryController], same `business_enquiry` chat card — but
+/// tailored to the finance flow: takes a [FinanceBusinessItem] directly
+/// (no listing-adapter mapping), renders a category chip in the header,
+/// and ships finance-specific group defaults.
+class FinanceEnquirySheet {
+  FinanceEnquirySheet._();
 
-  const HealthcareEnquiryListing({
-    required this.listingId,
-    required this.ownerId,
-    required this.ownerName,
-    required this.listingName,
-    this.listingImage,
-    this.location,
-  });
-}
-
-/// Customer-side enquiry sheet for the **unified healthcare flow**. One
-/// parameterized sheet covers every category because the doc settles on a
-/// single card / event contract — the only thing that varies per category is
-/// the [groups] list ("Departments / Purpose / Timeline" for hospitals,
-/// "Test Types / Purpose" for labs, etc.). See
-/// `lib/docs/healthcare-enquiry-ui-integration.md`.
-///
-/// The sheet drives the [HealthcareEnquiryController], which branches between
-/// the hospital and business endpoints under the hood, then opens the
-/// business chat with the owner — the backend posts the enquiry card into
-/// that conversation, so we never seed any chat text.
-class HealthcareEnquirySheet {
-  HealthcareEnquirySheet._();
-
-  /// Default group catalogs for each known healthcare category. Optional
-  /// helper — callers that want a different layout per listing can pass
-  /// their own [groups] to [open] directly. Keys are matched
-  /// case-insensitively against the canonical category strings used on the
-  /// chat card (HOSPITAL / DOCTOR / LAB / PHARMACY / SURGICAL).
-  static const Map<String, List<HealthcareEnquiryGroup>> _defaultGroups = {
-    'HOSPITAL': [
-      HealthcareEnquiryGroup(title: 'Departments', options: [
-        'Cardiology',
-        'Orthopedics',
-        'Neurology',
-        'Pediatrics',
-        'Gynecology',
-        'General Medicine',
-        'Dermatology',
-        'ENT',
+  /// Default group catalogs per finance category. Keys are matched
+  /// case-insensitively against `FinanceBusinessItem.category`.
+  static const Map<String, List<FinanceEnquiryGroup>> _defaultGroups = {
+    'LOANS_SECTOR': [
+      FinanceEnquiryGroup(title: 'Services', options: [
+        'Home Loan',
+        'Personal Loan',
+        'Business Loan',
+        'Vehicle Loan',
+        'Education Loan',
+        'Gold Loan',
+        'Loan Against Property',
       ]),
-      HealthcareEnquiryGroup(title: 'Purpose', options: [
-        'Consultation',
-        'Admission / IPD',
-        'Surgery',
-        'Emergency',
-        'Second opinion',
+      FinanceEnquiryGroup(title: 'Loan Amount', options: [
+        'Under ₹1 L',
+        '₹1 L – ₹5 L',
+        '₹5 L – ₹25 L',
+        '₹25 L – ₹1 Cr',
+        'Above ₹1 Cr',
       ]),
-      HealthcareEnquiryGroup(title: 'Timeline', options: [
-        'Today',
-        'This week',
-        'Within 15 days',
-        'Flexible',
+      FinanceEnquiryGroup(title: 'Purpose', options: [
+        'Compare rates',
+        'Check eligibility',
+        'Apply now',
+        'Documentation help',
       ]),
     ],
-    'DOCTOR': [
-      HealthcareEnquiryGroup(title: 'Specialization', options: [
-        'General Physician',
-        'Cardiologist',
-        'Orthopedic',
-        'Pediatrician',
-        'Gynecologist',
-        'Dermatologist',
-        'ENT',
-        'Psychiatrist',
+    'INSURANCE': [
+      FinanceEnquiryGroup(title: 'Policy Type', options: [
+        'Life Insurance',
+        'Health Insurance',
+        'Motor Insurance',
+        'Home Insurance',
+        'Travel Insurance',
+        'Business Insurance',
       ]),
-      HealthcareEnquiryGroup(title: 'Purpose', options: [
-        'Consultation',
-        'Follow-up',
-        'Second opinion',
-        'Prescription refill',
+      FinanceEnquiryGroup(title: 'Sum Assured', options: [
+        'Up to ₹5 L',
+        '₹5 L – ₹25 L',
+        '₹25 L – ₹1 Cr',
+        'Above ₹1 Cr',
       ]),
-      HealthcareEnquiryGroup(title: 'Timeline', options: [
-        'Today',
-        'This week',
-        'Within 15 days',
-        'Flexible',
+      FinanceEnquiryGroup(title: 'Purpose', options: [
+        'Compare plans',
+        'New policy',
+        'Renew existing',
+        'Claim assistance',
       ]),
     ],
-    'LAB': [
-      HealthcareEnquiryGroup(title: 'Test Types', options: [
-        'Blood Test',
-        'Urine Test',
-        'X-Ray',
-        'MRI',
-        'CT Scan',
-        'Ultrasound',
-        'ECG',
-        'Full Body Checkup',
+    'BANKING': [
+      FinanceEnquiryGroup(title: 'Services', options: [
+        'Savings Account',
+        'Current Account',
+        'Fixed Deposit',
+        'Recurring Deposit',
+        'Credit Card',
+        'Locker',
+        'Forex / Remittance',
       ]),
-      HealthcareEnquiryGroup(title: 'Purpose', options: [
-        'Home collection',
-        'Visit lab',
-        'Report consultation',
-      ]),
-    ],
-    'PHARMACY': [
-      HealthcareEnquiryGroup(title: 'Product Type', options: [
-        'Prescription medicine',
-        'OTC medicine',
-        'Surgical / Wellness',
-        'Ayurvedic',
-        'Baby / Mother care',
-      ]),
-      HealthcareEnquiryGroup(title: 'Purpose', options: [
-        'Home delivery',
-        'Visit pharmacy',
-        'Check availability',
-        'Price quote',
+      FinanceEnquiryGroup(title: 'Purpose', options: [
+        'Open account',
+        'Rate enquiry',
+        'Documentation help',
+        'Branch visit',
       ]),
     ],
-    'SURGICAL': [
-      HealthcareEnquiryGroup(title: 'Product Type', options: [
-        'Equipment',
-        'Disposables',
-        'Implants',
-        'Diagnostic devices',
+    'CAPITAL_MARKET': [
+      FinanceEnquiryGroup(title: 'Services', options: [
+        'Stocks / Equity',
+        'Mutual Funds',
+        'IPO',
+        'Bonds',
+        'Portfolio Management',
+        'Demat Account',
       ]),
-      HealthcareEnquiryGroup(title: 'Purpose', options: [
-        'Bulk order',
-        'Price quote',
-        'Catalog request',
+      FinanceEnquiryGroup(title: 'Investment Horizon', options: [
+        'Short term (< 1 yr)',
+        'Medium term (1–5 yrs)',
+        'Long term (> 5 yrs)',
+      ]),
+      FinanceEnquiryGroup(title: 'Purpose', options: [
+        'Advice',
+        'Open account',
+        'Compare plans',
+        'Documentation help',
+      ]),
+    ],
+    'DATA': [
+      FinanceEnquiryGroup(title: 'Services', options: [
+        'Data Analysis',
+        'Reports',
+        'Consulting',
+        'Subscription',
+      ]),
+      FinanceEnquiryGroup(title: 'Purpose', options: [
+        'Trial / Demo',
+        'Pricing',
+        'Custom quote',
       ]),
     ],
   };
 
-  /// Lookup default groups for [category]. Returns an empty list for unknown
-  /// categories so the sheet still opens (caller likely passed [groups]
-  /// explicitly in that case).
-  static List<HealthcareEnquiryGroup> defaultGroupsFor(String category) =>
+  /// Lookup default groups for [category]. Returns an empty list for
+  /// unknown categories so the sheet still opens (caller likely passed
+  /// [groups] explicitly in that case).
+  static List<FinanceEnquiryGroup> defaultGroupsFor(String category) =>
       _defaultGroups[category.toUpperCase()] ?? const [];
 
-  /// Open the enquiry sheet. [category] is the canonical category string
-  /// (HOSPITAL / DOCTOR / LAB / PHARMACY / SURGICAL / … — anything not
-  /// equal to HOSPITAL routes through the non-hospital business endpoint).
-  /// [groups] defaults to [defaultGroupsFor] but callers can override.
-  static void open(
+  /// Open the finance enquiry sheet for [data].
+  ///
+  /// Group source, in priority order (see
+  /// `lib/docs/predefined-enquiry-ui-integration.md` §1–§2):
+  ///   1. Explicit [groups] arg (caller-controlled override).
+  ///   2. Server-driven catalog `GET /predefined-enquiry/{category}`,
+  ///      cached per-category via [OtherEnquiryController]. Prefetched
+  ///      results open the sheet instantly; a first-time miss shows a
+  ///      brief loader while the fetch runs.
+  ///   3. Static per-category defaults ([defaultGroupsFor]) — only used
+  ///      when the server returned no groups (404 / error) so the sheet
+  ///      still has something to render. If both server and defaults are
+  ///      empty, the sheet renders note+photo only (§2 fallback).
+  static Future<void> open(
     BuildContext context, {
-    required String category,
-    required HealthcareEnquiryListing listing,
-    List<HealthcareEnquiryGroup>? groups,
-  }) {
-    if (listing.ownerId.isEmpty || listing.listingId.isEmpty) {
+    required FinanceBusinessItem data,
+    List<FinanceEnquiryGroup>? groups,
+  }) async {
+    final listingId = (data.id ?? '').trim();
+    final ownerId = (data.userId ?? '').trim();
+    if (listingId.isEmpty || ownerId.isEmpty) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
       return;
     }
+
     final effectiveGroups =
-        groups ?? defaultGroupsFor(category);
+        groups ?? await _resolveGroups(context, data.category ?? '');
+    if (!context.mounted) return;
 
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _HealthcareEnquireForm(
-        listing: listing,
+      builder: (_) => _FinanceEnquireForm(
+        data: data,
         groups: effectiveGroups,
         onSubmit: (selections, note, photoPaths) =>
-            _submit(category, listing, selections, note, photoPaths),
+            _submit(data, selections, note, photoPaths),
       ),
     );
   }
 
+  /// Resolve the group list for [category] using cache → server → static
+  /// defaults. Only shows a loader when we have no cached entry AND no
+  /// static default — otherwise the sheet opens instantly on whatever we
+  /// have and the server catalog just wasn't seeded for this category.
+  static Future<List<FinanceEnquiryGroup>> _resolveGroups(
+      BuildContext context, String category) async {
+    final controller = getOrPut(() => OtherEnquiryController());
+    final cached = controller.cachedPredefinedEnquiryOptions(category);
+    if (cached != null) {
+      if (cached.isNotEmpty) {
+        return cached.map(FinanceEnquiryGroup.fromPredefined).toList();
+      }
+      // Server said "no seeded catalog" — fall through to static defaults.
+      return defaultGroupsFor(category);
+    }
+
+    final defaults = defaultGroupsFor(category);
+    if (defaults.isNotEmpty) {
+      // Kick the fetch in the background; the sheet opens now with
+      // defaults so the customer isn't blocked. Next open in the same
+      // session will pick up the server catalog from cache.
+      // ignore: unawaited_futures
+      controller.loadPredefinedEnquiryOptions(category);
+      return defaults;
+    }
+
+    // No cache, no defaults — worth blocking briefly so the sheet doesn't
+    // open with just a note field when the server *does* have groups.
+    AppLoader.show();
+    try {
+      final fetched =
+          await controller.loadPredefinedEnquiryOptions(category);
+      return fetched.map(FinanceEnquiryGroup.fromPredefined).toList();
+    } finally {
+      AppLoader.hide();
+    }
+  }
+
   static Future<void> _submit(
-    String category,
-    HealthcareEnquiryListing listing,
+    FinanceBusinessItem data,
     Map<String, List<String>> selections,
     String note,
     List<String> photoPaths,
   ) async {
-    // Enquiry POST FIRST. Gating navigation on the POST result means
-    // (1) failures keep the customer on the detail screen with a
-    // snackbar instead of stranded on an empty chat; (2) `AppLoader`
-    // blocks the detail screen, not the chat; (3) by the time we
-    // navigate, the backend has already accepted the enquiry so the
-    // real `healthcare_enquiry` card lands over the socket
-    // (`newHealthcareEnquiryReceived`) shortly after.
-    final controller = getOrPut(() => HealthcareEnquiryController());
-    final enquiryId = await controller.submitHealthcareEnquiry(
-      category: category,
-      listingId: listing.listingId,
+    final listingId = (data.id ?? '').trim();
+    final ownerId = (data.userId ?? '').trim();
+
+    // Enquiry POST FIRST. Gating navigation on the POST result means:
+    //   1. If it fails, the customer stays on the detail screen with a
+    //      snackbar — not stranded on an empty chat wondering why no
+    //      card ever appears.
+    //   2. `AppLoader` blocks the current screen (the sheet has already
+    //      dismissed itself), not the chat.
+    //   3. By the time we navigate, the backend has already accepted
+    //      the enquiry and either created the card or is about to; the
+    //      socket delivers it shortly after we land on the chat.
+    // Per `lib/docs/other-enquiry-ui-integration.md` §5 + §8 the real
+    // `business_enquiry` card arrives via `newBusinessEnquiryReceived`
+    // and renders through `case "business_enquiry":` in MessageCard.
+    final controller = getOrPut(() => OtherEnquiryController());
+    final enquiryId = await controller.submitOtherEnquiry(
+      businessId: listingId,
       selections: selections,
       note: note,
       photoPaths: photoPaths,
@@ -228,45 +277,41 @@ class HealthcareEnquirySheet {
 
     final chatViewController = getOrPut(() => ChatViewController());
     await chatViewController.checkChatConnectionAndOpenChat(
-      userId: listing.ownerId,
-      name: listing.listingName.isNotEmpty
-          ? listing.listingName
-          : listing.ownerName,
-      profile: listing.listingImage,
+      userId: ownerId,
+      name: (data.profileName ?? '').trim(),
+      profile: data.logoUrl,
       route: AppConstants.route_discover,
     );
   }
 }
 
-class _HealthcareEnquireForm extends StatefulWidget {
-  final HealthcareEnquiryListing listing;
-  final List<HealthcareEnquiryGroup> groups;
+class _FinanceEnquireForm extends StatefulWidget {
+  final FinanceBusinessItem data;
+  final List<FinanceEnquiryGroup> groups;
   final void Function(
     Map<String, List<String>> selections,
     String note,
     List<String> photoPaths,
   ) onSubmit;
 
-  const _HealthcareEnquireForm({
-    required this.listing,
+  const _FinanceEnquireForm({
+    required this.data,
     required this.groups,
     required this.onSubmit,
   });
 
   @override
-  State<_HealthcareEnquireForm> createState() => _HealthcareEnquireFormState();
+  State<_FinanceEnquireForm> createState() => _FinanceEnquireFormState();
 }
 
-class _HealthcareEnquireFormState extends State<_HealthcareEnquireForm> {
+class _FinanceEnquireFormState extends State<_FinanceEnquireForm> {
   static const Color _accent = AppColors.primaryColor;
   static const Color _accentDeep = AppColors.blue5CAF;
   static const Color _surface = Color(0xFFF4F6FA);
 
-  /// Server caps photos at 5 (see §1 "Rules" in the integration guide).
+  /// Server caps photos at 5 (see §2 "Rules" in the integration guide).
   static const int _maxPhotos = 5;
 
-  // Selection state keyed by the group's display title (which is also the
-  // selections-map key sent to the server).
   final Map<String, Set<String>> _selected = {};
   final List<String> _photos = [];
   final _noteController = TextEditingController();
@@ -277,10 +322,23 @@ class _HealthcareEnquireFormState extends State<_HealthcareEnquireForm> {
     super.dispose();
   }
 
-  void _toggle(String groupTitle, String value) {
+  void _toggle(FinanceEnquiryGroup group, String value) {
     setState(() {
-      final set = _selected.putIfAbsent(groupTitle, () => <String>{});
-      if (!set.add(value)) set.remove(value);
+      final set = _selected.putIfAbsent(group.title, () => <String>{});
+      if (group.multiSelect) {
+        // Toggle: add if absent, remove if present (0..n selectable).
+        if (!set.add(value)) set.remove(value);
+      } else {
+        // Radio: at most one selected per group — a repeat tap clears it.
+        // See lib/docs/predefined-enquiry-ui-integration.md §2.
+        if (set.contains(value)) {
+          set.remove(value);
+        } else {
+          set
+            ..clear()
+            ..add(value);
+        }
+      }
     });
   }
 
@@ -323,6 +381,16 @@ class _HealthcareEnquireFormState extends State<_HealthcareEnquireForm> {
     widget.onSubmit(selections, note, List<String>.from(_photos));
   }
 
+  /// Pretty-print the raw category code (`LOANS_SECTOR` → `Loans Sector`).
+  String get _prettyCategory {
+    final raw = (widget.data.category ?? '').trim();
+    if (raw.isEmpty) return '';
+    return raw.replaceAll('_', ' ').toLowerCase().split(' ').map((w) {
+      if (w.isEmpty) return w;
+      return '${w[0].toUpperCase()}${w.substring(1)}';
+    }).join(' ');
+  }
+
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
@@ -356,10 +424,6 @@ class _HealthcareEnquireFormState extends State<_HealthcareEnquireForm> {
               _header(),
               Flexible(
                 child: SingleChildScrollView(
-                  // See [HotelEnquirySheet] for the rationale: keeps
-                  // Android's stretch overscroll indicator out of this
-                  // scroll view so it can't fire setState during layout
-                  // when the sheet sits over a NestedScrollView host.
                   physics: const ClampingScrollPhysics(),
                   padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
                   child: Column(
@@ -381,7 +445,8 @@ class _HealthcareEnquireFormState extends State<_HealthcareEnquireForm> {
                               .map((s) => _checkChip(
                                     label: s,
                                     on: _isOn(group.title, s),
-                                    onTap: () => _toggle(group.title, s),
+                                    radio: !group.multiSelect,
+                                    onTap: () => _toggle(group, s),
                                   ))
                               .toList(),
                         ),
@@ -405,14 +470,15 @@ class _HealthcareEnquireFormState extends State<_HealthcareEnquireForm> {
   }
 
   Widget _header() {
+    final category = _prettyCategory;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 6, 14, 14),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 42,
-            height: 42,
+            width: 46,
+            height: 46,
             alignment: Alignment.center,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
@@ -420,7 +486,7 @@ class _HealthcareEnquireFormState extends State<_HealthcareEnquireForm> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(13),
               boxShadow: [
                 BoxShadow(
                   color: _accent.withValues(alpha: 0.30),
@@ -429,8 +495,8 @@ class _HealthcareEnquireFormState extends State<_HealthcareEnquireForm> {
                 ),
               ],
             ),
-            child: const Icon(Icons.medical_services_rounded,
-                color: Colors.white, size: 22),
+            child: const Icon(Icons.account_balance_rounded,
+                color: Colors.white, size: 24),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -438,21 +504,39 @@ class _HealthcareEnquireFormState extends State<_HealthcareEnquireForm> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  AppStrings.healthcareEnquiry.tr,
+                  AppStrings.financeEnquiryTitle.tr,
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
                   color: AppColors.mainTextColor,
                 ),
                 const SizedBox(height: 2),
                 CustomText(
-                  AppStrings.tellListingAboutEnquiry.tr
-                      .replaceAll('{listing}', widget.listing.ownerName),
+                  (widget.data.profileName ?? '').trim().isEmpty
+                      ? AppStrings.financeService.tr
+                      : widget.data.profileName!.trim(),
                   fontSize: 12.5,
                   color: AppColors.secondaryTextColor,
                   fontWeight: FontWeight.w500,
-                  maxLines: 2,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
+                if (category.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: _accent.withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: CustomText(
+                      category,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: _accent,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -514,7 +598,18 @@ class _HealthcareEnquireFormState extends State<_HealthcareEnquireForm> {
     required String label,
     required bool on,
     required VoidCallback onTap,
+    bool radio = false,
   }) {
+    // radio → filled/outlined circle glyphs so the group visually reads as
+    // single-select; otherwise fall back to the check/add glyphs used by
+    // the other Discover sheets for multi-select toggles.
+    final IconData icon = radio
+        ? (on
+            ? Icons.radio_button_checked_rounded
+            : Icons.radio_button_off_rounded)
+        : (on
+            ? Icons.check_circle_rounded
+            : Icons.add_circle_outline_rounded);
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -533,9 +628,7 @@ class _HealthcareEnquireFormState extends State<_HealthcareEnquireForm> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              on
-                  ? Icons.check_circle_rounded
-                  : Icons.add_circle_outline_rounded,
+              icon,
               size: 16,
               color: on ? _accent : AppColors.greyCA,
             ),

@@ -45,4 +45,20 @@ mixin HotelServiceApi {
   /// message metadata's local latch is empty. Doc §2a "Get one".
   String hotelEnquiryById(String enquiryId) =>
       'hotel-service/api/hotel-enquiries/$enquiryId';
+
+  /// Hotel **booking** — carries dates/guests on top of the enquiry
+  /// contract. `POST` places the booking; the backend auto-creates the
+  /// in-chat `hotel_booking` card and emits `newHotelBookingReceived`.
+  /// `PUT status` lets the owner accept/decline; the buyer sends
+  /// `cancelled` on the same endpoint (buyer-cancel path — this is the
+  /// booking-only extra transition, mirrored by `hotelBookingStatusUpdated`
+  /// on the socket). See lib/docs/enquiry-flows-ui-integration.md §2b.
+  final String hotelBookings = 'hotel-service/api/hotel-bookings';
+  String hotelBookingStatus(String bookingId) =>
+      'hotel-service/api/hotel-bookings/$bookingId/status';
+  String hotelBookingById(String bookingId) =>
+      'hotel-service/api/hotel-bookings/$bookingId';
+  final String hotelBookingsMe = 'hotel-service/api/hotel-bookings/me';
+  final String hotelBookingsOwnerMe =
+      'hotel-service/api/hotel-bookings/owner/me';
 }
