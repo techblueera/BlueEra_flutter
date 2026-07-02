@@ -48,44 +48,65 @@ class ReferralRepoNew extends BaseService {
     return _userRepo.bdmRegisterStepTwoRepo(params);
   }
 
-  // ---------------------------------------------------------------------------
-  // Admin posts — single endpoint, filtered by `type`
-  // ---------------------------------------------------------------------------
-
-  /// Hits `GET /earn-service/admin-posts?type=<type>&page=<page>&limit=<limit>`.
-  /// Used for the testimonials, overview, tutorial and the user's own
-  /// posts (`type=post`) — the caller picks the right `type` string
-  /// and maps the response to its view model.
-  Future<ResponseModel> getAdminPosts({
-    required String type,
-    int page = 1,
-    int limit = 10,
-  }) {
+  /// `GET /earn-service/overview?page=&limit=` — referral overview posts
+  /// (title, description, images[] and/or a video).
+  Future<ResponseModel> getOverviews({int page = 1, int limit = 50}) {
     return ApiBaseHelper().getHTTP(
-      adminPosts,
-      params: {
-        'type': type,
-        'page': page,
-        'limit': limit,
-      },
+      earnOverview,
+      params: {'page': page, 'limit': limit},
       showProgress: false,
       onError: (_) {},
       onSuccess: (_) {},
     );
   }
 
-  /// `POST /earn-service/admin-posts` — creates a new social post from
-  /// a pasted URL. The caller passes the detected platform name as
-  /// [title] (e.g. `instagram`, `twitter`, `youtube`) and the raw URL
-  /// as [link]; the backend resolves the metadata and surfaces the
-  /// resulting record under `type=post`.
-  Future<ResponseModel> createAdminPost({
-    required String link,
-    required String title,
+  /// `GET /earn-service/testimonial?page=&limit=` — referral testimonials.
+  /// Response: `{ testimonials: [...], currentPage, totalPages,
+  /// totalTestimonials }`; each testimonial has title, description and either
+  /// `images[]` or a `video`.
+  Future<ResponseModel> getTestimonials({int page = 1, int limit = 50}) {
+    return ApiBaseHelper().getHTTP(
+      earnTestimonials,
+      params: {'page': page, 'limit': limit},
+      showProgress: false,
+      onError: (_) {},
+      onSuccess: (_) {},
+    );
+  }
+
+  /// `GET /earn-service/tutorial?page=&limit=` — referral tutorials (title,
+  /// description, images[] and/or a video).
+  Future<ResponseModel> getTutorials({int page = 1, int limit = 50}) {
+    return ApiBaseHelper().getHTTP(
+      earnTutorials,
+      params: {'page': page, 'limit': limit},
+      showProgress: false,
+      onError: (_) {},
+      onSuccess: (_) {},
+    );
+  }
+
+  /// `GET /earn-service/creator` — content-creator program + progress + the
+  /// user's submitted videos (`{ program, progress, videos: [...] }`).
+  Future<ResponseModel> getCreator() {
+    return ApiBaseHelper().getHTTP(
+      earnCreator,
+      showProgress: false,
+      onError: (_) {},
+      onSuccess: (_) {},
+    );
+  }
+
+  /// `POST /earn-service/creator` — submits a creator video link. The backend
+  /// scrapes the URL's metadata and adds it to the user's `videos` list.
+  /// [platform] is one of youtube / instagram / facebook / twitter / other.
+  Future<ResponseModel> createCreatorVideo({
+    required String url,
+    required String platform,
   }) {
     return ApiBaseHelper().postHTTP(
-      adminPosts,
-      params: {'type': 'post', 'link': link, 'title': title},
+      earnCreatorVideos,
+      params: {'url': url, 'platform': platform},
       showProgress: false,
       onError: (_) {},
       onSuccess: (_) {},
@@ -139,7 +160,8 @@ class ReferralRepoNew extends BaseService {
         lower.contains('fb.me')) {
       return 'facebook';
     }
-    return 'unknown';
+    // Everything else is accepted as a generic "other" link.
+    return 'other';
   }
 
   /// Share-sheet entries to drop before scraping. A browser's URL bar

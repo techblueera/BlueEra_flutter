@@ -573,13 +573,13 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
 
     return InkWell(
       onTap: openDetail,
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
-        margin: EdgeInsets.only(bottom: SizeConfig.size16),
+        margin: EdgeInsets.only(bottom: SizeConfig.size10),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: const Color(0xFFEDEFF4), width: 1),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.greyE5, width: 1),
           boxShadow: const [
             BoxShadow(
               color: Color(0x14001120),
@@ -596,7 +596,7 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
               children: [
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(18),
+                    top: Radius.circular(16),
                   ),
                   child: SizedBox(
                     height: 175,

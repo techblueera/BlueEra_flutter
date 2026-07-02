@@ -8,6 +8,8 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_constant.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment/view/payment_setting_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/all_transactions/amount_withdraw_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/wallet/coin/controller/earn_coin_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/wallet/coin/view/coin_wallet_dashboard_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/controller/wallet_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/widget/wallet_statics_view.dart';
 import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
@@ -31,9 +33,16 @@ class _WalletScreenState extends State<WalletScreen> {
   final controller = getOrPut(() => WalletController());
   final referralController = getOrPut(() => ReferralController());
 
+  /// Coin balance for the top-right coin chip — GET /earn/balance. Shares the
+  /// same singleton as the Coin Wallet card in the body.
+  final earnController = getOrPut(() => EarnCoinController());
+
   @override
   void initState() {
-    controller.getWalletApi();
+    // Guarded: skips the refetch when the drawer already prefetched the balance
+    // moments ago (avoids the duplicate wallet call on drawer → wallet).
+    controller.getWalletApiIfNeeded();
+    earnController.fetchBalance();
     super.initState();
   }
 
@@ -322,38 +331,38 @@ class _WalletScreenState extends State<WalletScreen> {
   }
 
   /// Coin-wallet pill shown at the top-right of the blue header — a white,
-  /// gold-bordered capsule with a coin icon + the coin balance.
-  ///
-  /// TODO(coins): wire to the coin-wallet API once available. Coins are dummy
-  /// (0) for now, matching the Coin Wallet card.
+  /// gold-bordered capsule with a coin icon + the coin balance. Bound to
+  /// GET /earn/balance (see docs/backend/FLUTTER-MASTER-GUIDE.md).
   Widget _coinPill() {
-    const num coins = 0;
-    return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: SizeConfig.size10,
-        vertical: SizeConfig.size6,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFF3C24B), width: 1.2),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          LocalAssets(
-            imagePath: AppImageAssets.coinIcon,
-            height: 20,
-            width: 20,
-          ),
-          SizedBox(width: SizeConfig.size6),
-          CustomText(
-            '$coins',
-            fontSize: SizeConfig.medium15,
-            fontWeight: FontWeight.w800,
-            color: AppColors.mainTextColor,
-          ),
-        ],
+    return GestureDetector(
+      onTap: () => Get.to(() => const CoinWalletDashboardScreen()),
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size10,
+          vertical: SizeConfig.size6,
+        ),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFF3C24B), width: 1.2),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            LocalAssets(
+              imagePath: AppImageAssets.coinIcon,
+              height: 20,
+              width: 20,
+            ),
+            SizedBox(width: SizeConfig.size6),
+            Obx(() => CustomText(
+                  '${earnController.balance.value?.coins ?? 0}',
+                  fontSize: SizeConfig.medium15,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.mainTextColor,
+                )),
+          ],
+        ),
       ),
     );
   }

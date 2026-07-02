@@ -52,6 +52,13 @@ class _MetaNativeAdWidgetState extends State<MetaNativeAdWidget>
   bool _gotCallback = false;
   Timer? _watchdog;
 
+  /// Gated mount: every native slot shares the SAME placement id, so mounting
+  /// several at once (or rapidly re-entering a screen) reloads that placement
+  /// back-to-back → Meta error 1002 "Ad was re-loaded too frequently". We only
+  /// build the [FacebookNativeAd] once this slot's turn in the load gate is up.
+  bool _mountAd = false;
+  Timer? _gateTimer;
+
   // Keep the loaded ad alive across scroll recycling (mirrors the Google slot)
   // so we don't reload and burn impressions each time it scrolls back in.
   @override
@@ -72,25 +79,50 @@ class _MetaNativeAdWidgetState extends State<MetaNativeAdWidget>
       print('[META_NATIVE_AD] SDK ready=$ok — building native ad '
           'unit=${AdConfig.metaNativeUnit}');
       if (!mounted) return;
-      setState(() {
-        _sdkReady = true;
-        if (!ok) _failed = true; // init failed → nothing to show
-      });
-      // Watchdog: if the FacebookNativeAd never fires a listener callback, the
-      // native side never responded — log it so silence is explicit.
-      _watchdog = Timer(const Duration(seconds: 12), () {
-        if (!_gotCallback) {
-          print('[META_NATIVE_AD] ⚠️ NO callback within 12s for '
-              'unit=${AdConfig.metaNativeUnit} — native SDK never responded '
-              '(check Meta app/placement approval or plugin channel).');
-        }
-      });
+      if (!ok) {
+        setState(() {
+          _sdkReady = true;
+          _failed = true; // init failed → nothing to show
+        });
+        return;
+      }
+      setState(() => _sdkReady = true);
+
+      // Space this slot's load out from the previous one for the same
+      // placement so we never reload it too frequently (Meta 1002).
+      final delay = _MetaNativeLoadGate.reserve();
+      if (delay == Duration.zero) {
+        _startWatchdog();
+        setState(() => _mountAd = true);
+      } else {
+        print('[META_NATIVE_AD] gated — deferring load by '
+            '${delay.inSeconds}s to avoid 1002 '
+            '(unit=${AdConfig.metaNativeUnit})');
+        _gateTimer = Timer(delay, () {
+          if (!mounted) return;
+          _startWatchdog();
+          setState(() => _mountAd = true);
+        });
+      }
+    });
+  }
+
+  void _startWatchdog() {
+    // Watchdog: if the FacebookNativeAd never fires a listener callback, the
+    // native side never responded — log it so silence is explicit.
+    _watchdog = Timer(const Duration(seconds: 12), () {
+      if (!_gotCallback) {
+        print('[META_NATIVE_AD] ⚠️ NO callback within 12s for '
+            'unit=${AdConfig.metaNativeUnit} — native SDK never responded '
+            '(check Meta app/placement approval or plugin channel).');
+      }
     });
   }
 
   @override
   void dispose() {
     _watchdog?.cancel();
+    _gateTimer?.cancel();
     super.dispose();
   }
 
@@ -114,8 +146,9 @@ class _MetaNativeAdWidgetState extends State<MetaNativeAdWidget>
         child: SizedBox(
           height: widget.height,
           width: double.infinity,
-          // Only mount the ad once the SDK is initialised.
-          child: !_sdkReady
+          // Only mount the ad once the SDK is initialised AND the load gate
+          // has cleared this slot (staggered to avoid Meta 1002).
+          child: (!_sdkReady || !_mountAd)
               ? null
               : FacebookNativeAd(
                   placementId: AdConfig.metaNativeUnit,
@@ -178,5 +211,38 @@ class MetaAds {
       print('[META_ADS] init FAILED: $e\n$st');
       return false;
     }
+  }
+}
+
+/// App-wide load gate for the (single) Meta native placement.
+///
+/// Every native slot uses the same `AdConfig.metaNativeUnit`, so mounting
+/// several at once — or rapidly re-entering a screen — loads that placement
+/// back-to-back and Meta returns error 1002 ("Ad was re-loaded too
+/// frequently"). [reserve] hands each caller a start delay so loads are spaced
+/// at least [_minInterval] apart: the first loads immediately, the next after
+/// the interval, and so on. Lazily-built list slots that mount seconds apart
+/// pay no delay.
+class _MetaNativeLoadGate {
+  _MetaNativeLoadGate._();
+
+  /// Minimum spacing between two loads of the same placement.
+  static const Duration _minInterval = Duration(seconds: 15);
+
+  /// The earliest time the next load is allowed to fire.
+  static DateTime? _nextAllowed;
+
+  /// Reserves the next load slot and returns how long to wait before loading
+  /// (`Duration.zero` if it can load right now).
+  static Duration reserve() {
+    final now = DateTime.now();
+    final earliest = _nextAllowed;
+    if (earliest == null || !earliest.isAfter(now)) {
+      _nextAllowed = now.add(_minInterval);
+      return Duration.zero;
+    }
+    final wait = earliest.difference(now);
+    _nextAllowed = earliest.add(_minInterval);
+    return wait;
   }
 }

@@ -13,6 +13,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/widgets/go_live_pill.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
@@ -852,78 +853,9 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
   }
 
   Widget _goLivePill() {
-    return GestureDetector(
+    return GoLivePill(
+      value: isShopGoLive,
       onTap: handleGoLiveTap,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x1A000000),
-              blurRadius: 3,
-              offset: Offset(0, -1),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-            child: Container(
-              padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: const Color(0xFFC9CDD5),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CustomText(AppStrings.goLive.tr,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.secondaryTextColor),
-                  SizedBox(width: SizeConfig.size6),
-                  Container(
-                    width: 30,
-                    height: 18,
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      color:
-                          isShopGoLive ? AppColors.primaryColor : Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: AppColors.secondaryTextColor
-                            .withValues(alpha: 0.4),
-                        width: 0.5,
-                      ),
-                    ),
-                    child: AnimatedAlign(
-                      duration: const Duration(milliseconds: 180),
-                      alignment: isShopGoLive
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
-                      child: Container(
-                        height: 14,
-                        width: 14,
-                        decoration: BoxDecoration(
-                            color: isShopGoLive
-                                ? Colors.white
-                                : AppColors.secondaryTextColor,
-                            shape: BoxShape.circle),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 

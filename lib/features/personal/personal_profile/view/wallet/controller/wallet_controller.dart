@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/utils/fetch_cache.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/all_transactions/wallet_transaction_response.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/model/wallet_response_modal.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/model/wallet_withdrawal_methods.dart';
@@ -75,6 +76,12 @@ class WalletController extends GetxController {
 
   WalletRepo _walletRepo = WalletRepo();
 
+  /// Freshness guard for the balance GET. The drawer prefetches the wallet on
+  /// open and WalletScreen fetches again in initState — back-to-back when the
+  /// wallet is opened from the drawer. This dedupes those on-entry calls while
+  /// still allowing explicit refreshes (e.g. after a withdrawal).
+  final FetchCache _walletCache = FetchCache(ttl: const Duration(seconds: 45));
+
   var withdrawalMethodDataList = <WithdrawalMethodData>[].obs;
   var bankList = <WithdrawalMethodData>[].obs;
   var upiList = <WithdrawalMethodData>[].obs;
@@ -103,6 +110,19 @@ class WalletController extends GetxController {
     }
   }
 
+  /// On-entry fetch that skips the network call when the balance is already
+  /// loaded and fresh (within the cache TTL). Use this from screen `initState`
+  /// / drawer open; use [getWalletApi] directly to force a refresh.
+  Future<void> getWalletApiIfNeeded() async {
+    if (_walletCache.isFresh(
+      'wallet',
+      hasData: viewWalletBalanceResponse.value.status == Status.COMPLETE,
+    )) {
+      return;
+    }
+    await getWalletApi();
+  }
+
   Future<void> getWalletApi() async {
     try {
       ResponseModel response = await _walletRepo.getWalletApi();
@@ -110,6 +130,7 @@ class WalletController extends GetxController {
         walletResponseModalClass.value =
             WalletResponseModalClass.fromJson(response.response!.data);
         viewWalletBalanceResponse.value=ApiResponse.complete(walletResponseModalClass);
+        _walletCache.mark('wallet');
       }else{
         viewWalletBalanceResponse.value=ApiResponse.error(response.message?? AppStrings.somethingWentWrong);
       }

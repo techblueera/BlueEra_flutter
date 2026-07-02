@@ -914,7 +914,9 @@ class ChatViewController extends GetxController {
         handlePaymentStatusUpdate(data);
       });
       chatSocket.listenEvent(ChatEmitEvents.messageReceived, (data) async {
+          log("📩 messageReceived (chat history) → $data");
           final parsedData = GetListOfMessageData.fromJson(data);
+          log("📩 messageReceived parsed: ${parsedData.messages?.length ?? 0} messages");
 
           if (parsedData.messages != null) {
             for (var message in parsedData.messages!) {
@@ -1032,7 +1034,7 @@ class ChatViewController extends GetxController {
 
       });
       chatSocket.listenEvent(ChatEmitEvents.newMessageReceived, (data) async {
-
+        log("📨 newMessageReceived (single) → $data");
 
         Messages? message;
         if (data['message'] != null) {

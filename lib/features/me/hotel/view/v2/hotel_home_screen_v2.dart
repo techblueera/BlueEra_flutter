@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/widgets/go_live_pill.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_flag_controller.dart';
@@ -20,7 +21,6 @@ import 'package:BlueEra/features/me/hotel/view/v2/tabs/hotel_overview_tab_v2.dar
 import 'package:BlueEra/features/me/hotel/view/v2/tabs/hotel_posts_tab_v2.dart';
 import 'package:BlueEra/features/me/hotel/view/v2/tabs/hotel_rooms_tab_v2.dart';
 import 'package:BlueEra/features/me/hotel/view/v2/tabs/hotel_stats_tab_v2.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:flutter/material.dart';
@@ -254,78 +254,9 @@ class _HotelHomeScreenV2State extends State<HotelHomeScreenV2>
   }
 
   Widget _goLivePill() {
-    return GestureDetector(
+    return GoLivePill(
+      value: isShopGoLive,
       onTap: handleGoLiveTap,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x1A000000),
-              blurRadius: 3,
-              offset: Offset(0, -1),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-            child: Container(
-              padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: const Color(0xFFC9CDD5),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CustomText(AppStrings.goLive.tr,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.secondaryTextColor),
-                  SizedBox(width: SizeConfig.size6),
-                  Container(
-                    width: 30,
-                    height: 18,
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      color:
-                          isShopGoLive ? AppColors.primaryColor : Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: AppColors.secondaryTextColor
-                            .withValues(alpha: 0.4),
-                        width: 0.5,
-                      ),
-                    ),
-                    child: AnimatedAlign(
-                      duration: const Duration(milliseconds: 180),
-                      alignment: isShopGoLive
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
-                      child: Container(
-                        height: 14,
-                        width: 14,
-                        decoration: BoxDecoration(
-                            color: isShopGoLive
-                                ? Colors.white
-                                : AppColors.secondaryTextColor,
-                            shape: BoxShape.circle),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
     );
   }
 
