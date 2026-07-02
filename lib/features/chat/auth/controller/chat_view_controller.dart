@@ -16,6 +16,7 @@ import 'package:BlueEra/features/chat/auth/model/business_service_ask_ai_model.d
 import 'package:BlueEra/features/chat/auth/model/education_ask_ai_model.dart';
 import 'package:BlueEra/features/chat/auth/model/food_ask_ai_model.dart';
 import 'package:BlueEra/features/chat/auth/model/health_care_ask_ai_model.dart';
+import 'package:BlueEra/features/chat/auth/model/business_enquiry_model.dart';
 import 'package:BlueEra/features/chat/auth/model/education_enquiry_model.dart';
 import 'package:BlueEra/features/chat/auth/model/healthcare_enquiry_model.dart';
 import 'package:BlueEra/features/chat/auth/model/hotel_enquiry_model.dart';
@@ -1479,6 +1480,52 @@ class ChatViewController extends GetxController {
         }
       });
 
+      // Hotel Booking (§2b): new booking request received (owner side, echoed
+      // to the buyer's other sessions — dedupe by message._id).
+      chatSocket.listenEvent(ChatEmitEvents.newHotelBookingReceived, (data) {
+        if (data['message'] != null) {
+          final message = Messages.fromJson(data['message']);
+          final conversationId = message.conversationId ?? '';
+          if (conversationId.isNotEmpty &&
+              conversationId == userOpenConversationId.value) {
+            final currentMessages =
+                getListOfMessageResponse.value.data as List<Messages>? ?? [];
+            final exists = currentMessages.any((m) => m.id == message.id);
+            if (!exists) {
+              currentMessages.add(message);
+              getListOfMessageResponse.value =
+                  ApiResponse.complete(currentMessages);
+              scrollDown();
+            }
+          }
+          emitEvent(ChatEmitEvents.ChatList, {
+            ApiKeys.page: 1,
+            ApiKeys.per_page_message: 30,
+          });
+        }
+      });
+
+      // Hotel Booking (§2b): owner accept / decline OR buyer cancel — the
+      // status endpoint accepts all three transitions, so this single
+      // event flips the card for both sides regardless of who acted.
+      chatSocket.listenEvent(ChatEmitEvents.hotelBookingStatusUpdated,
+          (data) {
+        final messageId = data['messageId']?.toString() ?? '';
+        final status = data['status']?.toString();
+        if (messageId.isNotEmpty && status != null) {
+          final currentMessages =
+              getListOfMessageResponse.value.data as List<Messages>? ?? [];
+          for (var msg in currentMessages) {
+            if (msg.id == messageId) {
+              msg.metadata?.hotelBooking?.status = status;
+              break;
+            }
+          }
+          getListOfMessageResponse.value =
+              ApiResponse.complete(currentMessages);
+        }
+      });
+
       // Vehicle Booking: new booking request received (seller side, echoed
       // to the buyer's other sessions — dedupe by message._id).
       chatSocket.listenEvent(ChatEmitEvents.newVehicleBookingReceived,
@@ -1563,6 +1610,53 @@ class ChatViewController extends GetxController {
           for (var msg in currentMessages) {
             if (msg.id == messageId) {
               msg.metadata?.educationEnquiry?.status = status;
+              break;
+            }
+          }
+          getListOfMessageResponse.value =
+              ApiResponse.complete(currentMessages);
+        }
+      });
+
+      // "Other" Business Enquiry: new enquiry received (owner side, echoed
+      // to the customer's other sessions — dedupe by message._id). See
+      // lib/docs/other-enquiry-ui-integration.md §6.
+      chatSocket.listenEvent(ChatEmitEvents.newBusinessEnquiryReceived,
+          (data) {
+        if (data['message'] != null) {
+          final message = Messages.fromJson(data['message']);
+          final conversationId = message.conversationId ?? '';
+          if (conversationId.isNotEmpty &&
+              conversationId == userOpenConversationId.value) {
+            final currentMessages =
+                getListOfMessageResponse.value.data as List<Messages>? ?? [];
+            final exists = currentMessages.any((m) => m.id == message.id);
+            if (!exists) {
+              currentMessages.add(message);
+              getListOfMessageResponse.value =
+                  ApiResponse.complete(currentMessages);
+              scrollDown();
+            }
+          }
+          emitEvent(ChatEmitEvents.ChatList, {
+            ApiKeys.page: 1,
+            ApiKeys.per_page_message: 30,
+          });
+        }
+      });
+
+      // "Other" Business Enquiry: owner accepted / declined → flip the card
+      // status for both parties.
+      chatSocket.listenEvent(ChatEmitEvents.businessEnquiryStatusUpdated,
+          (data) {
+        final messageId = data['messageId']?.toString() ?? '';
+        final status = data['status']?.toString();
+        if (messageId.isNotEmpty && status != null) {
+          final currentMessages =
+              getListOfMessageResponse.value.data as List<Messages>? ?? [];
+          for (var msg in currentMessages) {
+            if (msg.id == messageId) {
+              msg.metadata?.businessEnquiry?.status = status;
               break;
             }
           }
@@ -2650,6 +2744,14 @@ class ChatViewController extends GetxController {
             sentMeta['healthcareEnquiry'] is Map) {
           md.healthcareEnquiry = HealthcareEnquiryModel.fromJson(
               Map<String, dynamic>.from(sentMeta['healthcareEnquiry'] as Map));
+        }
+        break;
+      case 'business_enquiry':
+        md.businessEnquiryId ??= sentMeta['businessEnquiryId']?.toString();
+        if (md.businessEnquiry == null &&
+            sentMeta['businessEnquiry'] is Map) {
+          md.businessEnquiry = BusinessEnquiryModel.fromJson(
+              Map<String, dynamic>.from(sentMeta['businessEnquiry'] as Map));
         }
         break;
     }

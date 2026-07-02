@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
@@ -20,9 +21,14 @@ import 'package:path/path.dart' as p;
 Future<String?> uploadFileViaUserPresign(String path) async {
   try {
     final file = File(path);
-    if (!await file.exists()) return null;
+    if (!await file.exists()) {
+      log('[PRESIGN] file missing: $path');
+      return null;
+    }
     final fileName = p.basename(path);
     final fileType = lookupMimeType(path) ?? 'application/octet-stream';
+    log('[PRESIGN] init → GET user-service/upload/init '
+        'fileName=$fileName fileType=$fileType');
 
     final initRes = await ApiBaseHelper().getHTTP(
       'user-service/upload/init',
@@ -31,13 +37,26 @@ Future<String?> uploadFileViaUserPresign(String path) async {
       onSuccess: (_) {},
       onError: (_) {},
     );
-    if (!initRes.isSuccess) return null;
+    if (!initRes.isSuccess) {
+      log('[PRESIGN] init failed: statusCode=${initRes.statusCode} '
+          'message=${initRes.message} data=${initRes.response?.data}');
+      return null;
+    }
 
+    final rawBody = initRes.response?.data;
+    log('[PRESIGN] init response body=$rawBody');
     final init = ImageUploadResponseModel.fromJson(
-        Map<String, dynamic>.from(initRes.response?.data ?? {}));
+        Map<String, dynamic>.from(rawBody ?? {}));
     final uploadUrl = init.uploadUrl;
     final fileUrl = init.fileUrl;
-    if (uploadUrl == null || fileUrl == null) return null;
+    if (uploadUrl == null || fileUrl == null) {
+      // The response didn't carry either the presigned upload URL or the
+      // public file URL under any of the known key names. Log the raw
+      // body so it's obvious which key is missing on the wire.
+      log('[PRESIGN] init parsed but uploadUrl/fileUrl missing '
+          '(uploadUrl=$uploadUrl fileUrl=$fileUrl body=$rawBody)');
+      return null;
+    }
 
     final putRes = await ApiBaseHelper().uploadVideoToS3(
       uploadUrl,
@@ -45,9 +64,15 @@ Future<String?> uploadFileViaUserPresign(String path) async {
       fileType: fileType,
       showProgress: false,
     );
-    if (putRes == null || !putRes.isSuccess) return null;
+    if (putRes == null || !putRes.isSuccess) {
+      log('[PRESIGN] S3 PUT failed: statusCode=${putRes?.statusCode} '
+          'message=${putRes?.message}');
+      return null;
+    }
+    log('[PRESIGN] uploaded → $fileUrl');
     return fileUrl;
-  } catch (_) {
+  } catch (e, st) {
+    log('[PRESIGN] threw: $e\n$st');
     return null;
   }
 }
@@ -58,10 +83,12 @@ Future<String?> uploadFileViaUserPresign(String path) async {
 /// in the same order the inputs were uploaded.
 Future<List<String>> uploadFilesViaUserPresign(List<String> paths) async {
   if (paths.isEmpty) return const [];
+  log('[PRESIGN] batch upload → ${paths.length} file(s)');
   final urls = <String>[];
   for (final path in paths) {
     final url = await uploadFileViaUserPresign(path);
     if (url != null && url.isNotEmpty) urls.add(url);
   }
+  log('[PRESIGN] batch done → ${urls.length}/${paths.length} succeeded');
   return urls;
 }

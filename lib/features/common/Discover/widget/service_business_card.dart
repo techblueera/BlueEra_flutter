@@ -1,11 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/services/share_service.dart';
-import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
-import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/common/Discover/model/other_service_business_search_res_model.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -565,32 +561,32 @@ class ServiceBusinessCard extends StatelessWidget {
               ],
             ),
           ),
-          _ChatSquareBtn(
-            onTap: () {
-              final uid = _profile?.userId ?? '';
-              if (uid.isEmpty) return;
-              if (isGuestUser()) {
-                createProfileScreen();
-                return;
-              }
-              ChatClickTracker.track(
-                userId: _profile?.id ?? uid,
-                source: ChatClickSource.searchResult,
-              );
-              final chat = getOrPut(() => ChatViewController());
-              chat.checkChatConnectionAndOpenChat(
-                userId: uid,
-                name: _profile?.businessName,
-                profile: _avatarUrl,
-                route: AppConstants.route_discover,
-              );
-            },
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            flex: 2,
-            child: _BookNowBtn(onTap: _openStore),
-          ),
+          // _ChatSquareBtn(
+          //   onTap: () {
+          //     final uid = _profile?.userId ?? '';
+          //     if (uid.isEmpty) return;
+          //     if (isGuestUser()) {
+          //       createProfileScreen();
+          //       return;
+          //     }
+          //     ChatClickTracker.track(
+          //       userId: _profile?.id ?? uid,
+          //       source: ChatClickSource.searchResult,
+          //     );
+          //     final chat = getOrPut(() => ChatViewController());
+          //     chat.checkChatConnectionAndOpenChat(
+          //       userId: uid,
+          //       name: _profile?.businessName,
+          //       profile: _avatarUrl,
+          //       route: AppConstants.route_discover,
+          //     );
+          //   },
+          // ),
+          // const SizedBox(width: 10),
+          // Expanded(
+          //   flex: 2,
+          //   child: _BookNowBtn(onTap: _openStore),
+          // ),
         ],
       ),
     );

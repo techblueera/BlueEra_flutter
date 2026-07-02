@@ -168,13 +168,13 @@ class GroceryStoreCard extends StatelessWidget {
           ),
         ),
         SizedBox(width: SizeConfig.size6),
-        DiscoverChatIcon(
-          userId: store.userId ?? '',
-          name: store.businessName,
-          profile: store.logo,
-          businessId: store.id,
-          trackingSource: ChatClickSource.searchResult,
-        ),
+        // DiscoverChatIcon(
+        //   userId: store.userId ?? '',
+        //   name: store.businessName,
+        //   profile: store.logo,
+        //   businessId: store.id,
+        //   trackingSource: ChatClickSource.searchResult,
+        // ),
       ],
     );
   }

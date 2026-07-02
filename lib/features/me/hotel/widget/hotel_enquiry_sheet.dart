@@ -1,7 +1,5 @@
 import 'dart:io';
 
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/core/api/utils/photo_presign_uploader.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -117,6 +115,13 @@ class HotelEnquirySheet {
     String note,
     List<String> photoPaths,
   ) async {
+    // Enquiry POST FIRST. Gating navigation on the POST result means
+    // (1) failures keep the customer on the detail screen with a
+    // snackbar instead of stranded on an empty chat; (2) `AppLoader`
+    // blocks the detail screen, not the chat; (3) by the time we
+    // navigate, the backend has already accepted the enquiry so the
+    // real `hotel_enquiry` card lands over the socket
+    // (`newHotelEnquiryReceived`) shortly after.
     final controller = getOrPut(() => HotelEnquiryController());
     final enquiryId = await controller.submitHotelEnquiry(
       hotelId: listing.hotelId,
@@ -126,26 +131,6 @@ class HotelEnquirySheet {
     );
     if (enquiryId == null) return;
 
-    // Re-upload the customer-picked photos via user-service presign so
-    // the fabricated chat card carries public URLs (hotel-service stores
-    // them but doesn't surface URLs). Failures are silently skipped.
-    final photoUrls = await uploadFilesViaUserPresign(photoPaths);
-
-    // Per Docs/backend/hotel-enquiry-card.md (revised 2026-07-01), the
-    // chat backend does NOT accept `message_type: "hotel_enquiry"` on
-    // `send-message-large-file` today, so the fabricated card is a
-    // `service` message tagged `sub_category: "enquiry_only"` — the
-    // existing `case "service"` renderer handles it and suppresses the
-    // Order Now CTA. Selections + note are flattened into `message`
-    // for a legible preview. The rich `hotel_enquiry` metadata / view
-    // scaffolding stays in the codebase for when backend support lands.
-    //
-    // We DO ship `hotel_enquiry_id` alongside the flat params so the
-    // owner-side service card can round-trip it via
-    // `MessageMetadata.hotelEnquiryId` and expose Accept/Decline
-    // buttons that call `HotelEnquiryController.updateHotelEnquiryStatus`.
-    final shareParams =
-        _buildShareParams(listing, enquiryId, selections, note, photoUrls);
     final chatViewController = getOrPut(() => ChatViewController());
     await chatViewController.checkChatConnectionAndOpenChat(
       userId: listing.ownerId,
@@ -154,59 +139,7 @@ class HotelEnquirySheet {
           : listing.ownerName,
       profile: listing.coverImage,
       route: AppConstants.route_discover,
-      shareProductParams: shareParams,
-      isWithProductSend: true,
     );
-  }
-
-  static Map<String, dynamic> _buildShareParams(
-    HotelEnquiryListing listing,
-    String enquiryId,
-    Map<String, List<String>> selections,
-    String note,
-    List<String> photoUrls,
-  ) {
-    final urlList = photoUrls.isNotEmpty
-        ? [for (final u in photoUrls) {ApiKeys.url: u}]
-        : ((listing.coverImage ?? '').isNotEmpty
-            ? [
-                {ApiKeys.url: listing.coverImage!}
-              ]
-            : <Map<String, String>>[]);
-
-    // Flatten the chip selections into the message body so the owner can
-    // read everything at a glance without parsing nested metadata.
-    final lines = <String>[];
-    selections.forEach((title, items) {
-      if (items.isEmpty) return;
-      lines.add('$title: ${items.join(", ")}');
-    });
-    if (note.trim().isNotEmpty) lines.add('Note: ${note.trim()}');
-    final messageBody = lines.isEmpty
-        ? 'Hotel enquiry — ${listing.hotelName}'
-        : lines.join('\n');
-
-    return <String, dynamic>{
-      ApiKeys.service_id: listing.hotelId,
-      ApiKeys.price: '',
-      ApiKeys.discount: '',
-      ApiKeys.message: messageBody,
-      ApiKeys.message_type: AppConstants.service,
-      ApiKeys.title: listing.hotelName.isNotEmpty
-          ? listing.hotelName
-          : listing.ownerName,
-      // Shared marker the chat-side renderer checks to suppress the
-      // Order Now CTA and render the multi-line enquiry body.
-      ApiKeys.sub_category: 'enquiry_only',
-      // Enquiry id smuggled through the whitelisted `variant` field
-      // (`hotelEnquiryId` / `hotel_enquiry_id` are filtered by the
-      // backend chat metadata builder — `variant` survives). The
-      // owner-side `case "service"` renderer decodes this prefix in
-      // `_enquiryIdentity` and shows Accept / Decline. Format:
-      // `<kind>|<enquiryId>` (healthcare adds `|<category>`).
-      if (enquiryId.isNotEmpty) ApiKeys.variant: 'hotel|$enquiryId',
-      ApiKeys.url: urlList,
-    };
   }
 }
 

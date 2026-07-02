@@ -7,91 +7,60 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
-import 'package:BlueEra/features/me/school/controller/education_enquiry_controller.dart';
+import 'package:BlueEra/features/me/hotel/controller/hotel_booking_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// One selection group on the education-enquiry form. Titles are
-/// app-defined; the controller maps known display titles (Courses /
-/// Admission For / Requirements / Timeline) to the snake-case keys the
-/// server expects, and ships unknown titles verbatim.
-class EducationEnquiryGroup {
-  final String title;
-  final List<String> options;
-  const EducationEnquiryGroup({required this.title, required this.options});
-}
-
-/// Snapshot of the education listing (school/college) being enquired
-/// about. Denormalised so the sheet header — and the eventual in-chat
-/// card — renders without re-fetching the listing.
-class EducationEnquiryListing {
-  final String listingId;
+/// Snapshot of the hotel being booked — denormalised so the sheet header
+/// and (later) the in-chat card render without re-fetching the listing.
+class HotelBookingListing {
+  final String hotelId;
   final String ownerId;
   final String ownerName;
-  final String listingName;
-  final String? listingImage;
+  final String hotelName;
+  final String? coverImage;
   final String? location;
 
-  const EducationEnquiryListing({
-    required this.listingId,
+  const HotelBookingListing({
+    required this.hotelId,
     required this.ownerId,
     required this.ownerName,
-    required this.listingName,
-    this.listingImage,
+    required this.hotelName,
+    this.coverImage,
     this.location,
   });
 }
 
-/// Customer-side bottom sheet for the education-enquiry flow
-/// (`POST education-enquiries`). Mirrors the hotel / healthcare sheets:
-/// grouped chip selections + optional note + ≤5 photos, then opens the
-/// owner's business chat where the backend posts the enquiry card.
-class EducationEnquirySheet {
-  EducationEnquirySheet._();
+/// Customer-side bottom sheet for the hotel-**booking** flow
+/// (`POST /hotel-bookings`). Distinct from [HotelEnquirySheet]: booking
+/// carries `checkIn`/`checkOut` dates, `guests` count and a `roomType`
+/// choice — the buyer can additionally **Cancel** the resulting card
+/// while it's `pending`. See `lib/docs/enquiry-flows-ui-integration.md`
+/// §2b for the wire shape.
+///
+/// The sheet does NOT fabricate the in-chat card client-side — the
+/// backend auto-creates a `hotel_booking` chat card after the POST
+/// succeeds and emits `newHotelBookingReceived`, so the customer's
+/// business chat lands the card via socket + history.
+class HotelBookingSheet {
+  HotelBookingSheet._();
 
-  static const List<EducationEnquiryGroup> _defaultGroups = [
-    EducationEnquiryGroup(title: 'Courses', options: [
-      'Pre-Primary / KG',
-      'Primary',
-      'Secondary',
-      'Higher Secondary',
-      'Undergraduate',
-      'Postgraduate',
-      'Diploma / Certificate',
-      'Coaching / Tuition',
-    ]),
-    EducationEnquiryGroup(title: 'Admission For', options: [
-      'My child',
-      'Myself',
-      'Sibling',
-      'Other',
-    ]),
-    EducationEnquiryGroup(title: 'Requirements', options: [
-      'Fee details',
-      'Course / curriculum details',
-      'Campus visit',
-      'Admission process',
-      'Scholarship / financial aid',
-      'Hostel / transport',
-    ]),
-    EducationEnquiryGroup(title: 'Timeline', options: [
-      'Immediate',
-      'This term',
-      'Next academic year',
-      'Flexible',
-    ]),
+  static const List<String> _defaultRoomTypes = [
+    'Standard',
+    'Deluxe',
+    'Suite',
+    'Family',
+    'Twin / Sharing',
   ];
-
-  static List<EducationEnquiryGroup> defaultGroups() => _defaultGroups;
 
   static void open(
     BuildContext context, {
-    required EducationEnquiryListing listing,
-    List<EducationEnquiryGroup>? groups,
+    required HotelBookingListing listing,
+    List<String>? roomTypes,
   }) {
-    if (listing.ownerId.isEmpty || listing.listingId.isEmpty) {
+    if (listing.ownerId.isEmpty || listing.hotelId.isEmpty) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
       return;
     }
@@ -99,72 +68,81 @@ class EducationEnquirySheet {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _EducationEnquireForm(
+      builder: (_) => _HotelBookingForm(
         listing: listing,
-        groups: groups ?? _defaultGroups,
-        onSubmit: (selections, note, photoPaths) => _submit(listing, selections, note, photoPaths),
+        roomTypes: roomTypes ?? _defaultRoomTypes,
+        onSubmit: (roomType, checkIn, checkOut, guests, note, photoPaths) =>
+            _submit(
+                listing, roomType, checkIn, checkOut, guests, note, photoPaths),
       ),
     );
   }
 
   static Future<void> _submit(
-    EducationEnquiryListing listing,
-    Map<String, List<String>> selections,
+    HotelBookingListing listing,
+    String? roomType,
+    DateTime? checkIn,
+    DateTime? checkOut,
+    int? guests,
     String note,
     List<String> photoPaths,
   ) async {
-    // Enquiry POST FIRST. Gating navigation on the POST result means
-    // (1) failures keep the customer on the detail screen with a
-    // snackbar instead of stranded on an empty chat; (2) `AppLoader`
-    // blocks the detail screen, not the chat; (3) by the time we
-    // navigate, the backend has already accepted the enquiry so the
-    // real `education_enquiry` card lands over the socket
-    // (`newEducationEnquiryReceived`) shortly after.
-    final controller = getOrPut(() => EducationEnquiryController());
-    final enquiryId = await controller.submitEducationEnquiry(
-      listingId: listing.listingId,
-      selections: selections,
+    final controller = getOrPut(() => HotelBookingController());
+    final bookingId = await controller.submitHotelBooking(
+      hotelId: listing.hotelId,
+      roomType: roomType,
+      checkIn: checkIn?.toIso8601String(),
+      checkOut: checkOut?.toIso8601String(),
+      guests: guests,
       note: note,
       photoPaths: photoPaths,
     );
-    if (enquiryId == null) return;
+    if (bookingId == null) return;
 
     final chatViewController = getOrPut(() => ChatViewController());
     await chatViewController.checkChatConnectionAndOpenChat(
       userId: listing.ownerId,
-      name: listing.listingName.isNotEmpty ? listing.listingName : listing.ownerName,
-      profile: listing.listingImage,
+      name: listing.hotelName.isNotEmpty
+          ? listing.hotelName
+          : listing.ownerName,
+      profile: listing.coverImage,
       route: AppConstants.route_discover,
     );
   }
 }
 
-class _EducationEnquireForm extends StatefulWidget {
-  final EducationEnquiryListing listing;
-  final List<EducationEnquiryGroup> groups;
+class _HotelBookingForm extends StatefulWidget {
+  final HotelBookingListing listing;
+  final List<String> roomTypes;
   final void Function(
-    Map<String, List<String>> selections,
+    String? roomType,
+    DateTime? checkIn,
+    DateTime? checkOut,
+    int? guests,
     String note,
     List<String> photoPaths,
   ) onSubmit;
 
-  const _EducationEnquireForm({
+  const _HotelBookingForm({
     required this.listing,
-    required this.groups,
+    required this.roomTypes,
     required this.onSubmit,
   });
 
   @override
-  State<_EducationEnquireForm> createState() => _EducationEnquireFormState();
+  State<_HotelBookingForm> createState() => _HotelBookingFormState();
 }
 
-class _EducationEnquireFormState extends State<_EducationEnquireForm> {
+class _HotelBookingFormState extends State<_HotelBookingForm> {
   static const Color _accent = AppColors.primaryColor;
   static const Color _accentDeep = AppColors.blue5CAF;
   static const Color _surface = Color(0xFFF4F6FA);
   static const int _maxPhotos = 5;
 
-  final Map<String, Set<String>> _selected = {};
+  String? _roomType;
+  DateTime? _checkIn;
+  DateTime? _checkOut;
+  int _guests = 1;
   final List<String> _photos = [];
   final _noteController = TextEditingController();
 
@@ -174,17 +152,20 @@ class _EducationEnquireFormState extends State<_EducationEnquireForm> {
     super.dispose();
   }
 
-  void _toggle(String groupTitle, String value) {
-    setState(() {
-      final set = _selected.putIfAbsent(groupTitle, () => <String>{});
-      if (!set.add(value)) set.remove(value);
-    });
+  bool get _canSubmit {
+    // Server validation is minimal: hotel_id is required (always present
+    // from the listing) and `checkOut` must be after `checkIn` when both
+    // are given. The sheet lets the user submit with just a note or a
+    // room-type pick too — matching the "loose" contract in §2b.
+    if (_checkIn != null && _checkOut != null && !_checkOut!.isAfter(_checkIn!)) {
+      return false;
+    }
+    return _roomType != null ||
+        _checkIn != null ||
+        _checkOut != null ||
+        _noteController.text.trim().isNotEmpty ||
+        _photos.isNotEmpty;
   }
-
-  bool _isOn(String title, String s) => _selected[title]?.contains(s) ?? false;
-  int _countFor(String title) => _selected[title]?.length ?? 0;
-  bool get _hasSelection => _selected.values.any((s) => s.isNotEmpty);
-  bool get _canSubmit => _hasSelection || _noteController.text.trim().isNotEmpty || _photos.isNotEmpty;
 
   Future<void> _pickPhoto() async {
     if (_photos.length >= _maxPhotos) return;
@@ -200,14 +181,53 @@ class _EducationEnquireFormState extends State<_EducationEnquireForm> {
 
   void _removePhoto(String path) => setState(() => _photos.remove(path));
 
-  void _submit() {
-    final selections = <String, List<String>>{};
-    _selected.forEach((title, set) {
-      if (set.isNotEmpty) selections[title] = set.toList();
+  Future<void> _pickDate({required bool isCheckIn}) async {
+    final today = DateTime.now();
+    final initial = isCheckIn
+        ? (_checkIn ?? today)
+        : (_checkOut ?? _checkIn?.add(const Duration(days: 1)) ?? today);
+    final minDate = isCheckIn ? today : (_checkIn ?? today);
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initial.isBefore(minDate) ? minDate : initial,
+      firstDate: minDate,
+      lastDate: today.add(const Duration(days: 365 * 2)),
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      if (isCheckIn) {
+        _checkIn = picked;
+        // Push checkOut forward if it now precedes the new check-in.
+        if (_checkOut != null && !_checkOut!.isAfter(picked)) {
+          _checkOut = picked.add(const Duration(days: 1));
+        }
+      } else {
+        _checkOut = picked;
+      }
     });
-    final note = _noteController.text.trim();
+  }
+
+  String _fmtDate(DateTime? d) {
+    if (d == null) return '';
+    // Short, locale-independent form so it renders identically to the
+    // in-chat card's date row.
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+    return '${d.day} ${months[d.month - 1]} ${d.year}';
+  }
+
+  void _submit() {
     Navigator.of(context).pop();
-    widget.onSubmit(selections, note, List<String>.from(_photos));
+    widget.onSubmit(
+      _roomType,
+      _checkIn,
+      _checkOut,
+      _guests,
+      _noteController.text.trim(),
+      List<String>.from(_photos),
+    );
   }
 
   @override
@@ -243,37 +263,73 @@ class _EducationEnquireFormState extends State<_EducationEnquireForm> {
               _header(),
               Flexible(
                 child: SingleChildScrollView(
-                  // See [HotelEnquirySheet] for the rationale: keeps
-                  // Android's stretch overscroll indicator out of this
-                  // scroll view so it can't fire setState during layout.
                   physics: const ClampingScrollPhysics(),
                   padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _eyebrow('${AppStrings.photoLabel.tr.toUpperCase()} · ${AppStrings.optionalLabel.tr}',
+                      _eyebrow(
+                          '${AppStrings.photoLabel.tr.toUpperCase()} · ${AppStrings.optionalLabel.tr}',
                           _photos.length),
                       const SizedBox(height: 12),
                       _photoSection(),
                       const SizedBox(height: 22),
-                      for (final group in widget.groups) ...[
-                        _eyebrow(group.title, _countFor(group.title)),
-                        const SizedBox(height: 10),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: group.options
-                              .map((s) => _checkChip(
-                                    label: s,
-                                    on: _isOn(group.title, s),
-                                    onTap: () => _toggle(group.title, s),
-                                  ))
-                              .toList(),
+                      _eyebrow('ROOM TYPE', _roomType == null ? 0 : 1),
+                      const SizedBox(height: 10),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: widget.roomTypes
+                            .map((r) => _checkChip(
+                                  label: r,
+                                  on: _roomType == r,
+                                  onTap: () =>
+                                      setState(() => _roomType = _roomType == r ? null : r),
+                                ))
+                            .toList(),
+                      ),
+                      const SizedBox(height: 22),
+                      _eyebrow('DATES', 0),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _dateTile(
+                              label: AppStrings.checkInLabel.tr,
+                              value: _fmtDate(_checkIn),
+                              onTap: () => _pickDate(isCheckIn: true),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _dateTile(
+                              label: AppStrings.checkOutLabel.tr,
+                              value: _fmtDate(_checkOut),
+                              onTap: () => _pickDate(isCheckIn: false),
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (_checkIn != null &&
+                          _checkOut != null &&
+                          !_checkOut!.isAfter(_checkIn!))
+                        Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: CustomText(
+                            'Check-out must be after check-in',
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.red,
+                          ),
                         ),
-                        const SizedBox(height: 20),
-                      ],
+                      const SizedBox(height: 22),
+                      _eyebrow('GUESTS', _guests),
+                      const SizedBox(height: 10),
+                      _guestStepper(),
+                      const SizedBox(height: 22),
                       _eyebrow(
-                          '${AppStrings.noteLabel.tr.toUpperCase()} · ${AppStrings.optionalLabel.tr}', 0),
+                          '${AppStrings.noteLabel.tr.toUpperCase()} · ${AppStrings.optionalLabel.tr}',
+                          0),
                       const SizedBox(height: 10),
                       _noteField(),
                     ],
@@ -313,7 +369,8 @@ class _EducationEnquireFormState extends State<_EducationEnquireForm> {
                 ),
               ],
             ),
-            child: const Icon(Icons.school_rounded, color: Colors.white, size: 22),
+            child: const Icon(Icons.hotel_rounded,
+                color: Colors.white, size: 22),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -321,7 +378,7 @@ class _EducationEnquireFormState extends State<_EducationEnquireForm> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  AppStrings.educationEnquiryTitle.tr,
+                  AppStrings.hotelBookingTitle.tr,
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
                   color: AppColors.mainTextColor,
@@ -330,8 +387,8 @@ class _EducationEnquireFormState extends State<_EducationEnquireForm> {
                 CustomText(
                   AppStrings.tellListingAboutEnquiry.tr.replaceAll(
                       '{listing}',
-                      widget.listing.listingName.isNotEmpty
-                          ? widget.listing.listingName
+                      widget.listing.hotelName.isNotEmpty
+                          ? widget.listing.hotelName
                           : widget.listing.ownerName),
                   fontSize: 12.5,
                   color: AppColors.secondaryTextColor,
@@ -354,7 +411,8 @@ class _EducationEnquireFormState extends State<_EducationEnquireForm> {
                 color: _surface,
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.close_rounded, size: 18, color: AppColors.secondaryTextColor),
+              child: Icon(Icons.close_rounded,
+                  size: 18, color: AppColors.secondaryTextColor),
             ),
           ),
         ],
@@ -383,7 +441,8 @@ class _EducationEnquireFormState extends State<_EducationEnquireForm> {
               color: _accent.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(999),
             ),
-            child: CustomText('$count', fontSize: 10, fontWeight: FontWeight.w800, color: _accent),
+            child: CustomText('$count',
+                fontSize: 10, fontWeight: FontWeight.w800, color: _accent),
           ),
         ],
       ],
@@ -413,7 +472,9 @@ class _EducationEnquireFormState extends State<_EducationEnquireForm> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              on ? Icons.check_circle_rounded : Icons.add_circle_outline_rounded,
+              on
+                  ? Icons.check_circle_rounded
+                  : Icons.add_circle_outline_rounded,
               size: 16,
               color: on ? _accent : AppColors.greyCA,
             ),
@@ -426,6 +487,112 @@ class _EducationEnquireFormState extends State<_EducationEnquireForm> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _dateTile({
+    required String label,
+    required String value,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          color: _surface,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.greyE5),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.calendar_month_rounded, size: 18, color: _accent),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    label,
+                    fontSize: 10.5,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.secondaryTextColor,
+                  ),
+                  const SizedBox(height: 2),
+                  CustomText(
+                    value.isEmpty ? '—' : value,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: value.isEmpty
+                        ? AppColors.secondaryTextColor
+                        : AppColors.mainTextColor,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _guestStepper() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: _surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.greyE5),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.groups_rounded, size: 18, color: _accent),
+          const SizedBox(width: 8),
+          Expanded(
+            child: CustomText(
+              '$_guests ${_guests == 1 ? 'guest' : 'guests'}',
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: AppColors.mainTextColor,
+            ),
+          ),
+          _stepperBtn(
+            icon: Icons.remove_rounded,
+            onTap: _guests > 1 ? () => setState(() => _guests--) : null,
+          ),
+          const SizedBox(width: 8),
+          _stepperBtn(
+            icon: Icons.add_rounded,
+            onTap: _guests < 20 ? () => setState(() => _guests++) : null,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _stepperBtn({required IconData icon, VoidCallback? onTap}) {
+    final enabled = onTap != null;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(999),
+      child: Container(
+        width: 30,
+        height: 30,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: enabled ? Colors.white : AppColors.greyE5,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: enabled ? _accent : AppColors.greyE5,
+            width: 1.2,
+          ),
+        ),
+        child: Icon(icon,
+            size: 16, color: enabled ? _accent : AppColors.greyCA),
       ),
     );
   }
@@ -464,7 +631,8 @@ class _EducationEnquireFormState extends State<_EducationEnquireForm> {
                   color: Colors.black.withValues(alpha: 0.55),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.close_rounded, size: 14, color: Colors.white),
+                child: const Icon(Icons.close_rounded,
+                    size: 14, color: Colors.white),
               ),
             ),
           ),
@@ -484,14 +652,16 @@ class _EducationEnquireFormState extends State<_EducationEnquireForm> {
         decoration: BoxDecoration(
           color: _surface,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: _accent.withValues(alpha: 0.35), width: 1.2),
+          border:
+              Border.all(color: _accent.withValues(alpha: 0.35), width: 1.2),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.add_a_photo_outlined, size: 28, color: _accent),
             const SizedBox(height: 6),
-            CustomText(AppStrings.photoLabel.tr, fontSize: 13, fontWeight: FontWeight.w800, color: _accent),
+            CustomText(AppStrings.photoLabel.tr,
+                fontSize: 13, fontWeight: FontWeight.w800, color: _accent),
           ],
         ),
       ),
@@ -526,7 +696,9 @@ class _EducationEnquireFormState extends State<_EducationEnquireForm> {
             padding: const EdgeInsets.symmetric(vertical: 15),
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              gradient: _canSubmit ? const LinearGradient(colors: [_accentDeep, _accent]) : null,
+              gradient: _canSubmit
+                  ? const LinearGradient(colors: [_accentDeep, _accent])
+                  : null,
               color: _canSubmit ? null : AppColors.greyE5,
               borderRadius: BorderRadius.circular(16),
               boxShadow: _canSubmit
@@ -542,10 +714,12 @@ class _EducationEnquireFormState extends State<_EducationEnquireForm> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.send_rounded, size: 18, color: _canSubmit ? Colors.white : AppColors.greyCA),
+                Icon(Icons.send_rounded,
+                    size: 18,
+                    color: _canSubmit ? Colors.white : AppColors.greyCA),
                 const SizedBox(width: 8),
                 CustomText(
-                  AppStrings.sendEnquiryLabel.tr,
+                  AppStrings.bookNow.tr,
                   fontSize: 15,
                   fontWeight: FontWeight.w800,
                   color: _canSubmit ? Colors.white : AppColors.greyCA,

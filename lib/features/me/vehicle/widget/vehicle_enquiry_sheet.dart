@@ -1,7 +1,6 @@
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -111,45 +110,6 @@ class _VehicleEnquireFormState extends State<_VehicleEnquireForm> {
   void _removePhoto(String path) =>
       setState(() => _photoPaths.remove(path));
 
-  /// Client-side card fabrication: `POST /vehicles/bookings` returns the
-  /// booking record but does not itself push a chat message to the
-  /// buyer↔seller thread. So after the POST succeeds the sheet sends a
-  /// `vehicle_booking` chat message carrying the booking metadata; the
-  /// chat backend persists it (see `_overlayFabricatedEnquiryMetadata` in
-  /// chat_view_controller.dart:2562 for the paired echo-safety patch)
-  /// and emits `newVehicleBookingReceived` to the seller. Shape mirrors
-  /// what `_buildVehicleBookingView` (message_card.dart) reads:
-  /// `metadata.booking` + `metadata.vehicleBookingId` (the enquiry_id).
-  Map<String, dynamic> _buildBookingMetadata(VehicleBooking b) {
-    final snap = b.snapshot;
-    return {
-      'vehicleBookingId': b.id,
-      'booking': {
-        '_id': b.id,
-        'buyerId': b.buyerId,
-        'sellerId': b.sellerId,
-        'sellerType': b.sellerType,
-        'inventoryId': b.inventoryId,
-        'variantId': b.variantId,
-        'intent': b.intent.wire,
-        'offerPrice': b.offerPrice,
-        'note': b.note,
-        'photos': b.photos,
-        if (snap != null)
-          'snapshot': {
-            'title': snap.title,
-            'image': snap.image,
-            'priceText': snap.priceText,
-            'condition': snap.condition,
-            'location': snap.location,
-          },
-        'status': b.status.wire,
-        'created_at': b.createdAt?.toIso8601String(),
-        'updated_at': b.updatedAt?.toIso8601String(),
-      },
-    };
-  }
-
   Future<void> _submit() async {
     final inventoryId = (widget.vehicle.id ?? '').trim();
     if (inventoryId.isEmpty) {
@@ -190,16 +150,15 @@ class _VehicleEnquireFormState extends State<_VehicleEnquireForm> {
       final targetUserId = (widget.vehicle.userId ?? '').trim();
       if (targetUserId.isEmpty) return;
 
-      // Fabricate the `vehicle_booking` chat card: send a chat message
-      // whose `message_type` + `metadata` match what
-      // `_buildVehicleBookingView` reads, so the shared EnquiryMsgCard
-      // renders on both sides. `checkChatConnectionAndOpenChat` handles
-      // the "which conversation?" resolution and the message send.
-      final shareParams = <String, dynamic>{
-        ApiKeys.message: AppStrings.vehicleBookingTitle.tr,
-        ApiKeys.message_type: 'vehicle_booking',
-        ApiKeys.metadata: _buildBookingMetadata(booking),
-      };
+      // Backend auto-creates the `vehicle_booking` chat card after the
+      // POST succeeds and pushes it through `newVehicleBookingReceived`
+      // — same pattern as the four enquiry verticals. We just open the
+      // buyer↔seller business chat; the card lands via socket + history.
+      // Client-side fabrication was removed here because the backend now
+      // owns the card, and fabricating a second one produced a duplicate
+      // in the chat. See
+      // lib/docs/enquiry-verticals-flutter-integration.md §"Common
+      // behavior" (Sockets, dedupe by message._id).
       final chat = getOrPut(() => ChatViewController());
       await chat.checkChatConnectionAndOpenChat(
         userId: targetUserId,
@@ -210,8 +169,6 @@ class _VehicleEnquireFormState extends State<_VehicleEnquireForm> {
             ? widget.vehicle.coverImage
             : null,
         route: AppConstants.route_discover,
-        shareProductParams: shareParams,
-        isWithProductSend: true,
       );
     } finally {
       if (mounted) setState(() => _isSubmitting = false);

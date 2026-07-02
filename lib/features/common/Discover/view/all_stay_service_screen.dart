@@ -17,6 +17,7 @@ import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
 import 'package:BlueEra/features/common/Discover/view/hotel_discover_home_screen.dart';
+import 'package:BlueEra/features/me/hotel/widget/hotel_booking_sheet.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/book_via_blueera_partner_banner.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_map_widgets.dart';
 import 'package:BlueEra/features/common/Discover/widget/home_stay_details_widget.dart';
@@ -716,6 +717,42 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
     );
   }
 
+  /// Opens the hotel-**booking** sheet (§2b) for a listing shown on the
+  /// stay-services list. `profile.sId` is the HotelProfile `_id` the
+  /// booking endpoint expects as `hotel_id`; `profile.businessId` (or
+  /// the top-level `businessId` fallback) is the owner-business the
+  /// buyer will chat with once the card lands. Guest users are routed
+  /// into onboarding first — a booking POST would fail without a token.
+  void _openHotelBookingSheet(HotelServiceData service) {
+    if (isGuestUser()) {
+      createProfileScreen();
+      return;
+    }
+    final hotelId =
+        (service.profile?.sId ?? service.businessId ?? '').trim();
+    final ownerId =
+        (service.profile?.businessId ?? service.businessId ?? '').trim();
+    if (hotelId.isEmpty || ownerId.isEmpty) {
+      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
+      return;
+    }
+    HotelBookingSheet.open(
+      context,
+      listing: HotelBookingListing(
+        hotelId: hotelId,
+        ownerId: ownerId,
+        ownerName: (service.profile?.name ?? '').trim(),
+        hotelName: (service.profile?.name ?? '').trim(),
+        coverImage: service.profile?.coverUrl ?? service.profile?.logoUrl,
+        location: [
+          service.profile?.address?.street,
+          service.profile?.address?.city,
+          service.profile?.address?.state,
+        ].where((e) => e != null && e.isNotEmpty).join(', '),
+      ),
+    );
+  }
+
   Future<void> _openRentalChat(RentalServiceData service) async {
     final ownerId = service.userId;
     if (ownerId == null || ownerId.isEmpty) {
@@ -770,7 +807,7 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
         checkInTime: service.profile?.policy?.checkInTime ?? '',
         checkOutTime: service.profile?.policy?.checkOutTime ?? '',
         amenities: _hotelAmenities(service.profile?.amenities),
-        onBook: openDetails,
+        onBook: () => _openHotelBookingSheet(service),
         onChat: () => _openHotelChat(service),
       ),
     );
@@ -1339,9 +1376,7 @@ class _PropertyCardState extends State<PropertyCard> {
                 children: [
                   if (widget.checkInTime.isNotEmpty)
                     _timePill(
-                      widget.checkOutTime.isNotEmpty
-                          ? '${widget.checkInTime}  -'
-                          : widget.checkInTime,
+                      widget.checkOutTime.isNotEmpty ? '${widget.checkInTime}  -' : widget.checkInTime,
                     ),
                   if (widget.checkInTime.isNotEmpty && widget.checkOutTime.isNotEmpty)
                     SizedBox(width: SizeConfig.size6),
@@ -1509,23 +1544,23 @@ class _PropertyCardState extends State<PropertyCard> {
           SizedBox(width: SizeConfig.size10),
           // Chat option — same square chat affordance the hospital/business
           // discover cards use. Opens a chat with the hotel owner.
-          if (widget.onChat != null) ...[
-            GestureDetector(
-              onTap: widget.onChat,
-              child: Container(
-                height: 44,
-                width: 44,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.primaryColor, width: 0.5),
-                ),
-                child: Icon(Icons.chat_bubble_outline_rounded, size: 18, color: AppColors.primaryColor),
-              ),
-            ),
-            SizedBox(width: SizeConfig.size10),
-          ],
+          // if (widget.onChat != null) ...[
+          //   GestureDetector(
+          //     onTap: widget.onChat,
+          //     child: Container(
+          //       height: 44,
+          //       width: 44,
+          //       alignment: Alignment.center,
+          //       decoration: BoxDecoration(
+          //         color: AppColors.primaryColor.withValues(alpha: 0.1),
+          //         borderRadius: BorderRadius.circular(10),
+          //         border: Border.all(color: AppColors.primaryColor, width: 0.5),
+          //       ),
+          //       child: Icon(Icons.chat_bubble_outline_rounded, size: 18, color: AppColors.primaryColor),
+          //     ),
+          //   ),
+          //   SizedBox(width: SizeConfig.size10),
+          // ],
           GestureDetector(
             onTap: widget.onBook,
             child: Container(

@@ -10,6 +10,9 @@ import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart'
 import 'package:BlueEra/features/common/Discover/controller/finance_discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/finance_search_res_model.dart';
 import 'package:BlueEra/features/common/Discover/view/finance/finance_job_listing_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/finance/widget/finance_enquiry_sheet.dart';
+import 'package:BlueEra/features/me/others/controller/other_enquiry_controller.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -33,6 +36,7 @@ class FinanceDetailScreen extends StatefulWidget {
 
 class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
   final controller = Get.find<FinanceDiscoverController>();
+  Worker? _prefetchWorker;
 
   @override
   void initState() {
@@ -41,6 +45,41 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
     if (id != null && id.isNotEmpty) {
       controller.fetchDetail(id);
     }
+    // Prefetch the server-driven enquiry chip catalog for this listing's
+    // category so tapping "Book Inquiry" opens the sheet instantly. Fires
+    // for both the initial selectedDetail (if set) and any post-fetch
+    // update. Per-category cache in [OtherEnquiryController] makes
+    // repeated calls cheap. See
+    // lib/docs/predefined-enquiry-ui-integration.md §2 "Prefetch + cache".
+    final enquiryCtrl = getOrPut(() => OtherEnquiryController());
+    void prefetch(String? category) {
+      final c = (category ?? '').trim();
+      if (c.isEmpty) return;
+      // ignore: unawaited_futures
+      enquiryCtrl.loadPredefinedEnquiryOptions(c);
+    }
+
+    prefetch(controller.selectedDetail.value?.category);
+    _prefetchWorker = ever<FinanceBusinessItem?>(
+      controller.selectedDetail,
+      (item) => prefetch(item?.category),
+    );
+  }
+
+  @override
+  void dispose() {
+    _prefetchWorker?.dispose();
+    super.dispose();
+  }
+
+  /// Open the finance-specific enquiry sheet. Same `/other-enquiries`
+  /// wire contract as [BusinessEnquirySheet] (see
+  /// `lib/docs/other-enquiry-ui-integration.md` §2) but a finance-tailored
+  /// form UX with category-specific defaults. [FinanceEnquirySheet]
+  /// resolves `listingId` (`data.id` → `business_id`) and `ownerId`
+  /// (`data.userId`) internally.
+  void _openEnquirySheet(FinanceBusinessItem data) {
+    FinanceEnquirySheet.open(context, data: data);
   }
 
   @override
@@ -81,8 +120,7 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: PositiveCustomBtn(
-                    onTap: () => commonSnackBar(
-                        message: AppStrings.comingSoonLabel.tr),
+                    onTap: () => _openEnquirySheet(data),
                     title: AppStrings.bookInquiry,
                   ),
                 ),

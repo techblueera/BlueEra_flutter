@@ -161,14 +161,12 @@ class AppStrings {
   static const addDocuments = "addDocuments";
   static const view = "view";
   static const noDocumentUploaded = "noDocumentUploaded";
-  static const documentVerificationFailed =
-      "Document verification failed. Please upload a valid document.";
+  static const documentVerificationFailed = "Document verification failed. Please upload a valid document.";
   static const docTypeMismatch =
       "The uploaded document doesn't match the selected document type. Please upload the correct document.";
   static const docNumberNotReadable =
       "The document number isn't clearly readable. Please upload a clearer image.";
-  static const docNumberMismatch =
-      "The document number you entered doesn't match the uploaded document.";
+  static const docNumberMismatch = "The document number you entered doesn't match the uploaded document.";
   static const info = "info";
   static const policeVerificationNoc = "policeVerificationNoc";
   static const uploadPoliceVerificationNoc = "uploadPoliceVerificationNoc";
@@ -4968,10 +4966,8 @@ class AppStrings {
   static const String foodHint180 = "food_hint_180";
   static const String foodSellingPriceLabel = "food_selling_price_label";
   static const String foodMrpMustBePositive = "food_mrp_must_be_positive";
-  static const String foodSellingPriceMustBePositive =
-      "food_selling_price_must_be_positive";
-  static const String foodSellingPriceExceedsMrp =
-      "food_selling_price_exceeds_mrp";
+  static const String foodSellingPriceMustBePositive = "food_selling_price_must_be_positive";
+  static const String foodSellingPriceExceedsMrp = "food_selling_price_exceeds_mrp";
   static const String foodAddedLabel = "food_added_label";
   static const String foodAddBtnLabel = "food_add_btn_label";
   static const String foodHintRupees = "food_hint_rupees";
@@ -6447,8 +6443,7 @@ class AppStrings {
   static const String servicePassenger = "servicePassenger";
   static const String serviceGoods = "serviceGoods";
   static const String serviceBoth = "serviceBoth";
-  static const String pleaseSelectServicePreference =
-      "pleaseSelectServicePreference";
+  static const String pleaseSelectServicePreference = "pleaseSelectServicePreference";
   static const String servicePreferenceSavedTo = "servicePreferenceSavedTo";
   static const String servicePreferenceUpdatedTo = "servicePreferenceUpdatedTo";
   static const String pickupDropPreference = "pickupDropPreference";
@@ -7155,8 +7150,11 @@ class AppStrings {
   static const String cancelLabel = "cancelLabel";
   static const String enquiryCancelled = "enquiryCancelled";
   static const String hotelEnquiryTitle = "hotelEnquiryTitle";
+  static const String hotelBookingTitle = "hotelBookingTitle";
   static const String vehicleBookingTitle = "vehicleBookingTitle";
   static const String educationEnquiryTitle = "educationEnquiryTitle";
+  static const String businessEnquiryTitle = "businessEnquiryTitle";
+  static const String financeEnquiryTitle = "financeEnquiryTitle";
   static const String inquiriesLabel = "inquiriesLabel";
   static const String addWebsite = "addWebsite";
   static const String updateWebsite = "updateWebsite";
@@ -7172,8 +7170,7 @@ class AppStrings {
 
   // ─── Add-vehicle flow (NEW / USED) ─────────────────────────────────
   static const String addVehicleTitle = "addVehicleTitle";
-  static const String chooseVehicleConditionPrompt =
-      "chooseVehicleConditionPrompt";
+  static const String chooseVehicleConditionPrompt = "chooseVehicleConditionPrompt";
   static const String newVehicleOption = "newVehicleOption";
   static const String newVehicleOptionDesc = "newVehicleOptionDesc";
   static const String usedVehicleOption = "usedVehicleOption";
@@ -7187,21 +7184,18 @@ class AppStrings {
   // Catalog picker (Select Brand → Model → Variant + request fallback)
   static const String vehicleSelectBrandTitle = "vehicle_select_brand_title";
   static const String vehicleSelectModelTitle = "vehicle_select_model_title";
-  static const String vehicleSelectVariantTitle =
-      "vehicle_select_variant_title";
+  static const String vehicleSelectVariantTitle = "vehicle_select_variant_title";
   static const String vehicleCatalogSearchHint = "vehicle_catalog_search_hint";
   static const String vehicleCantFindRequest = "vehicle_cant_find_request";
   static const String vehicleRequestModelTitle = "vehicle_request_model_title";
   static const String vehicleRequestModelDesc = "vehicle_request_model_desc";
   static const String vehicleRequestNoteHint = "vehicle_request_note_hint";
-  static const String vehicleRequestSubmitLabel =
-      "vehicle_request_submit_label";
+  static const String vehicleRequestSubmitLabel = "vehicle_request_submit_label";
 
   // Step titles
   static const String selectVehicleTitle = "selectVehicleTitle";
   static const String specificationsOffersTitle = "specificationsOffersTitle";
-  static const String photosLocationContactTitle =
-      "photosLocationContactTitle";
+  static const String photosLocationContactTitle = "photosLocationContactTitle";
   static const String vehicleInformationTitle = "vehicleInformationTitle";
   static const String vehicleDetailsTitle = "vehicleDetailsTitle";
 
@@ -7268,12 +7262,9 @@ class AppStrings {
   static const String exShowroomPriceRequiredErr = "exShowroomPriceRequiredErr";
   static const String downPaymentRequiredErr = "downPaymentRequiredErr";
   static const String monthlyEmiRequiredErr = "monthlyEmiRequiredErr";
-  static const String manufacturingYearRequiredErr =
-      "manufacturingYearRequiredErr";
-  static const String registrationYearRequiredErr =
-      "registrationYearRequiredErr";
-  static const String registrationNumberRequiredErr =
-      "registrationNumberRequiredErr";
+  static const String manufacturingYearRequiredErr = "manufacturingYearRequiredErr";
+  static const String registrationYearRequiredErr = "registrationYearRequiredErr";
+  static const String registrationNumberRequiredErr = "registrationNumberRequiredErr";
   static const String selectOwnershipErr = "selectOwnershipErr";
   static const String selectConditionGradeErr = "selectConditionGradeErr";
   static const String expectedPriceRequiredErr = "expectedPriceRequiredErr";
@@ -7325,6 +7316,5 @@ class AppStrings {
   static const String saveAndGoLive = "saveAndGoLive";
   static const String youAreNowLive = "youAreNowLive";
   static const String keepAtLeastOneDayOpen = "keepAtLeastOneDayOpen";
-  static const String closingTimeMustBeAfterOpening =
-      "closingTimeMustBeAfterOpening";
+  static const String closingTimeMustBeAfterOpening = "closingTimeMustBeAfterOpening";
 }

@@ -7,26 +7,31 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
-import 'package:BlueEra/features/me/school/controller/education_enquiry_controller.dart';
+import 'package:BlueEra/features/me/others/controller/other_enquiry_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// One selection group on the education-enquiry form. Titles are
-/// app-defined; the controller maps known display titles (Courses /
-/// Admission For / Requirements / Timeline) to the snake-case keys the
-/// server expects, and ships unknown titles verbatim.
-class EducationEnquiryGroup {
+/// One selection group on the "other" business enquiry form. Lives at the
+/// top level so callers building category-specific groups don't reach into
+/// private types. [title] is what the user (and the in-chat card) sees as
+/// the section label; the same string is sent back to the server as the
+/// selections-map key so the card can render it verbatim.
+class BusinessEnquiryGroup {
   final String title;
   final List<String> options;
-  const EducationEnquiryGroup({required this.title, required this.options});
+
+  const BusinessEnquiryGroup({
+    required this.title,
+    required this.options,
+  });
 }
 
-/// Snapshot of the education listing (school/college) being enquired
-/// about. Denormalised so the sheet header — and the eventual in-chat
-/// card — renders without re-fetching the listing.
-class EducationEnquiryListing {
+/// Snapshot of the listing being enquired about. Denormalised into the
+/// form (and onto the eventual chat card) so the customer / owner sees a
+/// header without an extra fetch.
+class BusinessEnquiryListing {
   final String listingId;
   final String ownerId;
   final String ownerName;
@@ -34,7 +39,7 @@ class EducationEnquiryListing {
   final String? listingImage;
   final String? location;
 
-  const EducationEnquiryListing({
+  const BusinessEnquiryListing({
     required this.listingId,
     required this.ownerId,
     required this.ownerName,
@@ -44,71 +49,147 @@ class EducationEnquiryListing {
   });
 }
 
-/// Customer-side bottom sheet for the education-enquiry flow
-/// (`POST education-enquiries`). Mirrors the hotel / healthcare sheets:
-/// grouped chip selections + optional note + ≤5 photos, then opens the
-/// owner's business chat where the backend posts the enquiry card.
-class EducationEnquirySheet {
-  EducationEnquirySheet._();
+/// Customer-side enquiry sheet for the **"other" business flow** — the
+/// non-hospital, non-healthcare, non-hotel, non-education, non-vehicle
+/// vertical (finance / banking / insurance / loans / capital-market /
+/// data). One parameterized sheet covers every category — the only thing
+/// that varies per category is the [groups] list (Services / Purpose for
+/// LOANS_SECTOR, Policy Type / Purpose for INSURANCE, etc.). See
+/// `lib/docs/other-enquiry-ui-integration.md`.
+///
+/// The sheet drives [OtherEnquiryController], then opens the business chat
+/// with the owner — the backend posts the enquiry card into that
+/// conversation, so we never seed any chat text. A locally-fabricated
+/// `service + enquiry_only` message with `variant: other|<enquiryId>` is
+/// also sent so the customer sees the card immediately; the deduping
+/// socket listener handles the real backend card when it arrives.
+class BusinessEnquirySheet {
+  BusinessEnquirySheet._();
 
-  static const List<EducationEnquiryGroup> _defaultGroups = [
-    EducationEnquiryGroup(title: 'Courses', options: [
-      'Pre-Primary / KG',
-      'Primary',
-      'Secondary',
-      'Higher Secondary',
-      'Undergraduate',
-      'Postgraduate',
-      'Diploma / Certificate',
-      'Coaching / Tuition',
-    ]),
-    EducationEnquiryGroup(title: 'Admission For', options: [
-      'My child',
-      'Myself',
-      'Sibling',
-      'Other',
-    ]),
-    EducationEnquiryGroup(title: 'Requirements', options: [
-      'Fee details',
-      'Course / curriculum details',
-      'Campus visit',
-      'Admission process',
-      'Scholarship / financial aid',
-      'Hostel / transport',
-    ]),
-    EducationEnquiryGroup(title: 'Timeline', options: [
-      'Immediate',
-      'This term',
-      'Next academic year',
-      'Flexible',
-    ]),
-  ];
+  /// Default group catalogs for each known "other" category. Optional
+  /// helper — callers that want a different layout per listing can pass
+  /// their own [groups] to [open] directly. Keys are matched
+  /// case-insensitively against the canonical category strings used on
+  /// the chat card (LOANS_SECTOR / INSURANCE / BANKING / CAPITAL_MARKET
+  /// / DATA).
+  static const Map<String, List<BusinessEnquiryGroup>> _defaultGroups = {
+    'LOANS_SECTOR': [
+      BusinessEnquiryGroup(title: 'Services', options: [
+        'Home Loan',
+        'Personal Loan',
+        'Business Loan',
+        'Vehicle Loan',
+        'Education Loan',
+        'Gold Loan',
+        'Loan Against Property',
+      ]),
+      BusinessEnquiryGroup(title: 'Purpose', options: [
+        'Compare rates',
+        'Check eligibility',
+        'Apply now',
+        'Documentation help',
+      ]),
+    ],
+    'INSURANCE': [
+      BusinessEnquiryGroup(title: 'Policy Type', options: [
+        'Life Insurance',
+        'Health Insurance',
+        'Motor Insurance',
+        'Home Insurance',
+        'Travel Insurance',
+        'Business Insurance',
+      ]),
+      BusinessEnquiryGroup(title: 'Purpose', options: [
+        'Compare plans',
+        'New policy',
+        'Renew existing',
+        'Claim assistance',
+      ]),
+    ],
+    'BANKING': [
+      BusinessEnquiryGroup(title: 'Services', options: [
+        'Savings Account',
+        'Current Account',
+        'Fixed Deposit',
+        'Recurring Deposit',
+        'Credit Card',
+        'Locker',
+      ]),
+      BusinessEnquiryGroup(title: 'Purpose', options: [
+        'Open account',
+        'Rate enquiry',
+        'Documentation help',
+        'Branch visit',
+      ]),
+    ],
+    'CAPITAL_MARKET': [
+      BusinessEnquiryGroup(title: 'Services', options: [
+        'Stocks / Equity',
+        'Mutual Funds',
+        'IPO',
+        'Bonds',
+        'Portfolio Management',
+        'Demat Account',
+      ]),
+      BusinessEnquiryGroup(title: 'Purpose', options: [
+        'Advice',
+        'Open account',
+        'Compare plans',
+        'Documentation help',
+      ]),
+    ],
+    'DATA': [
+      BusinessEnquiryGroup(title: 'Services', options: [
+        'Data Analysis',
+        'Reports',
+        'Consulting',
+        'Subscription',
+      ]),
+      BusinessEnquiryGroup(title: 'Purpose', options: [
+        'Trial / Demo',
+        'Pricing',
+        'Custom quote',
+      ]),
+    ],
+  };
 
-  static List<EducationEnquiryGroup> defaultGroups() => _defaultGroups;
+  /// Lookup default groups for [category]. Returns an empty list for
+  /// unknown categories so the sheet still opens (caller likely passed
+  /// [groups] explicitly in that case).
+  static List<BusinessEnquiryGroup> defaultGroupsFor(String category) =>
+      _defaultGroups[category.toUpperCase()] ?? const [];
 
+  /// Open the enquiry sheet. [category] is the canonical category string
+  /// snapshot from the listing (LOANS_SECTOR / INSURANCE / BANKING /
+  /// CAPITAL_MARKET / DATA / …). [groups] defaults to [defaultGroupsFor]
+  /// but callers can override.
   static void open(
     BuildContext context, {
-    required EducationEnquiryListing listing,
-    List<EducationEnquiryGroup>? groups,
+    required String category,
+    required BusinessEnquiryListing listing,
+    List<BusinessEnquiryGroup>? groups,
   }) {
     if (listing.ownerId.isEmpty || listing.listingId.isEmpty) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
       return;
     }
+    final effectiveGroups = groups ?? defaultGroupsFor(category);
+
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _EducationEnquireForm(
+      builder: (_) => _BusinessEnquireForm(
         listing: listing,
-        groups: groups ?? _defaultGroups,
-        onSubmit: (selections, note, photoPaths) => _submit(listing, selections, note, photoPaths),
+        groups: effectiveGroups,
+        onSubmit: (selections, note, photoPaths) =>
+            _submit(listing, selections, note, photoPaths),
       ),
     );
   }
 
   static Future<void> _submit(
-    EducationEnquiryListing listing,
+    BusinessEnquiryListing listing,
     Map<String, List<String>> selections,
     String note,
     List<String> photoPaths,
@@ -117,12 +198,13 @@ class EducationEnquirySheet {
     // (1) failures keep the customer on the detail screen with a
     // snackbar instead of stranded on an empty chat; (2) `AppLoader`
     // blocks the detail screen, not the chat; (3) by the time we
-    // navigate, the backend has already accepted the enquiry so the
-    // real `education_enquiry` card lands over the socket
-    // (`newEducationEnquiryReceived`) shortly after.
-    final controller = getOrPut(() => EducationEnquiryController());
-    final enquiryId = await controller.submitEducationEnquiry(
-      listingId: listing.listingId,
+    // navigate the backend has already accepted the enquiry, so the
+    // real `business_enquiry` card lands over the socket
+    // (`newBusinessEnquiryReceived`) shortly after — see
+    // `lib/docs/other-enquiry-ui-integration.md` §5 + §8.
+    final controller = getOrPut(() => OtherEnquiryController());
+    final enquiryId = await controller.submitOtherEnquiry(
+      businessId: listing.listingId,
       selections: selections,
       note: note,
       photoPaths: photoPaths,
@@ -132,38 +214,44 @@ class EducationEnquirySheet {
     final chatViewController = getOrPut(() => ChatViewController());
     await chatViewController.checkChatConnectionAndOpenChat(
       userId: listing.ownerId,
-      name: listing.listingName.isNotEmpty ? listing.listingName : listing.ownerName,
+      name: listing.listingName.isNotEmpty
+          ? listing.listingName
+          : listing.ownerName,
       profile: listing.listingImage,
       route: AppConstants.route_discover,
     );
   }
 }
 
-class _EducationEnquireForm extends StatefulWidget {
-  final EducationEnquiryListing listing;
-  final List<EducationEnquiryGroup> groups;
+class _BusinessEnquireForm extends StatefulWidget {
+  final BusinessEnquiryListing listing;
+  final List<BusinessEnquiryGroup> groups;
   final void Function(
     Map<String, List<String>> selections,
     String note,
     List<String> photoPaths,
   ) onSubmit;
 
-  const _EducationEnquireForm({
+  const _BusinessEnquireForm({
     required this.listing,
     required this.groups,
     required this.onSubmit,
   });
 
   @override
-  State<_EducationEnquireForm> createState() => _EducationEnquireFormState();
+  State<_BusinessEnquireForm> createState() => _BusinessEnquireFormState();
 }
 
-class _EducationEnquireFormState extends State<_EducationEnquireForm> {
+class _BusinessEnquireFormState extends State<_BusinessEnquireForm> {
   static const Color _accent = AppColors.primaryColor;
   static const Color _accentDeep = AppColors.blue5CAF;
   static const Color _surface = Color(0xFFF4F6FA);
+
+  /// Server caps photos at 5 (see §2 "Rules" in the integration guide).
   static const int _maxPhotos = 5;
 
+  // Selection state keyed by the group's display title (which is also the
+  // selections-map key sent to the server).
   final Map<String, Set<String>> _selected = {};
   final List<String> _photos = [];
   final _noteController = TextEditingController();
@@ -181,13 +269,23 @@ class _EducationEnquireFormState extends State<_EducationEnquireForm> {
     });
   }
 
-  bool _isOn(String title, String s) => _selected[title]?.contains(s) ?? false;
-  int _countFor(String title) => _selected[title]?.length ?? 0;
+  bool _isOn(String groupTitle, String value) =>
+      _selected[groupTitle]?.contains(value) ?? false;
+
+  int _countFor(String groupTitle) => _selected[groupTitle]?.length ?? 0;
+
   bool get _hasSelection => _selected.values.any((s) => s.isNotEmpty);
-  bool get _canSubmit => _hasSelection || _noteController.text.trim().isNotEmpty || _photos.isNotEmpty;
+
+  bool get _canSubmit =>
+      _hasSelection ||
+      _noteController.text.trim().isNotEmpty ||
+      _photos.isNotEmpty;
 
   Future<void> _pickPhoto() async {
-    if (_photos.length >= _maxPhotos) return;
+    if (_photos.length >= _maxPhotos) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return;
+    }
     final path = await PhotoPickerService.pickSinglePhoto(
       context,
       AppStrings.photoLabel.tr,
@@ -243,15 +341,13 @@ class _EducationEnquireFormState extends State<_EducationEnquireForm> {
               _header(),
               Flexible(
                 child: SingleChildScrollView(
-                  // See [HotelEnquirySheet] for the rationale: keeps
-                  // Android's stretch overscroll indicator out of this
-                  // scroll view so it can't fire setState during layout.
                   physics: const ClampingScrollPhysics(),
                   padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _eyebrow('${AppStrings.photoLabel.tr.toUpperCase()} · ${AppStrings.optionalLabel.tr}',
+                      _eyebrow(
+                          '${AppStrings.photoLabel.tr.toUpperCase()} · ${AppStrings.optionalLabel.tr}',
                           _photos.length),
                       const SizedBox(height: 12),
                       _photoSection(),
@@ -273,7 +369,8 @@ class _EducationEnquireFormState extends State<_EducationEnquireForm> {
                         const SizedBox(height: 20),
                       ],
                       _eyebrow(
-                          '${AppStrings.noteLabel.tr.toUpperCase()} · ${AppStrings.optionalLabel.tr}', 0),
+                          '${AppStrings.noteLabel.tr.toUpperCase()} · ${AppStrings.optionalLabel.tr}',
+                          0),
                       const SizedBox(height: 10),
                       _noteField(),
                     ],
@@ -313,7 +410,8 @@ class _EducationEnquireFormState extends State<_EducationEnquireForm> {
                 ),
               ],
             ),
-            child: const Icon(Icons.school_rounded, color: Colors.white, size: 22),
+            child: const Icon(Icons.business_center_rounded,
+                color: Colors.white, size: 22),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -321,18 +419,15 @@ class _EducationEnquireFormState extends State<_EducationEnquireForm> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  AppStrings.educationEnquiryTitle.tr,
+                  AppStrings.businessEnquiryTitle.tr,
                   fontSize: 18,
                   fontWeight: FontWeight.w800,
                   color: AppColors.mainTextColor,
                 ),
                 const SizedBox(height: 2),
                 CustomText(
-                  AppStrings.tellListingAboutEnquiry.tr.replaceAll(
-                      '{listing}',
-                      widget.listing.listingName.isNotEmpty
-                          ? widget.listing.listingName
-                          : widget.listing.ownerName),
+                  AppStrings.tellListingAboutEnquiry.tr
+                      .replaceAll('{listing}', widget.listing.ownerName),
                   fontSize: 12.5,
                   color: AppColors.secondaryTextColor,
                   fontWeight: FontWeight.w500,
@@ -354,7 +449,8 @@ class _EducationEnquireFormState extends State<_EducationEnquireForm> {
                 color: _surface,
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.close_rounded, size: 18, color: AppColors.secondaryTextColor),
+              child: Icon(Icons.close_rounded,
+                  size: 18, color: AppColors.secondaryTextColor),
             ),
           ),
         ],
@@ -383,7 +479,12 @@ class _EducationEnquireFormState extends State<_EducationEnquireForm> {
               color: _accent.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(999),
             ),
-            child: CustomText('$count', fontSize: 10, fontWeight: FontWeight.w800, color: _accent),
+            child: CustomText(
+              '$count',
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              color: _accent,
+            ),
           ),
         ],
       ],
@@ -413,7 +514,9 @@ class _EducationEnquireFormState extends State<_EducationEnquireForm> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              on ? Icons.check_circle_rounded : Icons.add_circle_outline_rounded,
+              on
+                  ? Icons.check_circle_rounded
+                  : Icons.add_circle_outline_rounded,
               size: 16,
               color: on ? _accent : AppColors.greyCA,
             ),
@@ -438,7 +541,9 @@ class _EducationEnquireFormState extends State<_EducationEnquireForm> {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: [for (final path in _photos) _photoThumb(path)],
+            children: [
+              for (final path in _photos) _photoThumb(path),
+            ],
           ),
           const SizedBox(height: 10),
         ],
@@ -452,7 +557,12 @@ class _EducationEnquireFormState extends State<_EducationEnquireForm> {
       borderRadius: BorderRadius.circular(10),
       child: Stack(
         children: [
-          Image.file(File(path), width: 92, height: 92, fit: BoxFit.cover),
+          Image.file(
+            File(path),
+            width: 92,
+            height: 92,
+            fit: BoxFit.cover,
+          ),
           Positioned(
             top: 4,
             right: 4,
@@ -464,7 +574,8 @@ class _EducationEnquireFormState extends State<_EducationEnquireForm> {
                   color: Colors.black.withValues(alpha: 0.55),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.close_rounded, size: 14, color: Colors.white),
+                child: const Icon(Icons.close_rounded,
+                    size: 14, color: Colors.white),
               ),
             ),
           ),
@@ -484,14 +595,16 @@ class _EducationEnquireFormState extends State<_EducationEnquireForm> {
         decoration: BoxDecoration(
           color: _surface,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: _accent.withValues(alpha: 0.35), width: 1.2),
+          border:
+              Border.all(color: _accent.withValues(alpha: 0.35), width: 1.2),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.add_a_photo_outlined, size: 28, color: _accent),
             const SizedBox(height: 6),
-            CustomText(AppStrings.photoLabel.tr, fontSize: 13, fontWeight: FontWeight.w800, color: _accent),
+            CustomText(AppStrings.photoLabel.tr,
+                fontSize: 13, fontWeight: FontWeight.w800, color: _accent),
           ],
         ),
       ),
@@ -526,7 +639,9 @@ class _EducationEnquireFormState extends State<_EducationEnquireForm> {
             padding: const EdgeInsets.symmetric(vertical: 15),
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              gradient: _canSubmit ? const LinearGradient(colors: [_accentDeep, _accent]) : null,
+              gradient: _canSubmit
+                  ? const LinearGradient(colors: [_accentDeep, _accent])
+                  : null,
               color: _canSubmit ? null : AppColors.greyE5,
               borderRadius: BorderRadius.circular(16),
               boxShadow: _canSubmit
@@ -542,7 +657,9 @@ class _EducationEnquireFormState extends State<_EducationEnquireForm> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.send_rounded, size: 18, color: _canSubmit ? Colors.white : AppColors.greyCA),
+                Icon(Icons.send_rounded,
+                    size: 18,
+                    color: _canSubmit ? Colors.white : AppColors.greyCA),
                 const SizedBox(width: 8),
                 CustomText(
                   AppStrings.sendEnquiryLabel.tr,

@@ -1151,6 +1151,12 @@ class ChatEmitEvents {
   static const newHotelEnquiryReceived = "newHotelEnquiryReceived";
   static const hotelEnquiryStatusUpdated = "hotelEnquiryStatusUpdated";
 
+  // Hotel **booking** (§2b) — distinct card type from the enquiry above.
+  // Same amber palette but carries dates/guests, and the **buyer** can
+  // cancel while `pending` on the same status endpoint.
+  static const newHotelBookingReceived = "newHotelBookingReceived";
+  static const hotelBookingStatusUpdated = "hotelBookingStatusUpdated";
+
   // Vehicle booking (vehicle listing → chat, accept/decline + buyer cancel).
   // See lib/docs/enquiry-flows-ui-integration.md §1.
   static const newVehicleBookingReceived = "newVehicleBookingReceived";
@@ -1161,6 +1167,14 @@ class ChatEmitEvents {
   static const newEducationEnquiryReceived = "newEducationEnquiryReceived";
   static const educationEnquiryStatusUpdated =
       "educationEnquiryStatusUpdated";
+
+  // "Other" business enquiry — banking / insurance / loans / capital-market
+  // / data (`be_other_service` → `/other-enquiries` → message_type
+  // `business_enquiry`). `new…Received` is emitted to the owner and echoed
+  // to the customer's other sessions — dedupe by `message._id`. See
+  // lib/docs/other-enquiry-ui-integration.md §6.
+  static const newBusinessEnquiryReceived = "newBusinessEnquiryReceived";
+  static const businessEnquiryStatusUpdated = "businessEnquiryStatusUpdated";
 
   // Chat self-pickup → rider dispatch handoff OTPs. `newRiderOtpReceived`
   // delivers a (private) pickup/delivery OTP card; `riderOtpUpdated` flips an
