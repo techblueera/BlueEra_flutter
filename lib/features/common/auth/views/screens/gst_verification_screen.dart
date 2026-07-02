@@ -25,13 +25,20 @@ class GstNumberScreen extends StatefulWidget {
   final String categoryName;
   final SubCategories? subCategory;
 
+  /// When true, a GST number is compulsory to create the account: the "No I
+  /// don't" option and the Skip action are hidden so the user cannot proceed
+  /// without a verified GST (Business/Shop with GST). When false (default),
+  /// GST stays optional and the existing flow is untouched.
+  final bool isGstMandatory;
+
   GstNumberScreen(
       {super.key,
       required this.accountType,
       required this.businessType,
       required this.categorySlugId,
       required this.categoryName,
-      required this.subCategory});
+      required this.subCategory,
+      this.isGstMandatory = false});
 
   @override
   State<GstNumberScreen> createState() => _GstNumberScreenState();
@@ -52,6 +59,13 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
     authController.selectedCategoryName = widget.categoryName;
     authController.selectedCategorySlugId = widget.categorySlugId;
     authController.selectedSubCategoryData = widget.subCategory;
+    // GST compulsory: pre-select "Yes I have" so the GST input is shown and
+    // the only path forward is a verified GST number.
+    if (widget.isGstMandatory) {
+      authController.isHaveGstApprove.value = true;
+      authController.isValidate.value = false;
+      authController.hasGstNumber.value = true;
+    }
     log("------------------ SELECTION DATA ------------------");
     log("Business Type    : ${authController.selectedTypeOfBusiness}");
     log("Category Name    : ${authController.selectedCategoryName}");
@@ -119,8 +133,10 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               _buildRadioOption(true, AppStrings.yesIHave.tr),
-                              SizedBox(width: SizeConfig.size20),
-                              _buildRadioOption(false, AppStrings.noIDont.tr),
+                              if (!widget.isGstMandatory) ...[
+                                SizedBox(width: SizeConfig.size20),
+                                _buildRadioOption(false, AppStrings.noIDont.tr),
+                              ],
                             ],
                           ),
                         )),
@@ -189,7 +205,8 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
                     }),
                     SizedBox(height: SizeConfig.size4),
                     Obx(() {
-                      if (!authController.hasGstNumber.value) {
+                      if (!authController.hasGstNumber.value ||
+                          widget.isGstMandatory) {
                         return const SizedBox();
                       }
                       return Center(

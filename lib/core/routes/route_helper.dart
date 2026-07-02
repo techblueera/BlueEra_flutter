@@ -1705,6 +1705,8 @@ class RouteHelper {
         final argCategorySlugId = args[ApiKeys.argCategoryId] as String;
         final argCategoryName = args[ApiKeys.argCategoryName] as String;
         final argSubCategory = args[ApiKeys.argSubCategory] as SubCategories?;
+        final argIsGstMandatory =
+            args[ApiKeys.argIsGstMandatory] as bool? ?? false;
         // final categoryData = args[ApiKeys.argCategoryData] as CategoryData?;
 
         return MaterialPageRoute(
@@ -1715,6 +1717,7 @@ class RouteHelper {
                   categorySlugId: argCategorySlugId,
                   categoryName: argCategoryName,
                   subCategory: argSubCategory,
+                  isGstMandatory: argIsGstMandatory,
                 ),
             settings:
                 RouteSettings(name: RouteHelper.getGstNumberScreenRoute()));

@@ -15,6 +15,7 @@ import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -27,6 +28,7 @@ import '../../model/get_categories_model.dart';
 /// [AuthController]. See [_earnConfig] for the mapping.
 enum _EarnType {
   businessShop,
+  businessStore,
   selfWork,
   gigWork,
   notEarning,
@@ -38,46 +40,51 @@ enum _EarnType {
 /// (`CategoryData`); false when it resolves to INDIVIDUAL profession
 /// buckets (`ProfessionTypeData`).
 bool _isBusinessEarnType(_EarnType type) =>
-    type == _EarnType.businessShop || type == _EarnType.manufacturing;
+    type == _EarnType.businessShop || type == _EarnType.businessStore || type == _EarnType.manufacturing;
 
 /// Static presentation config for a "How You Earn" row.
 class _EarnConfig {
   final String title;
   final String subtitle;
-  final IconData icon;
+  final String icon;
   const _EarnConfig(this.title, this.subtitle, this.icon);
 }
 
 const Map<_EarnType, _EarnConfig> _earnConfig = {
   _EarnType.businessShop: _EarnConfig(
-    'Business/Shop',
-    'Shops, stores & services',
-    Icons.storefront_outlined,
+    'Business/Shop (GST)',
+    'High Range, More Rich, Verified ',
+    "assets/onboarding/onboring_business.png",
+  ),
+  _EarnType.businessStore: _EarnConfig(
+    'Small Business/Shop (Non GST)',
+    'Low Range (2km) & Rich, Un-Verified ...',
+    "assets/onboarding/onbording_store.png",
   ),
   _EarnType.selfWork: _EarnConfig(
     'Self Work',
     'Skilled & consultant work',
-    Icons.work_outline,
+    "assets/onboarding/onbording_self_work.png",
   ),
   _EarnType.gigWork: _EarnConfig(
     'Gig Work (Rider/Taxi)',
     'Driver, rider & delivery',
-    Icons.two_wheeler_outlined,
+    "assets/onboarding/onbording_gig_worker.png",
   ),
   _EarnType.notEarning: _EarnConfig(
     'Not Earning',
     'Not currently earning',
-    Icons.person_outline,
+    "assets/onboarding/onbording_not_earning.png",
   ),
   _EarnType.doingJob: _EarnConfig(
     'Doing a Job',
-    'Employed / salaried',
-    Icons.badge_outlined,
+    'Gov,Private Employed / salaried',
+    "assets/onboarding/onbording_doing_a_job.png",
   ),
   _EarnType.manufacturing: _EarnConfig(
     'Manufacturing / Industrial',
     'Manufacturing & industrial',
-    Icons.precision_manufacturing_outlined,
+    "assets/onboarding/onbording_manufacturing.png",
   ),
 };
 
@@ -190,7 +197,7 @@ class _CreateAccountTypeV2ScreenState extends State<CreateAccountTypeV2Screen> {
                   CustomText(
                     langController.tr('How You Earn'),
                     fontSize: SizeConfig.size24,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w600,
                     color: AppColors.mainTextColor,
                   ),
                   SizedBox(height: SizeConfig.size4),
@@ -204,6 +211,7 @@ class _CreateAccountTypeV2ScreenState extends State<CreateAccountTypeV2Screen> {
                   for (final type in _rows) ...[
                     _earnRow(type),
                     SizedBox(height: SizeConfig.size12),
+
                   ],
                 ],
               ),
@@ -239,10 +247,8 @@ class _CreateAccountTypeV2ScreenState extends State<CreateAccountTypeV2Screen> {
                 color: AppColors.skyBlueE4,
                 shape: BoxShape.circle,
               ),
-              child: Icon(
+              child: LocalAssets(imagePath:
                 config.icon,
-                size: SizeConfig.size22,
-                color: AppColors.primaryColor,
               ),
             ),
             SizedBox(width: SizeConfig.size12),
@@ -253,15 +259,15 @@ class _CreateAccountTypeV2ScreenState extends State<CreateAccountTypeV2Screen> {
                   CustomText(
                     langController.tr(config.title),
                     fontSize: SizeConfig.size16,
-                    fontWeight: FontWeight.w600,
+                    fontWeight: FontWeight.w500,
                     color: AppColors.secondaryTextColor,
                   ),
                   SizedBox(height: SizeConfig.size2),
                   CustomText(
                     langController.tr(config.subtitle),
                     fontSize: SizeConfig.size12,
-                    fontWeight: FontWeight.w500,
-                    color: AppColors.grey9B,
+                    fontWeight: FontWeight.w400,
+                    color: Color(0xff66727E),
                   ),
                 ],
               ),
@@ -517,6 +523,7 @@ class _AccountCategoryScreenState extends State<_AccountCategoryScreen> {
           ),
         ];
       case _EarnType.businessShop:
+      case _EarnType.businessStore:
       case _EarnType.manufacturing:
         return const [];
     }
@@ -710,6 +717,10 @@ class _AccountCategoryScreenState extends State<_AccountCategoryScreen> {
           ApiKeys.argCategoryId: tagId,
           ApiKeys.argCategoryName: name,
           ApiKeys.argSubCategory: selectedSubCategory.value,
+          // Business/Shop (GST) → GST is compulsory. Small Business/Shop
+          // (Non GST) and Manufacturing keep GST optional.
+          ApiKeys.argIsGstMandatory:
+              widget.earnType == _EarnType.businessShop,
         },
       );
     } else if (item is ProfessionTypeData) {

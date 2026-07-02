@@ -171,6 +171,7 @@ flutter:
     - assets/category/food_home/
     - assets/translations/
     - assets/category/medical/sub_category_medical/
+    - assets/onboarding/
 
 
   fonts:
