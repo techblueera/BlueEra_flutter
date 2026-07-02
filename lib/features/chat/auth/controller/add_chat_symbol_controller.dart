@@ -125,8 +125,8 @@ class AddChatSymbolController extends GetxController {
   // Visibility
   Rx<PostVisibility> visibility = PostVisibility.public.obs;
 
-  // Duration Days
-  RxInt selectedDays = 1.obs;
+  // Duration Days — defaults to 3 days; user can change it (1–7).
+  RxInt selectedDays = 3.obs;
   RxString VideoUploadProgress = ''.obs;
 
   // Loading
@@ -423,6 +423,7 @@ class AddChatSymbolController extends GetxController {
     captionController.clear();
     linkTextSymbolController.clear();
     imagesList.clear();
+    selectedDays.value = 3;
   }
 
   RxList<SymbolLikeEntry> symbolLikes = <SymbolLikeEntry>[].obs;

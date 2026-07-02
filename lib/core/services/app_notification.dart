@@ -16,6 +16,7 @@ import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/services/local_strorage_helper.dart';
 import 'package:BlueEra/core/services/notification/pending_deep_link.dart';
+import 'package:BlueEra/features/chat/auth/controller/add_chat_symbol_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/features/chat/auth/model/symbol_details_model.dart';
@@ -2393,12 +2394,13 @@ class AppNotificationHandler {
       case 'SYMBOL_CREATED':
         _openSymbolFromNotification(data);
         break;
-      // Symbol engagement events reference an existing symbol but don't carry
-      // the full payload the viewer needs → route to the hub.
+      // Symbol engagement events reference the current user's own symbols →
+      // open the user's symbol viewer (same flow as tapping the profile ring
+      // on the Connect screen).
       case 'symbol_viewed':
       case 'symbol_liked':
       case 'symbol_commented':
-        Get.toNamed(RouteHelper.getNotificationScreenRoute());
+        _openMySymbolsFromNotification();
         break;
 
       // Rider association operations
@@ -2492,6 +2494,24 @@ class AppNotificationHandler {
 
     /// Clear all local notifications
     flutterLocalNotificationsPlugin.cancelAll();
+  }
+
+  /// Open the current user's own symbols viewer. Symbol engagement pushes
+  /// (viewed / liked / commented) are about the logged-in user's symbols, so
+  /// we load them and open `SymbolViewImages` in "my symbols" mode — the same
+  /// screen the profile ring on the Connect page opens.
+  static Future<void> _openMySymbolsFromNotification() async {
+    try {
+      final ctrl = getOrPut(() => AddChatSymbolController());
+      if (userId.isNotEmpty) {
+        await ctrl.getSymbolsForPartUser(userId);
+      }
+      Get.to(() => SymbolViewImages(mySymbols: ctrl.mySymbols));
+    } catch (e) {
+      logs('Failed to open my symbols from notification: $e');
+      // Never dead-end: fall back to the notification hub.
+      Get.toNamed(RouteHelper.getNotificationScreenRoute());
+    }
   }
 
   /// Build a SymbolDetailsModel from a SYMBOL_CREATED FCM payload and open
