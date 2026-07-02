@@ -53,7 +53,12 @@ class VisitGroceryStoreScreen extends StatefulWidget {
 
 class _VisitGroceryStoreScreenState extends State<VisitGroceryStoreScreen> {
   final controller = getOrPut(() => GroceryController());
-  final viewBusinessDetailsController = Get.find<ViewBusinessDetailsController>();
+  // Self-register so the store screen works regardless of entry path (deep
+  // link, share preview, search, etc.), not just from the bottom-nav/drawer
+  // flows that normally register this controller. Matches how every other
+  // screen obtains it (permanent so the shared instance survives).
+  final viewBusinessDetailsController =
+      getOrPut(() => ViewBusinessDetailsController(), permanent: true);
   final groceryCustomerController = getOrPut(() => GrocerySelfPickupConsumerController());
   final storeController = getOrPut(() => StoreController());
 

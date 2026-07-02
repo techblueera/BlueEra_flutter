@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -156,8 +157,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
             ..._buildDocumentCards(context),
 
             // Submit Button (when all completed & not yet submitted)
-            if (allCompleted &&
-                state != RiderVerificationState.completed) ...[
+            if (allCompleted && state != RiderVerificationState.completed) ...[
               SizedBox(height: SizeConfig.size16),
               _buildSubmitButton(),
             ],
@@ -601,7 +601,8 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
       ),
       child: Row(
         children: [
-          const Icon(Icons.error_outline_rounded, color: Color(0xFFD32F2F), size: 28),
+          const Icon(Icons.error_outline_rounded,
+              color: Color(0xFFD32F2F), size: 28),
           const SizedBox(width: 12),
           Expanded(
             child: CustomText(
@@ -859,14 +860,12 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primaryColor.withAlpha(8)
-              : Colors.white,
+          color:
+              isSelected ? AppColors.primaryColor.withAlpha(8) : Colors.white,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isSelected
-                ? AppColors.primaryColor
-                : const Color(0xFFE5E5E5),
+            color:
+                isSelected ? AppColors.primaryColor : const Color(0xFFE5E5E5),
             width: isSelected ? 1.8 : 1,
           ),
           boxShadow: isSelected
@@ -1135,7 +1134,8 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
                 child: CustomBtn(
                   onTap: () {
                     if (queryController.text.trim().isEmpty) {
-                      commonSnackBar(message: AppStrings.pleaseDescribeQuery.tr);
+                      commonSnackBar(
+                          message: AppStrings.pleaseDescribeQuery.tr);
                       return;
                     }
                     Get.back();
@@ -1300,38 +1300,41 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
           );
         },
       ),
-      _DocumentItem(
-        stepNumber: 3,
-        icon: Icons.credit_card_rounded,
-        title: AppStrings.addYourPanNumber.tr,
-        dialogTitle: AppStrings.panCard.tr,
-        example: AppStrings.egPanNo.tr,
-        currentValue: data.panNo ?? '',
-        isCompleted: data.pan ?? false,
-        imageUrl: data.panImage,
-        // PAN is single-sided — one image, no caption.
-        dialogImages: [
-          if (data.panImage?.isNotEmpty ?? false) _DialogImage(data.panImage!),
-        ],
-        dataRows: [
-          if (data.panNo?.isNotEmpty ?? false)
-            MapEntry(AppStrings.panNumber.tr, data.panNo!),
-        ],
-        documentType: 'pan',
-        enableDataView: true,
-        onTap: () {
-          controller.panNumberController.text = data.panNo ?? '';
-          Get.bottomSheet(
-            CommonBottomSheet(
-              title: AppStrings.panCard.tr,
-              height: MediaQuery.of(context).size.height * 0.40,
-              child: PanCardWidget(),
-            ),
-            isScrollControlled: true,
-            backgroundColor: Colors.transparent,
-          );
-        },
-      ),
+      if (userProfessionGlobal != BIKE_RIDER &&
+          userProfessionGlobal != CAR_TAXI_DRIVER)
+        _DocumentItem(
+          stepNumber: 3,
+          icon: Icons.credit_card_rounded,
+          title: AppStrings.addYourPanNumber.tr,
+          dialogTitle: AppStrings.panCard.tr,
+          example: AppStrings.egPanNo.tr,
+          currentValue: data.panNo ?? '',
+          isCompleted: data.pan ?? false,
+          imageUrl: data.panImage,
+          // PAN is single-sided — one image, no caption.
+          dialogImages: [
+            if (data.panImage?.isNotEmpty ?? false)
+              _DialogImage(data.panImage!),
+          ],
+          dataRows: [
+            if (data.panNo?.isNotEmpty ?? false)
+              MapEntry(AppStrings.panNumber.tr, data.panNo!),
+          ],
+          documentType: 'pan',
+          enableDataView: true,
+          onTap: () {
+            controller.panNumberController.text = data.panNo ?? '';
+            Get.bottomSheet(
+              CommonBottomSheet(
+                title: AppStrings.panCard.tr,
+                height: MediaQuery.of(context).size.height * 0.40,
+                child: PanCardWidget(),
+              ),
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+            );
+          },
+        ),
       _DocumentItem(
         stepNumber: 4,
         icon: Icons.card_membership_rounded,
@@ -1455,8 +1458,8 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
     //   3. Completed without an image URL → fallback "Done" pill,
     //      not tappable (preserves the original behavior until the
     //      backend returns image URLs).
-    final hasUploadedImage = item.isCompleted &&
-        (item.imageUrl?.isNotEmpty ?? false);
+    final hasUploadedImage =
+        item.isCompleted && (item.imageUrl?.isNotEmpty ?? false);
     // A document stays viewable (View + Edit/Replace + Delete) once
     // completed when it has an image, dialog images, or opts into the
     // data view (IDs surface their saved number; Vehicle Information its
@@ -1476,8 +1479,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
               onReplace: item.onTap,
               // Documents with a data view read as "Edit"; image-only
               // ones (vehicle photos) read as "Replace".
-              actionLabel:
-                  item.enableDataView ? AppStrings.editLabel.tr : null,
+              actionLabel: item.enableDataView ? AppStrings.editLabel.tr : null,
               actionIcon: item.enableDataView
                   ? Icons.edit_rounded
                   : Icons.refresh_rounded,
@@ -1551,8 +1553,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
       padding: const EdgeInsets.all(10),
       child: Container(
         width: 66,
-        padding:
-            const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
         decoration: BoxDecoration(
           color: AppColors.primaryColor.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(10),
@@ -1713,8 +1714,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
             color: showViewDocument
                 ? AppColors.primaryColor
                 : const Color(0xFFB0B4BF),
-            fontWeight:
-                showViewDocument ? FontWeight.w600 : FontWeight.w400,
+            fontWeight: showViewDocument ? FontWeight.w600 : FontWeight.w400,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -1764,9 +1764,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
       height: 30,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: isCompleted
-            ? const Color(0xFFE8F5E9)
-            : const Color(0xFFFFEAEC),
+        color: isCompleted ? const Color(0xFFE8F5E9) : const Color(0xFFFFEAEC),
         border: Border.all(
           color: isCompleted
               ? const Color(0xFF4CAF50).withAlpha(80)
@@ -1776,9 +1774,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
       ),
       child: Icon(
         isCompleted ? Icons.check_rounded : Icons.help_outline_rounded,
-        color: isCompleted
-            ? const Color(0xFF4CAF50)
-            : const Color(0xFFE57373),
+        color: isCompleted ? const Color(0xFF4CAF50) : const Color(0xFFE57373),
         size: 16,
       ),
     );
@@ -1836,14 +1832,13 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
   }) {
     // Stacked images share the vertical budget so the dialog never
     // overflows; a lone image gets the full 55 %.
-    final maxImageHeight = MediaQuery.of(context).size.height *
-        (images.length > 1 ? 0.34 : 0.55);
+    final maxImageHeight =
+        MediaQuery.of(context).size.height * (images.length > 1 ? 0.34 : 0.55);
     Get.dialog(
       Dialog(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        insetPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 28),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 28),
         child: Container(
           decoration: BoxDecoration(
             color: Colors.white,
@@ -2058,8 +2053,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
                 color: AppColors.primaryColor.withValues(alpha: 0.08),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color:
-                      AppColors.primaryColor.withValues(alpha: 0.22),
+                  color: AppColors.primaryColor.withValues(alpha: 0.22),
                   width: 0.6,
                 ),
               ),
@@ -2320,15 +2314,18 @@ class _DocumentItem {
   final int stepNumber;
   final IconData icon;
   final String title;
+
   // The "E.g. …" format hint shown under the title in the top row.
   // Always rendered, even when [currentValue] is also present.
   final String example;
+
   // The user's actual saved value, shown in the bottom-left of the
   // card under the divider. Empty when the document hasn't been
   // filled in yet.
   final String currentValue;
   final bool isCompleted;
   final VoidCallback onTap;
+
   // URL of the uploaded document image. When present alongside
   // [isCompleted], the card upgrades from the "Done" pill state
   // to a richer "thumbnail + View Document" presentation, and the
@@ -2336,20 +2333,25 @@ class _DocumentItem {
   // Null/empty for documents that don't have a single-image preview
   // (Vehicle Information, Vehicle Images).
   final String? imageUrl;
+
   // The captioned images shown in the view dialog. Front/back for the
   // two-sided IDs, a single image for PAN, the four photos for Vehicle
   // Images, and empty for text-only Vehicle Information.
   final List<_DialogImage> dialogImages;
+
   // Labeled rows shown in the view dialog (the saved ID number, or the
   // text fields for Vehicle Information). Empty for image-only docs.
   final List<MapEntry<String, String>> dataRows;
+
   // Identifier passed to the delete endpoint
   // (aadhar | pan | dl | rc | vehicle-images | vehicle-information).
   // Null disables the Delete action for this card.
   final String? documentType;
+
   // Clean title shown at the top of the view dialog. Falls back to
   // [title] when null.
   final String? dialogTitle;
+
   // When true, the card stays viewable (View + Edit) once completed even
   // if no [imageUrl] is on file — the view dialog surfaces the
   // [dataRows] and re-opens [onTap] as an edit flow. ID documents and

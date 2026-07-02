@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -43,7 +44,11 @@ class _PersonalChatScreenState extends State<PersonalChatScreen>
     with WidgetsBindingObserver {
 
   final chatViewController = Get.find<ChatViewController>();
-  final chatThemeController = Get.find<ChatThemeController>();
+  // Self-register so the personal chat screen works regardless of entry path
+  // (e.g. opened from an order/inquiry deep-link) — the theme controller is
+  // otherwise registered by the chat list/tab flows. Matches how the other
+  // chat screens obtain it.
+  final chatThemeController = getOrPut(() => ChatThemeController());
   final TextEditingController editingController = TextEditingController();
 
   @override

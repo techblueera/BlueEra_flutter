@@ -213,6 +213,9 @@ class RouteConstant {
   // Cart
   static const String yourCartScreen = "/YourCartScreen";
 
+  // Global search (Discover)
+  static const String globalSearchScreen = "/GlobalSearchScreen";
+
   // Call screens
   static const String CallListScreen = "/CallListScreen";
   static const String OutgoingCallScreen = "/OutgoingCallScreen";

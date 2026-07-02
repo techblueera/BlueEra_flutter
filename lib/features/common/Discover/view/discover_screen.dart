@@ -268,6 +268,10 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                         if (i == _activeTabIndex) return;
                         setState(() => _activeTabIndex = i);
                       },
+                      onSearchTap: () => Navigator.pushNamed(
+                        context,
+                        RouteHelper.getGlobalSearchScreenRoute(),
+                      ),
                     ),
                   ),
 
@@ -455,11 +459,13 @@ class _StickySearchBarDelegate extends SliverPersistentHeaderDelegate {
   final double topPadding;
   final int activeIndex;
   final ValueChanged<int> onTabSelected;
+  final VoidCallback onSearchTap;
 
   _StickySearchBarDelegate({
     required this.topPadding,
     required this.activeIndex,
     required this.onTabSelected,
+    required this.onSearchTap,
   });
 
   // Fixed inner heights so min/maxExtent stay consistent with the layout.
@@ -548,7 +554,10 @@ class _StickySearchBarDelegate extends SliverPersistentHeaderDelegate {
                           children: [
                             SizedBox(
                               height: _searchBarHeight,
-                              child: Container(
+                              child: GestureDetector(
+                                behavior: HitTestBehavior.opaque,
+                                onTap: onSearchTap,
+                                child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                                 decoration: BoxDecoration(
                                   color: AppColors.white,
@@ -576,6 +585,7 @@ class _StickySearchBarDelegate extends SliverPersistentHeaderDelegate {
                                     LocalAssets(imagePath: AppIconAssets.camera_black),
                                   ],
                                 ),
+                              ),
                               ),
                             ),
                             const SizedBox(height: _searchTabsGap),
@@ -646,7 +656,8 @@ class _StickySearchBarDelegate extends SliverPersistentHeaderDelegate {
   bool shouldRebuild(covariant _StickySearchBarDelegate oldDelegate) =>
       topPadding != oldDelegate.topPadding ||
       activeIndex != oldDelegate.activeIndex ||
-      onTabSelected != oldDelegate.onTabSelected;
+      onTabSelected != oldDelegate.onTabSelected ||
+      onSearchTap != oldDelegate.onSearchTap;
 }
 
 /// Animated tile behind the active discover tab icon. Inactive tiles stay

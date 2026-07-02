@@ -252,13 +252,12 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
 
     return InkWell(
       onTap: () {
+        // Seed the lighter list item so the header renders instantly; the
+        // school home screen then loads the full record from
+        // `education-service/schools/{id}` itself (in its initState).
         final schoolAboutUsController = getOrPut(() => SchoolAboutUsController());
         schoolAboutUsController.schoolDetailsData?.value = service;
         Get.to(DiscoverSchoolHomeScreen());
-        schoolAboutUsController.getSchoolByIdController(
-          schoolID: service.id,
-          ownerID: service.ownerId,
-        );
       },
       child: CustomFormCard(
         padding: EdgeInsets.zero,

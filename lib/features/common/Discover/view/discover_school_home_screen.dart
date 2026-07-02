@@ -3,6 +3,7 @@ import 'package:BlueEra/core/api/model/school_details_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -31,10 +32,37 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class DiscoverSchoolHomeScreen extends StatelessWidget {
-  DiscoverSchoolHomeScreen({super.key});
+class DiscoverSchoolHomeScreen extends StatefulWidget {
+  const DiscoverSchoolHomeScreen({super.key});
 
-  final schoolAboutUsController = Get.find<SchoolAboutUsController>();
+  @override
+  State<DiscoverSchoolHomeScreen> createState() =>
+      _DiscoverSchoolHomeScreenState();
+}
+
+class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
+  final schoolAboutUsController = getOrPut(() => SchoolAboutUsController());
+
+  @override
+  void initState() {
+    super.initState();
+    // Load the full record from `education-service/schools/{id}` on open so the
+    // screen shows the live API data, not just the lighter list item a caller
+    // seeded into the controller. Uses the seeded school id (falling back to
+    // ownerId); the controller tries the school-id lookup first, then owner-id,
+    // so it resolves regardless of which the id actually is. If neither is
+    // present (e.g. deep-link path that seeds an empty school and fetches
+    // itself), we skip and let that caller's own fetch run.
+    final data = schoolAboutUsController.schoolDetailsData?.value;
+    final id = (data?.id ?? '').trim();
+    final ownerId = (data?.ownerId ?? '').trim();
+    if (id.isNotEmpty || ownerId.isNotEmpty) {
+      schoolAboutUsController.getSchoolByIdController(
+        schoolID: id.isNotEmpty ? id : ownerId,
+        ownerID: ownerId.isNotEmpty ? ownerId : id,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

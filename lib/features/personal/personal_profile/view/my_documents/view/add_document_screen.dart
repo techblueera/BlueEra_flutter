@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/controller/my_documents_controller.dart';
@@ -235,6 +236,11 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                                 );
                               },
                             ),
+                            // CustomText(userProfileTypeGlobal),
+                            // Hide PAN upload for rider professions (bike rider
+                            // / taxi driver); shown for every other profession.
+                            if (userProfessionGlobal != BIKE_RIDER &&
+                                userProfessionGlobal != CAR_TAXI_DRIVER)
                             _buildAddButton(
                               title: AppStrings.uploadPan.tr,
                               document: DocumentKeys.pan,

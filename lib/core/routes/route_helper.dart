@@ -114,6 +114,7 @@ import 'package:BlueEra/features/common/reel/view/video/full_video_preview_scree
 import 'package:BlueEra/features/common/reel/view/video/video_player_screen.dart';
 import 'package:BlueEra/features/common/reel/view/video/video_recorder_screen.dart';
 import 'package:BlueEra/features/common/service/view/service_upload_screen.dart';
+import 'package:BlueEra/features/common/search/view/global_search_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/vehicle/vehicle_detail_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/vehicle/vehicle_listing_screen.dart';
 import 'package:BlueEra/features/me/vehicle/view/booking/vehicle_bookings_screen.dart';
@@ -769,8 +770,11 @@ class RouteHelper {
   static String getNearByRidersScreenRoute() =>
       RouteConstant.nearByRidersScreen;
 
-  static String getYourCartScreenRoute() => 
+  static String getYourCartScreenRoute() =>
       RouteConstant.yourCartScreen;
+
+  static String getGlobalSearchScreenRoute() =>
+      RouteConstant.globalSearchScreen;
 
   // Business onboarding (WhatsApp-style) routes
   static String getBusinessOnboardingCategoryScreenRoute() =>
@@ -2479,6 +2483,14 @@ class RouteHelper {
         return MaterialPageRoute(
             builder: (_) => NearByRidersScreen(),
             settings: RouteSettings(name: getNearByRidersScreenRoute()));
+
+      case RouteConstant.globalSearchScreen:
+        final initialQuery = settings.arguments is String
+            ? settings.arguments as String
+            : null;
+        return MaterialPageRoute(
+            builder: (_) => GlobalSearchScreen(initialQuery: initialQuery),
+            settings: RouteSettings(name: getGlobalSearchScreenRoute()));
 
       case '/CallRoomScreen':
       case RouteConstant.OutgoingCallScreen:
