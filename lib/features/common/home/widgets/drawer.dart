@@ -73,7 +73,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
   }
 
   Future<void> _loadInitialData() async {
-    walletController.getWalletApi();
+    walletController.getWalletApiIfNeeded();
     if (accountTypeGlobal != "BUSINESS") {
       await viewProfileController.viewPersonalProfile();
     } else {

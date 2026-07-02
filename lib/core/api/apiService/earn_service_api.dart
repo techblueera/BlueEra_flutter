@@ -108,4 +108,33 @@ mixin EarnServiceApi {
   /// sections on the new BDM/referral dashboard. Filter by `type` query
   /// param (`testimonial` | `overview` | `tutorial`) plus `page` / `limit`.
   final String adminPosts = "earn-service/admin-posts";
+
+  /// Referral-page testimonials. Each item carries a title, description and
+  /// either `images[]` or a `video`. `GET earn-service/testimonial`.
+  final String earnTestimonials = "earn-service/testimonial";
+
+  /// Referral-page tutorials (same media shape as testimonials).
+  /// `GET earn-service/tutorial`.
+  final String earnTutorials = "earn-service/tutorial";
+
+  /// Referral-page overview posts (same media shape — title/description/
+  /// images[]/video). `GET earn-service/overview`.
+  final String earnOverview = "earn-service/overview";
+
+  /// Content-creator program: bonus/program details, progress and the user's
+  /// submitted videos — one call powers the whole Creator tab.
+  /// `GET earn-service/creator`.
+  final String earnCreator = "earn-service/creator";
+  final String earnCreatorVideos = "earn-service/creator/videos";
+
+  /// Earn-Coin (gamification) — coin chip + Coin Wallet card + the 5-tab
+  /// "View Details" screen. Service-internal prefix is `/earn`.
+  /// See docs/backend/FLUTTER-MASTER-GUIDE.md.
+  final String earnBalance = 'earn-service/earn/balance';
+  final String earnDashboard = 'earn-service/earn/dashboard';
+  final String earnTasks = 'earn-service/earn/tasks';
+  final String earnHistory = 'earn-service/earn/history';
+  final String earnLeaderboard = 'earn-service/earn/leaderboard';
+  final String earnStreak = 'earn-service/earn/streak';
+  final String earnRedeem = 'earn-service/earn/redeem';
 }

@@ -1,7 +1,10 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
@@ -18,8 +21,6 @@ import 'package:get/get.dart';
 
 import '../../../../core/services/share_service.dart';
 
-/// Public entry point. Pass [service] when you already hold the model (Discover
-/// lists), or just a [userId] to have the screen fetch it on open (visit flow).
 class SelfEmployeeViewDiscoverScreen extends StatefulWidget {
   final ServiceData? service;
   final String? userId;
@@ -44,6 +45,7 @@ class _SelfEmployeeViewDiscoverScreenState extends State<SelfEmployeeViewDiscove
   void initState() {
     super.initState();
     _service = widget.service;
+    log("🔎 SelfEmployeeViewDiscover service data → ${_service?.toJson()}");
     if (_service == null && (widget.userId?.isNotEmpty ?? false)) {
       _fetch();
     }
@@ -51,10 +53,9 @@ class _SelfEmployeeViewDiscoverScreenState extends State<SelfEmployeeViewDiscove
 
   Future<void> _fetch() async {
     setState(() => _loading = true);
-    final controller = Get.isRegistered<DiscoverController>()
-        ? Get.find<DiscoverController>()
-        : Get.put(DiscoverController());
+    final controller = getOrPut(() => DiscoverController());
     final result = await controller.getEarnServiceByUserId(widget.userId!);
+    log("🔎 SelfEmployeeViewDiscover fetched service data → ${result?.toJson()}");
     if (!mounted) return;
     setState(() {
       _service = result;
@@ -135,6 +136,14 @@ class _SelfEmployeeContent extends StatelessWidget {
         : '₹${formatIndianNumber(min)}';
   }
 
+  /// Price for display with a dash fallback so the ribbon / bottom bar never
+  /// render an empty slot when the provider hasn't set a rate.
+  String get priceDisplayOrDash => priceDisplay.isNotEmpty ? priceDisplay : '--';
+
+  /// Non-empty timing/text fallback — server may send null or empty strings.
+  String _orDash(String? value) =>
+      (value != null && value.trim().isNotEmpty) ? value : '--';
+
   String get priceBadgeText =>
       (service.priceData?.feeType ?? service.priceData?.priceType ?? '').capitalizeFirst ?? '';
 
@@ -182,7 +191,28 @@ class _SelfEmployeeContent extends StatelessWidget {
         padding: EdgeInsets.only(bottom: SizeConfig.size12),
         child: Column(
           children: [
-            _buildHeaderSection(context),
+            // Shared white backdrop behind the hero + stats ribbon so both
+            // read as one continuous white header block.
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(bottom: Radius.circular(16.0)),
+              ),
+              child: Column(
+                children: [
+                  _buildHeaderSection(context),
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      SizeConfig.size12,
+                      SizeConfig.size4,
+                      SizeConfig.size12,
+                      SizeConfig.size12,
+                    ),
+                    child: _buildStatsRibbon(),
+                  ),
+                ],
+              ),
+            ),
             Padding(
               padding: EdgeInsets.fromLTRB(
                 SizeConfig.size12,
@@ -190,15 +220,79 @@ class _SelfEmployeeContent extends StatelessWidget {
                 SizeConfig.size12,
                 0,
               ),
-              child: Column(
-                children: _joinWithGap(
-                  _sections(),
-                  gap: SizedBox(height: SizeConfig.size12),
-                ),
+              child: Builder(
+                builder: (_) {
+                  final sectionWidgets = _joinWithGap(
+                    _sections(),
+                    gap: SizedBox(height: SizeConfig.size12),
+                  );
+                  // Provider hasn't filled any service details yet → show a
+                  // friendly placeholder instead of a blank area.
+                  if (sectionWidgets.isEmpty) return _buildEmptyDetails();
+                  return Column(children: sectionWidgets);
+                },
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  // Shown when the provider has no service details filled in yet.
+  Widget _buildEmptyDetails() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size8,
+        vertical: SizeConfig.size24,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFEDEFF4)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0F001022),
+            blurRadius: 16,
+            offset: Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 52,
+            height: 52,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: AppColors.primaryColor.withValues(alpha: 0.08),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.info_outline_rounded,
+              size: 26,
+              color: AppColors.primaryColor,
+            ),
+          ),
+          SizedBox(height: SizeConfig.size12),
+          CustomText(
+            'No details added yet',
+            fontSize: SizeConfig.medium,
+            fontWeight: FontWeight.w700,
+            color: AppColors.mainTextColor,
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: SizeConfig.size6),
+          CustomText(
+            "This provider hasn't added their service details yet.",
+            fontSize: SizeConfig.small,
+            fontWeight: FontWeight.w400,
+            color: AppColors.secondaryTextColor,
+            textAlign: TextAlign.center,
+          ),
+        ],
       ),
     );
   }
@@ -209,7 +303,6 @@ class _SelfEmployeeContent extends StatelessWidget {
   List<Widget> _sections() {
     final svc = service.service;
     return [
-      _buildStatsRibbon(),
       // Availability sits right under the price/time ribbon.
       if (svc?.availability?.schedule?.isNotEmpty ?? false) _buildAvailabilityCard(svc!.availability!),
       if (svc?.serviceType?.isNotEmpty == true)
@@ -544,7 +637,7 @@ class _SelfEmployeeContent extends StatelessWidget {
         Container(
           padding: EdgeInsets.symmetric(horizontal: SizeConfig.size14, vertical: SizeConfig.size14),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(16),
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
@@ -569,7 +662,7 @@ class _SelfEmployeeContent extends StatelessWidget {
                 icon: Icons.payments_outlined,
                 color: priceBadgeColor,
                 label: AppStrings.priceLabel.tr,
-                value: priceDisplay,
+                value: priceDisplayOrDash,
                 hint: priceBadgeText.isNotEmpty ? priceBadgeText : null,
                 emphasised: true,
               ),
@@ -578,14 +671,14 @@ class _SelfEmployeeContent extends StatelessWidget {
                 icon: Icons.wb_sunny_outlined,
                 color: const Color(0xFF16A34A),
                 label: AppStrings.opens.tr,
-                value: timingMap['start'] ?? '--',
+                value: _orDash(timingMap['start']),
               ),
               _ribbonDivider(),
               _statBlock(
                 icon: Icons.nightlight_outlined,
                 color: AppColors.redB4,
                 label: AppStrings.closes.tr,
-                value: timingMap['end'] ?? '--',
+                value: _orDash(timingMap['end']),
               ),
             ],
           ),
@@ -646,23 +739,26 @@ class _SelfEmployeeContent extends StatelessWidget {
   }
 
   // ─────────────────────────────────────────────────────────────
-  // SECTION SHELL — clean white card, icon badge + tracked title.
+  // SECTION SHELL — spec-sheet panel: a gradient accent spine marks
+  // each header, the title reads in title-case, and list sections
+  // carry a count badge. A hairline rule splits header from content.
   // ─────────────────────────────────────────────────────────────
   Widget _section({
     required IconData icon,
     required String title,
     required Widget child,
+    int? count,
   }) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFEDEFF4)),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFECEEF3)),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x0F001022),
-            blurRadius: 16,
-            offset: Offset(0, 6),
+            color: Color(0x0A101828),
+            blurRadius: 12,
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -671,7 +767,7 @@ class _SelfEmployeeContent extends StatelessWidget {
         padding: EdgeInsets.fromLTRB(
           SizeConfig.size16,
           SizeConfig.size14,
-          SizeConfig.size14,
+          SizeConfig.size16,
           SizeConfig.size16,
         ),
         child: Column(
@@ -679,34 +775,54 @@ class _SelfEmployeeContent extends StatelessWidget {
           children: [
             Row(
               children: [
+                // Accent spine — the section marker that ties the
+                // detail panels together without repeating a boxed icon.
                 Container(
-                  width: 32,
-                  height: 32,
-                  alignment: Alignment.center,
+                  width: 4,
+                  height: 20,
                   decoration: BoxDecoration(
-                    color: AppColors.primaryColor.withValues(alpha: 0.10),
-                    borderRadius: BorderRadius.circular(9),
-                    border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.18)),
+                    gradient: _accent,
+                    borderRadius: BorderRadius.circular(4),
                   ),
-                  child: Icon(icon, size: 17, color: AppColors.primaryColor),
                 ),
                 SizedBox(width: SizeConfig.size10),
+                Icon(icon, size: 18, color: AppColors.primaryColor),
+                SizedBox(width: SizeConfig.size8),
                 Expanded(
                   child: Text(
-                    title.toUpperCase(),
+                    title,
                     style: TextStyle(
                       fontFamily: AppConstants.OpenSans,
-                      fontSize: 12.5,
+                      fontSize: 15.5,
                       fontWeight: FontWeight.w800,
                       color: AppColors.mainTextColor,
-                      letterSpacing: 0.7,
+                      letterSpacing: -0.2,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                if (count != null && count > 0) ...[
+                  SizedBox(width: SizeConfig.size8),
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: SizeConfig.size8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: CustomText(
+                      '$count',
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.primaryColor,
+                    ),
+                  ),
+                ],
               ],
             ),
+            SizedBox(height: SizeConfig.size12),
+            Container(height: 1, color: const Color(0xFFF0F2F6)),
             SizedBox(height: SizeConfig.size14),
             child,
           ],
@@ -726,26 +842,8 @@ class _SelfEmployeeContent extends StatelessWidget {
     return _section(
       icon: icon,
       title: title,
-      child: Wrap(
-        spacing: SizeConfig.size8,
-        runSpacing: SizeConfig.size8,
-        children: values
-            .map((e) => Container(
-                  padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12, vertical: SizeConfig.size6),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryColor.withValues(alpha: 0.06),
-                    borderRadius: BorderRadius.circular(30),
-                    border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.18)),
-                  ),
-                  child: CustomText(
-                    e,
-                    fontSize: SizeConfig.small,
-                    color: AppColors.primaryColor,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ))
-            .toList(),
-      ),
+      count: values.length,
+      child: _ExpandableChips(items: values, collapsedCount: 6),
     );
   }
 
@@ -761,51 +859,8 @@ class _SelfEmployeeContent extends StatelessWidget {
     return _section(
       icon: icon,
       title: title,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          for (var i = 0; i < values.length; i++)
-            Padding(
-              padding: EdgeInsets.only(bottom: i == values.length - 1 ? 0 : SizeConfig.size10),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (checked)
-                    Container(
-                      margin: const EdgeInsets.only(top: 1),
-                      width: 18,
-                      height: 18,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryColor.withValues(alpha: 0.10),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(Icons.check_rounded, size: 12, color: AppColors.primaryColor),
-                    )
-                  else
-                    Container(
-                      margin: const EdgeInsets.only(top: 7.0, right: 0),
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryColor,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  SizedBox(width: SizeConfig.size10),
-                  Expanded(
-                    child: CustomText(
-                      values[i],
-                      fontSize: SizeConfig.medium,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.secondaryTextColor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-        ],
-      ),
+      count: values.length,
+      child: _ExpandableBullets(items: values, checked: checked, collapsedCount: 4),
     );
   }
 
@@ -929,7 +984,7 @@ class _SelfEmployeeContent extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               CustomText(
-                priceDisplay,
+                priceDisplayOrDash,
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
                 color: AppColors.mainTextColor,
@@ -1028,5 +1083,197 @@ class _SelfEmployeeContent extends StatelessWidget {
       result.add(visible[i]);
     }
     return result;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// EXPANDABLE CHIP LIST — collapses long chip sets (expertise,
+// service type, work categories …) to a few rows with a
+// Show more / Show less toggle.
+// ─────────────────────────────────────────────────────────────
+class _ExpandableChips extends StatefulWidget {
+  final List<String> items;
+  final int collapsedCount;
+
+  const _ExpandableChips({required this.items, this.collapsedCount = 6});
+
+  @override
+  State<_ExpandableChips> createState() => _ExpandableChipsState();
+}
+
+class _ExpandableChipsState extends State<_ExpandableChips> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final items = widget.items;
+    final showToggle = items.length > widget.collapsedCount;
+    final visible = (!_expanded && showToggle)
+        ? items.take(widget.collapsedCount).toList()
+        : items;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: SizeConfig.size8,
+          runSpacing: SizeConfig.size8,
+          children: visible
+              .map((e) => Container(
+                    padding: EdgeInsets.symmetric(
+                        horizontal: SizeConfig.size12, vertical: SizeConfig.size8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF4F6F9),
+                      borderRadius: BorderRadius.circular(9),
+                      border: Border.all(color: const Color(0xFFE6EAF0)),
+                    ),
+                    child: CustomText(
+                      e,
+                      fontSize: SizeConfig.small,
+                      color: AppColors.mainTextColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ))
+              .toList(),
+        ),
+        if (showToggle)
+          _ShowMoreToggle(
+            expanded: _expanded,
+            hiddenCount: items.length - widget.collapsedCount,
+            onTap: () => setState(() => _expanded = !_expanded),
+          ),
+      ],
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// EXPANDABLE BULLET LIST — collapses long bullet sets (services
+// offered, why choose me …) with a Show more / Show less toggle.
+// ─────────────────────────────────────────────────────────────
+class _ExpandableBullets extends StatefulWidget {
+  final List<String> items;
+  final bool checked;
+  final int collapsedCount;
+
+  const _ExpandableBullets({
+    required this.items,
+    this.checked = false,
+    this.collapsedCount = 4,
+  });
+
+  @override
+  State<_ExpandableBullets> createState() => _ExpandableBulletsState();
+}
+
+class _ExpandableBulletsState extends State<_ExpandableBullets> {
+  bool _expanded = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final items = widget.items;
+    final showToggle = items.length > widget.collapsedCount;
+    final visible = (!_expanded && showToggle)
+        ? items.take(widget.collapsedCount).toList()
+        : items;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (var i = 0; i < visible.length; i++)
+          Padding(
+            padding: EdgeInsets.only(
+                bottom: i == visible.length - 1 ? 0 : SizeConfig.size12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (widget.checked)
+                  Container(
+                    margin: const EdgeInsets.only(top: 1),
+                    width: 20,
+                    height: 20,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor.withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Icon(Icons.check_rounded,
+                        size: 13, color: AppColors.primaryColor),
+                  )
+                else
+                  // Blueprint-margin dash marker for plain lists.
+                  Container(
+                    margin: const EdgeInsets.only(top: 9.0),
+                    width: 12,
+                    height: 2.5,
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryColor.withValues(alpha: 0.55),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                SizedBox(width: SizeConfig.size10),
+                Expanded(
+                  child: CustomText(
+                    visible[i],
+                    fontSize: SizeConfig.medium,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.mainTextColor,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        if (showToggle)
+          _ShowMoreToggle(
+            expanded: _expanded,
+            hiddenCount: items.length - widget.collapsedCount,
+            onTap: () => setState(() => _expanded = !_expanded),
+          ),
+      ],
+    );
+  }
+}
+
+// Shared "Show more (N) / Show less" toggle used by the expandable cards.
+class _ShowMoreToggle extends StatelessWidget {
+  final bool expanded;
+  final int hiddenCount;
+  final VoidCallback onTap;
+
+  const _ShowMoreToggle({
+    required this.expanded,
+    required this.hiddenCount,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: EdgeInsets.only(top: SizeConfig.size12),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CustomText(
+              expanded ? 'Show less' : 'Show $hiddenCount more',
+              fontSize: SizeConfig.small,
+              color: AppColors.primaryColor,
+              fontWeight: FontWeight.w700,
+            ),
+            const SizedBox(width: 2),
+            Icon(
+              expanded
+                  ? Icons.keyboard_arrow_up_rounded
+                  : Icons.keyboard_arrow_down_rounded,
+              size: 18,
+              color: AppColors.primaryColor,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

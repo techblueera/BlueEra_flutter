@@ -41,16 +41,16 @@ class _AddSocialLinkSheetState extends State<AddSocialLinkSheet> {
 
   static const _platforms = <_PlatformOption>[
     _PlatformOption(
+      key: 'youtube',
+      label: 'YouTube',
+      icon: Icons.play_circle_fill,
+      brand: Color(0xFFFF0000),
+    ),
+    _PlatformOption(
       key: 'instagram',
       label: 'Instagram',
       icon: Icons.camera_alt_outlined,
       brand: Color(0xFFE1306C),
-    ),
-    _PlatformOption(
-      key: 'twitter',
-      label: 'X / Twitter',
-      icon: Icons.alternate_email,
-      brand: Color(0xFF1DA1F2),
     ),
     _PlatformOption(
       key: 'facebook',
@@ -59,10 +59,16 @@ class _AddSocialLinkSheetState extends State<AddSocialLinkSheet> {
       brand: Color(0xFF1877F2),
     ),
     _PlatformOption(
-      key: 'youtube',
-      label: 'YouTube',
-      icon: Icons.play_circle_fill,
-      brand: Color(0xFFFF0000),
+      key: 'twitter',
+      label: 'X / Twitter',
+      icon: Icons.alternate_email,
+      brand: Color(0xFF1DA1F2),
+    ),
+    _PlatformOption(
+      key: 'other',
+      label: 'Other',
+      icon: Icons.public,
+      brand: Color(0xFF64748B),
     ),
   ];
 
@@ -115,17 +121,19 @@ class _AddSocialLinkSheetState extends State<AddSocialLinkSheet> {
     });
   }
 
-  /// True when the user has picked a chip whose platform doesn't match
-  /// the URL they pasted (and the URL is recognised).
+  /// True when the user has picked a *specific* platform chip that disagrees
+  /// with a *specific* platform detected from the URL. `other` is a wildcard
+  /// on either side (any link is allowed), so it never counts as a mismatch.
   bool get _hasMismatch =>
       _userSelectedChip &&
       _detectedFromUrl != 'unknown' &&
+      _detectedFromUrl != 'other' &&
+      _platform != 'other' &&
       _detectedFromUrl != _platform;
 
-  /// True when the URL is non-empty but doesn't match any supported
-  /// platform — e.g. a random Wikipedia link.
-  bool get _hasUnsupportedUrl =>
-      _urlCtrl.text.trim().isNotEmpty && _detectedFromUrl == 'unknown';
+  /// Any link is accepted now (non-matching URLs resolve to `other`), so there
+  /// is no "unsupported" state.
+  bool get _hasUnsupportedUrl => false;
 
   /// Looks up the friendly label for a platform key, falling back to
   /// the raw key when nothing matches (shouldn't happen in practice).
@@ -156,6 +164,9 @@ class _AddSocialLinkSheetState extends State<AddSocialLinkSheet> {
         bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
       child: Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.9,
+        ),
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -169,27 +180,29 @@ class _AddSocialLinkSheetState extends State<AddSocialLinkSheet> {
               SizeConfig.size16,
               SizeConfig.size16,
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _dragHandle(),
-                SizedBox(height: SizeConfig.size12),
-                _header(),
-                SizedBox(height: SizeConfig.paddingM),
-                _stepLabel(1, 'PICK A PLATFORM'),
-                const SizedBox(height: 10),
-                _platformRow(),
-                SizedBox(height: SizeConfig.paddingM),
-                _stepLabel(2, 'PASTE YOUR URL'),
-                const SizedBox(height: 10),
-                _urlField(),
-                _validationBanner(),
-                _cleanedUrlPreview(),
-                _instagramNote(),
-                SizedBox(height: SizeConfig.paddingM),
-                _submitButton(),
-              ],
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _dragHandle(),
+                  SizedBox(height: SizeConfig.size12),
+                  _header(),
+                  SizedBox(height: SizeConfig.paddingM),
+                  _stepLabel(1, 'PICK A PLATFORM'),
+                  const SizedBox(height: 10),
+                  _platformRow(),
+                  SizedBox(height: SizeConfig.paddingM),
+                  _stepLabel(2, 'PASTE YOUR URL'),
+                  const SizedBox(height: 10),
+                  _urlField(),
+                  _validationBanner(),
+                  _cleanedUrlPreview(),
+                  _instagramNote(),
+                  SizedBox(height: SizeConfig.paddingM),
+                  _submitButton(),
+                ],
+              ),
             ),
           ),
         ),
@@ -660,7 +673,7 @@ class _AddSocialLinkSheetState extends State<AddSocialLinkSheet> {
               ? null
               : () async {
                   final ok = await widget.controller
-                      .createUserPost(_urlCtrl.text);
+                      .createUserPost(_urlCtrl.text, platform: _platform);
                   if (ok && mounted) Navigator.of(context).pop();
                 },
           title: 'Add Link',

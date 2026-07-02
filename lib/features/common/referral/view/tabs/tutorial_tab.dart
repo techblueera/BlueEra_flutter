@@ -2,7 +2,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
-import 'package:BlueEra/features/common/referral/widgets/admin_post_card.dart';
+import 'package:BlueEra/features/common/referral/widgets/media_autoplay_list.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -23,7 +23,7 @@ class _TutorialTabState extends State<TutorialTab>
   @override
   void initState() {
     super.initState();
-    if (widget.controller.tutorialPosts.isEmpty) {
+    if (widget.controller.tutorials.isEmpty) {
       widget.controller.fetchTutorials();
     }
   }
@@ -61,7 +61,7 @@ class _TutorialTabState extends State<TutorialTab>
                 ),
               );
             }
-            final items = widget.controller.tutorialPosts;
+            final items = widget.controller.tutorials;
             if (items.isEmpty) {
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 24),
@@ -74,15 +74,7 @@ class _TutorialTabState extends State<TutorialTab>
                 ),
               );
             }
-            return ListView.separated(
-              shrinkWrap: true,
-              primary: false,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: items.length,
-              separatorBuilder: (_, __) =>
-                  SizedBox(height: SizeConfig.paddingXSL),
-              itemBuilder: (_, i) => AdminPostCard(post: items[i]),
-            );
+            return MediaAutoplayList(items: items.toList());
           }),
         ],
       ),

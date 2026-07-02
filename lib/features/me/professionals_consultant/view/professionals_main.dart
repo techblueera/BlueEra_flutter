@@ -12,6 +12,7 @@ import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/widgets/go_live_pill.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
@@ -252,85 +253,14 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
   }
 
   Widget _goLivePill() {
-    return Obx(() {
-      final isOn = _viewCtrl.shopStatusOpenClose.value;
-      final isUpdating = _viewCtrl.isShopStatusUpdating.value;
-      return GestureDetector(
-        onTap: isUpdating ? null : () => _viewCtrl.toggleShopStatus(),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x1A000000),
-                blurRadius: 3,
-                offset: Offset(0, -1),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: const Color(0xFFC9CDD5),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CustomText(AppStrings.proConsultGoLive.tr,
-                        fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.secondaryTextColor),
-                    SizedBox(width: SizeConfig.size6),
-                    if (isUpdating)
-                      SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryColor),
-                        ),
-                      )
-                    else
-                      Container(
-                        width: 30,
-                        height: 18,
-                        padding: const EdgeInsets.all(2),
-                        decoration: BoxDecoration(
-                          color: isOn ? AppColors.primaryColor : Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: AppColors.secondaryTextColor.withValues(alpha: 0.4),
-                            width: 0.5,
-                          ),
-                        ),
-                        child: AnimatedAlign(
-                          duration: const Duration(milliseconds: 180),
-                          alignment: isOn ? Alignment.centerRight : Alignment.centerLeft,
-                          child: Container(
-                            height: 14,
-                            width: 14,
-                            decoration: BoxDecoration(
-                              color: isOn ? Colors.white : AppColors.secondaryTextColor,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-    });
+    return Obx(
+      () => GoLivePill(
+        value: _viewCtrl.shopStatusOpenClose.value,
+        isUpdating: _viewCtrl.isShopStatusUpdating.value,
+        onTap: () => _viewCtrl.toggleShopStatus(),
+        label: AppStrings.proConsultGoLive.tr,
+      ),
+    );
   }
 
   void _openDrawer(BuildContext context) {

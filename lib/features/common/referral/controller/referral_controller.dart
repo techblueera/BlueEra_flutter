@@ -1,12 +1,12 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/common/referral/model/admin_post_model.dart';
 import 'package:BlueEra/features/common/referral/model/referral_bdm_details_model.dart';
 import 'package:BlueEra/features/common/referral/model/referral_testimonial_model.dart';
 import 'package:BlueEra/features/common/referral/model/wallet_referral_history_model.dart';
 import 'package:BlueEra/features/common/referral/model/wallet_referral_stats_model.dart';
 import 'package:BlueEra/features/common/referral/model/wallet_statics_model.dart';
+import 'package:BlueEra/features/common/referral/model/creator_program_model.dart';
 import 'package:BlueEra/features/common/referral/repo/referral_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -26,7 +26,7 @@ class ReferralController extends GetxController {
       ApiResponse.initial('Initial').obs;
   final Rx<ApiResponse> overviewResponse =
       ApiResponse.initial('Initial').obs;
-  final Rx<ApiResponse> userPostsResponse =
+  final Rx<ApiResponse> creatorResponse =
       ApiResponse.initial('Initial').obs;
   final Rx<ApiResponse> directReferralIncomeResponse =
       ApiResponse.initial('Initial').obs;
@@ -48,14 +48,15 @@ class ReferralController extends GetxController {
   // existing testimonial card design keeps working unchanged.
   final RxList<ReferralTestimonial> testimonials =
       <ReferralTestimonial>[].obs;
-  // Overview + Tutorial sections render AdminPost directly via the new
-  // AdminPostCard widget — they share the same shape (title /
-  // description / link / video / images) so no extra model is needed.
-  final RxList<AdminPost> overviewPosts = <AdminPost>[].obs;
-  final RxList<AdminPost> tutorialPosts = <AdminPost>[].obs;
-  // User-created posts (type=post) — populated by [fetchUserPosts] and
-  // refreshed after each successful [createUserPost].
-  final RxList<AdminPost> userPosts = <AdminPost>[].obs;
+  // Overview posts from GET /earn-service/overview (title/description/images/
+  // video) — same media model as testimonials.
+  final RxList<ReferralTestimonial> overviews = <ReferralTestimonial>[].obs;
+  // Tutorials come from GET /earn-service/tutorial (title/description/images/
+  // video) — same media model the testimonials use.
+  final RxList<ReferralTestimonial> tutorials = <ReferralTestimonial>[].obs;
+  // Content-creator program + progress + submitted videos, from
+  // GET /earn-service/creator. Powers the whole Creator tab.
+  final Rxn<CreatorData> creatorData = Rxn<CreatorData>();
 
   // Step-2 form fields
   final TextEditingController referralCodeController = TextEditingController();
@@ -270,16 +271,23 @@ class ReferralController extends GetxController {
   // same endpoint and response shape; only the `?type=` param changes.
   // ---------------------------------------------------------------------------
 
-  /// Fetches testimonial-type admin posts
+  /// Fetches referral testimonials from `GET /earn-service/testimonial`.
+  /// Each item carries a title/description plus either images or a video.
   Future<void> fetchTestimonials() async {
     testimonialsResponse.value = ApiResponse.loading('loading');
     try {
-      final res = await _repo.getAdminPosts(type: 'testimonial');
+      final res = await _repo.getTestimonials();
       if (res.isSuccess) {
-        final parsed = AdminPostsResponse.fromJson(res.response?.data ?? {});
-        testimonials.value =
-            parsed.adminPosts.map(_mapTestimonial).toList();
-        testimonialsResponse.value = ApiResponse.complete(res.response?.data);
+        // The endpoint returns the payload unwrapped (no `data` envelope):
+        // { testimonials: [...], currentPage, totalPages, totalTestimonials }.
+        final body = res.response?.data;
+        final list =
+            (body is Map ? body['testimonials'] as List? : null) ?? const [];
+        testimonials.value = list
+            .whereType<Map>()
+            .map((e) => ReferralTestimonial.fromJson(e.cast<String, dynamic>()))
+            .toList();
+        testimonialsResponse.value = ApiResponse.complete(body);
       } else {
         testimonialsResponse.value =
             ApiResponse.error(res.message ?? AppStrings.somethingWentWrong.tr);
@@ -289,30 +297,21 @@ class ReferralController extends GetxController {
     }
   }
 
-  ReferralTestimonial _mapTestimonial(AdminPost post) {
-    final creator = post.creator;
-    return ReferralTestimonial(
-      id: post.id,
-      name: creator?.name ?? '',
-      role: creator?.designation ?? '',
-      company: creator?.currentOrganisation ?? '',
-      profileImage: creator?.profileImage ?? '',
-      // The testimonial card emphasises the quote — fall back to the
-      // post title when description is missing.
-      quote: post.description.isNotEmpty ? post.description : post.title,
-      website: post.link.isEmpty ? null : post.link,
-      videoUrl: post.video,
-    );
-  }
-
-  Future<void> fetchOverviewPosts() async {
+  /// Overview posts from `GET /earn-service/overview` — same media shape
+  /// (title/description/images/video) as testimonials & tutorials.
+  Future<void> fetchOverview() async {
     overviewResponse.value = ApiResponse.loading('loading');
     try {
-      final res = await _repo.getAdminPosts(type: 'overview');
+      final res = await _repo.getOverviews();
       if (res.isSuccess) {
-        final parsed = AdminPostsResponse.fromJson(res.response?.data ?? {});
-        overviewPosts.value = parsed.adminPosts;
-        overviewResponse.value = ApiResponse.complete(res.response?.data);
+        final body = res.response?.data;
+        final list =
+            (body is Map ? body['overviews'] as List? : null) ?? const [];
+        overviews.value = list
+            .whereType<Map>()
+            .map((e) => ReferralTestimonial.fromJson(e.cast<String, dynamic>()))
+            .toList();
+        overviewResponse.value = ApiResponse.complete(body);
       } else {
         overviewResponse.value =
             ApiResponse.error(res.message ?? AppStrings.somethingWentWrong.tr);
@@ -322,14 +321,21 @@ class ReferralController extends GetxController {
     }
   }
 
+  /// Tutorials from `GET /earn-service/tutorial`. Same media shape as
+  /// testimonials (title/description/images/video).
   Future<void> fetchTutorials() async {
     tutorialsResponse.value = ApiResponse.loading('loading');
     try {
-      final res = await _repo.getAdminPosts(type: 'tutorial');
+      final res = await _repo.getTutorials();
       if (res.isSuccess) {
-        final parsed = AdminPostsResponse.fromJson(res.response?.data ?? {});
-        tutorialPosts.value = parsed.adminPosts;
-        tutorialsResponse.value = ApiResponse.complete(res.response?.data);
+        final body = res.response?.data;
+        final list =
+            (body is Map ? body['tutorials'] as List? : null) ?? const [];
+        tutorials.value = list
+            .whereType<Map>()
+            .map((e) => ReferralTestimonial.fromJson(e.cast<String, dynamic>()))
+            .toList();
+        tutorialsResponse.value = ApiResponse.complete(body);
       } else {
         tutorialsResponse.value =
             ApiResponse.error(res.message ?? AppStrings.somethingWentWrong.tr);
@@ -340,30 +346,35 @@ class ReferralController extends GetxController {
   }
 
   // ---------------------------------------------------------------------------
-  // User posts (`type=post`)
+  // Content-creator program (`GET /earn-service/creator`)
   // ---------------------------------------------------------------------------
 
-  Future<void> fetchUserPosts() async {
-    userPostsResponse.value = ApiResponse.loading('loading');
+  Future<void> fetchCreator() async {
+    creatorResponse.value = ApiResponse.loading('loading');
     try {
-      final res = await _repo.getAdminPosts(type: 'post');
+      final res = await _repo.getCreator();
       if (res.isSuccess) {
-        final parsed = AdminPostsResponse.fromJson(res.response?.data ?? {});
-        userPosts.value = parsed.adminPosts;
-        userPostsResponse.value = ApiResponse.complete(res.response?.data);
+        final body = res.response?.data;
+        if (body is Map) {
+          creatorData.value =
+              CreatorData.fromJson(body.cast<String, dynamic>());
+        }
+        creatorResponse.value = ApiResponse.complete(body);
       } else {
-        userPostsResponse.value =
+        creatorResponse.value =
             ApiResponse.error(res.message ?? AppStrings.somethingWentWrong.tr);
       }
     } catch (e) {
-      userPostsResponse.value = ApiResponse.error(e.toString());
+      creatorResponse.value = ApiResponse.error(e.toString());
     }
   }
 
-  /// POST a social link, then re-pull the `type=post` list so the new
-  /// card appears in "My Videos". Platform comes from URL detection and
-  /// is sent as the `title` field per the new contract.
-  Future<bool> createUserPost(String url) async {
+  /// Submit a creator video link (`POST /earn-service/creator`), then re-pull
+  /// the creator data so the new video appears in "My Videos". [platform] is
+  /// the chip the user picked (youtube / instagram / facebook / twitter /
+  /// other); when absent it's inferred from the URL. Any link is accepted —
+  /// non-matching URLs fall back to `other`.
+  Future<bool> createUserPost(String url, {String? platform}) async {
     if (creatingPost.value) return false;
     // Normalize whatever the user pasted (browser URL, share-sheet link
     // with tracking tokens, or share text wrapping a URL) into a clean
@@ -374,17 +385,17 @@ class ReferralController extends GetxController {
       commonSnackBar(message: 'Please paste a valid link.');
       return false;
     }
-    final platform = ReferralRepoNew.detectPlatform(trimmed);
-    if (platform == 'unknown') {
-      commonSnackBar(
-          message: 'Only Instagram, Twitter (X), or YouTube links are supported.');
-      return false;
-    }
+    final plat = (platform != null &&
+            platform.isNotEmpty &&
+            platform != 'unknown')
+        ? platform
+        : ReferralRepoNew.detectPlatform(trimmed);
     creatingPost.value = true;
     try {
-      final res = await _repo.createAdminPost(link: trimmed, title: platform);
+      final res =
+          await _repo.createCreatorVideo(url: trimmed, platform: plat);
       if (res.isSuccess) {
-        await fetchUserPosts();
+        await fetchCreator();
         return true;
       }
       commonSnackBar(

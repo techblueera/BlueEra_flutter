@@ -1,34 +1,47 @@
+/// A referral-page testimonial from `GET /earn-service/testimonial`.
+///
+/// Each testimonial has a [title] + [description] and carries media as EITHER
+/// a list of [images] OR a single [video] (or neither → text-only).
 class ReferralTestimonial {
   final String id;
-  final String name;
-  final String role;
-  final String company;
-  final String profileImage;
-  final String quote;
-  final String? website;
-  final String? videoUrl;
+  final String title;
+  final String description;
+  final List<String> images;
+  final String? video;
+  final DateTime? createdAt;
 
-  ReferralTestimonial({
-    required this.id,
-    required this.name,
-    required this.role,
-    required this.company,
-    required this.profileImage,
-    required this.quote,
-    this.website,
-    this.videoUrl,
+  const ReferralTestimonial({
+    this.id = '',
+    this.title = '',
+    this.description = '',
+    this.images = const [],
+    this.video,
+    this.createdAt,
   });
 
+  bool get hasVideo => (video ?? '').trim().isNotEmpty;
+  bool get hasImages => images.isNotEmpty;
+  bool get hasMedia => hasVideo || hasImages;
+
+  /// Poster used behind the play button for video testimonials (if any image
+  /// was also supplied).
+  String? get poster => images.isNotEmpty ? images.first : null;
+
   factory ReferralTestimonial.fromJson(Map<String, dynamic> json) {
+    final rawImages = (json['images'] as List?) ?? const [];
+    final v = json['video']?.toString();
     return ReferralTestimonial(
-      id: json['id']?.toString() ?? '',
-      name: json['name'] ?? '',
-      role: json['role'] ?? '',
-      company: json['company'] ?? '',
-      profileImage: json['profileImage'] ?? '',
-      quote: json['quote'] ?? '',
-      website: json['website'],
-      videoUrl: json['videoUrl'],
+      id: (json['_id'] ?? json['id'] ?? '').toString(),
+      title: (json['title'] ?? '').toString(),
+      description: (json['description'] ?? '').toString(),
+      images: rawImages
+          .map((e) => e?.toString() ?? '')
+          .where((e) => e.isNotEmpty)
+          .toList(),
+      video: (v == null || v.isEmpty) ? null : v,
+      createdAt: json['createdAt'] != null
+          ? DateTime.tryParse(json['createdAt'].toString())
+          : null,
     );
   }
 }

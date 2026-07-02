@@ -6,6 +6,8 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/me/grocery/view/admin/grocery_shop_availability_screen.dart';
+import 'package:BlueEra/widgets/go_live_pill.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_flag_controller.dart';
@@ -19,7 +21,6 @@ import 'package:BlueEra/features/me/laboratory/view/v2/tabs/lab_overview_tab_v2.
 import 'package:BlueEra/features/me/laboratory/view/v2/tabs/lab_posts_tab_v2.dart';
 import 'package:BlueEra/features/me/laboratory/view/v2/tabs/lab_stats_tab_v2.dart';
 import 'package:BlueEra/features/me/laboratory/view/v2/tabs/lab_tests_tab_v2.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:flutter/material.dart';
@@ -42,7 +43,7 @@ class _LabHomeScreenV2State extends State<LabHomeScreenV2>
   final _businessController =
       getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
-  bool _isGoLive = false;
+  bool isShopGoLive = false;
   late final TabController _tabController;
   List<String> get _tabs => [
     AppStrings.inquiry.tr,
@@ -264,83 +265,26 @@ class _LabHomeScreenV2State extends State<LabHomeScreenV2>
     );
   }
 
+  /// Drive the Go-Live toggle. Turning ON opens the shop-availability
+  /// (set-time) form directly — no permission gate. The form persists the
+  /// hours and goes live via the backend, popping back `true` on success.
+  /// Turning OFF just flips the local toggle.
+  Future<void> handleGoLiveTap() async {
+    if (isShopGoLive) {
+      setState(() => isShopGoLive = false);
+      return;
+    }
+
+    final result = await Get.to(() => const GroceryShopAvailabilityScreen());
+    if (result == true && mounted) {
+      setState(() => isShopGoLive = true);
+    }
+  }
+
   Widget _goLivePill() {
-    return GestureDetector(
-      onTap: () => setState(() => _isGoLive = !_isGoLive),
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x1A000000),
-              blurRadius: 3,
-              offset: Offset(0, -1),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-            child: Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: SizeConfig.size10,
-                vertical: SizeConfig.size6,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: const Color(0xFFC9CDD5),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  CustomText(
-                    'Go live',
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.secondaryTextColor,
-                  ),
-                  SizedBox(width: SizeConfig.size6),
-                  Container(
-                    width: 30,
-                    height: 18,
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      color: _isGoLive ? AppColors.primaryColor : Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color:
-                            AppColors.secondaryTextColor.withValues(alpha: 0.4),
-                        width: 0.5,
-                      ),
-                    ),
-                    child: AnimatedAlign(
-                      duration: const Duration(milliseconds: 180),
-                      alignment: _isGoLive
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
-                      child: Container(
-                        height: 14,
-                        width: 14,
-                        decoration: BoxDecoration(
-                          color: _isGoLive
-                              ? Colors.white
-                              : AppColors.secondaryTextColor,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
+    return GoLivePill(
+      value: isShopGoLive,
+      onTap: handleGoLiveTap,
     );
   }
 

@@ -1,8 +1,8 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
+import 'package:BlueEra/features/common/referral/view/tabs/creator_tab.dart';
 import 'package:BlueEra/features/common/referral/view/tabs/overview_tab.dart';
-import 'package:BlueEra/features/common/referral/view/tabs/post_tab.dart';
 import 'package:BlueEra/features/common/referral/view/tabs/statics_tab.dart';
 import 'package:BlueEra/features/common/referral/view/tabs/tutorial_tab.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -21,7 +21,7 @@ class _ReferralDashboardPageState extends State<ReferralDashboardPage>
   late final TabController _tabController;
   int _selectedTab = 0;
 
-  static const _tabs = ['Overview', 'Tutorial', 'Post', 'Statics'];
+  static const _tabs = ['Overview', 'Tutorial', 'Creator', 'Statics'];
 
   @override
   void initState() {
@@ -57,7 +57,7 @@ class _ReferralDashboardPageState extends State<ReferralDashboardPage>
             children: [
               OverviewTab(controller: widget.controller),
               TutorialTab(controller: widget.controller),
-              PostTab(controller: widget.controller),
+              CreatorTab(controller: widget.controller),
               StaticsTab(controller: widget.controller),
             ],
           ),

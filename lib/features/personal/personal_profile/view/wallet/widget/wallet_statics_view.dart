@@ -1,5 +1,4 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -8,6 +7,8 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
 import 'package:BlueEra/features/common/referral/view/referral_history_screen.dart';
 import 'package:BlueEra/features/common/referral/widgets/stat_donut_chart.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/wallet/coin/controller/earn_coin_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/wallet/coin/view/coin_wallet_dashboard_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/controller/joining_bounce_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/controller/wallet_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/model/joining_bounce_progress.dart';
@@ -45,6 +46,9 @@ class _WalletStaticsViewState extends State<WalletStaticsView> {
   /// see docs/backend/JOINING_BOUNCE_FLUTTER_INTEGRATION.md.
   final _joiningBounceController = getOrPut(() => JoiningBounceController());
 
+  /// Coin balance for the Coin Wallet card — GET /earn/balance.
+  final _earnController = getOrPut(() => EarnCoinController());
+
   /// Joining Bonus checklist expand/collapse — "See More" / "Show Less".
   bool _bonusExpanded = false;
 
@@ -59,6 +63,8 @@ class _WalletStaticsViewState extends State<WalletStaticsView> {
       tagId: businessCategoryGlobal,
       accountType: 'BUSINESS',
     );
+    // Coin balance is fetched once by WalletScreen (the parent) — this view
+    // shares the same singleton and just reads it, so no fetch here.
   }
 
   // ── Money / count formatting ────────────────────────────────────────────
@@ -605,90 +611,90 @@ class _WalletStaticsViewState extends State<WalletStaticsView> {
 
   // ─── Coin Wallet ──────────────────────────────────────────────────
   // Donut of Current / Lifetime / Redeemed coins + XP with a "Total Amount"
-  // centre — no footer (informational card).
-  //
-  // TODO(coins): wire these to the coin-wallet API once it's available. There
-  // is no coin/XP data source in the app yet, so the values below are
-  // placeholders matching the design mock. Replace with the real fields.
+  // (₹ equivalent) centre. Bound to GET /earn/balance; "View Details" opens
+  // the 5-tab earn screen. See docs/backend/FLUTTER-MASTER-GUIDE.md.
   Widget _coinWalletCard() {
-    const num currentCoins = 0;
-    const num lifetimeCoins = 0;
-    const num redeemedCoins = 0;
-    const num xp = 0;
-    const num totalAmount = 0;
+    return Obx(() {
+      final b = _earnController.balance.value;
+      final num currentCoins = b?.coins ?? 0;
+      final num lifetimeCoins = b?.lifetimeCoins ?? 0;
+      final num redeemedCoins = b?.redeemedCoins ?? 0;
+      final num xp = b?.xp ?? 0;
+      final num totalAmount = b?.rupeeEquivalent ?? 0;
 
-    return CustomFormCard(
-      padding: EdgeInsets.zero,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // Title row: "Coin Wallet" + "View Details".
-          Padding(
-            padding: EdgeInsets.all(SizeConfig.size10),
-            child: Row(
-              children: [
-                Expanded(
-                  child: CustomText(
-                    'Coin Wallet',
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.mainTextColor,
-                  ),
-                ),
-                InkWell(
-                  onTap: () {},
-                  borderRadius: BorderRadius.circular(6),
-                  child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      return CustomFormCard(
+        padding: EdgeInsets.zero,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Title row: "Coin Wallet" + "View Details".
+            Padding(
+              padding: EdgeInsets.all(SizeConfig.size10),
+              child: Row(
+                children: [
+                  Expanded(
                     child: CustomText(
-                      'View Details',
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w400,
-                      color: AppColors.skyBlueDF,
+                      'Coin Wallet',
+                      fontSize: SizeConfig.medium,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.mainTextColor,
                     ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          Container(height: 1, color: AppColors.greyE5),
-          Padding(
-            padding: EdgeInsets.fromLTRB(SizeConfig.size14, SizeConfig.size12,
-                SizeConfig.size14, SizeConfig.size14),
-            child: _ChartRow(
-              donut: StatDonutChart(
-                segments: const [
-                  DonutSegment(color: _green, value: currentCoins),
-                  DonutSegment(color: _purple, value: lifetimeCoins),
-                  DonutSegment(color: _yellow, value: xp),
-                  DonutSegment(color: _red, value: redeemedCoins),
+                  InkWell(
+                    onTap: () => Get.to(() => const CoinWalletDashboardScreen()),
+                    borderRadius: BorderRadius.circular(6),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 4, vertical: 2),
+                      child: CustomText(
+                        'View Details',
+                        fontSize: SizeConfig.small,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.skyBlueDF,
+                      ),
+                    ),
+                  ),
                 ],
-                center: _CenterText(
-                  value: _money(totalAmount),
-                  label: 'Total Amount',
-                ),
               ),
-              rows: [
-                _LegendRow(
-                    color: _green,
-                    label: 'Current Coins',
-                    value: _count(currentCoins)),
-                _LegendRow(
-                    color: _purple,
-                    label: 'Lifetime Coins',
-                    value: _count(lifetimeCoins)),
-                _LegendRow(
-                    color: _red,
-                    label: 'Redeemed Coins',
-                    value: _count(redeemedCoins)),
-                _LegendRow(color: _yellow, label: 'XP', value: _count(xp)),
-              ],
             ),
-          ),
-        ],
-      ),
-    );
+            Container(height: 1, color: AppColors.greyE5),
+            Padding(
+              padding: EdgeInsets.fromLTRB(SizeConfig.size14, SizeConfig.size12,
+                  SizeConfig.size14, SizeConfig.size14),
+              child: _ChartRow(
+                donut: StatDonutChart(
+                  segments: [
+                    DonutSegment(color: _green, value: currentCoins),
+                    DonutSegment(color: _purple, value: lifetimeCoins),
+                    DonutSegment(color: _yellow, value: xp),
+                    DonutSegment(color: _red, value: redeemedCoins),
+                  ],
+                  center: _CenterText(
+                    value: _money(totalAmount),
+                    label: 'Total Amount',
+                  ),
+                ),
+                rows: [
+                  _LegendRow(
+                      color: _green,
+                      label: 'Current Coins',
+                      value: _count(currentCoins)),
+                  _LegendRow(
+                      color: _purple,
+                      label: 'Lifetime Coins',
+                      value: _count(lifetimeCoins)),
+                  _LegendRow(
+                      color: _red,
+                      label: 'Redeemed Coins',
+                      value: _count(redeemedCoins)),
+                  _LegendRow(color: _yellow, label: 'XP', value: _count(xp)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    });
   }
 }
 

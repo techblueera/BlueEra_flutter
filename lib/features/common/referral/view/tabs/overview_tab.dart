@@ -4,8 +4,8 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
 import 'package:BlueEra/features/common/referral/view/referral_history_screen.dart';
-import 'package:BlueEra/features/common/referral/widgets/admin_post_card.dart';
 import 'package:BlueEra/features/common/referral/widgets/balance_total_earn_row.dart';
+import 'package:BlueEra/features/common/referral/widgets/media_autoplay_list.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -27,8 +27,8 @@ class _OverviewTabState extends State<OverviewTab>
   @override
   void initState() {
     super.initState();
-    if (widget.controller.overviewPosts.isEmpty) {
-      widget.controller.fetchOverviewPosts();
+    if (widget.controller.overviews.isEmpty) {
+      widget.controller.fetchOverview();
     }
   }
 
@@ -161,7 +161,7 @@ class _OverviewTabState extends State<OverviewTab>
           ),
         );
       }
-      final items = widget.controller.overviewPosts;
+      final items = widget.controller.overviews;
       if (items.isEmpty) {
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 24),
@@ -174,15 +174,7 @@ class _OverviewTabState extends State<OverviewTab>
           ),
         );
       }
-      return ListView.separated(
-        shrinkWrap: true,
-        primary: false,
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: items.length,
-        separatorBuilder: (_, __) =>
-            SizedBox(height: SizeConfig.paddingXSL),
-        itemBuilder: (_, i) => AdminPostCard(post: items[i]),
-      );
+      return MediaAutoplayList(items: items.toList());
     });
   }
 }

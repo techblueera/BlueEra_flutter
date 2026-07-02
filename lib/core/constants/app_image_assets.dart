@@ -51,8 +51,17 @@ class AppImageAssets {
   static const String servicesDiscover = '${imgPath}services_discover.png';
   static const String listCardBoard = '${imgPath}list_cardboard.png';
   static const String dummyScratch = "${imgPath}dummy_scratch.png";
-  static const String coinIcon = "${imgPath}coin_icon.svg";
-  static const String moneyBagIcon = "${imgPath}money_bag_icon.svg";
+  static const String coinIcon = "${imgPath}coin_icon.png";
+  static const String moneyBagIcon = "${imgPath}money_bag_icon.png";
+
+  /// Coin Wallet dashboard (earn-coin) artwork.
+  static const String coinHeaderBg = "${imgPath}coin_header_bg.png";
+  static const String earnTrophy = "${imgPath}earn_trophy.png";
+  static const String earnFlame = "${imgPath}earn_flame.png";
+  static const String earnCalendar = "${imgPath}earn_calendar.png";
+  static const String earnVerifiedBadge = "${imgPath}earn_verified_badge.png";
+  static const String taskProfile = "${imgPath}task_profile.png";
+  static const String taskDocuments = "${imgPath}task_documents.png";
 
   /// Business products images
   static String furnitureHomeDecor = "${imgPath}furniture_home_decor_icon.png";

@@ -13,6 +13,7 @@ import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/widgets/go_live_pill.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
@@ -411,68 +412,10 @@ class _ProductScreenState extends State<ManufacturerProductScreen>
   /// On-state: brand-blue track + white thumb. Same chip language
   /// the grocery v2 top bar uses.
   Widget _goLivePill() {
-    return GestureDetector(
+    return GoLivePill(
+      value: _isGoLive,
       onTap: () => setState(() => _isGoLive = !_isGoLive),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-          child: Container(
-            padding: EdgeInsets.symmetric(
-                horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: const Color(0xFFC9CDD5),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CustomText(
-                  'Go live',
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.secondaryTextColor,
-                ),
-                SizedBox(width: SizeConfig.size6),
-                Container(
-                  width: 30,
-                  height: 18,
-                  padding: const EdgeInsets.all(2),
-                  decoration: BoxDecoration(
-                    color: _isGoLive ? AppColors.primaryColor : Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: AppColors.secondaryTextColor
-                          .withValues(alpha: 0.4),
-                      width: 0.5,
-                    ),
-                  ),
-                  child: AnimatedAlign(
-                    duration: const Duration(milliseconds: 180),
-                    alignment: _isGoLive
-                        ? Alignment.centerRight
-                        : Alignment.centerLeft,
-                    child: Container(
-                      height: 14,
-                      width: 14,
-                      decoration: BoxDecoration(
-                        color: _isGoLive
-                            ? Colors.white
-                            : AppColors.secondaryTextColor,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+      showShadow: false,
     );
   }
 
