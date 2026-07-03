@@ -202,7 +202,7 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                     onTap: () => _onPlaceOrderTap(v),
                     isValidate: true,
                     radius: SizeConfig.size12,
-                    title: AppStrings.bookInquiry.tr,
+                    title: AppStrings.inquiry.tr,
                     bgColor: AppColors.primaryColor,
                   ),
           ),

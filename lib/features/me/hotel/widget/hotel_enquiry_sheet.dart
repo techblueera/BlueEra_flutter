@@ -56,11 +56,16 @@ class HotelEnquirySheet {
   /// useful when the listing already knows its own amenities.
   static const List<HotelEnquiryGroup> _defaultGroups = [
     HotelEnquiryGroup(title: 'Room Type', options: [
-      'Standard',
-      'Deluxe',
-      'Suite',
-      'Family',
-      'Twin / Sharing',
+      AppStrings.hotelRoomStandard,
+      AppStrings.hotelRoomEconomy,
+      AppStrings.hotelRoomDeluxe,
+      AppStrings.hotelRoomSuperDeluxe,
+      AppStrings.hotelRoomPremium,
+      AppStrings.hotelRoomExecutive,
+      AppStrings.hotelRoomFamily,
+      AppStrings.hotelRoomSuite,
+      AppStrings.hotelRoomLuxurySuite,
+      AppStrings.hotelRoomStudio
     ]),
     HotelEnquiryGroup(title: 'Purpose', options: [
       'Leisure',
@@ -69,14 +74,9 @@ class HotelEnquirySheet {
       'Long stay',
       'Just checking availability',
     ]),
-    HotelEnquiryGroup(title: 'Amenities', options: [
-      'Free Wi-Fi',
-      'Breakfast included',
-      'Pickup / Drop',
-      'Pool',
-      'Parking',
-      'Pet-friendly',
-    ]),
+    // 'Hotel Amenities' and 'Room Amenities' are appended at runtime
+    // from the hotel-amenities / room-amenities APIs — see
+    // [_HotelEnquireFormState.initState].
     HotelEnquiryGroup(title: 'Timeline', options: [
       'This weekend',
       'Within 2 weeks',
@@ -103,8 +103,7 @@ class HotelEnquirySheet {
       builder: (_) => _HotelEnquireForm(
         listing: listing,
         groups: groups ?? _defaultGroups,
-        onSubmit: (selections, note, photoPaths) =>
-            _submit(listing, selections, note, photoPaths),
+        onSubmit: (selections, note, photoPaths) => _submit(listing, selections, note, photoPaths),
       ),
     );
   }
@@ -134,9 +133,7 @@ class HotelEnquirySheet {
     final chatViewController = getOrPut(() => ChatViewController());
     await chatViewController.checkChatConnectionAndOpenChat(
       userId: listing.ownerId,
-      name: listing.hotelName.isNotEmpty
-          ? listing.hotelName
-          : listing.ownerName,
+      name: listing.hotelName.isNotEmpty ? listing.hotelName : listing.ownerName,
       profile: listing.coverImage,
       route: AppConstants.route_discover,
     );
@@ -168,14 +165,54 @@ class _HotelEnquireFormState extends State<_HotelEnquireForm> {
   static const Color _surface = Color(0xFFF4F6FA);
   static const int _maxPhotos = 5;
 
+  static const String _hotelAmenitiesTitle = 'Hotel Amenities';
+  static const String _roomAmenitiesTitle = 'Room Amenities';
+
   final Map<String, Set<String>> _selected = {};
   final List<String> _photos = [];
   final _noteController = TextEditingController();
+
+  // Populated async from the hotel-amenities / room-amenities APIs.
+  // Empty lists (fetch failed or backend returned nothing) simply skip
+  // the section — the sheet stays usable.
+  List<String> _hotelAmenityOptions = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAmenityCatalogs();
+  }
 
   @override
   void dispose() {
     _noteController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadAmenityCatalogs() async {
+    final controller = getOrPut(() => HotelEnquiryController());
+    final results = await Future.wait([
+      controller.fetchHotelAmenityKeys(),
+    ]);
+    if (!mounted) return;
+    setState(() {
+      _hotelAmenityOptions = results[0];
+    });
+  }
+
+  /// `freeParking` → `Free Parking`, `wifi` → `Wifi`, `24x7Frontdesk` →
+  /// `24x7 Frontdesk`. Backend-defined keys ship in mixed casing so we
+  /// normalise them here rather than hardcoding a mapping.
+  String _humanizeKey(String key) {
+    if (key.isEmpty) return key;
+    final withSpaces = key
+        .replaceAllMapped(RegExp(r'([a-z0-9])([A-Z])'), (m) => '${m[1]} ${m[2]}')
+        .replaceAll('_', ' ')
+        .trim();
+    return withSpaces
+        .split(RegExp(r'\s+'))
+        .map((w) => w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1)}')
+        .join(' ');
   }
 
   void _toggle(String groupTitle, String value) {
@@ -188,10 +225,7 @@ class _HotelEnquireFormState extends State<_HotelEnquireForm> {
   bool _isOn(String title, String s) => _selected[title]?.contains(s) ?? false;
   int _countFor(String title) => _selected[title]?.length ?? 0;
   bool get _hasSelection => _selected.values.any((s) => s.isNotEmpty);
-  bool get _canSubmit =>
-      _hasSelection ||
-      _noteController.text.trim().isNotEmpty ||
-      _photos.isNotEmpty;
+  bool get _canSubmit => _hasSelection || _noteController.text.trim().isNotEmpty || _photos.isNotEmpty;
 
   Future<void> _pickPhoto() async {
     if (_photos.length >= _maxPhotos) return;
@@ -261,8 +295,7 @@ class _HotelEnquireFormState extends State<_HotelEnquireForm> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _eyebrow(
-                          '${AppStrings.photoLabel.tr.toUpperCase()} · ${AppStrings.optionalLabel.tr}',
+                      _eyebrow('${AppStrings.photoLabel.tr.toUpperCase()} · ${AppStrings.optionalLabel.tr}',
                           _photos.length),
                       const SizedBox(height: 12),
                       _photoSection(),
@@ -283,9 +316,9 @@ class _HotelEnquireFormState extends State<_HotelEnquireForm> {
                         ),
                         const SizedBox(height: 20),
                       ],
+                      _amenityGroup(_hotelAmenitiesTitle, _hotelAmenityOptions),
                       _eyebrow(
-                          '${AppStrings.noteLabel.tr.toUpperCase()} · ${AppStrings.optionalLabel.tr}',
-                          0),
+                          '${AppStrings.noteLabel.tr.toUpperCase()} · ${AppStrings.optionalLabel.tr}', 0),
                       const SizedBox(height: 10),
                       _noteField(),
                     ],
@@ -325,8 +358,7 @@ class _HotelEnquireFormState extends State<_HotelEnquireForm> {
                 ),
               ],
             ),
-            child: const Icon(Icons.hotel_rounded,
-                color: Colors.white, size: 22),
+            child: const Icon(Icons.hotel_rounded, color: Colors.white, size: 22),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -341,11 +373,11 @@ class _HotelEnquireFormState extends State<_HotelEnquireForm> {
                 ),
                 const SizedBox(height: 2),
                 CustomText(
-                  AppStrings.tellListingAboutEnquiry.tr
-                      .replaceAll('{listing}',
-                          widget.listing.hotelName.isNotEmpty
-                              ? widget.listing.hotelName
-                              : widget.listing.ownerName),
+                  AppStrings.tellListingAboutEnquiry.tr.replaceAll(
+                      '{listing}',
+                      widget.listing.hotelName.isNotEmpty
+                          ? widget.listing.hotelName
+                          : widget.listing.ownerName),
                   fontSize: 12.5,
                   color: AppColors.secondaryTextColor,
                   fontWeight: FontWeight.w500,
@@ -367,8 +399,7 @@ class _HotelEnquireFormState extends State<_HotelEnquireForm> {
                 color: _surface,
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.close_rounded,
-                  size: 18, color: AppColors.secondaryTextColor),
+              child: Icon(Icons.close_rounded, size: 18, color: AppColors.secondaryTextColor),
             ),
           ),
         ],
@@ -397,13 +428,39 @@ class _HotelEnquireFormState extends State<_HotelEnquireForm> {
               color: _accent.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(999),
             ),
-            child: CustomText('$count',
-                fontSize: 10,
-                fontWeight: FontWeight.w800,
-                color: _accent),
+            child: CustomText('$count', fontSize: 10, fontWeight: FontWeight.w800, color: _accent),
           ),
         ],
       ],
+    );
+  }
+
+  /// Renders a dynamic amenity section — keeps raw backend keys as the
+  /// selection value (so the enquiry POST stays canonical) while showing
+  /// humanized labels in the chip.
+  Widget _amenityGroup(String title, List<String> options) {
+    if (options.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _eyebrow(title, _countFor(title)),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final key in options)
+                _checkChip(
+                  label: _humanizeKey(key),
+                  on: _isOn(title, key),
+                  onTap: () => _toggle(title, key),
+                ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -430,9 +487,7 @@ class _HotelEnquireFormState extends State<_HotelEnquireForm> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              on
-                  ? Icons.check_circle_rounded
-                  : Icons.add_circle_outline_rounded,
+              on ? Icons.check_circle_rounded : Icons.add_circle_outline_rounded,
               size: 16,
               color: on ? _accent : AppColors.greyCA,
             ),
@@ -483,8 +538,7 @@ class _HotelEnquireFormState extends State<_HotelEnquireForm> {
                   color: Colors.black.withValues(alpha: 0.55),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.close_rounded,
-                    size: 14, color: Colors.white),
+                child: const Icon(Icons.close_rounded, size: 14, color: Colors.white),
               ),
             ),
           ),
@@ -504,16 +558,14 @@ class _HotelEnquireFormState extends State<_HotelEnquireForm> {
         decoration: BoxDecoration(
           color: _surface,
           borderRadius: BorderRadius.circular(14),
-          border:
-              Border.all(color: _accent.withValues(alpha: 0.35), width: 1.2),
+          border: Border.all(color: _accent.withValues(alpha: 0.35), width: 1.2),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.add_a_photo_outlined, size: 28, color: _accent),
             const SizedBox(height: 6),
-            CustomText(AppStrings.photoLabel.tr,
-                fontSize: 13, fontWeight: FontWeight.w800, color: _accent),
+            CustomText(AppStrings.photoLabel.tr, fontSize: 13, fontWeight: FontWeight.w800, color: _accent),
           ],
         ),
       ),
@@ -548,9 +600,7 @@ class _HotelEnquireFormState extends State<_HotelEnquireForm> {
             padding: const EdgeInsets.symmetric(vertical: 15),
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              gradient: _canSubmit
-                  ? const LinearGradient(colors: [_accentDeep, _accent])
-                  : null,
+              gradient: _canSubmit ? const LinearGradient(colors: [_accentDeep, _accent]) : null,
               color: _canSubmit ? null : AppColors.greyE5,
               borderRadius: BorderRadius.circular(16),
               boxShadow: _canSubmit
@@ -566,9 +616,7 @@ class _HotelEnquireFormState extends State<_HotelEnquireForm> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.send_rounded,
-                    size: 18,
-                    color: _canSubmit ? Colors.white : AppColors.greyCA),
+                Icon(Icons.send_rounded, size: 18, color: _canSubmit ? Colors.white : AppColors.greyCA),
                 const SizedBox(width: 8),
                 CustomText(
                   AppStrings.sendEnquiryLabel.tr,

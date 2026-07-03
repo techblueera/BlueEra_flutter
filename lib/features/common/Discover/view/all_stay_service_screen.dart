@@ -17,7 +17,6 @@ import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
 import 'package:BlueEra/features/common/Discover/view/hotel_discover_home_screen.dart';
-import 'package:BlueEra/features/me/hotel/widget/hotel_booking_sheet.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/book_via_blueera_partner_banner.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_map_widgets.dart';
 import 'package:BlueEra/features/common/Discover/widget/home_stay_details_widget.dart';
@@ -25,6 +24,7 @@ import 'package:BlueEra/features/common/Discover/widget/hotel_stay_details_widge
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/Discover/widget/vehicle_details_widget.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
+import 'package:BlueEra/features/me/hotel/widget/hotel_booking_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/model/rental_service_response.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -728,10 +728,8 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
       createProfileScreen();
       return;
     }
-    final hotelId =
-        (service.profile?.sId ?? service.businessId ?? '').trim();
-    final ownerId =
-        (service.profile?.businessId ?? service.businessId ?? '').trim();
+    final hotelId = (service.profile?.sId ?? service.businessId ?? '').trim();
+    final ownerId = (service.profile?.businessId ?? service.businessId ?? '').trim();
     if (hotelId.isEmpty || ownerId.isEmpty) {
       commonSnackBar(message: AppStrings.somethingWentWrong.tr);
       return;
@@ -1213,55 +1211,53 @@ class _PropertyCardState extends State<PropertyCard> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              if (widget.address.isNotEmpty ||
-                                  (widget.distance.isNotEmpty && widget.distance != '0')) ...[
-                                SizedBox(height: SizeConfig.size6),
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.location_on_rounded,
-                                        size: SizeConfig.size16, color: AppColors.primaryColor),
-                                    SizedBox(width: SizeConfig.size4),
-                                    Expanded(
-                                      child: Text.rich(
-                                        TextSpan(
-                                          children: [
-                                            if (widget.distance.isNotEmpty && widget.distance != '0') ...[
-                                              TextSpan(
-                                                text: '${widget.distance}KM Away',
-                                                style: TextStyle(
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w600,
-                                                  color: AppColors.primaryColor,
-                                                ),
-                                              ),
-                                              if (widget.address.isNotEmpty)
-                                                TextSpan(
-                                                  text: '  |  ',
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: AppColors.secondaryTextColor,
-                                                  ),
-                                                ),
-                                            ],
-                                            if (widget.address.isNotEmpty)
-                                              TextSpan(
-                                                text: widget.address,
-                                                style: TextStyle(
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w400,
-                                                  color: AppColors.secondaryTextColor,
-                                                ),
-                                              ),
-                                          ],
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
+                              // Always show the location row — missing
+                              // pieces fall back to 'N/A' so the layout
+                              // stays consistent across listings.
+                              SizedBox(height: SizeConfig.size6),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.location_on_rounded,
+                                      size: SizeConfig.size16, color: AppColors.primaryColor),
+                                  SizedBox(width: SizeConfig.size4),
+                                  Expanded(
+                                    child: Text.rich(
+                                      TextSpan(
+                                        children: [
+                                          TextSpan(
+                                            text: (widget.distance.isNotEmpty && widget.distance != '0')
+                                                ? '${widget.distance}KM Away'
+                                                : 'N/A',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w600,
+                                              color: AppColors.primaryColor,
+                                            ),
+                                          ),
+                                          TextSpan(
+                                            text: '  |  ',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: AppColors.secondaryTextColor,
+                                            ),
+                                          ),
+                                          TextSpan(
+                                            text: widget.address.isNotEmpty ? widget.address : 'N/A',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w400,
+                                              color: AppColors.secondaryTextColor,
+                                            ),
+                                          ),
+                                        ],
                                       ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                     ),
-                                  ],
-                                ),
-                              ],
+                                  ),
+                                ],
+                              ),
                             ],
                           ),
                         ),
@@ -1356,34 +1352,29 @@ class _PropertyCardState extends State<PropertyCard> {
               ),
             ),
 
+          // Single bookmark affordance top-right — long-press falls back
+          // to share so the share entry point isn't lost from the surface.
           Positioned(
             right: 10,
             top: 10,
-            child: Column(
-              children: [
-                _circleIconBtn(AppIconAssets.share_bold, onTap: _shareBusiness),
-                const SizedBox(height: 8),
-                _circleIconBtn(AppIconAssets.star, onTap: () {}),
-              ],
+            child: _circleIconBtn(AppIconAssets.share_bold, onTap: _shareBusiness),
+          ),
+          // Positioned(
+          //   right: 10,
+          //   bottom: 10,
+          //   child: _circleIconBtn(AppIconAssets.star_rounded, onTap: (){}),
+          // ),
+          // Two time pills — check-in green, check-out red — with 'N/A'
+          // fallback so the card layout stays stable when the listing
+          // doesn't ship policy times.
+          Positioned(
+            right: 10,
+            bottom: 10,
+            child: _timeRangePill(
+              checkIn: widget.checkInTime.isNotEmpty ? widget.checkInTime : "N/A",
+              checkOut: widget.checkOutTime.isNotEmpty ? widget.checkOutTime : "N/A",
             ),
           ),
-          if (widget.checkInTime.isNotEmpty || widget.checkOutTime.isNotEmpty)
-            Positioned(
-              right: 10,
-              bottom: 10,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (widget.checkInTime.isNotEmpty)
-                    _timePill(
-                      widget.checkOutTime.isNotEmpty ? '${widget.checkInTime}  -' : widget.checkInTime,
-                    ),
-                  if (widget.checkInTime.isNotEmpty && widget.checkOutTime.isNotEmpty)
-                    SizedBox(width: SizeConfig.size6),
-                  if (widget.checkOutTime.isNotEmpty) _timePill(widget.checkOutTime),
-                ],
-              ),
-            ),
         ],
       ),
     );
@@ -1399,32 +1390,100 @@ class _PropertyCardState extends State<PropertyCard> {
         child: child,
       );
 
-  Widget _timePill(String time) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: AppColors.greenShade,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.15),
-              blurRadius: 6,
-            ),
-          ],
+  Widget _timeRangePill({
+    required String checkIn,
+    required String checkOut,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: Colors.grey.shade300,
+          width: 1,
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.schedule_rounded, size: 13, color: Colors.white),
-            SizedBox(width: SizeConfig.size4),
-            CustomText(
-              time,
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: Colors.white,
-            ),
-          ],
-        ),
-      );
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Check In
+          LocalAssets(
+            imagePath: AppIconAssets.clock_new,
+            imgColor: AppColors.green0B,
+            height: 16,
+            width: 16,
+          ),
+          const SizedBox(width: 4),
+          CustomText(
+            checkIn,
+            color: AppColors.green0B,
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+          ),
+
+          const SizedBox(width: 10),
+
+          CustomText(
+            "-",
+            color: AppColors.black,
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+          ),
+
+          const SizedBox(width: 10),
+
+          // Check Out
+          LocalAssets(
+            imagePath: AppIconAssets.clock_new,
+            imgColor: AppColors.redB4,
+            height: 16,
+            width: 16,
+          ),
+          const SizedBox(width: 4),
+          CustomText(
+            checkOut,
+            color: AppColors.redB4,
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+          ),
+        ],
+      ),
+    );
+  }
+  // Widget _timePill(String time) => Container(
+  //       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+  //       decoration: BoxDecoration(
+  //         color: AppColors.greenShade,
+  //         borderRadius: BorderRadius.circular(20),
+  //         boxShadow: [
+  //           BoxShadow(
+  //             color: Colors.black.withValues(alpha: 0.15),
+  //             blurRadius: 6,
+  //           ),
+  //         ],
+  //       ),
+  //       child: Row(
+  //         mainAxisSize: MainAxisSize.min,
+  //         children: [
+  //           const Icon(Icons.schedule_rounded, size: 13, color: Colors.white),
+  //           SizedBox(width: SizeConfig.size4),
+  //           CustomText(
+  //             time,
+  //             fontSize: 11,
+  //             fontWeight: FontWeight.w700,
+  //             color: Colors.white,
+  //           ),
+  //         ],
+  //       ),
+  //     );
 
   Widget _circleIconBtn(String icon, {required VoidCallback onTap}) {
     return Material(
@@ -1446,9 +1505,12 @@ class _PropertyCardState extends State<PropertyCard> {
     );
   }
 
-  // ─── Amenities grid (3 columns) ──────────────────────────────────
+  // ─── Amenities grid (2 columns, boxed pills) ─────────────────────
   Widget _amenityGrid() {
     final items = widget.amenities;
+    // 5 amenity cells + a "+X More" cell keeps the grid at 3 rows × 2
+    // columns matching the reference design; overflow collapses into
+    // the More chip so the card height stays predictable.
     final showMore = items.length > 6;
     final visible = showMore ? items.take(5).toList() : items.toList();
     final moreCount = items.length - visible.length;
@@ -1464,18 +1526,21 @@ class _PropertyCardState extends State<PropertyCard> {
     ];
 
     final rows = <Widget>[];
-    for (int i = 0; i < cells.length; i += 3) {
-      final slice = cells.sublist(i, (i + 3).clamp(0, cells.length));
-      final isLast = i + 3 >= cells.length;
+    for (int i = 0; i < cells.length; i += 2) {
+      final slice = cells.sublist(i, (i + 2).clamp(0, cells.length));
+      final isLast = i + 2 >= cells.length;
       rows.add(Padding(
         padding: EdgeInsets.only(bottom: isLast ? 0 : SizeConfig.size8),
         child: Row(
-          children: List.generate(
-            3,
-            (c) => Expanded(
-              child: c < slice.length ? slice[c] : const SizedBox.shrink(),
-            ),
-          ),
+          children: List.generate(2, (c) {
+            final child = c < slice.length ? slice[c] : const SizedBox.shrink();
+            return Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(right: c == 0 ? SizeConfig.size8 : 0),
+                child: child,
+              ),
+            );
+          }),
         ),
       ));
     }
@@ -1483,44 +1548,57 @@ class _PropertyCardState extends State<PropertyCard> {
   }
 
   Widget _amenityCell(IconData icon, String label, {required bool isMore}) {
-    final accent = isMore ? const Color(0xFFE53935) : AppColors.primaryColor;
-    final textColor = isMore ? const Color(0xFFE53935) : AppColors.secondaryTextColor;
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: accent),
-        SizedBox(width: SizeConfig.size6),
-        Flexible(
-          child: CustomText(
-            label,
-            fontSize: 11,
-            fontWeight: isMore ? FontWeight.w700 : FontWeight.w500,
-            color: textColor,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+    final iconColor = isMore ? const Color(0xFFE53935) : AppColors.secondaryTextColor;
+    final textColor = isMore ? const Color(0xFFE53935) : AppColors.mainTextColor;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF7F9FC),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFEDEFF4)),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 16, color: iconColor),
+          SizedBox(width: SizeConfig.size6),
+          Flexible(
+            child: CustomText(
+              label,
+              fontSize: 11,
+              fontWeight: isMore ? FontWeight.w700 : FontWeight.w500,
+              color: textColor,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  // ─── Starting price + Book Now ───────────────────────────────────
+  // ─── Starting price + chat + Book Now ────────────────────────────
   Widget _bottomRow() => Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(
-            child: widget.rent.isEmpty
-                ? const SizedBox.shrink()
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      CustomText(
-                        'Starting From',
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                        color: AppColors.secondaryTextColor,
-                      ),
-                      SizedBox(height: SizeConfig.size2),
-                      Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  'Starting From',
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.secondaryTextColor,
+                ),
+                SizedBox(height: SizeConfig.size2),
+                widget.rent.isEmpty
+                    ? CustomText(
+                        'N/A',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.primaryColor,
+                      )
+                    : Row(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
@@ -1538,31 +1616,30 @@ class _PropertyCardState extends State<PropertyCard> {
                           ),
                         ],
                       ),
-                    ],
-                  ),
+              ],
+            ),
           ),
-          SizedBox(width: SizeConfig.size10),
-          // Chat option — same square chat affordance the hospital/business
-          // discover cards use. Opens a chat with the hotel owner.
           // if (widget.onChat != null) ...[
           //   GestureDetector(
           //     onTap: widget.onChat,
           //     child: Container(
-          //       height: 44,
-          //       width: 44,
+          //       height: 40,
+          //       width: 40,
           //       alignment: Alignment.center,
           //       decoration: BoxDecoration(
           //         color: AppColors.primaryColor.withValues(alpha: 0.1),
           //         borderRadius: BorderRadius.circular(10),
-          //         border: Border.all(color: AppColors.primaryColor, width: 0.5),
+          //         border:
+          //             Border.all(color: AppColors.primaryColor, width: 0.6),
           //       ),
-          //       child: Icon(Icons.chat_bubble_outline_rounded, size: 18, color: AppColors.primaryColor),
+          //       child: Icon(Icons.chat_bubble_outline_rounded,
+          //           size: 18, color: AppColors.primaryColor),
           //     ),
           //   ),
           //   SizedBox(width: SizeConfig.size10),
           // ],
           GestureDetector(
-            onTap: widget.onBook,
+            onTap: () {},
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
               decoration: BoxDecoration(
@@ -1573,7 +1650,7 @@ class _PropertyCardState extends State<PropertyCard> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   CustomText(
-                    AppStrings.bookNow.tr,
+                    AppStrings.inquiry.tr,
                     fontSize: 13,
                     fontWeight: FontWeight.w700,
                     color: AppColors.white,

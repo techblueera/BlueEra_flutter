@@ -11,11 +11,13 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// In-chat card for `message_type: "healthcare_enquiry"` — clinical UI.
-/// Teal accent, a category ribbon (HOSPITAL / DOCTOR / LAB / PHARMACY /
-/// SURGICAL) sitting under the header so the recipient sees the type
-/// at a glance, and section chips styled like prescription tags.
-/// Distinct from [EnquiryMsgCard] — dedicated healthcare visual.
+/// In-chat card for `message_type: "healthcare_enquiry"`.
+///
+/// Shares its visual language with the other enquiry/booking cards
+/// (hotel / vehicle / education) — hero-banner layout + amber accent
+/// so all four verticals render identically in the chat stream. Only
+/// the healthcare-specific data (category ribbon, medical section icons)
+/// differs from the hotel/vehicle/education implementations.
 class HealthcareEnquiryMsgCard extends StatefulWidget {
   final Messages message;
   final String time;
@@ -32,10 +34,10 @@ class HealthcareEnquiryMsgCard extends StatefulWidget {
 }
 
 class _HealthcareEnquiryMsgCardState extends State<HealthcareEnquiryMsgCard> {
-  static const Color _accent = Color(0xFF0EA5A4); // teal
-  static const Color _accentDeep = Color(0xFF0F766E);
-  static const Color _accentTint = Color(0xFFE6FBF9);
-  static const Color _line = Color(0xFFDBEEEC);
+  static const Color _accent = Color(0xFFF59E0B); // warm amber
+  static const Color _accentDeep = Color(0xFFD97706);
+  static const Color _line = Color(0xFFF3E7CE);
+  static const Color _noteBg = Color(0xFFFFF8EC);
 
   bool _isUpdating = false;
 
@@ -78,8 +80,7 @@ class _HealthcareEnquiryMsgCardState extends State<HealthcareEnquiryMsgCard> {
   }
 
   /// Pretty-print HOSPITAL / DOCTOR / LAB → "Hospital" / "Doctor" / "Lab"
-  /// so the category ribbon reads cleanly regardless of what the server
-  /// snapshot stored.
+  /// for the category chip in the hero title.
   String get _prettyCategory {
     final raw = (_e?.category ?? '').trim();
     if (raw.isEmpty) return '';
@@ -113,6 +114,11 @@ class _HealthcareEnquiryMsgCardState extends State<HealthcareEnquiryMsgCard> {
   @override
   Widget build(BuildContext context) {
     final e = _e;
+    final photos = e?.photos ?? const <String>[];
+    final coverImage = (e?.listingImage ?? '').trim();
+    final firstPhoto = photos.isNotEmpty ? photos.first : '';
+    final heroImage = coverImage.isNotEmpty ? coverImage : firstPhoto;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 2),
       width: SizeConfig.screenWidth * 0.74,
@@ -129,169 +135,158 @@ class _HealthcareEnquiryMsgCardState extends State<HealthcareEnquiryMsgCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _clinicalHeader(e?.listingName ?? '', e?.location ?? ''),
-          _listingSnapshot(e?.listingImage ?? '', e?.listingName ?? '',
-              e?.location ?? ''),
-          for (final entry in _selections.entries) _sectionRow(entry),
-          if ((e?.photos ?? const []).isNotEmpty)
-            _photoStrip(e!.photos ?? const []),
+          _heroBanner(heroImage, e?.listingName ?? '', e?.location ?? ''),
+          for (final entry in _selections.entries) _selectionRow(entry),
           if ((e?.note ?? '').trim().isNotEmpty) _noteRow(e!.note!.trim()),
+          if (photos.length > 1) _photoStrip(photos.skip(1).toList()),
           _footer(),
         ],
       ),
     );
   }
 
-  Widget _clinicalHeader(String name, String location) {
+  Widget _heroBanner(String image, String name, String location) {
     final category = _prettyCategory;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-      decoration: const BoxDecoration(color: _accentTint),
-      child: Row(
-        children: [
-          Container(
-            width: 34,
-            height: 34,
-            alignment: Alignment.center,
+    return Stack(
+      children: [
+        SizedBox(
+          width: double.infinity,
+          height: 140,
+          child: image.isNotEmpty
+              ? CachedNetworkImage(
+                  imageUrl: image,
+                  fit: BoxFit.cover,
+                  placeholder: (_, __) => Container(color: _line),
+                  errorWidget: (_, __, ___) => Container(
+                    color: _line,
+                    alignment: Alignment.center,
+                    child: const Icon(Icons.local_hospital_rounded,
+                        color: Colors.white, size: 32),
+                  ),
+                )
+              : Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [_accentDeep, _accent],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Icon(Icons.local_hospital_rounded,
+                      color: Colors.white, size: 32),
+                ),
+        ),
+        Positioned.fill(
+          child: DecoratedBox(
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [_accentDeep, _accent],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.transparent,
+                  Colors.black.withValues(alpha: 0.55),
+                ],
               ),
-              borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.local_hospital_rounded,
-                color: Colors.white, size: 18),
           ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+        ),
+        Positioned(
+          left: 12,
+          right: 12,
+          bottom: 10,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.92),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.local_hospital_rounded,
+                            size: 12, color: _accentDeep),
+                        const SizedBox(width: 4),
+                        Text(
+                          AppStrings.healthcareEnquiry.tr.toUpperCase(),
+                          style: const TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w800,
+                            color: _accentDeep,
+                            letterSpacing: 0.6,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Spacer(),
+                  _statusBadge(),
+                ],
+              ),
+              const SizedBox(height: 6),
+              if (name.trim().isNotEmpty)
                 Text(
-                  AppStrings.healthcareEnquiry.tr,
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontSize: 13.5,
+                    color: Colors.white,
+                    fontSize: 15,
                     fontWeight: FontWeight.w800,
-                    color: _accentDeep,
                   ),
                 ),
-                if (category.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 3),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 7, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(999),
-                        border: Border.all(
-                            color: _accent.withValues(alpha: 0.35),
-                            width: 0.8),
-                      ),
-                      child: Text(
-                        category,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
-                          color: _accentDeep,
-                          letterSpacing: 0.3,
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          _statusBadge(),
-        ],
-      ),
-    );
-  }
-
-  Widget _listingSnapshot(String image, String name, String location) {
-    final hasSnapshot =
-        image.trim().isNotEmpty || name.trim().isNotEmpty || location.trim().isNotEmpty;
-    if (!hasSnapshot) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(9),
-            child: SizedBox(
-              width: 42,
-              height: 42,
-              child: image.isNotEmpty
-                  ? CachedNetworkImage(
-                      imageUrl: image,
-                      fit: BoxFit.cover,
-                      placeholder: (_, __) => Container(color: _accentTint),
-                      errorWidget: (_, __, ___) => Container(
-                        color: _accentTint,
-                        alignment: Alignment.center,
-                        child: const Icon(Icons.local_hospital_outlined,
-                            size: 18, color: Colors.grey),
-                      ),
-                    )
-                  : Container(
-                      color: _accentTint,
-                      alignment: Alignment.center,
-                      child: const Icon(Icons.local_hospital_outlined,
-                          size: 18, color: Colors.grey),
-                    ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (name.isNotEmpty)
-                  Text(
-                    name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.mainTextColor,
-                    ),
-                  ),
-                if (location.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      const Icon(Icons.location_on_outlined,
-                          size: 12, color: _accent),
+              if (location.trim().isNotEmpty || category.isNotEmpty) ...[
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    if (location.trim().isNotEmpty) ...[
+                      const Icon(Icons.place_rounded,
+                          size: 11, color: Colors.white70),
                       const SizedBox(width: 3),
                       Expanded(
                         child: Text(
                           location,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 11.5,
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 11,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.secondaryTextColor,
                           ),
                         ),
                       ),
+                    ] else
+                      const Spacer(),
+                    if (category.isNotEmpty) ...[
+                      const SizedBox(width: 6),
+                      Text(
+                        category,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
                     ],
-                  ),
-                ],
+                  ],
+                ),
               ],
-            ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  Widget _sectionRow(MapEntry<String, List<String>> entry) {
+  Widget _selectionRow(MapEntry<String, List<String>> entry) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -300,7 +295,7 @@ class _HealthcareEnquiryMsgCardState extends State<HealthcareEnquiryMsgCard> {
             height: 34,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: _accentTint,
+              color: _accent.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(_iconFor(entry.key), color: _accentDeep, size: 17),
@@ -319,31 +314,28 @@ class _HealthcareEnquiryMsgCardState extends State<HealthcareEnquiryMsgCard> {
                     color: AppColors.secondaryTextColor,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 Wrap(
                   spacing: 5,
                   runSpacing: 5,
                   children: [
-                    // Prescription-tag styled chips — dashed-looking border,
-                    // hint of teal, monospaced letter-spacing to feel
-                    // clinical without going full print-out.
                     for (final item in entry.value)
                       Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: _accent.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(6),
-                          border:
-                              Border.all(color: _accent, width: 0.9),
+                          border: Border.all(
+                              color: _accent.withValues(alpha: 0.25),
+                              width: 0.8),
                         ),
                         child: Text(
                           item,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
                             color: _accentDeep,
-                            letterSpacing: 0.15,
                           ),
                         ),
                       ),
@@ -357,55 +349,22 @@ class _HealthcareEnquiryMsgCardState extends State<HealthcareEnquiryMsgCard> {
     );
   }
 
-  Widget _photoStrip(List<String> photos) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-      child: SizedBox(
-        height: 66,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          itemCount: photos.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 6),
-          itemBuilder: (_, i) => ClipRRect(
-            borderRadius: BorderRadius.circular(9),
-            child: CachedNetworkImage(
-              imageUrl: photos[i],
-              width: 84,
-              height: 66,
-              fit: BoxFit.cover,
-              placeholder: (_, __) =>
-                  Container(width: 84, height: 66, color: _accentTint),
-              errorWidget: (_, __, ___) => Container(
-                width: 84,
-                height: 66,
-                color: _accentTint,
-                alignment: Alignment.center,
-                child: const Icon(Icons.broken_image_outlined,
-                    size: 16, color: Colors.grey),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _noteRow(String note) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: _noteBg,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: _accent, width: 0.9),
+          border: Border.all(color: _line, width: 0.8),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.sticky_note_2_outlined,
-                size: 15, color: _accentDeep),
+            const Icon(Icons.chat_bubble_outline_rounded,
+                size: 14, color: _accentDeep),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -419,6 +378,39 @@ class _HealthcareEnquiryMsgCardState extends State<HealthcareEnquiryMsgCard> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _photoStrip(List<String> photos) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+      child: SizedBox(
+        height: 60,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          itemCount: photos.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 6),
+          itemBuilder: (_, i) => ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: CachedNetworkImage(
+              imageUrl: photos[i],
+              width: 80,
+              height: 60,
+              fit: BoxFit.cover,
+              placeholder: (_, __) =>
+                  Container(width: 80, height: 60, color: _line),
+              errorWidget: (_, __, ___) => Container(
+                width: 80,
+                height: 60,
+                color: _line,
+                alignment: Alignment.center,
+                child: const Icon(Icons.broken_image_outlined,
+                    size: 16, color: Colors.grey),
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -441,7 +433,7 @@ class _HealthcareEnquiryMsgCardState extends State<HealthcareEnquiryMsgCard> {
     }
     if (_isPending && !_isMyMessage) {
       return Padding(
-        padding: const EdgeInsets.fromLTRB(12, 14, 12, 12),
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
         child: _isUpdating
             ? const Center(
                 child: SizedBox(
@@ -462,7 +454,7 @@ class _HealthcareEnquiryMsgCardState extends State<HealthcareEnquiryMsgCard> {
     }
     return _statusBand(
       icon: Icons.access_time_rounded,
-      color: _accent,
+      color: _accentDeep,
       label: AppStrings.waitingForResponse.tr,
     );
   }
@@ -474,7 +466,6 @@ class _HealthcareEnquiryMsgCardState extends State<HealthcareEnquiryMsgCard> {
   }) {
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(top: 10),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
       color: color.withValues(alpha: 0.10),
       child: Row(
@@ -503,16 +494,16 @@ class _HealthcareEnquiryMsgCardState extends State<HealthcareEnquiryMsgCard> {
   Widget _acceptBtn() {
     return InkWell(
       onTap: () => _updateStatus('accepted'),
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(10),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 11),
+        padding: const EdgeInsets.symmetric(vertical: 10),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           gradient: const LinearGradient(colors: [_accentDeep, _accent]),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
           boxShadow: [
             BoxShadow(
-              color: _accent.withValues(alpha: 0.32),
+              color: _accent.withValues(alpha: 0.35),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -521,8 +512,7 @@ class _HealthcareEnquiryMsgCardState extends State<HealthcareEnquiryMsgCard> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.check_circle_rounded,
-                size: 15, color: Colors.white),
+            const Icon(Icons.check_rounded, size: 15, color: Colors.white),
             const SizedBox(width: 5),
             Text(AppStrings.acceptLabel.tr,
                 style: const TextStyle(
@@ -538,13 +528,13 @@ class _HealthcareEnquiryMsgCardState extends State<HealthcareEnquiryMsgCard> {
   Widget _declineBtn() {
     return InkWell(
       onTap: () => _updateStatus('declined'),
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(10),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 11),
+        padding: const EdgeInsets.symmetric(vertical: 10),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(color: _accentDeep.withValues(alpha: 0.35)),
         ),
         child: Text(
@@ -561,33 +551,21 @@ class _HealthcareEnquiryMsgCardState extends State<HealthcareEnquiryMsgCard> {
         ? (AppStrings.acceptedStatus.tr, const Color(0xFF16A34A))
         : _isDeclined
             ? (AppStrings.declinedStatus.tr, const Color(0xFFDC2626))
-            : (AppStrings.pendingStatus.tr, _accent);
+            : (AppStrings.pendingStatus.tr, Colors.white);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
+        color: _isPending ? Colors.white.withValues(alpha: 0.28) : color,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withValues(alpha: 0.35), width: 0.8),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 5,
-            height: 5,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 4),
-          Text(
-            label.toUpperCase(),
-            style: TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.w800,
-              color: color,
-              letterSpacing: 0.4,
-            ),
-          ),
-        ],
+      child: Text(
+        label.toUpperCase(),
+        style: const TextStyle(
+          fontSize: 9,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 0.5,
+          color: Colors.white,
+        ),
       ),
     );
   }
