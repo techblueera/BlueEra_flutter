@@ -85,6 +85,70 @@ class ServiceEnquirySheet {
       route: AppConstants.route_discover,
     );
   }
+
+  /// Generic entry point — opens the SAME enquiry sheet for any provider by
+  /// raw fields (not tied to a [ServiceData]). Used by the home-service detail
+  /// screen. [category] drives the fetched option chips (the provider's
+  /// profession / service category); [chatName] / [chatProfile] seed the
+  /// business chat opened after a successful submit.
+  static void openForProvider(
+    BuildContext context, {
+    required String userId,
+    required String providerName,
+    String? category,
+    String? chatName,
+    String? chatProfile,
+  }) {
+    final uid = userId.trim();
+    if (uid.isEmpty) return;
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _EnquireSheet(
+        providerName: providerName.trim().isNotEmpty
+            ? providerName.trim()
+            : AppStrings.unknownUser.tr,
+        category: (category ?? '').trim(),
+        onSubmit: (selections, note, photoPaths) => _submitForProvider(
+          userId: uid,
+          selections: selections,
+          note: note,
+          photoPaths: photoPaths,
+          chatName: chatName,
+          chatProfile: chatProfile,
+        ),
+      ),
+    );
+  }
+
+  /// Submit for the generic entry point — same enquiry API, then opens the
+  /// provider's business chat (seeded with the given name/profile).
+  static Future<void> _submitForProvider({
+    required String userId,
+    required Map<String, List<String>> selections,
+    required String note,
+    required List<String> photoPaths,
+    String? chatName,
+    String? chatProfile,
+  }) async {
+    if (userId.isEmpty) return;
+    final controller = getOrPut(() => DiscoverController());
+    final ok = await controller.submitServiceEnquiry(
+      providerId: userId,
+      selections: selections,
+      note: note,
+      photoPaths: photoPaths,
+    );
+    if (!ok) return;
+    final chatViewController = getOrPut(() => ChatViewController());
+    chatViewController.checkChatConnectionAndOpenChat(
+      userId: userId,
+      name: chatName,
+      profile: chatProfile,
+      route: AppConstants.route_discover,
+    );
+  }
 }
 
 /// One selectable group on the enquiry form — mirrors a provider-profile

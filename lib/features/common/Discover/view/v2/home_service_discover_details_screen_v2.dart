@@ -4,14 +4,13 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
-import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
+import 'package:BlueEra/features/common/Discover/widget/service_enquiry_sheet.dart';
 import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
 import 'package:BlueEra/features/common/service/model/get_service_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/model/earn_profile_model.dart';
@@ -326,7 +325,7 @@ class _HomeServiceDiscoverDetailsScreenV2State
 
   Widget _chatPill() {
     return GestureDetector(
-      onTap: _openChat,
+      onTap: _openEnquiry,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
         decoration: BoxDecoration(
@@ -350,7 +349,7 @@ class _HomeServiceDiscoverDetailsScreenV2State
               imgColor: Colors.white,
             ),
             const SizedBox(width: 6),
-            CustomText('Chat',
+            CustomText('Enquire',
                 fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white),
           ],
         ),
@@ -890,7 +889,7 @@ class _HomeServiceDiscoverDetailsScreenV2State
   }
 
   // ── Actions ────────────────────────────────────────────────────────────────
-  void _openChat() {
+  void _openEnquiry() {
     final uid = _userId;
     if (uid.isEmpty) return;
     if (isGuestUser()) {
@@ -898,12 +897,18 @@ class _HomeServiceDiscoverDetailsScreenV2State
       return;
     }
     ChatClickTracker.track(userId: uid, source: ChatClickSource.searchResult);
-    final chatViewController = getOrPut(() => ChatViewController());
-    chatViewController.checkChatConnectionAndOpenChat(
+    // Open the shared service-enquiry sheet (option chips + optional note +
+    // optional photo). On submit it posts the enquiry and opens the provider's
+    // business chat, where the backend drops the enquiry card.
+    ServiceEnquirySheet.openForProvider(
+      context,
       userId: uid,
-      name: _store?.serviceName ?? service.providerDetails?.name,
-      profile: _store?.serviceLogo ?? service.providerDetails?.profileImage,
-      route: AppConstants.route_discover,
+      providerName: _store?.serviceName ??
+          service.providerDetails?.name ??
+          AppStrings.unknownUser.tr,
+      category: (service.providerDetails?.profession ?? '').trim(),
+      chatName: _store?.serviceName ?? service.providerDetails?.name,
+      chatProfile: _store?.serviceLogo ?? service.providerDetails?.profileImage,
     );
   }
 
