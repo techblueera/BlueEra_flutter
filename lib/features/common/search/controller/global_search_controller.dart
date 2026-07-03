@@ -12,6 +12,7 @@ import 'package:BlueEra/features/me/grocery/view/customer/grocery_via_self_picku
 import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Drives the global search screen: debounced type-ahead suggestions while the
 /// user types, and a full paginated hybrid search once they commit (tap a
@@ -41,6 +42,19 @@ class GlobalSearchController extends GetxController {
   /// Active entity-type facet filter (`null` = All). Drives the type tabs.
   final RxnString activeType = RxnString();
 
+  /// Active sort of the results list. `null` = relevance (server order);
+  /// `'price_asc'` / `'price_desc'` sort the loaded results client-side.
+  /// Applied on every page so paginated appends stay ordered.
+  final RxnString sortKey = RxnString();
+
+  // ── Recent searches (locally persisted) ─────────────────────────────
+  /// Most-recent-first list of committed query terms, shown on the search
+  /// landing (empty-query) screen. Persisted across app launches via
+  /// SharedPreferences so it survives the controller being disposed on exit.
+  static const String _recentSearchesKey = 'global_recent_searches';
+  static const int _maxRecentSearches = 12;
+  final RxList<String> recentSearches = <String>[].obs;
+
   String _committedQuery = '';
   int _page = 1;
   final int _limit = 20;
@@ -53,6 +67,53 @@ class GlobalSearchController extends GetxController {
   int _searchSeq = 0;
 
   String get committedQuery => _committedQuery;
+
+  @override
+  void onInit() {
+    super.onInit();
+    _loadRecentSearches();
+  }
+
+  Future<void> _loadRecentSearches() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      recentSearches.assignAll(prefs.getStringList(_recentSearchesKey) ?? const []);
+    } catch (_) {
+      // Non-fatal: recents are a convenience, an empty list is a fine fallback.
+    }
+  }
+
+  Future<void> _persistRecentSearches() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList(_recentSearchesKey, recentSearches.toList());
+    } catch (_) {}
+  }
+
+  /// Push a committed [query] to the front of the recents (de-duped,
+  /// case-insensitively) and cap the list length. Persisted immediately.
+  void _addRecentSearch(String query) {
+    final q = query.trim();
+    if (q.isEmpty) return;
+    recentSearches.removeWhere((e) => e.toLowerCase() == q.toLowerCase());
+    recentSearches.insert(0, q);
+    if (recentSearches.length > _maxRecentSearches) {
+      recentSearches.value = recentSearches.sublist(0, _maxRecentSearches);
+    }
+    _persistRecentSearches();
+  }
+
+  /// Remove a single recent term (from the ✕ on a recent chip).
+  void removeRecentSearch(String query) {
+    recentSearches.remove(query);
+    _persistRecentSearches();
+  }
+
+  /// Clear the whole recents list ("Clear all" on the landing screen).
+  void clearRecentSearches() {
+    recentSearches.clear();
+    _persistRecentSearches();
+  }
 
   /// Called on every keystroke. Debounces the suggest call and switches the
   /// view back to suggestions (results are stale until re-committed).
@@ -89,11 +150,41 @@ class GlobalSearchController extends GetxController {
     _suggestSeq++; // drop any pending suggest
     if (queryController.text != q) queryController.text = q;
     _committedQuery = q;
+    _addRecentSearch(q);
     activeType.value = null;
+    sortKey.value = null; // fresh query starts at relevance
     suggestions.clear();
     showSuggestions.value = false;
     focusNode.unfocus();
     _runSearch(reset: true);
+  }
+
+  /// Change the results sort. Relevance can't be reconstructed once the list
+  /// is reordered, so switching back to it re-runs the search; the price sorts
+  /// reorder the already-loaded results in place.
+  void applySort(String? key) {
+    if (sortKey.value == key) return;
+    sortKey.value = key;
+    if (key == null) {
+      _runSearch(reset: true);
+    } else {
+      _sortInPlace();
+    }
+  }
+
+  void _sortInPlace() {
+    final k = sortKey.value;
+    if (k == null) return;
+    final list = results.toList();
+    if (k == 'price_asc') {
+      list.sort((a, b) =>
+          (a.price ?? double.infinity).compareTo(b.price ?? double.infinity));
+    } else if (k == 'price_desc') {
+      list.sort((a, b) =>
+          (b.price ?? double.negativeInfinity)
+              .compareTo(a.price ?? double.negativeInfinity));
+    }
+    results.assignAll(list);
   }
 
   /// Tap a facet tab to scope results to one entity type (`null` = All).
@@ -141,6 +232,8 @@ class GlobalSearchController extends GetxController {
       }
       _hasMore = res.hasMore;
       if (res.results.isNotEmpty) _page++;
+      // Keep any active price sort applied across paginated appends.
+      _sortInPlace();
       status.value = Status.COMPLETE;
     } catch (_) {
       if (seq != _searchSeq) return;

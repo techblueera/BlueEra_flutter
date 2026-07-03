@@ -129,8 +129,8 @@ import 'package:get/get.dart';
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10)),
                     ),
-                    child: const CustomText(
-                      AppStrings.submit,
+                    child:  CustomText(
+                      AppStrings.submit.tr,
                       color: AppColors.white,
                     ),
                   ),

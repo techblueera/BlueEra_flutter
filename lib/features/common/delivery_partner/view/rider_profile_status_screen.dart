@@ -15,9 +15,12 @@ import 'package:BlueEra/features/common/delivery_partner/view/rc_book_card_widge
 import 'package:BlueEra/features/common/delivery_partner/view/vehicle_images_riding_widget.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/vehicle_information_widget.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/webview_common.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -109,8 +112,10 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
               RiderOnboardingStatusData();
 
       final state = widget.deliveryPartnerController.riderVerificationState;
-      final allCompleted = widget.deliveryPartnerController.stepStatus.values
-          .every((s) => s == true);
+      // Vehicle images are optional — every other document must be uploaded
+      // & verified before the rider can submit for verification.
+      final allCompleted =
+          widget.deliveryPartnerController.mandatoryStepsCompleted;
 
       // Show submitted success screen
       if (_isSubmitted.value ||
@@ -155,16 +160,20 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
 
             // Document Cards
             ..._buildDocumentCards(context),
-
-            // Submit Button (when all completed & not yet submitted)
-            if (allCompleted && state != RiderVerificationState.completed) ...[
-              SizedBox(height: SizeConfig.size16),
-              _buildSubmitButton(),
-            ],
-
             // Contact Us
             SizedBox(height: SizeConfig.size4),
+            SizedBox(height: SizeConfig.size4),
             _buildContactUsCard(),
+            // Terms & Submit (when all required docs done & not yet verified)
+            // if (allCompleted && state != RiderVerificationState.completed) ...[
+              SizedBox(height: SizeConfig.size16),
+              // _buildTermsAndConditions(),
+              // SizedBox(height: SizeConfig.size12),
+              // SizedBox(height: SizeConfig.size12),
+              // _buildSubmitButton(),
+            // ],
+
+
           ],
         ),
       );
@@ -653,14 +662,104 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
 
   // ─── SUBMIT BUTTON ────────────────────────────────────────────────
 
-  Widget _buildSubmitButton() {
-    return CustomBtn(
-      onTap: () => _showSubmitConfirmationDialog(),
-      title: AppStrings.submitForVerification.tr,
-      bgColor: AppColors.primaryColor,
-      radius: 12,
-      isValidate: true,
+  /// Terms & conditions consent — mirrors the checkbox used on the add-vehicle
+  /// screen ([VehicleInformationWidget]). Must be ticked before the rider can
+  /// submit for verification.
+  Widget _buildTermsAndConditions() {
+    final controller = widget.deliveryPartnerController;
+    return SizedBox(
+      width: double.infinity,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          /// Checkbox with custom blue border
+          Obx(() => GestureDetector(
+                onTap: () => controller.isTermsAccepted.value =
+                    !controller.isTermsAccepted.value,
+                child: Container(
+                  width: 20,
+                  height: 20,
+                  margin: EdgeInsets.only(top: 2),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: AppColors.primaryColor,
+                      width: 1.5,
+                    ),
+                    borderRadius: BorderRadius.circular(4),
+                    color: controller.isTermsAccepted.value
+                        ? AppColors.primaryColor
+                        : Colors.transparent,
+                  ),
+                  child: controller.isTermsAccepted.value
+                      ? const Icon(Icons.check, color: Colors.white, size: 16)
+                      : null,
+                ),
+              )),
+          SizedBox(width: SizeConfig.size8),
+
+          /// Terms & Privacy rich text
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Colors.black87,
+                  fontFamily: AppConstants.OpenSans,
+                ),
+                children: [
+                  TextSpan(text: AppStrings.acceptAll.tr),
+                  TextSpan(
+                    text: AppStrings.termsConditions.tr,
+                    style: const TextStyle(color: AppColors.primaryColor),
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () {
+                        Get.to(() => CommonWebView(
+                              urlLink: tncLink,
+                              urlTitle: AppStrings.termsConditions,
+                            ));
+                      },
+                  ),
+                  TextSpan(text: ' ${AppStrings.and.tr}\n'),
+                  TextSpan(
+                    text: AppStrings.privacyPolicy.tr,
+                    style: const TextStyle(color: AppColors.primaryColor),
+                    recognizer: TapGestureRecognizer()
+                      ..onTap = () {
+                        Get.to(() => CommonWebView(
+                              urlLink: privacyLink,
+                              urlTitle: AppStrings.privacyPolicy,
+                            ));
+                      },
+                  ),
+                  const TextSpan(text: '.'),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
+  }
+
+  Widget _buildSubmitButton() {
+    final controller = widget.deliveryPartnerController;
+    return Obx(() {
+      final accepted = controller.isTermsAccepted.value;
+      return CustomBtn(
+        onTap: () {
+          if (!accepted) {
+            commonSnackBar(
+                message: AppStrings.pleaseAcceptTermsAndConditions.tr);
+            return;
+          }
+          _showSubmitConfirmationDialog();
+        },
+        title: AppStrings.submitForVerification.tr,
+        // Greyed out until the rider accepts the terms & conditions.
+        bgColor: accepted ? AppColors.primaryColor : AppColors.greyB4,
+        radius: 12,
+      );
+    });
   }
 
   void _showSubmitConfirmationDialog() {
@@ -998,15 +1097,25 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
   }
 
   void _showEnquiryDialog() {
+    final controller = widget.deliveryPartnerController;
     final queryController = TextEditingController();
-    final selectedCategory = RxString(AppStrings.categoryGeneral.tr);
-    final categories = [
-      AppStrings.categoryGeneral.tr,
-      AppStrings.categoryDocumentIssue.tr,
-      AppStrings.categoryVerificationDelay.tr,
-      AppStrings.categoryTechnicalIssue.tr,
-      AppStrings.categoryOther.tr,
+    // The support API requires the canonical English category values (see
+    // SUPPORT_QUERY_FRONTEND_GUIDE.md §1). Keep the translated label used for
+    // display separate from the `apiValue` we actually submit.
+    final categories = <({String apiValue, String label})>[
+      (apiValue: 'General', label: AppStrings.categoryGeneral.tr),
+      (apiValue: 'Document Issue', label: AppStrings.categoryDocumentIssue.tr),
+      (
+        apiValue: 'Verification Delay',
+        label: AppStrings.categoryVerificationDelay.tr
+      ),
+      (
+        apiValue: 'Technical Issue',
+        label: AppStrings.categoryTechnicalIssue.tr
+      ),
+      (apiValue: 'Other', label: AppStrings.categoryOther.tr),
     ];
+    final selectedCategory = RxString('General');
 
     Get.dialog(
       Dialog(
@@ -1057,9 +1166,9 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
                     spacing: 8,
                     runSpacing: 8,
                     children: categories.map((cat) {
-                      final isSelected = selectedCategory.value == cat;
+                      final isSelected = selectedCategory.value == cat.apiValue;
                       return GestureDetector(
-                        onTap: () => selectedCategory.value = cat,
+                        onTap: () => selectedCategory.value = cat.apiValue,
                         child: Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 14, vertical: 8),
@@ -1075,7 +1184,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
                             ),
                           ),
                           child: CustomText(
-                            cat,
+                            cat.label,
                             fontSize: SizeConfig.small,
                             color: isSelected
                                 ? Colors.white
@@ -1128,24 +1237,34 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
 
               const SizedBox(height: 16),
 
-              // Submit button
+              // Submit button → POST /support-queries { category, description }
               SizedBox(
                 width: double.infinity,
-                child: CustomBtn(
-                  onTap: () {
-                    if (queryController.text.trim().isEmpty) {
-                      commonSnackBar(
-                          message: AppStrings.pleaseDescribeQuery.tr);
-                      return;
-                    }
-                    Get.back();
-                    _showQuerySubmittedPopup();
-                  },
-                  title: AppStrings.submitQuery.tr,
-                  bgColor: AppColors.primaryColor,
-                  radius: 10,
-                  height: 46,
-                ),
+                child: Obx(() => CustomBtn(
+                      isLoading: controller.isSupportQueryLoading.value,
+                      onTap: () async {
+                        final description = queryController.text.trim();
+                        if (description.isEmpty) {
+                          commonSnackBar(
+                              message: AppStrings.pleaseDescribeQuery.tr);
+                          return;
+                        }
+                        final ok = await controller.submitSupportQuery(
+                          category: selectedCategory.value,
+                          description: description,
+                        );
+                        // On failure the controller already surfaced the
+                        // server's message; keep the sheet open to retry.
+                        if (ok) {
+                          Get.back();
+                          _showQuerySubmittedPopup();
+                        }
+                      },
+                      title: AppStrings.submitQuery.tr,
+                      bgColor: AppColors.primaryColor,
+                      radius: 10,
+                      height: 46,
+                    )),
               ),
             ],
           ),
@@ -1276,15 +1395,13 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
         example: AppStrings.egAadharNo.tr,
         currentValue: data.aadharNo ?? '',
         isCompleted: data.aadhar ?? false,
-        imageUrl: data.aadharImage,
-        dialogImages: _twoSidedImages(data.aadharImage, data.aadharImageBack),
+        // Aadhar is number-only now — no image upload / view.
         dataRows: [
           if (data.aadharNo?.isNotEmpty ?? false)
             MapEntry(AppStrings.aadharNumber.tr, data.aadharNo!),
         ],
         documentType: 'aadhar',
-        // Aadhar stays viewable (View + Edit) once filled even if no image
-        // URL is on file — the dialog surfaces the saved number.
+        // Aadhar stays viewable (View + Edit) via the saved number.
         enableDataView: true,
         onTap: () {
           // Pre-fill the saved number so the sheet opens in "edit" mode.
@@ -1310,12 +1427,7 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
           example: AppStrings.egPanNo.tr,
           currentValue: data.panNo ?? '',
           isCompleted: data.pan ?? false,
-          imageUrl: data.panImage,
-          // PAN is single-sided — one image, no caption.
-          dialogImages: [
-            if (data.panImage?.isNotEmpty ?? false)
-              _DialogImage(data.panImage!),
-          ],
+          // PAN is number-only now — no image upload / view.
           dataRows: [
             if (data.panNo?.isNotEmpty ?? false)
               MapEntry(AppStrings.panNumber.tr, data.panNo!),

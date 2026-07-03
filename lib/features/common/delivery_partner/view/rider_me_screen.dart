@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/chat/auth/model/rider_orders_details_model.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
@@ -227,8 +228,9 @@ class _RiderMeScreenState extends State<RiderMeScreen> {
   Widget _buildVerificationBanner() {
     return Obx(() {
       final state = _riderCtrl.riderVerificationState;
-      final allSteps =
-          _riderCtrl.stepStatus.values.every((status) => status == true);
+      // Profession-aware completion: PAN is not required for bike riders / cab
+      // drivers, and vehicle images are always optional.
+      final allSteps = _riderCtrl.mandatoryStepsCompleted;
       if (state == RiderVerificationState.completed) {
         return const SizedBox.shrink();
       }
@@ -406,7 +408,21 @@ class _RiderMeScreenState extends State<RiderMeScreen> {
               )
             else
               GestureDetector(
-                onTap: () => _viewCtrl.toggleShopStatus(),
+                onTap: () {
+                  // Go Live is allowed only once the rider is verified
+                  // (isVerified == approved). Otherwise route them to finish
+                  // document upload / verification first.
+                  final isVerified = _riderCtrl.riderVerificationState ==
+                      RiderVerificationState.completed;
+                  if (!isVerified) {
+                    commonSnackBar(
+                        message:
+                            'Please upload your documents and get verified before going live.');
+                    Get.to(() => const RiderServiceScreen());
+                    return;
+                  }
+                  _viewCtrl.toggleShopStatus();
+                },
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
                   width: SizeConfig.size48,

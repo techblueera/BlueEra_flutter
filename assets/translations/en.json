@@ -6703,6 +6703,7 @@
   "pickupDropTooClose": "Pickup and drop are too close. Minimum distance is 500 meters.",
   "pickupDropTooFar": "Pickup and drop must be within 20 km. Current distance is",
   "pickupDropPreferenceSaved": "Pickup & drop preference saved",
+  "goLiveToReceiveOrders": "You are offline. Turn on Go Live to start receiving orders.",
   "findRider": "Find Rider",
   "riderDispatchRequested": "Rider dispatch requested. The delivery OTP will appear here.",
   "riderOtpPickupTitle": "Show this OTP to the rider at pickup",
