@@ -57,7 +57,9 @@ class _FollowersFollowingPageState extends State<FollowersFollowingPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.white,
+      // Transparent so the app-wide themed background (AppHomeBackground,
+      // set via app_background_screen) shows through instead of white.
+      backgroundColor: Colors.transparent,
       appBar: CommonBackAppBar(
           isFollowRefresh: true,
           isFollowRefreshWidget: () {

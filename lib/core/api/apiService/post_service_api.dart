@@ -33,7 +33,7 @@ mixin PostServiceApi {
   final String postCommentLike = "post-service/post/comment/like";
 
   final String myPost = "post-service/post/my-posts";
-  final String otherPost = "post-service/post/others-user-posts";
+  final String otherPost = "post-service/post/user-posts";
   final String updatePost = "post-service/post/update-post/";
   final String postSearch = "post-service/post/search";
 

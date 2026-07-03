@@ -91,9 +91,11 @@ class LocationPermissionHandler {
           errorType: LocationErrorType.none,
         );
       } on LocationServiceDisabledException {
-        // User pressed "No thanks" in system dialog → open settings manually
-        // await Geolocator.openLocationSettings();
-        await openAppSettings();
+        // GPS / location services are OFF at the DEVICE level. That master
+        // toggle lives in the system Location settings, NOT in the app's
+        // settings page — so send the user to Location settings. (Using
+        // openAppSettings() here shows a screen with no GPS option.)
+        await Geolocator.openLocationSettings();
 
         await Future.delayed(
             const Duration(milliseconds: 800)); // Wait for user

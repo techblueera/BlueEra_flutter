@@ -33,9 +33,16 @@ class _ReferralPageState extends State<ReferralPage> {
     if (controller.testimonials.isEmpty) {
       controller.fetchTestimonials();
     }
+    // Overview drives the intro video player below — the video URL comes
+    // from the API now instead of a bundled local asset.
+    if (controller.overviews.isEmpty) {
+      controller.fetchOverview();
+    }
   }
 
-  Future<void> _refresh() => controller.fetchBdmDetails();
+  Future<void> _refresh() => Future.wait([
+        controller.fetchBdmDetails(),
+      ]);
 
   @override
   Widget build(BuildContext context) {
@@ -129,7 +136,35 @@ class _ReferralPageState extends State<ReferralPage> {
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(10),
-            child: const HorizontalVideoPlayer(isAutoPlay: false),
+            child: Obx(() {
+              // Pull network video URLs from the overview API response.
+              final videoUrls = controller.overviews
+                  .where((o) => o.hasVideo)
+                  .map((o) => o.video!)
+                  .toList();
+
+              if (videoUrls.isNotEmpty) {
+                return HorizontalVideoPlayer(
+                  // Re-init the player when the URL set changes.
+                  key: ValueKey(videoUrls.join(',')),
+                  isAutoPlay: false,
+                  videoUrls: videoUrls,
+                  isNetworkUrl: true,
+                );
+              }
+
+              // Still fetching → keep the 16:9 slot with a loader.
+              final s = controller.overviewResponse.value.status;
+              if (s == Status.LOADING || s == Status.INITIAL) {
+                return const AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+
+              // Loaded but no overview video → bundled intro video fallback.
+              return const HorizontalVideoPlayer(isAutoPlay: false);
+            }),
           ),
         ),
         SizedBox(height: SizeConfig.paddingXSL),
@@ -145,7 +180,7 @@ class _ReferralPageState extends State<ReferralPage> {
           padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
           child: const BalanceTotalEarnRow(balance: 0, totalEarn: 0),
         ),
-        SizedBox(height: SizeConfig.paddingM),
+        SizedBox(height: SizeConfig.paddingXSL),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
           child: TestimonialsSection(controller: controller),

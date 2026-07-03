@@ -97,7 +97,8 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
       vsync: this,
     );
     registerMeTabBackHandler(_tabController);
-    _ctrl.professionalsFullDetailsController();
+    // No blocking progress dialog on screen entry — load silently.
+    _ctrl.professionalsFullDetailsController(showProgress: false);
     _viewCtrl.UserFollowersAndPostsCount(userId);
     // Hydrate the business chat list so the Order tab's inquiry list
     // has data ready when the user switches to it. Mirrors what
@@ -190,9 +191,28 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
                   onTap: () => _openDrawer(context),
                 ),
                 SizedBox(width: SizeConfig.size6),
-                Flexible(child: const ReferEarnPill()),
+                // Screen-local shadow wrapper lifts the refer pill off the
+                // cover image without touching the shared ReferEarnPill widget.
+                Flexible(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.28),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: const ReferEarnPill(),
+                  ),
+                ),
                 const Spacer(),
+                _goLivePill(),
+                // Notification sits at the very end of the bar.
                 if (!isGuestUser()) ...[
+                  SizedBox(width: SizeConfig.size6),
                   _circleIconButton(
                     icon: Icons.notifications_none,
                     onTap: () => Navigator.pushNamed(
@@ -200,9 +220,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
                       RouteHelper.getNotificationScreenRoute(),
                     ),
                   ),
-                  SizedBox(width: SizeConfig.size6),
                 ],
-                _goLivePill(),
               ],
             ),
           ),
@@ -219,13 +237,14 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
       onTap: onTap,
       customBorder: const CircleBorder(),
       child: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           shape: BoxShape.circle,
           boxShadow: [
+            // Drop shadow so the circular controls lift off the cover image.
             BoxShadow(
-              color: Color(0x1A000000),
-              blurRadius: 3,
-              offset: Offset(0, -1),
+              color: Colors.black.withValues(alpha: 0.28),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
             ),
           ],
         ),

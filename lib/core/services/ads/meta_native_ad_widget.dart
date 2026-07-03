@@ -57,7 +57,10 @@ class _MetaNativeAdWidgetState extends State<MetaNativeAdWidget>
   /// back-to-back → Meta error 1002 "Ad was re-loaded too frequently". We only
   /// build the [FacebookNativeAd] once this slot's turn in the load gate is up.
   bool _mountAd = false;
-  Timer? _gateTimer;
+
+  /// This slot's spot in the shared load queue. Cancelled on dispose so a slot
+  /// scrolled past before its turn frees the queue instead of wasting a slot.
+  _GateHandle? _gateHandle;
 
   // Keep the loaded ad alive across scroll recycling (mirrors the Google slot)
   // so we don't reload and burn impressions each time it scrolls back in.
@@ -88,22 +91,15 @@ class _MetaNativeAdWidgetState extends State<MetaNativeAdWidget>
       }
       setState(() => _sdkReady = true);
 
-      // Space this slot's load out from the previous one for the same
-      // placement so we never reload it too frequently (Meta 1002).
-      final delay = _MetaNativeLoadGate.reserve();
-      if (delay == Duration.zero) {
+      // Queue this slot's load behind any others for the same placement so two
+      // loads never start too close together (Meta 1002). The handle is
+      // cancelled in dispose(), so a slot the user scrolls past before its turn
+      // is dropped from the queue and costs no spacing time.
+      _gateHandle = _MetaNativeLoadGate.request(() {
+        if (!mounted) return;
         _startWatchdog();
         setState(() => _mountAd = true);
-      } else {
-        print('[META_NATIVE_AD] gated — deferring load by '
-            '${delay.inSeconds}s to avoid 1002 '
-            '(unit=${AdConfig.metaNativeUnit})');
-        _gateTimer = Timer(delay, () {
-          if (!mounted) return;
-          _startWatchdog();
-          setState(() => _mountAd = true);
-        });
-      }
+      });
     });
   }
 
@@ -122,7 +118,7 @@ class _MetaNativeAdWidgetState extends State<MetaNativeAdWidget>
   @override
   void dispose() {
     _watchdog?.cancel();
-    _gateTimer?.cancel();
+    _gateHandle?.cancel();
     super.dispose();
   }
 
@@ -216,33 +212,74 @@ class MetaAds {
 
 /// App-wide load gate for the (single) Meta native placement.
 ///
-/// Every native slot uses the same `AdConfig.metaNativeUnit`, so mounting
-/// several at once — or rapidly re-entering a screen — loads that placement
-/// back-to-back and Meta returns error 1002 ("Ad was re-loaded too
-/// frequently"). [reserve] hands each caller a start delay so loads are spaced
-/// at least [_minInterval] apart: the first loads immediately, the next after
-/// the interval, and so on. Lazily-built list slots that mount seconds apart
-/// pay no delay.
+/// Every native slot uses the same `AdConfig.metaNativeUnit`, so loading several
+/// at once — or rapidly re-entering/scrolling a screen — reloads that placement
+/// back-to-back and Meta returns error 1002 ("Ad was re-loaded too frequently").
+///
+/// This is a CANCELLABLE QUEUE, not a fire-and-forget reservation. Slots are
+/// granted their load in FIFO order, never less than [_minInterval] apart. A
+/// slot disposed before its turn ([_GateHandle.cancel]) is dropped and costs no
+/// spacing time — critical under fast scrolling, where an absolute-time
+/// reservation would let every flung-past slot burn a 15s window and push the
+/// next on-screen ad minutes into the future.
 class _MetaNativeLoadGate {
   _MetaNativeLoadGate._();
 
-  /// Minimum spacing between two loads of the same placement.
+  /// Minimum spacing between the START of two loads of the same placement.
   static const Duration _minInterval = Duration(seconds: 15);
 
-  /// The earliest time the next load is allowed to fire.
-  static DateTime? _nextAllowed;
+  /// When the most recent load was actually granted (null until the first).
+  static DateTime? _lastGrant;
 
-  /// Reserves the next load slot and returns how long to wait before loading
-  /// (`Duration.zero` if it can load right now).
-  static Duration reserve() {
-    final now = DateTime.now();
-    final earliest = _nextAllowed;
-    if (earliest == null || !earliest.isAfter(now)) {
-      _nextAllowed = now.add(_minInterval);
-      return Duration.zero;
-    }
-    final wait = earliest.difference(now);
-    _nextAllowed = earliest.add(_minInterval);
-    return wait;
+  /// FIFO of slots still waiting for their turn to load.
+  static final List<_GateWaiter> _queue = [];
+
+  /// Timer that will dispatch the next waiter; null when idle.
+  static Timer? _pump;
+
+  /// Enqueue a load request. [onGranted] fires once when this slot may load.
+  /// Cancel via the returned handle if the slot is disposed first.
+  static _GateHandle request(VoidCallback onGranted) {
+    final waiter = _GateWaiter(onGranted);
+    _queue.add(waiter);
+    _schedulePump();
+    return _GateHandle._(waiter);
   }
+
+  static void _schedulePump() {
+    if (_pump != null || _queue.isEmpty) return;
+    final now = DateTime.now();
+    final earliest = _lastGrant?.add(_minInterval) ?? now;
+    final wait = earliest.isAfter(now) ? earliest.difference(now) : Duration.zero;
+    _pump = Timer(wait, _dispatch);
+  }
+
+  static void _dispatch() {
+    _pump = null;
+    // Skip slots disposed while waiting — they cost no spacing time.
+    while (_queue.isNotEmpty && _queue.first.cancelled) {
+      _queue.removeAt(0);
+    }
+    if (_queue.isEmpty) return;
+    final waiter = _queue.removeAt(0);
+    _lastGrant = DateTime.now();
+    waiter.onGranted();
+    _schedulePump(); // arm the next one, if any remain
+  }
+}
+
+/// A single queued load request. [cancelled] is flipped when its slot is
+/// disposed before being granted, so [_MetaNativeLoadGate._dispatch] skips it.
+class _GateWaiter {
+  _GateWaiter(this.onGranted);
+  final VoidCallback onGranted;
+  bool cancelled = false;
+}
+
+/// Handle returned by [_MetaNativeLoadGate.request] so a slot can withdraw its
+/// pending load on dispose.
+class _GateHandle {
+  _GateHandle._(this._waiter);
+  final _GateWaiter _waiter;
+  void cancel() => _waiter.cancelled = true;
 }

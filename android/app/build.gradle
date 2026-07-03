@@ -65,7 +65,6 @@ android {
         manifestPlaceholders = [
                 mapApiKey: mapApiKey
         ]
-        resValue "string", "gemini_api_key", localProperties.getProperty('GEMINI_API_KEY')
     }
 
     signingConfigs {

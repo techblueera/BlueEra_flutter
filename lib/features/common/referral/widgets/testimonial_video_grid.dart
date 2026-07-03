@@ -45,17 +45,18 @@ class _TestimonialVideoGridState extends State<TestimonialVideoGrid> {
         mainAxisSpacing: 10,
         crossAxisSpacing: 10,
       ),
-      itemBuilder: (_, i) {
-        final t = widget.videos[i];
-        return _TestimonialVideoTile(
-          key: ValueKey(t.id.isEmpty ? '$i' : t.id),
-          item: t,
-          order: i,
-          playback: _playback,
-          onTap: () =>
-              Get.to(() => _TestimonialShortsPlayer(videoUrl: t.video!)),
-        );
-      },
+      itemBuilder: (_, i) => _buildTile(i),
+    );
+  }
+
+  Widget _buildTile(int i) {
+    final t = widget.videos[i];
+    return _TestimonialVideoTile(
+      key: ValueKey(t.id.isEmpty ? '$i' : t.id),
+      item: t,
+      order: i,
+      playback: _playback,
+      onTap: () => Get.to(() => _TestimonialShortsPlayer(videoUrl: t.video!)),
     );
   }
 }
@@ -308,7 +309,7 @@ class _GridVideoPlaybackManager extends ChangeNotifier {
       return;
     }
     await next.setLooping(true);
-    await next.setVolume(0); // muted preview
+    await next.setVolume(0); // preview is always muted; sound is full-screen only
     _controller = next;
     _activeId = id;
     await next.play();
@@ -382,6 +383,9 @@ class _TestimonialShortsPlayerState extends State<_TestimonialShortsPlayer> {
 
   @override
   void dispose() {
+    // Pause first so audio stops immediately on back — dispose alone can let
+    // the last bit of sound linger on some platforms ("old sound").
+    _c?.pause();
     _c?.dispose();
     super.dispose();
   }

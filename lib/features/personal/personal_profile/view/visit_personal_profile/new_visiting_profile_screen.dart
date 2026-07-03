@@ -90,7 +90,9 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
         if (!didPop) _onBack();
       },
       child: Scaffold(
-        backgroundColor: AppColors.white,
+        // Transparent so the app-wide themed background (AppHomeBackground,
+        // set via app_background_screen) shows through instead of white.
+        backgroundColor: Colors.transparent,
         body: Obx(() {
           if (visitController.isProfileLoading.value) {
             return const Center(child: CircularProgressIndicator());
@@ -101,9 +103,11 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
           return NestedScrollView(
             headerSliverBuilder: (context, innerBoxIsScrolled) {
               return [
-                // Safe area spacing
+                // Safe area spacing — white so the header block reads as one
+                // white area from the top down to the tab bar.
                 SliverToBoxAdapter(
-                  child: SizedBox(
+                  child: Container(
+                      color: AppColors.white,
                       height: MediaQuery.of(context).padding.top),
                 ),
 
@@ -149,8 +153,8 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
               children: [
                 // Posts
                 Container(
-                  color: AppColors.white,
-                  // color: AppColors.lightBlueE9,
+                  // Transparent so the app background shows behind the feed.
+                  color: Colors.transparent,
                   child: FeedScreen(
                     key: ValueKey('feedScreen_user_posts_${widget.authorId}'),
                     postFilterType: PostType.otherPosts,
@@ -169,6 +173,7 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
                 //   screenFromName: widget.screenFromName,
                 // ),
                 // Channel
+
                 Center(child: CustomText('Coming soon')),
               ],
             ),
@@ -187,7 +192,9 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
         ? user!.coverPicture!
         : (user?.profileImage ?? '');
 
-    return Column(
+    return Container(
+      color: AppColors.white,
+      child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Banner + Avatar + Actions (Stack)
@@ -432,6 +439,7 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
           ),
         ),
       ],
+      ),
     );
   }
 
@@ -495,6 +503,8 @@ class _TabBarDelegate extends SliverPersistentHeaderDelegate {
   Widget build(
       BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Container(
+      // White so the header-through-tab-bar region stays one white block; the
+      // tab content below is transparent and shows the app background.
       color: AppColors.white,
       child: Column(
         children: [

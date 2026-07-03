@@ -4,7 +4,7 @@ import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/services/ads/native_ad_widget.dart';
+import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/widgets/measure_size.dart';
 import 'package:BlueEra/features/me/grocery/view/customer/grocery_via_self_pickup/grocery_self_pickup_cart_screen.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
@@ -39,15 +39,6 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
   final ScrollController _nestedScrollController = ScrollController();
   final AuthController _authController = Get.find<AuthController>();
   AnimationController? _shimmerController;
-
-  /// 1-indexed store positions AFTER which a native ad is inserted, e.g. an ad
-  /// goes between card 1 & 2, between card 3 & 4, etc.
-  static const List<int> _adAfterPositions = [1, 3, 7, 11, 13, 16, 20];
-
-  /// Beyond the last entry in [_adAfterPositions], keep inserting an ad every
-  /// this many cards so longer (load-more) lists still show ads. Matches the
-  /// final gap in the series (20 - 16 = 4).
-  static const int _adRepeatStepAfterLast = 4;
 
   /// Minimum height for a native ad slot. The native layout needs enough room
   /// for the media view plus the header/body/CTA so the Meta native template
@@ -274,29 +265,6 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
 
   // ─── Store list content ───────────────────────────────────────────────
 
-  /// Build the flat list of rows for the store list: store cards with native
-  /// ads inserted after the 1-indexed positions in [_adAfterPositions], then
-  /// every [_adRepeatStepAfterLast] cards beyond the last position. Never adds
-  /// an ad after the very last card.
-  List<_GroceryRow> _buildRows(int storeCount) {
-    final lastPos = _adAfterPositions.last;
-    final adAfter = _adAfterPositions.toSet();
-
-    final rows = <_GroceryRow>[];
-    var adOrdinal = 0;
-    for (var i = 0; i < storeCount; i++) {
-      rows.add(_GroceryRow.store(i));
-      final pos = i + 1; // 1-indexed card position
-      final isLast = i == storeCount - 1;
-      final showAd = adAfter.contains(pos) ||
-          (pos > lastPos && (pos - lastPos) % _adRepeatStepAfterLast == 0);
-      if (!isLast && showAd) {
-        rows.add(_GroceryRow.ad(adOrdinal++));
-      }
-    }
-    return rows;
-  }
-
   Widget _storeListContent() {
     return Obx(() {
       final _ = _locationVersion;
@@ -356,10 +324,10 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
             Expanded(
               child: Builder(
                 builder: (context) {
-                  // Interleave native ads between the store cards: a native ad
-                  // appears after every `_kStoresPerNativeAd` cards (never after
-                  // the very last card).
-                  final rows = _buildRows(controller.allStore.length);
+                  // Interleave native ads between the store cards using the
+                  // shared cadence (single source of truth in
+                  // native_ad_list_inserter.dart), never after the last card.
+                  final rows = buildNativeAdRows(controller.allStore.length);
                   final showLoadMore =
                       controller.isAllStoreLoadingMore.value;
                   return RefreshIndicator(
@@ -399,16 +367,18 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                         final base = (_measuredCardHeight ?? 0) - SizeConfig.size10;
                         final adHeight =
                             base < _kMinNativeAdHeight ? _kMinNativeAdHeight : base;
-                        // Stable key keyed on the ad's ordinal so the loaded
-                        // ad survives list rebuilds (load-more, etc.) instead
-                        // of reloading and burning impressions.
-                        return NativeAdWidget(
-                          key: ValueKey('grocery_native_ad_${row.adOrdinal}'),
+                        // NativeAdSlot supplies the stable key (keyed on the
+                        // ordinal) so the loaded ad survives list rebuilds
+                        // (load-more, etc.) instead of reloading and burning
+                        // impressions.
+                        return NativeAdSlot(
+                          adOrdinal: row.adOrdinal,
+                          keyPrefix: 'grocery_native_ad',
                           height: adHeight,
                         );
                       }
 
-                      final store = controller.allStore[row.storeIndex];
+                      final store = controller.allStore[row.contentIndex];
 
                       // Card visuals are driven entirely by
                       // `_GroceryCardPalette` inside `GroceryStoreCard` —
@@ -418,13 +388,13 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                       // of being picked by a hash of `store.id`.
                       final card = GroceryStoreCard(
                         store: store,
-                        index: row.storeIndex,
+                        index: row.contentIndex,
                       );
 
                       // Measure the first card so ad slots can mirror its
                       // height. Only the first card is measured to avoid a
                       // measure callback on every row.
-                      if (row.storeIndex == 0) {
+                      if (row.contentIndex == 0) {
                         return MeasureSize(
                           onChange: (size) {
                             if (!mounted) return;
@@ -697,19 +667,3 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
   }
 }
 
-/// A single row in the store list — either a store card (carrying its index
-/// into `controller.allStore`) or a native ad slot (carrying its ordinal so the
-/// widget can be given a stable key).
-class _GroceryRow {
-  const _GroceryRow.store(this.storeIndex)
-      : isAd = false,
-        adOrdinal = -1;
-
-  const _GroceryRow.ad(this.adOrdinal)
-      : isAd = true,
-        storeIndex = -1;
-
-  final bool isAd;
-  final int storeIndex;
-  final int adOrdinal;
-}

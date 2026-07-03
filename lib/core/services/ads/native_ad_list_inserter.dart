@@ -18,28 +18,45 @@ class NativeAdRow {
   final int adOrdinal;
 }
 
-/// 1-indexed content positions AFTER which a native ad is inserted, e.g. an ad
-/// goes after item 1, after item 3, etc. Shared by every ad-bearing list/grid so
-/// the cadence is uniform across the app (matches the grocery stores screen).
-const Set<int> _kAdAfterPositions = {1, 3, 7, 11, 13, 16, 20};
+/// 1-indexed content position after which the FIRST native ad is inserted in a
+/// single-column LIST, e.g. with a value of 3 the first ad goes after the 3rd
+/// item. Kept a few items in so short lists still show one ad without the top
+/// being ad-heavy.
+const int _kListFirstAdAfter = 3;
 
-/// Beyond the last entry in [_kAdAfterPositions], keep inserting an ad every
-/// this many items so long (load-more) lists keep showing ads. Matches the final
-/// gap in the series (20 - 16 = 4).
-const int _kAdRepeatStepAfterLast = 4;
+/// After the first ad, insert another native ad every this many items in a LIST,
+/// giving a uniform cadence (ad after 3, 9, 15, 21, ...). A regular, spaced-out
+/// interval loads far better than a front-loaded burst: consecutive ad slots
+/// don't try to fill at the same time.
+const int _kListAdEveryAfterFirst = 6;
+
+/// GRID/masonry cadence — deliberately WIDER than the list cadence. A multi-
+/// column grid packs 2+ cards per row, so for the same scroll distance far more
+/// ad slots come into view and request an ad almost at once. Loading native ads
+/// too frequently trips Meta Audience Network's rate limit (error 1002, "ad
+/// loaded too frequently"), which surfaces as blank/failed slots. A bigger gap
+/// keeps concurrent ad loads down. First ad after the 6th card...
+const int _kGridFirstAdAfter = 6;
+
+/// ...then one every 10 cards thereafter (ad after 6, 16, 26, ...). With a
+/// 2-column grid that's roughly one ad every 5 rows.
+const int _kGridAdEveryAfterFirst = 10;
 
 /// Whether a native ad should be inserted AFTER the 1-indexed [position] (i.e.
-/// after that many content items), per the shared series then a repeating step.
-bool _shouldInsertAdAfter(int position) {
-  if (_kAdAfterPositions.contains(position)) return true;
-  const last = 20; // == _kAdAfterPositions.last
-  return position > last &&
-      (position - last) % _kAdRepeatStepAfterLast == 0;
+/// after that many content items): the first ad lands at [firstAfter], then one
+/// every [everyAfter] items thereafter. Callers pass the list or grid cadence.
+bool _shouldInsertAdAfter(
+  int position, {
+  required int firstAfter,
+  required int everyAfter,
+}) {
+  if (position < firstAfter) return false;
+  return (position - firstAfter) % everyAfter == 0;
 }
 
-/// Builds the interleaved row list for a content list of [contentCount] items:
-/// a native ad is inserted after the positions in the shared series
-/// (1, 3, 7, 11, 13, 16, 20, then every 4), never after the very last item.
+/// Builds the interleaved row list for a single-column content list of
+/// [contentCount] items: a native ad is inserted per the LIST cadence (after
+/// item 3, then every 6: 3, 9, 15, 21, ...), never after the very last item.
 ///
 /// Usage in a ListView.builder / SliverChildBuilderDelegate:
 /// ```dart
@@ -58,7 +75,10 @@ List<NativeAdRow> buildNativeAdRows(int contentCount) {
     rows.add(NativeAdRow.content(i));
     final pos = i + 1; // 1-indexed
     final isLast = i == contentCount - 1;
-    if (!isLast && _shouldInsertAdAfter(pos)) {
+    if (!isLast &&
+        _shouldInsertAdAfter(pos,
+            firstAfter: _kListFirstAdAfter,
+            everyAfter: _kListAdEveryAfterFirst)) {
       rows.add(NativeAdRow.ad(adOrdinal++));
     }
   }
@@ -66,8 +86,8 @@ List<NativeAdRow> buildNativeAdRows(int contentCount) {
 }
 
 /// Interleaves FULL-WIDTH native ad slivers into a multi-column (grid/masonry)
-/// list. The grid is split into chunks at the shared series positions
-/// (1, 3, 7, 11, 13, 16, 20, then every 4); each chunk is built by
+/// list. The grid is split into chunks at the wider GRID cadence positions
+/// (after item 6, then every 10: 6, 16, 26, ...); each chunk is built by
 /// [gridSliverBuilder] for the half-open range [start, end), and a full-width
 /// native ad sliver is inserted after every chunk except the last.
 ///
@@ -100,7 +120,9 @@ List<Widget> buildNativeAdGridSlivers({
   var start = 0;
   for (var pos = 1; pos < itemCount; pos++) {
     // pos < itemCount: never break/insert after the final item.
-    if (!_shouldInsertAdAfter(pos)) continue;
+    if (!_shouldInsertAdAfter(pos,
+        firstAfter: _kGridFirstAdAfter,
+        everyAfter: _kGridAdEveryAfterFirst)) continue;
     slivers.add(gridSliverBuilder(start, pos));
     slivers.add(
       SliverPadding(

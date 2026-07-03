@@ -850,6 +850,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         return const GigWorkOptionsScreen(fromBottomNavBar: true);
 
       case SOCIAL_PROFILE:
+        // if (userProfessionGlobal == CONTENT_CREATOR) {
+        //   return const ContentCreatorMainScreen();
+        // }
         return const SocialMainScreen();
 
       case PROFESSIONAL:

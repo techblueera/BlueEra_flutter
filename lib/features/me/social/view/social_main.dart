@@ -1,9 +1,7 @@
 import 'dart:ui';
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/model/personal_profile_details_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -32,6 +30,7 @@ import 'package:BlueEra/widgets/common_circular_profile_image.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
@@ -392,20 +391,30 @@ class _SocialMainScreenState extends State<SocialMainScreen>
   Widget _buildGlassHeaderRow(BuildContext context) {
     return Stack(
       children: [
+        // Soft top scrim — a downward gradient that keeps the drawer, refer
+        // pill and notification controls legible over any cover photo, then
+        // dissolves into the image. Replaces the flat blurred band, which cut
+        // a hard-edged strip across the banner.
         Positioned.fill(
-          child: ClipRect(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.25),
-                ),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withValues(alpha: 0.42),
+                  Colors.black.withValues(alpha: 0.16),
+                  Colors.black.withValues(alpha: 0.0),
+                ],
+                stops: const [0.0, 0.55, 1.0],
               ),
             ),
           ),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+          // Extra bottom room so the scrim gradient has space to fade out
+          // below the controls instead of ending abruptly.
+          padding: const EdgeInsets.fromLTRB(8, 8, 8, 24),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -422,12 +431,32 @@ class _SocialMainScreenState extends State<SocialMainScreen>
                 ),
               ),
               const SizedBox(width: 8),
-              _EarnActionPill(
-                onTap: () => Get.toNamed(RouteHelper.getChooseEarnServiceScreenRoute()),
+              // Expanded + left Align fills the row so the notification is
+              // pushed to the far right, while the refer pill stays compact on
+              // the left. (A Flexible pill + Spacer split the free space and
+              // left the notification short of the edge.) The shadow wrapper
+              // lifts the pill off the cover image; shared ReferEarnPill stays
+              // untouched.
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(24),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.28),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: const ReferEarnPill(),
+                  ),
+                ),
               ),
-              const Spacer(),
-              if (!isGuestUser())
-                _GlassPill(
+              const SizedBox(width: 8),
+              _GlassPill(
                   onTap: () => Navigator.pushNamed(
                     context,
                     RouteHelper.getNotificationScreenRoute(),
@@ -761,41 +790,6 @@ class _SocialMainScreenState extends State<SocialMainScreen>
   }
 }
 
-class _EarnActionPill extends StatelessWidget {
-  final VoidCallback onTap;
-
-  const _EarnActionPill({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return _GlassPill(
-      onTap: onTap,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      dark: true,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          LocalAssets(
-            imagePath: AppIconAssets.earnWithBEIcon,
-            imgColor: Colors.white,
-            width: 16,
-            height: 16,
-          ),
-          const SizedBox(width: 4),
-          const Text(
-            'Earn',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _GlassPill extends StatelessWidget {
   final Widget child;
   final VoidCallback onTap;
@@ -823,19 +817,33 @@ class _GlassPill extends StatelessWidget {
         : Colors.white.withValues(alpha: 0.5);
     return GestureDetector(
       onTap: onTap,
-      child: ClipPath(
-        clipper: _GlassClipper(shape: shape, borderRadius: borderRadius),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-          child: Container(
-            padding: padding,
-            decoration: BoxDecoration(
-              color: fill,
-              borderRadius: borderRadius,
-              shape: shape,
-              border: Border.all(color: border, width: 0.6),
+      child: DecoratedBox(
+        // Drop shadow so the glass controls lift off the cover image.
+        decoration: BoxDecoration(
+          shape: shape,
+          borderRadius: borderRadius,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.28),
+              blurRadius: 8,
+              offset: const Offset(0, 3),
             ),
-            child: child,
+          ],
+        ),
+        child: ClipPath(
+          clipper: _GlassClipper(shape: shape, borderRadius: borderRadius),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+            child: Container(
+              padding: padding,
+              decoration: BoxDecoration(
+                color: fill,
+                borderRadius: borderRadius,
+                shape: shape,
+                border: Border.all(color: border, width: 0.6),
+              ),
+              child: child,
+            ),
           ),
         ),
       ),

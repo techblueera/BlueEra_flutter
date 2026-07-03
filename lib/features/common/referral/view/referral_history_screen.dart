@@ -659,6 +659,245 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
     );
   }
 
+  // --- REFERRAL DETAILS BOTTOM SHEET --------------------------------------
+  // Opened when the whole card is tapped — shows the tapped user's direct
+  // downline (`children`). A child that itself has children is tappable to
+  // drill one level deeper.
+  void _showReferralDetailsSheet(WalletReferralHistoryItem item) {
+    final children = item.children ?? const <WalletReferralHistoryItem>[];
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(ctx).size.height * 0.75,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppColors.greyE5,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundImage: NetworkImage(item.profileImage ?? ''),
+                      backgroundColor: AppColors.whiteFE,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          CustomText(
+                            item.name ?? '',
+                            fontSize: SizeConfig.large,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.mainTextColor,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          CustomText(
+                            'Referred users (${children.length})',
+                            fontSize: SizeConfig.small,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.secondaryTextColor,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Divider(height: 1, color: AppColors.whiteE5),
+              Flexible(
+                child: children.isEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 36, horizontal: 16),
+                        child: Center(
+                          child: CustomText(
+                            'No referred users yet.',
+                            fontSize: SizeConfig.small,
+                            color: AppColors.secondaryTextColor,
+                          ),
+                        ),
+                      )
+                    : ListView.separated(
+                        padding: const EdgeInsets.all(16),
+                        shrinkWrap: true,
+                        itemCount: children.length,
+                        separatorBuilder: (_, __) =>
+                            const SizedBox(height: 10),
+                        itemBuilder: (_, i) => _buildChildCard(children[i]),
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildChildCard(WalletReferralHistoryItem child) {
+    final style = _statusStyle(child.subscriptionStatus);
+    final ago = timeAgo(child.createdAt);
+    final grandChildren =
+        child.children ?? const <WalletReferralHistoryItem>[];
+    final hasMore = grandChildren.isNotEmpty;
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(12),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        // Drill one level deeper only when this user has their own downline.
+        onTap: hasMore ? () => _showReferralDetailsSheet(child) : null,
+        child: Ink(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.whiteE5, width: 0.5),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  CircleAvatar(
+                    radius: 20,
+                    backgroundImage: NetworkImage(child.profileImage ?? ''),
+                    backgroundColor: AppColors.whiteFE,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomText(
+                          child.name ?? '',
+                          fontSize: SizeConfig.medium,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.mainTextColor,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 2),
+                        CustomText(
+                          child.profession ?? '',
+                          fontSize: SizeConfig.small,
+                          fontWeight: FontWeight.w400,
+                          color: AppColors.secondaryTextColor,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: style.bg,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: CustomText(
+                            style.label,
+                            fontSize: SizeConfig.extraSmall,
+                            fontWeight: FontWeight.w600,
+                            color: style.fg,
+                          ),
+                        ),
+                        if (ago.isNotEmpty) ...[
+                          const SizedBox(width: 8),
+                          Icon(Icons.schedule,
+                              size: 12, color: AppColors.secondaryTextColor),
+                          const SizedBox(width: 3),
+                          Flexible(
+                            child: CustomText(
+                              ago,
+                              fontSize: SizeConfig.extraSmall,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.secondaryTextColor,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  RichText(
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: '₹${child.referralIncome ?? 0} ',
+                          style: TextStyle(
+                            color: AppColors.primaryColor,
+                            fontWeight: FontWeight.w700,
+                            fontSize: SizeConfig.small,
+                          ),
+                        ),
+                        TextSpan(
+                          text: '/ ₹${child.upcomingIncome ?? 0}',
+                          style: TextStyle(
+                            color: AppColors.secondaryTextColor,
+                            fontWeight: FontWeight.w500,
+                            fontSize: SizeConfig.small,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              if (hasMore) ...[
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    CustomText(
+                      '${grandChildren.length} referred',
+                      fontSize: SizeConfig.extraSmall,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primaryColor,
+                    ),
+                    Icon(Icons.chevron_right,
+                        size: 16, color: AppColors.primaryColor),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildRefHistoryCard(WalletReferralHistoryItem historyData) {
     final style = _statusStyle(historyData.subscriptionStatus);
     final ago = timeAgo(historyData.createdAt);
@@ -667,15 +906,9 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          if (isGuestUser()) {
-            createProfileScreen();
-            return;
-          }
-          _chatViewController.checkChatConnectionAndOpenChat(
-            userId: historyData.userId ?? '',
-          );
-        },
+        // Whole card → details bottom sheet (downline/children). Chat is opened
+        // only from the dedicated chat icon below.
+        onTap: () => _showReferralDetailsSheet(historyData),
         child: Ink(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
@@ -812,7 +1045,7 @@ class _ReferralHistoryScreenNewState extends State<ReferralHistoryScreenNew> {
                           ),
                         ),
                         TextSpan(
-                          text: '/ ₹${historyData.planCost ?? 0}',
+                          text: '/ ₹${historyData.upcomingIncome ?? 0}',
                           style: TextStyle(
                             color: AppColors.secondaryTextColor,
                             fontWeight: FontWeight.w500,

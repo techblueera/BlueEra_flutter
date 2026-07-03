@@ -106,6 +106,9 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
         return false;
       },
       child: Scaffold(
+        // Transparent so the app-wide themed background (AppHomeBackground,
+        // set via app_background_screen) shows through instead of white.
+        backgroundColor: Colors.transparent,
         appBar: widget.showAppBar ? CommonBackAppBar(
           onBackTap: (){
             backPress();
@@ -154,11 +157,16 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                 child: NestedScrollView(
                   headerSliverBuilder: (context, innerBoxIsScrolled) => [
                     SliverToBoxAdapter(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: BusinessProfileHeader(
-                          businessProfileDetails:
-                              businessData ?? BusinessProfileDetails(),
+                      // White so the header reads as one white block down to
+                      // the tab bar; the tab content below shows the app bg.
+                      child: Container(
+                        color: AppColors.white,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: BusinessProfileHeader(
+                            businessProfileDetails:
+                                businessData ?? BusinessProfileDetails(),
+                          ),
                         ),
                       ),
                     ),
@@ -918,9 +926,10 @@ class _CustomTabBarDelegate extends SliverPersistentHeaderDelegate {
   Widget build(
       BuildContext context, double shrinkOffset, bool overlapsContent) {
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 12),
-      padding: EdgeInsets.only(top: 8),
-      color: AppColors.appBackgroundColor,
+      // Full-width white so the header-through-tab-bar region is one white
+      // block; the tab content below shows the app background.
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+      color: AppColors.white,
       child: tabBar,
     );
   }

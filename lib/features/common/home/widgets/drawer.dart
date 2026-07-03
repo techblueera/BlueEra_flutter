@@ -1,6 +1,9 @@
+import 'dart:convert';
 import 'dart:ui';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/controller/location_controller.dart';
 import 'package:BlueEra/core/constants/logout_helper.dart';
 import 'package:BlueEra/features/common/referral/view/referral_page.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -471,10 +474,7 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
                           const SizedBox(width: 2),
                           Obx(
                             () => CustomText(
-                              (walletController.walletResponseModalClass.value
-                                          .data?.withdrawableAmount ??
-                                      0)
-                                  .toString(),
+                              '${(walletController.walletResponseModalClass.value.data?.eligibleBalance ?? 0) + (walletController.walletResponseModalClass.value.data?.awaitedBalance ?? 0)}',
                               fontSize: 22,
                               fontWeight: FontWeight.w900,
                               color: AppColors.mainTextColor,
