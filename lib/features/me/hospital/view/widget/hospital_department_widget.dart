@@ -184,14 +184,21 @@ class HospitalBookingScreen extends StatelessWidget {
 
   /// Read-only fallback when the section has nothing to show; otherwise an
   /// empty-state CTA that routes to the corresponding edit screen.
+  ///
+  /// The read-only variant used to reserve [_kSectionHeight] (280dp) so
+  /// the layout was identical whether the section had data or not — but
+  /// that meant an OPD/IPD section with no data pushed the next section
+  /// ~280dp down for a single "No Data Found" line. In discover mode
+  /// (read-only) shrink to just what the text needs so consecutive
+  /// empty sections stack tightly.
   Widget _emptyOrPlaceholder({
     required String ctaLabel,
     required IconData ctaIcon,
     required VoidCallback onTap,
   }) {
     if (isReadOnly) {
-      return SizedBox(
-        height: _kSectionHeight,
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
         child: Center(child: CustomText(AppStrings.noDataFound)),
       );
     }

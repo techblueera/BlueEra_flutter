@@ -1,15 +1,14 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
-import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
 import 'package:BlueEra/features/common/store/controller/store_controller.dart';
@@ -98,15 +97,17 @@ class _OthersServiceDetailScreenState extends State<OthersServiceDetailScreen> {
   }
 
   /// Open the "other" business enquiry sheet. [details] is the loaded
-  /// [BusinessProfileDetails] snapshot; its `categoryOfBusiness` picks
-  /// the default group catalog (LOANS_SECTOR / INSURANCE / BANKING /
-  /// CAPITAL_MARKET / DATA — see `BusinessEnquirySheet._defaultGroups`).
+  /// [BusinessProfileDetails] snapshot; its `categoryOfBusiness` is
+  /// passed straight to the server-driven catalog
+  /// (`GET /predefined-enquiry/{category}`) — supports the 4 Finance,
+  /// 8 Find Services and 3 Automotive categories listed in
+  /// `lib/docs/predefined-enquiry-ui-integration.md` §1.
+  ///
   /// `listingId` must be the BusinessProfile._id (`details.id`) per the
   /// doc — not the owner's user id.
   void _openEnquirySheet(BusinessProfileDetails details) {
     final listingId = (details.id ?? '').trim();
-    final ownerId =
-        (details.userId ?? widget.visitUserId).trim();
+    final ownerId = (details.userId ?? widget.visitUserId).trim();
     if (listingId.isEmpty || ownerId.isEmpty) return;
     BusinessEnquirySheet.open(
       context,
@@ -130,8 +131,7 @@ class _OthersServiceDetailScreenState extends State<OthersServiceDetailScreen> {
         // Subscribe to profile refreshes so the bar appears as soon as
         // the details load.
         viewBusinessDetailsController.profileVersion.value;
-        final details =
-            viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
+        final details = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
         // Hide until the profile is loaded; also hide for the owner
         // viewing their own listing (matches the finance-detail pattern).
         if (details == null || details.userId == userId) {
@@ -147,24 +147,24 @@ class _OthersServiceDetailScreenState extends State<OthersServiceDetailScreen> {
             ),
             child: Row(
               children: [
-                Expanded(
-                  child: PositiveCustomBtn(
-                    onTap: () {
-                      final chatViewController =
-                          getOrPut(() => ChatViewController());
-                      chatViewController.checkChatConnectionAndOpenChat(
-                        userId: details.userId ?? widget.visitUserId,
-                        route: AppConstants.route_discover,
-                      );
-                    },
-                    title: AppStrings.chat,
-                  ),
-                ),
+                // Expanded(
+                //   child: PositiveCustomBtn(
+                //     onTap: () {
+                //       final chatViewController =
+                //           getOrPut(() => ChatViewController());
+                //       chatViewController.checkChatConnectionAndOpenChat(
+                //         userId: details.userId ?? widget.visitUserId,
+                //         route: AppConstants.route_discover,
+                //       );
+                //     },
+                //     title: AppStrings.chat,
+                //   ),
+                // ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: PositiveCustomBtn(
                     onTap: () => _openEnquirySheet(details),
-                    title: AppStrings.bookInquiry,
+                    title: AppStrings.inquiry,
                   ),
                 ),
               ],

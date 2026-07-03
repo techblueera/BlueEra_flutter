@@ -195,7 +195,27 @@ class _FinanceCard extends StatelessWidget {
                       category: category,
                     ),
                     SizedBox(height: SizeConfig.size12),
-                    _buildActionsRow(),
+                    // _buildActionsRow(),
+                    Container(
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryColor,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CustomText(
+                            AppStrings.inquiry.tr,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.white,
+                          ),
+                          const SizedBox(width: 6),
+                          const Icon(Icons.arrow_forward, size: 16, color: AppColors.white),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),

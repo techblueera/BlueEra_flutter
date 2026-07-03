@@ -11,11 +11,13 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// In-chat card for `message_type: "education_enquiry"` — academic UI.
-/// Indigo/violet accents, a school-crest listing tile at the top, and
-/// per-section blocks (book for Courses, person for Admission For,
-/// checklist for Requirements, calendar for Timeline). Distinct visual
-/// language from the generic [EnquiryMsgCard].
+/// In-chat card for `message_type: "education_enquiry"`.
+///
+/// Shares its visual language with the other enquiry/booking cards
+/// (hotel / vehicle / healthcare) — hero-banner layout + amber accent
+/// so all four verticals render identically in the chat stream. Only
+/// the education-specific data (section icons for courses/admission/
+/// requirements/timeline) differs from the sister implementations.
 class EducationEnquiryMsgCard extends StatefulWidget {
   final Messages message;
   final String time;
@@ -27,14 +29,15 @@ class EducationEnquiryMsgCard extends StatefulWidget {
   });
 
   @override
-  State<EducationEnquiryMsgCard> createState() => _EducationEnquiryMsgCardState();
+  State<EducationEnquiryMsgCard> createState() =>
+      _EducationEnquiryMsgCardState();
 }
 
 class _EducationEnquiryMsgCardState extends State<EducationEnquiryMsgCard> {
-  static const Color _accent = Color(0xFF6366F1); // indigo
-  static const Color _accentDeep = Color(0xFF4338CA);
-  static const Color _accentTint = Color(0xFFEEF0FF);
-  static const Color _line = Color(0xFFE7E9F5);
+  static const Color _accent = Color(0xFFF59E0B); // warm amber
+  static const Color _accentDeep = Color(0xFFD97706);
+  static const Color _line = Color(0xFFF3E7CE);
+  static const Color _noteBg = Color(0xFFFFF8EC);
 
   bool _isUpdating = false;
 
@@ -52,14 +55,6 @@ class _EducationEnquiryMsgCardState extends State<EducationEnquiryMsgCard> {
       if (items.isNotEmpty) out[k] = items;
     });
     return out;
-  }
-
-  int get _totalItems {
-    var n = 0;
-    for (final v in _selections.values) {
-      n += v.length;
-    }
-    return n;
   }
 
   IconData _iconFor(String title) {
@@ -81,7 +76,10 @@ class _EducationEnquiryMsgCardState extends State<EducationEnquiryMsgCard> {
   }
 
   Future<void> _updateStatus(String status) async {
-    final id = (_e?.enquiryId ?? widget.message.metadata?.educationEnquiryId ?? '').trim();
+    final id = (_e?.enquiryId ??
+            widget.message.metadata?.educationEnquiryId ??
+            '')
+        .trim();
     if (id.isEmpty) {
       commonSnackBar(message: AppStrings.somethingWentWrong.tr);
       return;
@@ -100,6 +98,11 @@ class _EducationEnquiryMsgCardState extends State<EducationEnquiryMsgCard> {
   @override
   Widget build(BuildContext context) {
     final e = _e;
+    final photos = e?.photos ?? const <String>[];
+    final coverImage = (e?.listingImage ?? '').trim();
+    final firstPhoto = photos.isNotEmpty ? photos.first : '';
+    final heroImage = coverImage.isNotEmpty ? coverImage : firstPhoto;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 2),
       width: SizeConfig.screenWidth * 0.74,
@@ -108,119 +111,205 @@ class _EducationEnquiryMsgCardState extends State<EducationEnquiryMsgCard> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: _line, width: 1),
         boxShadow: const [
-          BoxShadow(color: Color(0x14000000), blurRadius: 12, offset: Offset(0, 4)),
+          BoxShadow(
+              color: Color(0x14000000), blurRadius: 12, offset: Offset(0, 4)),
         ],
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _crestHeader(e?.listingName ?? '', e?.listingImage ?? '', e?.location ?? ''),
-          _summaryStrip(),
-          for (final entry in _selections.entries) _sectionBlock(entry),
-          if ((e?.photos ?? const []).isNotEmpty) _photoStrip(e!.photos ?? const []),
+          _heroBanner(heroImage, e?.listingName ?? '', e?.location ?? ''),
+          for (final entry in _selections.entries) _selectionRow(entry),
           if ((e?.note ?? '').trim().isNotEmpty) _noteRow(e!.note!.trim()),
+          if (photos.length > 1) _photoStrip(photos.skip(1).toList()),
           _footer(),
         ],
       ),
     );
   }
 
-  Widget _crestHeader(String name, String image, String location) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [_accentDeep, _accent],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+  Widget _heroBanner(String image, String name, String location) {
+    return Stack(
+      children: [
+        SizedBox(
+          width: double.infinity,
+          height: 140,
+          child: image.isNotEmpty
+              ? CachedNetworkImage(
+                  imageUrl: image,
+                  fit: BoxFit.cover,
+                  placeholder: (_, __) => Container(color: _line),
+                  errorWidget: (_, __, ___) => Container(
+                    color: _line,
+                    alignment: Alignment.center,
+                    child: const Icon(Icons.school_rounded,
+                        color: Colors.white, size: 32),
+                  ),
+                )
+              : Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [_accentDeep, _accent],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Icon(Icons.school_rounded,
+                      color: Colors.white, size: 32),
+                ),
         ),
-      ),
+        Positioned.fill(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.transparent,
+                  Colors.black.withValues(alpha: 0.55),
+                ],
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          left: 12,
+          right: 12,
+          bottom: 10,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.92),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.school_rounded,
+                            size: 12, color: _accentDeep),
+                        const SizedBox(width: 4),
+                        Text(
+                          AppStrings.educationEnquiryTitle.tr.toUpperCase(),
+                          style: const TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w800,
+                            color: _accentDeep,
+                            letterSpacing: 0.6,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Spacer(),
+                  _statusBadge(),
+                ],
+              ),
+              const SizedBox(height: 6),
+              if (name.trim().isNotEmpty)
+                Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              if (location.trim().isNotEmpty) ...[
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    const Icon(Icons.place_rounded,
+                        size: 11, color: Colors.white70),
+                    const SizedBox(width: 3),
+                    Expanded(
+                      child: Text(
+                        location,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _selectionRow(MapEntry<String, List<String>> entry) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 44,
-            height: 44,
+            width: 34,
+            height: 34,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.35), width: 1),
+              color: _accent.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: image.isNotEmpty
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(11),
-                    child: CachedNetworkImage(
-                      imageUrl: image,
-                      width: 42,
-                      height: 42,
-                      fit: BoxFit.cover,
-                      errorWidget: (_, __, ___) =>
-                          const Icon(Icons.school_rounded, color: Colors.white, size: 22),
-                    ),
-                  )
-                : const Icon(Icons.school_rounded, color: Colors.white, size: 22),
+            child: Icon(_iconFor(entry.key), color: _accentDeep, size: 17),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.22),
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        AppStrings.educationEnquiryTitle.tr.toUpperCase(),
-                        style: const TextStyle(
-                          fontSize: 9,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                          letterSpacing: 0.6,
-                        ),
-                      ),
-                    ),
-                    const Spacer(),
-                    _statusBadgeInverse(),
-                  ],
-                ),
-                const SizedBox(height: 5),
-                if (name.trim().isNotEmpty)
-                  Text(
-                    name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w800,
-                    ),
+                Text(
+                  entry.key.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.7,
+                    color: AppColors.secondaryTextColor,
                   ),
-                if (location.trim().isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      const Icon(Icons.place_rounded, size: 11, color: Colors.white70),
-                      const SizedBox(width: 3),
-                      Expanded(
+                ),
+                const SizedBox(height: 3),
+                Wrap(
+                  spacing: 5,
+                  runSpacing: 5,
+                  children: [
+                    for (final item in entry.value)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: _accent.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                              color: _accent.withValues(alpha: 0.25),
+                              width: 0.8),
+                        ),
                         child: Text(
-                          location,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                          item,
                           style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: _accentDeep,
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                ],
+                  ],
+                ),
               ],
             ),
           ),
@@ -229,153 +318,22 @@ class _EducationEnquiryMsgCardState extends State<EducationEnquiryMsgCard> {
     );
   }
 
-  Widget _summaryStrip() {
-    final photos = _e?.photos ?? const <String>[];
-    final parts = <String>[];
-    if (_totalItems > 0) {
-      parts.add('$_totalItems ${_totalItems == 1 ? AppStrings.itemLabel.tr : AppStrings.itemsLabel.tr}');
-    }
-    if (photos.isNotEmpty) {
-      parts.add(
-          '${photos.length} ${photos.length == 1 ? AppStrings.photoLabel.tr : AppStrings.photosLabel.tr}');
-    }
-    if (parts.isEmpty) return const SizedBox.shrink();
-    return Container(
-      width: double.infinity,
-      color: _accentTint,
-      padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
-      child: Text(
-        parts.join(' · '),
-        style: const TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w700,
-          color: _accentDeep,
-          letterSpacing: 0.2,
-        ),
-      ),
-    );
-  }
-
-  Widget _sectionBlock(MapEntry<String, List<String>> entry) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: _line, width: 1),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 26,
-                  height: 26,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: _accentTint,
-                    borderRadius: BorderRadius.circular(7),
-                  ),
-                  child: Icon(_iconFor(entry.key), size: 15, color: _accentDeep),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  entry.key,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                    color: _accentDeep,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            for (final item in entry.value)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 6, right: 8),
-                      child: Container(
-                        width: 5,
-                        height: 5,
-                        decoration: const BoxDecoration(
-                          color: _accent,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        item,
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.mainTextColor,
-                          height: 1.3,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _photoStrip(List<String> photos) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-      child: SizedBox(
-        height: 68,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          itemCount: photos.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 6),
-          itemBuilder: (_, i) => ClipRRect(
-            borderRadius: BorderRadius.circular(9),
-            child: CachedNetworkImage(
-              imageUrl: photos[i],
-              width: 88,
-              height: 68,
-              fit: BoxFit.cover,
-              placeholder: (_, __) => Container(width: 88, height: 68, color: _accentTint),
-              errorWidget: (_, __, ___) => Container(
-                width: 88,
-                height: 68,
-                color: _accentTint,
-                alignment: Alignment.center,
-                child: const Icon(Icons.broken_image_outlined, size: 16, color: Colors.grey),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _noteRow(String note) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
         decoration: BoxDecoration(
-          color: _accentTint,
+          color: _noteBg,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: _line),
+          border: Border.all(color: _line, width: 0.8),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.format_quote_rounded, size: 15, color: _accentDeep),
+            const Icon(Icons.chat_bubble_outline_rounded,
+                size: 14, color: _accentDeep),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -389,6 +347,39 @@ class _EducationEnquiryMsgCardState extends State<EducationEnquiryMsgCard> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _photoStrip(List<String> photos) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+      child: SizedBox(
+        height: 60,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          itemCount: photos.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 6),
+          itemBuilder: (_, i) => ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: CachedNetworkImage(
+              imageUrl: photos[i],
+              width: 80,
+              height: 60,
+              fit: BoxFit.cover,
+              placeholder: (_, __) =>
+                  Container(width: 80, height: 60, color: _line),
+              errorWidget: (_, __, ___) => Container(
+                width: 80,
+                height: 60,
+                color: _line,
+                alignment: Alignment.center,
+                child: const Icon(Icons.broken_image_outlined,
+                    size: 16, color: Colors.grey),
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -411,13 +402,14 @@ class _EducationEnquiryMsgCardState extends State<EducationEnquiryMsgCard> {
     }
     if (_isPending && !_isMyMessage) {
       return Padding(
-        padding: const EdgeInsets.fromLTRB(12, 14, 12, 12),
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
         child: _isUpdating
             ? const Center(
                 child: SizedBox(
                   width: 20,
                   height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: _accentDeep),
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: _accentDeep),
                 ),
               )
             : Row(
@@ -431,7 +423,7 @@ class _EducationEnquiryMsgCardState extends State<EducationEnquiryMsgCard> {
     }
     return _statusBand(
       icon: Icons.access_time_rounded,
-      color: _accent,
+      color: _accentDeep,
       label: AppStrings.waitingForResponse.tr,
     );
   }
@@ -443,7 +435,6 @@ class _EducationEnquiryMsgCardState extends State<EducationEnquiryMsgCard> {
   }) {
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(top: 10),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
       color: color.withValues(alpha: 0.10),
       child: Row(
@@ -472,13 +463,13 @@ class _EducationEnquiryMsgCardState extends State<EducationEnquiryMsgCard> {
   Widget _acceptBtn() {
     return InkWell(
       onTap: () => _updateStatus('accepted'),
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(10),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 11),
+        padding: const EdgeInsets.symmetric(vertical: 10),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           gradient: const LinearGradient(colors: [_accentDeep, _accent]),
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
           boxShadow: [
             BoxShadow(
               color: _accent.withValues(alpha: 0.35),
@@ -490,10 +481,13 @@ class _EducationEnquiryMsgCardState extends State<EducationEnquiryMsgCard> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.school_rounded, size: 15, color: Colors.white),
+            const Icon(Icons.check_rounded, size: 15, color: Colors.white),
             const SizedBox(width: 5),
             Text(AppStrings.acceptLabel.tr,
-                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white)),
+                style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white)),
           ],
         ),
       ),
@@ -503,24 +497,25 @@ class _EducationEnquiryMsgCardState extends State<EducationEnquiryMsgCard> {
   Widget _declineBtn() {
     return InkWell(
       onTap: () => _updateStatus('declined'),
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(10),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 11),
+        padding: const EdgeInsets.symmetric(vertical: 10),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(color: _accentDeep.withValues(alpha: 0.35)),
         ),
         child: Text(
           AppStrings.declineLabel.tr,
-          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: _accentDeep),
+          style: const TextStyle(
+              fontSize: 13, fontWeight: FontWeight.w800, color: _accentDeep),
         ),
       ),
     );
   }
 
-  Widget _statusBadgeInverse() {
+  Widget _statusBadge() {
     final (String label, Color color) = _isAccepted
         ? (AppStrings.acceptedStatus.tr, const Color(0xFF16A34A))
         : _isDeclined

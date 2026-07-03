@@ -6,13 +6,13 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
 import 'package:BlueEra/features/common/store/controller/store_controller.dart';
-import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
-import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
-import 'package:BlueEra/features/me/medical/controller/healthcare_enquiry_controller.dart';
 import 'package:BlueEra/features/me/hospital/model/hospital_full_details_res_model.dart';
 import 'package:BlueEra/features/me/hospital/view/emergency/emergency_critical_care_view.dart';
 import 'package:BlueEra/features/me/hospital/view/gallery/hospital_home_gallery_widget.dart';
@@ -21,16 +21,16 @@ import 'package:BlueEra/features/me/hospital/view/widget/hospital_contact_us_vie
 import 'package:BlueEra/features/me/hospital/view/widget/hospital_department_widget.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/hospital_header_view.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/managment_card_widget.dart';
+import 'package:BlueEra/features/me/medical/controller/healthcare_enquiry_controller.dart';
+import 'package:BlueEra/features/me/medical/widget/healthcare_enquiry_sheet.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/me/medical/widget/healthcare_enquiry_sheet.dart';
-import 'package:BlueEra/widgets/visit_business_stats_card.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
+import 'package:BlueEra/widgets/visit_business_stats_card.dart';
 import 'package:BlueEra/widgets/website_preview_card.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -40,15 +40,12 @@ class DiscoverHospitalHomeScreen extends StatefulWidget {
   const DiscoverHospitalHomeScreen({super.key});
 
   @override
-  State<DiscoverHospitalHomeScreen> createState() =>
-      _DiscoverHospitalHomeScreenState();
+  State<DiscoverHospitalHomeScreen> createState() => _DiscoverHospitalHomeScreenState();
 }
 
-class _DiscoverHospitalHomeScreenState
-    extends State<DiscoverHospitalHomeScreen> {
+class _DiscoverHospitalHomeScreenState extends State<DiscoverHospitalHomeScreen> {
   final controller = Get.find<HospitalServiceAiController>();
-  final viewBusinessDetailsController =
-      Get.find<ViewBusinessDetailsController>();
+  final viewBusinessDetailsController = Get.find<ViewBusinessDetailsController>();
   final storeController = getOrPut(() => StoreController());
 
   /// Tracks whether the full hospital profile has finished loading at least
@@ -87,8 +84,7 @@ class _DiscoverHospitalHomeScreenState
   /// model, preserving the list-card fields (name/logo/cover/location)
   /// already on screen.
   void _mergeHospitalSectionsFromBusinessProfile() {
-    final raw =
-        viewBusinessDetailsController.viewBusinessResponseNew.data?.response?.data;
+    final raw = viewBusinessDetailsController.viewBusinessResponseNew.data?.response?.data;
     _debugDumpKeys(raw);
     final hospitalJson = _extractHospitalJson(raw);
     if (hospitalJson == null) {
@@ -112,17 +108,12 @@ class _DiscoverHospitalHomeScreenState
           ..gallery = parsed.gallery ?? existing.gallery
           ..emergencyCare = parsed.emergencyCare ?? existing.emergencyCare
           ..otherFacilities = parsed.otherFacilities ?? existing.otherFacilities
-          ..emergencyContactData =
-              parsed.emergencyContactData ?? existing.emergencyContactData
-          ..contacts = (parsed.contacts?.isNotEmpty ?? false)
-              ? parsed.contacts
-              : existing.contacts
-          ..description = (parsed.description?.isNotEmpty ?? false)
-              ? parsed.description
-              : existing.description);
+          ..emergencyContactData = parsed.emergencyContactData ?? existing.emergencyContactData
+          ..contacts = (parsed.contacts?.isNotEmpty ?? false) ? parsed.contacts : existing.contacts
+          ..description =
+              (parsed.description?.isNotEmpty ?? false) ? parsed.description : existing.description);
 
-    controller.hospitalDataResModel?.value =
-        HospitalFullDetailsResModel(success: true, data: merged);
+    controller.hospitalDataResModel?.value = HospitalFullDetailsResModel(success: true, data: merged);
   }
 
   /// TEMP: prints the response key structure so we can locate where the
@@ -229,7 +220,7 @@ class _DiscoverHospitalHomeScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.whiteE5,
+      // backgroundColor: AppColors.whiteE5,
       bottomNavigationBar: _buildBottomBar(),
       appBar: CommonBackAppBar(
         title: AppStrings.hospital.tr,
@@ -243,8 +234,7 @@ class _DiscoverHospitalHomeScreenState
           }
         },
         child: Obx(() {
-          final isProfileLoading =
-              viewBusinessDetailsController.isProfileLoading.value;
+          final isProfileLoading = viewBusinessDetailsController.isProfileLoading.value;
           final data = controller.hospitalDataResModel?.value.data;
 
           /// First-load shimmer: keep the skeleton until the full profile
@@ -266,15 +256,20 @@ class _DiscoverHospitalHomeScreenState
                 /// HEADER
                 HospitalHeaderView(isReadOnly: true),
 
-                SizedBox(height: SizeConfig.paddingXS),
+                // Only horizontal padding here — HospitalHeaderView (above)
+                // and the next section's card (below) already carry the
+                // 10dp CommonCardWidget margin, so any vertical padding
+                // here stacks on top of it and reads as an extra empty
+                // band on the screen.
                 Obx(() {
                   viewBusinessDetailsController.profileVersion.value;
-                  return VisitBusinessStatsCard(
-                    details: viewBusinessDetailsController
-                        .visitedBusinessProfileDetails?.data,
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: VisitBusinessStatsCard(
+                      details: viewBusinessDetailsController.visitedBusinessProfileDetails?.data,
+                    ),
                   );
                 }),
-                SizedBox(height: SizeConfig.paddingXS),
 
                 /// EMERGENCY ACTION CARDS
                 _buildEmergencyActionCards(),
@@ -288,7 +283,7 @@ class _DiscoverHospitalHomeScreenState
                   child: HospitalBookingScreen(),
                 ),
 
-                SizedBox(height: SizeConfig.paddingXS),
+                // SizedBox(height: SizeConfig.paddingXS),
 
                 /// EMERGENCY & CRITICAL CARE
                 _buildSectionWithEmptyCheck(
@@ -335,8 +330,7 @@ class _DiscoverHospitalHomeScreenState
                 /// LOCATION MAP
                 _buildLocationSection(),
 
-                SizedBox(
-                    height: kBottomNavigationBarHeight + SizeConfig.paddingXSL),
+                SizedBox(height: kBottomNavigationBarHeight + SizeConfig.paddingXSL),
               ],
             ),
           );
@@ -362,10 +356,7 @@ class _DiscoverHospitalHomeScreenState
               padding: EdgeInsets.all(SizeConfig.paddingS),
               child: Row(
                 children: [
-                  shimmerContainer(
-                      width: SizeConfig.size60,
-                      height: SizeConfig.size60,
-                      radius: 30),
+                  shimmerContainer(width: SizeConfig.size60, height: SizeConfig.size60, radius: 30),
                   SizedBox(width: SizeConfig.paddingS),
                   Expanded(
                     child: Column(
@@ -373,8 +364,7 @@ class _DiscoverHospitalHomeScreenState
                       children: [
                         shimmerContainer(height: SizeConfig.size16),
                         SizedBox(height: SizeConfig.paddingXS),
-                        shimmerContainer(
-                            height: SizeConfig.size12, width: 180),
+                        shimmerContainer(height: SizeConfig.size12, width: 180),
                       ],
                     ),
                   ),
@@ -394,13 +384,9 @@ class _DiscoverHospitalHomeScreenState
               padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingS),
               child: Row(
                 children: [
-                  Expanded(
-                      child: shimmerContainer(
-                          height: SizeConfig.size150, radius: 12)),
+                  Expanded(child: shimmerContainer(height: SizeConfig.size150, radius: 12)),
                   SizedBox(width: SizeConfig.paddingS),
-                  Expanded(
-                      child: shimmerContainer(
-                          height: SizeConfig.size150, radius: 12)),
+                  Expanded(child: shimmerContainer(height: SizeConfig.size150, radius: 12)),
                 ],
               ),
             ),
@@ -409,8 +395,7 @@ class _DiscoverHospitalHomeScreenState
             /// CONTENT SECTION CARDS
             for (int i = 0; i < 3; i++) ...[
               Padding(
-                padding:
-                    EdgeInsets.symmetric(horizontal: SizeConfig.paddingS),
+                padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingS),
                 child: shimmerContainer(height: SizeConfig.size120, radius: 12),
               ),
               SizedBox(height: SizeConfig.paddingS),
@@ -451,7 +436,7 @@ class _DiscoverHospitalHomeScreenState
                     Expanded(
                       child: PositiveCustomBtn(
                         onTap: () => _openHospitalEnquirySheet(),
-                        title: AppStrings.bookInquiry.tr,
+                        title: AppStrings.inquiry.tr,
                       ),
                     ),
                   ],
@@ -464,12 +449,10 @@ class _DiscoverHospitalHomeScreenState
 
   /// Emergency action cards (Call Now + Book Now)
   Widget _buildEmergencyActionCards() {
-    final emergencyNo = controller.hospitalDataResModel?.value.data
-            ?.emergencyContactData?.emergencyNumber ??
-        "";
-    final appointmentNo = controller.hospitalDataResModel?.value.data
-            ?.emergencyContactData?.appointmentNumber ??
-        "";
+    final emergencyNo =
+        controller.hospitalDataResModel?.value.data?.emergencyContactData?.emergencyNumber ?? "";
+    final appointmentNo =
+        controller.hospitalDataResModel?.value.data?.emergencyContactData?.appointmentNumber ?? "";
 
     if (emergencyNo.isEmpty && appointmentNo.isEmpty) {
       return const SizedBox.shrink();
@@ -496,8 +479,7 @@ class _DiscoverHospitalHomeScreenState
                   onTap: () => _launchCaller(emergencyNo),
                 ),
               ),
-            if (emergencyNo.isNotEmpty && appointmentNo.isNotEmpty)
-              SizedBox(width: SizeConfig.paddingS),
+            if (emergencyNo.isNotEmpty && appointmentNo.isNotEmpty) SizedBox(width: SizeConfig.paddingS),
             if (appointmentNo.isNotEmpty)
               Expanded(
                 child: _buildActionCard(
@@ -510,9 +492,7 @@ class _DiscoverHospitalHomeScreenState
                   onTap: () async {
                     final chatViewController = Get.find<ChatViewController>();
                     chatViewController.checkChatConnectionAndOpenChat(
-                      userId:
-                          controller.hospitalDataResModel?.value.data?.userId ??
-                              '',
+                      userId: controller.hospitalDataResModel?.value.data?.userId ?? '',
                       route: AppConstants.route_discover,
                     );
                   },
@@ -548,7 +528,7 @@ class _DiscoverHospitalHomeScreenState
                 message: emptyMessage,
                 imageSize: SizeConfig.size60,
               ),
-              SizedBox(height: SizeConfig.paddingS),
+              // SizedBox(height: SizeConfig.paddingS),
             ],
           ),
         ),
@@ -571,8 +551,7 @@ class _DiscoverHospitalHomeScreenState
   /// Gallery section with empty state
   Widget _buildGallerySection() {
     final gallery = controller.hospitalDataResModel?.value.data?.gallery;
-    final allImages =
-        gallery?.expand((photo) => photo.images ?? <String>[]).toList() ?? [];
+    final allImages = gallery?.expand((photo) => photo.images ?? <String>[]).toList() ?? [];
 
     if (allImages.isEmpty) {
       return Padding(
@@ -644,8 +623,7 @@ class _DiscoverHospitalHomeScreenState
 
   /// Contact us section with empty state
   Widget _buildContactSection() {
-    final contacts =
-        controller.hospitalDataResModel?.value.data?.contacts ?? [];
+    final contacts = controller.hospitalDataResModel?.value.data?.contacts ?? [];
 
     if (contacts.isEmpty) {
       return Padding(
@@ -681,10 +659,7 @@ class _DiscoverHospitalHomeScreenState
     final contacts = controller.hospitalDataResModel?.value.data?.contacts;
     final coordinates = contacts?.firstOrNull?.branch?.location?.coordinates;
 
-    if (coordinates == null ||
-        coordinates.length < 2 ||
-        coordinates[0] == 0.0 ||
-        coordinates[1] == 0.0) {
+    if (coordinates == null || coordinates.length < 2 || coordinates[0] == 0.0 || coordinates[1] == 0.0) {
       return const SizedBox.shrink();
     }
 
@@ -761,8 +736,7 @@ class _DiscoverHospitalHomeScreenState
         decoration: BoxDecoration(
           color: isEmergency ? const Color(0xFFC8554D) : Colors.white,
           borderRadius: BorderRadius.circular(10),
-          border:
-              isEmergency ? null : Border.all(color: AppColors.primaryColor),
+          border: isEmergency ? null : Border.all(color: AppColors.primaryColor),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,

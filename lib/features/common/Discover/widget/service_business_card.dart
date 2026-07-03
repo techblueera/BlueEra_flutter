@@ -583,10 +583,10 @@ class ServiceBusinessCard extends StatelessWidget {
           //   },
           // ),
           // const SizedBox(width: 10),
-          // Expanded(
-          //   flex: 2,
-          //   child: _BookNowBtn(onTap: _openStore),
-          // ),
+          Expanded(
+            flex: 2,
+            child: _BookNowBtn(onTap: _openStore),
+          ),
         ],
       ),
     );
@@ -667,7 +667,7 @@ class _BookNowBtn extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             CustomText(
-              AppStrings.bookNow.tr,
+              AppStrings.inquiry.tr,
               fontSize: 14,
               fontWeight: FontWeight.w700,
               color: AppColors.white,

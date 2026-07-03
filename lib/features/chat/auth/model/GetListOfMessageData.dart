@@ -712,8 +712,16 @@ class MessageMetadata {
               ? HotelBookingModel.fromJson(
                   Map<String, dynamic>.from(json['booking']))
               : null),
+      // Some backend responses ship the booking id at the top of the
+      // metadata as `_id` (rather than `vehicleBookingId`); fall back to
+      // the nested `booking._id` too so the seller-side Accept/Decline
+      // and buyer-side Cancel always have something to PUT against.
       vehicleBookingId: (json['vehicleBookingId'] ??
-              json['vehicle_booking_id'])
+              json['vehicle_booking_id'] ??
+              (json['booking'] is Map
+                  ? (json['booking']['_id'] ?? json['booking']['id'])
+                  : null) ??
+              json['_id'])
           ?.toString(),
       booking: json['booking'] is Map
           ? VehicleBooking.fromJson(
