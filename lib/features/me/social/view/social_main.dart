@@ -423,6 +423,7 @@ class _SocialMainScreenState extends State<SocialMainScreen>
                 padding: const EdgeInsets.all(8),
                 shape: BoxShape.circle,
                 dark: true,
+                showShadow: true,
                 child: LocalAssets(
                   imagePath: AppIconAssets.drawer_more,
                   width: 18,
@@ -433,26 +434,12 @@ class _SocialMainScreenState extends State<SocialMainScreen>
               const SizedBox(width: 8),
               // Expanded + left Align fills the row so the notification is
               // pushed to the far right, while the refer pill stays compact on
-              // the left. (A Flexible pill + Spacer split the free space and
-              // left the notification short of the edge.) The shadow wrapper
-              // lifts the pill off the cover image; shared ReferEarnPill stays
-              // untouched.
-              Expanded(
+              // the left. showShadow: true lifts it off the cover image (this
+              // header only — the flag is off everywhere else).
+              const Expanded(
                 child: Align(
                   alignment: Alignment.centerLeft,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.28),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: const ReferEarnPill(),
-                  ),
+                  child: ReferEarnPill(showShadow: true),
                 ),
               ),
               const SizedBox(width: 8),
@@ -464,6 +451,7 @@ class _SocialMainScreenState extends State<SocialMainScreen>
                   padding: const EdgeInsets.all(8),
                   shape: BoxShape.circle,
                   dark: true,
+                  showShadow: true,
                   child: LocalAssets(
                     imagePath: AppIconAssets.notificationOutlineIcon,
                     width: 18,
@@ -505,6 +493,7 @@ class _SocialMainScreenState extends State<SocialMainScreen>
       padding: const EdgeInsets.all(8),
       shape: BoxShape.circle,
       dark: true,
+      showShadow: true,
       child: Icon(icon, color: Colors.white, size: 18),
     );
   }
@@ -796,6 +785,7 @@ class _GlassPill extends StatelessWidget {
   final EdgeInsets padding;
   final BoxShape shape;
   final bool dark;
+  final bool showShadow;
 
   const _GlassPill({
     required this.child,
@@ -803,6 +793,7 @@ class _GlassPill extends StatelessWidget {
     required this.padding,
     this.shape = BoxShape.rectangle,
     this.dark = false,
+    this.showShadow = false,
   });
 
   @override
@@ -818,17 +809,20 @@ class _GlassPill extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: DecoratedBox(
-        // Drop shadow so the glass controls lift off the cover image.
+        // Optional drop shadow (flagged) so the glass controls lift off the
+        // cover image — only on when [showShadow] is passed.
         decoration: BoxDecoration(
           shape: shape,
           borderRadius: borderRadius,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.28),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-          ],
+          boxShadow: showShadow
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.28),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ]
+              : null,
         ),
         child: ClipPath(
           clipper: _GlassClipper(shape: shape, borderRadius: borderRadius),

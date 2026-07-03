@@ -8,6 +8,8 @@ class WalletRepo extends BaseService {
       WithdrawalApi,
       params: params,
       isMultipart: false,
+      // No global blocking spinner — the Withdraw button shows its own loader.
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );

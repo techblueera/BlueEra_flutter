@@ -9,9 +9,14 @@ import 'package:get/get.dart';
 import '../core/constants/app_strings.dart';
 
 class ReferEarnPill extends StatefulWidget {
-  const ReferEarnPill({super.key, this.onTap});
+  const ReferEarnPill({super.key, this.onTap, this.showShadow = false});
 
   final VoidCallback? onTap;
+
+  /// Adds a drop shadow so the pill lifts off a busy background (e.g. a cover
+  /// photo). Off by default so flat placements stay flat — pass `true` only
+  /// where the pill sits over an image (currently the social dashboard header).
+  final bool showShadow;
 
   @override
   State<ReferEarnPill> createState() => _ReferEarnPillState();
@@ -74,6 +79,14 @@ class _ReferEarnPillState extends State<ReferEarnPill>
                     blurRadius: 3,
                     offset: Offset(0, -1),
                   ),
+                  // Optional drop shadow (flagged) to lift the pill off a
+                  // busy background such as a cover photo.
+                  if (widget.showShadow)
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.28),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
                 ],
               ),
               child: ClipRRect(

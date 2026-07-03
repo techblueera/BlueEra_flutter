@@ -42,6 +42,7 @@ import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_cont
 import 'package:BlueEra/features/me/hotel/controller/hotel_service_controller.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_service_ai_controller.dart';
 import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
+import 'package:BlueEra/features/me/content_creator/controller/earn_artist_controller.dart';
 import 'package:BlueEra/features/me/professionals_consultant/controller/ai_professionals_controller.dart';
 import 'package:BlueEra/features/me/school/controller/school_controller.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
@@ -424,6 +425,19 @@ class AuthController extends GetxController {
           serviceSubType: 'selfWork',
           professionCategoryOverride: controller.professionCategory?.toUpperCase(),
         ));
+      } else if (reqData?['profession'] == CONTENT_CREATOR ||
+          reqData?['profession'] == ARTIST) {
+        // Artist / Content-Creator: create the earn-artist profile. Per the
+        // earn-artist guide's field mapping, the parent group (ARTIST /
+        // CONTENT_CREATOR) → payload `type`, and the picked subcategory
+        // (carried in `designation`) → payload `category`.
+        final artistController = getOrPut(() => EarnArtistController());
+        pending.add(artistController
+            .createMinimalArtistProfile(
+              type: reqData?['profession'],
+              category: reqData?['designation'],
+            )
+            .then<void>((_) {}));
       }
       await Future.wait(pending);
       // https://be.beapp.in/api/map-service/api/stores?page=1&limit=20&lat=21.1902733&lng=72.8644417&type=Service&radius=1500&category_id=CONSULTING_BUSINESS_SERVICES

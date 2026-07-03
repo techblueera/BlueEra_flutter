@@ -56,6 +56,19 @@ mixin EarnServiceApi {
   String tiffinsByUser(String storeUserId) =>
       'earn-service/tiffins/user/$storeUserId';
 
+  /// Earn Artists (Artist / Content-Creator vertical).
+  /// `GET earn-service/earn-artists` (all=false/omitted) → caller's OWN newest
+  /// artist profile (single object); `?all=true` → discover/search list.
+  final String earnArtists = "earn-service/earn-artists";
+
+  /// `GET earn-service/earn-artists/{id}` → profile detail (user populated).
+  String earnArtistById(String artistId) =>
+      'earn-service/earn-artists/$artistId';
+
+  /// `GET earn-service/earn-artists/any/check` → `{ exists, artistId }` used to
+  /// gate the "Create profile" CTA.
+  final String earnArtistCheck = "earn-service/earn-artists/any/check";
+
   /// Earn Profiles
   final String earnProfiles = "earn-service/earn-profiles";
 

@@ -29,6 +29,7 @@ import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_parts_screen.dart';
 import 'package:BlueEra/features/me/automotive_service/automotive_service_main.dart';
+import 'package:BlueEra/features/me/content_creator/content_creator_main.dart';
 import 'package:BlueEra/features/me/food/view/admin/food_main_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/admin/grocery_screen.dart';
 import 'package:BlueEra/features/me/hospital/view/hospital_main.dart';
@@ -850,9 +851,9 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         return const GigWorkOptionsScreen(fromBottomNavBar: true);
 
       case SOCIAL_PROFILE:
-        // if (userProfessionGlobal == CONTENT_CREATOR) {
-        //   return const ContentCreatorMainScreen();
-        // }
+        if (userProfessionGlobal == CONTENT_CREATOR || userProfessionGlobal == ARTIST) {
+          return const ContentCreatorMainScreen();
+        }
         return const SocialMainScreen();
 
       case PROFESSIONAL:

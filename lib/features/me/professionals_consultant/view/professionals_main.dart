@@ -191,23 +191,9 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
                   onTap: () => _openDrawer(context),
                 ),
                 SizedBox(width: SizeConfig.size6),
-                // Screen-local shadow wrapper lifts the refer pill off the
-                // cover image without touching the shared ReferEarnPill widget.
-                Flexible(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.28),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: const ReferEarnPill(),
-                  ),
-                ),
+                // No shadow here — the shadow flag is on only in the social
+                // header (ReferEarnPill(showShadow: true) there).
+                Flexible(child: const ReferEarnPill()),
                 const Spacer(),
                 _goLivePill(),
                 // Notification sits at the very end of the bar.
@@ -237,14 +223,13 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
       onTap: onTap,
       customBorder: const CircleBorder(),
       child: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           shape: BoxShape.circle,
           boxShadow: [
-            // Drop shadow so the circular controls lift off the cover image.
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.28),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
+              color: Color(0x1A000000),
+              blurRadius: 3,
+              offset: Offset(0, -1),
             ),
           ],
         ),

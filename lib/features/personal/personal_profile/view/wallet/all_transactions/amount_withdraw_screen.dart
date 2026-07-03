@@ -210,9 +210,9 @@ class _AmountWithdrawScreenState extends State<AmountWithdrawScreen> {
   // so it matches every other input in the product.
   Widget _amountField() {
     return CommonTextField(
-      title: "Enter Amount",
+      title: "Enter Amount (Min amt. 500)",
       textEditController: controller.amountController,
-      hintText: 'E.g. 100, 200, 300',
+      hintText: 'E.g. 500 or more',
       keyBoardType: const TextInputType.numberWithOptions(decimal: true),
       validator: controller.amountValidate,
       prefixText: '₹ ',

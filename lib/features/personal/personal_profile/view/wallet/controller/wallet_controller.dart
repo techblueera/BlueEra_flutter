@@ -51,10 +51,14 @@ class WalletController extends GetxController {
   /// TextEditingController isn't observable on its own).
   RxString enteredAmount = ''.obs;
 
-  /// True only when a positive amount within the available balance is entered.
+  /// Minimum amount a user can withdraw in a single request.
+  static const double minWithdrawAmount = 500;
+
+  /// True only when a valid amount (>= [minWithdrawAmount] and within the
+  /// available balance) is entered.
   bool get isAmountWithinBalance {
     final amount = double.tryParse(enteredAmount.value.trim());
-    if (amount == null || amount <= 0) return false;
+    if (amount == null || amount < minWithdrawAmount) return false;
     final available =
         (walletResponseModalClass.value.data?.withdrawableAmount ?? 0).toDouble();
     return amount <= available;
@@ -464,6 +468,9 @@ class WalletController extends GetxController {
     if (amount <= 0) {
       return "Amount must be greater than 0";
     }
+    if (amount < minWithdrawAmount) {
+      return "Minimum withdrawal amount is ₹${minWithdrawAmount.toStringAsFixed(0)}";
+    }
     // Can't withdraw more than the available (withdrawable) balance.
     final available =
         (walletResponseModalClass.value.data?.withdrawableAmount ?? 0).toDouble();
@@ -485,7 +492,9 @@ class WalletController extends GetxController {
     if (!formKey.currentState!.validate()) {
       return;
     }
-    isLoading.value = false;
+    // Drive the Withdraw button's own loader while the request is in flight
+    // (the API runs with showProgress:false, so there's no global spinner).
+    isLoading.value = true;
     try {
       ResponseModel response = await _walletRepo.addWithdrawApi(params: {
         ApiKeys.amount: amountController.text,
