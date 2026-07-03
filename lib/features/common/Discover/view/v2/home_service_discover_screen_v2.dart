@@ -27,7 +27,6 @@ import 'package:get/get.dart';
 /// `getBusinessServices` (providerType = **user**) scoped to that category.
 class HomeServiceDiscoverScreenV2 extends StatefulWidget {
   const HomeServiceDiscoverScreenV2({super.key});
-
   @override
   State<HomeServiceDiscoverScreenV2> createState() =>
       _HomeServiceDiscoverScreenV2State();
