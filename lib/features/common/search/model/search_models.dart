@@ -24,6 +24,21 @@ class SearchResultItem {
   /// back to the product id when absent.
   final String? businessId;
 
+  // ── Optional merchandising fields (Flipkart-style listing card) ──────
+  // The search backend does not send these yet; they parse defensively so the
+  // richer product card lights up the moment the API includes them, and each
+  // element stays hidden until then. Keys accept a couple of common aliases.
+  final num? mrp; // original / struck-through price
+  final num? offerPrice; // best price incl. bank offer (the "WOW!" line)
+  final int? discountPercentRaw; // explicit discount %, if the API sends one
+  final double? rating; // 0..5
+  final int? ratingCount;
+  final bool sponsored;
+  final bool assured;
+  final String? stockLabel; // e.g. "Only few left"
+  final String? deliveryBy; // e.g. "8th Jul"
+  final String? warranty; // e.g. "1 year warranty by realme"
+
   SearchResultItem({
     required this.id,
     required this.entityType,
@@ -39,6 +54,16 @@ class SearchResultItem {
     this.city,
     this.score,
     this.businessId,
+    this.mrp,
+    this.offerPrice,
+    this.discountPercentRaw,
+    this.rating,
+    this.ratingCount,
+    this.sponsored = false,
+    this.assured = false,
+    this.stockLabel,
+    this.deliveryBy,
+    this.warranty,
   });
 
   factory SearchResultItem.fromJson(Map<String, dynamic> j) => SearchResultItem(
@@ -57,7 +82,43 @@ class SearchResultItem {
         score: (j['_score'] as num?)?.toDouble(),
         businessId: (j['businessId'] ?? j['sellerId'] ?? j['ownerId'])
             as String?,
+        mrp: _toNum(j['mrp'] ?? j['originalPrice'] ?? j['strikePrice']),
+        offerPrice: _toNum(j['offerPrice'] ?? j['bankOfferPrice']),
+        discountPercentRaw: _toInt(j['discountPercent'] ?? j['discount']),
+        rating: _toDouble(j['rating'] ?? j['avgRating']),
+        ratingCount: _toInt(j['ratingCount'] ?? j['reviewCount']),
+        sponsored: (j['sponsored'] ?? j['isSponsored']) as bool? ?? false,
+        assured: (j['assured'] ?? j['isAssured']) as bool? ?? false,
+        stockLabel: j['stockLabel'] as String?,
+        deliveryBy: (j['deliveryBy'] ?? j['delivery']) as String?,
+        warranty: j['warranty'] as String?,
       );
+
+  static num? _toNum(dynamic v) =>
+      v is num ? v : (v is String ? num.tryParse(v) : null);
+
+  static double? _toDouble(dynamic v) =>
+      v is num ? v.toDouble() : (v is String ? double.tryParse(v) : null);
+
+  static int? _toInt(dynamic v) =>
+      v is num ? v.toInt() : (v is String ? int.tryParse(v) : null);
+
+  /// Effective discount %: explicit from the API, else derived from the MRP
+  /// vs the selling price (never fabricated — only shown when a real MRP that
+  /// exceeds the price is present).
+  int? get discountPercent {
+    if (discountPercentRaw != null && discountPercentRaw! > 0) {
+      return discountPercentRaw;
+    }
+    if (mrp != null && price != null && mrp! > price!) {
+      return (((mrp! - price!) / mrp!) * 100).round();
+    }
+    return null;
+  }
+
+  /// True when there is a genuine struck-through MRP above the price.
+  bool get hasDiscount =>
+      mrp != null && price != null && mrp! > price! && (discountPercent ?? 0) > 0;
 }
 
 class SearchResponse {

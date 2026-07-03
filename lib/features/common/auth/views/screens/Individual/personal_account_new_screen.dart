@@ -332,7 +332,7 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                       inputLength: AppConstants.inputCharterLimit30,
                       keyBoardType: TextInputType.text,
                       regularExpression:
-                          RegularExpressionUtils.alphabetSpacePattern,
+                          RegularExpressionUtils.alphabetOnlySpacePattern,
                       title: langController.tr(AppStrings.yourName),
                       titleColor: Colors.black,
                       hintText: AppConstants.name,
@@ -1134,8 +1134,8 @@ class _PersonalAccountNewScreenState extends State<PersonalAccountNewScreen> {
                         : const SizedBox.shrink(),
                     label: Text(
                       loading
-                          ? '${AppStrings.submit}…'
-                          : AppStrings.submit,
+                          ? '${AppStrings.submit.tr}…'
+                          : AppStrings.submit.tr,
                       style: TextStyle(
                         fontFamily: AppConstants.OpenSans,
                         fontSize: SizeConfig.medium,

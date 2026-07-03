@@ -223,8 +223,8 @@ logs("BUSINESS ID=== ${businessId}");
       }
       viewBusinessResponse = ApiResponse.complete(responseModel);
     } else {
-      logs(
-          "ERROR BUSINESS PROFILE ${responseModel.message ?? AppStrings.somethingWentWrong}");
+      // logs(
+      //     "ERROR BUSINESS PROFILE ${responseModel.message ?? AppStrings.somethingWentWrong}");
 
       // Only surface the error to the user when we have nothing cached
       // to fall back on — otherwise the cached UI is already showing.
