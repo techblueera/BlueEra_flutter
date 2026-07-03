@@ -130,4 +130,9 @@ mixin RiderServiceApi {
 
   /// Emergency contacts (user-facing endpoint hosted on rider-service).
   final String emergencyContacts = 'rider-service/emergency-contacts';
+
+  /// Rider "Contact Us" support queries.
+  /// POST → submit a query, GET → list own queries.
+  /// See docs/backend/SUPPORT_QUERY_FRONTEND_GUIDE.md.
+  final String supportQueries = 'rider-service/support-queries';
 }

@@ -131,8 +131,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       title: (schoolAboutUsController
                                   .aboutUsData?.value.id?.isNotEmpty ??
                               false)
-                          ? "Update"
-                          : AppStrings.submit,
+                          ? AppStrings.update.tr
+                          : AppStrings.submit.tr,
                       isValidate: schoolAboutUsController.isFormValid.value,
                     ),
                   ],

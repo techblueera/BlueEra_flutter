@@ -476,7 +476,7 @@ class VehicleDiscoverCard extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   CustomText(
-                    AppStrings.bookNow.tr,
+                    AppStrings.inquiry.tr,
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,

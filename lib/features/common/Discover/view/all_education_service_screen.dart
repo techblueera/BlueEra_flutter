@@ -725,33 +725,33 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
   Widget _buildActionsRow(SchoolDetailsData service) {
     return Row(
       children: [
-        Expanded(
-          flex: 2,
-          child: InkWell(
-            onTap: () => _openChat(service),
-            child: Container(
-              height: 44,
-              decoration: BoxDecoration(
-                color: AppColors.skyBlueFF,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  LocalAssets(imagePath: AppIconAssets.chat, imgColor: AppColors.primaryColor),
-                  const SizedBox(width: 6),
-                  CustomText(
-                    'Chat',
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.primaryColor,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 10),
+        // Expanded(
+        //   flex: 2,
+        //   child: InkWell(
+        //     onTap: () => _openChat(service),
+        //     child: Container(
+        //       height: 44,
+        //       decoration: BoxDecoration(
+        //         color: AppColors.skyBlueFF,
+        //         borderRadius: BorderRadius.circular(10),
+        //       ),
+        //       child: Row(
+        //         mainAxisAlignment: MainAxisAlignment.center,
+        //         children: [
+        //           LocalAssets(imagePath: AppIconAssets.chat, imgColor: AppColors.primaryColor),
+        //           const SizedBox(width: 6),
+        //           CustomText(
+        //             'Chat',
+        //             fontSize: 13,
+        //             fontWeight: FontWeight.w600,
+        //             color: AppColors.primaryColor,
+        //           ),
+        //         ],
+        //       ),
+        //     ),
+        //   ),
+        // ),
+        // const SizedBox(width: 10),
         Expanded(
           flex: 4,
           child: Container(
@@ -764,7 +764,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 CustomText(
-                  'Inquiry Now',
+                  AppStrings.inquiry.tr,
                   fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: AppColors.white,

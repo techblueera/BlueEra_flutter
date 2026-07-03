@@ -556,9 +556,66 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+            child: OrderActionsCarousel(
+              onAddCatalog: () => _tabController.animateTo(2),
+              catalogIcon: Icons.storefront_rounded,
+              catalogTitle: AppStrings.store.tr,
+              catalogSubtitle: 'Manage your store',
+            ),
+          ),
+          SizedBox(height: 20,),
+          // Red notice shown while the rider is offline (Go Live toggle off).
+          // Preferences can still be edited, but they won't receive orders
+          // until they go live — surface that up-front above the cards.
+          Obx(() {
+            if (_viewCtrl.shopStatusOpenClose.value) {
+              return const SizedBox.shrink();
+            }
+            return _buildGoLiveNotice();
+          }),
           _buildServicePreferenceCard(),
           SizedBox(height: SizeConfig.size12),
           _buildPickupDropCard(),
+        ],
+      ),
+    );
+  }
+
+  // Red inline banner telling the rider they're offline. Rendered above the
+  // Set Preference cards whenever the Go Live toggle is off.
+  Widget _buildGoLiveNotice() {
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.only(bottom: SizeConfig.size12),
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size12,
+        vertical: SizeConfig.size10,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.red.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.red, width: 1),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.error_outline_rounded,
+            size: 18,
+            color: AppColors.red,
+          ),
+          SizedBox(width: SizeConfig.size8),
+          Expanded(
+            child: CustomText(
+              "Go Live To Receive Orders",
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: AppColors.red,
+              maxLines: 3,
+            ),
+          ),
         ],
       ),
     );
@@ -577,11 +634,25 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomText(
-            AppStrings.servicePreference.tr,
-            fontSize: 15,
-            fontWeight: FontWeight.w800,
-            color: AppColors.mainTextColor,
+          Row(
+            children: [
+              Icon(
+                Icons.tune_rounded,
+                size: 18,
+                color: AppColors.primaryColor,
+              ),
+              SizedBox(width: SizeConfig.size8),
+              Expanded(
+                child: CustomText(
+                  AppStrings.servicePreference.tr,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.mainTextColor,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
           ),
           SizedBox(height: SizeConfig.size4),
           CustomText(
@@ -591,20 +662,31 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
             color: AppColors.secondaryTextColor,
           ),
           SizedBox(height: SizeConfig.size12),
-          _buildPreferenceRadio(
-            label: RiderServicePreference.passenger.label,
-            icon: Icons.person_outline_rounded,
-            value: RiderServicePreference.passenger,
-          ),
-          _buildPreferenceRadio(
-            label: RiderServicePreference.goods.label,
-            icon: Icons.inventory_2_outlined,
-            value: RiderServicePreference.goods,
-          ),
-          _buildPreferenceRadio(
-            label: RiderServicePreference.both.label,
-            icon: Icons.swap_horiz_rounded,
-            value: RiderServicePreference.both,
+          // Single-line segmented selector — the three service options sit
+          // side-by-side across one row instead of stacked radio rows.
+          Row(
+            children: [
+              Expanded(
+                child: _buildPreferenceSegment(
+                  label: RiderServicePreference.passenger.label,
+                  value: RiderServicePreference.passenger,
+                ),
+              ),
+              SizedBox(width: SizeConfig.size8),
+              Expanded(
+                child: _buildPreferenceSegment(
+                  label: RiderServicePreference.goods.label,
+                  value: RiderServicePreference.goods,
+                ),
+              ),
+              SizedBox(width: SizeConfig.size8),
+              Expanded(
+                child: _buildPreferenceSegment(
+                  label: RiderServicePreference.both.label,
+                  value: RiderServicePreference.both,
+                ),
+              ),
+            ],
           ),
           SizedBox(height: SizeConfig.size16),
           // CTA behaviour:
@@ -635,28 +717,26 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     );
   }
 
-  // Single selectable radio row inside the Service Preference card.
-  // Uses a hand-rolled radio dot (instead of Radio<T>) so it inherits
-  // the card's styling and avoids global RadioTheme overrides.
-  Widget _buildPreferenceRadio({
+  // Single selectable segment inside the Service Preference card. Three of
+  // these sit side-by-side in one row (Passenger / Goods / Both). The
+  // selected segment fills with the primary tint; when the selection still
+  // matches the committed preference it shows a leading check-mark.
+  Widget _buildPreferenceSegment({
     required String label,
-    required IconData icon,
     required RiderServicePreference value,
   }) {
     final selected = _servicePreference == value;
-    // Show the check-mark variant only on the currently-selected radio
-    // while it still matches the committed preference. The moment the
-    // user picks a different option the selection no longer equals the
-    // committed value, so every radio falls back to the plain dot.
+    // Check-mark shows only while the selected segment still equals the
+    // committed value — the moment the user picks a different option every
+    // segment drops the tick.
     final showCheck = selected && _servicePreference == _submittedPreference;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => setState(() => _servicePreference = value),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        margin: EdgeInsets.only(bottom: SizeConfig.size10),
         padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size12,
+          horizontal: SizeConfig.size8,
           vertical: SizeConfig.size12,
         ),
         decoration: BoxDecoration(
@@ -670,60 +750,28 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
           ),
         ),
         child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              size: 20,
-              color: selected
-                  ? AppColors.primaryColor
-                  : AppColors.secondaryTextColor,
-            ),
-            SizedBox(width: SizeConfig.size10),
-            Expanded(
+            if (showCheck) ...[
+              const Icon(
+                Icons.check_circle_rounded,
+                size: 15,
+                color: AppColors.primaryColor,
+              ),
+              SizedBox(width: SizeConfig.size4),
+            ],
+            Flexible(
               child: CustomText(
                 label,
-                fontSize: 13.5,
+                fontSize: 13,
                 fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                color: AppColors.mainTextColor,
+                color: selected
+                    ? AppColors.primaryColor
+                    : AppColors.mainTextColor,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
               ),
-            ),
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              height: 20,
-              width: 20,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                // Committed selection → filled circle (holds the tick).
-                color: showCheck ? AppColors.primaryColor : Colors.transparent,
-                border: Border.all(
-                  color: selected ? AppColors.primaryColor : AppColors.grey9B,
-                  width: 2,
-                ),
-              ),
-              child: showCheck
-                  // Submitted & unchanged → white tick on the filled dot.
-                  ? const Center(
-                      child: Icon(
-                        Icons.check,
-                        size: 13,
-                        color: AppColors.white,
-                      ),
-                    )
-                  : selected
-                      // Selected (not yet committed / changed) → plain dot.
-                      ? Center(
-                          child: Container(
-                            height: 10,
-                            width: 10,
-                            decoration: const BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppColors.primaryColor,
-                            ),
-                          ),
-                        )
-                      : null,
             ),
           ],
         ),
@@ -738,11 +786,25 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomText(
-           "Drop/Destination Preference",
-            fontSize: 15,
-            fontWeight: FontWeight.w800,
-            color: AppColors.mainTextColor,
+          Row(
+            children: [
+              Icon(
+                Icons.place_outlined,
+                size: 18,
+                color: AppColors.primaryColor,
+              ),
+              SizedBox(width: SizeConfig.size8),
+              Expanded(
+                child: CustomText(
+                  "Drop/Destination Preference",
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.mainTextColor,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
           ),
           SizedBox(height: SizeConfig.size4),
           CustomText(
@@ -767,21 +829,28 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
               });
             },
           ),
-          SizedBox(height: SizeConfig.size12),
-          // Pickup — sourced from the device's current location OR a custom
-          // searched address, chosen via radio (see _buildPickupLocationSection).
-          _buildPickupLocationSection(),
-          SizedBox(height: SizeConfig.size16),
-          Obx(() {
-            final loading = controller.isRiderRouteSubmitting.value;
-            return CustomBtn(
-              title: AppStrings.submit.tr,
-              radius: 10,
-              isLoading: loading,
-              bgColor: AppColors.primaryColor,
-              onTap: loading ? null : _onPickupDropSubmit,
-            );
-          }),
+          // Pickup only surfaces once a drop is chosen — the pickup section
+          // (and the Submit CTA) stay hidden until the rider has picked a
+          // drop/destination, so the flow reads drop → pickup → submit.
+          if (_dropController.text.trim().isNotEmpty &&
+              _dropLat != null &&
+              _dropLng != null) ...[
+            SizedBox(height: SizeConfig.size12),
+            // Pickup — sourced from the device's current location OR a custom
+            // searched address, chosen via radio (see _buildPickupLocationSection).
+            _buildPickupLocationSection(),
+            SizedBox(height: SizeConfig.size16),
+            Obx(() {
+              final loading = controller.isRiderRouteSubmitting.value;
+              return CustomBtn(
+                title: AppStrings.submit.tr,
+                radius: 10,
+                isLoading: loading,
+                bgColor: AppColors.primaryColor,
+                onTap: loading ? null : _onPickupDropSubmit,
+              );
+            }),
+          ],
         ],
       ),
     );
@@ -2028,10 +2097,22 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
 Future<void> handleGoLiveTap() async {
   final _viewCtrl = Get.find<ViewPersonalDetailsController>();
 
+  // Already online → allow toggling offline without re-checking.
   if (_viewCtrl.shopStatusOpenClose.value) {
     _viewCtrl.toggleShopStatus();
     return;
   }
+
+  // Going live is allowed only for a verified (approved) rider. Otherwise
+  // block it and tell them to finish document verification first.
+  final riderCtrl = Get.find<DeliveryPartnerController>();
+  if (riderCtrl.riderVerificationState != RiderVerificationState.completed) {
+    commonSnackBar(
+        message:
+            'Please complete your document verification before going live.');
+    return;
+  }
+
   final statuses = await GoLivePermissionService.checkAll();
   if (statuses.values.every((v) => v)) {
     _viewCtrl.toggleShopStatus();

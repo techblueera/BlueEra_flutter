@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/hotel/repo/hotel_enquiry_repo.dart';
+import 'package:BlueEra/features/me/hotel/repo/hotel_service_repo.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:get/get.dart';
 
@@ -54,14 +55,12 @@ class HotelEnquiryController extends GetxController {
       };
       log('[ENQUIRY] hotel submit → POST hotel-service/api/hotel-enquiries '
           'hotel_id=$hotelId photos=${photoPaths.length} body=$body');
-      final res = await HotelEnquiryRepo()
-          .sendHotelEnquiry(params: body, photoPaths: photoPaths);
+      final res = await HotelEnquiryRepo().sendHotelEnquiry(params: body, photoPaths: photoPaths);
       log('[ENQUIRY] hotel response: success=${res.isSuccess} '
           'statusCode=${res.statusCode} message=${res.message} '
           'data=${res.response?.data}');
       if (!res.isSuccess) {
-        commonSnackBar(
-            message: res.message ?? AppStrings.somethingWentWrong);
+        commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
         return null;
       }
       // Response shape (per lib/docs/enquiry-flows-ui-integration.md §2a):
@@ -70,8 +69,7 @@ class HotelEnquiryController extends GetxController {
       final data = res.response?.data;
       final inner = (data is Map ? data['data'] : null);
       if (inner is Map) {
-        final id = (inner['enquiryId'] ?? inner['_id'] ?? inner['id'])
-            ?.toString();
+        final id = (inner['enquiryId'] ?? inner['_id'] ?? inner['id'])?.toString();
         if (id != null && id.isNotEmpty) return id;
       }
       // Success without an id is unexpected but not fatal — the sheet
@@ -110,8 +108,7 @@ class HotelEnquiryController extends GetxController {
           'message=${res.message}');
       if (res.statusCode == 409) return true;
       if (!res.isSuccess) {
-        commonSnackBar(
-            message: res.message ?? AppStrings.somethingWentWrong);
+        commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
         return false;
       }
       return true;
@@ -144,13 +141,14 @@ class HotelEnquiryController extends GetxController {
     }
   }
 
-  Map<String, List<String>> _toNamedFields(
-      Map<String, List<String>> selections) {
+  Map<String, List<String>> _toNamedFields(Map<String, List<String>> selections) {
     const titleToKey = <String, String>{
       'Room Type': 'roomType',
       'Room Types': 'roomType',
       'Purpose': 'purpose',
       'Amenities': 'amenities',
+      'Hotel Amenities': 'hotelAmenities',
+      'Room Amenities': 'roomAmenities',
       'Timeline': 'timeline',
     };
     final out = <String, List<String>>{};
@@ -159,5 +157,43 @@ class HotelEnquiryController extends GetxController {
       out[key] = items;
     });
     return out;
+  }
+
+  /// Fetch the hotel-wide amenity keys (Wi-Fi, pool, gym, …). Only the
+  /// key names are returned — the enquiry sheet lets the customer pick
+  /// any of them regardless of whether the specific hotel has them on,
+  /// so the boolean values are dropped.
+  Future<List<String>> fetchHotelAmenityKeys() async {
+    try {
+      final res = await HotelServiceRepo().getHotelAmenitiesRepo();
+      if (!res.isSuccess) return const [];
+      return _extractBoolKeys(res.response?.data);
+    } catch (e) {
+      log('[ENQUIRY] hotel amenities fetch threw: $e');
+      return const [];
+    }
+  }
+
+  /// Fetch the per-room amenity template. Calling with an empty roomId
+  /// asks the backend for the catalog of available room-amenity keys
+  /// with their default flags (see [HotelServiceRepo.getHotelRoomAmenitiesRepo]).
+  Future<List<String>> fetchRoomAmenityKeys() async {
+    try {
+      final res = await HotelServiceRepo().getHotelRoomAmenitiesRepo(roomId: '');
+      if (!res.isSuccess) return const [];
+      return _extractBoolKeys(res.response?.data);
+    } catch (e) {
+      log('[ENQUIRY] room amenities fetch threw: $e');
+      return const [];
+    }
+  }
+
+  List<String> _extractBoolKeys(dynamic body) {
+    final inner = (body is Map ? body['data'] : null);
+    if (inner is! Map) return const [];
+    return [
+      for (final entry in inner.entries)
+        if (entry.value is bool) entry.key.toString(),
+    ];
   }
 }

@@ -127,6 +127,21 @@ class DeliveryPartnerRepo extends BaseService {
     return response;
   }
 
+  /// Submit a rider "Contact Us" support query.
+  /// [params] = { category, description }.
+  /// See docs/backend/SUPPORT_QUERY_FRONTEND_GUIDE.md.
+  Future<ResponseModel> submitSupportQueryRepo(
+      {required Map<String, dynamic> params}) async {
+    var response = await ApiBaseHelper().postHTTP(
+      supportQueries,
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   /// Send association request to a business/rider
   Future<ResponseModel> sendAssociationRequestRepo({required String targetUserId}) async {
     var response = await ApiBaseHelper().postHTTP(

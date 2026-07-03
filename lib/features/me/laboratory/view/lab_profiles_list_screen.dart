@@ -259,24 +259,25 @@ class _LabCard extends StatelessWidget {
 
   Widget _ratingPill() {
     return Container(
-      padding: EdgeInsets.symmetric(
-        horizontal: SizeConfig.size8,
-        vertical: SizeConfig.size4,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: AppColors.primaryColor,
-        borderRadius: BorderRadius.circular(SizeConfig.size20),
+        color: AppColors.black25,
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.star_rounded, color: AppColors.white, size: SizeConfig.size16),
-          SizedBox(width: SizeConfig.size4),
+          const Icon(
+            Icons.star_rounded,
+            size: 14,
+            color: Colors.amber,
+          ),
+          const SizedBox(width: 3),
           CustomText(
             item.rating.toStringAsFixed(1),
             fontSize: SizeConfig.small,
-            color: AppColors.white,
             fontWeight: FontWeight.w700,
+            color: Colors.white,
           ),
         ],
       ),
@@ -425,10 +426,10 @@ class _LabCard extends StatelessWidget {
   Widget _actions(PharmacyItem item) {
     return Row(
       children: [
-        Expanded(
-          child: _chatButton(item),
-        ),
-        SizedBox(width: SizeConfig.size12),
+        // Expanded(
+        //   child: _chatButton(item),
+        // ),
+        // SizedBox(width: SizeConfig.size12),
         Expanded(
           flex: 2,
           child: ElevatedButton(
@@ -445,7 +446,7 @@ class _LabCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 CustomText(
-                  AppStrings.bookNow.tr,
+                  AppStrings.inquiry.tr,
                   fontSize: SizeConfig.medium,
                   color: AppColors.white,
                   fontWeight: FontWeight.w700,

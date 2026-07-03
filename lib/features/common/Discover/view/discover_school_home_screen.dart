@@ -1,4 +1,3 @@
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/api/model/school_details_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -8,9 +7,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
-import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
-import 'package:BlueEra/features/me/school/widget/education_enquiry_sheet.dart';
 import 'package:BlueEra/features/me/school/view/category/acadamics/school_academics_page.dart';
 import 'package:BlueEra/features/me/school/view/category/career_jobs/school_job_listing_screen.dart';
 import 'package:BlueEra/features/me/school/view/category/notice_news/notice_news_screen.dart';
@@ -18,6 +15,7 @@ import 'package:BlueEra/features/me/school/view/category/school_home/school_cour
 import 'package:BlueEra/features/me/school/view/category/school_home/school_director_card_view.dart';
 import 'package:BlueEra/features/me/school/view/category/school_home/school_management_view.dart';
 import 'package:BlueEra/features/me/school/view/category/school_student_corner.dart';
+import 'package:BlueEra/features/me/school/widget/education_enquiry_sheet.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -36,8 +34,7 @@ class DiscoverSchoolHomeScreen extends StatefulWidget {
   const DiscoverSchoolHomeScreen({super.key});
 
   @override
-  State<DiscoverSchoolHomeScreen> createState() =>
-      _DiscoverSchoolHomeScreenState();
+  State<DiscoverSchoolHomeScreen> createState() => _DiscoverSchoolHomeScreenState();
 }
 
 class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
@@ -83,66 +80,66 @@ class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
         body: (!hasData && isLoading)
             ? const Center(child: CircularProgressIndicator())
             : SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              /// HEADER with rating, type, establishment
-              _SchoolHeader(controller: schoolAboutUsController),
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    /// HEADER with rating, type, establishment
+                    _SchoolHeader(controller: schoolAboutUsController),
 
-              SizedBox(height: SizeConfig.paddingXS),
+                    SizedBox(height: SizeConfig.paddingXS),
 
-              /// DIRECTOR / PRINCIPAL MESSAGE
-              DirectorCard(
-                schoolAboutUsController: schoolAboutUsController,
+                    /// DIRECTOR / PRINCIPAL MESSAGE
+                    DirectorCard(
+                      schoolAboutUsController: schoolAboutUsController,
+                    ),
+
+                    SizedBox(height: SizeConfig.paddingXS),
+
+                    /// MANAGEMENT
+                    _ManagementSection(data: data),
+
+                    SizedBox(height: SizeConfig.paddingXS),
+
+                    /// COURSES
+                    _CoursesSection(data: data),
+
+                    SizedBox(height: SizeConfig.paddingXS),
+
+                    /// CAMPUS GALLERY (social-style grid)
+                    _GallerySection(data: data),
+
+                    SizedBox(height: SizeConfig.paddingXS),
+
+                    /// QUICK LINKS (Job Vacancy, Academics, Student Corner, Notices)
+                    _QuickLinksSection(),
+
+                    SizedBox(height: SizeConfig.paddingXS),
+
+                    /// REVIEWS (placeholder)
+                    _ReviewsSection(),
+
+                    SizedBox(height: SizeConfig.paddingXS),
+
+                    /// CONTACT US (clickable phone, email, website)
+                    _ContactUsSection(data: data),
+
+                    SizedBox(height: SizeConfig.paddingXS),
+
+                    /// WEBSITE PREVIEW
+                    WebsitePreviewCard(
+                      url: data?.contacts?.firstOrNull?.branch?.website ?? '',
+                    ),
+
+                    SizedBox(height: SizeConfig.paddingXS),
+
+                    /// LOCATION MAP
+                    _LocationSection(data: data),
+
+                    SizedBox(height: kBottomNavigationBarHeight + SizeConfig.size50),
+                  ],
+                ),
               ),
-
-              SizedBox(height: SizeConfig.paddingXS),
-
-              /// MANAGEMENT
-              _ManagementSection(data: data),
-
-              SizedBox(height: SizeConfig.paddingXS),
-
-              /// COURSES
-              _CoursesSection(data: data),
-
-              SizedBox(height: SizeConfig.paddingXS),
-
-              /// CAMPUS GALLERY (social-style grid)
-              _GallerySection(data: data),
-
-              SizedBox(height: SizeConfig.paddingXS),
-
-              /// QUICK LINKS (Job Vacancy, Academics, Student Corner, Notices)
-              _QuickLinksSection(),
-
-              SizedBox(height: SizeConfig.paddingXS),
-
-              /// REVIEWS (placeholder)
-              _ReviewsSection(),
-
-              SizedBox(height: SizeConfig.paddingXS),
-
-              /// CONTACT US (clickable phone, email, website)
-              _ContactUsSection(data: data),
-
-              SizedBox(height: SizeConfig.paddingXS),
-
-              /// WEBSITE PREVIEW
-              WebsitePreviewCard(
-                url: data?.contacts?.firstOrNull?.branch?.website ?? '',
-              ),
-
-              SizedBox(height: SizeConfig.paddingXS),
-
-              /// LOCATION MAP
-              _LocationSection(data: data),
-
-              SizedBox(height: kBottomNavigationBarHeight + SizeConfig.size50),
-            ],
-          ),
-        ),
       );
     });
   }
@@ -161,25 +158,25 @@ class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
         ),
         child: Row(
           children: [
-            Expanded(
-              child: PositiveCustomBtn(
-                onTap: () {
-                  final chatViewController = Get.find<ChatViewController>();
-                  chatViewController.checkChatConnectionAndOpenChat(
-                    userId: schoolAboutUsController
-                            .schoolDetailsData?.value.ownerId ??
-                        '',
-                    route: AppConstants.route_discover,
-                  );
-                },
-                title: AppStrings.chat,
-              ),
-            ),
-            SizedBox(width: SizeConfig.paddingS),
+            // Expanded(
+            //   child: PositiveCustomBtn(
+            //     onTap: () {
+            //       final chatViewController = Get.find<ChatViewController>();
+            //       chatViewController.checkChatConnectionAndOpenChat(
+            //         userId: schoolAboutUsController
+            //                 .schoolDetailsData?.value.ownerId ??
+            //             '',
+            //         route: AppConstants.route_discover,
+            //       );
+            //     },
+            //     title: AppStrings.chat,
+            //   ),
+            // ),
+            // SizedBox(width: SizeConfig.paddingS),
             Expanded(
               child: PositiveCustomBtn(
                 onTap: () => _openSchoolEnquirySheet(context),
-                title: AppStrings.bookInquiry,
+                title: AppStrings.inquiry,
               ),
             ),
           ],
@@ -237,9 +234,7 @@ class _SchoolHeader extends StatelessWidget {
     final address = data?.location?.name?.trim() ?? '';
     // Show the real rating from the API when it exists; otherwise mark as New.
     final rating = data?.avgRating;
-    final ratingLabel = (rating != null && rating > 0)
-        ? rating.toStringAsFixed(1)
-        : AppStrings.newLabel.tr;
+    final ratingLabel = (rating != null && rating > 0) ? rating.toStringAsFixed(1) : AppStrings.newLabel.tr;
 
     return CommonCardWidget(
       cardMargin: 0,
@@ -269,8 +264,7 @@ class _SchoolHeader extends StatelessWidget {
                         ? CachedNetworkImage(
                             imageUrl: bannerUrl,
                             fit: BoxFit.cover,
-                            errorWidget: (_, __, ___) =>
-                                const SizedBox.shrink(),
+                            errorWidget: (_, __, ___) => const SizedBox.shrink(),
                           )
                         : null,
                   ),
@@ -286,9 +280,7 @@ class _SchoolHeader extends StatelessWidget {
                       color: Colors.white,
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 3),
-                      boxShadow: const [
-                        BoxShadow(color: Colors.black12, blurRadius: 8)
-                      ],
+                      boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 8)],
                     ),
                     child: ClipOval(
                       child: logoUrl.isNotEmpty
@@ -332,9 +324,7 @@ class _SchoolHeader extends StatelessWidget {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.location_on,
-                          size: SizeConfig.size14,
-                          color: AppColors.primaryColor),
+                      Icon(Icons.location_on, size: SizeConfig.size14, color: AppColors.primaryColor),
                       SizedBox(width: SizeConfig.size4),
                       Expanded(
                         child: CustomText(
@@ -641,8 +631,8 @@ class _ContactUsSection extends StatelessWidget {
           fontWeight: FontWeight.w600,
           fontSize: SizeConfig.size14,
         ),
-        childrenPadding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.paddingS, vertical: SizeConfig.paddingXS),
+        childrenPadding:
+            EdgeInsets.symmetric(horizontal: SizeConfig.paddingS, vertical: SizeConfig.paddingXS),
         children: [
           // Website
           if ((contact.branch?.website ?? '').isNotEmpty)
@@ -675,8 +665,7 @@ class _ContactUsSection extends StatelessWidget {
                   ),
                 Padding(
                   padding: EdgeInsets.symmetric(vertical: SizeConfig.paddingXS),
-                  child: Divider(
-                      height: 1, thickness: 0.5, color: Colors.grey.shade300),
+                  child: Divider(height: 1, thickness: 0.5, color: Colors.grey.shade300),
                 ),
               ],
             );
@@ -686,8 +675,7 @@ class _ContactUsSection extends StatelessWidget {
     );
   }
 
-  Widget _contactRow(String icon, String text,
-      {bool isLink = false, VoidCallback? onTap}) {
+  Widget _contactRow(String icon, String text, {bool isLink = false, VoidCallback? onTap}) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: SizeConfig.size4),
       child: InkWell(
@@ -696,8 +684,7 @@ class _ContactUsSection extends StatelessWidget {
           children: [
             LocalAssets(
               imagePath: icon,
-              imgColor:
-                  isLink ? AppColors.primaryColor : AppColors.mainTextColor,
+              imgColor: isLink ? AppColors.primaryColor : AppColors.mainTextColor,
               height: 20,
               width: 20,
             ),
@@ -706,11 +693,8 @@ class _ContactUsSection extends StatelessWidget {
               child: CustomText(
                 text,
                 fontSize: SizeConfig.size13,
-                color: isLink
-                    ? AppColors.primaryColor
-                    : AppColors.secondaryTextColor,
-                decoration:
-                    isLink ? TextDecoration.underline : TextDecoration.none,
+                color: isLink ? AppColors.primaryColor : AppColors.secondaryTextColor,
+                decoration: isLink ? TextDecoration.underline : TextDecoration.none,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -746,10 +730,7 @@ class _LocationSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final coords = data?.location?.coordinates;
-    if (coords == null ||
-        coords.length < 2 ||
-        coords[0] == 0.0 ||
-        coords[1] == 0.0) {
+    if (coords == null || coords.length < 2 || coords[0] == 0.0 || coords[1] == 0.0) {
       return const SizedBox.shrink();
     }
 

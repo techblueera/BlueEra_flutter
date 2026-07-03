@@ -6455,6 +6455,7 @@ class AppStrings {
   static const String pickupDropTooClose = "pickupDropTooClose";
   static const String pickupDropTooFar = "pickupDropTooFar";
   static const String pickupDropPreferenceSaved = "pickupDropPreferenceSaved";
+  static const String goLiveToReceiveOrders = "goLiveToReceiveOrders";
 
   // ─── CHAT-DISPATCH: Find Rider + Rider OTP card ────────────────────
   static const String findRider = "findRider";

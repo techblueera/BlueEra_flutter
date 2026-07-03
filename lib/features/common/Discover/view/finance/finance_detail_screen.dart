@@ -1,18 +1,16 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
-import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/finance_discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/finance_search_res_model.dart';
 import 'package:BlueEra/features/common/Discover/view/finance/finance_job_listing_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/finance/widget/finance_enquiry_sheet.dart';
 import 'package:BlueEra/features/me/others/controller/other_enquiry_controller.dart';
-import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -86,8 +84,7 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: controller.selectedDetail.value?.profileName ??
-            AppStrings.financeService.tr,
+        title: controller.selectedDetail.value?.profileName ?? AppStrings.financeService.tr,
       ),
       bottomNavigationBar: Obx(() {
         final data = controller.selectedDetail.value;
@@ -104,24 +101,24 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
             ),
             child: Row(
               children: [
-                Expanded(
-                  child: PositiveCustomBtn(
-                    onTap: () {
-                      final chatViewController =
-                          Get.find<ChatViewController>();
-                      chatViewController.checkChatConnectionAndOpenChat(
-                        userId: data.userId ?? '',
-                        route: AppConstants.route_discover,
-                      );
-                    },
-                    title: AppStrings.chat,
-                  ),
-                ),
+                // Expanded(
+                //   child: PositiveCustomBtn(
+                //     onTap: () {
+                //       final chatViewController =
+                //           Get.find<ChatViewController>();
+                //       chatViewController.checkChatConnectionAndOpenChat(
+                //         userId: data.userId ?? '',
+                //         route: AppConstants.route_discover,
+                //       );
+                //     },
+                //     title: AppStrings.chat,
+                //   ),
+                // ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: PositiveCustomBtn(
                     onTap: () => _openEnquirySheet(data),
-                    title: AppStrings.bookInquiry,
+                    title: AppStrings.inquiry,
                   ),
                 ),
               ],
@@ -234,18 +231,15 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
                             fit: BoxFit.cover,
                             width: double.infinity,
                             height: size.height * 0.17,
-                            placeholder: (ctx, _) =>
-                                Container(color: Colors.blueGrey[100]),
+                            placeholder: (ctx, _) => Container(color: Colors.blueGrey[100]),
                             errorWidget: (ctx, _, __) => Container(
                               color: Colors.blueGrey[100],
-                              child: Icon(Icons.business_outlined,
-                                  color: Colors.blueGrey[300], size: 40),
+                              child: Icon(Icons.business_outlined, color: Colors.blueGrey[300], size: 40),
                             ),
                           ),
                         )
                       : Center(
-                          child: Icon(Icons.business_outlined,
-                              color: Colors.blueGrey[300], size: 40),
+                          child: Icon(Icons.business_outlined, color: Colors.blueGrey[300], size: 40),
                         ),
                 ),
                 Positioned(
@@ -289,8 +283,7 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
 
           // Name + category chip + location + description
           Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -304,15 +297,13 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
                 if (data.category?.isNotEmpty ?? false) ...[
                   const SizedBox(height: 6),
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 3),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
                       color: AppColors.primaryColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: CustomText(
-                      (data.category ?? '').replaceAll('_', ' ').capitalize ??
-                          '',
+                      (data.category ?? '').replaceAll('_', ' ').capitalize ?? '',
                       fontSize: 11,
                       color: AppColors.primaryColor,
                       fontWeight: FontWeight.w600,
@@ -323,8 +314,7 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      Icon(Icons.location_on_outlined,
-                          size: 14, color: AppColors.secondaryTextColor),
+                      Icon(Icons.location_on_outlined, size: 14, color: AppColors.secondaryTextColor),
                       const SizedBox(width: 4),
                       Expanded(
                         child: CustomText(
@@ -416,8 +406,7 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
                           height: 64,
                           width: 64,
                           color: Colors.grey[200],
-                          child: Icon(Icons.person,
-                              color: AppColors.secondaryTextColor),
+                          child: Icon(Icons.person, color: AppColors.secondaryTextColor),
                         ),
                       ),
                     ),
@@ -434,14 +423,11 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                          if ((m.position ?? '').isNotEmpty ||
-                              (m.qualification ?? '').isNotEmpty)
+                          if ((m.position ?? '').isNotEmpty || (m.qualification ?? '').isNotEmpty)
                             Padding(
                               padding: const EdgeInsets.only(top: 2),
                               child: CustomText(
-                                [m.position, m.qualification]
-                                    .where((e) => (e ?? '').isNotEmpty)
-                                    .join(' • '),
+                                [m.position, m.qualification].where((e) => (e ?? '').isNotEmpty).join(' • '),
                                 fontSize: 12,
                                 color: AppColors.primaryColor,
                                 fontWeight: FontWeight.w600,
@@ -509,9 +495,7 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
                             fit: BoxFit.cover,
                             errorWidget: (_, __, ___) => Container(
                               color: Colors.grey[200],
-                              child: Icon(Icons.person,
-                                  size: 40,
-                                  color: AppColors.secondaryTextColor),
+                              child: Icon(Icons.person, size: 40, color: AppColors.secondaryTextColor),
                             ),
                           ),
                         ),
@@ -655,9 +639,7 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
 
   Widget _contactBranchCard(FinanceContactUs contact, FinanceBusinessItem data) {
     final branch = contact.branch;
-    final firstDept = (contact.departments?.isNotEmpty ?? false)
-        ? contact.departments!.first
-        : null;
+    final firstDept = (contact.departments?.isNotEmpty ?? false) ? contact.departments!.first : null;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -704,9 +686,7 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
           // website_url so the row still appears when the branch has none.
           Builder(builder: (_) {
             final branchWebsite = branch?.website?.trim() ?? '';
-            final website = branchWebsite.isNotEmpty
-                ? branchWebsite
-                : (data.websiteUrl?.trim() ?? '');
+            final website = branchWebsite.isNotEmpty ? branchWebsite : (data.websiteUrl?.trim() ?? '');
             if (website.isEmpty) return const SizedBox.shrink();
             return _contactItemClickable(
               icon: AppIconAssets.website_click,
@@ -765,17 +745,14 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
               Expanded(
                 child: CustomText(
                   label,
-                  color: onTap != null
-                      ? AppColors.primaryColor
-                      : AppColors.mainTextColor,
+                  color: onTap != null ? AppColors.primaryColor : AppColors.mainTextColor,
                   fontSize: SizeConfig.medium,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               if (onTap != null)
-                Icon(Icons.arrow_forward_ios_rounded,
-                    size: 14, color: AppColors.primaryColor),
+                Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.primaryColor),
             ],
           ),
         ),
@@ -786,9 +763,7 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
   // ─── LOCATION ──────────────────────────────────────────────────────
   Widget _buildLocationSection(FinanceBusinessItem data) {
     final coords = data.location?.coordinates;
-    if (coords == null ||
-        coords.length < 2 ||
-        (coords[0] == 0.0 && coords[1] == 0.0)) {
+    if (coords == null || coords.length < 2 || (coords[0] == 0.0 && coords[1] == 0.0)) {
       return const SizedBox.shrink();
     }
     return BusinessLocationWidget(
@@ -892,8 +867,7 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
               padding: const EdgeInsets.symmetric(vertical: 6),
               child: Row(
                 children: [
-                  Icon(Icons.work_outline,
-                      size: 20, color: AppColors.primaryColor),
+                  Icon(Icons.work_outline, size: 20, color: AppColors.primaryColor),
                   const SizedBox(width: 12),
                   Expanded(
                     child: CustomText(
@@ -903,8 +877,7 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  Icon(Icons.arrow_forward_ios_rounded,
-                      size: 14, color: AppColors.primaryColor),
+                  Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.primaryColor),
                 ],
               ),
             ),

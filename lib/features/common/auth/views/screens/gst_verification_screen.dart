@@ -121,7 +121,8 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
                       fontSize: SizeConfig.medium,
                       color: AppColors.grey80,
                     ),
-                    SizedBox(height: SizeConfig.size30),
+                    if (!widget.isGstMandatory)
+                      SizedBox(height: SizeConfig.size30),
                     Obx(() => RadioGroup<bool>(
                           groupValue: authController.hasGstNumber.value,
                           onChanged: (val) {
@@ -132,8 +133,8 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
                             mainAxisAlignment: MainAxisAlignment.start,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildRadioOption(true, AppStrings.yesIHave.tr),
                               if (!widget.isGstMandatory) ...[
+                                _buildRadioOption(true, AppStrings.yesIHave.tr),
                                 SizedBox(width: SizeConfig.size20),
                                 _buildRadioOption(false, AppStrings.noIDont.tr),
                               ],
@@ -151,8 +152,7 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
                         title: AppStrings.enterGstNumberLabel.tr,
                         maxLength: 15,
                         isValidate: false,
-                        autovalidateMode:
-                            AutovalidateMode.onUserInteraction,
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
                         inputFormatters: [
                           LengthLimitingTextInputFormatter(15),
                           FilteringTextInputFormatter.allow(
@@ -177,8 +177,7 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
                     }),
                     SizedBox(height: SizeConfig.size20),
                     Obx(() {
-                      final isLoading =
-                          authController.isGstVerifyLoading.value;
+                      final isLoading = authController.isGstVerifyLoading.value;
                       return CustomBtn(
                         onTap: authController.hasGstNumber.value
                             ? (authController.isValidate.value && !isLoading)

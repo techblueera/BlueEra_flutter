@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -11,18 +13,14 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// In-chat card for `message_type: "vehicle_booking"` — dedicated automotive
-/// design. Charcoal + red palette (auto / motor feel), an intent ribbon
-/// (BUY / TEST_DRIVE / EXCHANGE / INFO) driven by the booking's `intent`,
-/// and priceText / condition rows from the listing snapshot.
+/// In-chat card for `message_type: "vehicle_booking"`.
 ///
-/// Distinct from the four enquiry cards (business / healthcare / hotel /
-/// education) in one important way: vehicle is a **booking**, not an
-/// enquiry — the buyer can also **Cancel** while `pending`, on top of the
-/// owner Accept / Decline. Status flips route through [VehicleController]:
-/// buyer Cancel → `PUT /vehicles/bookings/:id/cancel`; owner Accept /
-/// Decline → `PUT /vehicles/bookings/:id/status`. See
-/// `lib/docs/enquiry-verticals-flutter-integration.md` for the wire shape.
+/// Shares its visual language with the other enquiry/booking cards
+/// (hotel / healthcare / education) — hero-banner layout + amber accent
+/// so all four verticals render identically in the chat stream. The
+/// vehicle-specific behaviour lives in the sections (Intent / Offer /
+/// Condition) and in the buyer-side Cancel button, which the other
+/// cards don't have.
 class VehicleBookingMsgCard extends StatefulWidget {
   final Messages message;
   final String time;
@@ -38,12 +36,10 @@ class VehicleBookingMsgCard extends StatefulWidget {
 }
 
 class _VehicleBookingMsgCardState extends State<VehicleBookingMsgCard> {
-  static const Color _charcoal = Color(0xFF111827);
-  static const Color _charcoalDeep = Color(0xFF030712);
-  static const Color _red = Color(0xFFDC2626);
-  static const Color _redDeep = Color(0xFF991B1B);
-  static const Color _line = Color(0xFFE5E7EB);
-  static const Color _tint = Color(0xFFF3F4F6);
+  static const Color _accent = Color(0xFFF59E0B); // warm amber
+  static const Color _accentDeep = Color(0xFFD97706);
+  static const Color _line = Color(0xFFF3E7CE);
+  static const Color _noteBg = Color(0xFFFFF8EC);
 
   bool _isUpdating = false;
 
@@ -56,23 +52,65 @@ class _VehicleBookingMsgCardState extends State<VehicleBookingMsgCard> {
   bool get _isCancelled => _status == VehicleBookingStatus.cancelled;
   bool get _isPending => _status == VehicleBookingStatus.pending;
 
-  /// Intent-driven header icon.
-  IconData get _intentIcon {
-    switch (_b?.intent) {
-      case VehicleBookingIntent.testDrive:
-        return Icons.drive_eta_rounded;
-      case VehicleBookingIntent.exchange:
-        return Icons.swap_horiz_rounded;
-      case VehicleBookingIntent.info:
-        return Icons.info_outline_rounded;
-      case VehicleBookingIntent.buy:
+  /// Vehicle-specific detail sections (Intent / Offer / Condition) mapped
+  /// into the same `{title: [items]}` shape the hotel card iterates over,
+  /// so the shared render code stays uniform.
+  Map<String, List<String>> get _selections {
+    final out = <String, List<String>>{};
+    final intent = (_b?.intent.label ?? '').trim();
+    if (intent.isNotEmpty) out['Intent'] = [intent];
+    final offer = _b?.offerPrice;
+    if (offer != null) {
+      out['Offer'] = ['₹${offer.toStringAsFixed(0)}'];
+    }
+    final condition = (_b?.snapshot?.condition ?? '').trim();
+    if (condition.isNotEmpty) out['Condition'] = [condition];
+    return out;
+  }
+
+  IconData _iconFor(String title) {
+    switch (title.toLowerCase()) {
+      case 'intent':
+        return Icons.assignment_rounded;
+      case 'offer':
+        return Icons.currency_rupee_rounded;
+      case 'condition':
+        return Icons.verified_rounded;
       default:
-        return Icons.directions_car_filled_rounded;
+        return Icons.check_rounded;
     }
   }
 
+  /// Booking id lives in one of three places depending on which
+  /// backend surface produced the message:
+  ///   1. `metadata.booking._id` — parsed into [VehicleBooking.id]
+  ///   2. `metadata.vehicleBookingId` — top-level shortcut
+  ///   3. `metadata._id` — some socket payloads flatten it here
+  ///
+  /// The old `_b?.id ?? metadata.vehicleBookingId` guard was subtly
+  /// broken: [VehicleBooking.fromJson] fills `id: ''` when neither
+  /// `_id` nor `id` is present, so `_b?.id` returned an empty *string*
+  /// (not null) and `??` never fell through to the shortcut field.
+  /// Use `_firstNonEmpty` so any non-empty candidate wins.
+  String _resolveBookingId() {
+    return _firstNonEmpty([
+      _b?.id,
+      widget.message.metadata?.vehicleBookingId,
+    ]);
+  }
+
+  String _firstNonEmpty(List<String?> candidates) {
+    for (final c in candidates) {
+      if (c != null && c.trim().isNotEmpty) return c.trim();
+    }
+    return '';
+  }
+
   Future<void> _updateStatus({required bool cancel, bool accept = false}) async {
-    final id = (_b?.id ?? widget.message.metadata?.vehicleBookingId ?? '').trim();
+    final id = _resolveBookingId();
+    log('[VEHICLE BOOKING] action=${cancel ? "cancel" : (accept ? "accept" : "decline")} '
+        'resolvedId=$id booking._id=${_b?.id} '
+        'vehicleBookingId=${widget.message.metadata?.vehicleBookingId}');
     if (id.isEmpty) {
       commonSnackBar(message: AppStrings.somethingWentWrong.tr);
       return;
@@ -97,6 +135,11 @@ class _VehicleBookingMsgCardState extends State<VehicleBookingMsgCard> {
   Widget build(BuildContext context) {
     final b = _b;
     final snap = b?.snapshot;
+    final photos = b?.photos ?? const <String>[];
+    final coverImage = (snap?.image ?? '').trim();
+    final firstPhoto = photos.isNotEmpty ? photos.first : '';
+    final heroImage = coverImage.isNotEmpty ? coverImage : firstPhoto;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 2),
       width: SizeConfig.screenWidth * 0.74,
@@ -113,71 +156,175 @@ class _VehicleBookingMsgCardState extends State<VehicleBookingMsgCard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _charcoalHeader(),
-          _listingSnapshot(
-            snap?.image ?? '',
+          _heroBanner(
+            heroImage,
             snap?.title ?? '',
-            snap?.priceText ?? '',
             snap?.location ?? '',
+            snap?.priceText ?? '',
           ),
-          _detailSection(
-            'Intent',
-            b?.intent.label ?? '',
-            Icons.assignment_rounded,
-          ),
-          if (b?.offerPrice != null)
-            _detailSection(
-              'Offer',
-              '₹${b!.offerPrice!.toStringAsFixed(0)}',
-              Icons.currency_rupee_rounded,
-            ),
-          if ((snap?.condition ?? '').isNotEmpty)
-            _detailSection(
-              'Condition',
-              snap!.condition!,
-              Icons.verified_rounded,
-            ),
-          if ((b?.photos ?? const []).isNotEmpty)
-            _photoStrip(b!.photos),
+          for (final entry in _selections.entries) _selectionRow(entry),
           if ((b?.note ?? '').trim().isNotEmpty) _noteRow(b!.note!.trim()),
+          if (photos.length > 1) _photoStrip(photos.skip(1).toList()),
           _footer(),
         ],
       ),
     );
   }
 
-  Widget _charcoalHeader() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(12, 11, 12, 11),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [_charcoalDeep, _charcoal],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+  Widget _heroBanner(
+      String image, String name, String location, String priceText) {
+    return Stack(
+      children: [
+        SizedBox(
+          width: double.infinity,
+          height: 140,
+          child: image.isNotEmpty
+              ? CachedNetworkImage(
+                  imageUrl: image,
+                  fit: BoxFit.cover,
+                  placeholder: (_, __) => Container(color: _line),
+                  errorWidget: (_, __, ___) => Container(
+                    color: _line,
+                    alignment: Alignment.center,
+                    child: const Icon(Icons.directions_car_filled_rounded,
+                        color: Colors.white, size: 32),
+                  ),
+                )
+              : Container(
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [_accentDeep, _accent],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                  ),
+                  alignment: Alignment.center,
+                  child: const Icon(Icons.directions_car_filled_rounded,
+                      color: Colors.white, size: 32),
+                ),
         ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            alignment: Alignment.center,
+        Positioned.fill(
+          child: DecoratedBox(
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [_redDeep, _red],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.transparent,
+                  Colors.black.withValues(alpha: 0.55),
+                ],
               ),
-              borderRadius: BorderRadius.circular(10),
-              boxShadow: [
-                BoxShadow(
-                  color: _red.withValues(alpha: 0.35),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
+            ),
+          ),
+        ),
+        Positioned(
+          left: 12,
+          right: 12,
+          bottom: 10,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.92),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.directions_car_filled_rounded,
+                            size: 12, color: _accentDeep),
+                        const SizedBox(width: 4),
+                        Text(
+                          AppStrings.vehicleBookingTitle.tr.toUpperCase(),
+                          style: const TextStyle(
+                            fontSize: 9,
+                            fontWeight: FontWeight.w800,
+                            color: _accentDeep,
+                            letterSpacing: 0.6,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Spacer(),
+                  _statusBadge(),
+                ],
+              ),
+              const SizedBox(height: 6),
+              if (name.trim().isNotEmpty)
+                Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              if (location.trim().isNotEmpty || priceText.trim().isNotEmpty) ...[
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    if (location.trim().isNotEmpty) ...[
+                      const Icon(Icons.place_rounded,
+                          size: 11, color: Colors.white70),
+                      const SizedBox(width: 3),
+                      Expanded(
+                        child: Text(
+                          location,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ] else
+                      const Spacer(),
+                    if (priceText.trim().isNotEmpty) ...[
+                      const SizedBox(width: 6),
+                      Text(
+                        priceText,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _selectionRow(MapEntry<String, List<String>> entry) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: _accent.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(_intentIcon, color: Colors.white, size: 19),
+            child: Icon(_iconFor(entry.key), color: _accentDeep, size: 17),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -185,258 +332,65 @@ class _VehicleBookingMsgCardState extends State<VehicleBookingMsgCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  AppStrings.vehicleBookingTitle.tr,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 13.5,
+                  entry.key.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 9.5,
                     fontWeight: FontWeight.w800,
+                    letterSpacing: 0.7,
+                    color: AppColors.secondaryTextColor,
                   ),
                 ),
-                if ((_b?.intent.label ?? '').isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 3),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 7, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: _red.withValues(alpha: 0.18),
-                        borderRadius: BorderRadius.circular(999),
-                        border: Border.all(
-                            color: _red.withValues(alpha: 0.55), width: 0.8),
-                      ),
-                      child: Text(
-                        _b!.intent.label,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                          letterSpacing: 0.3,
+                const SizedBox(height: 3),
+                Wrap(
+                  spacing: 5,
+                  runSpacing: 5,
+                  children: [
+                    for (final item in entry.value)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: _accent.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(
+                              color: _accent.withValues(alpha: 0.25),
+                              width: 0.8),
                         ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-          _statusBadge(),
-        ],
-      ),
-    );
-  }
-
-  Widget _listingSnapshot(
-      String image, String name, String priceText, String location) {
-    final hasSnapshot = image.trim().isNotEmpty ||
-        name.trim().isNotEmpty ||
-        priceText.trim().isNotEmpty ||
-        location.trim().isNotEmpty;
-    if (!hasSnapshot) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(9),
-            child: SizedBox(
-              width: 44,
-              height: 44,
-              child: image.isNotEmpty
-                  ? CachedNetworkImage(
-                      imageUrl: image,
-                      fit: BoxFit.cover,
-                      placeholder: (_, __) => Container(color: _tint),
-                      errorWidget: (_, __, ___) => Container(
-                        color: _tint,
-                        alignment: Alignment.center,
-                        child: Icon(_intentIcon, size: 20, color: _charcoal),
-                      ),
-                    )
-                  : Container(
-                      color: _tint,
-                      alignment: Alignment.center,
-                      child: Icon(_intentIcon, size: 20, color: _charcoal),
-                    ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (name.isNotEmpty)
-                  Text(
-                    name,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.mainTextColor,
-                    ),
-                  ),
-                if (priceText.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(
-                    priceText,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 12.5,
-                      fontWeight: FontWeight.w800,
-                      color: _red,
-                    ),
-                  ),
-                ],
-                if (location.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Row(
-                    children: [
-                      const Icon(Icons.location_on_outlined,
-                          size: 12, color: _charcoal),
-                      const SizedBox(width: 3),
-                      Expanded(
                         child: Text(
-                          location,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.secondaryTextColor,
+                          item,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: _accentDeep,
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _detailSection(String title, String value, IconData icon) {
-    // ClipRRect + IntrinsicHeight lets the red accent strip run full-height
-    // on the left while keeping rounded corners. `BoxDecoration.border` with
-    // non-uniform side colors would assert at paint time when combined with
-    // `borderRadius`.
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(11),
-        child: Container(
-          decoration: BoxDecoration(
-            color: _tint,
-            border: Border.all(color: _line),
-          ),
-          child: IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Container(width: 3, color: _red),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 26,
-                          height: 26,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: _charcoal.withValues(alpha: 0.10),
-                            borderRadius: BorderRadius.circular(7),
-                          ),
-                          child: Icon(icon, color: _charcoal, size: 15),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                title,
-                                style: const TextStyle(
-                                  fontSize: 11.5,
-                                  fontWeight: FontWeight.w800,
-                                  color: _charcoalDeep,
-                                  letterSpacing: 0.2,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                value,
-                                style: const TextStyle(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: _charcoal,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  ],
                 ),
               ],
             ),
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _photoStrip(List<String> photos) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-      child: SizedBox(
-        height: 66,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          itemCount: photos.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 6),
-          itemBuilder: (_, i) => ClipRRect(
-            borderRadius: BorderRadius.circular(9),
-            child: CachedNetworkImage(
-              imageUrl: photos[i],
-              width: 84,
-              height: 66,
-              fit: BoxFit.cover,
-              placeholder: (_, __) =>
-                  Container(width: 84, height: 66, color: _tint),
-              errorWidget: (_, __, ___) => Container(
-                width: 84,
-                height: 66,
-                color: _tint,
-                alignment: Alignment.center,
-                child: const Icon(Icons.broken_image_outlined,
-                    size: 16, color: Colors.grey),
-              ),
-            ),
-          ),
-        ),
+        ],
       ),
     );
   }
 
   Widget _noteRow(String note) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: _noteBg,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: _line),
+          border: Border.all(color: _line, width: 0.8),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.format_quote_rounded, size: 15, color: _charcoal),
+            const Icon(Icons.chat_bubble_outline_rounded,
+                size: 14, color: _accentDeep),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
@@ -455,6 +409,39 @@ class _VehicleBookingMsgCardState extends State<VehicleBookingMsgCard> {
     );
   }
 
+  Widget _photoStrip(List<String> photos) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+      child: SizedBox(
+        height: 60,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          itemCount: photos.length,
+          separatorBuilder: (_, __) => const SizedBox(width: 6),
+          itemBuilder: (_, i) => ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: CachedNetworkImage(
+              imageUrl: photos[i],
+              width: 80,
+              height: 60,
+              fit: BoxFit.cover,
+              placeholder: (_, __) =>
+                  Container(width: 80, height: 60, color: _line),
+              errorWidget: (_, __, ___) => Container(
+                width: 80,
+                height: 60,
+                color: _line,
+                alignment: Alignment.center,
+                child: const Icon(Icons.broken_image_outlined,
+                    size: 16, color: Colors.grey),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _footer() {
     if (_isAccepted) {
       return _statusBand(
@@ -466,7 +453,7 @@ class _VehicleBookingMsgCardState extends State<VehicleBookingMsgCard> {
     if (_isDeclined) {
       return _statusBand(
         icon: Icons.cancel_rounded,
-        color: _red,
+        color: const Color(0xFFDC2626),
         label: AppStrings.enquiryDeclined.tr,
       );
     }
@@ -477,22 +464,18 @@ class _VehicleBookingMsgCardState extends State<VehicleBookingMsgCard> {
         label: AppStrings.bookingStatusCancelled.tr,
       );
     }
-    // Pending — seller sees Accept / Decline, buyer sees Cancel.
     if (_isPending) {
-      final loader = Padding(
-        padding: const EdgeInsets.fromLTRB(12, 14, 12, 12),
-        child: const Center(
-          child: SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(strokeWidth: 2, color: _charcoal),
-          ),
+      final loader = const Center(
+        child: SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(strokeWidth: 2, color: _accentDeep),
         ),
       );
       if (!_isMyMessage) {
-        // Seller side (received message) — Accept / Decline.
+        // Seller side — Accept / Decline.
         return Padding(
-          padding: const EdgeInsets.fromLTRB(12, 14, 12, 12),
+          padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
           child: _isUpdating
               ? loader
               : Row(
@@ -504,9 +487,9 @@ class _VehicleBookingMsgCardState extends State<VehicleBookingMsgCard> {
                 ),
         );
       }
-      // Buyer side (sent message) — Cancel + waiting band.
+      // Buyer side — Cancel + waiting band.
       return Padding(
-        padding: const EdgeInsets.fromLTRB(12, 14, 12, 12),
+        padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
         child: _isUpdating
             ? loader
             : Column(
@@ -521,7 +504,7 @@ class _VehicleBookingMsgCardState extends State<VehicleBookingMsgCard> {
     }
     return _statusBand(
       icon: Icons.access_time_rounded,
-      color: _red,
+      color: _accentDeep,
       label: AppStrings.waitingForResponse.tr,
     );
   }
@@ -530,19 +513,19 @@ class _VehicleBookingMsgCardState extends State<VehicleBookingMsgCard> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: _red.withValues(alpha: 0.10),
+        color: _accent.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
         children: [
-          const Icon(Icons.access_time_rounded, color: _red, size: 15),
+          const Icon(Icons.access_time_rounded, color: _accentDeep, size: 15),
           const SizedBox(width: 6),
           Expanded(
             child: CustomText(
               AppStrings.waitingForResponse.tr,
               fontSize: 12.5,
               fontWeight: FontWeight.w700,
-              color: _red,
+              color: _accentDeep,
             ),
           ),
         ],
@@ -557,7 +540,6 @@ class _VehicleBookingMsgCardState extends State<VehicleBookingMsgCard> {
   }) {
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.only(top: 10),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
       color: color.withValues(alpha: 0.10),
       child: Row(
@@ -586,16 +568,16 @@ class _VehicleBookingMsgCardState extends State<VehicleBookingMsgCard> {
   Widget _acceptBtn() {
     return InkWell(
       onTap: () => _updateStatus(cancel: false, accept: true),
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(10),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 11),
+        padding: const EdgeInsets.symmetric(vertical: 10),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: [_redDeep, _red]),
-          borderRadius: BorderRadius.circular(12),
+          gradient: const LinearGradient(colors: [_accentDeep, _accent]),
+          borderRadius: BorderRadius.circular(10),
           boxShadow: [
             BoxShadow(
-              color: _red.withValues(alpha: 0.35),
+              color: _accent.withValues(alpha: 0.35),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -620,19 +602,19 @@ class _VehicleBookingMsgCardState extends State<VehicleBookingMsgCard> {
   Widget _declineBtn() {
     return InkWell(
       onTap: () => _updateStatus(cancel: false, accept: false),
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(10),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 11),
+        padding: const EdgeInsets.symmetric(vertical: 10),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: _charcoal.withValues(alpha: 0.35)),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: _accentDeep.withValues(alpha: 0.35)),
         ),
         child: Text(
           AppStrings.declineLabel.tr,
           style: const TextStyle(
-              fontSize: 13, fontWeight: FontWeight.w800, color: _charcoalDeep),
+              fontSize: 13, fontWeight: FontWeight.w800, color: _accentDeep),
         ),
       ),
     );
@@ -641,24 +623,26 @@ class _VehicleBookingMsgCardState extends State<VehicleBookingMsgCard> {
   Widget _cancelBtn() {
     return InkWell(
       onTap: () => _updateStatus(cancel: true),
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(10),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 11),
+        padding: const EdgeInsets.symmetric(vertical: 10),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: _red.withValues(alpha: 0.55)),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: _accentDeep.withValues(alpha: 0.55)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.block_rounded, size: 15, color: _red),
+            const Icon(Icons.block_rounded, size: 15, color: _accentDeep),
             const SizedBox(width: 5),
             Text(
               AppStrings.cancelLabel.tr,
               style: const TextStyle(
-                  fontSize: 13, fontWeight: FontWeight.w800, color: _red),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: _accentDeep),
             ),
           ],
         ),
@@ -667,35 +651,27 @@ class _VehicleBookingMsgCardState extends State<VehicleBookingMsgCard> {
   }
 
   Widget _statusBadge() {
-    late final String label;
-    late final Color color;
-    if (_isAccepted) {
-      label = AppStrings.acceptedStatus.tr;
-      color = const Color(0xFF16A34A);
-    } else if (_isDeclined) {
-      label = AppStrings.declinedStatus.tr;
-      color = _red;
-    } else if (_isCancelled) {
-      label = AppStrings.bookingStatusCancelled.tr;
-      color = AppColors.secondaryTextColor;
-    } else {
-      label = AppStrings.pendingStatus.tr;
-      color = _red;
-    }
+    final (String label, Color color) = _isAccepted
+        ? (AppStrings.acceptedStatus.tr, const Color(0xFF16A34A))
+        : _isDeclined
+            ? (AppStrings.declinedStatus.tr, const Color(0xFFDC2626))
+            : _isCancelled
+                ? (AppStrings.bookingStatusCancelled.tr,
+                    AppColors.secondaryTextColor)
+                : (AppStrings.pendingStatus.tr, Colors.white);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.18),
+        color: _isPending ? Colors.white.withValues(alpha: 0.28) : color,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withValues(alpha: 0.55), width: 0.8),
       ),
       child: Text(
         label.toUpperCase(),
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 9,
           fontWeight: FontWeight.w800,
           letterSpacing: 0.5,
-          color: color == AppColors.secondaryTextColor ? Colors.white : color,
+          color: Colors.white,
         ),
       ),
     );

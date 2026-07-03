@@ -8,24 +8,40 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/me/others/controller/other_enquiry_controller.dart';
+import 'package:BlueEra/features/me/others/model/predefined_enquiry_group.dart';
+import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// One selection group on the "other" business enquiry form. Lives at the
-/// top level so callers building category-specific groups don't reach into
-/// private types. [title] is what the user (and the in-chat card) sees as
-/// the section label; the same string is sent back to the server as the
+/// One selection group on the "other" business enquiry form.
+///
+/// [title] is what the user (and the in-chat card) sees as the section
+/// label; the same string is sent back to the server as the
 /// selections-map key so the card can render it verbatim.
+///
+/// [multiSelect] mirrors the server catalog contract from
+/// `lib/docs/predefined-enquiry-ui-integration.md` §2:
+///   • `true`  → toggle chips (0..n selectable) — default.
+///   • `false` → radio chips (0..1 selectable per group).
 class BusinessEnquiryGroup {
   final String title;
   final List<String> options;
+  final bool multiSelect;
 
   const BusinessEnquiryGroup({
     required this.title,
     required this.options,
+    this.multiSelect = true,
   });
+
+  factory BusinessEnquiryGroup.fromPredefined(PredefinedEnquiryGroup g) =>
+      BusinessEnquiryGroup(
+        title: g.title,
+        options: g.options,
+        multiSelect: g.multiSelect,
+      );
 }
 
 /// Snapshot of the listing being enquired about. Denormalised into the
@@ -51,129 +67,71 @@ class BusinessEnquiryListing {
 
 /// Customer-side enquiry sheet for the **"other" business flow** — the
 /// non-hospital, non-healthcare, non-hotel, non-education, non-vehicle
-/// vertical (finance / banking / insurance / loans / capital-market /
-/// data). One parameterized sheet covers every category — the only thing
-/// that varies per category is the [groups] list (Services / Purpose for
-/// LOANS_SECTOR, Policy Type / Purpose for INSURANCE, etc.). See
-/// `lib/docs/other-enquiry-ui-integration.md`.
+/// vertical. One parameterized sheet covers every category — the only
+/// thing that varies per category is the [groups] list, which by default
+/// is fetched **server-side** via
+/// `GET other-service/predefined-enquiry/{category}` (see
+/// `lib/docs/predefined-enquiry-ui-integration.md` §1).
 ///
-/// The sheet drives [OtherEnquiryController], then opens the business chat
-/// with the owner — the backend posts the enquiry card into that
-/// conversation, so we never seed any chat text. A locally-fabricated
-/// `service + enquiry_only` message with `variant: other|<enquiryId>` is
-/// also sent so the customer sees the card immediately; the deduping
-/// socket listener handles the real backend card when it arrives.
+/// Supported categories are seeded on the backend and can be extended
+/// without an app release. Current catalog:
+///
+/// **Finance (4)**
+///   • LOANS_SECTOR
+///   • BANKING_SECTOR
+///   • INSURANCE_SECTOR
+///   • FINANCIAL_SERVICES
+///
+/// **Find Services (8)**
+///   • CONSULTING_BUSINESS_SERVICES
+///   • BEAUTY_FITNESS_PERSONAL_CARE
+///   • REPAIR_ESSENTIAL_SERVICES
+///   • HOME_SERVICES_CONTRACTORS
+///   • IT_DIGITAL_SERVICES
+///   • MEDIA_NEWS_CREATIVE
+///   • TRAVEL_HOSPITALITY
+///   • REAL_ESTATE_PROPERTY
+///
+/// **Automotive (3)**
+///   • VEHICLE_SERVICE
+///   • VEHICLE_SUPPORT
+///   • TRANSPORT_LOGISTICS_PARKING
+///
+/// The sheet drives [OtherEnquiryController], then opens the business
+/// chat with the owner — the backend posts the `business_enquiry` card
+/// into that conversation, so we never seed any chat text.
 class BusinessEnquirySheet {
   BusinessEnquirySheet._();
 
-  /// Default group catalogs for each known "other" category. Optional
-  /// helper — callers that want a different layout per listing can pass
-  /// their own [groups] to [open] directly. Keys are matched
-  /// case-insensitively against the canonical category strings used on
-  /// the chat card (LOANS_SECTOR / INSURANCE / BANKING / CAPITAL_MARKET
-  /// / DATA).
-  static const Map<String, List<BusinessEnquiryGroup>> _defaultGroups = {
-    'LOANS_SECTOR': [
-      BusinessEnquiryGroup(title: 'Services', options: [
-        'Home Loan',
-        'Personal Loan',
-        'Business Loan',
-        'Vehicle Loan',
-        'Education Loan',
-        'Gold Loan',
-        'Loan Against Property',
-      ]),
-      BusinessEnquiryGroup(title: 'Purpose', options: [
-        'Compare rates',
-        'Check eligibility',
-        'Apply now',
-        'Documentation help',
-      ]),
-    ],
-    'INSURANCE': [
-      BusinessEnquiryGroup(title: 'Policy Type', options: [
-        'Life Insurance',
-        'Health Insurance',
-        'Motor Insurance',
-        'Home Insurance',
-        'Travel Insurance',
-        'Business Insurance',
-      ]),
-      BusinessEnquiryGroup(title: 'Purpose', options: [
-        'Compare plans',
-        'New policy',
-        'Renew existing',
-        'Claim assistance',
-      ]),
-    ],
-    'BANKING': [
-      BusinessEnquiryGroup(title: 'Services', options: [
-        'Savings Account',
-        'Current Account',
-        'Fixed Deposit',
-        'Recurring Deposit',
-        'Credit Card',
-        'Locker',
-      ]),
-      BusinessEnquiryGroup(title: 'Purpose', options: [
-        'Open account',
-        'Rate enquiry',
-        'Documentation help',
-        'Branch visit',
-      ]),
-    ],
-    'CAPITAL_MARKET': [
-      BusinessEnquiryGroup(title: 'Services', options: [
-        'Stocks / Equity',
-        'Mutual Funds',
-        'IPO',
-        'Bonds',
-        'Portfolio Management',
-        'Demat Account',
-      ]),
-      BusinessEnquiryGroup(title: 'Purpose', options: [
-        'Advice',
-        'Open account',
-        'Compare plans',
-        'Documentation help',
-      ]),
-    ],
-    'DATA': [
-      BusinessEnquiryGroup(title: 'Services', options: [
-        'Data Analysis',
-        'Reports',
-        'Consulting',
-        'Subscription',
-      ]),
-      BusinessEnquiryGroup(title: 'Purpose', options: [
-        'Trial / Demo',
-        'Pricing',
-        'Custom quote',
-      ]),
-    ],
-  };
-
-  /// Lookup default groups for [category]. Returns an empty list for
-  /// unknown categories so the sheet still opens (caller likely passed
-  /// [groups] explicitly in that case).
-  static List<BusinessEnquiryGroup> defaultGroupsFor(String category) =>
-      _defaultGroups[category.toUpperCase()] ?? const [];
-
-  /// Open the enquiry sheet. [category] is the canonical category string
-  /// snapshot from the listing (LOANS_SECTOR / INSURANCE / BANKING /
-  /// CAPITAL_MARKET / DATA / …). [groups] defaults to [defaultGroupsFor]
-  /// but callers can override.
-  static void open(
+  /// Open the enquiry sheet.
+  ///
+  /// [category] is the canonical category string snapshot from the
+  /// listing (LOANS_SECTOR / CONSULTING_BUSINESS_SERVICES /
+  /// VEHICLE_SERVICE / …). Case-insensitive — normalised to uppercase
+  /// before hitting the catalog endpoint.
+  ///
+  /// Group source, in priority order (per doc §1–§2):
+  ///   1. Explicit [groups] arg (caller-controlled override).
+  ///   2. Server catalog `GET /predefined-enquiry/{category}`, cached
+  ///      per-category on [OtherEnquiryController].
+  ///   3. Empty — sheet renders note+photo only (§2 fallback).
+  ///
+  /// **No static per-category defaults** live in the app anymore — the
+  /// backend is the source of truth so new categories and option edits
+  /// ship without a release. See §5 checklist item 1.
+  static Future<void> open(
     BuildContext context, {
     required String category,
     required BusinessEnquiryListing listing,
     List<BusinessEnquiryGroup>? groups,
-  }) {
+  }) async {
     if (listing.ownerId.isEmpty || listing.listingId.isEmpty) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
       return;
     }
-    final effectiveGroups = groups ?? defaultGroupsFor(category);
+
+    final effectiveGroups = groups ?? await _resolveGroups(context, category);
+    if (!context.mounted) return;
 
     showModalBottomSheet<void>(
       context: context,
@@ -182,10 +140,39 @@ class BusinessEnquirySheet {
       builder: (_) => _BusinessEnquireForm(
         listing: listing,
         groups: effectiveGroups,
+        category: category,
         onSubmit: (selections, note, photoPaths) =>
             _submit(listing, selections, note, photoPaths),
       ),
     );
+  }
+
+  /// Resolve the group list for [category] using cache → server. Only
+  /// blocks the UI when we've never fetched this category before —
+  /// second-time opens are instant from the controller's in-memory
+  /// cache.
+  static Future<List<BusinessEnquiryGroup>> _resolveGroups(
+      BuildContext context, String category) async {
+    final slug = category.trim();
+    if (slug.isEmpty) return const [];
+
+    final controller = getOrPut(() => OtherEnquiryController());
+    final cached = controller.cachedPredefinedEnquiryOptions(slug);
+    if (cached != null) {
+      return cached.map(BusinessEnquiryGroup.fromPredefined).toList();
+    }
+
+    // First-time fetch — block briefly so the sheet doesn't open with
+    // just a note field when the server *does* have a catalog for this
+    // category. Errors resolve to `[]` inside the controller (§1 error
+    // table → note-only fallback).
+    AppLoader.show();
+    try {
+      final fetched = await controller.loadPredefinedEnquiryOptions(slug);
+      return fetched.map(BusinessEnquiryGroup.fromPredefined).toList();
+    } finally {
+      AppLoader.hide();
+    }
   }
 
   static Future<void> _submit(
@@ -226,6 +213,7 @@ class BusinessEnquirySheet {
 class _BusinessEnquireForm extends StatefulWidget {
   final BusinessEnquiryListing listing;
   final List<BusinessEnquiryGroup> groups;
+  final String category;
   final void Function(
     Map<String, List<String>> selections,
     String note,
@@ -235,6 +223,7 @@ class _BusinessEnquireForm extends StatefulWidget {
   const _BusinessEnquireForm({
     required this.listing,
     required this.groups,
+    required this.category,
     required this.onSubmit,
   });
 
@@ -262,10 +251,24 @@ class _BusinessEnquireFormState extends State<_BusinessEnquireForm> {
     super.dispose();
   }
 
-  void _toggle(String groupTitle, String value) {
+  /// Multi-select toggles the value; single-select (radio) replaces the
+  /// existing selection for that group. A repeat tap on the current
+  /// radio choice clears it (matching the doc §2 rule that every group
+  /// is optional).
+  void _toggle(BusinessEnquiryGroup group, String value) {
     setState(() {
-      final set = _selected.putIfAbsent(groupTitle, () => <String>{});
-      if (!set.add(value)) set.remove(value);
+      final set = _selected.putIfAbsent(group.title, () => <String>{});
+      if (group.multiSelect) {
+        if (!set.add(value)) set.remove(value);
+      } else {
+        if (set.contains(value)) {
+          set.remove(value);
+        } else {
+          set
+            ..clear()
+            ..add(value);
+        }
+      }
     });
   }
 
@@ -306,6 +309,18 @@ class _BusinessEnquireFormState extends State<_BusinessEnquireForm> {
     final note = _noteController.text.trim();
     Navigator.of(context).pop();
     widget.onSubmit(selections, note, List<String>.from(_photos));
+  }
+
+  /// `LOANS_SECTOR` → `Loans Sector`, `CONSULTING_BUSINESS_SERVICES` →
+  /// `Consulting Business Services`. Same pretty-print used by the
+  /// finance sheet so the header reads consistently across verticals.
+  String get _prettyCategory {
+    final raw = widget.category.trim();
+    if (raw.isEmpty) return '';
+    return raw.replaceAll('_', ' ').toLowerCase().split(' ').map((w) {
+      if (w.isEmpty) return w;
+      return '${w[0].toUpperCase()}${w.substring(1)}';
+    }).join(' ');
   }
 
   @override
@@ -362,7 +377,8 @@ class _BusinessEnquireFormState extends State<_BusinessEnquireForm> {
                               .map((s) => _checkChip(
                                     label: s,
                                     on: _isOn(group.title, s),
-                                    onTap: () => _toggle(group.title, s),
+                                    radio: !group.multiSelect,
+                                    onTap: () => _toggle(group, s),
                                   ))
                               .toList(),
                         ),
@@ -386,6 +402,7 @@ class _BusinessEnquireFormState extends State<_BusinessEnquireForm> {
   }
 
   Widget _header() {
+    final category = _prettyCategory;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 6, 14, 14),
       child: Row(
@@ -434,6 +451,23 @@ class _BusinessEnquireFormState extends State<_BusinessEnquireForm> {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
+                if (category.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: _accent.withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: CustomText(
+                      category,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: _accent,
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -495,7 +529,18 @@ class _BusinessEnquireFormState extends State<_BusinessEnquireForm> {
     required String label,
     required bool on,
     required VoidCallback onTap,
+    bool radio = false,
   }) {
+    // radio → filled/outlined circle glyphs so the group visually reads
+    // as single-select; otherwise fall back to the check/add glyphs used
+    // by the other Discover sheets for multi-select toggles.
+    final IconData icon = radio
+        ? (on
+            ? Icons.radio_button_checked_rounded
+            : Icons.radio_button_off_rounded)
+        : (on
+            ? Icons.check_circle_rounded
+            : Icons.add_circle_outline_rounded);
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -514,9 +559,7 @@ class _BusinessEnquireFormState extends State<_BusinessEnquireForm> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              on
-                  ? Icons.check_circle_rounded
-                  : Icons.add_circle_outline_rounded,
+              icon,
               size: 16,
               color: on ? _accent : AppColors.greyCA,
             ),

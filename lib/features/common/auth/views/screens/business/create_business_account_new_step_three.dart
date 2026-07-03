@@ -295,8 +295,8 @@ class _CreateBusinessAccountNewStepThreeState
                                     : const SizedBox.shrink(),
                                 label: Text(
                                   loading
-                                      ? '${AppStrings.submit}…'
-                                      : AppStrings.submit,
+                                      ? '${AppStrings.submit.tr}…'
+                                      : AppStrings.submit.tr,
                                   style: TextStyle(
                                     fontFamily: AppConstants.OpenSans,
                                     fontSize: SizeConfig.medium,

@@ -181,7 +181,12 @@ class AuthRepo extends BaseService {
     final response = await ApiBaseHelper().postHTTP(
       "$aiGenerateBio",
       params: bodyParam,
-      // showProgress: false,
+      // Keep the global shimmer OFF — AI bio generation is surfaced by the
+      // caller's own inline loader (AiSuggestionController.isLoading). The
+      // global ProgressDialog uses a shared static flag that a concurrent
+      // `showProgress: false` request can flip mid-flight, leaving the shimmer
+      // stuck open until a manual back-press. Opting out avoids that race.
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );
