@@ -294,72 +294,76 @@ class _VideoAndImageCardWidgetState extends State<VideoAndImageCardWidget> {
     final bool isPaymentShot = message.isPayment == true ||
         message.metadata?.isPaymentScreenshot == true;
 
+    final bool hasCaption =
+        message.message != null && message.message != '';
+
+    final bubbleColor = isReceiveMsg
+        ? chatThemeController.receiveMessageBgColor.value
+        : chatThemeController.myMessageBgColor.value;
+    final textColor = isReceiveMsg ? Colors.black87 : Colors.white;
+    final linkColor = isReceiveMsg
+        ? const Color(0xFF1976D2)
+        : const Color(0xFFB3E5FC);
+
     final imageBubble = GestureDetector(
       onTap: () => _openFullScreen([path], 0),
-      child: Stack(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                    color: isReceiveMsg
-                        ? chatThemeController.receiveMessageBgColor.value
-                        : chatThemeController.myMessageBgColor.value,
-                    width: 2)),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: MediaDownloadOverlay(
-                url: path.url ?? '',
-                messageType: 'image',
-                fileName: path.name,
-                width: 252,
-                height: 250,
-                isReceived: isReceiveMsg,
-                openOnTap: false,
-                child: imageWidget,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          color: bubbleColor,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Stack(
+                children: [
+                  MediaDownloadOverlay(
+                    url: path.url ?? '',
+                    messageType: 'image',
+                    fileName: path.name,
+                    width: 252,
+                    height: 250,
+                    isReceived: isReceiveMsg,
+                    openOnTap: false,
+                    child: imageWidget,
+                  ),
+                  if (!hasCaption)
+                    Positioned(
+                      bottom: 6,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.4),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(time,
+                            style: const TextStyle(
+                                color: Colors.white, fontSize: 10)),
+                      ),
+                    ),
+                ],
               ),
-            ),
-          ),
-          Positioned(
-            bottom: 2,
-            left: !isReceiveMsg ? 2 : null,
-            right: isReceiveMsg ? 2 : null,
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                (message.message != null && message.message != '')
-                    ? Container(
-                  decoration: BoxDecoration(
-                      color: isReceiveMsg
-                          ? chatThemeController.receiveMessageBgColor.value
-                          : chatThemeController.myMessageBgColor.value,
-                      borderRadius: const BorderRadius.only(
-                        topRight: Radius.circular(10),
-                      )
+              if (hasCaption)
+                Container(
+                  width: 252,
+                  padding: const EdgeInsets.fromLTRB(10, 8, 10, 6),
+                  child: _buildLinkifiedText(
+                    message.message ?? '',
+                    textColor: textColor,
+                    linkColor: linkColor,
                   ),
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 5),
-                  child: CustomText("${message.message}",
-                    fontWeight: FontWeight.w500,
-                    color: isReceiveMsg ? Colors.black87 : Colors.white,
-                    fontSize: 14,
-                  ),
-                )
-                    : const SizedBox(),
-                ReactionInfoWidget(message: message,
-                  time: time,
-                  userId: widget.userId.toString(),
-                  conversation: widget.conversationId.toString(),),
-              ],
-            ),
+                ),
+              ReactionInfoWidget(
+                message: message,
+                time: time,
+                userId: widget.userId.toString(),
+                conversation: widget.conversationId.toString(),
+              ),
+            ],
           ),
-          Positioned(
-            bottom: 26,
-            right: !isReceiveMsg ? 12 : null,
-            left: isReceiveMsg ? 12 : null,
-            child: Text(time,
-                style: const TextStyle(color: Colors.white, fontSize: 10)),
-          )
-        ],
+        ),
       ),
     );
 
@@ -375,6 +379,43 @@ class _VideoAndImageCardWidgetState extends State<VideoAndImageCardWidget> {
         ],
       ),
     );
+  }
+
+  Widget _buildLinkifiedText(
+    String text, {
+    required Color textColor,
+    required Color linkColor,
+  }) {
+    final baseStyle = TextStyle(
+      color: textColor,
+      fontSize: 14,
+      fontWeight: FontWeight.w500,
+    );
+    final urlRegex = RegExp(r'https?:\/\/[^\s]+');
+    final matches = urlRegex.allMatches(text).toList();
+    if (matches.isEmpty) {
+      return Text(text, style: baseStyle);
+    }
+    final spans = <TextSpan>[];
+    int cursor = 0;
+    for (final m in matches) {
+      if (m.start > cursor) {
+        spans.add(TextSpan(text: text.substring(cursor, m.start)));
+      }
+      spans.add(TextSpan(
+        text: m.group(0),
+        style: TextStyle(
+          color: linkColor,
+          decoration: TextDecoration.underline,
+          decorationColor: linkColor,
+        ),
+      ));
+      cursor = m.end;
+    }
+    if (cursor < text.length) {
+      spans.add(TextSpan(text: text.substring(cursor)));
+    }
+    return RichText(text: TextSpan(style: baseStyle, children: spans));
   }
 
   /// Footer shown under a payment-screenshot image bubble.
