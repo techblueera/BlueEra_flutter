@@ -2113,6 +2113,18 @@ Future<void> handleGoLiveTap() async {
     return;
   }
 
+  // After document verification, the security deposit must be paid before
+  // going online. This gate applies only to bike riders / cab drivers (the
+  // professions that pay a deposit); other roles skip it.
+  final isRiderRole = userProfessionGlobal == BIKE_RIDER ||
+      userProfessionGlobal == CAR_TAXI_DRIVER;
+  if (isRiderRole && !riderCtrl.isSecurityDepositPaid) {
+    commonSnackBar(
+        message:
+            'Your payment is incomplete. Please complete the payment process to go live.');
+    return;
+  }
+
   final statuses = await GoLivePermissionService.checkAll();
   if (statuses.values.every((v) => v)) {
     _viewCtrl.toggleShopStatus();

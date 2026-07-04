@@ -358,6 +358,12 @@ class DeliveryPartnerController extends GetxController {
         .every((e) => e.value == true);
   }
 
+  /// Whether the rider's security deposit is paid. Gates "Go Live": a rider
+  /// can go online only once this is true. Reads the `securityDeposit.paid`
+  /// flag from the latest onboarding-status response (null → treated as unpaid).
+  bool get isSecurityDepositPaid =>
+      riderOnboardingStatusData.value?.securityDepositPaid == true;
+
   RiderVerificationState get riderVerificationState {
     final status = riderVerificationStatus?.toLowerCase();
     switch (status) {

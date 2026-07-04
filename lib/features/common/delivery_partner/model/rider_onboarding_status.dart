@@ -47,6 +47,8 @@ class RiderOnboardingStatusData {
     this.rcImage,
     this.rcImageBack,
     this.vehicleImageUrls = const [],
+    this.securityDepositPaid,
+    this.securityDepositPaymentStatus,
   });
 
   RiderOnboardingStatusData.fromJson(dynamic json) {
@@ -124,6 +126,14 @@ class RiderOnboardingStatusData {
             : null) ??
         _documentFile(json, 'rc', 'back');
     vehicleImageUrls = _parseVehicleImages(json);
+    // Security deposit — the rider must have paid this before they can go
+    // online. The API returns a nested `securityDeposit` object; we surface
+    // just the `paid` flag and its `paymentStatus` string.
+    final deposit = json['securityDeposit'];
+    if (deposit is Map) {
+      securityDepositPaid = deposit['paid'] as bool?;
+      securityDepositPaymentStatus = deposit['paymentStatus'] as String?;
+    }
   }
 
   // Pulls a single side ('front'/'back') out of the nested
@@ -233,6 +243,11 @@ class RiderOnboardingStatusData {
   String? rcImageBack;
   // Uploaded vehicle photos for the view gallery (see [_parseVehicleImages]).
   List<RiderVehicleImage> vehicleImageUrls = const [];
+  // Security-deposit payment state. `securityDepositPaid` gates going online;
+  // `securityDepositPaymentStatus` carries the raw backend status (e.g.
+  // "unknown", "paid", "pending").
+  bool? securityDepositPaid;
+  String? securityDepositPaymentStatus;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -265,6 +280,12 @@ class RiderOnboardingStatusData {
     map['rcImageBack'] = rcImageBack;
     map['vehicleImageUrls'] =
         vehicleImageUrls.map((e) => e.toJson()).toList();
+    // Round-trip the deposit fields under the same nested shape the API uses
+    // so the cached copy re-parses identically.
+    map['securityDeposit'] = {
+      'paid': securityDepositPaid,
+      'paymentStatus': securityDepositPaymentStatus,
+    };
     return map;
   }
 

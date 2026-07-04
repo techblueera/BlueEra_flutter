@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -38,7 +39,8 @@ enum _OrderStatusFilter { all, upcoming, completed, cancelled }
 
 enum _OrderPeriodFilter { today, week, month, all }
 
-class _RiderMeScreenState extends State<RiderMeScreen> {
+class _RiderMeScreenState extends State<RiderMeScreen>
+    with WidgetsBindingObserver, RouteAware {
   final DeliveryPartnerController _riderCtrl =
       getOrPut(() => DeliveryPartnerController());
   final DeliverPartnerOrdersController _ordersCtrl =
@@ -57,9 +59,45 @@ class _RiderMeScreenState extends State<RiderMeScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     // Defer to after the first frame so the screen paints immediately (from
     // cache) and the network work never blocks the first build.
     WidgetsBinding.instance.addPostFrameCallback((_) => _bootstrap());
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Subscribe to the route observer so we can re-check the onboarding/payment
+    // status every time this screen becomes visible again (e.g. after the rider
+    // returns from RiderServiceScreen where they finish docs / pay the deposit).
+    final route = ModalRoute.of(context);
+    if (route is PageRoute) {
+      RouteHelper.routeObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void didPopNext() {
+    // A screen pushed on top of this one was popped — we're visible again.
+    // Re-fetch the onboarding/payment status so the Go-Live gate is current.
+    _refreshOnboardingStatus();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Coming back from the background (e.g. after paying in an external flow) —
+    // re-check the payment status so the rider isn't left on a stale gate.
+    if (state == AppLifecycleState.resumed) {
+      _refreshOnboardingStatus();
+    }
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    RouteHelper.routeObserver.unsubscribe(this);
+    super.dispose();
   }
 
   Future<void> _bootstrap({bool forceRefresh = false}) async {
@@ -69,10 +107,17 @@ class _RiderMeScreenState extends State<RiderMeScreen> {
     _viewCtrl.UserFollowersAndPostsCount(userId, forceRefresh: forceRefresh);
     _ordersCtrl.getRidersBookingOrders(forceRefresh: forceRefresh);
 
-    // Onboarding status is cache-first (instant on a hit); await only this one
-    // because the live-orders stream decision depends on the verification
-    // state it produces.
-    await _riderCtrl.ridersOnboardingStatusRepoApi(forceRefresh: forceRefresh);
+    await _refreshOnboardingStatus();
+  }
+
+  /// Always hits the network for onboarding/payment status so the rider's
+  /// current payment + verification state is never served stale from cache.
+  /// Payment can be completed on the backend at any time, so this is called on
+  /// every screen open, on return to the screen, and on app resume — not just
+  /// pull-to-refresh. Awaited because the live-orders stream decision depends
+  /// on the verification state it produces.
+  Future<void> _refreshOnboardingStatus() async {
+    await _riderCtrl.ridersOnboardingStatusRepoApi(forceRefresh: true);
     if (_riderCtrl.riderVerificationState == RiderVerificationState.completed) {
       _ordersCtrl.fetchStream();
     }
@@ -418,6 +463,18 @@ class _RiderMeScreenState extends State<RiderMeScreen> {
                     commonSnackBar(
                         message:
                             'Please upload your documents and get verified before going live.');
+                    Get.to(() => const RiderServiceScreen());
+                    return;
+                  }
+                  // After document verification, the security deposit must be
+                  // paid before going online. This gate applies only to bike
+                  // riders / cab drivers (the professions that pay a deposit).
+                  final isRiderRole = userProfessionGlobal == BIKE_RIDER ||
+                      userProfessionGlobal == CAR_TAXI_DRIVER;
+                  if (isRiderRole && !_riderCtrl.isSecurityDepositPaid) {
+                    commonSnackBar(
+                        message:
+                            'Your payment is incomplete. Please complete the payment process to go live.');
                     Get.to(() => const RiderServiceScreen());
                     return;
                   }
