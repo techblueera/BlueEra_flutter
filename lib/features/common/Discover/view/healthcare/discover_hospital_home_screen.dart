@@ -23,6 +23,7 @@ import 'package:BlueEra/features/me/hospital/view/widget/hospital_header_view.da
 import 'package:BlueEra/features/me/hospital/view/widget/managment_card_widget.dart';
 import 'package:BlueEra/features/me/medical/controller/healthcare_enquiry_controller.dart';
 import 'package:BlueEra/features/me/medical/widget/healthcare_enquiry_sheet.dart';
+import 'package:BlueEra/features/me/medical/widget/hospital_appointment_sheet.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -114,6 +115,20 @@ class _DiscoverHospitalHomeScreenState extends State<DiscoverHospitalHomeScreen>
               (parsed.description?.isNotEmpty ?? false) ? parsed.description : existing.description);
 
     controller.hospitalDataResModel?.value = HospitalFullDetailsResModel(success: true, data: merged);
+
+    // Cache the OPD doctors as soon as the full profile lands — the
+    // customer can tap "Inquiry" the instant the button appears (which
+    // is gated only on `userId`, not on the departments merge), so
+    // caching lazily inside `_openHospitalEnquirySheet` alone would
+    // sometimes register an empty list before departments arrive. See
+    // lib/docs/healthcare-appointment-ui-integration.md §0.
+    final mergedId = (merged.id ?? '').trim();
+    if (mergedId.isNotEmpty) {
+      final doctors = _doctorsForAppointment(merged);
+      HospitalAppointmentSheet.cacheDoctorsForHospital(mergedId, doctors);
+      debugPrint('[DiscoverHospital] cached ${doctors.length} OPD doctor(s) '
+          'for hospitalId=$mergedId');
+    }
   }
 
   /// TEMP: prints the response key structure so we can locate where the
@@ -763,8 +778,18 @@ class _DiscoverHospitalHomeScreenState extends State<DiscoverHospitalHomeScreen>
   /// Opens the unified healthcare-enquiry sheet for this hospital. Pulls
   /// the listing snapshot (id / owner id / name / cover / first-contact
   /// location) from the loaded hospital model so the sheet header — and
-  /// the eventual in-chat card — renders without an extra fetch. See
-  /// lib/docs/enquiry-flows-ui-integration.md §4.
+  /// the eventual in-chat card — renders without an extra fetch.
+  ///
+  /// Before opening we register the hospital's OPD doctors with
+  /// [HospitalAppointmentSheet.cacheDoctorsForHospital] so the
+  /// enquiry-first flow (customer taps "Book Appointment" on the
+  /// accepted chat card) can render a real doctor picker instead of the
+  /// empty-state fallback. The cache is keyed by hospitalId and lives
+  /// only for this session — losing it on restart is fine, the sheet
+  /// gracefully shows an empty state prompting the customer to reopen
+  /// the hospital screen. See
+  /// lib/docs/healthcare-appointment-ui-integration.md §0
+  /// (enquiry-first flow).
   void _openHospitalEnquirySheet() {
     final data = controller.hospitalDataResModel?.value.data;
     final listingId = (data?.id ?? '').trim();
@@ -773,6 +798,8 @@ class _DiscoverHospitalHomeScreenState extends State<DiscoverHospitalHomeScreen>
       commonSnackBar(message: AppStrings.somethingWentWrong.tr);
       return;
     }
+    HospitalAppointmentSheet.cacheDoctorsForHospital(
+        listingId, _doctorsForAppointment(data));
     final firstContact = data?.contacts?.firstOrNull?.branch;
     HealthcareEnquirySheet.open(
       context,
@@ -786,6 +813,44 @@ class _DiscoverHospitalHomeScreenState extends State<DiscoverHospitalHomeScreen>
         location: firstContact?.location?.name,
       ),
     );
+  }
+
+  /// Flattens the loaded hospital's departments → OPD doctors into the
+  /// slim shape the appointment sheet consumes. Each doctor carries its
+  /// parent department name so the picker can display it. Doctors
+  /// missing an id are dropped (server would reject them as `opd_id`).
+  ///
+  /// Iterates every department (not just `type == 'OPD'`) because the
+  /// backend sometimes leaves `type` blank on OPD-only entries — as
+  /// long as `dept.opd` is populated we take those doctors. IPD-only
+  /// entries naturally drop out (their `opd` is null).
+  ///
+  /// `fees` is not on the discover-side OPD shape — that's fine: the
+  /// server snapshots fees from the OPD record when the booking is
+  /// created (doc §1), so the client never sends them.
+  List<HospitalAppointmentDoctorOption> _doctorsForAppointment(
+      HospitalFullData? data) {
+    final out = <HospitalAppointmentDoctorOption>[];
+    final departments = data?.departments ?? const <IpdOpdDepartments>[];
+    debugPrint('[DiscoverHospital] _doctorsForAppointment: '
+        'departments=${departments.length} '
+        'types=${departments.map((d) => d.type).toList()} '
+        'opdCounts=${departments.map((d) => d.opd?.length ?? 0).toList()}');
+    for (final dept in departments) {
+      final deptName = (dept.name ?? '').trim();
+      for (final doc in dept.opd ?? const <Opd>[]) {
+        final id = (doc.id ?? '').trim();
+        if (id.isEmpty) continue;
+        out.add(HospitalAppointmentDoctorOption(
+          id: id,
+          name: (doc.name ?? '').trim(),
+          department: deptName.isNotEmpty ? deptName : null,
+          image: doc.imageUrl,
+          timing: doc.timing,
+        ));
+      }
+    }
+    return out;
   }
 
   void _launchCaller(String number) async {

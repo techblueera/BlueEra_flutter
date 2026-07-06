@@ -89,7 +89,15 @@ class HealthcareEnquiryModel {
     return HealthcareEnquiryModel(
       enquiryId: (json['enquiryId'] ?? json['_id'] ?? json['id'])?.toString(),
       category: json['category']?.toString(),
-      listingId: (json['listingId'] ?? json['listing_id'])?.toString(),
+      // Some backend paths echo the id as `hospitalId` on hospital-category
+      // enquiries (because that's the field name on the raw document).
+      // Accept both so the enquiry-first flow — which needs the hospital
+      // id to open the appointment sheet — always has something to key on.
+      listingId: (json['listingId'] ??
+              json['listing_id'] ??
+              json['hospitalId'] ??
+              json['hospital_id'])
+          ?.toString(),
       ownerId: (json['ownerId'] ?? json['owner_id'])?.toString(),
       customerId: (json['customerId'] ?? json['customer_id'])?.toString(),
       listingName: json['listingName']?.toString(),

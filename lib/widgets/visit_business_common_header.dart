@@ -183,20 +183,20 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       // Chat
-                      _buildCircleAction(
-                        icon: AppIconAssets.quillChatIcon,
-                        onTap: () {
-                          if (isGuestUser()) {
-                            createProfileScreen();
-
-                            return;
-                          }
-                          chatViewController.checkChatConnectionAndOpenChat(
-                            userId: details?.userId ?? '',
-                          );
-                        },
-                      ),
-                      const SizedBox(width: 8),
+                      // _buildCircleAction(
+                      //   icon: AppIconAssets.quillChatIcon,
+                      //   onTap: () {
+                      //     if (isGuestUser()) {
+                      //       createProfileScreen();
+                      //
+                      //       return;
+                      //     }
+                      //     chatViewController.checkChatConnectionAndOpenChat(
+                      //       userId: details?.userId ?? '',
+                      //     );
+                      //   },
+                      // ),
+                      // const SizedBox(width: 8),
                       // Follow
                       _buildFollowButton(),
                     ],

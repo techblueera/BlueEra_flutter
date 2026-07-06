@@ -5,6 +5,7 @@ import 'package:BlueEra/features/chat/auth/model/replyParantMessage.dart';
 import 'package:BlueEra/features/chat/auth/model/self_pickup_order_model.dart';
 import 'package:BlueEra/features/chat/auth/model/service_enquiry_model.dart';
 import 'package:BlueEra/features/chat/auth/model/property_enquiry_model.dart';
+import 'package:BlueEra/features/chat/auth/model/healthcare_booking_model.dart';
 import 'package:BlueEra/features/chat/auth/model/healthcare_enquiry_model.dart';
 import 'package:BlueEra/features/chat/auth/model/hotel_enquiry_model.dart';
 import 'package:BlueEra/features/chat/auth/model/hotel_booking_model.dart';
@@ -484,6 +485,13 @@ class MessageMetadata {
   String? healthcareEnquiryId;
   HealthcareEnquiryModel? healthcareEnquiry;
 
+  // Hospital appointment / healthcare booking (`/hospital-appointments`
+  // → message_type `healthcare_booking`). Enquiry-first flow: opened
+  // from the accepted healthcare-enquiry card and links back to that
+  // enquiry via `enquiryId`. Doc `healthcare-appointment-ui-integration.md`.
+  String? healthcareBookingId;
+  HealthcareBookingModel? healthcareBooking;
+
   // Hotel enquiry (`/hotel-enquiries` → message_type `hotel_enquiry`).
   // See lib/docs/enquiry-flows-ui-integration.md §2a.
   String? hotelEnquiryId;
@@ -583,6 +591,8 @@ class MessageMetadata {
     this.propertyEnquiry,
     this.healthcareEnquiryId,
     this.healthcareEnquiry,
+    this.healthcareBookingId,
+    this.healthcareBooking,
     this.hotelEnquiryId,
     this.hotelEnquiry,
     this.hotelBookingId,
@@ -693,6 +703,13 @@ class MessageMetadata {
           ? HealthcareEnquiryModel.fromJson(
               Map<String, dynamic>.from(json['healthcareEnquiry']))
           : null,
+      healthcareBookingId: (json['healthcareBookingId'] ??
+              json['healthcare_booking_id'])
+          ?.toString(),
+      healthcareBooking: json['healthcareBooking'] is Map
+          ? HealthcareBookingModel.fromJson(
+              Map<String, dynamic>.from(json['healthcareBooking']))
+          : null,
       hotelEnquiryId:
           (json['hotelEnquiryId'] ?? json['hotel_enquiry_id'])?.toString(),
       hotelEnquiry: json['hotelEnquiry'] is Map
@@ -802,6 +819,8 @@ class MessageMetadata {
       'propertyEnquiry': propertyEnquiry?.toJson(),
       'healthcareEnquiryId': healthcareEnquiryId,
       'healthcareEnquiry': healthcareEnquiry?.toJson(),
+      'healthcareBookingId': healthcareBookingId,
+      'healthcareBooking': healthcareBooking?.toJson(),
       'hotelEnquiryId': hotelEnquiryId,
       'hotelEnquiry': hotelEnquiry?.toJson(),
       'hotelBookingId': hotelBookingId,

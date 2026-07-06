@@ -76,4 +76,46 @@ class HotelBookingRepo extends BaseService {
       onError: (_) {},
     );
   }
+
+  /// Customer outbox — bookings I sent (doc §2.3
+  /// `GET /hotel-bookings/me`). `status` filter allows
+  /// `pending`/`accepted`/`declined`/`cancelled`; `limit` server-clamped
+  /// to 1..100.
+  Future<ResponseModel> getMyHotelBookings({
+    String? status,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    return ApiBaseHelper().getHTTP(
+      hotelBookingsMe,
+      params: <String, dynamic>{
+        if (status != null && status.isNotEmpty) 'status': status,
+        'page': page,
+        'limit': limit,
+      },
+      showProgress: false,
+      onSuccess: (_) {},
+      onError: (_) {},
+    );
+  }
+
+  /// Owner inbox — bookings on my hotels (doc §2.3
+  /// `GET /hotel-bookings/owner/me`). Same query params as the outbox.
+  Future<ResponseModel> getOwnerHotelBookings({
+    String? status,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    return ApiBaseHelper().getHTTP(
+      hotelBookingsOwnerMe,
+      params: <String, dynamic>{
+        if (status != null && status.isNotEmpty) 'status': status,
+        'page': page,
+        'limit': limit,
+      },
+      showProgress: false,
+      onSuccess: (_) {},
+      onError: (_) {},
+    );
+  }
 }

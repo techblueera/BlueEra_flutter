@@ -5,7 +5,6 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
-import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart';
 import 'package:BlueEra/features/common/Discover/widget/profession_enquiry_sheet.dart';
@@ -169,23 +168,23 @@ class _ProfessionalsContent extends StatelessWidget {
       child: SafeArea(
         child: Row(
           children: [
-            Expanded(
-              child: PositiveCustomBtn(
-                onTap: () {
-                  final chatViewController = Get.find<ChatViewController>();
-                  chatViewController.checkChatConnectionAndOpenChat(
-                    userId: data.userId ?? '',
-                    route: AppConstants.route_discover,
-                  );
-                },
-                title: AppStrings.chat.tr,
-              ),
-            ),
-            SizedBox(width: SizeConfig.paddingS),
+            // Expanded(
+            //   child: PositiveCustomBtn(
+            //     onTap: () {
+            //       final chatViewController = Get.find<ChatViewController>();
+            //       chatViewController.checkChatConnectionAndOpenChat(
+            //         userId: data.userId ?? '',
+            //         route: AppConstants.route_discover,
+            //       );
+            //     },
+            //     title: AppStrings.chat.tr,
+            //   ),
+            // ),
+            // SizedBox(width: SizeConfig.paddingS),
             Expanded(
               child: PositiveCustomBtn(
                 onTap: () => ProfessionEnquirySheet.open(context, data),
-                title: AppStrings.bookInquiryLabel.tr,
+                title: AppStrings.inquiry.tr,
               ),
             ),
           ],
