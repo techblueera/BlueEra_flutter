@@ -69,6 +69,29 @@ mixin EarnServiceApi {
   /// gate the "Create profile" CTA.
   final String earnArtistCheck = "earn-service/earn-artists/any/check";
 
+  /// `POST earn-service/earn-artists/{id}/gallery/{galleryIndex}/images` → mint
+  /// S3 presigned PUT urls for the gallery group at [galleryIndex]
+  /// (`{ contentTypes: [...] }` → `{ uploadUrls: [PUT urls] }`). The same path
+  /// with `DELETE` removes images (`{ image_urls: [...] }`).
+  String earnArtistGalleryImages(String artistId, int galleryIndex) =>
+      'earn-service/earn-artists/$artistId/gallery/$galleryIndex/images';
+
+  /// Predefined artist-expertise catalog (read-only reference data that drives
+  /// the profile-creation / edit pickers).
+  /// `GET .../types` → parent groups (ARTIST / CONTENT_CREATOR).
+  final String predefinedArtistExpertiseTypes =
+      "earn-service/predefined-artist-expertise/types";
+
+  /// `GET .../type/{type}` → categories under a parent group.
+  String predefinedArtistExpertiseByType(String type) =>
+      'earn-service/predefined-artist-expertise/type/$type';
+
+  /// `GET .../{category}?type={type}` → the suggested `expertise[]` for one
+  /// category. Always pass `?type=` since a category can exist under both
+  /// parent groups.
+  String predefinedArtistExpertiseByCategory(String category) =>
+      'earn-service/predefined-artist-expertise/$category';
+
   /// Earn Profiles
   final String earnProfiles = "earn-service/earn-profiles";
 

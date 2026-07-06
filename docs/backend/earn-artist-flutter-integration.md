@@ -20,13 +20,16 @@ STEP 1  Expertise catalog (read-only, public reference data)
   GET earn-service/predefined-artist-expertise/type/ARTIST     → categories under a type
   GET earn-service/predefined-artist-expertise/PAINTER?type=ARTIST → suggested expertise
 
-STEP 2  Create / manage the artist profile
+STEP 2  Create a minimal profile, then fill it in section by section
   GET  earn-service/earn-artists/any/check                    → gate the "Create" button
-  POST earn-service/earn-artists                              → create + get S3 upload URLs
+  POST earn-service/earn-artists  { type, category, title? }  → create a bare profile → artistId
+  PUT  earn-service/earn-artists/{id}  { <one section> }      → save each section (expertise,
+                                                                brand, contact, booking, channels,
+                                                                gallery groups, certificates, logo)
+  POST earn-service/earn-artists/{id}/gallery/{i}/images      → mint gallery image upload URLs
   (PUT the file bytes to each presigned URL)
   GET  earn-service/earn-artists?all=true&...                 → discover / search
   GET  earn-service/earn-artists/{id}                         → profile detail (user populated)
-  PUT  earn-service/earn-artists/{id}                         → edit
 
 STEP 3  Enquiry (customer → artist) + chat card
   POST earn-service/artist-enquiries                          → JSON or multipart
@@ -139,7 +142,12 @@ The values you carry forward into STEP 2:
 
 ---
 
-## STEP 2 — The artist profile
+## STEP 2 — The artist profile (create minimal, then fill section-by-section)
+
+The profile is built in **two phases** so the user isn't blocked on one giant form:
+
+1. **Create** a bare profile with just the identity fields — `type`, `category`, and an optional `title`. This returns the new `artistId`.
+2. **Fill it in** one section at a time with `PUT earn-service/earn-artists/{id}`, sending only the section the user just edited. Each PUT is independent, so the editor can save-as-you-go.
 
 ### 2a. Gate the create button
 
@@ -147,67 +155,24 @@ The values you carry forward into STEP 2:
 
 If `exists`, route the user to **edit** their existing `artistId` instead of create (the create endpoint returns `409` with `existingArtistId` otherwise).
 
-### 2b. Create the profile — `POST earn-service/earn-artists`
+### 2b. Create a minimal profile — `POST earn-service/earn-artists`
 
-The owner is taken from your token — **do not** send any user/provider id. Only `category` is required; `title` is auto-generated as `"<Your Name> <Category>"` when omitted.
-
-Media is uploaded via **S3 presigned URLs**: you send the *content types* you want to upload, the server stores placeholder keys and returns short-lived `PUT` URLs, and you upload the bytes directly to S3.
-
-**Full create body:**
+The owner is taken from your token — **do not** send any user/provider id. Send only the identity fields:
 
 ```json
 {
   "type": "ARTIST",
   "category": "Painter",
-  "description": "Contemporary oil & acrylic artist based in Pune.",
-  "expertise": ["Oil painting", "Portrait painting", "Abstract art"],
-
-  "brandCollaborations": ["665f0a…businessId1", "665f0b…businessId2"],
-
-  "channels": [
-    { "name": "Instagram", "url": "https://instagram.com/artist" },
-    { "name": "YouTube", "channelId": "665f0c…internalChannelId" }
-  ],
-
-  "contactUs": {
-    "description": "Available for commissions & live events",
-    "website": "https://artist.example",
-    "email": "artist@example.com",
-    "number": "+91 90000 00000"
-  },
-
-  "booking": {
-    "minimumPrice": 2000,
-    "price": 500,
-    "bookingType": "Commission",
-    "priceType": "perHour"
-  },
-
-  "gallery": [
-    { "name": "Portraits", "images": [] },
-    { "name": "Murals", "images": [] }
-  ],
-
-  "certificatesAndAwards": [
-    { "name": "State Art Award 2024", "description": "Best emerging artist", "media": [] }
-  ],
-
-  "logoContentType": "image/png",
-
-  "galleryUploads": [
-    { "galleryIndex": 0, "contentTypes": ["image/jpeg", "image/jpeg"] },
-    { "galleryIndex": 1, "contentTypes": ["image/png"] }
-  ],
-
-  "certificateUploads": [
-    { "certificateIndex": 0, "media": [{ "type": "image", "contentType": "image/jpeg" }] }
-  ]
+  "title": "Asha Verma Painter"
 }
 ```
 
-> **Critical ordering:** `galleryUploads[i].galleryIndex` and `certificateUploads[i].certificateIndex` are **indices into the `gallery` / `certificatesAndAwards` arrays you send in the same request**. So you must include the gallery group (with an empty `images: []`) and the certificate (with empty `media: []`) in the body, then reference their position by index. `priceType` is one of `perHour` | `perVisit`.
+- `category` is the **only required** field → `400 Missing required field: category` otherwise.
+- `title` is optional; when omitted the server auto-generates `"<Your Name> <Category>"`.
+- `type` is the parent group (`ARTIST` / `CONTENT_CREATOR`) from STEP 1.
+- Keep this call **minimal** — do *not* send expertise / gallery / contact / booking here. Those go through the section-wise PUT in 2c so the user lands in the profile editor immediately. (The endpoint technically still accepts them, but the client flow is create-then-edit.)
 
-**Response** — the created profile plus the presigned upload URLs:
+**Response** — the created profile (media/collections empty), whose `_id` you carry into every section PUT:
 
 ```json
 {
@@ -218,26 +183,104 @@ Media is uploaded via **S3 presigned URLs**: you send the *content types* you wa
     "title": "Asha Verma Painter",
     "type": "ARTIST",
     "category": "Painter",
-    "serviceLogo": "https://…s3…/logo (presigned GET)",
-    "gallery": [ { "name": "Portraits", "images": [] }, … ],
-    "…": "…"
+    "expertise": [],
+    "gallery": [],
+    "certificatesAndAwards": []
   },
-  "uploadUrls": {
-    "logo": "https://s3…PUT-url",
-    "gallery": [
-      { "galleryIndex": 0, "images": ["https://s3…PUT", "https://s3…PUT"] },
-      { "galleryIndex": 1, "images": ["https://s3…PUT"] }
-    ],
-    "certificates": [
-      { "certificateIndex": 0, "media": [{ "type": "image", "url": "https://s3…PUT" }] }
-    ]
-  }
+  "uploadUrls": {}
 }
 ```
 
-### 2c. Upload the bytes to each presigned URL
+```dart
+Future<String> createArtist({
+  required String type,
+  required String category,
+  String? title,
+}) async {
+  final r = await dio.post('/earn-artists', data: {
+    'type': type,
+    'category': category,
+    if (title != null) 'title': title,
+  });
+  return r.data['artist']['_id'] as String;
+}
+```
 
-For **every** URL in `uploadUrls`, do an HTTP `PUT` of the raw file bytes with the **same `Content-Type`** you declared. Use a bare Dio (no auth header — the signature is in the URL).
+### 2c. Fill in each section — `PUT earn-service/earn-artists/{id}`
+
+Every editable section maps to one PUT that sends **only that section's field(s)**. Send one section or several together — anything you omit is left untouched. Array sections **replace** wholesale (send the full new list); the `contactUs` / `booking` objects **merge** (send only changed keys).
+
+| Section (UI) | Body you PUT | Semantics |
+|---|---|---|
+| **Expertise / skills** | `{ "expertise": ["Oil painting", "Portrait painting"] }` | Replaces the whole list |
+| **Associate brands** | `{ "brandCollaborations": ["<businessId1>", "<businessId2>"] }` | Replaces; entries are **Business ids** |
+| **Contact us** | `{ "contactUs": { "email": "a@b.com", "number": "+91…", "website": "…", "description": "…" } }` | **Merges** — send only changed keys |
+| **Booking / pricing** | `{ "booking": { "minimumPrice": 2000, "price": 500, "bookingType": "Commission", "priceType": "perHour" } }` | **Merges**; `priceType` = `perHour`\|`perVisit` |
+| **Channels / socials** | `{ "channels": [ { "name": "Instagram", "url": "…" }, { "name": "YouTube", "channelId": "<id>" } ] }` | Replaces the whole list |
+| **Description** | `{ "description": "Contemporary oil & acrylic artist based in Pune." }` | Overwrites |
+| **Gallery (groups)** | `{ "gallery": [ { "name": "Portraits", "images": [] }, { "name": "Murals", "images": [] } ] }` | Replaces groups; upload images in 2d |
+| **Certificates & awards (text)** | `{ "certificatesAndAwards": [ { "name": "State Art Award 2024", "description": "…", "media": [] } ] }` | Replaces the list; media in 2d |
+| **Logo** | `{ "logoContentType": "image/png" }` → returns `uploadUrls.logo` | Mints an S3 PUT url; `{ "deleteLogo": true }` to remove |
+| **Activate / deactivate** | `{ "isActive": false }` | Toggles list visibility |
+
+**Response** for any PUT — the full updated profile plus any upload URLs minted by that call:
+
+```json
+{
+  "artist": { "_id": "66aa…", "expertise": ["Oil painting", "Portrait painting"], "…": "…" },
+  "uploadUrls": { "logo": "https://s3…PUT-url" }   // present only when logoContentType was sent
+}
+```
+
+> **Replace vs merge — don't silently drop data.** `expertise`, `certificatesAndAwards`, `brandCollaborations`, `gallery`, `channels` are **replaced** by exactly what you send, so read-modify-write the full array (append to the existing list client-side, then PUT the whole thing). `contactUs` and `booking` are **merged**, so a partial object is safe. `serviceLogo` and `userId` in the body are ignored.
+
+```dart
+Future<void> saveSection(String artistId, Map<String, dynamic> section) async {
+  await dio.put('/earn-artists/$artistId', data: section);
+}
+
+// examples — one section per call:
+await saveSection(id, {'expertise': ['Oil painting', 'Portrait painting']});
+await saveSection(id, {'contactUs': {'email': 'a@b.com'}});          // merges
+await saveSection(id, {'brandCollaborations': [b1, b2]});
+await saveSection(id, {'booking': {'price': 500, 'priceType': 'perHour'}});
+```
+
+### 2d. Media sections — logo, gallery images, certificate media
+
+Media is uploaded via **S3 presigned URLs**: the API returns a short-lived `PUT` URL, and you upload the raw bytes directly to S3 with the same `Content-Type`.
+
+**Logo.** Send `logoContentType` on a section PUT (2c); the response carries `uploadUrls.logo`. PUT the bytes to it. Send `deleteLogo: true` to clear it.
+
+**Gallery images.** First make sure the gallery *group* exists (PUT `gallery` in 2c), then mint upload URLs for a group by its index:
+
+`POST earn-service/earn-artists/{id}/gallery/{galleryIndex}/images`
+
+```json
+{ "contentTypes": ["image/jpeg", "image/png"] }   // or single: { "contentType": "image/jpeg" }
+```
+→ `{ "success": true, "uploadUrls": ["https://s3…PUT", "https://s3…PUT"] }` — PUT each file to its URL.
+Remove images with `DELETE …/gallery/{galleryIndex}/images` (`{ "image_urls": [...] }`).
+
+> Gallery images can **also** be minted on the section PUT via a `galleryUploads` array (same shape as certificates below) — the dedicated endpoint above is just the simpler path for adding to one existing group.
+
+**Certificate media.** Mint upload URLs on the section PUT exactly like create: send a `certificateUploads` array **alongside** the `certificatesAndAwards` list, indexing into it by position. Send the certificate with an empty `media: []`, then reference its index:
+
+```json
+{
+  "certificatesAndAwards": [
+    { "name": "State Art Award 2024", "description": "Best emerging artist", "media": [] }
+  ],
+  "certificateUploads": [
+    { "certificateIndex": 0, "media": [{ "type": "image", "contentType": "image/jpeg" }] }
+  ]
+}
+```
+→ response `uploadUrls.certificates: [{ "certificateIndex": 0, "media": [{ "type": "image", "url": "https://s3…PUT" }] }]` — PUT each file to its `url`. The `certificateIndex` points into the `certificatesAndAwards` array **in the same request**. `type` is `"image"` | `"video"`.
+
+> ⚠️ **Do NOT upload the certificate image to another service (e.g. the user-profile uploader) and paste its URL into `media[].key`.** That stores a foreign URL from a different bucket; the backend then tries to re-sign it as its own key and the image fails to load with `NoSuchKey`. Always mint the key through `certificateUploads` so it lands in this service's bucket. (Any legacy rows created the wrong way must be re-uploaded this way to fix them.)
+
+**Uploading the bytes.** For every presigned URL, HTTP `PUT` the raw file bytes with the **same `Content-Type`** you declared. Use a bare Dio (no auth header — the signature is in the URL):
 
 ```dart
 final _plain = Dio(); // no interceptors
@@ -256,35 +299,11 @@ Future<void> putToS3(String url, File file, String contentType) async {
 }
 ```
 
-Order of upload doesn't matter; do them in parallel. Map each returned URL back to the file the user picked, matching by index:
-
-```dart
-Future<void> uploadArtistMedia(UploadUrls u, ArtistDraft d) async {
-  final jobs = <Future>[];
-  if (u.logo != null && d.logoFile != null) {
-    jobs.add(putToS3(u.logo!, d.logoFile!, d.logoContentType!));
-  }
-  for (final g in u.gallery) {
-    final files = d.gallery[g.galleryIndex].files; // your picked files for that group
-    for (var i = 0; i < g.images.length; i++) {
-      jobs.add(putToS3(g.images[i], files[i], lookupMime(files[i])));
-    }
-  }
-  for (final c in u.certificates) {
-    final media = d.certificates[c.certificateIndex].files;
-    for (var i = 0; i < c.media.length; i++) {
-      jobs.add(putToS3(c.media[i].url, media[i], lookupMime(media[i])));
-    }
-  }
-  await Future.wait(jobs);
-}
-```
-
 After the PUTs succeed the media is live; the next `GET` returns presigned **download** URLs in the same fields (`serviceLogo`, `gallery[].images`, `certificatesAndAwards[].media[].key`).
 
 > **Certificate media download field.** On GET, each `certificatesAndAwards[].media[]` item is `{ type, key }` where **`key`** carries the presigned **download URL** (the stored S3 key is swapped for the URL in place — the field name stays `key`, it is *not* renamed to `url` on read). `type` is `"image"` | `"video"`. Read the image/video from `media[].key`.
 
-### 2d. Discover / search — `GET earn-service/earn-artists`
+### 2e. Discover / search — `GET earn-service/earn-artists`
 
 Returns a **plain array** when `all=true` (list/search), or a **single object** (your own newest profile) when `all=false`/omitted.
 
@@ -309,13 +328,13 @@ Every returned profile has its owner populated under **`user`**, and all media f
 
 > **`brandCollaborations` holds Business ids and is NOT populated on the artist GET.** Each entry is a **Business id** (a `Business` entity id) — the artist GET returns them as a **plain array of id strings**, it does *not* expand them into `{ name, logo, location }`. To render the "Associate Brands" strip (logo + name + sublabel) you must **populate each business from its id** against the Business service. The sublabel/logo/name come from the resolved Business record, not from the artist document.
 
-### 2e. Other profile endpoints
+### 2f. Other profile endpoints
 
 | Method & path | Purpose |
 |---|---|
 | `GET earn-service/earn-artists/{id}` | Public profile detail (`user` populated) |
 | `GET earn-service/earn-artists/user/{userId}?page&limit` | A user's profiles, paginated |
-| `PUT earn-service/earn-artists/{id}` | Edit (owner only). Arrays like `expertise`/`gallery`/`channels` **replace**; `contactUs`/`booking` **merge**. Send `logoContentType` to swap the logo (returns a new `uploadUrls.logo`), or `deleteLogo: true` to remove it. `serviceLogo`/`userId` in the body are ignored. |
+| `PUT earn-service/earn-artists/{id}` | The section-wise save from **2c** (owner only). Arrays **replace**, `contactUs`/`booking` **merge**, `logoContentType`/`deleteLogo` manage the logo. `serviceLogo`/`userId` in the body are ignored. |
 | `DELETE earn-service/earn-artists/{id}` | Soft-delete + S3 cleanup (owner only) |
 | `POST earn-service/earn-artists/{id}/gallery/{galleryIndex}/images` | Add images to an existing gallery group → `{ uploadUrls: [PUT urls] }` |
 | `DELETE earn-service/earn-artists/{id}/gallery/{galleryIndex}/images` | Remove images (`{ image_urls: [...] }` or `{ image_url: "…" }`) |
@@ -509,7 +528,8 @@ Answers to the fields the content-creator **Overview** design needs. Use this to
 ## 7. Build order for the client
 
 1. **Catalog pickers** (STEP 1) — cache `types` + per-type categories; drive the expertise chips from the selected category.
-2. **Profile create/edit** (STEP 2) — the two-phase media flow: `POST` to get `uploadUrls`, then `PUT` bytes to S3. Gate with `/any/check`.
-3. **Discover + detail** (STEP 2d/2e) — search list → profile detail (owner in `user`).
-4. **Enquiry** (STEP 3) — submit → open business chat; wire the two sockets for the card + status flip.
+2. **Minimal create** (STEP 2b) — `POST { type, category, title? }` behind the `/any/check` gate → carry the returned `artistId`.
+3. **Section-wise editor** (STEP 2c/2d) — one PUT per section (expertise, brand, contact, booking, channels, gallery, certificates, logo). For media, mint a presigned URL then `PUT` the bytes to S3: logo via `logoContentType`, gallery images via `…/gallery/{i}/images` (or `galleryUploads`), certificate media via `certificateUploads` on the PUT — never paste a foreign upload URL into a media key.
+4. **Discover + detail** (STEP 2e/2f) — search list → profile detail (owner in `user`).
+5. **Enquiry** (STEP 3) — submit → open business chat; wire the two sockets for the card + status flip.
 ```

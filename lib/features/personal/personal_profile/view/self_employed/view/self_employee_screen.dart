@@ -370,7 +370,6 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
     }
   }
 
-  // Statics tab â€” chat-click analytics, same as grocery/medical
   // dashboards' last tab. Uses the current user's id as the analytics
   // key since self-employed accounts don't have a separate businessId.
   Widget _buildStaticsTab() {
@@ -410,10 +409,6 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
         ),
         Padding(
           padding: const EdgeInsets.only(top: 10, left: 20, right: 10),
-          child: const ProfileLocationCard(margin: EdgeInsets.zero),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(top: 10, left: 20, right: 10),
           child: Obx(() => WebsiteOverviewCard(
             websiteUrl: _viewCtrl.website.value,
             onSave: (url) => _personalCtrl.updateUserProfileDetails(
@@ -421,6 +416,10 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
               isFromProfileOnly: true,
             ),
           )),
+        ),
+        Padding(
+          padding: const EdgeInsets.only(top: 10, left: 20, right: 10),
+          child: const ProfileLocationCard(margin: EdgeInsets.zero),
         ),
         _buildQrCard(),
         _buildShareBanner(),

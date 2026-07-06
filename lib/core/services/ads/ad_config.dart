@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:BlueEra/env.dart';
 import 'package:flutter/foundation.dart';
 
-/// Central config for the app's ads — now served entirely by **Meta (Facebook
-/// Audience Network)**. Google AdMob has been removed.
+/// Central config for the app's ads — served entirely by **Meta (Facebook
+/// Audience Network)**. Google AdMob is not used.
 ///
 ///  • DEBUG / profile builds → [showAdsInDebug]
 ///        true  = show Meta TEST ads

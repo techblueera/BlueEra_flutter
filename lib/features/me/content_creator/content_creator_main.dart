@@ -20,6 +20,7 @@ import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/common/statistics/view/profile_statistics_screen.dart';
 import 'package:BlueEra/features/me/content_creator/controller/earn_artist_controller.dart';
 import 'package:BlueEra/features/me/content_creator/view/content_creator_overview_tab.dart';
+import 'package:BlueEra/features/me/content_creator/widget/content_creator_channel_tab.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/widget/earn_store_section.dart';
@@ -68,6 +69,11 @@ class _ContentCreatorMainScreenState extends State<ContentCreatorMainScreen>
 
   late final TabController _tabController;
 
+  /// Tabs whose data has already been loaded — each tab fetches lazily the first
+  /// time it becomes active, so e.g. the earn-artist profile isn't fetched or
+  /// created until the Overview tab is actually opened.
+  final Set<int> _loadedTabs = {};
+
   List<String> get _tabs => [
         AppStrings.order.tr,
         AppStrings.overview.tr,
@@ -90,16 +96,9 @@ class _ContentCreatorMainScreenState extends State<ContentCreatorMainScreen>
     // identity card can drive cover/avatar edits from a shared instance.
     getOrPut(() => PersonalCreateProfileController());
     _viewCtrl.UserFollowersAndPostsCount(userId);
-    // Load the creator's own artist profile for the Overview tab; silently
-    // create a minimal one if none exists so the earn sections always resolve.
-    _earnArtistController.ensureArtistProfile(
-        type: userProfessionGlobal, category: userDesignationGlobal);
-    // Hydrate the business chat list so the Order tab's inquiry list has data
-    // ready when the user switches to it.
-    _chatViewController.emitEvent(
-      ChatEmitEvents.ChatList,
-      {ApiKeys.type: AppConstants.business_Chat_Type},
-    );
+    // Load per-tab data lazily on first activation instead of all up front.
+    _tabController.addListener(_onTabChanged);
+    _loadTabData(_tabController.index);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewCtrl.shopStatusOpenClose.value =
           serviceProviderStatusGlobal.toUpperCase() ==
@@ -109,8 +108,34 @@ class _ContentCreatorMainScreenState extends State<ContentCreatorMainScreen>
 
   @override
   void dispose() {
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     super.dispose();
+  }
+
+  /// Fires each tab's data load the first time it settles on that tab.
+  void _onTabChanged() {
+    if (_tabController.indexIsChanging) return;
+    _loadTabData(_tabController.index);
+  }
+
+  /// Loads the data a tab needs, once. Order (0) hydrates the business-chat
+  /// inquiry list; Overview (1) loads/creates the earn-artist profile. Other
+  /// tabs manage their own data, so they have no entry here.
+  void _loadTabData(int index) {
+    if (!_loadedTabs.add(index)) return; // already loaded
+    switch (index) {
+      case 0:
+        _chatViewController.emitEvent(
+          ChatEmitEvents.ChatList,
+          {ApiKeys.type: AppConstants.business_Chat_Type},
+        );
+        break;
+      case 1:
+        _earnArtistController.ensureArtistProfile(
+            type: userProfessionGlobal, category: userDesignationGlobal);
+        break;
+    }
   }
 
   @override
@@ -130,7 +155,7 @@ class _ContentCreatorMainScreenState extends State<ContentCreatorMainScreen>
               tabViews: [
                 _tabScroll(_buildOrderTab()),
                 _tabScroll(const [ContentCreatorOverviewTab()]),
-                _tabScroll([_comingSoon('Channel')]),
+                _tabScroll(const [ContentCreatorChannelTab()]),
                 _tabScroll(const [EarnStoreCards()]),
                 _tabScroll(_buildPostTab()),
                 _tabScroll(_buildStaticsTab()),
@@ -466,45 +491,6 @@ class _ContentCreatorMainScreenState extends State<ContentCreatorMainScreen>
     ];
   }
 
-  // ─── PLACEHOLDER (Overview / Channel) ───────────────────────────────────
-  Widget _comingSoon(String label) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 48),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 64,
-              height: 64,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.primaryColor.withValues(alpha: 0.08),
-                border: Border.all(
-                  color: AppColors.primaryColor.withValues(alpha: 0.20),
-                  width: 1,
-                ),
-              ),
-              child: Icon(Icons.auto_awesome_rounded,
-                  size: 28, color: AppColors.primaryColor),
-            ),
-            SizedBox(height: SizeConfig.size12),
-            CustomText('$label coming soon',
-                fontSize: SizeConfig.large,
-                fontWeight: FontWeight.w700,
-                color: AppColors.mainTextColor),
-            SizedBox(height: SizeConfig.size6),
-            CustomText(
-              'We are building this for creators.',
-              fontSize: SizeConfig.small,
-              color: AppColors.secondaryTextColor,
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 class _PostMenuEntry {
