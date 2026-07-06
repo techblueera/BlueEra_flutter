@@ -1,0 +1,209 @@
+import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart';
+import 'package:BlueEra/features/chat/notification_chat/controller/blueera_notification_controller.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+
+/// Read-only conversation that renders every stored broadcast / system
+/// notification (profile updates, admin announcements, etc.) as incoming chat
+/// bubbles — styled exactly like [PersonalChatScreen]/[MessageBubble] received
+/// messages, over the same chat background, but with no input bar and no
+/// "Read more" truncation (the full notification text is always shown).
+/// Opened by tapping the pinned "BlueEra" row in the personal chat list.
+class BlueEraNotificationScreen extends StatefulWidget {
+  const BlueEraNotificationScreen({super.key});
+
+  @override
+  State<BlueEraNotificationScreen> createState() =>
+      _BlueEraNotificationScreenState();
+}
+
+class _BlueEraNotificationScreenState extends State<BlueEraNotificationScreen> {
+  final controller = BlueEraNotificationController.to;
+  // Self-register so the background + bubble colors match the rest of the chat
+  // surfaces regardless of entry path (mirrors PersonalChatScreen).
+  final chatThemeController = getOrPut(() => ChatThemeController());
+
+  @override
+  void initState() {
+    super.initState();
+    // Opening the thread clears the unread badge on the chat-list row.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.markAllRead();
+    });
+  }
+
+  String _formatTime(int millis) {
+    final dt = DateTime.fromMillisecondsSinceEpoch(millis).toLocal();
+    final now = DateTime.now();
+    final sameDay =
+        dt.year == now.year && dt.month == now.month && dt.day == now.day;
+    if (sameDay) return DateFormat('h:mm a').format(dt);
+    return DateFormat("d MMM, h:mm a").format(dt);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.fillColor,
+      appBar: _buildAppBar(),
+      body: SafeArea(
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            // Same chat background as the personal chat screen.
+            Obx(() => chatThemeController.chatBackground()),
+            Obx(() {
+              final items = controller.messages;
+              if (items.isEmpty) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 40),
+                    child: CustomText(
+                      "You're all caught up. Broadcast and system "
+                      "notifications from BlueEra will appear here.",
+                      textAlign: TextAlign.center,
+                      color: AppColors.secondaryTextColor,
+                      fontSize: 14,
+                      maxLines: 4,
+                    ),
+                  ),
+                );
+              }
+              // `messages` is newest-first; reverse:true renders index 0 at the
+              // bottom, so the newest notification sits at the bottom and the
+              // list opens scrolled to it — just like a chat thread.
+              return ListView.builder(
+                reverse: true,
+                padding:
+                    const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
+                itemCount: items.length,
+                itemBuilder: (context, index) => _bubble(items[index]),
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.white,
+      elevation: 0.5,
+      surfaceTintColor: Colors.white,
+      iconTheme: const IconThemeData(color: Colors.black),
+      titleSpacing: 0,
+      title: Row(
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+              border: Border.all(color: const Color(0xFFE0E0E0)),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Image.asset(
+              AppImageAssets.app_logo,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) =>
+                  const Icon(Icons.notifications, color: AppColors.primaryColor),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CustomText(
+                "BlueEra",
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.black,
+              ),
+              CustomText(
+                "Notifications",
+                fontSize: 12,
+                color: AppColors.secondaryTextColor,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// A received (left-aligned) text bubble matching [MessageBubble]'s incoming
+  /// style — same background colour, radius, text style and time widget — but
+  /// always renders the FULL notification text (no 100-char "Read more" cap).
+  Widget _bubble(BlueEraNotificationItem item) {
+    final hasTitle = item.title.trim().isNotEmpty &&
+        item.title.trim().toLowerCase() != 'blueera';
+    final body = item.body.trim();
+
+    return Container(
+      width: MediaQuery.of(context).size.width * 0.85,
+      margin: const EdgeInsets.only(right: 50, top: 2, bottom: 2),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: IntrinsicWidth(
+          child: Obx(
+            () => Container(
+              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+              decoration: BoxDecoration(
+                color: chatThemeController.receiveMessageBgColor.value,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(12),
+                  topRight: Radius.circular(12),
+                  bottomRight: Radius.circular(12),
+                  bottomLeft: Radius.circular(0),
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (hasTitle)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 3),
+                      child: CustomText(
+                        item.title.trim(),
+                        fontSize: chatThemeController.chatFontSize.value,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primaryColor,
+                        maxLines: 4,
+                      ),
+                    ),
+                  if (body.isNotEmpty)
+                    // Full text — no truncation / Read more.
+                    Text(
+                      body,
+                      style: chatThemeController.chatTextStyle(
+                        fontWeight: FontWeight.w500,
+                        isMyMessage: false,
+                      ),
+                    ),
+                  const SizedBox(height: 3),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: CustomText(
+                      _formatTime(item.timeMillis),
+                      fontSize: 10.5,
+                      color: chatThemeController.chatTimeColor.value,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

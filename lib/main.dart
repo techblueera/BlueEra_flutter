@@ -28,6 +28,7 @@ import 'package:BlueEra/core/theme/themes.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/app_maintannace/app_maintenance_controller.dart';
 import 'package:BlueEra/features/app_maintannace/maintenance_screen.dart';
+import 'package:BlueEra/features/chat/notification_chat/controller/blueera_notification_controller.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/onboarding/view/splash_screen.dart';
 import 'package:BlueEra/widgets/global_message_service.dart';
@@ -914,6 +915,11 @@ Future<void> _initDeferred(LocalizationService localizationService) async {
     Hive.openBox('languageBox').then((_) {}),
     Hive.openBox('localizationBox').then((_) {}),
   ]);
+
+  /// In-app "BlueEra" notification thread store. Registered before the
+  /// notification handler so incoming broadcast/system pushes are captured
+  /// into it, and hydrated from Hive here so past notifications show on launch.
+  Get.put(BlueEraNotificationController(), permanent: true);
 
   /// Notification setup (depends on Firebase, which is already initialized).
   /// Stays in the essential path so the cold-start deep-link routing fires.

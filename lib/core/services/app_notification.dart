@@ -18,6 +18,7 @@ import 'package:BlueEra/core/services/local_strorage_helper.dart';
 import 'package:BlueEra/core/services/notification/pending_deep_link.dart';
 import 'package:BlueEra/features/chat/auth/controller/add_chat_symbol_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/chat/notification_chat/controller/blueera_notification_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/features/chat/auth/model/symbol_details_model.dart';
 import 'package:BlueEra/features/chat/auth/repo/chat_view_repo.dart';
@@ -1658,6 +1659,17 @@ class AppNotificationHandler {
 
     final isChatMessage = _isChatOperation(operation);
 
+    // Mirror broadcast / system notifications (profile updates, admin
+    // announcements, etc.) into the in-app "BlueEra" chat thread so they
+    // surface as chat messages in the personal chat list. 1:1 chat messages
+    // are excluded — they already have their own conversation rows.
+    _captureBlueEraNotification(
+      operation: operation,
+      title: title,
+      body: body,
+      isChatMessage: isChatMessage,
+    );
+
     // Parse action buttons from backend
     List<Map<String, dynamic>> backendActions = [];
     try {
@@ -1804,6 +1816,32 @@ class AppNotificationHandler {
   }
 
   /// Check if operation is a chat/message type
+  /// Append a broadcast/system push into the in-app "BlueEra" notification
+  /// thread. Skips 1:1 chat messages (they have their own rows), AI greetings,
+  /// and call/ride operations (handled by their own UI). Best-effort — never
+  /// throws into the notification render path.
+  void _captureBlueEraNotification({
+    required String operation,
+    required String title,
+    required String body,
+    required bool isChatMessage,
+  }) {
+    try {
+      if (isChatMessage) return;
+      if (operation.contains('call') ||
+          operation.contains('ride') ||
+          operation.contains('greeting')) {
+        return;
+      }
+      if (title.trim().isEmpty && body.trim().isEmpty) return;
+      BlueEraNotificationController.to.addNotification(
+        title: title,
+        body: body,
+        operation: operation,
+      );
+    } catch (_) {}
+  }
+
   bool _isChatOperation(String operation) {
     return operation == 'sent_message' ||
         operation == 'message_reminder' ||
@@ -2225,6 +2263,32 @@ class AppNotificationHandler {
     logs("operation==== ${operation}");
     // logs("operation==== ${data['payload']['post_id']}");
     // logs("operation==== ${data['payload']['post_id'].runtimeType}");
+
+    // Also capture broadcast/system notifications that were received in the
+    // background and are now being tapped (these never pass through the
+    // foreground `showFromData` funnel, so mirror them into the BlueEra thread
+    // here). Chat/call/ride operations are excluded — they have their own UI.
+    if (!(operation == 'sent_message' ||
+        operation == 'message_reminder' ||
+        operation == 'tagged_in_message' ||
+        operation == 'commented_on_message' ||
+        operation == 'liked_message' ||
+        operation.contains('call') ||
+        operation.contains('ride') ||
+        operation.contains('greeting'))) {
+      try {
+        final title = (data['title'] ?? 'BlueEra').toString();
+        final body = (data['body'] ?? data['message'] ?? '').toString();
+        if (title.trim().isNotEmpty || body.trim().isNotEmpty) {
+          BlueEraNotificationController.to.addNotification(
+            title: title,
+            body: body,
+            operation: operation,
+          );
+        }
+      } catch (_) {}
+    }
+
     switch (operation) {
       // Single-session: tapped the "signed out on another device" notification
       // → run the full logout teardown and land on the login screen, but only

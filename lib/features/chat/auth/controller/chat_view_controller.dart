@@ -271,6 +271,24 @@ class ChatViewController extends GetxController {
   static final ChatList? consultingTalkAiChatListSearchModule =
      ChatList.fromJson(consultingTalkAiSearch);
 
+  /// Synthetic row for the pinned "BlueEra" system chat that surfaces broadcast
+  /// / system notifications (profile updates, admin announcements, etc.) as a
+  /// chat thread. Client-side only — its preview/unread are driven live by
+  /// [BlueEraNotificationController]. Mirrors the AI-row pattern above.
+  static final Map<String, dynamic> blueEraNotificationChatModel = {
+    "conversation_id": "blueera_notifications",
+    "last_message": "Tap to view your BlueEra notifications",
+    "last_message_type": "text",
+    "sender": {
+      "name": "BlueEra",
+      "contact_no": "BlueEra",
+      "profile_image": AppImageAssets.app_logo,
+      "account_type": AppConstants.personal_Chat_Type,
+    }
+  };
+  static final ChatList? blueEraNotificationModule =
+      ChatList.fromJson(blueEraNotificationChatModel);
+
   Rx<GetChatListModel>? getPersonalChatListModel = GetChatListModel().obs;
   Rx<GetChatListModel>? getOrderChatListModel = GetChatListModel().obs;
   Rx<GetChatListModel>? getBusinessChatListModel = GetChatListModel().obs;
