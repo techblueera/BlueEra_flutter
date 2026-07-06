@@ -2000,6 +2000,42 @@ class DiscoverController extends GetxController {
       }
     }
   }
+
+  /// Fetches a single hotel (profile + rooms) by its owner [businessId].
+  ///
+  /// Backs the `https://beapp.in/app/hotel/<businessId>` deep link, which
+  /// opens [HotelDiscoverHomeScreen] — that screen needs a fully-hydrated
+  /// [HotelServiceData], not just an id. Uses the hotel search endpoint
+  /// filtered to the one business (mirroring [fetchProfessionalByUserId]) and
+  /// matches the result client-side so an unfiltered response can't return the
+  /// wrong hotel. Returns null when nothing matches.
+  Future<HotelServiceData?> fetchHotelByBusinessId(String businessId) async {
+    try {
+      final response = await DiscoverRepo().fetchHotelSearchRepo(
+        queryParams: {
+          ApiKeys.businessId: businessId,
+          ApiKeys.page: 1,
+          ApiKeys.limit: 50,
+        },
+      );
+      if (!response.isSuccess) return null;
+      final model = HotelSearchModelResponse.fromJson(response.response!.data);
+      final list = model.data ?? [];
+      if (list.isEmpty) return null;
+      for (final hotel in list) {
+        if (hotel.businessId == businessId ||
+            hotel.profile?.businessId == businessId) {
+          return hotel;
+        }
+      }
+      // Only fall back to the sole result when the endpoint already narrowed
+      // it down — never guess from a multi-item, unfiltered list.
+      return list.length == 1 ? list.first : null;
+    } catch (e) {
+      log('fetchHotelByBusinessId error: $e');
+      return null;
+    }
+  }
 }
 
 class ParcelCategoryModel {

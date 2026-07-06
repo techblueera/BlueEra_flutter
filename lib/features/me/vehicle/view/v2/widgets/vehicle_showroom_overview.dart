@@ -5,6 +5,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -210,11 +211,17 @@ class _VehicleShowroomOverviewState extends State<VehicleShowroomOverview> {
       if (details == null) return const SizedBox.shrink();
       return Padding(
         padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
-        child: BusinessQrCodeWidget(data: details),
+        child: BusinessQrCodeWidget(
+          data: details,
+          // Encode the business/showroom deep link
+          // (`https://beapp.in/app/business/<ownerUserId>`) so scanning opens
+          // this vehicle showroom, mirroring how grocery stores override the
+          // QR to their own store link.
+          deepLinkOverride: businessProfileDeepLink(userId: details.userId),
+        ),
       );
     });
   }
-
   // ─── Shared chrome ─────────────────────────────────────────────────
   BoxDecoration get _cardDecoration => BoxDecoration(
         color: Colors.white,

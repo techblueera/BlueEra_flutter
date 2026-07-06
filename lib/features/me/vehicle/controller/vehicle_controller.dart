@@ -348,7 +348,9 @@ class VehicleController extends GetxController {
   Future<void> fetchVehicleById(String id) async {
     vehicleDetailState.value = ApiResponse.loading();
     try {
-      final res = await _repo.getVehicleById(id);
+      // The detail screen renders its own loading / error / retry states, so
+      // suppress the global shimmer progress overlay for this fetch.
+      final res = await _repo.getVehicleById(id, showProgress: false);
       if (res.isSuccess) {
         final raw = res.response?.data?['vehicle'];
         if (raw is Map) {

@@ -10,7 +10,9 @@ import 'package:BlueEra/core/api/model/school_details_res_model.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/services/deeplink_network_resources.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_school_home_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/vehicle/vehicle_detail_screen.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -332,6 +334,25 @@ class _SplashScreenState extends State<SplashScreen> {
         return;
       }
 
+      // Hotel share/QR links carry an extra `hotel` segment:
+      //   https://beapp.in/app/business/hotel/<businessId>
+      // Route these straight to the hotel detail screen
+      // ([HotelDiscoverHomeScreen]) instead of the generic business
+      // share-preview. Like education/grocery, the id sits at segments[3],
+      // so this is checked before the generic 3-segment `app` handling below.
+      else if (segments.length >= 4 &&
+          segments[0] == 'app' &&
+          segments[1] == 'business' &&
+          segments[2] == 'hotel') {
+        final hotelBusinessId = segments[3];
+        if (!_isValidMongoId(hotelBusinessId)) {
+          logs('Invalid hotel id in deep link: $hotelBusinessId');
+          return;
+        }
+        deepLinkNetworkResources.navigateToHotelDetail(hotelBusinessId);
+        return;
+      }
+
     else   if (segments.length >= 3 && segments[0] == 'app') {
         final type = segments[1]; // post | video | short | job | product
         final id = segments[2];
@@ -348,6 +369,20 @@ print("type==== ${type}");
             break;
           case 'product':
             Get.to(() => ShareProductScreen(productId: id));
+            break;
+          case 'vehicle':
+            // Public vehicle share/QR landing
+            // (`https://beapp.in/app/vehicle/<id>`). The screen fetches its own
+            // data from [VehicleController.fetchVehicleById] in initState, so
+            // passing the id is enough to hydrate the full detail view.
+            Get.to(() => VehicleDetailScreen(vehicleId: id));
+            break;
+          case 'hotel':
+            // Public hotel share/QR landing
+            // (`https://beapp.in/app/hotel/<businessId>`). Unlike vehicles, the
+            // hotel screen needs a fully-hydrated HotelServiceData, so we fetch
+            // it by businessId first and then open HotelDiscoverHomeScreen.
+            deepLinkNetworkResources.navigateToHotelDetail(id);
             break;
           case 'grocery':
             // Public grocery share landing — fetches the product itself

@@ -1154,7 +1154,7 @@ class _PropertyCardState extends State<PropertyCard> {
   }
 
   Future<void> _shareBusiness() async {
-    final shareLink = businessProfileDeepLink(userId: widget.businessId);
+    final shareLink = hotelDeepLink(hotelId: widget.businessId);
     final name = widget.hotelName.trim().isNotEmpty ? widget.hotelName.trim() : 'this stay';
 
     await ShareService.instance.openShareSheet(

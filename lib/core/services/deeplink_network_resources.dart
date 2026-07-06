@@ -2,11 +2,17 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
+import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
+import 'package:BlueEra/features/common/Discover/view/hotel_discover_home_screen.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
 import 'package:BlueEra/features/common/reel/view/shorts/share_short_player_item.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 final deepLinkNetworkResources = DeepLinkNetworkResources();
@@ -79,5 +85,37 @@ class DeepLinkNetworkResources {
       logs('DEEPLINK_DEBUG: Error navigating to video detail: $e');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
+  }
+
+  /// Opens [HotelDiscoverHomeScreen] for a hotel reached via the
+  /// `https://beapp.in/app/hotel/<businessId>` deep link. The screen needs a
+  /// fully-hydrated [HotelServiceData], so we fetch it by businessId first
+  /// (behind a brief loader), ensure the business controller the screen reads
+  /// is registered, then navigate.
+  Future<void> navigateToHotelDetail(String businessId) async {
+    // HotelDiscoverHomeScreen does `Get.find<ViewBusinessDetailsController>()`
+    // in initState — make sure it exists on a cold-start deep link.
+    getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+    final discover = getOrPut(() => DiscoverController());
+
+    Get.dialog(
+      const Center(child: CircularProgressIndicator()),
+      barrierDismissible: false,
+    );
+    HotelServiceData? hotel;
+    try {
+      hotel = await discover.fetchHotelByBusinessId(businessId);
+    } catch (e) {
+      logs('DEEPLINK_DEBUG: Error fetching hotel by businessId: $e');
+    } finally {
+      if (Get.isDialogOpen ?? false) Get.back();
+    }
+
+    final data = hotel;
+    if (data == null) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return;
+    }
+    Get.to(() => HotelDiscoverHomeScreen(data: data));
   }
 }
