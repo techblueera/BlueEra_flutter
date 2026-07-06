@@ -62,4 +62,54 @@ class EarnArtistRepo extends BaseService {
       onSuccess: (_) {},
     );
   }
+
+  /// `PUT earn-service/earn-artists/{id}` — edit the profile (owner only).
+  /// Arrays like `expertise`/`gallery`/`channels` REPLACE; `contactUs`/`booking`
+  /// MERGE. Backs every inline "Edit" sheet on the Overview tab.
+  Future<ResponseModel> updateArtistProfile({
+    required String id,
+    required Map<String, dynamic> params,
+  }) {
+    return ApiBaseHelper().putHTTP(
+      earnArtistById(id),
+      params: params,
+      showProgress: false,
+      onError: (_) {},
+      onSuccess: (_) {},
+    );
+  }
+
+  /// `POST earn-service/earn-artists/{id}/gallery/{galleryIndex}/images` — mints
+  /// one S3 presigned PUT url per entry in [contentTypes] for the gallery group
+  /// at [galleryIndex]. Response carries `uploadUrls: [PUT urls]`; the caller
+  /// PUTs each file's bytes to its url (same `Content-Type`) then refetches.
+  Future<ResponseModel> mintGalleryUploadUrls({
+    required String id,
+    required int galleryIndex,
+    required List<String> contentTypes,
+  }) {
+    return ApiBaseHelper().postHTTP(
+      earnArtistGalleryImages(id, galleryIndex),
+      params: {'contentTypes': contentTypes},
+      showProgress: false,
+      onError: (_) {},
+      onSuccess: (_) {},
+    );
+  }
+
+  /// `GET earn-service/predefined-artist-expertise/{category}?type={type}` → the
+  /// suggested `expertise[]` for the profile's category. Drives the API-fed
+  /// multi-select in the Expertise edit sheet.
+  Future<ResponseModel> getExpertiseSuggestions({
+    required String category,
+    required String type,
+  }) {
+    return ApiBaseHelper().getHTTP(
+      predefinedArtistExpertiseByCategory(category),
+      params: {if (type.isNotEmpty) 'type': type},
+      showProgress: false,
+      onError: (_) {},
+      onSuccess: (_) {},
+    );
+  }
 }

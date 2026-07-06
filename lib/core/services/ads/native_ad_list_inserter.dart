@@ -19,24 +19,26 @@ class NativeAdRow {
 }
 
 /// 1-indexed content position after which the FIRST native ad is inserted in a
-/// single-column LIST, e.g. with a value of 3 the first ad goes after the 3rd
-/// item. Kept a few items in so short lists still show one ad without the top
-/// being ad-heavy.
-const int _kListFirstAdAfter = 3;
+/// single-column LIST. Set to 1 so the first ad shows early (after the 1st
+/// item), then the wide [_kListAdEveryAfterFirst] spacing keeps only one ad on
+/// screen at a time → positions 1, 11, 21, ...
+const int _kListFirstAdAfter = 1;
 
 /// After the first ad, insert another native ad every this many items in a LIST,
-/// giving a uniform cadence (ad after 3, 9, 15, 21, ...). A regular, spaced-out
-/// interval loads far better than a front-loaded burst: consecutive ad slots
-/// don't try to fill at the same time.
-const int _kListAdEveryAfterFirst = 6;
+/// giving a uniform, sparse cadence (ad after 1, 11, 21, ...). The wide interval
+/// is what avoids Meta error 1002 ("Ad was re-loaded too frequently"): every
+/// native slot shares ONE Meta placement id, so consecutive slots must never
+/// come into view — and try to fill that shared placement — at the same time.
+/// (The first ad's position doesn't affect concurrency; only the spacing does.)
+const int _kListAdEveryAfterFirst = 10;
 
 /// GRID/masonry cadence — deliberately WIDER than the list cadence. A multi-
 /// column grid packs 2+ cards per row, so for the same scroll distance far more
 /// ad slots come into view and request an ad almost at once. Loading native ads
 /// too frequently trips Meta Audience Network's rate limit (error 1002, "ad
 /// loaded too frequently"), which surfaces as blank/failed slots. A bigger gap
-/// keeps concurrent ad loads down. First ad after the 6th card...
-const int _kGridFirstAdAfter = 6;
+/// keeps concurrent ad loads down. First ad after the 10th card...
+const int _kGridFirstAdAfter = 10;
 
 /// ...then one every 10 cards thereafter (ad after 6, 16, 26, ...). With a
 /// 2-column grid that's roughly one ad every 5 rows.

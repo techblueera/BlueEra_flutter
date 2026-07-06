@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -5,9 +6,12 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/model/personal_profile_details_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
@@ -17,27 +21,26 @@ import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/me/content_creator/controller/earn_artist_controller.dart';
 import 'package:BlueEra/features/me/content_creator/model/earn_artist_model.dart';
+import 'package:BlueEra/features/me/content_creator/widget/artist_expertise_picker.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_profile_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_designation_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/widgets/profile_bio_card.dart';
+import 'package:BlueEra/features/personal/personal_profile/widgets/profile_location_card.dart';
+import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_circular_profile_image.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/image_view_screen.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
-/// The content-creator dashboard "Overview" tab.
-///
-/// Composes TWO data sources, top → bottom:
-///   • Personal profile (via [ViewPersonalDetailsController] +
-///     [PersonalCreateProfileController]) — identity card, stats, bio, website.
-///   • Earn-artist profile (via [EarnArtistController]) — expertise, pricing,
-///     certificates, associate brands, gallery.
-///
 /// The identity/stats/bio/website sections read from the personal profile and
 /// render regardless of the earn fetch, so the tab is never blocked on the
 /// earn profile loading. The earn sections show a small inline spinner while
@@ -79,12 +82,17 @@ class _ContentCreatorOverviewTabState extends State<ContentCreatorOverviewTab> {
         Padding(
           padding: const EdgeInsets.only(top: 10, left: 20, right: 10),
           child: Obx(() => WebsiteOverviewCard(
-                websiteUrl: _viewCtrl.website.value,
-                onSave: (url) => _personalCtrl.updateUserProfileDetails(
-                  params: {ApiKeys.website: url},
-                  isFromProfileOnly: true,
-                ),
-              )),
+            websiteUrl: _viewCtrl.website.value,
+            onSave: (url) => _personalCtrl.updateUserProfileDetails(
+              params: {ApiKeys.website: url},
+              isFromProfileOnly: true,
+            ),
+          )),
+        ),
+        // ── Location (personal profile) ──
+        Padding(
+          padding: const EdgeInsets.only(top: 10, left: 20, right: 10),
+          child: const ProfileLocationCard(margin: EdgeInsets.zero),
         ),
         SizedBox(height: SizeConfig.size16),
       ],
@@ -102,7 +110,7 @@ class _ContentCreatorOverviewTabState extends State<ContentCreatorOverviewTab> {
           (status == Status.LOADING || status == Status.INITIAL) &&
               artist == null;
 
-      if (firstLoading) return _earnInlineSpinner();
+      if (firstLoading) return _earnSkeleton();
       // No profile yet (error / edge) — render nothing rather than blocking.
       if (artist == null) return const SizedBox.shrink();
 
@@ -123,19 +131,178 @@ class _ContentCreatorOverviewTabState extends State<ContentCreatorOverviewTab> {
     });
   }
 
-  Widget _earnInlineSpinner() => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 28),
-        child: Center(
-          child: SizedBox(
-            width: 22,
-            height: 22,
-            child: CircularProgressIndicator(
-              strokeWidth: 2.2,
-              valueColor: AlwaysStoppedAnimation(AppColors.primaryColor),
+  // ─── EARN SECTIONS SKELETON (shimmer while first loading) ───────────────
+  /// Mirrors the five earn cards (expertise, pricing, certificates, brands,
+  /// gallery) as shimmer placeholders so the tab shows its real shape while the
+  /// profile loads, instead of one lonely spinner.
+  Widget _earnSkeleton() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _skExpertise(),
+        _gap(),
+        _skPricing(),
+        _gap(),
+        _skCertificates(),
+        _gap(),
+        _skBrands(),
+        _gap(),
+        _skGallery(),
+      ],
+    );
+  }
+
+  /// Header row placeholder — a title block + a trailing edit-dot.
+  Widget _skHeaderRow({double titleWidth = 120}) {
+    return Row(
+      children: [
+        shimmerContainer(width: titleWidth, height: 16),
+        const Spacer(),
+        shimmerContainer(width: 22, height: 22, radius: 11),
+      ],
+    );
+  }
+
+  Widget _skExpertise() {
+    return _card(
+      child: buildLoadingShimmer(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _skHeaderRow(titleWidth: 110),
+            SizedBox(height: SizeConfig.size14),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final w in const [90.0, 120.0, 78.0, 110.0, 64.0])
+                  shimmerContainer(width: w, height: 30, radius: 20),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _skPricing() {
+    return _card(
+      child: buildLoadingShimmer(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _skHeaderRow(titleWidth: 160),
+            SizedBox(height: SizeConfig.size14),
+            shimmerContainer(width: 130, height: 30),
+            SizedBox(height: SizeConfig.size14),
+            shimmerContainer(height: 1),
+            SizedBox(height: SizeConfig.size12),
+            Row(
+              children: [
+                Expanded(child: _skMetric()),
+                SizedBox(width: SizeConfig.size12),
+                Expanded(child: _skMetric()),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _skMetric() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        shimmerContainer(width: 70, height: 10),
+        SizedBox(height: SizeConfig.size6),
+        shimmerContainer(width: 90, height: 14),
+      ],
+    );
+  }
+
+  Widget _skCertificates() {
+    return _card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          buildLoadingShimmer(child: _skHeaderRow(titleWidth: 160)),
+          SizedBox(height: SizeConfig.size14),
+          SizedBox(
+            height: 300,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: EdgeInsets.zero,
+              itemCount: 2,
+              separatorBuilder: (_, __) => SizedBox(width: SizeConfig.size12),
+              itemBuilder: (_, __) => buildLoadingShimmer(
+                child: shimmerContainer(width: 250, height: 300, radius: 14),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _skBrands() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: _hMargin),
+          child: buildLoadingShimmer(child: _skHeaderRow(titleWidth: 140)),
+        ),
+        SizedBox(height: SizeConfig.size12),
+        SizedBox(
+          height: 100,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: _hMargin),
+            itemCount: 4,
+            separatorBuilder: (_, __) => SizedBox(width: SizeConfig.size16),
+            itemBuilder: (_, __) => buildLoadingShimmer(
+              child: Column(
+                children: [
+                  shimmerContainer(width: 64, height: 64, radius: 32),
+                  SizedBox(height: SizeConfig.size6),
+                  shimmerContainer(width: 50, height: 10),
+                ],
+              ),
             ),
           ),
         ),
-      );
+      ],
+    );
+  }
+
+  Widget _skGallery() {
+    return _card(
+      child: buildLoadingShimmer(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _skHeaderRow(titleWidth: 90),
+            SizedBox(height: SizeConfig.size14),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: 4,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 10,
+                mainAxisSpacing: 10,
+                childAspectRatio: 1.1,
+              ),
+              itemBuilder: (_, __) => shimmerContainer(radius: 10),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   // ═══════════════════════════════════════════════════════════════════════
   //  IDENTITY CARD  (copied from professionals_main.dart; adapted to read
@@ -394,7 +561,6 @@ class _ContentCreatorOverviewTabState extends State<ContentCreatorOverviewTab> {
                   child: _editChip(
                     onTap: () => EditProfileBottomSheet.show(Get.context!),
                     label: AppStrings.edit,
-                    icon: Icons.edit_outlined,
                   ),
                 ),
               );
@@ -506,7 +672,6 @@ class _ContentCreatorOverviewTabState extends State<ContentCreatorOverviewTab> {
         _editChip(
           onTap: () => EditProfileBottomSheet.show(Get.context!),
           label: AppStrings.edit,
-          icon: Icons.edit_outlined,
         ),
       ],
     );
@@ -572,7 +737,6 @@ class _ContentCreatorOverviewTabState extends State<ContentCreatorOverviewTab> {
   Widget _editChip({
     required VoidCallback onTap,
     required String label,
-    required IconData icon,
   }) {
     return InkWell(
       onTap: onTap,
@@ -590,7 +754,12 @@ class _ContentCreatorOverviewTabState extends State<ContentCreatorOverviewTab> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 12, color: AppColors.primaryColor),
+            LocalAssets(
+              imagePath: AppIconAssets.pen_line,
+              height: 12,
+              width: 12,
+              imgColor: AppColors.primaryColor,
+            ),
             const SizedBox(width: 4),
             Text(
               label,
@@ -819,6 +988,7 @@ class _ContentCreatorOverviewTabState extends State<ContentCreatorOverviewTab> {
   Widget _sectionHeader(String title,
       {String? trailingLabel,
       IconData? trailingIcon,
+      String? trailingIconAsset,
       VoidCallback? onTrailing}) {
     return Row(
       children: [
@@ -840,7 +1010,21 @@ class _ContentCreatorOverviewTabState extends State<ContentCreatorOverviewTab> {
                   color: AppColors.primaryColor),
             ),
           ),
-        if (trailingIcon != null)
+        if (trailingIconAsset != null)
+          InkWell(
+            onTap: onTrailing,
+            customBorder: const CircleBorder(),
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: LocalAssets(
+                imagePath: trailingIconAsset,
+                height: 18,
+                width: 18,
+                imgColor: AppColors.secondaryTextColor,
+              ),
+            ),
+          )
+        else if (trailingIcon != null)
           InkWell(
             onTap: onTrailing,
             customBorder: const CircleBorder(),
@@ -860,72 +1044,149 @@ class _ContentCreatorOverviewTabState extends State<ContentCreatorOverviewTab> {
   Widget _expertiseSection(EarnArtist artist) {
     if (artist.expertise.isEmpty) {
       return _emptySection('Expertise', 'No expertise added yet.',
-          trailingIcon: Icons.edit_outlined);
+          trailingIcon: Icons.add_rounded, onTrailing: _openExpertiseSheet);
     }
     return _card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _sectionHeader('Expertise',
-              trailingIcon: Icons.edit_outlined, onTrailing: _comingSoon),
-          SizedBox(height: SizeConfig.size12),
-          for (final e in artist.expertise) _bullet(e),
+              trailingIconAsset: AppIconAssets.pen_line,
+              onTrailing: _openExpertiseSheet),
+          SizedBox(height: SizeConfig.size14),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [for (final e in artist.expertise) _expertiseChip(e)],
+          ),
         ],
       ),
     );
   }
 
-  Widget _bullet(String text) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: SizeConfig.size8),
+  /// One expertise as a tinted pill. A small accent dot keeps the chips from
+  /// reading as a stock tag cloud while staying disciplined.
+  Widget _expertiseChip(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+      decoration: BoxDecoration(
+        color: AppColors.primaryColor.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: AppColors.primaryColor.withValues(alpha: 0.18),
+          width: 0.8,
+        ),
+      ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(top: 6),
-            child: Container(
-              width: 5,
-              height: 5,
-              decoration: BoxDecoration(
-                  color: AppColors.secondaryTextColor, shape: BoxShape.circle),
+          Container(
+            width: 5,
+            height: 5,
+            decoration: BoxDecoration(
+              color: AppColors.primaryColor,
+              shape: BoxShape.circle,
             ),
           ),
-          SizedBox(width: SizeConfig.size10),
-          Expanded(
-            child: CustomText(text,
-                fontSize: 13.5,
-                fontWeight: FontWeight.w500,
-                color: AppColors.mainTextColor),
-          ),
+          SizedBox(width: SizeConfig.size8),
+          CustomText(label,
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: AppColors.mainTextColor),
         ],
       ),
+    );
+  }
+
+  /// Opens the API-fed expertise multi-select. Loads suggestions from
+  /// `predefined-artist-expertise/{category}?type=` and seeds the current picks.
+  void _openExpertiseSheet() {
+    _earnCtrl.loadExpertiseSuggestions();
+    _showUpdateSheet(
+      title: 'Expertise',
+      content: ArtistExpertisePicker(controller: _earnCtrl),
     );
   }
 
   // ─── PRICING / ENGAGEMENT (earn) ────────────────────────────────────────
   Widget _pricingSection(EarnArtist artist) {
     final booking = artist.booking;
-    if (booking == null ||
-        (booking.priceLabel.isEmpty && booking.bookingType.isEmpty)) {
-      return const SizedBox.shrink();
+    final hasPricing = booking != null &&
+        (booking.priceLabel.isNotEmpty || booking.bookingType.isNotEmpty);
+    if (!hasPricing) {
+      return _emptySection(
+          'Pricing / Engagement', 'No pricing added yet.',
+          trailingIcon: Icons.add_rounded, onTrailing: _openPricingSheet);
     }
-    final fee = booking.priceLabel.isNotEmpty
-        ? '₹${booking.priceLabel}/${booking.priceTypeLabel}'
-        : '—';
+    final hasFee = booking.priceLabel.isNotEmpty;
     final mode = booking.bookingType.isNotEmpty ? booking.bookingType : '—';
+    final minLabel = _minPriceLabel(booking);
 
     return _card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _sectionHeader('Pricing / Engagement',
-              trailingIcon: Icons.edit_outlined, onTrailing: _comingSoon),
+              trailingIconAsset: AppIconAssets.pen_line,
+              onTrailing: _openPricingSheet),
+          SizedBox(height: SizeConfig.size14),
+          // Hero fee — the single most characteristic fact of this section, so
+          // it leads at display scale rather than sitting in a generic cell.
+          if (hasFee)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(
+                  '₹',
+                  style: TextStyle(
+                    fontFamily: AppConstants.OpenSans,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primaryColor,
+                  ),
+                ),
+                const SizedBox(width: 1),
+                Text(
+                  booking.priceLabel,
+                  style: TextStyle(
+                    fontFamily: AppConstants.OpenSans,
+                    fontSize: 32,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.mainTextColor,
+                    height: 1.0,
+                    letterSpacing: -1,
+                  ),
+                ),
+                SizedBox(width: SizeConfig.size6),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 2),
+                  child: Text(
+                    '/ ${booking.priceTypeLabel.toLowerCase()}',
+                    style: TextStyle(
+                      fontFamily: AppConstants.OpenSans,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.secondaryTextColor,
+                    ),
+                  ),
+                ),
+              ],
+            )
+          else
+            CustomText('Price on request',
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: AppColors.mainTextColor),
+          SizedBox(height: SizeConfig.size14),
+          Container(height: 1, color: _cardBorder),
           SizedBox(height: SizeConfig.size12),
           Row(
             children: [
-              Expanded(child: _pricingCell('Consultation Fee', fee)),
+              Expanded(child: _pricingMetric('Engagement', mode)),
+              Container(width: 1, height: 34, color: _cardBorder),
               SizedBox(width: SizeConfig.size12),
-              Expanded(child: _pricingCell('Consultation Mode', mode)),
+              Expanded(child: _pricingMetric('Minimum', minLabel)),
             ],
           ),
         ],
@@ -933,28 +1194,161 @@ class _ContentCreatorOverviewTabState extends State<ContentCreatorOverviewTab> {
     );
   }
 
-  Widget _pricingCell(String label, String value) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: _cardBorder, width: 1),
-      ),
-      child: Column(
+  /// A secondary pricing fact — small tracked label over a bold value. Reads as
+  /// supporting data under the hero fee, not competing with it.
+  Widget _pricingMetric(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label.toUpperCase(),
+          style: TextStyle(
+            fontFamily: AppConstants.OpenSans,
+            fontSize: 10.5,
+            fontWeight: FontWeight.w700,
+            color: AppColors.secondaryTextColor,
+            letterSpacing: 1.2,
+          ),
+        ),
+        SizedBox(height: SizeConfig.size6),
+        CustomText(value,
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: AppColors.mainTextColor,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis),
+      ],
+    );
+  }
+
+  /// `₹2,000`-style label for the booking minimum, or `—` when unset.
+  String _minPriceLabel(ArtistBooking booking) {
+    final m = booking.minimumPrice;
+    if (m == null) return '—';
+    final n =
+        m == m.roundToDouble() ? m.toInt().toString() : m.toString();
+    return '₹$n';
+  }
+
+  /// Pricing edit sheet — fee, minimum fee, engagement mode + a `perHour`/
+  /// `perVisit` toggle. `booking` MERGES server-side, so only what changed is
+  /// sent.
+  void _openPricingSheet() {
+    _earnCtrl.seedPricingInputs();
+    _showUpdateSheet(
+      title: 'Pricing / Engagement',
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomText(label,
-              fontSize: 11.5,
+          Row(
+            children: [
+              Expanded(
+                child: _labeledField(
+                  'Fee (₹)',
+                  CommonTextField(
+                    textEditController: _earnCtrl.priceController,
+                    hintText: 'e.g. 600',
+                    keyBoardType: TextInputType.number,
+                  ),
+                ),
+              ),
+              SizedBox(width: SizeConfig.size12),
+              Expanded(
+                child: _labeledField(
+                  'Minimum Fee (₹)',
+                  CommonTextField(
+                    textEditController: _earnCtrl.minPriceController,
+                    hintText: 'e.g. 2000',
+                    keyBoardType: TextInputType.number,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: SizeConfig.size12),
+          _labeledField(
+            'Engagement Mode',
+            CommonTextField(
+              textEditController: _earnCtrl.bookingTypeController,
+              hintText: 'e.g. Online / Commission',
+            ),
+          ),
+          SizedBox(height: SizeConfig.size12),
+          CustomText('Price Type',
+              fontSize: 13,
               fontWeight: FontWeight.w500,
-              color: AppColors.secondaryTextColor),
-          SizedBox(height: SizeConfig.size6),
-          CustomText(value,
-              fontSize: 14,
-              fontWeight: FontWeight.w800,
-              color: AppColors.mainTextColor,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis),
+              color: AppColors.mainTextColor),
+          SizedBox(height: SizeConfig.size8),
+          Obx(() => Row(
+                children: [
+                  for (final pt in EarnArtistController.priceTypeOptions)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: _priceTypeChip(
+                        label: pt == 'perHour' ? 'Per Hour' : 'Per Visit',
+                        selected: _earnCtrl.selectedPriceType.value == pt,
+                        onTap: () => _earnCtrl.selectedPriceType.value = pt,
+                      ),
+                    ),
+                ],
+              )),
+          SizedBox(height: SizeConfig.paddingL),
+          Obx(() => CustomBtn(
+                radius: SizeConfig.size10,
+                bgColor: AppColors.primaryColor,
+                title: _earnCtrl.isUpdating.value ? null : AppStrings.update.tr,
+                isLoading: _earnCtrl.isUpdating.value,
+                onTap: () async {
+                  final booking = <String, dynamic>{
+                    'priceType': _earnCtrl.selectedPriceType.value,
+                  };
+                  final price =
+                      int.tryParse(_earnCtrl.priceController.text.trim());
+                  if (price != null) booking['price'] = price;
+                  final minPrice =
+                      int.tryParse(_earnCtrl.minPriceController.text.trim());
+                  if (minPrice != null) booking['minimumPrice'] = minPrice;
+                  final mode = _earnCtrl.bookingTypeController.text.trim();
+                  if (mode.isNotEmpty) booking['bookingType'] = mode;
+                  final ok = await _earnCtrl.updateArtist({'booking': booking});
+                  if (ok) Get.back();
+                },
+              )),
         ],
+      ),
+    );
+  }
+
+  Widget _priceTypeChip({
+    required String label,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        decoration: BoxDecoration(
+          color: selected
+              ? AppColors.primaryColor.withValues(alpha: 0.10)
+              : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: selected
+                ? AppColors.primaryColor
+                : const Color(0xFFE6E8EE),
+            width: selected ? 1.2 : 1,
+          ),
+        ),
+        child: CustomText(
+          label,
+          fontSize: 13,
+          fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+          color:
+              selected ? AppColors.primaryColor : AppColors.mainTextColor,
+        ),
       ),
     );
   }
@@ -963,35 +1357,42 @@ class _ContentCreatorOverviewTabState extends State<ContentCreatorOverviewTab> {
   Widget _certificatesSection(EarnArtist artist) {
     final certs = artist.certificatesAndAwards;
     if (certs.isEmpty) {
-      return _emptySection(
-          'Certificate & Awards', 'No certificates or awards added yet.');
+      return _bannerEmptyState(
+        image: AppImageAssets.homeServicesBanner,
+        eyebrow: 'Certificate & Awards',
+        message: 'Show your credentials — add your first certificate or award.',
+        ctaLabel: 'Add Certificate',
+        ctaIcon: Icons.workspace_premium_rounded,
+        onTap: () => _openCertificateSheet(artist),
+      );
     }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: _hMargin),
-          child: _sectionHeader('Certificate & Awards',
-              trailingLabel: 'View All', onTrailing: _comingSoon),
-        ),
-        SizedBox(height: SizeConfig.size12),
-        SizedBox(
-          height: 210,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: _hMargin),
-            itemCount: certs.length,
-            separatorBuilder: (_, __) => SizedBox(width: SizeConfig.size12),
-            itemBuilder: (_, i) => _certificateCard(certs[i]),
+    return _card(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _sectionHeader('Certificate & Awards',
+              trailingLabel: 'Add',
+              onTrailing: () => _openCertificateSheet(artist)),
+          SizedBox(height: SizeConfig.size14),
+          SizedBox(
+            height: 300,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              clipBehavior: Clip.none,
+              padding: EdgeInsets.zero,
+              itemCount: certs.length,
+              separatorBuilder: (_, __) => SizedBox(width: SizeConfig.size12),
+              itemBuilder: (_, i) => _certificateCard(certs[i]),
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   Widget _certificateCard(ArtistCertificate cert) {
     return Container(
-      width: 260,
+      width: 250,
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(14),
@@ -1004,41 +1405,80 @@ class _ContentCreatorOverviewTabState extends State<ContentCreatorOverviewTab> {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          if (cert.firstMedia.isNotEmpty)
-            Opacity(
-              opacity: 0.35,
-              child: _networkImage(cert.firstMedia, fit: BoxFit.cover),
-            ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                CustomText(
-                  cert.name.isNotEmpty ? cert.name : 'Certificate',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+          // The certificate art fills the whole card at full opacity.
+          Positioned.fill(
+            child: cert.firstMedia.isNotEmpty
+                ? _networkImage(cert.firstMedia, fit: BoxFit.cover)
+                : _certificateArtFallback(),
+          ),
+          // Bottom scrim so the name/description stay legible over the art.
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(16, 34, 16, 16),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [
+                    Colors.black.withValues(alpha: 0.88),
+                    Colors.black.withValues(alpha: 0.55),
+                    Colors.transparent,
+                  ],
+                  stops: const [0.0, 0.55, 1.0],
                 ),
-                if (cert.description.isNotEmpty) ...[
-                  SizedBox(height: SizeConfig.size6),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
                   CustomText(
-                    cert.description,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white.withValues(alpha: 0.85),
-                    maxLines: 3,
+                    cert.name.isNotEmpty ? cert.name : 'Certificate',
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    height: 1.4,
                   ),
+                  if (cert.description.isNotEmpty) ...[
+                    SizedBox(height: SizeConfig.size6),
+                    CustomText(
+                      cert.description,
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white.withValues(alpha: 0.80),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      height: 1.4,
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  /// Branded fill for a certificate that has no uploaded media yet.
+  Widget _certificateArtFallback() {
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF1B2A46), Color(0xFF0C1526)],
+        ),
+      ),
+      child: Center(
+        child: Icon(
+          Icons.workspace_premium_rounded,
+          size: 40,
+          color: Colors.white.withValues(alpha: 0.85),
+        ),
       ),
     );
   }
@@ -1125,42 +1565,523 @@ class _ContentCreatorOverviewTabState extends State<ContentCreatorOverviewTab> {
     );
   }
 
-  // ─── GALLERY (earn) — hidden entirely when empty ────────────────────────
+  // ─── GALLERY (earn) — manageable (add photos via S3 presign) ────────────
   Widget _gallerySection(EarnArtist artist) {
     final images = <String>[
       for (final g in artist.gallery) ...g.images,
     ];
-    if (images.isEmpty) return const SizedBox.shrink();
+    // Read reactively (this runs inside [_buildEarnSections]'s Obx) so the
+    // section flips to its uploading state the moment a picker returns.
+    final uploading = _earnCtrl.isGalleryUploading.value;
+
+    // Empty + idle → the inviting banner. Uploading or populated → the card.
+    if (images.isEmpty && !uploading) {
+      return _bannerEmptyState(
+        image: AppImageAssets.homeMadeProductsBanner,
+        eyebrow: 'Gallery',
+        message: 'Showcase your work — add photos of your best pieces.',
+        ctaLabel: 'Add Photos',
+        ctaIcon: Icons.add_photo_alternate_rounded,
+        onTap: _onAddGalleryPhotos,
+      );
+    }
+
     return _card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _sectionHeader('Gallery',
-              trailingLabel: 'Add Photo', onTrailing: _comingSoon),
-          SizedBox(height: SizeConfig.size12),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: images.length,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 10,
-              mainAxisSpacing: 10,
-              childAspectRatio: 1.1,
-            ),
-            itemBuilder: (_, i) => ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: _networkImage(images[i], fit: BoxFit.cover),
-            ),
-          ),
+              trailingLabel: uploading ? null : 'Add Photo',
+              onTrailing: _onAddGalleryPhotos),
+          if (uploading) ...[
+            SizedBox(height: SizeConfig.size10),
+            _galleryUploadingRow(),
+          ],
+          if (images.isNotEmpty) ...[
+            SizedBox(height: SizeConfig.size12),
+            _galleryMosaic(images),
+          ],
         ],
       ),
     );
   }
 
+  /// Staggered photo mosaic (mirrors [BusinessCommonGalleryCard]) — varied tile
+  /// sizes, capped at 10, each tap opening the full-screen image viewer.
+  Widget _galleryMosaic(List<String> images) {
+    final count = images.length > 10 ? 10 : images.length;
+    return StaggeredGrid.count(
+      crossAxisCount: 4,
+      mainAxisSpacing: 8,
+      crossAxisSpacing: 8,
+      children: List.generate(count, (index) {
+        int crossAxisCellCount = 2;
+        num mainAxisCellCount = 2;
+        if (count == 1) {
+          // Single photo → span the full width instead of a lonely half-tile.
+          crossAxisCellCount = 4;
+          mainAxisCellCount = 2.4;
+        } else if (index % 6 == 0 || index % 6 == 5) {
+          crossAxisCellCount = 2;
+          mainAxisCellCount = 3;
+        } else if (index % 6 == 3) {
+          crossAxisCellCount = 4;
+          mainAxisCellCount = 2;
+        } else {
+          crossAxisCellCount = 2;
+          mainAxisCellCount = 1.5;
+        }
+        return StaggeredGridTile.count(
+          crossAxisCellCount: crossAxisCellCount,
+          mainAxisCellCount: mainAxisCellCount,
+          child: InkWell(
+            onTap: () => navigatePushTo(
+              context,
+              ImageViewScreen(
+                appBarTitle: AppStrings.imageViewer,
+                subTitle: AppStrings.imageViewer,
+                imageUrls: images,
+                initialIndex: index,
+              ),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: _networkImage(images[index], fit: BoxFit.cover),
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  // ─── BANNER EMPTY STATE (certificate / gallery) ─────────────────────────
+  /// A full-bleed, photo-backed invitation to fill an empty section. The
+  /// banner carries a section [eyebrow] top-left, a one-line [message], and a
+  /// glass action pill — the whole card taps through to [onTap], so the state
+  /// reads as "start here" rather than "nothing to see".
+  Widget _bannerEmptyState({
+    required String image,
+    required String eyebrow,
+    required String message,
+    required String ctaLabel,
+    required IconData ctaIcon,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: _hMargin),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          height: 190,
+          width: double.infinity,
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            image: DecorationImage(
+              image: AssetImage(image),
+              fit: BoxFit.cover,
+            ),
+          ),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // Blur + top→bottom scrim so the copy stays legible over any art.
+              BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withValues(alpha: 0.34),
+                        Colors.black.withValues(alpha: 0.64),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 14,
+                left: 16,
+                child: Text(
+                  eyebrow.toUpperCase(),
+                  style: TextStyle(
+                    fontFamily: AppConstants.OpenSans,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white.withValues(alpha: 0.92),
+                    letterSpacing: 1.6,
+                  ),
+                ),
+              ),
+              Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    LocalAssets(
+                      imagePath: AppImageAssets.noMeContent,
+                      height: 64,
+                      width: 64,
+                    ),
+                    SizedBox(height: SizeConfig.size10),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 28),
+                      child: CustomText(
+                        message,
+                        fontSize: 12.5,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    SizedBox(height: SizeConfig.size12),
+                    _bannerCtaPill(ctaLabel, ctaIcon),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _bannerCtaPill(String label, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
+      decoration: BoxDecoration(
+        color: AppColors.primaryColor,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primaryColor.withValues(alpha: 0.42),
+            blurRadius: 14,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 15, color: Colors.white),
+          const SizedBox(width: 6),
+          CustomText(label,
+              fontSize: 12.5, fontWeight: FontWeight.w700, color: Colors.white),
+        ],
+      ),
+    );
+  }
+
+  Widget _galleryUploadingRow() {
+    return Row(
+      children: [
+        SizedBox(
+          width: 16,
+          height: 16,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            valueColor: AlwaysStoppedAnimation(AppColors.primaryColor),
+          ),
+        ),
+        SizedBox(width: SizeConfig.size10),
+        CustomText('Uploading photos…',
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: AppColors.secondaryTextColor),
+      ],
+    );
+  }
+
+  /// Picks a single photo and hands it to [EarnArtistController.addGalleryImages],
+  /// which mints a presigned S3 url, uploads the bytes, then refetches.
+  Future<void> _onAddGalleryPhotos() async {
+    if (_earnCtrl.isGalleryUploading.value) return;
+    final path = await PhotoPickerService.pickSinglePhoto(
+      context,
+      'Add Photo',
+    );
+    if (path == null || path.isEmpty) return;
+    await _earnCtrl.addGalleryImages([path]);
+  }
+
+  /// Add-certificate sheet (name + description). `certificatesAndAwards`
+  /// REPLACES on PUT, so the whole existing list is re-sent with the new entry
+  /// appended. Media upload uses the separate S3 presigned flow and is left
+  /// empty here.
+  void _openCertificateSheet(EarnArtist artist) {
+    _earnCtrl.seedCertificateInputs();
+    _showUpdateSheet(
+      title: 'Add Certificate / Award',
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _labeledField(
+            'Title',
+            CommonTextField(
+              textEditController: _earnCtrl.certNameController,
+              hintText: 'e.g. State Art Award 2024',
+            ),
+          ),
+          SizedBox(height: SizeConfig.size12),
+          _labeledField(
+            'Description',
+            CommonTextField(
+              textEditController: _earnCtrl.certDescController,
+              hintText: 'Short description',
+              maxLine: 3,
+            ),
+          ),
+          SizedBox(height: SizeConfig.size12),
+          _labeledField('Media (optional)', _certMediaPicker()),
+          SizedBox(height: SizeConfig.paddingL),
+          Obx(() => CustomBtn(
+                radius: SizeConfig.size10,
+                bgColor: AppColors.primaryColor,
+                title: _earnCtrl.isUpdating.value ? null : AppStrings.add.tr,
+                isLoading: _earnCtrl.isUpdating.value,
+                onTap: () async {
+                  final ok = await _earnCtrl.addCertificate(
+                    name: _earnCtrl.certNameController.text,
+                    description: _earnCtrl.certDescController.text,
+                    existing: artist.certificatesAndAwards,
+                  );
+                  if (ok) Get.back();
+                },
+              )),
+        ],
+      ),
+    );
+  }
+
+  /// Horizontal strip of picked certificate images + an "add" tile. The picked
+  /// paths live on the controller so the strip survives sheet rebuilds and is
+  /// cleared each time the sheet reopens.
+  Widget _certMediaPicker() {
+    return Obx(() {
+      final paths = _earnCtrl.certMediaPaths;
+      // Empty → a full-width upload zone. Once picked, each image previews at
+      // full width with a remove button, plus a compact "Add more" row.
+      if (paths.isEmpty) return _fullWidthUploadZone();
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var i = 0; i < paths.length; i++) ...[
+            _fullWidthMediaPreview(paths[i], i),
+            SizedBox(height: SizeConfig.size10),
+          ],
+          if (paths.length < 5) _addMoreZone(),
+        ],
+      );
+    });
+  }
+
+  Widget _fullWidthMediaPreview(String path, int index) {
+    return Stack(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: Image.file(
+            File(path),
+            width: double.infinity,
+            height: 170,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Container(
+              width: double.infinity,
+              height: 170,
+              color: const Color(0xFFF1F1F3),
+              alignment: Alignment.center,
+              child: Icon(Icons.broken_image_outlined,
+                  size: 28, color: AppColors.secondaryTextColor),
+            ),
+          ),
+        ),
+        Positioned(
+          top: 8,
+          right: 8,
+          child: InkWell(
+            onTap: () => _earnCtrl.certMediaPaths.removeAt(index),
+            customBorder: const CircleBorder(),
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.55),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.close, size: 16, color: Colors.white),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _addMoreZone() {
+    return InkWell(
+      onTap: _pickCertMedia,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: AppColors.primaryColor.withValues(alpha: 0.30),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.add_a_photo_outlined,
+                size: 18, color: AppColors.primaryColor),
+            SizedBox(width: SizeConfig.size8),
+            CustomText('Add more',
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primaryColor),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Picks up to 5 certificate images into [certMediaPaths] (de-duped, capped).
+  Future<void> _pickCertMedia() async {
+    final picked = await PhotoPickerService.pickMultiplePhotos(
+      context,
+      'Add Media',
+      maxImages: 5,
+    );
+    if (picked == null || picked.isEmpty) return;
+    for (final p in picked) {
+      if (_earnCtrl.certMediaPaths.length >= 5) break;
+      if (!_earnCtrl.certMediaPaths.contains(p)) {
+        _earnCtrl.certMediaPaths.add(p);
+      }
+    }
+  }
+
+  Widget _fullWidthUploadZone() {
+    return InkWell(
+      onTap: _pickCertMedia,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 22),
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: AppColors.primaryColor.withValues(alpha: 0.30),
+            width: 1,
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.add_a_photo_outlined,
+                size: 24, color: AppColors.primaryColor),
+            SizedBox(height: SizeConfig.size8),
+            CustomText('Upload certificate photo',
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primaryColor),
+            SizedBox(height: SizeConfig.size4),
+            CustomText('PNG or JPG · up to 5',
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: AppColors.secondaryTextColor),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // ─── SHARED EDIT-SHEET SCAFFOLD ─────────────────────────────────────────
+  /// Common bottom-sheet shell for every inline edit (drag handle, title +
+  /// close, keyboard-aware padding). Mirrors the self-profession service
+  /// screen's `_showCommonUpdateSheet`.
+  void _showUpdateSheet({required String title, required Widget content}) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetCtx) => Container(
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+        ),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(sheetCtx).viewInsets.bottom,
+        ),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.only(
+            left: SizeConfig.size16,
+            right: SizeConfig.size16,
+            top: SizeConfig.size12,
+            bottom: SizeConfig.size24,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 50,
+                  height: 5,
+                  margin: const EdgeInsets.only(bottom: 12),
+                  decoration: BoxDecoration(
+                    color: AppColors.secondaryTextColor,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+              Row(
+                children: [
+                  Expanded(
+                    child: CustomText(title,
+                        fontSize: SizeConfig.large,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.mainTextColor),
+                  ),
+                  InkWell(
+                    onTap: () => Get.back(),
+                    child: const Icon(Icons.close),
+                  ),
+                ],
+              ),
+              SizedBox(height: SizeConfig.size12),
+              content,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _labeledField(String label, Widget field) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CustomText(label,
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: AppColors.mainTextColor),
+        SizedBox(height: SizeConfig.size8),
+        field,
+      ],
+    );
+  }
+
   // ─── EMPTY-STATE + SHARED PRIMITIVES ────────────────────────────────────
   Widget _emptySection(String title, String message,
-      {String? trailingLabel, IconData? trailingIcon}) {
+      {String? trailingLabel, IconData? trailingIcon, VoidCallback? onTrailing}) {
     return _card(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1168,7 +2089,7 @@ class _ContentCreatorOverviewTabState extends State<ContentCreatorOverviewTab> {
           _sectionHeader(title,
               trailingLabel: trailingLabel,
               trailingIcon: trailingIcon,
-              onTrailing: _comingSoon),
+              onTrailing: onTrailing ?? _comingSoon),
           SizedBox(height: SizeConfig.size12),
           CustomText(message,
               fontSize: 13,
