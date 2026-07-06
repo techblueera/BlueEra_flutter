@@ -51,6 +51,15 @@ mixin UserServiceApi {
       'user-service/user/request-mobile-update-otp';
   final String verifyMobileUpdateOtp =
       'user-service/user/verify-mobile-update-otp';
+
+  // ── Aadhaar OKYC (OTP) identity verification ────────────────────────
+  // Generic per-user Aadhaar KYC via UIDAI OKYC OTP (Sandbox.co.in). The
+  // verified result is stored against the user account, independent of any
+  // business / rider flow. See
+  // docs/backend/aadhaar-verification-ui-integration.md.
+  final String aadhaarStatus = 'user-service/user/aadhaar/status';
+  final String aadhaarGenerateOtp = 'user-service/user/aadhaar/generate-otp';
+  final String aadhaarVerifyOtp = 'user-service/user/aadhaar/verify-otp';
   final String userVerifyGst = "user-service/user/verify-gst";
   final String user_project = "user-service/user/project/";
   final String user_experience = "user-service/user/experience/";

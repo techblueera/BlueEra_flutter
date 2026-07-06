@@ -1409,8 +1409,8 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
           Get.bottomSheet(
             CommonBottomSheet(
               title: AppStrings.aadharCard.tr,
-              height: MediaQuery.of(context).size.height * 0.40,
-              child: AadharCardWidget(),
+              height: MediaQuery.of(context).size.height * 0.62,
+              child: const AadharCardWidget(),
             ),
             isScrollControlled: true,
             backgroundColor: Colors.transparent,

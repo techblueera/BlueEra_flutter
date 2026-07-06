@@ -451,6 +451,10 @@ class ApiKeys {
   static const streetAddress = 'streetAddress';
   static const locationPermission = 'locationPermission';
   static const aadharNo = 'aadharNo';
+  // Aadhaar OKYC (OTP) verification payload keys.
+  static const aadhaarNumber = 'aadhaar_number';
+  static const consent = 'consent';
+  static const referenceId = 'reference_id';
   static const panNo = 'panNo';
   static const userPicture = 'userPicture';
   static const aadharImages = 'aadharImages';

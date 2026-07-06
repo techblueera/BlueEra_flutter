@@ -7,6 +7,8 @@ import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/features/common/aadhaar_kyc/controller/aadhaar_kyc_controller.dart';
+import 'package:BlueEra/features/common/aadhaar_kyc/view/aadhaar_kyc_view.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/controller/my_documents_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/widget/cancel_cheque_document_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/widget/common_document_bottom_sheet.dart';
@@ -212,24 +214,18 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                               document: DocumentKeys.aadhar,
                               status: controller.getStatus(DocumentKeys.aadhar),
                               onTap: () {
-
+                                // Aadhaar now verifies via OKYC (OTP) instead
+                                // of an image upload. On a successful verify we
+                                // record it in the document-service so the tile
+                                // reflects completion.
+                                final kycController = AadhaarKycController(
+                                  onVerified: controller.recordAadhaarVerified,
+                                );
                                 Get.bottomSheet(
                                   CommonDocumentBottomSheet(
                                     title: AppStrings.aadharCard.tr,
-                                    child: GenericDocumentWidget(
-                                      documentType: DocumentKeys.aadhar,
-                                      uploadSectionLabel:
-                                          AppStrings.uploadAadharBothSide.tr,
-                                      backImage: true,
-                                      textFieldLabel:
-                                          AppStrings.hotelTradeLicenseNumber.tr,
-                                      textFieldHint: AppStrings.aadharNumberHint.tr,
-                                      textFieldValidation:
-                                          ValidationMethod.validateAadhaar,
-                                      maxLength: 12,
-                                      keyboardType: TextInputType.number,
-                                        cropAspectRatio: const CropAspectRatio(width: 4, height: 3)
-                                    ),
+                                    child: AadhaarKycView(
+                                        controller: kycController),
                                   ),
                                   isScrollControlled: true,
                                   backgroundColor: Colors.transparent,

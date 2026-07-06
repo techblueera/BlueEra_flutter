@@ -339,6 +339,37 @@ class MyDocumentsController extends GetxController {
     }
   }
 
+  /// Bridges a successful Aadhaar OKYC (OTP) verification into the
+  /// document-service so the Aadhaar tile reflects "verified/submitted".
+  ///
+  /// The OKYC flow (be_user_service) verifies identity via OTP and carries no
+  /// document images, so this records the Aadhaar document with the number
+  /// only (no `files`). Wired as the `onVerified` callback of
+  /// [AadhaarKycController]; the verified stage is shown after this settles.
+  /// See docs/backend/aadhaar-verification-ui-integration.md.
+  Future<void> recordAadhaarVerified(String aadhaarNumber) async {
+    try {
+      final params = {
+        ApiKeys.documentType: DocumentKeys.aadhar,
+        ApiKeys.value: jsonEncode({DocumentKeys.aadhar: aadhaarNumber}),
+      };
+      final response = await MyDocumentRepo().addDocument(params: params);
+      if (response.isSuccess) {
+        genericDocumentUploadResponse.value = ApiResponse.complete(response);
+      } else {
+        genericDocumentUploadResponse.value = ApiResponse.error('error');
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e, s) {
+      debugPrint('❌ recordAadhaarVerified error: $e\n$s');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      // Refresh so the Aadhaar tile picks up its new status.
+      await fetchAllDocumentStatusApi();
+    }
+  }
+
   RxBool isGenericDocumentLoading = false.obs;
   Future<void> genericDocumentApi({
     required String documentType,

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 
@@ -15,6 +16,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/keyed_json_cache.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/chat/auth/model/GetBlueeraPiolotModel.dart';
+import 'package:BlueEra/features/common/aadhaar_kyc/model/aadhaar_verification_model.dart';
 import 'package:BlueEra/features/common/delivery_partner/model/associated_shops_model.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/delivery_partner/model/rider_onboarding_status.dart';
@@ -37,6 +39,18 @@ enum RiderProfileStep {
   aadharInfo,
   rcInfo,
   panInfo
+}
+
+/// The visible stage of the Aadhaar OKYC (OTP) verification bottom-sheet.
+enum AadhaarStage {
+  /// Enter 12-digit Aadhaar + tick consent → generate OTP.
+  entry,
+
+  /// Enter the 6-digit OTP received on the Aadhaar-linked mobile → verify.
+  otp,
+
+  /// Identity verified — show name + masked number.
+  verified,
 }
 
 class DeliveryPartnerController extends GetxController {
@@ -727,37 +741,254 @@ class DeliveryPartnerController extends GetxController {
     }
   }
 
-  Future<void> ridersAadharCardApi() async {
-    // ---------- 1️⃣ TEXT VALIDATION ----------
+  // ══════════════════════════════════════════════════════════════════
+  // Aadhaar OKYC (OTP) identity verification
+  // Flow: checkAadhaarStatus() → generateAadhaarOtp() → verifyAadhaarOtp().
+  // On a successful verify the entered Aadhaar number is also written to the
+  // rider onboarding step so the delivery-partner "aadhar" gate is satisfied.
+  // See docs/backend/aadhaar-verification-ui-integration.md.
+  // ══════════════════════════════════════════════════════════════════
+  final Rx<AadhaarStage> aadhaarStage = AadhaarStage.entry.obs;
+  final RxBool isAadhaarStatusLoading = false.obs;
+  final RxBool isAadhaarOtpSending = false.obs;
+  final RxBool isAadhaarOtpVerifying = false.obs;
+
+  /// Mandatory consent — must be explicitly ticked (never pre-ticked) before
+  /// an OTP can be generated.
+  final RxBool aadhaarConsentGiven = false.obs;
+
+  /// reference_id returned by generate-otp; sent back with the OTP on verify.
+  String aadhaarReferenceId = '';
+  final aadhaarOtpController = TextEditingController();
+
+  /// Verified identity, populated from status / verify-otp responses.
+  final RxBool aadhaarIsVerified = false.obs;
+  final RxnString aadhaarVerifiedName = RxnString();
+
+  /// Masked number for display — "XXXX XXXX <last4>".
+  final RxnString aadhaarMaskedNumber = RxnString();
+  final RxnString aadhaarVerifiedAt = RxnString();
+
+  /// Resend cooldown (seconds remaining). Resend is disabled while > 0.
+  final RxInt aadhaarResendSeconds = 0.obs;
+  Timer? _aadhaarResendTimer;
+
+  static const int _aadhaarResendCooldown = 45; // 30–60 s window per guide.
+
+  String _formatMaskedFromLast4(String? last4) =>
+      (last4 == null || last4.isEmpty) ? '' : 'XXXX XXXX $last4';
+
+  /// Resets the OKYC flow to a clean state and fetches the current status.
+  /// Call whenever the bottom sheet opens.
+  Future<void> initAadhaarFlow() async {
+    _aadhaarResendTimer?.cancel();
+    aadhaarResendSeconds.value = 0;
+    aadhaarOtpController.clear();
+    aadhaarReferenceId = '';
+    aadhaarConsentGiven.value = false;
+    aadhaarIsVerified.value = false;
+    aadhaarVerifiedName.value = null;
+    aadhaarMaskedNumber.value = null;
+    aadhaarVerifiedAt.value = null;
+    aadhaarStage.value = AadhaarStage.entry;
+    await checkAadhaarStatus();
+  }
+
+  /// Cancels the resend timer — call from the sheet's dispose.
+  void disposeAadhaarFlow() {
+    _aadhaarResendTimer?.cancel();
+  }
+
+  void _startAadhaarResendCooldown() {
+    _aadhaarResendTimer?.cancel();
+    aadhaarResendSeconds.value = _aadhaarResendCooldown;
+    _aadhaarResendTimer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (aadhaarResendSeconds.value <= 1) {
+        aadhaarResendSeconds.value = 0;
+        t.cancel();
+      } else {
+        aadhaarResendSeconds.value--;
+      }
+    });
+  }
+
+  /// GET /user/aadhaar/status — decides whether to show the verified state or
+  /// the entry form. An in-progress OTP attempt is treated as not verified.
+  Future<void> checkAadhaarStatus() async {
+    try {
+      isAadhaarStatusLoading.value = true;
+      final response = await DeliveryPartnerRepo().aadhaarStatusRepo();
+      final data = response.data;
+      if (response.isSuccess && data is Map) {
+        final status =
+            AadhaarStatusData.fromJson(Map<String, dynamic>.from(data));
+        if (status.isVerified) {
+          aadhaarIsVerified.value = true;
+          aadhaarVerifiedName.value = status.name;
+          aadhaarMaskedNumber.value = _formatMaskedFromLast4(status.aadhaarLast4);
+          aadhaarVerifiedAt.value = status.verifiedAt;
+          aadhaarStage.value = AadhaarStage.verified;
+        } else {
+          aadhaarStage.value = AadhaarStage.entry;
+        }
+      }
+    } catch (e) {
+      // Non-fatal: fall back to the entry form so the user can still verify.
+      debugPrint('❌ checkAadhaarStatus error: $e');
+    } finally {
+      isAadhaarStatusLoading.value = false;
+    }
+  }
+
+  /// POST /user/aadhaar/generate-otp — sends an OTP to the Aadhaar-linked
+  /// mobile. Requires a valid 12-digit number and the consent checkbox ticked.
+  Future<void> generateAadhaarOtp() async {
+    // Text validation (12-digit Aadhaar).
     if (!(aadharFormKey.currentState?.validate() ?? false)) return;
 
+    if (!aadhaarConsentGiven.value) {
+      commonSnackBar(
+          message:
+              'Please tick the consent checkbox to verify your Aadhaar.');
+      return;
+    }
+
+    final aadhaar = aadharController.text.replaceAll(RegExp(r'\s+'), '');
+
+    try {
+      isAadhaarOtpSending.value = true;
+      final response = await DeliveryPartnerRepo().aadhaarGenerateOtpRepo(
+        params: {
+          ApiKeys.aadhaarNumber: aadhaar,
+          ApiKeys.consent: 'Y',
+          ApiKeys.reason: 'For KYC',
+        },
+      );
+
+      final body = response.response?.data;
+      final isBusinessOk = body is Map && body['success'] == true;
+
+      if (response.isSuccess && isBusinessOk) {
+        final data = body['data'];
+        aadhaarReferenceId =
+            (data is Map ? data['reference_id']?.toString() : null) ?? '';
+        aadhaarOtpController.clear();
+        aadhaarStage.value = AadhaarStage.otp;
+        _startAadhaarResendCooldown();
+        commonSnackBar(
+            message: (body['message']?.toString().isNotEmpty ?? false)
+                ? body['message'].toString()
+                : 'OTP sent to your Aadhaar-linked mobile number');
+      } else {
+        // 200-with-success:false (e.g. "Invalid Aadhaar Card", "Please retry
+        // after 30 seconds") or a real error status — surface the message.
+        final msg = (body is Map ? body['message']?.toString() : null) ??
+            response.message ??
+            AppStrings.somethingWentWrong;
+        commonSnackBar(message: msg);
+      }
+    } catch (e, s) {
+      debugPrint('❌ generateAadhaarOtp error: $e\n$s');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      isAadhaarOtpSending.value = false;
+    }
+  }
+
+  /// POST /user/aadhaar/verify-otp — verifies the 6-digit OTP. On success the
+  /// entered number is written to the rider onboarding step and the sheet is
+  /// closed (via [checkStatusManageRoute]).
+  Future<void> verifyAadhaarOtp() async {
+    if (aadhaarReferenceId.isEmpty) {
+      // Stale reference (e.g. app restarted mid-flow) — restart from entry.
+      commonSnackBar(
+          message: 'Your session expired. Please request a new OTP.');
+      aadhaarStage.value = AadhaarStage.entry;
+      return;
+    }
+    if (aadhaarOtpController.text.trim().length != 6) {
+      commonSnackBar(message: 'Please enter the 6-digit OTP.');
+      return;
+    }
+
+    try {
+      isAadhaarOtpVerifying.value = true;
+      final response = await DeliveryPartnerRepo().aadhaarVerifyOtpRepo(
+        params: {
+          ApiKeys.referenceId: aadhaarReferenceId,
+          ApiKeys.otp: aadhaarOtpController.text.trim(),
+        },
+      );
+
+      final body = response.response?.data;
+      final verified = body is Map &&
+          body['success'] == true &&
+          body['is_verified'] == true;
+
+      if (response.isSuccess && verified) {
+        _aadhaarResendTimer?.cancel();
+        final data = body['data'];
+        final identity = data is Map
+            ? AadhaarVerifiedIdentity.fromJson(Map<String, dynamic>.from(data))
+            : null;
+        aadhaarIsVerified.value = true;
+        aadhaarVerifiedName.value = identity?.name;
+        aadhaarMaskedNumber.value =
+            _formatMaskedFromLast4(identity?.aadhaarLast4);
+        aadhaarVerifiedAt.value = DateTime.now().toIso8601String();
+        aadhaarStage.value = AadhaarStage.verified;
+        commonSnackBar(
+            message: (body['message']?.toString().isNotEmpty ?? false)
+                ? body['message'].toString()
+                : 'Aadhaar verified successfully');
+
+        // Bridge the verified identity into the rider onboarding step so the
+        // delivery-partner "aadhar" gate is completed.
+        await _submitRiderAadhaarStep(
+            aadharController.text.replaceAll(RegExp(r'\s+'), ''));
+      } else {
+        // "Invalid OTP" / "OTP expired" / "No pending OTP request found" etc.
+        final msg = (body is Map ? body['message']?.toString() : null) ??
+            response.message ??
+            AppStrings.somethingWentWrong;
+        commonSnackBar(message: msg);
+      }
+    } catch (e, s) {
+      debugPrint('❌ verifyAadhaarOtp error: $e\n$s');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      isAadhaarOtpVerifying.value = false;
+    }
+  }
+
+  /// Go back from the OTP stage to the Aadhaar entry stage (edit number).
+  void editAadhaarNumber() {
+    _aadhaarResendTimer?.cancel();
+    aadhaarResendSeconds.value = 0;
+    aadhaarOtpController.clear();
+    aadhaarStage.value = AadhaarStage.entry;
+  }
+
+  /// Writes the verified Aadhaar number to the rider onboarding step and
+  /// resolves the sheet/route the same way the other document steps do.
+  Future<void> _submitRiderAadhaarStep(String aadharNumber) async {
     try {
       isRiderPersonalIdentificationLoading.value = true;
-
-      // ---------- 2️⃣ PREPARE PAYLOAD ----------
-      final params = {
-        ApiKeys.aadharNo: aadharController.text,
-      };
-
-      // ---------- 3️⃣ API CALL ----------
       final response = await DeliveryPartnerRepo()
-          .ridersOnboardingPersonalIdentificationRepo(params: params);
-
-      // ---------- 9️⃣ HANDLE RESPONSE ----------
+          .ridersOnboardingPersonalIdentificationRepo(
+              params: {ApiKeys.aadharNo: aadharNumber});
       if (response.isSuccess) {
         ridersOnboardingPersonalIdentificationResponse.value =
             ApiResponse.complete(response);
-        Get.back();
       } else {
         ridersOnboardingPersonalIdentificationResponse.value =
             ApiResponse.error('error');
         commonSnackBar(
-          message: response.message ?? AppStrings.somethingWentWrong,
-        );
+            message: response.message ?? AppStrings.somethingWentWrong);
       }
       checkStatusManageRoute();
     } catch (e, s) {
-      debugPrint('❌ ridersOnboardingPersonalIdentificationApi error: $e\n$s');
+      debugPrint('❌ _submitRiderAadhaarStep error: $e\n$s');
       ridersOnboardingPersonalIdentificationResponse.value =
           ApiResponse.error('error');
       commonSnackBar(message: AppStrings.somethingWentWrong);

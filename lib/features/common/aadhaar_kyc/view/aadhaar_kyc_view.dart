@@ -3,7 +3,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
+import 'package:BlueEra/features/common/aadhaar_kyc/controller/aadhaar_kyc_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -13,31 +13,34 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:pinput/pinput.dart';
 
-/// Aadhaar OKYC (OTP) verification bottom sheet.
+/// Reusable Aadhaar OKYC (OTP) verification widget.
 ///
 /// Drives the generic per-user Aadhaar identity verification flow:
 ///   status → enter Aadhaar + consent → generate OTP → verify OTP → verified.
-/// See docs/backend/aadhaar-verification-ui-integration.md.
-class AadharCardWidget extends StatefulWidget {
-  const AadharCardWidget({super.key});
+/// Pass an [AadhaarKycController] whose `onVerified` bridges the result into
+/// the host flow. See docs/backend/aadhaar-verification-ui-integration.md.
+class AadhaarKycView extends StatefulWidget {
+  const AadhaarKycView({super.key, required this.controller});
+
+  final AadhaarKycController controller;
 
   @override
-  State<AadharCardWidget> createState() => _AadharCardWidgetState();
+  State<AadhaarKycView> createState() => _AadhaarKycViewState();
 }
 
-class _AadharCardWidgetState extends State<AadharCardWidget> {
-  final controller = Get.find<DeliveryPartnerController>();
+class _AadhaarKycViewState extends State<AadhaarKycView> {
+  AadhaarKycController get controller => widget.controller;
 
   @override
   void initState() {
     super.initState();
     // Reset the flow and fetch current verification status on open.
-    controller.initAadhaarFlow();
+    controller.init();
   }
 
   @override
   void dispose() {
-    controller.disposeAadhaarFlow();
+    controller.disposeFlow();
     super.dispose();
   }
 
@@ -46,13 +49,13 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
     return CustomFormCard(
       padding: EdgeInsets.zero,
       child: Obx(() {
-        if (controller.isAadhaarStatusLoading.value) {
+        if (controller.isStatusLoading.value) {
           return const Padding(
             padding: EdgeInsets.symmetric(vertical: 40),
             child: Center(child: CircularProgressIndicator()),
           );
         }
-        switch (controller.aadhaarStage.value) {
+        switch (controller.stage.value) {
           case AadhaarStage.verified:
             return _buildVerifiedState();
           case AadhaarStage.otp:
@@ -67,7 +70,7 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
   // ── Stage 1: enter Aadhaar + consent ───────────────────────────────
   Widget _buildEntryStage() {
     return Form(
-      key: controller.aadharFormKey,
+      key: controller.formKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -85,7 +88,7 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
           /// Consent — mandatory, never pre-ticked (compliance requirement).
           Obx(
             () => InkWell(
-              onTap: () => controller.aadhaarConsentGiven.toggle(),
+              onTap: () => controller.consentGiven.toggle(),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -93,9 +96,9 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
                     height: 24,
                     width: 24,
                     child: Checkbox(
-                      value: controller.aadhaarConsentGiven.value,
+                      value: controller.consentGiven.value,
                       onChanged: (v) =>
-                          controller.aadhaarConsentGiven.value = v ?? false,
+                          controller.consentGiven.value = v ?? false,
                       activeColor: AppColors.primaryColor,
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
@@ -117,13 +120,13 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
 
           Obx(
             () => CustomBtn(
-              title: controller.isAadhaarOtpSending.value ? null : 'Send OTP',
-              onTap: controller.isAadhaarOtpSending.value
+              title: controller.isOtpSending.value ? null : 'Send OTP',
+              onTap: controller.isOtpSending.value
                   ? null
-                  : () => controller.generateAadhaarOtp(),
+                  : () => controller.generateOtp(),
               radius: 10.0,
               bgColor: AppColors.primaryColor,
-              isLoading: controller.isAadhaarOtpSending.value,
+              isLoading: controller.isOtpSending.value,
             ),
           ),
         ],
@@ -165,7 +168,7 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
         ),
         SizedBox(height: SizeConfig.paddingM),
         Pinput(
-          controller: controller.aadhaarOtpController,
+          controller: controller.otpController,
           length: 6,
           keyboardType: TextInputType.number,
           inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -185,16 +188,16 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
                 fontSize: SizeConfig.small,
                 color: AppColors.coloGreyText,
               ),
-              if (controller.aadhaarResendSeconds.value > 0)
+              if (controller.resendSeconds.value > 0)
                 CustomText(
-                  'Resend in ${controller.aadhaarResendSeconds.value}s',
+                  'Resend in ${controller.resendSeconds.value}s',
                   fontSize: SizeConfig.small,
                   color: AppColors.primaryColor,
                   fontWeight: FontWeight.w600,
                 )
               else
                 InkWell(
-                  onTap: () => controller.generateAadhaarOtp(),
+                  onTap: () => controller.generateOtp(),
                   child: CustomText(
                     'Resend OTP',
                     fontSize: SizeConfig.small,
@@ -209,19 +212,18 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
         SizedBox(height: SizeConfig.paddingM),
         Obx(
           () => CustomBtn(
-            title:
-                controller.isAadhaarOtpVerifying.value ? null : 'Verify OTP',
-            onTap: controller.isAadhaarOtpVerifying.value
+            title: controller.isOtpVerifying.value ? null : 'Verify OTP',
+            onTap: controller.isOtpVerifying.value
                 ? null
-                : () => controller.verifyAadhaarOtp(),
+                : () => controller.verifyOtp(),
             radius: 10.0,
             bgColor: AppColors.primaryColor,
-            isLoading: controller.isAadhaarOtpVerifying.value,
+            isLoading: controller.isOtpVerifying.value,
           ),
         ),
         SizedBox(height: SizeConfig.size10),
         InkWell(
-          onTap: () => controller.editAadhaarNumber(),
+          onTap: () => controller.editNumber(),
           child: CustomText(
             '✎ Edit Aadhaar number',
             fontSize: SizeConfig.small,
@@ -236,8 +238,8 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
   // ── Stage 3: verified ──────────────────────────────────────────────
   Widget _buildVerifiedState() {
     return Obx(() {
-      final name = controller.aadhaarVerifiedName.value;
-      final masked = controller.aadhaarMaskedNumber.value;
+      final name = controller.verifiedName.value;
+      final masked = controller.maskedNumber.value;
       return Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -254,10 +256,8 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
             color: AppColors.green00,
           ),
           SizedBox(height: SizeConfig.size12),
-          if (name != null && name.isNotEmpty)
-            _infoRow('Name', name),
-          if (masked != null && masked.isNotEmpty)
-            _infoRow('Aadhaar', masked),
+          if (name != null && name.isNotEmpty) _infoRow('Name', name),
+          if (masked != null && masked.isNotEmpty) _infoRow('Aadhaar', masked),
           SizedBox(height: SizeConfig.paddingM),
           CustomBtn(
             title: 'Done',
