@@ -1146,6 +1146,16 @@ class ChatEmitEvents {
   static const healthcareEnquiryStatusUpdated =
       "healthcareEnquiryStatusUpdated";
 
+  // Hospital appointment / healthcare booking (hospital listing → chat).
+  // Emitted by be_hospital_service after `POST /hospital-appointments`
+  // and any `PUT /:id/status` transition (owner accept/decline OR buyer
+  // cancel). Distinct from the enquiry events above — same conversation
+  // but a separate card type. See
+  // lib/docs/healthcare-appointment-ui-integration.md §4.
+  static const newHealthcareBookingReceived = "newHealthcareBookingReceived";
+  static const healthcareBookingStatusUpdated =
+      "healthcareBookingStatusUpdated";
+
   // Hotel enquiry (hotel listing → chat). See
   // lib/docs/enquiry-flows-ui-integration.md §2a.
   static const newHotelEnquiryReceived = "newHotelEnquiryReceived";

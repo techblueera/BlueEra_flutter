@@ -6,9 +6,9 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/rental/model/property_model.dart';
-import 'package:BlueEra/features/common/rental/widget/property_enquiry_sheet.dart';
 import 'package:BlueEra/features/common/rental/repo/property_repo.dart';
 import 'package:BlueEra/features/common/rental/view/property_details_screen.dart';
+import 'package:BlueEra/features/common/rental/widget/property_enquiry_sheet.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/route_map_bottom_sheet.dart';
@@ -151,7 +151,6 @@ class PropertyListingCard extends StatelessWidget {
     );
   }
 
-
   // ─── TITLE + LOCATION ───────────────────────────────────────────
 
   Widget _titleAndLocation() {
@@ -163,9 +162,7 @@ class PropertyListingCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           CustomText(
-            property.propertyName.isNotEmpty
-                ? property.propertyName
-                : property.typeLabel,
+            property.propertyName.isNotEmpty ? property.propertyName : property.typeLabel,
             fontSize: SizeConfig.large18,
             fontWeight: FontWeight.w600,
             color: AppColors.mainTextColor,
@@ -179,7 +176,7 @@ class PropertyListingCard extends StatelessWidget {
               child: Row(
                 children: [
                   LocalAssets(
-                    imagePath:AppIconAssets.location_outline,
+                    imagePath: AppIconAssets.location_outline,
                     height: 16,
                     width: 16,
                     imgColor: isOwner ? AppColors.secondaryTextColor : AppColors.primaryColor,
@@ -353,8 +350,7 @@ class PropertyListingCard extends StatelessWidget {
     if (amount == null || amount.trim().isEmpty) return '';
     final n = num.tryParse(amount.trim());
     if (n == null || n <= 0) return '';
-    return AppStrings.depositPrefixFmt
-        .trParams({'amount': formatIndianNumber(n).toString()});
+    return AppStrings.depositPrefixFmt.trParams({'amount': formatIndianNumber(n).toString()});
   }
 
   Widget _areaColumn() {
@@ -396,8 +392,7 @@ class PropertyListingCard extends StatelessWidget {
       return (value: ha.areaDetails!, label: AppStrings.builtUpAreaLabel.tr);
     }
     final lp = property.landAndPlots;
-    if (lp?.plotAreaDetails?.totalArea != null &&
-        lp!.plotAreaDetails!.totalArea!.isNotEmpty) {
+    if (lp?.plotAreaDetails?.totalArea != null && lp!.plotAreaDetails!.totalArea!.isNotEmpty) {
       return (
         value: lp.plotAreaDetails!.totalArea!,
         label: AppStrings.plotAreaLabel.tr,
@@ -498,16 +493,16 @@ class PropertyListingCard extends StatelessWidget {
             ],
           ),
         ),
-        _circleIconAction(
-          filled: false,
-          child: LocalAssets(
-            imagePath: AppIconAssets.chat,
-            height: 18,
-            width: 18,
-            imgColor: AppColors.primaryColor,
-          ),
-          onTap: _openChat,
-        ),
+        // _circleIconAction(
+        //   filled: false,
+        //   child: LocalAssets(
+        //     imagePath: AppIconAssets.chat,
+        //     height: 18,
+        //     width: 18,
+        //     imgColor: AppColors.primaryColor,
+        //   ),
+        //   onTap: _openChat,
+        // ),
         // Call shortcut commented out for now — re-enable when an owner
         // phone number is available on the model.
         // const SizedBox(width: 8),
@@ -540,9 +535,7 @@ class PropertyListingCard extends StatelessWidget {
         height: 40,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: filled
-              ? AppColors.primaryColor
-              : AppColors.primaryColor.withValues(alpha: 0.08),
+          color: filled ? AppColors.primaryColor : AppColors.primaryColor.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(10),
           border: filled
               ? null
@@ -566,10 +559,7 @@ class PropertyListingCard extends StatelessWidget {
     // New-project listings carry the lister's name as the developer/
     // builder name inside the launch info rather than the top-level
     // listedByName, so fall back to it before the generic label.
-    final builder = property
-            .newProjectsAndProperties?.projectLaunchInformation?.builderName
-            ?.trim() ??
-        '';
+    final builder = property.newProjectsAndProperties?.projectLaunchInformation?.builderName?.trim() ?? '';
     if (builder.isNotEmpty) return builder;
     return AppStrings.propertyOwnerFallback.tr;
   }
@@ -581,9 +571,7 @@ class PropertyListingCard extends StatelessWidget {
     // whichever sub-model carries it. Falls back to 'Owner' when
     // the field is missing on an older payload.
     final role = _listedByRole() ?? AppStrings.ownerRoleFallback.tr;
-    return isOwner
-        ? AppStrings.youDotRoleFmt.trParams({'role': role})
-        : role;
+    return isOwner ? AppStrings.youDotRoleFmt.trParams({'role': role}) : role;
   }
 
   /// Pulls `listedBy` from whichever type-specific sub-model has it.
@@ -697,8 +685,7 @@ class PropertyListingCard extends StatelessWidget {
           color: AppColors.mainTextColor,
         ),
         content: CustomText(
-          AppStrings.deletePropertyConfirmFmt
-              .trParams({'name': property.propertyName}),
+          AppStrings.deletePropertyConfirmFmt.trParams({'name': property.propertyName}),
           fontSize: SizeConfig.small,
           color: AppColors.secondaryTextColor,
         ),
@@ -743,9 +730,7 @@ class PropertyListingCard extends StatelessWidget {
         commonSnackBar(message: AppStrings.propertyDeletedSuccessfully.tr);
         onDeleted?.call();
       } else {
-        commonSnackBar(
-            message:
-                response.message ?? AppStrings.failedToDeleteProperty.tr);
+        commonSnackBar(message: response.message ?? AppStrings.failedToDeleteProperty.tr);
       }
     } catch (_) {
       Get.back();
@@ -873,8 +858,7 @@ class _HeroPagerState extends State<_HeroPager> {
   /// the row off-screen with very long galleries.
   Widget _dots(int count, int active) {
     final visible = count > 5 ? 5 : count;
-    final activeMapped =
-        count > 5 ? (active * (visible - 1) ~/ (count - 1)) : active;
+    final activeMapped = count > 5 ? (active * (visible - 1) ~/ (count - 1)) : active;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: List.generate(visible, (i) {

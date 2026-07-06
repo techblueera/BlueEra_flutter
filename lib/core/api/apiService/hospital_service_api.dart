@@ -93,4 +93,29 @@ mixin HospitalServiceApi {
   /// current status when the message metadata's local latch is empty.
   String hospitalEnquiryById(String enquiryId) =>
       'hospital-service/hospital-enquiries/$enquiryId';
+
+  /// Hospital appointment (be_hospital_service producer).
+  /// `POST` books an appointment with a specific doctor (opd_id) — creates
+  /// the in-chat `healthcare_booking` card + emits
+  /// `newHealthcareBookingReceived`. `PUT status` handles owner
+  /// accept/decline AND buyer cancel (`cancelled` transition) — same
+  /// pattern as the hotel booking. See
+  /// `lib/docs/healthcare-appointment-ui-integration.md`.
+  final String hospitalAppointments =
+      'hospital-service/hospital-appointments';
+  String hospitalAppointmentStatus(String appointmentId) =>
+      'hospital-service/hospital-appointments/$appointmentId/status';
+
+  /// GET one — used by the chat card to hydrate current status when the
+  /// local metadata latch is empty (fresh login on a new device).
+  String hospitalAppointmentById(String appointmentId) =>
+      'hospital-service/hospital-appointments/$appointmentId';
+
+  /// Customer outbox — appointments I sent (doc §3).
+  final String hospitalAppointmentsMe =
+      'hospital-service/hospital-appointments/me';
+
+  /// Owner inbox — appointments on my hospital (doc §3).
+  final String hospitalAppointmentsOwnerMe =
+      'hospital-service/hospital-appointments/owner/me';
 }

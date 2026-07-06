@@ -1,20 +1,18 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
+import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
+import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/discover_professionals_view_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
 import 'package:BlueEra/features/common/Discover/widget/filter_capsule.dart';
-import 'package:BlueEra/features/common/Discover/widget/profession_enquiry_sheet.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
-import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
@@ -23,7 +21,6 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -37,17 +34,13 @@ class ProfessionConsultantDiscoverScreen extends StatefulWidget {
   final ProfessionTypeData? selectedProfessionConsultantData;
 
   const ProfessionConsultantDiscoverScreen(
-      {super.key,
-      required this.professionalConsultantCategories,
-      this.selectedProfessionConsultantData});
+      {super.key, required this.professionalConsultantCategories, this.selectedProfessionConsultantData});
 
   @override
-  State<ProfessionConsultantDiscoverScreen> createState() =>
-      _ProfessionConsultantDiscoverScreenState();
+  State<ProfessionConsultantDiscoverScreen> createState() => _ProfessionConsultantDiscoverScreenState();
 }
 
-class _ProfessionConsultantDiscoverScreenState
-    extends State<ProfessionConsultantDiscoverScreen> {
+class _ProfessionConsultantDiscoverScreenState extends State<ProfessionConsultantDiscoverScreen> {
   final controller = getOrPut(() => DiscoverController());
   late List<ProfessionTypeData> _professionalConsultantCategories;
 
@@ -96,8 +89,7 @@ class _ProfessionConsultantDiscoverScreenState
       final perm = await Geolocator.checkPermission();
       if (perm == LocationPermission.denied) {
         final req = await Geolocator.requestPermission();
-        if (req == LocationPermission.denied ||
-            req == LocationPermission.deniedForever) return;
+        if (req == LocationPermission.denied || req == LocationPermission.deniedForever) return;
       } else if (perm == LocationPermission.deniedForever) {
         return;
       }
@@ -119,8 +111,7 @@ class _ProfessionConsultantDiscoverScreenState
       final lat = _toDouble(item.userDetails?.userLocation?.lat);
       final lng = _toDouble(item.userDetails?.userLocation?.lon);
       if (lat == null || lng == null || (lat == 0 && lng == 0)) continue;
-      final meters =
-          Geolocator.distanceBetween(_myLat!, _myLng!, lat, lng);
+      final meters = Geolocator.distanceBetween(_myLat!, _myLng!, lat, lng);
       // 1.27× road factor mirrors the existing helper in
       // view_business_details_controller.dart so distances feel
       // consistent across the app.
@@ -134,8 +125,7 @@ class _ProfessionConsultantDiscoverScreenState
     return double.tryParse(v.toString());
   }
 
-  double? _distanceFor(ProfessionalConsData item) =>
-      _distances[item.id ?? item.userId ?? ''];
+  double? _distanceFor(ProfessionalConsData item) => _distances[item.id ?? item.userId ?? ''];
 
   /// Converts an all-caps category name like "ADVOCATE" or
   /// "TAX_CONSULTANT" into a human-readable label like "Advocate" /
@@ -147,17 +137,14 @@ class _ProfessionConsultantDiscoverScreenState
     if (cleaned != cleaned.toUpperCase()) return cleaned;
     return cleaned
         .split(RegExp(r'\s+'))
-        .map((w) => w.isEmpty
-            ? w
-            : '${w[0].toUpperCase()}${w.substring(1).toLowerCase()}')
+        .map((w) => w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1).toLowerCase()}')
         .join(' ');
   }
 
   /// Returns a new list sorted by the active filter. Items missing
   /// the comparator key sort to the end so they don't crowd the top
   /// of a sorted list with stale rows.
-  List<ProfessionalConsData> _applySort(
-      List<ProfessionalConsData> items, CategoryFilter filter) {
+  List<ProfessionalConsData> _applySort(List<ProfessionalConsData> items, CategoryFilter filter) {
     final sorted = List<ProfessionalConsData>.from(items);
     switch (filter) {
       case CategoryFilter.nearest:
@@ -169,10 +156,10 @@ class _ProfessionConsultantDiscoverScreenState
         break;
       case CategoryFilter.experienced:
         sorted.sort((a, b) {
-          final aMonths = (a.about?.totalExperience?.years ?? 0) * 12 +
-              (a.about?.totalExperience?.months ?? 0);
-          final bMonths = (b.about?.totalExperience?.years ?? 0) * 12 +
-              (b.about?.totalExperience?.months ?? 0);
+          final aMonths =
+              (a.about?.totalExperience?.years ?? 0) * 12 + (a.about?.totalExperience?.months ?? 0);
+          final bMonths =
+              (b.about?.totalExperience?.years ?? 0) * 12 + (b.about?.totalExperience?.months ?? 0);
           return bMonths.compareTo(aMonths); // descending
         });
         break;
@@ -193,8 +180,7 @@ class _ProfessionConsultantDiscoverScreenState
 
   bool _onScrollNotification(ScrollNotification notification) {
     if (notification is ScrollUpdateNotification &&
-        notification.metrics.pixels >=
-            notification.metrics.maxScrollExtent - 200) {
+        notification.metrics.pixels >= notification.metrics.maxScrollExtent - 200) {
       controller.fetchProfessionalConsultantServices(isLoadMore: true);
     }
     return false;
@@ -244,7 +230,8 @@ class _ProfessionConsultantDiscoverScreenState
                   delegate: StickyCategoryHeaderDelegate(
                     topPadding: statusBarHeight,
                     categories: stickyCategories,
-                    selectedId: controller.selectedProfessionalConsultantData.value?.slugId ?? ADVERTISING_CONSULTANT,
+                    selectedId:
+                        controller.selectedProfessionalConsultantData.value?.slugId ?? ADVERTISING_CONSULTANT,
                     // selectedId: controller
                     //         .selectedProfessionalConsultantData.value?.slugId ??
                     //     'ALL_OPTION',
@@ -253,12 +240,11 @@ class _ProfessionConsultantDiscoverScreenState
                       //   controller.selectedProfessionalConsultantData.value =
                       //       null;
                       // } else {
-                        controller.selectedProfessionalConsultantData.value =
-                            OnboardingCategoryModel(
-                          name: item.name,
-                          slugId: item.id,
-                          accountType: AppConstants.individual,
-                        );
+                      controller.selectedProfessionalConsultantData.value = OnboardingCategoryModel(
+                        name: item.name,
+                        slugId: item.id,
+                        accountType: AppConstants.individual,
+                      );
                       // }
                       controller.fetchProfessionalConsultantServices();
                       setState(() {});
@@ -309,14 +295,11 @@ class _ProfessionConsultantDiscoverScreenState
           SizedBox(height: SizeConfig.size10),
           Expanded(
             child: Obx(() {
-              if (controller.isProfConServiceLoading.value &&
-                  controller.professionalConsDataList.isEmpty) {
+              if (controller.isProfConServiceLoading.value && controller.professionalConsDataList.isEmpty) {
                 return const Center(child: CircularProgressIndicator());
               }
               if (controller.professionalConsDataList.isEmpty) {
-                final selectedName = controller
-                        .selectedProfessionalConsultantData.value?.name ??
-                    '';
+                final selectedName = controller.selectedProfessionalConsultantData.value?.name ?? '';
                 // Server returns categories in upper-case (e.g.
                 // "ADVOCATE"); flip to title-case for the message so
                 // it reads naturally ("No Advocate consultants…").
@@ -324,8 +307,7 @@ class _ProfessionConsultantDiscoverScreenState
                 final message = pretty.isNotEmpty
                     ? AppStrings.noConsultantsFoundNearYou.trParams({'category': pretty})
                     : AppStrings.noServicesFound.tr;
-                return Center(
-                    child: EmptyStateWidget(message: message));
+                return Center(child: EmptyStateWidget(message: message));
               }
               // Recompute distance cache cheaply for any new items
               // appended by the load-more sentinel, then sort by the
@@ -335,8 +317,7 @@ class _ProfessionConsultantDiscoverScreenState
                 controller.professionalConsDataList,
                 controller.selectedFilter.value,
               );
-              final showMoreSpinner =
-                  controller.isProfConServiceLoadingMore.value;
+              final showMoreSpinner = controller.isProfConServiceLoadingMore.value;
               final rows = buildNativeAdRows(sorted.length);
               return ListView.builder(
                 itemCount: rows.length + (showMoreSpinner ? 1 : 0),
@@ -406,10 +387,8 @@ class _ProfessionConsultantDiscoverScreenState
 
     // "Services offered" checklist — certificate titles first (they read as
     // concrete offerings), falling back to portfolio project titles.
-    var serviceTitles = (service.certificates ?? [])
-        .map((c) => (c.title ?? '').trim())
-        .where((t) => t.isNotEmpty)
-        .toList();
+    var serviceTitles =
+        (service.certificates ?? []).map((c) => (c.title ?? '').trim()).where((t) => t.isNotEmpty).toList();
     if (serviceTitles.isEmpty) {
       serviceTitles = (service.portfolio ?? [])
           .map((p) => (p.projectTitle ?? '').trim())
@@ -418,9 +397,8 @@ class _ProfessionConsultantDiscoverScreenState
     }
     final totalServices = serviceTitles.length;
     final showMoreServices = totalServices > 6;
-    final visibleServices = showMoreServices
-        ? serviceTitles.take(5).toList()
-        : serviceTitles.take(6).toList();
+    final visibleServices =
+        showMoreServices ? serviceTitles.take(5).toList() : serviceTitles.take(6).toList();
     final extraServices = showMoreServices ? totalServices - 5 : 0;
 
     void openDetail() {
@@ -469,8 +447,7 @@ class _ProfessionConsultantDiscoverScreenState
                             imageUrl: heroImage,
                             fit: BoxFit.cover,
                             memCacheWidth: 800,
-                            placeholder: (_, __) =>
-                                Container(color: const Color(0xFFEDEFF4)),
+                            placeholder: (_, __) => Container(color: const Color(0xFFEDEFF4)),
                             errorWidget: (_, __, ___) => Container(
                               color: const Color(0xFFEDEFF4),
                               child: Icon(
@@ -626,8 +603,7 @@ class _ProfessionConsultantDiscoverScreenState
                             color: AppColors.mainTextColor,
                           ),
                           SizedBox(height: SizeConfig.size8),
-                          Container(
-                              height: 1, color: const Color(0xFFEDEFF4)),
+                          Container(height: 1, color: const Color(0xFFEDEFF4)),
                           SizedBox(height: SizeConfig.size10),
                           _servicesGrid(
                             visibleServices,
@@ -681,29 +657,29 @@ class _ProfessionConsultantDiscoverScreenState
                       ),
                       const Spacer(),
                       // Chat / enquire icon button
-                      InkWell(
-                        onTap: () =>
-                            ProfessionEnquirySheet.open(context, service),
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                          height: 44,
-                          width: 44,
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryColor
-                                .withValues(alpha: 0.10),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Center(
-                            child: LocalAssets(
-                              imagePath: AppIconAssets.chat,
-                              height: 20,
-                              width: 20,
-                              imgColor: AppColors.primaryColor,
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: SizeConfig.size10),
+                      // InkWell(
+                      //   onTap: () =>
+                      //       ProfessionEnquirySheet.open(context, service),
+                      //   borderRadius: BorderRadius.circular(12),
+                      //   child: Container(
+                      //     height: 44,
+                      //     width: 44,
+                      //     decoration: BoxDecoration(
+                      //       color: AppColors.primaryColor
+                      //           .withValues(alpha: 0.10),
+                      //       borderRadius: BorderRadius.circular(12),
+                      //     ),
+                      //     child: Center(
+                      //       child: LocalAssets(
+                      //         imagePath: AppIconAssets.chat,
+                      //         height: 20,
+                      //         width: 20,
+                      //         imgColor: AppColors.primaryColor,
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
+                      // SizedBox(width: SizeConfig.size10),
                       // Book Now (filled)
                       InkWell(
                         onTap: openDetail,
@@ -717,8 +693,7 @@ class _ProfessionConsultantDiscoverScreenState
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.primaryColor
-                                    .withValues(alpha: 0.30),
+                                color: AppColors.primaryColor.withValues(alpha: 0.30),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -770,8 +745,7 @@ class _ProfessionConsultantDiscoverScreenState
           Expanded(child: cells[i]),
           SizedBox(width: SizeConfig.size10),
           Expanded(
-            child:
-                i + 1 < cells.length ? cells[i + 1] : const SizedBox.shrink(),
+            child: i + 1 < cells.length ? cells[i + 1] : const SizedBox.shrink(),
           ),
         ],
       ));
@@ -827,8 +801,7 @@ class _ProfessionConsultantDiscoverScreenState
     // ListView now calls [_buildSpecCard]. Keeping the symbol live
     // so any external callers still compile until they migrate.
     return InkWell(
-      onTap: () => Get.to(
-          () => DiscoverProfessionalsViewScreen(professionalConsData: service)),
+      onTap: () => Get.to(() => DiscoverProfessionalsViewScreen(professionalConsData: service)),
       child: CustomFormCard(
           padding: EdgeInsets.all(SizeConfig.size10),
           margin: EdgeInsets.only(bottom: SizeConfig.size10),
@@ -850,11 +823,8 @@ class _ProfessionConsultantDiscoverScreenState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      CustomText(
-                          service.userDetails?.name ??
-                              AppStrings.unknownUser.tr,
-                          color: AppColors.mainTextColor,
-                          fontWeight: FontWeight.w600),
+                      CustomText(service.userDetails?.name ?? AppStrings.unknownUser.tr,
+                          color: AppColors.mainTextColor, fontWeight: FontWeight.w600),
                       CustomText(
                         service.basicDetails?.shortTagline ?? 'N/A',
                         fontSize: SizeConfig.small,
@@ -951,9 +921,7 @@ class _ProfessionConsultantDiscoverScreenState
                   ],
                 ),
               ),
-
               SizedBox(height: SizeConfig.size8),
-
               Row(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -989,12 +957,10 @@ class _ProfessionConsultantDiscoverScreenState
                     onTap: () {
                       final targetUserId = service.userId ?? '';
                       if (targetUserId.isEmpty) return;
-                      final chatViewController =
-                          getOrPut(() => ChatViewController());
+                      final chatViewController = getOrPut(() => ChatViewController());
 
                       chatViewController.checkChatConnectionAndOpenChat(
-                          userId: service.userId ?? "",
-                          route: AppConstants.route_discover);
+                          userId: service.userId ?? "", route: AppConstants.route_discover);
                       // Get.to(() => PersonalChatScreen(
                       //       conversationId: '',
                       //       userId: targetUserId,
@@ -1007,8 +973,7 @@ class _ProfessionConsultantDiscoverScreenState
                     },
                     borderRadius: BorderRadius.circular(6),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: AppColors.primaryColor,
                         borderRadius: BorderRadius.circular(6),
@@ -1016,8 +981,7 @@ class _ProfessionConsultantDiscoverScreenState
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.chat_outlined,
-                              size: 14, color: AppColors.white),
+                          Icon(Icons.chat_outlined, size: 14, color: AppColors.white),
                           const SizedBox(width: 4),
                           CustomText(
                             'Enquire',
@@ -1085,11 +1049,9 @@ class _ProfessionConsultantDiscoverScreenState
                           clipBehavior: Clip.none,
                           children: [
                             ClipRRect(
-                              borderRadius: BorderRadius.vertical(
-                                  top: Radius.circular(10.0)),
+                              borderRadius: BorderRadius.vertical(top: Radius.circular(10.0)),
                               child: CachedNetworkImage(
-                                imageUrl:
-                                    service.basicDetails?.profilePhotoUrl ?? '',
+                                imageUrl: service.basicDetails?.profilePhotoUrl ?? '',
                                 width: SizeConfig.screenWidth,
                                 height: SizeConfig.size150,
                                 fit: BoxFit.cover,
@@ -1098,9 +1060,8 @@ class _ProfessionConsultantDiscoverScreenState
                                   height: SizeConfig.size150,
                                   color: Colors.grey[300],
                                 ),
-                                errorWidget: (context, url, error) => Icon(
-                                    Icons.person,
-                                    size: SizeConfig.size150 / 2),
+                                errorWidget: (context, url, error) =>
+                                    Icon(Icons.person, size: SizeConfig.size150 / 2),
                               ),
                             ),
                             Positioned(
@@ -1108,13 +1069,9 @@ class _ProfessionConsultantDiscoverScreenState
                                 bottom: -(SizeConfig.size34),
                                 child: Container(
                                   padding: EdgeInsets.all(3.0),
-                                  decoration: BoxDecoration(
-                                      color: AppColors.white,
-                                      shape: BoxShape.circle),
+                                  decoration: BoxDecoration(color: AppColors.white, shape: BoxShape.circle),
                                   child: CachedAvatarWidget(
-                                    imageUrl:
-                                        service.basicDetails?.profilePhotoUrl ??
-                                            '',
+                                    imageUrl: service.basicDetails?.profilePhotoUrl ?? '',
                                     size: SizeConfig.size65,
                                     borderColor: Colors.white,
                                     borderRadius: SizeConfig.size40,
@@ -1127,14 +1084,12 @@ class _ProfessionConsultantDiscoverScreenState
                         height: SizeConfig.size60,
                       ),
                       Padding(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+                        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Flexible(
-                              child: CustomText(
-                                  service.basicDetails?.fullName ?? ' User',
+                              child: CustomText(service.basicDetails?.fullName ?? ' User',
                                   fontSize: SizeConfig.large,
                                   color: AppColors.mainTextColor,
                                   fontWeight: FontWeight.w700),
@@ -1149,12 +1104,9 @@ class _ProfessionConsultantDiscoverScreenState
                               ),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(12.0),
-                                border: Border.all(
-                                    color: AppColors.secondaryTextColor,
-                                    width: 0.5),
+                                border: Border.all(color: AppColors.secondaryTextColor, width: 0.5),
                               ),
-                              child: CustomText(
-                                  service.basicDetails?.professionalTitle,
+                              child: CustomText(service.basicDetails?.professionalTitle,
                                   fontSize: SizeConfig.small,
                                   color: AppColors.secondaryTextColor,
                                   fontWeight: FontWeight.w400),
@@ -1166,8 +1118,7 @@ class _ProfessionConsultantDiscoverScreenState
                         height: SizeConfig.size12,
                       ),
                       Padding(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+                        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10),
                         child: ExpandableText(
                           text: "${service.basicDetails?.shortTagline ?? ''}",
                           trimLines: 3,
@@ -1332,48 +1283,39 @@ class _ProfessionConsultantDiscoverScreenState
                         width: SizeConfig.screenWidth,
                       ),
                       SizedBox(height: SizeConfig.size8),
-                      (service.certificates != null &&
-                              (service.certificates?.isNotEmpty ?? false))
-                          ? Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                  SizedBox(height: SizeConfig.size6),
-                                  ...List.generate(
-                                    service.certificates?.take(2).length ?? 0,
-                                    (index) => Padding(
-                                      padding:
-                                          const EdgeInsets.only(bottom: 4.0),
-                                      child: Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Container(
-                                            margin: const EdgeInsets.only(
-                                                top: 6.0, right: 8.0),
-                                            width: 4.0,
-                                            height: 4.0,
-                                            decoration: BoxDecoration(
-                                              color:
-                                                  AppColors.secondaryTextColor,
-                                              shape: BoxShape.circle,
-                                            ),
-                                          ),
-                                          Expanded(
-                                            child: CustomText(
-                                              service
-                                                  .certificates?[index].title,
-                                              fontSize: SizeConfig.small,
-                                              color:
-                                                  AppColors.secondaryTextColor,
-                                              fontWeight: FontWeight.w400,
-                                            ),
-                                          ),
-                                        ],
+                      (service.certificates != null && (service.certificates?.isNotEmpty ?? false))
+                          ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                              SizedBox(height: SizeConfig.size6),
+                              ...List.generate(
+                                service.certificates?.take(2).length ?? 0,
+                                (index) => Padding(
+                                  padding: const EdgeInsets.only(bottom: 4.0),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Container(
+                                        margin: const EdgeInsets.only(top: 6.0, right: 8.0),
+                                        width: 4.0,
+                                        height: 4.0,
+                                        decoration: BoxDecoration(
+                                          color: AppColors.secondaryTextColor,
+                                          shape: BoxShape.circle,
+                                        ),
                                       ),
-                                    ),
+                                      Expanded(
+                                        child: CustomText(
+                                          service.certificates?[index].title,
+                                          fontSize: SizeConfig.small,
+                                          color: AppColors.secondaryTextColor,
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  SizedBox(height: SizeConfig.size6),
-                                ])
+                                ),
+                              ),
+                              SizedBox(height: SizeConfig.size6),
+                            ])
                           : SizedBox(),
                       /* (service.service != null &&
                               service.service!.facilities != null &&
@@ -1489,8 +1431,7 @@ class _ProfessionConsultantDiscoverScreenState
                         width: SizeConfig.screenWidth,
                       ),
                       SizedBox(height: SizeConfig.size8),
-                      (service.portfolio != null &&
-                              service.portfolio!.isNotEmpty)
+                      (service.portfolio != null && service.portfolio!.isNotEmpty)
                           ? Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: List.generate(
@@ -1500,24 +1441,20 @@ class _ProfessionConsultantDiscoverScreenState
                                   child: Column(
                                     children: [
                                       Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           Container(
-                                            margin: EdgeInsets.only(
-                                                top: 6.0, right: 8.0),
+                                            margin: EdgeInsets.only(top: 6.0, right: 8.0),
                                             width: 4.0,
                                             height: 4.0,
                                             decoration: BoxDecoration(
-                                              color:
-                                                  AppColors.secondaryTextColor,
+                                              color: AppColors.secondaryTextColor,
                                               shape: BoxShape.circle,
                                             ),
                                           ),
                                           Expanded(
                                             child: CustomText(
-                                              service.portfolio?[index]
-                                                  .projectTitle,
+                                              service.portfolio?[index].projectTitle,
                                               fontSize: SizeConfig.medium,
                                               fontWeight: FontWeight.w600,
                                               color: AppColors.mainTextColor,
@@ -1573,8 +1510,7 @@ class _ProfessionConsultantDiscoverScreenState
                       SizedBox(height: SizeConfig.size8),
                       (service.gallery != null &&
                               service.gallery?.signedUrls != null &&
-                              (service.gallery?.signedUrls?.isNotEmpty ??
-                                  false))
+                              (service.gallery?.signedUrls?.isNotEmpty ?? false))
                           ? Builder(builder: (context) {
                               // Split into rows of 4
                               final rows = <String>[];
@@ -1595,22 +1531,19 @@ class _ProfessionConsultantDiscoverScreenState
                                   return Padding(
                                     padding: const EdgeInsets.all(8.0),
                                     child: ClipRRect(
-                                      borderRadius: BorderRadius.all(
-                                          Radius.circular(10.0)),
+                                      borderRadius: BorderRadius.all(Radius.circular(10.0)),
                                       child: CachedNetworkImage(
                                         imageUrl: rows[index],
                                         width: SizeConfig.size80,
                                         height: SizeConfig.size80,
                                         fit: BoxFit.cover,
-                                        placeholder: (context, url) =>
-                                            Container(
+                                        placeholder: (context, url) => Container(
                                           width: SizeConfig.size80,
                                           height: SizeConfig.size80,
                                           color: Colors.grey[300],
                                         ),
                                         errorWidget: (context, url, error) =>
-                                            Icon(Icons.person,
-                                                size: SizeConfig.size80 / 2),
+                                            Icon(Icons.person, size: SizeConfig.size80 / 2),
                                       ),
                                     ),
                                   );

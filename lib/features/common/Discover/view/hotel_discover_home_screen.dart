@@ -14,6 +14,7 @@ import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
 import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
 import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/features/me/hotel/view/widget/hotel_home_gallery_widget.dart';
+import 'package:BlueEra/features/me/hotel/widget/hotel_booking_sheet.dart';
 import 'package:BlueEra/features/me/hotel/widget/hotel_enquiry_sheet.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -827,7 +828,14 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
   /// Opens the hotel-enquiry sheet for the currently-viewed listing. Pulls
   /// the hotel id, owner id and snapshot fields from [profile] so the
   /// sheet header — and the eventual in-chat card — renders without an
-  /// extra fetch. See lib/docs/enquiry-flows-ui-integration.md §2a.
+  /// extra fetch.
+  ///
+  /// Before opening we register the hotel's actual Rooms with
+  /// [HotelBookingSheet.cacheRoomsForHotel] so the enquiry-first flow
+  /// (customer taps "Book Now" on the accepted chat card) can render a
+  /// real room picker instead of the free-text fallback. The cache is
+  /// keyed by hotelId and lives only for this session — losing it on
+  /// restart is fine, the sheet gracefully falls back to text chips.
   void _openHotelEnquirySheet() {
     // `profile.sId` is the hotel-profile's own `_id` (the hotel listing
     // the customer is enquiring about); `profile.businessId` is the
@@ -839,6 +847,7 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
       commonSnackBar(message: AppStrings.somethingWentWrong.tr);
       return;
     }
+    HotelBookingSheet.cacheRoomsForHotel(hotelId, _roomsForBooking());
     HotelEnquirySheet.open(
       context,
       listing: HotelEnquiryListing(
@@ -850,6 +859,30 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
         location: profile?.location?.name,
       ),
     );
+  }
+
+  /// Projection of `widget.data.rooms` onto the sheet's room-option
+  /// shape. Drops inactive rooms and rooms missing an id (nothing the
+  /// server would accept as a `room_id`). Uses the first exterior image
+  /// as the thumbnail — same convention as `_buildRoomCard`.
+  List<HotelBookingRoomOption> _roomsForBooking() {
+    final rooms = widget.data.rooms ?? const <Rooms>[];
+    final out = <HotelBookingRoomOption>[];
+    for (final r in rooms) {
+      final id = (r.sId ?? '').trim();
+      if (id.isEmpty) continue;
+      if (r.isActive == false) continue;
+      out.add(HotelBookingRoomOption(
+        id: id,
+        name: (r.name ?? '').trim(),
+        type: (r.type ?? '').trim(),
+        image: r.images?.exteriorImages?.firstOrNull,
+        pricePerDay: r.pricePerDay,
+        bedType: r.bedType,
+        maxOccupancy: r.maxOccupancy,
+      ));
+    }
+    return out;
   }
 
   void _launchCaller(String number) async {

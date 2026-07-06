@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/features/chat/auth/model/hotel_enquiry_model.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_enquiry_controller.dart';
+import 'package:BlueEra/features/me/hotel/widget/hotel_booking_sheet.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -398,10 +399,20 @@ class _HotelEnquiryMsgCardState extends State<HotelEnquiryMsgCard> {
 
   Widget _footer() {
     if (_isAccepted) {
-      return _statusBand(
-        icon: Icons.check_circle_rounded,
-        color: const Color(0xFF16A34A),
-        label: AppStrings.enquiryAccepted.tr,
+      // Enquiry-first flow (doc §2 intro): once the owner accepts, the
+      // customer gets a "Book Now" CTA that opens the booking sheet with
+      // `enquiry_id` pre-filled so the resulting booking links back to
+      // this enquiry. Owner side just sees the accepted band.
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _statusBand(
+            icon: Icons.check_circle_rounded,
+            color: const Color(0xFF16A34A),
+            label: AppStrings.enquiryAccepted.tr,
+          ),
+          if (_isMyMessage && _canOpenBookingSheet) _bookNowRow(),
+        ],
       );
     }
     if (_isDeclined) {
@@ -500,6 +511,77 @@ class _HotelEnquiryMsgCardState extends State<HotelEnquiryMsgCard> {
                     fontWeight: FontWeight.w800,
                     color: Colors.white)),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// Guard for the Book-Now CTA: the sheet needs hotelId + ownerId +
+  /// enquiryId to raise a linked booking. Any missing = hide the button
+  /// rather than opening a broken sheet.
+  bool get _canOpenBookingSheet {
+    final e = _e;
+    if (e == null) return false;
+    return (e.hotelId ?? '').trim().isNotEmpty &&
+        (e.ownerId ?? '').trim().isNotEmpty &&
+        (e.enquiryId ?? '').trim().isNotEmpty;
+  }
+
+  void _openBookingSheet() {
+    final e = _e!;
+    HotelBookingSheet.open(
+      context,
+      listing: HotelBookingListing(
+        hotelId: (e.hotelId ?? '').trim(),
+        ownerId: (e.ownerId ?? '').trim(),
+        // The enquiry card doesn't carry a separate ownerName — the
+        // sheet header falls back to hotelName when ownerName is empty,
+        // so an empty string is fine here.
+        ownerName: '',
+        hotelName: (e.listingName ?? '').trim(),
+        coverImage: (e.listingImage ?? '').trim(),
+        location: (e.location ?? '').trim(),
+      ),
+      enquiryId: (e.enquiryId ?? '').trim(),
+    );
+  }
+
+  Widget _bookNowRow() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+      child: InkWell(
+        onTap: _openBookingSheet,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 11),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(colors: [_accentDeep, _accent]),
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: _accent.withValues(alpha: 0.35),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.event_available_rounded,
+                  size: 16, color: Colors.white),
+              const SizedBox(width: 6),
+              Text(
+                AppStrings.bookNow.tr,
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

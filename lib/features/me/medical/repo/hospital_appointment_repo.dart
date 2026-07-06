@@ -5,25 +5,28 @@ import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:dio/dio.dart';
 
-/// REST surface for the hotel-enquiry flow described in
-/// `lib/docs/enquiry-flows-ui-integration.md` §2a. Wraps two endpoints:
-///   • `POST hotel-enquiries` — raises the enquiry; the backend creates
-///     the in-chat `hotel_enquiry` card and emits `newHotelEnquiryReceived`.
-///   • `PUT  hotel-enquiries/:id/status` — owner accepts / declines,
-///     emitting `hotelEnquiryStatusUpdated` to both sides.
+/// REST surface for the hospital-**appointment** flow described in
+/// `lib/docs/healthcare-appointment-ui-integration.md`. Distinct from the
+/// (unified) healthcare-enquiry flow:
+///   • `POST hospital-appointments` — carries `opd_id` + date/time; the
+///     backend creates the in-chat `healthcare_booking` card and emits
+///     `newHealthcareBookingReceived`.
+///   • `PUT  hospital-appointments/:id/status` — **owner** accepts /
+///     declines OR the buyer sends `cancelled` (customer-cancel path,
+///     mirroring hotel-booking). Emits `healthcareBookingStatusUpdated`.
 ///
-/// Photos can be sent as `multipart/form-data` (`payload` JSON part + up
-/// to 5 `photos` files) or as already-uploaded URLs in the JSON body.
-/// This repo uses multipart when local paths are present, mirroring the
-/// healthcare hospital flow.
-class HotelEnquiryRepo extends BaseService {
-  Future<ResponseModel> sendHotelEnquiry({
+/// Photos (reports/prescriptions) can be sent as `multipart/form-data`
+/// (`payload` JSON part + up to 5 `photos` files) or as already-uploaded
+/// URLs in the JSON body. This repo uses multipart when local paths are
+/// present, mirroring the hotel-enquiry / hotel-booking pipes.
+class HospitalAppointmentRepo extends BaseService {
+  Future<ResponseModel> sendHospitalAppointment({
     required Map<String, dynamic> params,
     List<String> photoPaths = const [],
   }) async {
     if (photoPaths.isEmpty) {
       return ApiBaseHelper().postHTTP(
-        hotelEnquiries,
+        hospitalAppointments,
         params: params,
         showProgress: false,
         onSuccess: (_) {},
@@ -39,7 +42,7 @@ class HotelEnquiryRepo extends BaseService {
       'photos': files,
     };
     return ApiBaseHelper().postHTTP(
-      hotelEnquiries,
+      hospitalAppointments,
       params: multipartParams,
       isMultipart: true,
       showProgress: false,
@@ -48,12 +51,14 @@ class HotelEnquiryRepo extends BaseService {
     );
   }
 
-  Future<ResponseModel> updateHotelEnquiryStatus({
-    required String enquiryId,
+  /// Same endpoint for owner `accepted`/`declined` and customer
+  /// `cancelled` — the doc explicitly notes this shape (§2).
+  Future<ResponseModel> updateHospitalAppointmentStatus({
+    required String appointmentId,
     required Map<String, dynamic> params,
   }) async {
     return ApiBaseHelper().putHTTP(
-      hotelEnquiryStatus(enquiryId),
+      hospitalAppointmentStatus(appointmentId),
       params: params,
       showProgress: false,
       onSuccess: (_) {},
@@ -61,27 +66,25 @@ class HotelEnquiryRepo extends BaseService {
     );
   }
 
-  /// GET one — used by the owner chat card to hydrate the enquiry's
-  /// current server-side status ('pending' / 'accepted' / 'declined').
-  Future<ResponseModel> getHotelEnquiryById(String enquiryId) async {
+  /// GET one — used by the chat card to hydrate the appointment's true
+  /// current status when the local metadata latch is empty.
+  Future<ResponseModel> getHospitalAppointmentById(String appointmentId) async {
     return ApiBaseHelper().getHTTP(
-      hotelEnquiryById(enquiryId),
+      hospitalAppointmentById(appointmentId),
       showProgress: false,
       onSuccess: (_) {},
       onError: (_) {},
     );
   }
 
-  /// Customer outbox — enquiries I sent (doc §1.3
-  /// `GET /hotel-enquiries/me`). Supports `status` filter and
-  /// `page`/`limit` pagination (`limit` server-clamped to 1..100).
-  Future<ResponseModel> getMyHotelEnquiries({
+  /// Customer outbox — appointments I sent. Supports `status`/`page`/`limit`.
+  Future<ResponseModel> getMyHospitalAppointments({
     String? status,
     int page = 1,
     int limit = 20,
   }) async {
     return ApiBaseHelper().getHTTP(
-      hotelEnquiriesMe,
+      hospitalAppointmentsMe,
       params: <String, dynamic>{
         if (status != null && status.isNotEmpty) 'status': status,
         'page': page,
@@ -93,15 +96,14 @@ class HotelEnquiryRepo extends BaseService {
     );
   }
 
-  /// Owner inbox — enquiries on my listings (doc §1.3
-  /// `GET /hotel-enquiries/owner/me`). Same query params as the outbox.
-  Future<ResponseModel> getOwnerHotelEnquiries({
+  /// Owner inbox — appointments on my hospital. Same query params.
+  Future<ResponseModel> getOwnerHospitalAppointments({
     String? status,
     int page = 1,
     int limit = 20,
   }) async {
     return ApiBaseHelper().getHTTP(
-      hotelEnquiriesOwnerMe,
+      hospitalAppointmentsOwnerMe,
       params: <String, dynamic>{
         if (status != null && status.isNotEmpty) 'status': status,
         'page': page,

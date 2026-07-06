@@ -1438,6 +1438,54 @@ class ChatViewController extends GetxController {
         }
       });
 
+      // Hospital Appointment (doc `healthcare-appointment-ui-integration.md`):
+      // new appointment received (owner side, echoed to the customer's other
+      // sessions — dedupe by message._id).
+      chatSocket.listenEvent(ChatEmitEvents.newHealthcareBookingReceived,
+          (data) {
+        if (data['message'] != null) {
+          final message = Messages.fromJson(data['message']);
+          final conversationId = message.conversationId ?? '';
+          if (conversationId.isNotEmpty &&
+              conversationId == userOpenConversationId.value) {
+            final currentMessages =
+                getListOfMessageResponse.value.data as List<Messages>? ?? [];
+            final exists = currentMessages.any((m) => m.id == message.id);
+            if (!exists) {
+              currentMessages.add(message);
+              getListOfMessageResponse.value =
+                  ApiResponse.complete(currentMessages);
+              scrollDown();
+            }
+          }
+          emitEvent(ChatEmitEvents.ChatList, {
+            ApiKeys.page: 1,
+            ApiKeys.per_page_message: 30,
+          });
+        }
+      });
+
+      // Hospital Appointment: owner accept / decline OR customer cancel —
+      // same PUT endpoint handles all three transitions, so this single
+      // event flips the card for both sides regardless of who acted.
+      chatSocket.listenEvent(ChatEmitEvents.healthcareBookingStatusUpdated,
+          (data) {
+        final messageId = data['messageId']?.toString() ?? '';
+        final status = data['status']?.toString();
+        if (messageId.isNotEmpty && status != null) {
+          final currentMessages =
+              getListOfMessageResponse.value.data as List<Messages>? ?? [];
+          for (var msg in currentMessages) {
+            if (msg.id == messageId) {
+              msg.metadata?.healthcareBooking?.status = status;
+              break;
+            }
+          }
+          getListOfMessageResponse.value =
+              ApiResponse.complete(currentMessages);
+        }
+      });
+
       // Hotel Enquiry: new enquiry received (owner side, echoed to the
       // customer's other sessions — dedupe by message._id).
       chatSocket.listenEvent(ChatEmitEvents.newHotelEnquiryReceived, (data) {

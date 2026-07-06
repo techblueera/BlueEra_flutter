@@ -48,19 +48,15 @@ class HotelEnquiryModel {
     this.status,
   });
 
-  static List<String>? _stringList(dynamic v) => v is List
-      ? List<String>.from(v.map((e) => e.toString()))
-      : null;
+  static List<String>? _stringList(dynamic v) =>
+      v is List ? List<String>.from(v.map((e) => e.toString())) : null;
 
   static Map<String, List<String>>? _selectionsMap(dynamic v) {
     if (v is! Map) return null;
     final out = <String, List<String>>{};
     v.forEach((key, value) {
       if (value is List) {
-        final items = value
-            .map((e) => e.toString())
-            .where((s) => s.trim().isNotEmpty)
-            .toList();
+        final items = value.map((e) => e.toString()).where((s) => s.trim().isNotEmpty).toList();
         if (items.isNotEmpty) out[key.toString()] = items;
       }
     });
@@ -93,8 +89,7 @@ class HotelEnquiryModel {
       ownerId: (json['ownerId'] ?? json['owner_id'])?.toString(),
       customerId: (json['customerId'] ?? json['customer_id'])?.toString(),
       listingName: json['listingName']?.toString(),
-      listingImage:
-          (json['listingImage'] ?? json['listing_image'])?.toString(),
+      listingImage: (json['listingImage'] ?? json['listing_image'])?.toString(),
       priceText: (json['priceText'] ?? json['price_text'])?.toString(),
       location: json['location']?.toString(),
       selections: selections,

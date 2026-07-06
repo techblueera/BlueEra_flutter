@@ -505,11 +505,11 @@ class _HmfStoreDetailsDiscoverScreenState extends State<HmfStoreDetailsDiscoverS
         ),
 
         // Chat — top-right, aligned with the logo.
-        Positioned(
-          right: 16,
-          top: 6,
-          child: _chatPill(),
-        ),
+        // Positioned(
+        //   right: 16,
+        //   top: 6,
+        //   child: _chatPill(),
+        // ),
       ],
     );
   }

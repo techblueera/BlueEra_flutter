@@ -24,7 +24,6 @@ import 'package:BlueEra/features/common/Discover/widget/hotel_stay_details_widge
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/Discover/widget/vehicle_details_widget.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
-import 'package:BlueEra/features/me/hotel/widget/hotel_booking_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/model/rental_service_response.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -717,40 +716,6 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
     );
   }
 
-  /// Opens the hotel-**booking** sheet (§2b) for a listing shown on the
-  /// stay-services list. `profile.sId` is the HotelProfile `_id` the
-  /// booking endpoint expects as `hotel_id`; `profile.businessId` (or
-  /// the top-level `businessId` fallback) is the owner-business the
-  /// buyer will chat with once the card lands. Guest users are routed
-  /// into onboarding first — a booking POST would fail without a token.
-  void _openHotelBookingSheet(HotelServiceData service) {
-    if (isGuestUser()) {
-      createProfileScreen();
-      return;
-    }
-    final hotelId = (service.profile?.sId ?? service.businessId ?? '').trim();
-    final ownerId = (service.profile?.businessId ?? service.businessId ?? '').trim();
-    if (hotelId.isEmpty || ownerId.isEmpty) {
-      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
-      return;
-    }
-    HotelBookingSheet.open(
-      context,
-      listing: HotelBookingListing(
-        hotelId: hotelId,
-        ownerId: ownerId,
-        ownerName: (service.profile?.name ?? '').trim(),
-        hotelName: (service.profile?.name ?? '').trim(),
-        coverImage: service.profile?.coverUrl ?? service.profile?.logoUrl,
-        location: [
-          service.profile?.address?.street,
-          service.profile?.address?.city,
-          service.profile?.address?.state,
-        ].where((e) => e != null && e.isNotEmpty).join(', '),
-      ),
-    );
-  }
-
   Future<void> _openRentalChat(RentalServiceData service) async {
     final ownerId = service.userId;
     if (ownerId == null || ownerId.isEmpty) {
@@ -805,7 +770,11 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
         checkInTime: service.profile?.policy?.checkInTime ?? '',
         checkOutTime: service.profile?.policy?.checkOutTime ?? '',
         amenities: _hotelAmenities(service.profile?.amenities),
-        onBook: () => _openHotelBookingSheet(service),
+        // Tapping "Inquiry" navigates to the detail screen; the customer
+        // starts the actual enquiry-first flow from the detail screen's
+        // own Inquiry button (which opens the enquiry sheet + primes the
+        // room cache used by the eventual booking sheet).
+        onInquiry: openDetails,
         onChat: () => _openHotelChat(service),
       ),
     );
@@ -1083,7 +1052,12 @@ class PropertyCard extends StatefulWidget {
   final String checkOutTime;
   final List<MapEntry<IconData, String>> amenities;
   final String? businessId;
-  final VoidCallback? onBook;
+
+  /// Tapping the pill-shaped "Inquiry" CTA on the card. The list screen
+  /// wires this to open the hotel detail screen — customer sees rooms /
+  /// amenities / policies there and starts the enquiry-first flow from
+  /// the detail screen's own Inquiry button.
+  final VoidCallback? onInquiry;
   final VoidCallback? onChat;
 
   const PropertyCard({
@@ -1100,7 +1074,7 @@ class PropertyCard extends StatefulWidget {
     required this.checkOutTime,
     required this.amenities,
     this.businessId,
-    this.onBook,
+    this.onInquiry,
     this.onChat,
   });
 
@@ -1639,7 +1613,7 @@ class _PropertyCardState extends State<PropertyCard> {
           //   SizedBox(width: SizeConfig.size10),
           // ],
           GestureDetector(
-            onTap: () {},
+            onTap: widget.onInquiry,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
               decoration: BoxDecoration(

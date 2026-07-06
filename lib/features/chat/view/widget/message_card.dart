@@ -49,6 +49,7 @@ import '../../auth/controller/order_controllar.dart';
 import '../business_chat/widgets/hotel_enquiry_msg_card.dart';
 import '../business_chat/widgets/hotel_booking_msg_card.dart';
 import '../business_chat/widgets/education_enquiry_msg_card.dart';
+import '../business_chat/widgets/healthcare_booking_msg_card.dart';
 import '../business_chat/widgets/healthcare_enquiry_msg_card.dart';
 import '../business_chat/widgets/business_enquiry_msg_card.dart';
 import '../business_chat/widgets/vehicle_booking_msg_card.dart';
@@ -339,6 +340,16 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
         // Dedicated healthcare card — clinical/teal design, category
         // ribbon, prescription-styled chips. Distinct from EnquiryMsgCard.
         messageWidget = HealthcareEnquiryMsgCard(
+          message: widget.message,
+          time: time,
+        );
+
+      case "healthcare_booking":
+        // Hospital-appointment card (doc `healthcare-appointment-ui-integration.md`).
+        // Carries doctor/date/patient + buyer cancel while pending or
+        // accepted. Distinct metadata key
+        // (`metadata.healthcareBooking` / `metadata.healthcareBookingId`).
+        messageWidget = HealthcareBookingMsgCard(
           message: widget.message,
           time: time,
         );

@@ -52,10 +52,7 @@ class _HotelBookingMsgCardState extends State<HotelBookingMsgCard> {
   bool get _isPending => !_isAccepted && !_isDeclined && !_isCancelled;
 
   Future<void> _updateStatus({required bool cancel, bool accept = false}) async {
-    final id = (_b?.bookingId ??
-            widget.message.metadata?.hotelBookingId ??
-            '')
-        .trim();
+    final id = (_b?.bookingId ?? widget.message.metadata?.hotelBookingId ?? '').trim();
     if (id.isEmpty) {
       commonSnackBar(message: AppStrings.somethingWentWrong.tr);
       return;
@@ -67,9 +64,8 @@ class _HotelBookingMsgCardState extends State<HotelBookingMsgCard> {
         : await controller.respondToBooking(bookingId: id, accept: accept);
     if (!mounted) return;
     if (ok) {
-      widget.message.metadata?.hotelBooking?.status = cancel
-          ? 'cancelled'
-          : (accept ? 'accepted' : 'declined');
+      widget.message.metadata?.hotelBooking?.status =
+          cancel ? 'cancelled' : (accept ? 'accepted' : 'declined');
     }
     setState(() => _isUpdating = false);
   }
@@ -79,8 +75,18 @@ class _HotelBookingMsgCardState extends State<HotelBookingMsgCard> {
     final d = DateTime.tryParse(iso);
     if (d == null) return '';
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
     return '${d.day} ${months[d.month - 1]} ${d.year}';
   }
@@ -96,8 +102,7 @@ class _HotelBookingMsgCardState extends State<HotelBookingMsgCard> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: _line, width: 1),
         boxShadow: const [
-          BoxShadow(
-              color: Color(0x14000000), blurRadius: 12, offset: Offset(0, 4)),
+          BoxShadow(color: Color(0x14000000), blurRadius: 12, offset: Offset(0, 4)),
         ],
       ),
       clipBehavior: Clip.antiAlias,
@@ -105,21 +110,16 @@ class _HotelBookingMsgCardState extends State<HotelBookingMsgCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _amberHeader(),
-          _listingSnapshot(b?.listingImage ?? '', b?.listingName ?? '',
-              b?.priceText ?? '', b?.location ?? ''),
-          if ((b?.roomType ?? '').isNotEmpty)
-            _row(Icons.bed_rounded, 'Room Type', b!.roomType!),
+          _listingSnapshot(
+              b?.listingImage ?? '', b?.listingName ?? '', b?.priceText ?? '', b?.location ?? ''),
+          if ((b?.roomType ?? '').isNotEmpty) _row(Icons.bed_rounded, 'Room Type', b!.roomType!),
           if ((b?.checkIn ?? '').isNotEmpty)
-            _row(Icons.login_rounded, AppStrings.checkInLabel.tr,
-                _fmtDate(b!.checkIn)),
+            _row(Icons.login_rounded, AppStrings.checkInLabel.tr, _fmtDate(b!.checkIn)),
           if ((b?.checkOut ?? '').isNotEmpty)
-            _row(Icons.logout_rounded, AppStrings.checkOutLabel.tr,
-                _fmtDate(b!.checkOut)),
+            _row(Icons.logout_rounded, AppStrings.checkOutLabel.tr, _fmtDate(b!.checkOut)),
           if ((b?.guests ?? 0) > 0)
-            _row(Icons.groups_rounded, 'Guests',
-                '${b!.guests} ${b.guests == 1 ? 'guest' : 'guests'}'),
-          if ((b?.photos ?? const []).isNotEmpty)
-            _photoStrip(b!.photos ?? const []),
+            _row(Icons.groups_rounded, 'Guests', '${b!.guests} ${b.guests == 1 ? 'guest' : 'guests'}'),
+          if ((b?.photos ?? const []).isNotEmpty) _photoStrip(b!.photos ?? const []),
           if ((b?.note ?? '').trim().isNotEmpty) _noteRow(b!.note!.trim()),
           _footer(),
         ],
@@ -146,11 +146,9 @@ class _HotelBookingMsgCardState extends State<HotelBookingMsgCard> {
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.18),
               borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.35), width: 0.8),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.35), width: 0.8),
             ),
-            child: const Icon(Icons.hotel_rounded,
-                color: Colors.white, size: 19),
+            child: const Icon(Icons.hotel_rounded, color: Colors.white, size: 19),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -169,8 +167,7 @@ class _HotelBookingMsgCardState extends State<HotelBookingMsgCard> {
     );
   }
 
-  Widget _listingSnapshot(
-      String image, String name, String priceText, String location) {
+  Widget _listingSnapshot(String image, String name, String priceText, String location) {
     final hasSnapshot = image.trim().isNotEmpty ||
         name.trim().isNotEmpty ||
         priceText.trim().isNotEmpty ||
@@ -193,15 +190,13 @@ class _HotelBookingMsgCardState extends State<HotelBookingMsgCard> {
                       errorWidget: (_, __, ___) => Container(
                         color: _tint,
                         alignment: Alignment.center,
-                        child: const Icon(Icons.hotel_rounded,
-                            size: 20, color: _amber),
+                        child: const Icon(Icons.hotel_rounded, size: 20, color: _amber),
                       ),
                     )
                   : Container(
                       color: _tint,
                       alignment: Alignment.center,
-                      child: const Icon(Icons.hotel_rounded,
-                          size: 20, color: _amber),
+                      child: const Icon(Icons.hotel_rounded, size: 20, color: _amber),
                     ),
             ),
           ),
@@ -238,8 +233,7 @@ class _HotelBookingMsgCardState extends State<HotelBookingMsgCard> {
                   const SizedBox(height: 2),
                   Row(
                     children: [
-                      const Icon(Icons.location_on_outlined,
-                          size: 12, color: _amber),
+                      const Icon(Icons.location_on_outlined, size: 12, color: _amber),
                       const SizedBox(width: 3),
                       Expanded(
                         child: Text(
@@ -348,15 +342,13 @@ class _HotelBookingMsgCardState extends State<HotelBookingMsgCard> {
               width: 84,
               height: 66,
               fit: BoxFit.cover,
-              placeholder: (_, __) =>
-                  Container(width: 84, height: 66, color: _tint),
+              placeholder: (_, __) => Container(width: 84, height: 66, color: _tint),
               errorWidget: (_, __, ___) => Container(
                 width: 84,
                 height: 66,
                 color: _tint,
                 alignment: Alignment.center,
-                child: const Icon(Icons.broken_image_outlined,
-                    size: 16, color: Colors.grey),
+                child: const Icon(Icons.broken_image_outlined, size: 16, color: Colors.grey),
               ),
             ),
           ),
@@ -403,21 +395,21 @@ class _HotelBookingMsgCardState extends State<HotelBookingMsgCard> {
       return _statusBand(
         icon: Icons.check_circle_rounded,
         color: const Color(0xFF16A34A),
-        label: AppStrings.enquiryAccepted.tr,
+        label: "Booking Accepted",
       );
     }
     if (_isDeclined) {
       return _statusBand(
         icon: Icons.cancel_rounded,
         color: const Color(0xFFDC2626),
-        label: AppStrings.enquiryDeclined.tr,
+        label: "Booking Decline",
       );
     }
     if (_isCancelled) {
       return _statusBand(
         icon: Icons.block_rounded,
         color: AppColors.secondaryTextColor,
-        label: AppStrings.enquiryCancelled.tr,
+        label: "Booking Cancelled",
       );
     }
     if (_isPending) {
@@ -548,10 +540,7 @@ class _HotelBookingMsgCardState extends State<HotelBookingMsgCard> {
             const Icon(Icons.check_rounded, size: 15, color: Colors.white),
             const SizedBox(width: 5),
             Text(AppStrings.acceptLabel.tr,
-                style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w800,
-                    color: Colors.white)),
+                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white)),
           ],
         ),
       ),
@@ -572,8 +561,7 @@ class _HotelBookingMsgCardState extends State<HotelBookingMsgCard> {
         ),
         child: Text(
           AppStrings.declineLabel.tr,
-          style: const TextStyle(
-              fontSize: 13, fontWeight: FontWeight.w800, color: _amberDeep),
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: _amberDeep),
         ),
       ),
     );
@@ -598,8 +586,7 @@ class _HotelBookingMsgCardState extends State<HotelBookingMsgCard> {
             const SizedBox(width: 5),
             Text(
               AppStrings.cancelLabel.tr,
-              style: const TextStyle(
-                  fontSize: 13, fontWeight: FontWeight.w800, color: _amber),
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, color: _amber),
             ),
           ],
         ),
@@ -626,14 +613,11 @@ class _HotelBookingMsgCardState extends State<HotelBookingMsgCard> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
       decoration: BoxDecoration(
-        color: color == Colors.white
-            ? Colors.white.withValues(alpha: 0.20)
-            : color.withValues(alpha: 0.18),
+        color: color == Colors.white ? Colors.white.withValues(alpha: 0.20) : color.withValues(alpha: 0.18),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
-            color: color == Colors.white
-                ? Colors.white.withValues(alpha: 0.55)
-                : color.withValues(alpha: 0.55),
+            color:
+                color == Colors.white ? Colors.white.withValues(alpha: 0.55) : color.withValues(alpha: 0.55),
             width: 0.8),
       ),
       child: Text(

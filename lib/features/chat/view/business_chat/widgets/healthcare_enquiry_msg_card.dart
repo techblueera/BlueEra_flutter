@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/features/chat/auth/model/healthcare_enquiry_model.dart';
 import 'package:BlueEra/features/me/medical/controller/healthcare_enquiry_controller.dart';
+import 'package:BlueEra/features/me/medical/widget/hospital_appointment_sheet.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -418,10 +419,22 @@ class _HealthcareEnquiryMsgCardState extends State<HealthcareEnquiryMsgCard> {
 
   Widget _footer() {
     if (_isAccepted) {
-      return _statusBand(
-        icon: Icons.check_circle_rounded,
-        color: const Color(0xFF16A34A),
-        label: AppStrings.enquiryAccepted.tr,
+      // Hospital enquiry-first flow (doc
+      // `healthcare-appointment-ui-integration.md` §0): once the owner
+      // accepts, the customer gets a "Book Appointment" CTA that opens
+      // the appointment sheet with `enquiry_id` pre-filled. Only for
+      // HOSPITAL category; other healthcare categories don't have an
+      // appointment endpoint. Owner side just sees the accepted band.
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _statusBand(
+            icon: Icons.check_circle_rounded,
+            color: const Color(0xFF16A34A),
+            label: AppStrings.enquiryAccepted.tr,
+          ),
+          if (_isMyMessage && _canOpenAppointmentSheet) _bookAppointmentRow(),
+        ],
       );
     }
     if (_isDeclined) {
@@ -487,6 +500,80 @@ class _HealthcareEnquiryMsgCardState extends State<HealthcareEnquiryMsgCard> {
             color: AppColors.secondaryTextColor,
           ),
         ],
+      ),
+    );
+  }
+
+  /// Enquiry-first hook: only wire the CTA when
+  ///  1. the enquiry is on a HOSPITAL listing (appointment endpoint is
+  ///     hospital-only),
+  ///  2. we have a hospital id + owner id + enquiry id to send.
+  /// Any missing → hide the button rather than opening a broken sheet.
+  bool get _canOpenAppointmentSheet {
+    final e = _e;
+    if (e == null) return false;
+    if ((e.category ?? '').toUpperCase() != 'HOSPITAL') return false;
+    return (e.listingId ?? '').trim().isNotEmpty &&
+        (e.ownerId ?? '').trim().isNotEmpty &&
+        (e.enquiryId ?? '').trim().isNotEmpty;
+  }
+
+  void _openAppointmentSheet() {
+    final e = _e!;
+    HospitalAppointmentSheet.open(
+      context,
+      listing: HospitalAppointmentListing(
+        hospitalId: (e.listingId ?? '').trim(),
+        ownerId: (e.ownerId ?? '').trim(),
+        // The enquiry card doesn't carry a separate ownerName — the
+        // sheet header falls back to hospitalName when ownerName is
+        // empty, so an empty string is fine here.
+        ownerName: '',
+        hospitalName: (e.listingName ?? '').trim(),
+        coverImage: (e.listingImage ?? '').trim(),
+        location: (e.location ?? '').trim(),
+      ),
+      enquiryId: (e.enquiryId ?? '').trim(),
+    );
+  }
+
+  Widget _bookAppointmentRow() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+      child: InkWell(
+        onTap: _openAppointmentSheet,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 11),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(colors: [_accentDeep, _accent]),
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: _accent.withValues(alpha: 0.35),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.event_available_rounded,
+                  size: 16, color: Colors.white),
+              const SizedBox(width: 6),
+              Text(
+                'Book Appointment',
+                style: const TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

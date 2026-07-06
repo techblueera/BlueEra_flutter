@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -6,22 +7,20 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
+import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
+import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
+import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
+import 'package:BlueEra/features/common/Discover/view/self_employee_view_discover_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_map_widgets.dart';
 import 'package:BlueEra/features/common/Discover/widget/filter_capsule.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
-import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
-import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
-import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
-import 'package:BlueEra/features/common/Discover/view/self_employee_view_discover_screen.dart';
-import 'package:BlueEra/features/common/Discover/widget/service_enquiry_sheet.dart';
-import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/common/auth/model/personal_profession_model.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -40,8 +39,7 @@ class SelfProfessionDiscoverScreen extends StatefulWidget {
   });
 
   @override
-  State<SelfProfessionDiscoverScreen> createState() =>
-      _SelfProfessionDiscoverScreenState();
+  State<SelfProfessionDiscoverScreen> createState() => _SelfProfessionDiscoverScreenState();
 }
 
 class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScreen> {
@@ -64,8 +62,7 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
         : null;
     // Skip refetch on re-entry when the cached list is fresh for this
     // category; category taps below still force a fresh fetch.
-    controller.fetchEarnServicesIfNeeded(
-        earnServiceType: earnServiceType, subType: serviceSubType);
+    controller.fetchEarnServicesIfNeeded(earnServiceType: earnServiceType, subType: serviceSubType);
   }
 
   /// Returns a new list sorted by the active filter. Mirrors the
@@ -76,8 +73,7 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
   /// don't have to read GPS here. There's no explicit experience
   /// field on this model — we use `rating` (descending) as a stand-in
   /// for the "Experienced" filter, which generally tracks tenure.
-  List<ServiceData> _applySort(
-      List<ServiceData> items, CategoryFilter filter) {
+  List<ServiceData> _applySort(List<ServiceData> items, CategoryFilter filter) {
     final sorted = List<ServiceData>.from(items);
     switch (filter) {
       case CategoryFilter.nearest:
@@ -119,9 +115,7 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
     if (cleaned != cleaned.toUpperCase()) return cleaned;
     return cleaned
         .split(RegExp(r'\s+'))
-        .map((w) => w.isEmpty
-            ? w
-            : '${w[0].toUpperCase()}${w.substring(1).toLowerCase()}')
+        .map((w) => w.isEmpty ? w : '${w[0].toUpperCase()}${w.substring(1).toLowerCase()}')
         .join(' ');
   }
 
@@ -155,12 +149,8 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
     final priceDisplay = isRange
         ? "₹${formatIndianNumber(priceData?.effectiveMin ?? 0)}-${formatIndianNumber(priceData?.effectiveMax ?? 0)}"
         : "₹${formatIndianNumber(priceData?.effectiveMin ?? 0)}";
-    final priceUnit = (priceData?.unitLabel.isNotEmpty ?? false)
-        ? priceData!.unitLabel
-        : 'Hour';
-    final ratingValue = service.rating != null && service.rating != 0
-        ? service.rating.toString()
-        : '0';
+    final priceUnit = (priceData?.unitLabel.isNotEmpty ?? false) ? priceData!.unitLabel : 'Hour';
+    final ratingValue = service.rating != null && service.rating != 0 ? service.rating.toString() : '0';
     final distance = '${service.distance ?? 0} km';
 
     showModalBottomSheet<void>(
@@ -172,8 +162,8 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
             color: Colors.white,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
-          padding: EdgeInsets.fromLTRB(SizeConfig.size16, SizeConfig.size12,
-              SizeConfig.size16, SizeConfig.size16),
+          padding:
+              EdgeInsets.fromLTRB(SizeConfig.size16, SizeConfig.size12, SizeConfig.size16, SizeConfig.size16),
           child: SafeArea(
             top: false,
             child: Column(
@@ -211,8 +201,7 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
                             decoration: BoxDecoration(
                               color: Colors.green,
                               shape: BoxShape.circle,
-                              border:
-                                  Border.all(color: Colors.white, width: 2),
+                              border: Border.all(color: Colors.white, width: 2),
                             ),
                           ),
                         ),
@@ -289,21 +278,18 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
                           userId: service.id ?? '',
                           source: ChatClickSource.searchResult,
                         );
-                        Get.to(() =>
-                            SelfEmployeeViewDiscoverScreen(service: service));
+                        Get.to(() => SelfEmployeeViewDiscoverScreen(service: service));
                       },
                       borderRadius: BorderRadius.circular(20),
                       child: Container(
-                        padding: EdgeInsets.symmetric(
-                            horizontal: SizeConfig.size16,
-                            vertical: SizeConfig.size8),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: SizeConfig.size16, vertical: SizeConfig.size8),
                         decoration: BoxDecoration(
                           color: AppColors.primaryColor,
                           borderRadius: BorderRadius.circular(20),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primaryColor
-                                  .withValues(alpha: 0.25),
+                              color: AppColors.primaryColor.withValues(alpha: 0.25),
                               blurRadius: 6,
                               offset: const Offset(0, 2),
                             ),
@@ -329,12 +315,9 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
 
   bool _onScrollNotification(ScrollNotification notification) {
     if (notification is ScrollUpdateNotification &&
-        notification.metrics.pixels >=
-            notification.metrics.maxScrollExtent - 200) {
+        notification.metrics.pixels >= notification.metrics.maxScrollExtent - 200) {
       controller.fetchEarnServices(
-          earnServiceType: earnServiceType,
-          subType: serviceSubType,
-          isLoadMore: true);
+          earnServiceType: earnServiceType, subType: serviceSubType, isLoadMore: true);
     }
     return false;
   }
@@ -345,12 +328,12 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
     final stickyCategories = [
       // StickyCategory(id: 'ALL_OPTION', name: 'All', imageUrl: AppImageAssets.all),
       ..._selfEmployedCategories.map((c) => StickyCategory(
-        id: c.tagId ?? '',
-        name: c.name ?? '',
-        imageUrl: getIndividualProfessionIcon(c.tagId).isNotEmpty
-            ? getIndividualProfessionIcon(c.tagId)
-            : c.imageUrl ?? '',
-      )),
+            id: c.tagId ?? '',
+            name: c.name ?? '',
+            imageUrl: getIndividualProfessionIcon(c.tagId).isNotEmpty
+                ? getIndividualProfessionIcon(c.tagId)
+                : c.imageUrl ?? '',
+          )),
     ];
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
@@ -389,8 +372,7 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
                         slugId: item.id,
                         accountType: AppConstants.individual,
                       );
-                      controller.fetchEarnServices(
-                          earnServiceType: earnServiceType, subType: serviceSubType);
+                      controller.fetchEarnServices(earnServiceType: earnServiceType, subType: serviceSubType);
                       setState(() {});
                     },
                     onBack: () => Navigator.pop(context),
@@ -439,13 +421,11 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
           SizedBox(height: SizeConfig.size10),
           Expanded(
             child: Obx(() {
-              if (controller.isEarnServiceLoading.value &&
-                  controller.earnServiceList.isEmpty) {
+              if (controller.isEarnServiceLoading.value && controller.earnServiceList.isEmpty) {
                 return const Center(child: CircularProgressIndicator());
               }
               if (controller.earnServiceList.isEmpty) {
-                final selectedName =
-                    controller.selectedEarnServiceData.value?.name ?? '';
+                final selectedName = controller.selectedEarnServiceData.value?.name ?? '';
                 // Server returns categories in upper-case (e.g.
                 // "ELECTRICIAN"); flip to title-case for the message
                 // so it reads naturally ("No Electrician providers…").
@@ -453,15 +433,13 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
                 final message = pretty.isNotEmpty
                     ? AppStrings.noProvidersFoundNearYou.trParams({'category': pretty})
                     : AppStrings.noServicesFound.tr;
-                return Center(
-                    child: EmptyStateWidget(message: message));
+                return Center(child: EmptyStateWidget(message: message));
               }
               final sorted = _applySort(
                 controller.earnServiceList,
                 controller.selectedFilter.value,
               );
-              final showMoreSpinner =
-                  controller.isEarnServiceLoadingMore.value;
+              final showMoreSpinner = controller.isEarnServiceLoadingMore.value;
               final rows = buildNativeAdRows(sorted.length);
               return ListView.builder(
                 itemCount: rows.length + (showMoreSpinner ? 1 : 0),
@@ -470,9 +448,7 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
                   if (index == rows.length) {
                     return const Center(
                         child: Padding(
-                            padding: EdgeInsets.all(16.0),
-                            child:
-                                CircularProgressIndicator(strokeWidth: 2)));
+                            padding: EdgeInsets.all(16.0), child: CircularProgressIndicator(strokeWidth: 2)));
                   }
                   final row = rows[index];
                   if (row.isAd) {
@@ -501,24 +477,20 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
   /// model is [ServiceData].
   Widget _buildSpecCard(ServiceData service) {
     // ─── Data extraction with sensible fallbacks ──────────────────
-    final name = (service.name?.trim().isNotEmpty ?? false)
-        ? service.name!
-        : AppStrings.unknownUser.tr;
+    final name = (service.name?.trim().isNotEmpty ?? false) ? service.name! : AppStrings.unknownUser.tr;
 
     final priceData = service.priceData;
     final isRange = priceData?.effectiveIsRange ?? false;
     final priceMin = priceData?.effectiveMin ?? 0;
     final priceMax = priceData?.effectiveMax ?? 0;
-    final priceUnit =
-        (priceData?.unitLabel.isNotEmpty ?? false) ? priceData!.unitLabel : '';
+    final priceUnit = (priceData?.unitLabel.isNotEmpty ?? false) ? priceData!.unitLabel : '';
     final distance = (service.distance ?? 0).toDouble();
     final timingMap = getMinMaxTimings(service.service?.effectiveTimings);
     final timingStart = timingMap['start'] ?? '--';
     final timingEnd = timingMap['end'] ?? '--';
 
-    final livePhotos = (service.serviceMedia?.photos ?? const <String>[])
-        .where((p) => p.trim().isNotEmpty)
-        .toList();
+    final livePhotos =
+        (service.serviceMedia?.photos ?? const <String>[]).where((p) => p.trim().isNotEmpty).toList();
     final profileImage = service.profileImage ?? '';
     // Hero image: a service photo if one exists, else the profile photo.
     final heroImage = livePhotos.isNotEmpty ? livePhotos.first : profileImage;
@@ -526,18 +498,14 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
     final address = (service.address?.trim().isNotEmpty ?? false)
         ? service.address!.trim()
         : (service.location ?? '').trim();
-    final ratingValue = (service.rating != null && service.rating != 0)
-        ? service.rating.toString()
-        : null;
+    final ratingValue = (service.rating != null && service.rating != 0) ? service.rating.toString() : null;
 
     // Combined service list shown in the "Services offered" box —
     // "Services Offered" merged with "Types of Work" (deduped).
     final services = _combinedServices(service);
     final totalServices = services.length;
     final showMoreServices = totalServices > 6;
-    final visibleServices = showMoreServices
-        ? services.take(5).toList()
-        : services.take(6).toList();
+    final visibleServices = showMoreServices ? services.take(5).toList() : services.take(6).toList();
     final extraServices = showMoreServices ? totalServices - 5 : 0;
 
     final priceStr = priceMin == 0
@@ -550,8 +518,7 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
         : '${distance < 10 ? distance.toStringAsFixed(1) : distance.toStringAsFixed(0)} km away';
     // Compact hours: "9:00 AM - 6:00 PM" → "9AM-6PM" for the floating chip.
     String compactTime(String t) {
-      final m = RegExp(r'(\d+):(\d+)\s*(AM|PM)', caseSensitive: false)
-          .firstMatch(t.trim());
+      final m = RegExp(r'(\d+):(\d+)\s*(AM|PM)', caseSensitive: false).firstMatch(t.trim());
       if (m == null) return t;
       final hh = m.group(1)!;
       final mm = m.group(2)!;
@@ -607,8 +574,7 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
                             imageUrl: heroImage,
                             fit: BoxFit.cover,
                             memCacheWidth: 800,
-                            placeholder: (_, __) =>
-                                Container(color: const Color(0xFFEDEFF4)),
+                            placeholder: (_, __) => Container(color: const Color(0xFFEDEFF4)),
                             errorWidget: (_, __, ___) => LocalAssets(
                               imagePath: AppIconAssets.place_holder_image,
                               boxFix: BoxFit.fill,
@@ -764,8 +730,7 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
                             color: AppColors.mainTextColor,
                           ),
                           SizedBox(height: SizeConfig.size8),
-                          Container(
-                              height: 1, color: const Color(0xFFEDEFF4)),
+                          Container(height: 1, color: const Color(0xFFEDEFF4)),
                           SizedBox(height: SizeConfig.size10),
                           _servicesGrid(
                             visibleServices,
@@ -819,29 +784,29 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
                       ),
                       const Spacer(),
                       // Chat / enquire icon button
-                      InkWell(
-                        onTap: () =>
-                            ServiceEnquirySheet.open(context, service),
-                        borderRadius: BorderRadius.circular(12),
-                        child: Container(
-                          height: 44,
-                          width: 44,
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryColor
-                                .withValues(alpha: 0.10),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Center(
-                            child: LocalAssets(
-                              imagePath: AppIconAssets.chat,
-                              height: 20,
-                              width: 20,
-                              imgColor: AppColors.primaryColor,
-                            ),
-                          ),
-                        ),
-                      ),
-                      SizedBox(width: SizeConfig.size10),
+                      // InkWell(
+                      //   onTap: () =>
+                      //       ServiceEnquirySheet.open(context, service),
+                      //   borderRadius: BorderRadius.circular(12),
+                      //   child: Container(
+                      //     height: 44,
+                      //     width: 44,
+                      //     decoration: BoxDecoration(
+                      //       color: AppColors.primaryColor
+                      //           .withValues(alpha: 0.10),
+                      //       borderRadius: BorderRadius.circular(12),
+                      //     ),
+                      //     child: Center(
+                      //       child: LocalAssets(
+                      //         imagePath: AppIconAssets.chat,
+                      //         height: 20,
+                      //         width: 20,
+                      //         imgColor: AppColors.primaryColor,
+                      //       ),
+                      //     ),
+                      //   ),
+                      // ),
+                      // SizedBox(width: SizeConfig.size10),
                       // Book Now (filled)
                       InkWell(
                         onTap: openDetail,
@@ -855,8 +820,7 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.primaryColor
-                                    .withValues(alpha: 0.30),
+                                color: AppColors.primaryColor.withValues(alpha: 0.30),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -927,8 +891,7 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
           Expanded(child: cells[i]),
           SizedBox(width: SizeConfig.size10),
           Expanded(
-            child:
-                i + 1 < cells.length ? cells[i + 1] : const SizedBox.shrink(),
+            child: i + 1 < cells.length ? cells[i + 1] : const SizedBox.shrink(),
           ),
         ],
       ));
@@ -1027,8 +990,7 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.location_on_outlined,
-              size: 12, color: AppColors.secondaryTextColor),
+          Icon(Icons.location_on_outlined, size: 12, color: AppColors.secondaryTextColor),
           const SizedBox(width: 3),
           CustomText(
             text,
@@ -1047,8 +1009,7 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
         color: Colors.green.withValues(alpha: 0.10),
-        border:
-            Border.all(color: Colors.green.withValues(alpha: 0.25), width: 1),
+        border: Border.all(color: Colors.green.withValues(alpha: 0.25), width: 1),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -1089,16 +1050,14 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
   }
 
   Map<String, String> getMinMaxTimings(List<Timings>? timingsList) {
-    if (timingsList == null || timingsList.isEmpty)
-      return {"start": "--", "end": "--"};
+    if (timingsList == null || timingsList.isEmpty) return {"start": "--", "end": "--"};
     Timings? earliest = timingsList.first;
     Timings? latest = timingsList.first;
     for (final t in timingsList) {
-      if (_parse12HourTime(t.start ?? "00:00 AM")
-          .isBefore(_parse12HourTime(earliest?.start ?? "00:00 AM")))
+      if (_parse12HourTime(t.start ?? "00:00 AM").isBefore(_parse12HourTime(earliest?.start ?? "00:00 AM")))
         earliest = t;
-      if (_parse12HourTime(t.end ?? "00:00 AM")
-          .isAfter(_parse12HourTime(latest?.end ?? "00:00 AM"))) latest = t;
+      if (_parse12HourTime(t.end ?? "00:00 AM").isAfter(_parse12HourTime(latest?.end ?? "00:00 AM")))
+        latest = t;
     }
     return {"start": earliest?.start ?? "--", "end": latest?.end ?? "--"};
   }
@@ -1125,8 +1084,7 @@ class _SelfProfessionMapScreen extends StatefulWidget {
   });
 
   @override
-  State<_SelfProfessionMapScreen> createState() =>
-      _SelfProfessionMapScreenState();
+  State<_SelfProfessionMapScreen> createState() => _SelfProfessionMapScreenState();
 }
 
 class _SelfProfessionMapScreenState extends State<_SelfProfessionMapScreen> {
@@ -1134,8 +1092,7 @@ class _SelfProfessionMapScreenState extends State<_SelfProfessionMapScreen> {
   BitmapDescriptor? _serviceIcon;
 
   final DiscoverController _ctrl = Get.find<DiscoverController>();
-  static const ClusterManagerId _clusterManagerId =
-      ClusterManagerId('self_profession_services');
+  static const ClusterManagerId _clusterManagerId = ClusterManagerId('self_profession_services');
 
   @override
   void initState() {
@@ -1202,10 +1159,8 @@ class _SelfProfessionMapScreenState extends State<_SelfProfessionMapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final initialLat =
-        LocationService.lat != 0.0 ? LocationService.lat : 28.6139;
-    final initialLng =
-        LocationService.lng != 0.0 ? LocationService.lng : 77.2090;
+    final initialLat = LocationService.lat != 0.0 ? LocationService.lat : 28.6139;
+    final initialLng = LocationService.lng != 0.0 ? LocationService.lng : 77.2090;
     final statusBarHeight = MediaQuery.of(context).padding.top;
 
     return Scaffold(
@@ -1235,8 +1190,7 @@ class _SelfProfessionMapScreenState extends State<_SelfProfessionMapScreen> {
           }),
           // Loading overlay while the unpaginated fetch is in flight.
           Obx(() {
-            final isLoading = _ctrl.earnServiceMapResponse.value.status ==
-                Status.INITIAL;
+            final isLoading = _ctrl.earnServiceMapResponse.value.status == Status.INITIAL;
             if (!isLoading) return const SizedBox.shrink();
             return const Center(
               child: SizedBox(
@@ -1289,12 +1243,10 @@ class _SelfProfessionMapScreenState extends State<_SelfProfessionMapScreen> {
                 borderRadius: BorderRadius.circular(12),
                 elevation: 4,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 12, vertical: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   child: Row(
                     children: [
-                      Icon(Icons.location_on_rounded,
-                          size: 18, color: AppColors.primaryColor),
+                      Icon(Icons.location_on_rounded, size: 18, color: AppColors.primaryColor),
                       const SizedBox(width: 8),
                       Expanded(
                         child: CustomText(

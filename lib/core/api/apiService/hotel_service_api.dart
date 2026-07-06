@@ -35,16 +35,23 @@ mixin HotelServiceApi {
   /// (creates the in-chat `hotel_enquiry` card + emits
   /// `newHotelEnquiryReceived`); `PUT` status lets the hotel owner
   /// accept / decline, emitting `hotelEnquiryStatusUpdated`. See
-  /// lib/docs/enquiry-flows-ui-integration.md §2a.
+  /// lib/docs/UI_INTEGRATION_HOTEL_ENQUIRY_BOOKING.md §1.
   final String hotelEnquiries = 'hotel-service/api/hotel-enquiries';
   String hotelEnquiryStatus(String enquiryId) =>
       'hotel-service/api/hotel-enquiries/$enquiryId/status';
 
   /// GET one — used by the owner chat card to fetch the enquiry's true
   /// current status (`pending` | `accepted` | `declined`) when the
-  /// message metadata's local latch is empty. Doc §2a "Get one".
+  /// message metadata's local latch is empty.
   String hotelEnquiryById(String enquiryId) =>
       'hotel-service/api/hotel-enquiries/$enquiryId';
+
+  /// Customer outbox — enquiries I sent. Supports `status`/`page`/`limit`.
+  final String hotelEnquiriesMe = 'hotel-service/api/hotel-enquiries/me';
+
+  /// Owner inbox — enquiries on my listings. Supports `status`/`page`/`limit`.
+  final String hotelEnquiriesOwnerMe =
+      'hotel-service/api/hotel-enquiries/owner/me';
 
   /// Hotel **booking** — carries dates/guests on top of the enquiry
   /// contract. `POST` places the booking; the backend auto-creates the
