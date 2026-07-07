@@ -255,8 +255,8 @@ class _FinanceCard extends StatelessWidget {
     final types = item.accountType?.where((s) => s.trim().isNotEmpty).toList() ?? const [];
     if (types.isNotEmpty) lines.add('Accounts: ${types.join(', ')}');
     if (website.isNotEmpty) lines.add(website);
-    final shareLink = businessProfileDeepLink(
-      userId: item.userId,
+    final shareLink = financialDeepLink(
+      businessId: item.userId,
     );
 
     await ShareService.instance.openShareSheet(

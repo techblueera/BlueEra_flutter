@@ -103,6 +103,7 @@ String groceryProfileDeepLink({String? userId}) => _withBdmReferral('https://bea
 String businessProfileDeepLink({String? userId}) =>
     _withBdmReferral('https://beapp.in/app/business/${userId ?? ""}');
 
+
 /// Generate deep link for an Education (school) business profile. The extra
 /// `education` path segment routes the link to the Discover school home
 /// screen ([DiscoverSchoolHomeScreen]) instead of the generic business
@@ -136,12 +137,36 @@ String vehicleDeepLink({String? vehicleId}) =>
 String medicalDeepLink({String? medicalProductId}) =>
     _withBdmReferral('https://beapp.in/app/medical/${medicalProductId ?? ""}');
 
+
+String medicalBusinessDeepLink({String? medicalBusinessId}) =>
+    _withBdmReferral('https://beapp.in/app/business/medical/${medicalBusinessId ?? ""}');
+
 String automotiveDeepLink({String? automotiveId}) =>
     _withBdmReferral('https://beapp.in/app/automotive/${automotiveId ?? ""}');
 
 
 String hotelDeepLink({String? hotelId}) =>
     _withBdmReferral('https://beapp.in/app/business/hotel/${hotelId ?? ""}');
+
+String hospitalDeepLink({String? hospitalId}) =>
+    _withBdmReferral('https://beapp.in/app/business/hospital/${hospitalId ?? ""}');
+
+/// Generate deep link for a Medical (pharmacy) business profile. The extra
+/// `medical` path segment routes the link to the pharmacy detail screen
+/// ([MedicalPharmacyDetailScreen]) instead of the generic business
+/// share-preview, while still carrying the owner/business id. Distinct from
+/// [medicalDeepLink], which points at an individual medical *product*
+/// (`/app/medical/<productId>`).
+String medicalPharmacyDeepLink({String? businessId}) =>
+    _withBdmReferral('https://beapp.in/app/business/medical/${businessId ?? ""}');
+
+/// Generate deep link for a Financial (finance) business profile. The extra
+/// `financial` path segment routes the link to the finance detail screen
+/// ([FinanceDetailScreen]) instead of the generic business share-preview,
+/// while still carrying the owner/business id. Mirrors
+/// [medicalPharmacyDeepLink] / [hospitalDeepLink].
+String financialDeepLink({String? businessId}) =>
+    _withBdmReferral('https://beapp.in/app/business/financial/${businessId ?? ""}');
 
 /// Returns the signed-in user's BDM referral code (when their BDM
 /// application status is `COMPLETED`), or `null`. Public companion

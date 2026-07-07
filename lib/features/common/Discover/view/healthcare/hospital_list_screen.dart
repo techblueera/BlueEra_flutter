@@ -250,10 +250,9 @@ class _HospitalCard extends StatelessWidget {
 
   void _share() {
     final name = item.name ?? 'Hospital';
-    final addr = item.location?.name ?? '';
 
-    final shareLink = businessProfileDeepLink(
-      userId: item?.userId,
+    final shareLink = hospitalDeepLink(
+      hospitalId: item.userId,
     );
     ShareService.instance.openShareSheet(
       text: 'Check out ${item.name} on BlueEra\n$shareLink',

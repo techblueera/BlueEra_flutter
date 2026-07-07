@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
@@ -101,7 +102,14 @@ class HospitalOverviewTabV2 extends StatelessWidget {
             if (details == null) return const SizedBox.shrink();
             return Padding(
               padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
-              child: BusinessQrCodeWidget(data: details),
+              child: BusinessQrCodeWidget(
+                data: details,
+                // Encode the hospital deep link so scanning opens the hospital
+                // directly (`/app/business/hospital/<ownerUserId>` →
+                // DiscoverHospitalHomeScreen) instead of the generic profile
+                // share-preview. Mirrors the grocery QR override.
+                deepLinkOverride: hospitalDeepLink(hospitalId: details.userId),
+              ),
             );
           }),
 

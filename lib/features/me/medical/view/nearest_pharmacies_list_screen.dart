@@ -139,8 +139,8 @@ class _PharmacyCard extends StatelessWidget {
   void _share() {
     final name = item.name;
 
-    final shareLink = businessProfileDeepLink(
-      userId: item.id,
+    final shareLink = medicalBusinessDeepLink(
+      medicalBusinessId: item.id,
     );
     ShareService.instance.openShareSheet(
       text: 'Check out ${item.name} on BlueEra\n$shareLink',

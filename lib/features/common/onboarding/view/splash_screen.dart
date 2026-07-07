@@ -11,8 +11,15 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/services/deeplink_network_resources.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/common/Discover/controller/finance_discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_school_home_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/finance/finance_detail_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/healthcare/discover_hospital_home_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/vehicle/vehicle_detail_screen.dart';
+import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
+import 'package:BlueEra/features/me/hospital/model/hospital_full_details_res_model.dart';
+import 'package:BlueEra/features/me/medical/view/medical_pharmacy_detail_screen.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -353,6 +360,66 @@ class _SplashScreenState extends State<SplashScreen> {
         return;
       }
 
+      // Hospital share/QR links carry an extra `hospital` segment:
+      //   https://beapp.in/app/business/hospital/<businessId>
+      // Route these straight to the hospital detail screen
+      // ([DiscoverHospitalHomeScreen]) instead of the generic business
+      // share-preview. Like education/grocery/hotel, the id sits at
+      // segments[3], so this is checked before the generic 3-segment `app`
+      // handling below.
+      else if (segments.length >= 4 &&
+          segments[0] == 'app' &&
+          segments[1] == 'business' &&
+          segments[2] == 'hospital') {
+        final hospitalBusinessId = segments[3];
+        if (!_isValidMongoId(hospitalBusinessId)) {
+          logs('Invalid hospital id in deep link: $hospitalBusinessId');
+          return;
+        }
+        _openHospital(hospitalBusinessId);
+        return;
+      }
+
+      // Medical (pharmacy) share/QR links carry an extra `medical` segment:
+      //   https://beapp.in/app/business/medical/<businessId>
+      // Route these straight to the pharmacy detail screen
+      // ([MedicalPharmacyDetailScreen]) instead of the generic business
+      // share-preview. Like education/grocery/hotel/hospital, the id sits at
+      // segments[3], so this is checked before the generic 3-segment `app`
+      // handling below.
+      else if (segments.length >= 4 &&
+          segments[0] == 'app' &&
+          segments[1] == 'business' &&
+          segments[2] == 'medical') {
+        final medicalBusinessId = segments[3];
+        if (!_isValidMongoId(medicalBusinessId)) {
+          logs('Invalid medical id in deep link: $medicalBusinessId');
+          return;
+        }
+        _openMedicalPharmacy(medicalBusinessId);
+        return;
+      }
+
+      // Financial (finance) share/QR links carry an extra `financial` segment:
+      //   https://beapp.in/app/business/financial/<businessId>
+      // Route these straight to the finance detail screen
+      // ([FinanceDetailScreen]) instead of the generic business share-preview.
+      // Like education/grocery/hotel/hospital/medical, the id sits at
+      // segments[3], so this is checked before the generic 3-segment `app`
+      // handling below.
+      else if (segments.length >= 4 &&
+          segments[0] == 'app' &&
+          segments[1] == 'business' &&
+          segments[2] == 'financial') {
+        final financeBusinessId = segments[3];
+        if (!_isValidMongoId(financeBusinessId)) {
+          logs('Invalid financial id in deep link: $financeBusinessId');
+          return;
+        }
+        _openFinance(financeBusinessId);
+        return;
+      }
+
     else   if (segments.length >= 3 && segments[0] == 'app') {
         final type = segments[1]; // post | video | short | job | product
         final id = segments[2];
@@ -388,6 +455,13 @@ print("type==== ${type}");
             // Public grocery share landing — fetches the product itself
             // and renders the deep-link-only preview.
             Get.to(() => GroceryProductSharePreviewScreen(productId: id));
+            break;
+          case 'medical':
+            // Public pharmacy share/QR landing
+            // (`https://beapp.in/app/medical/<businessId>`). The pharmacy
+            // screen takes the businessId and hydrates itself (profile +
+            // inventory) behind its own loader, so navigation is instant.
+            _openMedicalPharmacy(id);
             break;
           case 'food':
             // Public food share landing — fetches the food product itself
@@ -494,6 +568,52 @@ print("type==== ${type}");
           visitBusinessId: id,
           userId: id,
         ));
+  }
+
+  /// Opens [DiscoverHospitalHomeScreen] for a hospital reached via deep link /
+  /// QR scan (`https://beapp.in/app/business/hospital/<businessId>`). The link
+  /// carries a single id (the hospital's business id used when it was shared).
+  /// [DiscoverHospitalHomeScreen] reads its data from
+  /// [HospitalServiceAiController] and calls `Get.find` for both that and
+  /// [ViewBusinessDetailsController] in its initState, so both are registered
+  /// first. The model is seeded with just the id — the screen's initState then
+  /// fetches the full profile via `viewBusinessProfileById` and merges the
+  /// hospital sections, mirroring the in-app tap flow from the hospital list
+  /// ([HospitalListScreen._openDetail]).
+  void _openHospital(String id) {
+    getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+    final hospitalController = getOrPut(() => HospitalServiceAiController());
+    hospitalController.hospitalDataResModel?.value =
+        HospitalFullDetailsResModel(success: true, data: HospitalFullData(id: id));
+    Get.to(() => const DiscoverHospitalHomeScreen());
+  }
+
+  /// Opens [MedicalPharmacyDetailScreen] for a pharmacy reached via deep link /
+  /// QR scan (`https://beapp.in/app/business/medical/<businessId>`). The link
+  /// carries a single id (the pharmacy's business id used when it was shared).
+  /// The screen does `Get.find<ViewBusinessDetailsController>()` in its
+  /// initState, so that controller is registered first. It then takes the
+  /// `businessId` and hydrates itself (profile + inventory) behind its own
+  /// loader, so navigation is instant with no pre-fetch lag — mirroring the
+  /// in-app tap flow from the medical list.
+  void _openMedicalPharmacy(String id) {
+    getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+    Get.to(() => MedicalPharmacyDetailScreen(businessId: id));
+  }
+
+  /// Opens [FinanceDetailScreen] for a finance business reached via deep link /
+  /// QR scan (`https://beapp.in/app/business/financial/<businessId>`). The
+  /// screen reads its data from [FinanceDiscoverController], so the controller
+  /// is registered first. The full profile is fetched up-front (via
+  /// `fetchDetail`) so the screen shows its loader instead of a half-empty
+  /// header; [FinanceDiscoverController.selectedDetail] is left null so the
+  /// screen's initState doesn't kick off a second fetch. Mirrors the in-app tap
+  /// flow from the finance list ([FinanceListScreen]).
+  void _openFinance(String id) {
+    final controller = getOrPut(() => FinanceDiscoverController());
+    controller.selectedDetail.value = null;
+    controller.fetchDetail(id);
+    Get.to(() => const FinanceDetailScreen());
   }
 
   @override
