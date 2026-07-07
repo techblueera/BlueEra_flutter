@@ -49,7 +49,8 @@ class FindServiceCardWidget extends StatelessWidget {
                     child: CommonServiceCard(
                       service: c,
                       getName: (item) => item.name ?? '',
-                      getIcon: (item) => getServiceCategoryIcon(item.tagId),
+                      getIcon: (item) => item.imageUrl ?? '',
+                      // getServiceCategoryIcon(item.tagId),
                       iconHeight: SizeConfig.size80,
                       onTap: (item) {
                         Get.to(() => ServicesNearMeScreen(

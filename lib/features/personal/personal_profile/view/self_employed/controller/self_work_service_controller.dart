@@ -149,6 +149,16 @@ class SelfWorkServiceController extends GetxController{
   RxBool isProfessionDataLoading = false.obs;
   String? serviceId;
 
+  /// Security-deposit go-live gate for this selfWork service. Sourced from the
+  /// service's `securityDeposit` (GET /services?all=false). Fail-open when
+  /// absent. See docs/backend/SELF_WORK_GO_LIVE_FRONTEND_INTEGRATION.md.
+  SecurityDepositStatus? get securityDeposit =>
+      professionData.value.securityDeposit;
+
+  /// True when the provider may go live: no deposit info, deposit not required,
+  /// or deposit paid. Blocked only when the backend reports `required && !paid`.
+  bool get canGoLive => professionData.value.canGoLive;
+
   /// Multi-profile support
   RxInt selectedProfileIndex = 0.obs;
 

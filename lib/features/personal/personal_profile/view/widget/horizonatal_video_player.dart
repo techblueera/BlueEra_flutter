@@ -1,9 +1,12 @@
 import 'dart:developer';
 import 'dart:ui';
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_image_assets.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
+import 'package:BlueEra/features/common/referral/model/referral_testimonial_model.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
@@ -25,11 +28,19 @@ class HorizontalVideoPlayer extends StatefulWidget {
 class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
     with WidgetsBindingObserver {
   final PageController _pageController = PageController(viewportFraction: 1.0);
+  // Used only when no [videoUrls] are supplied — the intro/overview video is
+  // pulled from GET /earn-service/overview instead of being bundled in the app.
+  final ReferralController _referralController =
+      getOrPut(() => ReferralController());
+  Worker? _overviewWorker;
 
-  late List<String> _videoUrls;
-  final List<String> thumbnailUrls = [
-    AppImageAssets.earnWithBlueeraVideoThumbnail
-  ];
+  List<String> _videoUrls = const [];
+  // Overview videos are always remote; explicitly-passed URLs honour the
+  // widget's [isNetworkUrl] flag.
+  bool _isNetworkUrl = false;
+  // True when the URL list is being sourced from the overview API (so the
+  // build can show a loader while it resolves).
+  bool _usingOverview = false;
 
   VideoPlayerController? _controller;
   int _currentPage = 0;
@@ -38,15 +49,58 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _videoUrls = widget.videoUrls ?? ['assets/video/earn_with_blue_era_video.mp4'];
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initializeController(_videoUrls[_currentPage]);
+    final provided = widget.videoUrls;
+    if (provided != null && provided.isNotEmpty) {
+      _videoUrls = List<String>.from(provided);
+      _isNetworkUrl = widget.isNetworkUrl != null;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _initializeController(_videoUrls[_currentPage]);
+      });
+    } else {
+      // No explicit URLs → fetch the intro video from the overview API rather
+      // than shipping a heavy local asset. Overview videos are remote.
+      _usingOverview = true;
+      _isNetworkUrl = true;
+      _bindOverviewVideos();
+    }
+  }
+
+  /// Subscribes to the controller's overview list, applies whatever is already
+  /// cached, and triggers a fresh fetch. Video URLs are derived from overview
+  /// posts that carry a video.
+  void _bindOverviewVideos() {
+    _overviewWorker = ever<List<ReferralTestimonial>>(
+        _referralController.overviews, _applyOverviewVideos);
+    if (_referralController.overviews.isNotEmpty) {
+      _applyOverviewVideos(_referralController.overviews);
+    }
+    _referralController.fetchOverview();
+  }
+
+  void _applyOverviewVideos(List<ReferralTestimonial> list) {
+    if (!mounted) return;
+    final urls =
+        list.where((o) => o.hasVideo).map((o) => o.video!).toList();
+    // Skip a redundant re-init when the URL set hasn't changed.
+    if (urls.join(',') == _videoUrls.join(',')) {
+      if (mounted) setState(() {});
+      return;
+    }
+    setState(() {
+      _videoUrls = urls;
+      _currentPage = 0;
     });
+    if (urls.isNotEmpty) {
+      _initializeController(urls[_currentPage]);
+    } else {
+      _disposeController();
+    }
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _overviewWorker?.dispose();
     _disposeController();
     _pageController.dispose();
     super.dispose();
@@ -61,23 +115,13 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
     // Don't auto-resume on app resume - let user control it
   }
 
-  // void _getVideoThumbnail(){
-  //   XFile thumbnailFile = await VideoThumbnail.thumbnailFile(
-  //       video: "https://flutter.github.io/assets-for-api-docs/assets/videos/butterfly.mp4",
-  //       thumbnailPath: (await getTemporaryDirectory()).path,
-  //       imageFormat: ImageFormat.WEBP,
-  //       maxHeight: 64, // specify the height of the thumbnail, let the width auto-scaled to keep the source aspect ratio
-  //       quality: 75,
-  //   );
-  // }
-
   Future<void> _initializeController(String path) async {
     _disposeController();
     // if (!mounted) return; // ← ADD THIS
 
-    if(widget.isNetworkUrl!=null){
+    if (_isNetworkUrl) {
       _controller = VideoPlayerController.networkUrl(Uri.parse(path));
-    }else{
+    } else {
       _controller = VideoPlayerController.asset(path);
     }
 
@@ -140,6 +184,21 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
 
   @override
   Widget build(BuildContext context) {
+    // No video to show yet: keep the 16:9 slot with a loader while the
+    // overview API resolves, otherwise render nothing.
+    if (_videoUrls.isEmpty) {
+      final status = _referralController.overviewResponse.value.status;
+      final loading = _usingOverview &&
+          (status == Status.LOADING || status == Status.INITIAL);
+      return AspectRatio(
+        aspectRatio: 16 / 9,
+        child: Center(
+          child: loading
+              ? const CircularProgressIndicator()
+              : const SizedBox.shrink(),
+        ),
+      );
+    }
     return VisibilityDetector(
       key: Key('HorizontalVideoPlayer_${identityHashCode(this)}'),
       onVisibilityChanged: (info) {
@@ -169,12 +228,10 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  // Thumbnail (before load)
+                  // Loader (before the video is initialized)
                   if (isCurrent &&
                       (controller == null || !controller.value.isInitialized))
-                    (widget.isNetworkUrl!=null)
-                    ? Center(child: CircularProgressIndicator())
-                    : _buildThumbnail(thumbnailUrls[index]),
+                    const Center(child: CircularProgressIndicator()),
 
                   // Video player
                   if (isCurrent &&
@@ -199,11 +256,6 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
       ),
     );
   }
-
-  Widget _buildThumbnail(String thumbnail) => ClipRRect(
-    borderRadius: BorderRadius.circular(10),
-    child: LocalAssets(imagePath: thumbnail, boxFix: BoxFit.cover),
-  );
 
   Widget _buildVideo(VideoPlayerController controller) => ClipRRect(
     borderRadius: BorderRadius.circular(10),
@@ -270,5 +322,3 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
     ),
   );
 }
-
-

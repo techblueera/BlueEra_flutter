@@ -1067,6 +1067,92 @@ class GroceryController extends GetxController {
     }
   }
 
+  /// ─── Category showcase (grocery-service/api/products/category-showcase) ───
+  /// Cross-category product list rendered at the bottom of the grocery
+  /// super-category screen. TTL-guarded via [_showcaseCache] so re-entering the
+  /// screen within the cache window reuses the loaded list instead of
+  /// refetching.
+  Rx<ApiResponse> groceryCategoryShowcaseResponse =
+      ApiResponse.initial('Initial').obs;
+  RxList<GroceryProductData> groceryCategoryShowcaseList =
+      <GroceryProductData>[].obs;
+  RxBool isGroceryShowcaseLoadingMore = false.obs;
+  int _showcasePage = 1;
+  bool _showcaseHasMore = true;
+  static const int _showcaseLimit = 10;
+  bool get groceryShowcaseHasMore => _showcaseHasMore;
+
+  final FetchCache _showcaseCache = FetchCache();
+
+  /// Fetch the showcase only when it isn't already loaded & fresh (within the
+  /// [FetchCache] TTL). Call on screen (re)entry; use [fetchGroceryCategoryShowcase]
+  /// for explicit refreshes.
+  Future<void> fetchGroceryCategoryShowcaseIfNeeded() async {
+    if (_showcaseCache.isFresh('grocery-showcase',
+        hasData: groceryCategoryShowcaseList.isNotEmpty)) {
+      return;
+    }
+    await fetchGroceryCategoryShowcase();
+  }
+
+  Future<void> fetchGroceryCategoryShowcase({bool isLoadMore = false}) async {
+    try {
+      if (isLoadMore) {
+        if (!_showcaseHasMore || isGroceryShowcaseLoadingMore.value) return;
+        isGroceryShowcaseLoadingMore.value = true;
+      } else {
+        groceryCategoryShowcaseResponse.value = ApiResponse.loading('loading');
+        _showcasePage = 1;
+        _showcaseHasMore = true;
+      }
+
+      final Map<String, dynamic> params = {
+        ApiKeys.page: _showcasePage,
+        ApiKeys.limit: _showcaseLimit,
+      };
+
+      final response =
+          await GroceryRepo().fetchGroceryCategoryShowcaseRepo(queryParam: params);
+
+      if (!response.isSuccess) {
+        if (!isLoadMore && groceryCategoryShowcaseList.isEmpty) {
+          groceryCategoryShowcaseResponse.value = ApiResponse.error('error');
+        }
+        return;
+      }
+
+      final model = GroceryProductModel.fromJson(response.response?.data);
+      final List<GroceryProductData> newItems =
+          model.data ?? <GroceryProductData>[];
+
+      if (isLoadMore) {
+        groceryCategoryShowcaseList.addAll(newItems);
+      } else {
+        groceryCategoryShowcaseList.assignAll(newItems);
+      }
+
+      if (newItems.isNotEmpty) _showcasePage++;
+
+      final pagination = model.pagination;
+      _showcaseHasMore = pagination != null
+          ? (pagination.page ?? 1) < (pagination.totalPages ?? 1)
+          : newItems.isNotEmpty;
+
+      groceryCategoryShowcaseResponse.value = ApiResponse.complete(response);
+      // Stamp freshness only after the list is populated so a re-entry reuses
+      // it instead of refetching.
+      _showcaseCache.mark('grocery-showcase');
+      log('showcase loaded -- ${groceryCategoryShowcaseList.length}');
+    } catch (e, s) {
+      log('showcase stack trace -- $s');
+      if (!isLoadMore && groceryCategoryShowcaseList.isEmpty) {
+        groceryCategoryShowcaseResponse.value = ApiResponse.error('error');
+      }
+    } finally {
+      if (isLoadMore) isGroceryShowcaseLoadingMore.value = false;
+    }
+  }
+
   RxBool missingProductRequestsLoading = false.obs;
   Future<void> missingGroceryProductRequestsApi(List<MissingProducts> missingProducts) async {
     try {

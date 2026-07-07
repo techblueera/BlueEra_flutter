@@ -135,18 +135,16 @@ class AdminProductCard extends StatelessWidget {
                   Positioned(
                     top: 6,
                     left: 6,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ProductPreviewEyeButton(
-                          onTap: () => _openDetails(context),
-                        ),
-                        const SizedBox(width: 6),
-                        ProductShareButton(
-                          productId: productId,
-                          productName: details?.name,
-                        ),
-                      ],
+                    child: ProductPreviewEyeButton(
+                      onTap: () => _openDetails(context),
+                    ),
+                  ),
+                  Positioned(
+                    top: 6,
+                    right: 6,
+                    child: ProductShareButton(
+                      productId: productId,
+                      productName: details?.name,
                     ),
                   ),
                 ],
@@ -279,18 +277,16 @@ class AdminProductCard extends StatelessWidget {
                 Positioned(
                   top: 6,
                   left: 6,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ProductPreviewEyeButton(
-                        onTap: () => _openDetails(context),
-                      ),
-                      const SizedBox(width: 6),
-                      ProductShareButton(
-                        productId: productId,
-                        productName: details?.name,
-                      ),
-                    ],
+                  child: ProductPreviewEyeButton(
+                    onTap: () => _openDetails(context),
+                  ),
+                ),
+                Positioned(
+                  top: 6,
+                  right: 6,
+                  child: ProductShareButton(
+                    productId: productId,
+                    productName: details?.name,
                   ),
                 ),
               ],

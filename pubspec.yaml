@@ -159,7 +159,6 @@ flutter:
     - assets/images/
     - assets/svg/
     - assets/icons/
-    - assets/video/
     - assets/sound/
     - assets/category/grocery/menu/
     - assets/category/medical/

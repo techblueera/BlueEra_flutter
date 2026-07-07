@@ -26,6 +26,7 @@ import 'package:BlueEra/features/me/product/model/product_nested_category_respon
     hide Product;
 import 'package:BlueEra/features/me/product/model/single_product_model.dart';
 import 'package:BlueEra/features/me/product/repo/product_repo.dart';
+import 'package:BlueEra/core/utils/fetch_cache.dart';
 import 'package:BlueEra/features/me/product/view/admin/product_preview_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/earn_service_controller.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
@@ -1694,5 +1695,86 @@ class ProductController extends GetxController{
   /// per-product "N in cart" badge in the product card + variant sheet.
   int selectedVariantCountForProduct(String productId) {
     return selectedProducts.where((p) => p.product.id == productId).length;
+  }
+
+  /// ─── Category showcase (product-service/api/products/category-showcase) ───
+  /// Cross-category product list rendered as "Suggested Products" at the bottom
+  /// of the product super-category screen. TTL-guarded via
+  /// [_productShowcaseCache] so re-entering the screen within the cache window
+  /// reuses the loaded list instead of refetching.
+  Rx<ApiResponse> productShowcaseResponse = ApiResponse.initial('Initial').obs;
+  RxList<Product> productShowcaseList = <Product>[].obs;
+  RxBool isProductShowcaseLoadingMore = false.obs;
+  int _productShowcasePage = 1;
+  bool _productShowcaseHasMore = true;
+  static const int _productShowcaseLimit = 10;
+  bool get productShowcaseHasMore => _productShowcaseHasMore;
+
+  final FetchCache _productShowcaseCache = FetchCache();
+
+  /// Fetch the showcase only when it isn't already loaded & fresh (TTL). Use on
+  /// screen (re)entry; call [fetchProductCategoryShowcase] for explicit refreshes.
+  Future<void> fetchProductCategoryShowcaseIfNeeded() async {
+    if (_productShowcaseCache.isFresh('product-showcase',
+        hasData: productShowcaseList.isNotEmpty)) {
+      return;
+    }
+    await fetchProductCategoryShowcase();
+  }
+
+  Future<void> fetchProductCategoryShowcase({bool isLoadMore = false}) async {
+    try {
+      if (isLoadMore) {
+        if (!_productShowcaseHasMore || isProductShowcaseLoadingMore.value) {
+          return;
+        }
+        isProductShowcaseLoadingMore.value = true;
+      } else {
+        productShowcaseResponse.value = ApiResponse.loading('loading');
+        _productShowcasePage = 1;
+        _productShowcaseHasMore = true;
+      }
+
+      final Map<String, dynamic> params = {
+        ApiKeys.page: _productShowcasePage,
+        ApiKeys.limit: _productShowcaseLimit,
+      };
+
+      final responseModel = await ProductRepo()
+          .fetchProductCategoryShowcaseRepo(queryParams: params);
+
+      if (!responseModel.isSuccess) {
+        if (!isLoadMore && productShowcaseList.isEmpty) {
+          productShowcaseResponse.value = ApiResponse.error('error');
+        }
+        return;
+      }
+
+      final response =
+          ProductCatalogResponse.fromJson(responseModel.response?.data);
+      final newData = response.data;
+
+      if (isLoadMore) {
+        productShowcaseList.addAll(newData);
+      } else {
+        productShowcaseList.assignAll(newData);
+      }
+      if (newData.isNotEmpty) _productShowcasePage++;
+
+      final pg = response.pagination;
+      _productShowcaseHasMore =
+          pg != null ? pg.page < pg.totalPages : newData.isNotEmpty;
+
+      productShowcaseResponse.value = ApiResponse.complete(responseModel);
+      _productShowcaseCache.mark('product-showcase');
+      log('product showcase loaded -- ${productShowcaseList.length}');
+    } catch (e, s) {
+      log('product showcase stack trace -- $s');
+      if (!isLoadMore && productShowcaseList.isEmpty) {
+        productShowcaseResponse.value = ApiResponse.error('error');
+      }
+    } finally {
+      if (isLoadMore) isProductShowcaseLoadingMore.value = false;
+    }
   }
 }

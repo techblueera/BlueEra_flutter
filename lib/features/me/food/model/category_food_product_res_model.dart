@@ -31,8 +31,20 @@ class CategoryFoodProductData {
     id = json['_id'];
     name = json['name'];
     images = json['images'] != null ? json['images'].cast<String>() : [];
-    category =
-        json['category'] != null ? Category.fromJson(json['category']) : null;
+    // `category` is a full object on the category-products endpoint but a bare
+    // id String on the showcase endpoint (which also ships a richer
+    // `level1Category` object). Prefer the object (real name), fall back to the
+    // id String — passing a String straight to Category.fromJson used to crash.
+    final rawCategory = json['category'];
+    if (rawCategory is Map) {
+      category = Category.fromJson(rawCategory);
+    } else if (json['level1Category'] is Map) {
+      category = Category.fromJson(json['level1Category']);
+    } else if (rawCategory is String) {
+      category = Category(id: rawCategory);
+    } else {
+      category = null;
+    }
     dietaryType = json['dietaryType'];
     description = json['description'];
     cookingMethod = json['cookingMethod'] != null
@@ -216,8 +228,13 @@ class Category {
   });
 
   Category.fromJson(dynamic json) {
-    id = json['_id'];
-    name = json['name'];
+    // Tolerate a bare id String (some endpoints send `category` as just an id).
+    if (json is Map) {
+      id = json['_id'];
+      name = json['name'];
+    } else if (json is String) {
+      id = json;
+    }
   }
   String? id;
   String? name;
