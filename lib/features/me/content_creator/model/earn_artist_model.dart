@@ -88,10 +88,15 @@ class EarnArtist {
       category: _asString(json['category']),
       description: _asString(json['description']),
       expertise: _asStringList(json['expertise']),
+      // Kept when EITHER an id or display fields are present: the artist GET
+      // returns `brandCollaborations` as bare Business-id strings (name/logo
+      // empty), so filtering on name/logo alone would silently drop every
+      // saved brand. The id is resolved to logo/name client-side for display.
       brandCollaborations: json['brandCollaborations'] is List
           ? (json['brandCollaborations'] as List)
               .map(ArtistBrand.fromDynamic)
-              .where((b) => b.name.isNotEmpty || b.logo.isNotEmpty)
+              .where(
+                  (b) => b.id.isNotEmpty || b.name.isNotEmpty || b.logo.isNotEmpty)
               .toList(growable: false)
           : <ArtistBrand>[],
       channels: mapList(json['channels'], ArtistChannel.fromJson),

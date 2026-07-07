@@ -68,27 +68,33 @@ class _WalletStaticsViewState extends State<WalletStaticsView> {
   }
 
   // ── Money / count formatting ────────────────────────────────────────────
-  String _money(num? v) {
-    final n = v ?? 0;
-    final body = n == n.truncateToDouble()
-        ? _withCommas(n.toInt())
-        : n.toStringAsFixed(2);
-    return '₹$body';
+  String _money(num? v) => '₹${_compact(v ?? 0)}';
+
+  String _count(num? v) => _compact(v ?? 0);
+
+  /// Compact Indian notation for large numbers: K (thousand), L (lakh),
+  /// Cr (crore) — up to 2 decimals, trailing zeros trimmed. Values under 1,000
+  /// render exact (2 decimals only when fractional, so a raw double like
+  /// 0.9818747… doesn't leak into the legend as full precision).
+  String _compact(num v) {
+    final n = v.abs();
+    if (n >= 10000000) return '${_trim(v / 10000000)}Cr';
+    if (n >= 100000) return '${_trim(v / 100000)}L';
+    if (n >= 1000) return '${_trim(v / 1000)}K';
+    return v == v.truncateToDouble()
+        ? v.toInt().toString()
+        : v.toStringAsFixed(2);
   }
 
-  String _count(num? v) {
-    final n = v ?? 0;
-    return n == n.truncateToDouble() ? _withCommas(n.toInt()) : n.toString();
-  }
-
-  String _withCommas(int v) {
-    final s = v.toString();
-    final buf = StringBuffer();
-    for (int i = 0; i < s.length; i++) {
-      if (i > 0 && (s.length - i) % 3 == 0) buf.write(',');
-      buf.write(s[i]);
+  /// 2-decimal string with trailing zeros (and a dangling dot) trimmed:
+  /// 3.10 → "3.1", 3.00 → "3".
+  String _trim(num v) {
+    var s = v.toStringAsFixed(2);
+    if (s.contains('.')) {
+      s = s.replaceFirst(RegExp(r'0+$'), '');
+      s = s.replaceFirst(RegExp(r'\.$'), '');
     }
-    return buf.toString();
+    return s;
   }
 
   @override

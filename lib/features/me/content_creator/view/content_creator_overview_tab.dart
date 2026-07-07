@@ -21,6 +21,7 @@ import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/me/content_creator/controller/earn_artist_controller.dart';
 import 'package:BlueEra/features/me/content_creator/model/earn_artist_model.dart';
+import 'package:BlueEra/features/me/content_creator/view/associate_brands_screen.dart';
 import 'package:BlueEra/features/me/content_creator/widget/artist_expertise_picker.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
@@ -1366,23 +1367,28 @@ class _ContentCreatorOverviewTabState extends State<ContentCreatorOverviewTab> {
         onTap: () => _openCertificateSheet(artist),
       );
     }
+    // Vertical-only card padding so the horizontal list scrolls edge-to-edge
+    // across the whole card; header + list carry their own horizontal padding.
     return _card(
+      padding: EdgeInsets.symmetric(vertical: SizeConfig.size16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _sectionHeader('Certificate & Awards',
-              trailingLabel: 'Add',
-              onTrailing: () => _openCertificateSheet(artist)),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16),
+            child: _sectionHeader('Certificate & Awards',
+                trailingLabel: 'Add',
+                onTrailing: () => _openCertificateSheet(artist)),
+          ),
           SizedBox(height: SizeConfig.size14),
           SizedBox(
             height: 300,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              clipBehavior: Clip.none,
-              padding: EdgeInsets.zero,
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16),
               itemCount: certs.length,
               separatorBuilder: (_, __) => SizedBox(width: SizeConfig.size12),
-              itemBuilder: (_, i) => _certificateCard(certs[i]),
+              itemBuilder: (_, i) => _certificateCard(certs[i], i, artist),
             ),
           ),
         ],
@@ -1390,7 +1396,7 @@ class _ContentCreatorOverviewTabState extends State<ContentCreatorOverviewTab> {
     );
   }
 
-  Widget _certificateCard(ArtistCertificate cert) {
+  Widget _certificateCard(ArtistCertificate cert, int index, EarnArtist artist) {
     return Container(
       width: 250,
       clipBehavior: Clip.antiAlias,
@@ -1410,6 +1416,17 @@ class _ContentCreatorOverviewTabState extends State<ContentCreatorOverviewTab> {
             child: cert.firstMedia.isNotEmpty
                 ? _networkImage(cert.firstMedia, fit: BoxFit.cover)
                 : _certificateArtFallback(),
+          ),
+          // Per-card edit affordance.
+          Positioned(
+            top: 10,
+            right: 10,
+            child: _glassActionPill(
+              icon: Icons.edit_rounded,
+              label: AppStrings.edit.tr,
+              onTap: () =>
+                  _openCertificateSheet(artist, editIndex: index, existing: cert),
+            ),
           ),
           // Bottom scrim so the name/description stay legible over the art.
           Positioned(
@@ -1484,32 +1501,58 @@ class _ContentCreatorOverviewTabState extends State<ContentCreatorOverviewTab> {
   }
 
   // ─── ASSOCIATE BRANDS (earn) ────────────────────────────────────────────
+  /// Opens the search-and-select page. `brandCollaborations` persists as bare
+  /// Business ids, so the page both browses businesses and manages the picks;
+  /// on save it writes ids back to the profile + caches display detail, and the
+  /// strip below rebuilds reactively.
+  void _openAssociateBrands() {
+    Get.to(() => const AssociateBrandsScreen());
+  }
+
   Widget _brandsSection(EarnArtist artist) {
     final brands = artist.brandCollaborations;
     if (brands.isEmpty) {
       return _emptySection(
-          'Associates Brands', 'No brand collaborations added yet.');
+        'Associates Brands',
+        'Tag the brands and businesses you work with.',
+        trailingLabel: 'Add',
+        onTrailing: _openAssociateBrands,
+      );
     }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: _hMargin),
-          child: _sectionHeader('Associates Brands',
-              trailingLabel: 'View All', onTrailing: _comingSoon),
-        ),
-        SizedBox(height: SizeConfig.size12),
-        SizedBox(
-          height: 130,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: _hMargin),
-            itemCount: brands.length,
-            separatorBuilder: (_, __) => SizedBox(width: SizeConfig.size16),
-            itemBuilder: (_, i) => _brandItem(brands[i]),
+    // White [_card] with VERTICAL-only padding so the horizontal strip can
+    // scroll edge-to-edge across the whole card (a proper carousel) instead of
+    // being confined to the inner padded area. The header and the scroll list
+    // carry their own horizontal padding.
+    return _card(
+      padding: EdgeInsets.symmetric(vertical: SizeConfig.size16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16),
+            child: _sectionHeader('Associates Brands',
+                trailingLabel: 'Add More', onTrailing: _openAssociateBrands),
           ),
-        ),
-      ],
+          SizedBox(height: SizeConfig.size12),
+          // Full-width horizontal scroll (SingleChildScrollView + Row): the
+          // gesture spans the whole card and items bleed to its edges, while
+          // the strip's height still follows the content.
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (var i = 0; i < brands.length; i++) ...[
+                  if (i != 0) SizedBox(width: SizeConfig.size16),
+                  // Stored entries are id-only; resolve to cached logo/name.
+                  _brandItem(_earnCtrl.resolveBrand(brands[i])),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1631,27 +1674,111 @@ class _ContentCreatorOverviewTabState extends State<ContentCreatorOverviewTab> {
           crossAxisCellCount = 2;
           mainAxisCellCount = 1.5;
         }
+        final url = images[index];
+        final deleting = _earnCtrl.galleryDeletingUrl.value == url;
         return StaggeredGridTile.count(
           crossAxisCellCount: crossAxisCellCount,
           mainAxisCellCount: mainAxisCellCount,
-          child: InkWell(
-            onTap: () => navigatePushTo(
-              context,
-              ImageViewScreen(
-                appBarTitle: AppStrings.imageViewer,
-                subTitle: AppStrings.imageViewer,
-                imageUrls: images,
-                initialIndex: index,
-              ),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: _networkImage(images[index], fit: BoxFit.cover),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                InkWell(
+                  onTap: deleting
+                      ? null
+                      : () => navigatePushTo(
+                            context,
+                            ImageViewScreen(
+                              appBarTitle: AppStrings.imageViewer,
+                              subTitle: AppStrings.imageViewer,
+                              imageUrls: images,
+                              initialIndex: index,
+                            ),
+                          ),
+                  child: _networkImage(url, fit: BoxFit.cover),
+                ),
+                if (deleting)
+                  Container(
+                    color: Colors.black.withValues(alpha: 0.45),
+                    alignment: Alignment.center,
+                    child: const SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.2,
+                        valueColor: AlwaysStoppedAnimation(Colors.white),
+                      ),
+                    ),
+                  )
+                else
+                  Positioned(
+                    top: 6,
+                    right: 6,
+                    child: _galleryDeleteButton(url),
+                  ),
+              ],
             ),
           ),
         );
       }),
     );
+  }
+
+  /// Small glass delete button pinned to a gallery tile. Confirms before
+  /// removing the image via [EarnArtistController.removeGalleryImage].
+  Widget _galleryDeleteButton(String url) {
+    return GestureDetector(
+      onTap: () => _confirmDeleteGalleryImage(url),
+      child: Container(
+        padding: const EdgeInsets.all(5),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.55),
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.white.withValues(alpha: 0.6), width: 0.8),
+        ),
+        child: const Icon(Icons.delete_outline_rounded,
+            size: 16, color: Colors.white),
+      ),
+    );
+  }
+
+  Future<void> _confirmDeleteGalleryImage(String url) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: CustomText('Remove photo?',
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: AppColors.mainTextColor),
+        content: CustomText(
+            'This photo will be removed from your gallery.',
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: AppColors.secondaryTextColor),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: CustomText(AppStrings.cancel.tr,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: AppColors.secondaryTextColor),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: CustomText('Remove',
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: Colors.red.shade400),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      await _earnCtrl.removeGalleryImage(url);
+    }
   }
 
   // ─── BANNER EMPTY STATE (certificate / gallery) ─────────────────────────
@@ -1808,14 +1935,23 @@ class _ContentCreatorOverviewTabState extends State<ContentCreatorOverviewTab> {
     await _earnCtrl.addGalleryImages([path]);
   }
 
-  /// Add-certificate sheet (name + description). `certificatesAndAwards`
-  /// REPLACES on PUT, so the whole existing list is re-sent with the new entry
-  /// appended. Media upload uses the separate S3 presigned flow and is left
-  /// empty here.
-  void _openCertificateSheet(EarnArtist artist) {
+  /// Add / edit-certificate sheet (name + description + optional media).
+  /// `certificatesAndAwards` REPLACES on PUT, so add appends and edit swaps the
+  /// entry at [editIndex]; either way the whole list is re-sent. New media uses
+  /// the S3 presigned flow; on edit the entry's existing media is preserved.
+  void _openCertificateSheet(EarnArtist artist,
+      {int? editIndex, ArtistCertificate? existing}) {
+    final isEdit = editIndex != null;
     _earnCtrl.seedCertificateInputs();
+    if (isEdit && existing != null) {
+      _earnCtrl.certNameController.text = existing.name;
+      _earnCtrl.certDescController.text = existing.description;
+      // Show the already-uploaded media as removable previews (instead of an
+      // empty upload zone).
+      _earnCtrl.certExistingMedia.assignAll(existing.media);
+    }
     _showUpdateSheet(
-      title: 'Add Certificate / Award',
+      title: isEdit ? 'Edit Certificate / Award' : 'Add Certificate / Award',
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1837,19 +1973,32 @@ class _ContentCreatorOverviewTabState extends State<ContentCreatorOverviewTab> {
             ),
           ),
           SizedBox(height: SizeConfig.size12),
-          _labeledField('Media (optional)', _certMediaPicker()),
+          _labeledField(
+              isEdit ? 'Add Media (optional)' : 'Media (optional)',
+              _certMediaPicker()),
           SizedBox(height: SizeConfig.paddingL),
           Obx(() => CustomBtn(
                 radius: SizeConfig.size10,
                 bgColor: AppColors.primaryColor,
-                title: _earnCtrl.isUpdating.value ? null : AppStrings.add.tr,
+                title: _earnCtrl.isUpdating.value
+                    ? null
+                    : (isEdit ? AppStrings.update.tr : AppStrings.add.tr),
                 isLoading: _earnCtrl.isUpdating.value,
                 onTap: () async {
-                  final ok = await _earnCtrl.addCertificate(
-                    name: _earnCtrl.certNameController.text,
-                    description: _earnCtrl.certDescController.text,
-                    existing: artist.certificatesAndAwards,
-                  );
+                  final ok = isEdit
+                      ? await _earnCtrl.updateCertificate(
+                          index: editIndex,
+                          name: _earnCtrl.certNameController.text,
+                          description: _earnCtrl.certDescController.text,
+                          existing: artist.certificatesAndAwards,
+                          keptMedia: _earnCtrl.certExistingMedia.toList(),
+                          newMediaPaths: _earnCtrl.certMediaPaths.toList(),
+                        )
+                      : await _earnCtrl.addCertificate(
+                          name: _earnCtrl.certNameController.text,
+                          description: _earnCtrl.certDescController.text,
+                          existing: artist.certificatesAndAwards,
+                        );
                   if (ok) Get.back();
                 },
               )),
@@ -1863,21 +2012,62 @@ class _ContentCreatorOverviewTabState extends State<ContentCreatorOverviewTab> {
   /// cleared each time the sheet reopens.
   Widget _certMediaPicker() {
     return Obx(() {
+      final existing = _earnCtrl.certExistingMedia;
       final paths = _earnCtrl.certMediaPaths;
-      // Empty → a full-width upload zone. Once picked, each image previews at
-      // full width with a remove button, plus a compact "Add more" row.
-      if (paths.isEmpty) return _fullWidthUploadZone();
+      final total = existing.length + paths.length;
+      // Nothing yet → a full-width upload zone. Otherwise show the already-
+      // uploaded media (network, removable) first, then freshly-picked local
+      // images, then a compact "Add more" row.
+      if (total == 0) return _fullWidthUploadZone();
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          for (var i = 0; i < existing.length; i++) ...[
+            _fullWidthNetworkMediaPreview(existing[i], i),
+            SizedBox(height: SizeConfig.size10),
+          ],
           for (var i = 0; i < paths.length; i++) ...[
             _fullWidthMediaPreview(paths[i], i),
             SizedBox(height: SizeConfig.size10),
           ],
-          if (paths.length < 5) _addMoreZone(),
+          if (total < 5) _addMoreZone(),
         ],
       );
     });
+  }
+
+  /// Full-width preview of an already-uploaded certificate image (network),
+  /// with a remove button that drops it from [certExistingMedia] so the save
+  /// PUTs the certificate without it.
+  Widget _fullWidthNetworkMediaPreview(String url, int index) {
+    return Stack(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: SizedBox(
+            width: double.infinity,
+            height: 170,
+            child: _networkImage(url, fit: BoxFit.cover),
+          ),
+        ),
+        Positioned(
+          top: 8,
+          right: 8,
+          child: InkWell(
+            onTap: () => _earnCtrl.certExistingMedia.removeAt(index),
+            customBorder: const CircleBorder(),
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.55),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.close, size: 16, color: Colors.white),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _fullWidthMediaPreview(String path, int index) {

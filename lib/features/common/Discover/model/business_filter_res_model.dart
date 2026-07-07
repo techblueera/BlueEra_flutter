@@ -114,6 +114,7 @@ class BusinessFilterData {
     this.facilityCount,
     this.quickInfo,
     this.schoolTimings,
+    this.distanceKm,
   });
 
   BusinessFilterData.fromJson(dynamic json) {
@@ -193,6 +194,7 @@ class BusinessFilterData {
           .map((e) => Availability.fromJson(e))
           .toList();
     }
+    distanceKm = json['distance_km'] is num ? json['distance_km'] as num : null;
   }
 
   String? id;
@@ -227,6 +229,7 @@ class BusinessFilterData {
   int? facilityCount;
   QuickInfo? quickInfo;
   List<Availability>? schoolTimings;
+  num? distanceKm;
 
   Map<String, dynamic> toJson() => {
         '_id': id,
@@ -262,6 +265,7 @@ class BusinessFilterData {
         'quickInfo': quickInfo?.toJson(),
         'schoolTimings':
             schoolTimings?.map((e) => e.toJson()).toList(),
+        'distance_km': distanceKm,
       };
 }
 

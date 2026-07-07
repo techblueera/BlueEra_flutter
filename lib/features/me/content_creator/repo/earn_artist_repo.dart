@@ -97,6 +97,52 @@ class EarnArtistRepo extends BaseService {
     );
   }
 
+  /// `DELETE earn-service/earn-artists/{id}/gallery/{galleryIndex}/images` —
+  /// removes [imageUrls] from the gallery group at [galleryIndex]. Body is
+  /// `{ image_urls: [...] }` (guide §2d/2f). Refetch after to refresh the strip.
+  Future<ResponseModel> deleteGalleryImages({
+    required String id,
+    required int galleryIndex,
+    required List<String> imageUrls,
+  }) {
+    return ApiBaseHelper().deleteHTTP(
+      earnArtistGalleryImages(id, galleryIndex),
+      params: {'image_urls': imageUrls},
+      showProgress: false,
+      onError: (_) {},
+      onSuccess: (_) {},
+    );
+  }
+
+  /// `GET user-service/business/search` — free-text + geo business search that
+  /// backs the "Add associate brands" picker. [q] is the text query; [lat]/[lng]
+  /// centre the geo filter and [radius] (km) bounds it. Paged via [page]/[limit].
+  /// Response is the standard `{ success, data:[…business…], pagination }` shape
+  /// parsed by [BusinessFilterResModel].
+  Future<ResponseModel> searchBusinesses({
+    required String q,
+    double? lat,
+    double? lng,
+    int radius = 10,
+    int page = 1,
+    int limit = 10,
+  }) {
+    return ApiBaseHelper().getHTTP(
+      businessSearch,
+      params: {
+        'q': q,
+        if (lat != null) 'lat': lat,
+        if (lng != null) 'lng': lng,
+        'radius': radius,
+        'page': page,
+        'limit': limit,
+      },
+      showProgress: false,
+      onError: (_) {},
+      onSuccess: (_) {},
+    );
+  }
+
   /// `GET earn-service/predefined-artist-expertise/{category}?type={type}` → the
   /// suggested `expertise[]` for the profile's category. Drives the API-fed
   /// multi-select in the Expertise edit sheet.
