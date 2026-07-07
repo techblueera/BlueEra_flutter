@@ -19,6 +19,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_verfication.dart';
@@ -284,6 +285,24 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
                   .updateBusinessProfileDetails({ApiKeys.websiteUrl: url}),
             ),
           )),
+      SizedBox(height: SizeConfig.size16),
+
+      // ── QR Code (mirrors the hospital overview QR card) ──
+      Obx(() {
+        final details = _businessController.businessProfileDetails.value?.data;
+        if (details == null) return const SizedBox.shrink();
+        return Padding(
+          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+          child: BusinessQrCodeWidget(
+            data: details,
+            // Encode the medical deep link so scanning opens the pharmacy
+            // directly (`/app/medical/<ownerUserId>` →
+            // MedicalPharmacyDetailScreen) instead of the generic profile
+            // share-preview. Mirrors the hospital/grocery QR overrides.
+            deepLinkOverride: medicalBusinessDeepLink(medicalBusinessId: details.userId),
+          ),
+        );
+      }),
       SizedBox(height: SizeConfig.size16),
     ];
   }

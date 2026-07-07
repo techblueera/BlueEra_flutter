@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
@@ -108,7 +109,15 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
       if (details == null) return const SizedBox.shrink();
       return Padding(
         padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-        child: BusinessQrCodeWidget(data: details),
+        // Scanning this QR opens the product store detail
+        // ([VisitProductStoreDetailsScreen]) via the deep-link handler in
+        // splash_screen.dart — same `shopDeepLink` the store header shares.
+        // Encodes the owner userId (what the visit screen expects as
+        // `visitUserId`), not the businessProfile _id.
+        child: BusinessQrCodeWidget(
+          data: details,
+          deepLinkOverride: shopDeepLink(id: details.userId),
+        ),
       );
     });
   }

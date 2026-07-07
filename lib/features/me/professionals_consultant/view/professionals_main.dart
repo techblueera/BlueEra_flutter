@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
@@ -1196,10 +1197,16 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
   }
 
   Future<void> _onShareProfile() async {
-    // Profile share goes through ShareService so the message body
-    // and accountType branching live in one place app-wide.
+    // Share the professionals/consultant deep link so the recipient lands
+    // on the consultant detail ([OthersServiceDetailScreen]) via the
+    // deep-link handler in splash_screen.dart — mirrors what the Discover
+    // service card shares ([ServiceBusinessCard._shareBusiness]).
     final userName = _viewCtrl.personalProfileDetails.value.user?.name ?? '';
-    await ShareService.instance.shareProfile(userId: userId, subject: userName);
+    final shareLink = professionalsConsultantDeepLink(id: userId);
+    await ShareService.instance.openShareSheet(
+      text: "Check out ${userName.isNotEmpty ? userName : 'this profile'} on BlueEra:\n$shareLink",
+      subject: userName,
+    );
   }
 
   // Delegates to [PersonalQrCodeWidget] so the professional QR card
@@ -1217,6 +1224,10 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
         name: name,
         designation: designation,
         margin: const EdgeInsets.symmetric(horizontal: 20),
+        // Scanning this QR opens the professionals/consultant detail
+        // ([OthersServiceDetailScreen]) via the deep-link handler in
+        // splash_screen.dart — same link the Discover service card shares.
+        deepLinkOverride: professionalsConsultantDeepLink(id: userId),
       );
     });
   }

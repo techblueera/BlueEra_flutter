@@ -270,7 +270,7 @@ class _HeaderSection extends StatelessWidget {
                           // backend exposes one. Kept visible for layout
                           // parity with self_employee_view_screen.
                           final id = data.userDetails?.id;
-                          ShareService.instance.shareProfile(userId: id.toString());
+                          ShareService.instance.shareProfConsProfile(userId: id.toString());
                         },
                       ),
                     ],
