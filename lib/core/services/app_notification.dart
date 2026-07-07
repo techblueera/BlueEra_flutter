@@ -2351,7 +2351,6 @@ class AppNotificationHandler {
         }
       } catch (_) {}
     }
-    print("ksdjcnkjsd ${operation}");
     switch (operation) {
       // Single-session: tapped the "signed out on another device" notification
       // → run the full logout teardown and land on the login screen, but only

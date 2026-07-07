@@ -876,6 +876,42 @@ class ChatViewController extends GetxController {
     }
   }
 
+  /// DIAGNOSTIC helper: inspects the raw `messageReceived` socket payload for a
+  /// key named `link` and logs whether it exists (top level + per message). Used
+  /// to confirm the BlueEra/admin conversation actually sends a `link` field,
+  /// since the Messages model doesn't parse it. Safe to remove once verified.
+  void _debugScanLinkKey(dynamic data) {
+    try {
+      if (data is! Map) {
+        log("🔗 link-scan: payload is not a Map (${data.runtimeType})");
+        return;
+      }
+      final topHasLink = data.containsKey('link');
+      log("🔗 link-scan: top-level 'link' key exists = $topHasLink"
+          "${topHasLink ? " → value: ${data['link']}" : ""}");
+
+      final messages = data['messages'];
+      if (messages is! List) {
+        log("🔗 link-scan: no 'messages' list in payload");
+        return;
+      }
+      int withLink = 0;
+      for (var i = 0; i < messages.length; i++) {
+        final m = messages[i];
+        if (m is! Map) continue;
+        if (m.containsKey('link')) {
+          withLink++;
+          log("🔗 link-scan: messages[$i] HAS 'link' = ${m['link']} "
+              "(conversationId: ${m['conversation_id']}, "
+              "messageType: ${m['message_type']}, senderId: ${m['senderId']})");
+        }
+      }
+      log("🔗 link-scan: ${messages.length} message(s), $withLink carried a 'link' key");
+    } catch (e) {
+      log("🔗 link-scan error: $e");
+    }
+  }
+
   Future<void> connectSocket() async {
     // Always ensure socket is connected
     await chatSocket.connectToSocket();
@@ -933,6 +969,10 @@ class ChatViewController extends GetxController {
       });
       chatSocket.listenEvent(ChatEmitEvents.messageReceived, (data) async {
           log("📩 messageReceived (chat history) → $data");
+          // DIAGNOSTIC: does the raw admin/BlueEra conversation payload carry a
+          // "link" key? The Messages model doesn't parse `link`, so this checks
+          // the raw socket JSON (top level + each message) as the convo opens.
+          _debugScanLinkKey(data);
           final parsedData = GetListOfMessageData.fromJson(data);
           log("📩 messageReceived parsed: ${parsedData.messages?.length ?? 0} messages");
 
@@ -2615,13 +2655,20 @@ class ChatViewController extends GetxController {
   }
 
   /// Force scroll to bottom and clear badge — called from scroll-to-bottom FAB.
-  void jumpToBottom() {
+  /// Scroll the open conversation to its newest message. Normal chats render
+  /// with `reverse: true`, so the bottom (newest) is at `minScrollExtent`. The
+  /// BlueEra/Admin thread renders with `reverse: false`, where the newest sits
+  /// at the END of the list — so [reversed] must be false there to land at
+  /// `maxScrollExtent` instead of scrolling up to the top.
+  void jumpToBottom({bool reversed = true}) {
     if (!scrollController.hasClients) return;
     if (scrollController.positions.length != 1) return;
     unreadNewMessageCount.value = 0;
     isUserScrolledUp.value = false;
     scrollController.animateTo(
-      scrollController.position.minScrollExtent,
+      reversed
+          ? scrollController.position.minScrollExtent
+          : scrollController.position.maxScrollExtent,
       duration: const Duration(milliseconds: 250),
       curve: Curves.easeOut,
     );

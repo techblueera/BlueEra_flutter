@@ -289,7 +289,8 @@ class _PersonalChatScreenState extends State<PersonalChatScreen>
                             }
                             final count = chatViewController.unreadNewMessageCount.value;
                             return GestureDetector(
-                              onTap: () => chatViewController.jumpToBottom(),
+                              onTap: () => chatViewController
+                                  .jumpToBottom(reversed: widget.type != "Admin"),
                               child: Container(
                                 width: 40,
                                 height: 40,
