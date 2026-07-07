@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_test_list_screen.dart';
@@ -56,11 +57,26 @@ class CategorySelector extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomText(
-            AppStrings.labUpdateYourTest.tr,
-            fontWeight: FontWeight.w700,
+          Row(
+            children: [
+              CustomText(
+                AppStrings.labUpdateYourTest.tr,
+                fontWeight: FontWeight.w700,
+              ),
+              Spacer(),
+              InkWell(
+                onTap: () {
+                  // LabOverviewTabV2(controller: );
+                },
+                child: CustomText(
+                  AppStrings.viewAll.tr,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.primaryColor,
+                ),
+              ),
+            ],
           ),
-          SizedBox(height: SizeConfig.size20),
+          // SizedBox(height: SizeConfig.size12),
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),

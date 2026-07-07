@@ -62,7 +62,7 @@ class _LabBannerWidgetState extends State<LabBannerWidget> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+      padding: EdgeInsets.only(right: SizeConfig.size12, left: SizeConfig.size25),
       child: Obx(() {
         final cover = widget.controller.details.value?.profile?.coverUrl ?? '';
         final hasBanner = cover.isNotEmpty;

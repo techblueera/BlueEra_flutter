@@ -11,13 +11,12 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// In-chat card for `message_type: "education_enquiry"`.
+/// In-chat card for a `messageType: "education_enquiry"` message.
 ///
-/// Shares its visual language with the other enquiry/booking cards
-/// (hotel / vehicle / healthcare) — hero-banner layout + amber accent
-/// so all four verticals render identically in the chat stream. Only
-/// the education-specific data (section icons for courses/admission/
-/// requirements/timeline) differs from the sister implementations.
+/// Visually mirrors [ServiceEnquiryMsgCard]: slim header, divider-separated
+/// sections (photo / selections / note), and an accept-decline or status
+/// footer. The school/owner (receiver) can Accept / Decline while pending;
+/// the customer (sender) sees a waiting/decision state.
 class EducationEnquiryMsgCard extends StatefulWidget {
   final Messages message;
   final String time;
@@ -34,49 +33,93 @@ class EducationEnquiryMsgCard extends StatefulWidget {
 }
 
 class _EducationEnquiryMsgCardState extends State<EducationEnquiryMsgCard> {
-  static const Color _accent = Color(0xFFF59E0B); // warm amber
-  static const Color _accentDeep = Color(0xFFD97706);
-  static const Color _line = Color(0xFFF3E7CE);
-  static const Color _noteBg = Color(0xFFFFF8EC);
-
   bool _isUpdating = false;
 
-  EducationEnquiryModel? get _e => widget.message.metadata?.educationEnquiry;
+  static const Color _accent = AppColors.primaryColor;
+  static const Color _accentDeep = AppColors.blue5CAF;
+  static const Color _line = Color(0xFFF0F2F5);
+
+  EducationEnquiryModel? get _enquiry =>
+      widget.message.metadata?.educationEnquiry;
+
   bool get _isMyMessage => widget.message.myMessage ?? false;
-  String get _status => (_e?.status ?? 'pending').toLowerCase();
+
+  String get _status => (_enquiry?.status ?? 'pending').toLowerCase();
+
   bool get _isAccepted => _status == 'accepted';
   bool get _isDeclined => _status == 'declined';
-  bool get _isPending => !_isAccepted && !_isDeclined;
 
-  Map<String, List<String>> get _selections {
-    final out = <String, List<String>>{};
-    (_e?.selections ?? const <String, List<String>>{}).forEach((k, v) {
-      final items = v.where((s) => s.trim().isNotEmpty).toList();
-      if (items.isNotEmpty) out[k] = items;
+  /// Non-empty selection groups, in display order — each carries its own
+  /// tinted icon (mirrors the reference enquiry-details design).
+  List<_EnquiryRow> get _rows {
+    final e = _enquiry;
+    final out = <_EnquiryRow>[];
+    (e?.selections ?? const <String, List<String>>{}).forEach((title, values) {
+      final items = values.where((s) => s.trim().isNotEmpty).toList();
+      if (items.isEmpty) return;
+      final (icon, color) = _iconAndColorFor(title);
+      out.add(_EnquiryRow(title, items, icon, color));
     });
     return out;
   }
 
-  IconData _iconFor(String title) {
+  /// Map a selection group's title to a themed icon + tint. Falls back to a
+  /// neutral school icon so unknown groups still render on-brand.
+  (IconData, Color) _iconAndColorFor(String title) {
     switch (title.toLowerCase()) {
-      case 'courses':
       case 'course':
-        return Icons.menu_book_rounded;
+      case 'courses':
+      case 'program':
+      case 'programs':
+        return (Icons.menu_book_rounded, const Color(0xFF3B82F6));
       case 'admission for':
       case 'admission':
-        return Icons.person_outline_rounded;
+      case 'level':
+      case 'grade':
+        return (Icons.school_rounded, const Color(0xFF8B5CF6));
+      case 'subjects':
+      case 'subject':
       case 'requirements':
       case 'requirement':
-        return Icons.checklist_rounded;
+        return (Icons.subject_rounded, const Color(0xFF22C55E));
+      case 'mode':
+      case 'mode of study':
+        return (Icons.laptop_rounded, const Color(0xFF0EA5E9));
       case 'timeline':
-        return Icons.calendar_month_rounded;
+      case 'duration':
+        return (Icons.schedule_rounded, const Color(0xFFF59E0B));
       default:
-        return Icons.school_outlined;
+        return (Icons.school_outlined, const Color(0xFF0EA5E9));
     }
   }
 
+  int get _totalCount {
+    var n = 0;
+    (_enquiry?.selections ?? const <String, List<String>>{}).forEach((_, v) {
+      n += v.where((s) => s.trim().isNotEmpty).length;
+    });
+    return n;
+  }
+
+  List<String> get _photos => _enquiry?.photos ?? const [];
+
+  String get _note => _enquiry?.note ?? '';
+
+  String get _subtitle {
+    final parts = <String>[];
+    if (_totalCount > 0) {
+      parts.add(
+          '$_totalCount ${_totalCount == 1 ? AppStrings.itemLabel.tr : AppStrings.itemsLabel.tr}');
+    }
+    if (_photos.isNotEmpty) {
+      parts.add(
+          '${_photos.length} ${_photos.length == 1 ? AppStrings.photoLabel.tr : AppStrings.photosLabel.tr}');
+    }
+    return parts.isEmpty ? AppStrings.customRequest.tr : parts.join(' · ');
+  }
+
   Future<void> _updateStatus(String status) async {
-    final id = (_e?.enquiryId ??
+    final id = (_enquiry?.enquiryId ??
             widget.message.metadata?.educationEnquiryId ??
             '')
         .trim();
@@ -97,218 +140,219 @@ class _EducationEnquiryMsgCardState extends State<EducationEnquiryMsgCard> {
 
   @override
   Widget build(BuildContext context) {
-    final e = _e;
-    final photos = e?.photos ?? const <String>[];
-    final coverImage = (e?.listingImage ?? '').trim();
-    final firstPhoto = photos.isNotEmpty ? photos.first : '';
-    final heroImage = coverImage.isNotEmpty ? coverImage : firstPhoto;
-
     return Container(
       margin: const EdgeInsets.only(bottom: 2),
-      width: SizeConfig.screenWidth * 0.74,
+      width: SizeConfig.screenWidth * 0.72,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: _line, width: 1),
         boxShadow: const [
           BoxShadow(
-              color: Color(0x14000000), blurRadius: 12, offset: Offset(0, 4)),
+              color: Color(0x0F001120), blurRadius: 8, offset: Offset(0, 2)),
         ],
       ),
       clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _heroBanner(heroImage, e?.listingName ?? '', e?.location ?? ''),
-          for (final entry in _selections.entries) _selectionRow(entry),
-          if ((e?.note ?? '').trim().isNotEmpty) _noteRow(e!.note!.trim()),
-          if (photos.length > 1) _photoStrip(photos.skip(1).toList()),
+          _header(),
+          if (_photos.isNotEmpty) ...[_divider(), _photoSection()],
+          for (final row in _rows) ...[_divider(), _enquiryRow(row)],
+          if (_note.trim().isNotEmpty) ...[_divider(), _noteSection()],
+          _divider(),
           _footer(),
         ],
       ),
     );
   }
 
-  Widget _heroBanner(String image, String name, String location) {
-    return Stack(
-      children: [
-        SizedBox(
-          width: double.infinity,
-          height: 140,
-          child: image.isNotEmpty
-              ? CachedNetworkImage(
-                  imageUrl: image,
-                  fit: BoxFit.cover,
-                  placeholder: (_, __) => Container(color: _line),
-                  errorWidget: (_, __, ___) => Container(
-                    color: _line,
-                    alignment: Alignment.center,
-                    child: const Icon(Icons.school_rounded,
-                        color: Colors.white, size: 32),
-                  ),
-                )
-              : Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [_accentDeep, _accent],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                  ),
-                  alignment: Alignment.center,
-                  child: const Icon(Icons.school_rounded,
-                      color: Colors.white, size: 32),
-                ),
-        ),
-        Positioned.fill(
-          child: DecoratedBox(
+  Widget _divider() => const Divider(height: 1, thickness: 1, color: _line);
+
+  // ── Slim header — small tinted icon + title/subtitle + status pill ──
+  Widget _header() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 9, 10, 9),
+      child: Row(
+        children: [
+          Container(
+            width: 30,
+            height: 30,
+            alignment: Alignment.center,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.transparent,
-                  Colors.black.withValues(alpha: 0.55),
-                ],
-              ),
+              color: _accent.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(9),
             ),
+            child: const Icon(Icons.school_rounded, color: _accent, size: 16),
           ),
-        ),
-        Positioned(
-          left: 12,
-          right: 12,
-          bottom: 10,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.92),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.school_rounded,
-                            size: 12, color: _accentDeep),
-                        const SizedBox(width: 4),
-                        Text(
-                          AppStrings.educationEnquiryTitle.tr.toUpperCase(),
-                          style: const TextStyle(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w800,
-                            color: _accentDeep,
-                            letterSpacing: 0.6,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Spacer(),
-                  _statusBadge(),
-                ],
-              ),
-              const SizedBox(height: 6),
-              if (name.trim().isNotEmpty)
-                Text(
-                  name,
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  AppStrings.educationEnquiryTitle.tr,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.mainTextColor,
+                ),
+                CustomText(
+                  _subtitle,
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.secondaryTextColor,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              if (location.trim().isNotEmpty) ...[
-                const SizedBox(height: 2),
-                Row(
-                  children: [
-                    const Icon(Icons.place_rounded,
-                        size: 11, color: Colors.white70),
-                    const SizedBox(width: 3),
-                    Expanded(
-                      child: Text(
-                        location,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
                 ),
               ],
-            ],
+            ),
           ),
-        ),
-      ],
+          const SizedBox(width: 6),
+          _buildStatusBadge(),
+        ],
+      ),
     );
   }
 
-  Widget _selectionRow(MapEntry<String, List<String>> entry) {
+  // ── Full-width photo(s) — compact strip ─────────────────────────────
+  Widget _photoSection() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+      padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+      child: Column(
+        children: [
+          for (int i = 0; i < _photos.length; i++) ...[
+            if (i > 0) const SizedBox(height: 6),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: SizedBox(
+                width: double.infinity,
+                height: 130,
+                child: CachedNetworkImage(
+                  imageUrl: _photos[i],
+                  fit: BoxFit.cover,
+                  placeholder: (_, __) =>
+                      Container(color: AppColors.whiteE5),
+                  errorWidget: (_, __, ___) => Container(
+                    color: AppColors.whiteE5,
+                    alignment: Alignment.center,
+                    child: const Icon(Icons.broken_image_outlined,
+                        size: 20, color: Colors.grey),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // ── One enquiry row — tinted icon badge + eyebrow + value(s) ────────
+  // A single value renders as plain text; multiple values render as a
+  // bullet list (mirrors the reference enquiry-details card).
+  Widget _enquiryRow(_EnquiryRow row) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 34,
-            height: 34,
+            width: 38,
+            height: 38,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: _accent.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(10),
+              color: row.color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(11),
             ),
-            child: Icon(_iconFor(entry.key), color: _accentDeep, size: 17),
+            child: Icon(row.icon, color: row.color, size: 19),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  entry.key.toUpperCase(),
-                  style: TextStyle(
-                    fontSize: 9.5,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.7,
-                    color: AppColors.secondaryTextColor,
-                  ),
-                ),
+                _eyebrow(row.title),
                 const SizedBox(height: 3),
-                Wrap(
-                  spacing: 5,
-                  runSpacing: 5,
-                  children: [
-                    for (final item in entry.value)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: _accent.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(
-                              color: _accent.withValues(alpha: 0.25),
-                              width: 0.8),
-                        ),
-                        child: Text(
-                          item,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: _accentDeep,
+                if (row.items.length == 1)
+                  CustomText(
+                    row.items.first,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.mainTextColor,
+                    height: 1.3,
+                  )
+                else
+                  for (final item in row.items)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 7, right: 7),
+                            child: Container(
+                              width: 4,
+                              height: 4,
+                              decoration: BoxDecoration(
+                                color: AppColors.mainTextColor,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
                           ),
-                        ),
+                          Expanded(
+                            child: CustomText(
+                              item,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.mainTextColor,
+                              height: 1.3,
+                            ),
+                          ),
+                        ],
                       ),
-                  ],
+                    ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Note — tinted icon badge + eyebrow + text (row style) ───────────
+  Widget _noteSection() {
+    const color = Color(0xFF64748B);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(11),
+            ),
+            child: const Icon(Icons.sticky_note_2_outlined,
+                color: color, size: 19),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _eyebrow(AppStrings.noteLabel.tr),
+                const SizedBox(height: 3),
+                CustomText(
+                  _note,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.mainTextColor,
+                  height: 1.35,
+                  maxLines: 6,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -318,116 +362,84 @@ class _EducationEnquiryMsgCardState extends State<EducationEnquiryMsgCard> {
     );
   }
 
-  Widget _noteRow(String note) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
-        decoration: BoxDecoration(
-          color: _noteBg,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: _line, width: 0.8),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Icon(Icons.chat_bubble_outline_rounded,
-                size: 14, color: _accentDeep),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                note,
-                style: TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.mainTextColor,
-                  height: 1.35,
-                ),
-              ),
-            ),
-          ],
-        ),
+  Widget _eyebrow(String label) {
+    return Text(
+      label.toUpperCase(),
+      style: TextStyle(
+        fontSize: 9,
+        fontWeight: FontWeight.w800,
+        letterSpacing: 0.9,
+        color: AppColors.secondaryTextColor,
       ),
     );
   }
 
-  Widget _photoStrip(List<String> photos) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
-      child: SizedBox(
-        height: 60,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          itemCount: photos.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 6),
-          itemBuilder: (_, i) => ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: CachedNetworkImage(
-              imageUrl: photos[i],
-              width: 80,
-              height: 60,
-              fit: BoxFit.cover,
-              placeholder: (_, __) =>
-                  Container(width: 80, height: 60, color: _line),
-              errorWidget: (_, __, ___) => Container(
-                width: 80,
-                height: 60,
-                color: _line,
-                alignment: Alignment.center,
-                child: const Icon(Icons.broken_image_outlined,
-                    size: 16, color: Colors.grey),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
+  // ── Footer — status band (waiting / accepted / declined) or, for the
+  // receiver while pending, the Accept / Decline actions. ──────────────
   Widget _footer() {
     if (_isAccepted) {
       return _statusBand(
         icon: Icons.check_circle_rounded,
-        color: const Color(0xFF16A34A),
+        color: Colors.green,
         label: AppStrings.enquiryAccepted.tr,
       );
     }
     if (_isDeclined) {
       return _statusBand(
         icon: Icons.cancel_rounded,
-        color: const Color(0xFFDC2626),
+        color: Colors.red,
         label: AppStrings.enquiryDeclined.tr,
       );
     }
-    if (_isPending && !_isMyMessage) {
+
+    // Pending — receiver gets Accept / Decline + timestamp.
+    if (!_isMyMessage) {
       return Padding(
-        padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-        child: _isUpdating
-            ? const Center(
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                      strokeWidth: 2, color: _accentDeep),
-                ),
-              )
-            : Row(
-                children: [
-                  Expanded(child: _declineBtn()),
-                  const SizedBox(width: 8),
-                  Expanded(child: _acceptBtn()),
-                ],
+        padding: const EdgeInsets.fromLTRB(10, 9, 10, 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _isUpdating
+                ? const Center(
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: _accent),
+                    ),
+                  )
+                : Row(
+                    children: [
+                      Expanded(child: _declineBtn()),
+                      const SizedBox(width: 8),
+                      Expanded(child: _acceptBtn()),
+                    ],
+                  ),
+            const SizedBox(height: 6),
+            Align(
+              alignment: Alignment.centerRight,
+              child: CustomText(
+                widget.time,
+                fontSize: SizeConfig.size10,
+                fontWeight: FontWeight.w400,
+                color: AppColors.grayText,
               ),
+            ),
+          ],
+        ),
       );
     }
+
+    // Pending — customer (sender) waits for the school's response.
     return _statusBand(
       icon: Icons.access_time_rounded,
-      color: _accentDeep,
+      color: Colors.orange,
       label: AppStrings.waitingForResponse.tr,
     );
   }
 
+  // Full-width tinted band: status icon + label, with the message time on
+  // the right (matches the reference card's footer).
   Widget _statusBand({
     required IconData icon,
     required Color color,
@@ -449,6 +461,7 @@ class _EducationEnquiryMsgCardState extends State<EducationEnquiryMsgCard> {
               color: color,
             ),
           ),
+          const SizedBox(width: 8),
           CustomText(
             widget.time,
             fontSize: 11,
@@ -465,18 +478,11 @@ class _EducationEnquiryMsgCardState extends State<EducationEnquiryMsgCard> {
       onTap: () => _updateStatus('accepted'),
       borderRadius: BorderRadius.circular(10),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        padding: const EdgeInsets.symmetric(vertical: 9),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           gradient: const LinearGradient(colors: [_accentDeep, _accent]),
           borderRadius: BorderRadius.circular(10),
-          boxShadow: [
-            BoxShadow(
-              color: _accent.withValues(alpha: 0.35),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -486,7 +492,7 @@ class _EducationEnquiryMsgCardState extends State<EducationEnquiryMsgCard> {
             Text(AppStrings.acceptLabel.tr,
                 style: const TextStyle(
                     fontSize: 13,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                     color: Colors.white)),
           ],
         ),
@@ -499,43 +505,73 @@ class _EducationEnquiryMsgCardState extends State<EducationEnquiryMsgCard> {
       onTap: () => _updateStatus('declined'),
       borderRadius: BorderRadius.circular(10),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        padding: const EdgeInsets.symmetric(vertical: 9),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: _accentDeep.withValues(alpha: 0.35)),
+          border:
+              Border.all(color: Colors.red.withValues(alpha: 0.55), width: 1.1),
         ),
-        child: Text(
-          AppStrings.declineLabel.tr,
-          style: const TextStyle(
-              fontSize: 13, fontWeight: FontWeight.w800, color: _accentDeep),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.close_rounded, size: 15, color: Colors.red),
+            const SizedBox(width: 5),
+            Text(AppStrings.declineLabel.tr,
+                style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.red)),
+          ],
         ),
       ),
     );
   }
 
-  Widget _statusBadge() {
+  Widget _buildStatusBadge() {
     final (String label, Color color) = _isAccepted
-        ? (AppStrings.acceptedStatus.tr, const Color(0xFF16A34A))
+        ? (AppStrings.acceptedStatus.tr, Colors.green)
         : _isDeclined
-            ? (AppStrings.declinedStatus.tr, const Color(0xFFDC2626))
-            : (AppStrings.pendingStatus.tr, Colors.white);
+            ? (AppStrings.declinedStatus.tr, Colors.red)
+            : (AppStrings.pendingStatus.tr, Colors.orange);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: _isPending ? Colors.white.withValues(alpha: 0.28) : color,
+        color: color.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withValues(alpha: 0.30), width: 0.8),
       ),
-      child: Text(
-        label.toUpperCase(),
-        style: const TextStyle(
-          fontSize: 9,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 0.5,
-          color: Colors.white,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 5,
+            height: 5,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            label.toUpperCase(),
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w800,
+              color: color,
+              letterSpacing: 0.4,
+            ),
+          ),
+        ],
       ),
     );
   }
+}
+
+/// One enquiry detail row's data — label, value(s), and its tinted icon.
+class _EnquiryRow {
+  final String title;
+  final List<String> items;
+  final IconData icon;
+  final Color color;
+
+  const _EnquiryRow(this.title, this.items, this.icon, this.color);
 }

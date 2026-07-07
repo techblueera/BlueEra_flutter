@@ -10,10 +10,8 @@ import 'package:get/get.dart';
 class BloodTestEmptyState extends StatelessWidget {
   const BloodTestEmptyState({super.key});
 
-  static const String _backgroundAsset =
-      'assets/category/medical/lab_blood_test_bg.png';
-  static const String _emptyIconAsset =
-      'assets/category/medical/empty_white_data.png';
+  static const String _backgroundAsset = 'assets/category/medical/lab_blood_test_bg.png';
+  static const String _emptyIconAsset = 'assets/category/medical/empty_white_data.png';
 
   // These are the collection key + title that LabTestListScreen expects for
   // the Blood & Routine bucket. Kept aligned with [CategorySelector].
@@ -80,8 +78,7 @@ class BloodTestEmptyState extends StatelessWidget {
             title: _bloodTitle,
           )),
           child: Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(12),

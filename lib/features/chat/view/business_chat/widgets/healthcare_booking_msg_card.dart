@@ -11,15 +11,14 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// In-chat card for `message_type: "healthcare_booking"` — the hospital
+/// In-chat card for `message_type: "healthcare_booking"` — hospital
 /// appointment booking (doc `healthcare-appointment-ui-integration.md`
-/// §4). Same amber palette as the healthcare-enquiry card so the two
-/// stack cleanly in the same conversation.
-///
-/// Owner (`!_isMyMessage`) sees Accept / Decline while pending. Customer
-/// (`_isMyMessage`) sees Cancel while **pending OR accepted** (doc §2
-/// customer-cancel path). All three transitions land on the same PUT
-/// endpoint via [HospitalAppointmentController].
+/// §4). Uses the same hero + 2×2 tile grid layout as [HotelBookingMsgCard]:
+/// hero shows Doctor name + department, and four tinted tiles cover date,
+/// time, patient and fee. Owner (`!_isMyMessage`) sees Accept / Decline
+/// while pending; customer (`_isMyMessage`) sees Cancel while pending OR
+/// accepted (doc §2 customer-cancel path). All transitions land on the
+/// same PUT via [HospitalAppointmentController].
 class HealthcareBookingMsgCard extends StatefulWidget {
   final Messages message;
   final String time;
@@ -36,12 +35,12 @@ class HealthcareBookingMsgCard extends StatefulWidget {
 }
 
 class _HealthcareBookingMsgCardState extends State<HealthcareBookingMsgCard> {
-  static const Color _accent = Color(0xFFF59E0B);
-  static const Color _accentDeep = Color(0xFFD97706);
-  static const Color _line = Color(0xFFF3E7CE);
-  static const Color _tint = Color(0xFFFFF8EC);
-
   bool _isUpdating = false;
+
+  static const Color _accent = AppColors.primaryColor;
+  static const Color _accentDeep = AppColors.blue5CAF;
+  static const Color _line = Color(0xFFF0F2F5);
+  static const Color _tileBg = Color(0xFFF4F6FA);
 
   HealthcareBookingModel? get _b => widget.message.metadata?.healthcareBooking;
   bool get _isMyMessage => widget.message.myMessage ?? false;
@@ -49,7 +48,62 @@ class _HealthcareBookingMsgCardState extends State<HealthcareBookingMsgCard> {
   bool get _isAccepted => _status == 'accepted';
   bool get _isDeclined => _status == 'declined';
   bool get _isCancelled => _status == 'cancelled';
-  bool get _isPending => !_isAccepted && !_isDeclined && !_isCancelled;
+
+  List<String> get _photos => _b?.photos ?? const [];
+  String get _note => (_b?.note ?? '').trim();
+
+  String get _subtitle {
+    final parts = <String>[];
+    final dateStr = _fmtDate(_b?.appointmentDate);
+    if (dateStr.isNotEmpty) parts.add(dateStr);
+    final doctor = (_b?.doctorName ?? '').trim();
+    if (doctor.isNotEmpty) parts.add(doctor);
+    if (_photos.isNotEmpty) {
+      parts.add(
+          '${_photos.length} ${_photos.length == 1 ? AppStrings.photoLabel.tr : AppStrings.photosLabel.tr}');
+    }
+    return parts.isEmpty ? 'Hospital Appointment' : parts.join(' · ');
+  }
+
+  /// Non-empty grid tiles in display order — mirrors the reference card's
+  /// 2×2 booking-detail grid (date / time / patient / fee here).
+  List<_Tile> get _tiles {
+    final b = _b;
+    final out = <_Tile>[];
+
+    final dateStr = _fmtDate(b?.appointmentDate);
+    if (dateStr.isNotEmpty) {
+      out.add(_Tile('Date', dateStr, Icons.calendar_today_outlined));
+    }
+
+    final timeStr = (b?.preferredTime ?? '').trim();
+    if (timeStr.isNotEmpty) {
+      out.add(_Tile('Time', timeStr, Icons.schedule_outlined));
+    }
+
+    final patient = (b?.patientName ?? '').trim();
+    if (patient.isNotEmpty) {
+      out.add(_Tile('Patient', patient, Icons.person_outline_rounded));
+    }
+
+    final fees = b?.fees;
+    if (fees != null && fees > 0) {
+      out.add(_Tile('Fee', '₹$fees', Icons.currency_rupee_rounded));
+    }
+
+    return out;
+  }
+
+  String _fmtDate(String? iso) {
+    if (iso == null || iso.trim().isEmpty) return '';
+    final d = DateTime.tryParse(iso);
+    if (d == null) return '';
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+    ];
+    return '${d.day} ${months[d.month - 1]} ${d.year}';
+  }
 
   Future<void> _updateStatus({required bool cancel, bool accept = false}) async {
     final id = (_b?.appointmentId ??
@@ -74,30 +128,18 @@ class _HealthcareBookingMsgCardState extends State<HealthcareBookingMsgCard> {
     setState(() => _isUpdating = false);
   }
 
-  String _fmtDate(String? iso) {
-    if (iso == null || iso.trim().isEmpty) return '';
-    final d = DateTime.tryParse(iso);
-    if (d == null) return '';
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-    ];
-    return '${d.day} ${months[d.month - 1]} ${d.year}';
-  }
-
   @override
   Widget build(BuildContext context) {
-    final b = _b;
     return Container(
       margin: const EdgeInsets.only(bottom: 2),
-      width: SizeConfig.screenWidth * 0.74,
+      width: SizeConfig.screenWidth * 0.72,
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: _line, width: 1),
         boxShadow: const [
           BoxShadow(
-              color: Color(0x14000000), blurRadius: 12, offset: Offset(0, 4)),
+              color: Color(0x0F001120), blurRadius: 8, offset: Offset(0, 2)),
         ],
       ),
       clipBehavior: Clip.antiAlias,
@@ -105,179 +147,247 @@ class _HealthcareBookingMsgCardState extends State<HealthcareBookingMsgCard> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _header(),
-          _doctorRow(b),
-          if ((b?.appointmentDate ?? '').isNotEmpty)
-            _row(Icons.calendar_month_rounded, 'Appointment',
-                _fmtDate(b!.appointmentDate)),
-          if ((b?.preferredTime ?? '').isNotEmpty)
-            _row(Icons.access_time_rounded, 'Preferred Time',
-                b!.preferredTime!),
-          if ((b?.patientName ?? '').isNotEmpty)
-            _row(Icons.person_outline_rounded, 'Patient', b!.patientName!),
-          if ((b?.note ?? '').trim().isNotEmpty) _noteRow(b!.note!.trim()),
-          if ((b?.photos ?? const []).isNotEmpty)
-            _photoStrip(b!.photos ?? const []),
+          _divider(),
+          if (_photos.isNotEmpty) ...[_photoSection(), _divider()],
+          _body(),
+          if (_note.isNotEmpty) ...[_divider(), _noteSection()],
+          _divider(),
           _footer(),
         ],
       ),
     );
   }
 
+  Widget _divider() => const Divider(height: 1, thickness: 1, color: _line);
+
+  // ── Slim header — small tinted icon + title/subtitle + status pill ──
   Widget _header() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(12, 11, 12, 11),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [_accentDeep, _accent],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
       child: Row(
         children: [
           Container(
-            width: 36,
-            height: 36,
+            width: 30,
+            height: 30,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                  color: Colors.white.withValues(alpha: 0.35), width: 0.8),
+              color: _accent.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(9),
             ),
             child: const Icon(Icons.medical_services_rounded,
-                color: Colors.white, size: 19),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Hospital Appointment',
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 13.5,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-          ),
-          _statusBadge(),
-        ],
-      ),
-    );
-  }
-
-  Widget _doctorRow(HealthcareBookingModel? b) {
-    final name = (b?.doctorName ?? '').trim();
-    final dept = (b?.department ?? '').trim();
-    final image = (b?.doctorImage ?? '').trim();
-    final fees = b?.fees;
-    if (name.isEmpty && dept.isEmpty && image.isEmpty) {
-      return const SizedBox.shrink();
-    }
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 12, 12, 0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(9),
-            child: SizedBox(
-              width: 48,
-              height: 48,
-              child: image.isNotEmpty
-                  ? CachedNetworkImage(
-                      imageUrl: image,
-                      fit: BoxFit.cover,
-                      placeholder: (_, __) => Container(color: _tint),
-                      errorWidget: (_, __, ___) => Container(
-                        color: _tint,
-                        alignment: Alignment.center,
-                        child: const Icon(Icons.person_rounded,
-                            size: 22, color: _accent),
-                      ),
-                    )
-                  : Container(
-                      color: _tint,
-                      alignment: Alignment.center,
-                      child: const Icon(Icons.person_rounded,
-                          size: 22, color: _accent),
-                    ),
-            ),
+                color: _accent, size: 16),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (name.isNotEmpty)
-                  CustomText(
-                    name,
-                    fontSize: 13.5,
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.mainTextColor,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                CustomText(
+                  'Hospital Appointment',
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.mainTextColor,
+                ),
+                // CustomText(
+                //   _subtitle,
+                //   fontSize: 10.5,
+                //   fontWeight: FontWeight.w500,
+                //   color: AppColors.secondaryTextColor,
+                //   maxLines: 1,
+                //   overflow: TextOverflow.ellipsis,
+                // ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 6),
+          _buildStatusBadge(),
+        ],
+      ),
+    );
+  }
+
+  // ── Full-width photo(s) — compact strip ─────────────────────────────
+  Widget _photoSection() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+      child: Column(
+        children: [
+          for (int i = 0; i < _photos.length; i++) ...[
+            if (i > 0) const SizedBox(height: 6),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: SizedBox(
+                width: double.infinity,
+                height: 130,
+                child: CachedNetworkImage(
+                  imageUrl: _photos[i],
+                  fit: BoxFit.cover,
+                  placeholder: (_, __) =>
+                      Container(color: AppColors.whiteE5),
+                  errorWidget: (_, __, ___) => Container(
+                    color: AppColors.whiteE5,
+                    alignment: Alignment.center,
+                    child: const Icon(Icons.broken_image_outlined,
+                        size: 20, color: Colors.grey),
                   ),
-                if (dept.isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  CustomText(
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // ── Body — hero (doctor + department) + 2×2 tile grid ───────────────
+  Widget _body() {
+    final doctor = (_b?.doctorName ?? '').trim();
+    final dept = (_b?.department ?? '').trim();
+    final tiles = _tiles;
+    final hasHero = doctor.isNotEmpty || dept.isNotEmpty;
+    if (!hasHero && tiles.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (doctor.isNotEmpty)
+            CustomText(
+              doctor,
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: AppColors.mainTextColor,
+              height: 1.2,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          if (dept.isNotEmpty) ...[
+            if (doctor.isNotEmpty) const SizedBox(height: 3),
+            Row(
+              children: [
+                Icon(Icons.local_hospital_outlined,
+                    size: 14, color: AppColors.secondaryTextColor),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: CustomText(
                     dept,
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
                     color: AppColors.secondaryTextColor,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                ],
-                if ((fees ?? 0) > 0) ...[
-                  const SizedBox(height: 3),
-                  CustomText(
-                    '₹$fees',
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                    color: _accentDeep,
-                  ),
-                ],
+                ),
               ],
             ),
+          ],
+          if (hasHero && tiles.isNotEmpty) const SizedBox(height: 14),
+          if (tiles.isNotEmpty) _grid(tiles),
+        ],
+      ),
+    );
+  }
+
+  Widget _grid(List<_Tile> tiles) {
+    final rows = <Widget>[];
+    for (int i = 0; i < tiles.length; i += 2) {
+      final a = tiles[i];
+      final b = (i + 1 < tiles.length) ? tiles[i + 1] : null;
+      rows.add(Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(child: _tile(a)),
+          const SizedBox(width: 10),
+          Expanded(child: b != null ? _tile(b) : const SizedBox.shrink()),
+        ],
+      ));
+      if (i + 2 < tiles.length) rows.add(const SizedBox(height: 10));
+    }
+    return Column(children: rows);
+  }
+
+  Widget _tile(_Tile t) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(11, 9, 11, 11),
+      decoration: BoxDecoration(
+        color: _tileBg,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(t.icon,
+                  size: 13, color: AppColors.secondaryTextColor),
+              const SizedBox(width: 5),
+              Flexible(
+                child: CustomText(
+                  t.label,
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.secondaryTextColor,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 5),
+          CustomText(
+            t.value,
+            fontSize: 13.5,
+            fontWeight: FontWeight.w800,
+            color: AppColors.mainTextColor,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
     );
   }
 
-  Widget _row(IconData icon, String label, String value) {
+  // ── Note — tinted icon badge + eyebrow + text (row style) ───────────
+  Widget _noteSection() {
+    const color = Color(0xFF64748B);
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 32,
-            height: 32,
+            width: 34,
+            height: 34,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: _accent.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(9),
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: _accentDeep, size: 16),
+            child: const Icon(Icons.sticky_note_2_outlined,
+                color: color, size: 17),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CustomText(
-                  label.toUpperCase(),
-                  fontSize: 9.5,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.secondaryTextColor,
+                Text(
+                  AppStrings.noteLabel.tr.toUpperCase(),
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.9,
+                    color: AppColors.secondaryTextColor,
+                  ),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 3),
                 CustomText(
-                  value,
+                  _note,
                   fontSize: 12.5,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w500,
                   color: AppColors.mainTextColor,
-                  maxLines: 2,
+                  height: 1.35,
+                  maxLines: 6,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
@@ -288,156 +398,121 @@ class _HealthcareBookingMsgCardState extends State<HealthcareBookingMsgCard> {
     );
   }
 
-  Widget _noteRow(String note) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
-        decoration: BoxDecoration(
-          color: _tint,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: _line, width: 0.8),
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Icon(Icons.chat_bubble_outline_rounded,
-                size: 14, color: _accentDeep),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                note,
-                style: TextStyle(
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w500,
-                  color: AppColors.mainTextColor,
-                  height: 1.35,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _photoStrip(List<String> photos) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 0),
-      child: SizedBox(
-        height: 60,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          itemCount: photos.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 6),
-          itemBuilder: (_, i) => ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: CachedNetworkImage(
-              imageUrl: photos[i],
-              width: 80,
-              height: 60,
-              fit: BoxFit.cover,
-              placeholder: (_, __) =>
-                  Container(width: 80, height: 60, color: _tint),
-              errorWidget: (_, __, ___) => Container(
-                width: 80,
-                height: 60,
-                color: _tint,
-                alignment: Alignment.center,
-                child: const Icon(Icons.broken_image_outlined,
-                    size: 16, color: Colors.grey),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
+  // ── Footer — status band (accepted / declined / cancelled) or, while
+  // pending, the accept-decline row (receiver) or the waiting band +
+  // Cancel button (customer). Accepted customers can still cancel per
+  // doc §2 customer-cancel path. ───────────────────────────────────────
   Widget _footer() {
-    // Terminal status → status band, no actions.
     if (_isDeclined) {
       return _statusBand(
         icon: Icons.cancel_rounded,
-        color: const Color(0xFFDC2626),
+        color: Colors.red,
         label: 'Appointment declined',
       );
     }
     if (_isCancelled) {
       return _statusBand(
         icon: Icons.block_rounded,
-        color: const Color(0xFF6B7280),
+        color: AppColors.secondaryTextColor,
         label: 'Appointment cancelled',
       );
     }
-    // Owner: Accept / Decline while pending.
-    if (_isPending && !_isMyMessage) {
-      return Padding(
-        padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
-        child: _isUpdating
-            ? const Center(
-                child: SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                      strokeWidth: 2, color: _accentDeep),
-                ),
-              )
-            : Row(
-                children: [
-                  Expanded(child: _declineBtn()),
-                  const SizedBox(width: 8),
-                  Expanded(child: _acceptBtn()),
-                ],
-              ),
+    if (_isAccepted) {
+      final band = _statusBand(
+        icon: Icons.check_circle_rounded,
+        color: Colors.green,
+        label: 'Appointment accepted',
       );
+      if (_isMyMessage) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            band,
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+              child: _isUpdating
+                  ? const Center(
+                      child: SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: _accent),
+                      ),
+                    )
+                  : _cancelBtn(),
+            ),
+          ],
+        );
+      }
+      return band;
     }
-    // Customer: Cancel while pending OR accepted (doc §2).
-    if (_isMyMessage && (_isPending || _isAccepted)) {
+
+    // Pending — provider (receiver) gets Accept / Decline + timestamp.
+    if (!_isMyMessage) {
       return Padding(
-        padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            if (_isAccepted)
-              _statusBand(
-                icon: Icons.check_circle_rounded,
-                color: const Color(0xFF16A34A),
-                label: 'Appointment accepted',
-              ),
-            if (_isAccepted) const SizedBox(height: 10),
             _isUpdating
                 ? const Center(
                     child: SizedBox(
                       width: 20,
                       height: 20,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: _accentDeep),
+                          strokeWidth: 2, color: _accent),
                     ),
                   )
-                : _cancelBtn(),
+                : Row(
+                    children: [
+                      Expanded(child: _declineBtn()),
+                      const SizedBox(width: 8),
+                      Expanded(child: _acceptBtn()),
+                    ],
+                  ),
+            const SizedBox(height: 6),
+            Align(
+              alignment: Alignment.centerRight,
+              child: CustomText(
+                widget.time,
+                fontSize: SizeConfig.size10,
+                fontWeight: FontWeight.w400,
+                color: AppColors.grayText,
+              ),
+            ),
           ],
         ),
       );
     }
-    // Owner side, accepted → status band only (no actions left).
-    if (_isAccepted) {
-      return _statusBand(
-        icon: Icons.check_circle_rounded,
-        color: const Color(0xFF16A34A),
-        label: 'Appointment accepted',
-      );
-    }
-    // Fallback: pending on the customer's own message with the sheet
-    // not yet fabricated — waiting for owner.
-    return _statusBand(
-      icon: Icons.access_time_rounded,
-      color: _accentDeep,
-      label: AppStrings.waitingForResponse.tr,
+
+    // Pending — customer (sender) sees waiting band + Cancel button.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _statusBand(
+          icon: Icons.access_time_rounded,
+          color: Colors.orange,
+          label: AppStrings.waitingForResponse.tr,
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+          child: _isUpdating
+              ? const Center(
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: _accent),
+                  ),
+                )
+              : _cancelBtn(),
+        ),
+      ],
     );
   }
 
+  // Full-width tinted band: status icon + label, with the message time on
+  // the right (matches the reference card's footer).
   Widget _statusBand({
     required IconData icon,
     required Color color,
@@ -445,7 +520,7 @@ class _HealthcareBookingMsgCardState extends State<HealthcareBookingMsgCard> {
   }) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       color: color.withValues(alpha: 0.10),
       child: Row(
         children: [
@@ -459,6 +534,7 @@ class _HealthcareBookingMsgCardState extends State<HealthcareBookingMsgCard> {
               color: color,
             ),
           ),
+          const SizedBox(width: 8),
           CustomText(
             widget.time,
             fontSize: 11,
@@ -475,16 +551,23 @@ class _HealthcareBookingMsgCardState extends State<HealthcareBookingMsgCard> {
       onTap: () => _updateStatus(cancel: false, accept: true),
       borderRadius: BorderRadius.circular(10),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        padding: const EdgeInsets.symmetric(vertical: 9),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           gradient: const LinearGradient(colors: [_accentDeep, _accent]),
           borderRadius: BorderRadius.circular(10),
         ),
-        child: const Text(
-          'Accept',
-          style: TextStyle(
-              fontSize: 13, fontWeight: FontWeight.w800, color: Colors.white),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.check_rounded, size: 15, color: Colors.white),
+            const SizedBox(width: 5),
+            Text(AppStrings.acceptLabel.tr,
+                style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white)),
+          ],
         ),
       ),
     );
@@ -495,68 +578,95 @@ class _HealthcareBookingMsgCardState extends State<HealthcareBookingMsgCard> {
       onTap: () => _updateStatus(cancel: false, accept: false),
       borderRadius: BorderRadius.circular(10),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        padding: const EdgeInsets.symmetric(vertical: 9),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: _accentDeep.withValues(alpha: 0.35)),
+          border:
+              Border.all(color: Colors.red.withValues(alpha: 0.55), width: 1.1),
         ),
-        child: const Text(
-          'Decline',
-          style: TextStyle(
-              fontSize: 13, fontWeight: FontWeight.w800, color: _accentDeep),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.close_rounded, size: 15, color: Colors.red),
+            const SizedBox(width: 5),
+            Text(AppStrings.declineLabel.tr,
+                style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.red)),
+          ],
         ),
       ),
     );
   }
 
+  // Cancel — buyer-side button, styled as decline (white bg / red border)
+  // with a block icon per spec.
   Widget _cancelBtn() {
     return InkWell(
       onTap: () => _updateStatus(cancel: true),
       borderRadius: BorderRadius.circular(10),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 9),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFFDC2626)),
+          border:
+              Border.all(color: Colors.red.withValues(alpha: 0.55), width: 1.1),
         ),
-        child: const Text(
-          'Cancel appointment',
-          style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w800,
-              color: Color(0xFFDC2626)),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.block_rounded, size: 15, color: Colors.red),
+            const SizedBox(width: 5),
+            Text(AppStrings.cancelLabel.tr,
+                style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.red)),
+          ],
         ),
       ),
     );
   }
 
-  Widget _statusBadge() {
+  Widget _buildStatusBadge() {
     final (String label, Color color) = _isAccepted
-        ? ('ACCEPTED', const Color(0xFF16A34A))
+        ? (AppStrings.acceptedStatus.tr, Colors.green)
         : _isDeclined
-            ? ('DECLINED', const Color(0xFFDC2626))
+            ? (AppStrings.declinedStatus.tr, Colors.red)
             : _isCancelled
-                ? ('CANCELLED', const Color(0xFF6B7280))
-                : ('PENDING', Colors.white);
+                ? (AppStrings.cancelledStatus.tr, AppColors.secondaryTextColor)
+                : (AppStrings.pendingStatus.tr, Colors.orange);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
       decoration: BoxDecoration(
-        color: _isPending ? Colors.white.withValues(alpha: 0.28) : color,
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
         label,
-        style: const TextStyle(
-          fontSize: 9,
-          fontWeight: FontWeight.w800,
-          letterSpacing: 0.5,
-          color: Colors.white,
+        style: TextStyle(
+          fontSize: 10.5,
+          fontWeight: FontWeight.w700,
+          color: color,
+          letterSpacing: 0.2,
         ),
       ),
     );
   }
+}
+
+/// One grid tile — small icon + label + bold value (matches the reference
+/// booking-detail card's 2×2 grid).
+class _Tile {
+  final String label;
+  final String value;
+  final IconData icon;
+
+  const _Tile(this.label, this.value, this.icon);
 }

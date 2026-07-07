@@ -7,7 +7,9 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
+import 'package:BlueEra/features/business/auth/repo/business_profile_repo.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/me/hospital/model/hospital_full_details_res_model.dart';
 import 'package:BlueEra/features/me/medical/controller/hospital_appointment_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -111,6 +113,123 @@ class HospitalAppointmentSheet {
         'doctors=${doctors.length} (cache size=${_doctorsCache.length})');
   }
 
+  /// Fetches the hospital's OPD doctors on demand when the session cache is
+  /// empty — happens when the sheet is opened from the accepted-enquiry chat
+  /// card without a prior hospital-screen visit (e.g. cold start, deep link,
+  /// notification). Mirrors `discover_hospital_home_screen.dart`'s
+  /// `viewBusinessProfileById → HospitalFullData → flatten` pipeline, then
+  /// seeds the same session cache used by the discover flow.
+  ///
+  /// Returns whatever it finds (possibly empty) so the picker can fall
+  /// through to its empty state on genuine failure.
+  static Future<List<HospitalAppointmentDoctorOption>> _fetchDoctorsForHospital({
+    required String hospitalId,
+  }) async {
+    final key = hospitalId.trim();
+    if (key.isEmpty) return const [];
+    final cached = _doctorsCache[key];
+    if (cached != null && cached.isNotEmpty) return cached;
+
+    try {
+      final res = await BusinessProfileRepo().viewBusinessProfileById(key);
+      if (!res.isSuccess) {
+        log('[APPOINTMENT] _fetchDoctorsForHospital hospitalId=$key '
+            'profile fetch failed: ${res.message}');
+        return const [];
+      }
+      final hospitalJson = _extractHospitalJson(res.response?.data);
+      if (hospitalJson == null) {
+        log('[APPOINTMENT] _fetchDoctorsForHospital hospitalId=$key '
+            'no hospital JSON in profile response');
+        return const [];
+      }
+      final data = HospitalFullData.fromJson(hospitalJson);
+      final doctors = _flattenDoctors(data);
+      log('[APPOINTMENT] _fetchDoctorsForHospital hospitalId=$key '
+          'fetched ${doctors.length} doctor(s)');
+      cacheDoctorsForHospital(key, doctors);
+      return doctors;
+    } catch (e, s) {
+      log('[APPOINTMENT] _fetchDoctorsForHospital error hospitalId=$key: $e\n$s');
+      return const [];
+    }
+  }
+
+  /// Field names read by [HospitalFullData.fromJson]. Duplicated from
+  /// discover_hospital_home_screen.dart to keep the two flows independent.
+  static const _hospitalKeys = <String>[
+    '_id',
+    'name',
+    'description',
+    'userId',
+    'location',
+    'coverUrl',
+    'logoUrl',
+    'visionMission',
+    'history',
+    'management',
+    'departments',
+    'emergencyCare',
+    'otherFacilities',
+    'emergencyContact',
+    'gallery',
+    'contacts',
+  ];
+
+  /// Builds a flat hospital-JSON map from the business-profile response.
+  /// Sections may live at the root, under `data`, or under `vertical_profile`
+  /// — pull each key from the first container that carries it. Mirrors the
+  /// discover screen's extractor.
+  static Map<String, dynamic>? _extractHospitalJson(dynamic raw) {
+    if (raw is! Map) return null;
+    final data = raw['data'];
+    final vp = raw['vertical_profile'];
+    final containers = <Map>[
+      if (vp is Map && vp['data'] is Map) vp['data'],
+      if (vp is Map) vp,
+      if (raw['hospital'] is Map) raw['hospital'],
+      if (raw['hospitalDetails'] is Map) raw['hospitalDetails'],
+      if (data is Map && data['hospital'] is Map) data['hospital'],
+      if (data is Map && data['hospitalDetails'] is Map)
+        data['hospitalDetails'],
+      if (data is Map) data,
+      raw,
+    ];
+    final merged = <String, dynamic>{};
+    for (final key in _hospitalKeys) {
+      for (final c in containers) {
+        if (c.containsKey(key) && c[key] != null) {
+          merged[key] = c[key];
+          break;
+        }
+      }
+    }
+    return merged.isEmpty ? null : merged;
+  }
+
+  /// Flattens `departments[].opd[]` into the sheet's slim doctor shape.
+  /// Iterates every department (not just `type == 'OPD'`) — the backend
+  /// sometimes leaves `type` blank on OPD-only entries.
+  static List<HospitalAppointmentDoctorOption> _flattenDoctors(
+      HospitalFullData? data) {
+    final out = <HospitalAppointmentDoctorOption>[];
+    for (final dept in data?.departments ?? const <IpdOpdDepartments>[]) {
+      final deptName = (dept.name ?? '').trim();
+      for (final doc in dept.opd ?? const <Opd>[]) {
+        final id = (doc.id ?? '').trim();
+        if (id.isEmpty) continue;
+        out.add(HospitalAppointmentDoctorOption(
+          id: id,
+          name: (doc.name ?? '').trim(),
+          department: deptName.isNotEmpty ? deptName : null,
+          image: doc.imageUrl,
+          timing: doc.timing,
+        ));
+      }
+    }
+    return out;
+  }
+
   static void open(
     BuildContext context, {
     required HospitalAppointmentListing listing,
@@ -212,8 +331,10 @@ class _HospitalAppointmentForm extends StatefulWidget {
 }
 
 class _HospitalAppointmentFormState extends State<_HospitalAppointmentForm> {
-  static const Color _accent = Color(0xFFF59E0B); // warm amber, matches enquiry
-  static const Color _accentDeep = Color(0xFFD97706);
+  // Palette aligned with the healthcare-enquiry sheet so the booking form
+  // reads as the same flow (BlueEra primary + deep-blue accent).
+  static const Color _accent = AppColors.primaryColor;
+  static const Color _accentDeep = AppColors.blue5CAF;
   static const Color _surface = Color(0xFFF4F6FA);
   static const int _maxPhotos = 5;
 
@@ -224,14 +345,46 @@ class _HospitalAppointmentFormState extends State<_HospitalAppointmentForm> {
   final _noteController = TextEditingController();
   final List<String> _photos = [];
 
+  /// Local mutable copy so an on-demand fetch (empty session cache) can
+  /// update the picker without rebuilding the whole sheet.
+  late List<HospitalAppointmentDoctorOption> _doctors;
+  bool _isLoadingDoctors = false;
+
   @override
   void initState() {
     super.initState();
     _pickedOpdId = widget.preselectedDoctorId;
-    // If the picker only has one doctor, preselect it — nothing else the
-    // customer could pick.
-    if (_pickedOpdId == null && widget.doctors.length == 1) {
-      _pickedOpdId = widget.doctors.first.id;
+    _doctors = widget.doctors;
+    _applyAutoSelect();
+
+    // Session cache miss (enquiry-first flow entered from anywhere other
+    // than the hospital detail screen — chat inbox on cold start, deep
+    // link, notification) → fetch on demand so the picker isn't stuck on
+    // the empty state.
+    if (_doctors.isEmpty && widget.listing.hospitalId.trim().isNotEmpty) {
+      _loadDoctors();
+    }
+  }
+
+  Future<void> _loadDoctors() async {
+    setState(() => _isLoadingDoctors = true);
+    final fetched = await HospitalAppointmentSheet._fetchDoctorsForHospital(
+      hospitalId: widget.listing.hospitalId,
+    );
+    if (!mounted) return;
+    setState(() {
+      _doctors = fetched;
+      _isLoadingDoctors = false;
+      _applyAutoSelect();
+    });
+  }
+
+  /// Preselect the single doctor case — nothing else the customer could
+  /// pick. Called after the initial widget doctors are set AND after an
+  /// on-demand fetch lands.
+  void _applyAutoSelect() {
+    if (_pickedOpdId == null && _doctors.length == 1) {
+      _pickedOpdId = _doctors.first.id;
     }
   }
 
@@ -495,9 +648,41 @@ class _HospitalAppointmentFormState extends State<_HospitalAppointmentForm> {
   }
 
   /// Horizontal picker of real Doctors belonging to this hospital.
-  /// Tapping the same card again clears the selection.
+  /// Tapping the same card again clears the selection. While the on-demand
+  /// fetch is in flight (cache miss), a slim loader replaces the picker so
+  /// the customer isn't tricked into thinking the hospital has no doctors.
   Widget _doctorsPicker() {
-    if (widget.doctors.isEmpty) {
+    if (_isLoadingDoctors) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 16),
+        decoration: BoxDecoration(
+          color: _surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AppColors.greyE5),
+        ),
+        alignment: Alignment.center,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(
+                  strokeWidth: 2, color: _accentDeep),
+            ),
+            const SizedBox(width: 10),
+            CustomText(
+              'Loading doctors…',
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700,
+              color: AppColors.secondaryTextColor,
+            ),
+          ],
+        ),
+      );
+    }
+    if (_doctors.isEmpty) {
       return Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 16),
@@ -521,9 +706,9 @@ class _HospitalAppointmentFormState extends State<_HospitalAppointmentForm> {
       height: 168,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: widget.doctors.length,
+        itemCount: _doctors.length,
         separatorBuilder: (_, __) => const SizedBox(width: 10),
-        itemBuilder: (_, i) => _doctorCard(widget.doctors[i]),
+        itemBuilder: (_, i) => _doctorCard(_doctors[i]),
       ),
     );
   }

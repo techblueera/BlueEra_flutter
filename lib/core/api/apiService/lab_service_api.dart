@@ -22,4 +22,14 @@ mixin LabServiceApi {
   final String testCatalogSelect = 'lab-service/test-catalog/select';
   final String testLabServiceFullDetails =
       'lab-service/laboratory-profiles/full-details';
+
+  // Packages — "Create Your Own Packages" bundle-of-tests screens.
+  // See lib/docs/LABORATORY_INTEGRATION.md §1.
+  final String labPackages = 'lab-service/packages';
+  final String labPackagesByLab = 'lab-service/packages/laboratory';
+
+  // Testimonials — profile-section carousel.
+  // See lib/docs/LABORATORY_INTEGRATION.md §2.
+  final String labTestimonials = 'lab-service/testimonials';
+  final String labTestimonialsByLab = 'lab-service/testimonials/laboratory';
 }
