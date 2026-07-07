@@ -19,6 +19,7 @@ import 'package:BlueEra/core/services/notification/pending_deep_link.dart';
 import 'package:BlueEra/features/chat/auth/controller/add_chat_symbol_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/notification_chat/controller/blueera_notification_controller.dart';
+import 'package:BlueEra/features/chat/notification_chat/view/blueera_notification_screen.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/features/chat/auth/model/symbol_details_model.dart';
 import 'package:BlueEra/features/chat/auth/repo/chat_view_repo.dart';
@@ -1668,6 +1669,7 @@ class AppNotificationHandler {
       title: title,
       body: body,
       isChatMessage: isChatMessage,
+      images: extractBroadcastImages(data),
     );
 
     // Parse action buttons from backend
@@ -1825,6 +1827,7 @@ class AppNotificationHandler {
     required String title,
     required String body,
     required bool isChatMessage,
+    List<String> images = const [],
   }) {
     try {
       if (isChatMessage) return;
@@ -1833,13 +1836,69 @@ class AppNotificationHandler {
           operation.contains('greeting')) {
         return;
       }
-      if (title.trim().isEmpty && body.trim().isEmpty) return;
+      if (title.trim().isEmpty && body.trim().isEmpty && images.isEmpty) return;
       BlueEraNotificationController.to.addNotification(
         title: title,
         body: body,
         operation: operation,
+        images: images,
       );
     } catch (_) {}
+  }
+
+  /// Pull image URLs out of a broadcast payload. Supports a single `imageUrl`
+  /// / `image` field and a multi-image `images` field (JSON-array string or a
+  /// real List), plus the same keys nested under `payload`.
+  static List<String> extractBroadcastImages(Map<String, dynamic> data) {
+    final urls = <String>[];
+
+    void addFrom(dynamic value) {
+      if (value == null) return;
+      if (value is String) {
+        final s = value.trim();
+        if (s.isEmpty) return;
+        // A JSON array encoded as a string, e.g. '["https://a","https://b"]'.
+        if (s.startsWith('[')) {
+          try {
+            final decoded = jsonDecode(s);
+            if (decoded is List) {
+              for (final e in decoded) {
+                final u = e.toString().trim();
+                if (u.isNotEmpty) urls.add(u);
+              }
+              return;
+            }
+          } catch (_) {}
+        }
+        urls.add(s);
+      } else if (value is List) {
+        for (final e in value) {
+          final u = e.toString().trim();
+          if (u.isNotEmpty) urls.add(u);
+        }
+      }
+    }
+
+    addFrom(data['imageUrl']);
+    addFrom(data['image']);
+    addFrom(data['images']);
+
+    // Nested payload object (may itself be a JSON string).
+    final rawPayload = data['payload'];
+    if (rawPayload != null) {
+      try {
+        final Map<String, dynamic> payload = rawPayload is String
+            ? Map<String, dynamic>.from(jsonDecode(rawPayload) as Map)
+            : Map<String, dynamic>.from(rawPayload as Map);
+        addFrom(payload['imageUrl']);
+        addFrom(payload['image']);
+        addFrom(payload['images']);
+      } catch (_) {}
+    }
+
+    // De-dup while preserving order.
+    final seen = <String>{};
+    return urls.where((u) => seen.add(u)).toList();
   }
 
   bool _isChatOperation(String operation) {
@@ -2279,16 +2338,20 @@ class AppNotificationHandler {
       try {
         final title = (data['title'] ?? 'BlueEra').toString();
         final body = (data['body'] ?? data['message'] ?? '').toString();
-        if (title.trim().isNotEmpty || body.trim().isNotEmpty) {
+        final images = extractBroadcastImages(data);
+        if (title.trim().isNotEmpty ||
+            body.trim().isNotEmpty ||
+            images.isNotEmpty) {
           BlueEraNotificationController.to.addNotification(
             title: title,
             body: body,
             operation: operation,
+            images: images,
           );
         }
       } catch (_) {}
     }
-
+    print("ksdjcnkjsd ${operation}");
     switch (operation) {
       // Single-session: tapped the "signed out on another device" notification
       // → run the full logout teardown and land on the login screen, but only
@@ -2417,6 +2480,22 @@ class AppNotificationHandler {
               name: chat?.sender?.name,
               type: chat?.sender?.accountType,
             ));
+        break;
+
+      // Admin broadcast (prodcast) → open the in-app "BlueEra" thread directly
+      // where these broadcast messages are listed. The mirror block above has
+      // already appended this push to the thread, so it's visible on arrival.
+      // Reset the stack onto the Connect (chat) tab first so that pressing
+      // back from the BlueEra thread lands on ConnectMainPage rather than
+      // exiting the app or dropping onto an unrelated screen.
+      case 'admin_broadcast':
+        BlueEraNotificationController.to.markAllRead();
+        Get.offAllNamed(
+          RouteHelper.getBottomNavigationBarScreenRoute(),
+          arguments: {ApiKeys.initialIndex: 2, 'deferHeavyInit': true},
+        );
+        await Future.delayed(const Duration(milliseconds: 250));
+        Get.to(() => const BlueEraNotificationScreen());
         break;
 
       // Admin notifications

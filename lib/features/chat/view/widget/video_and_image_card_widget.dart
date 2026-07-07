@@ -2,26 +2,31 @@ import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/features/chat/view/widget/video_type_message_ui.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../widgets/custom_text_cm.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetListOfMessageData.dart';
 import '../../auth/model/messageMediaUrl.dart';
-import '../orders_chat/order_chat_screen.dart';
 import 'component_widgets.dart';
 import 'custom_video_player.dart';
 import 'chat_cached_image.dart';
 import 'media_download_overlay.dart';
 import 'media_message_full_view.dart';
 class VideoAndImageCardWidget extends StatefulWidget {
-  const VideoAndImageCardWidget({super.key, required this.name,required this.conversationId,required this.userId, this.profileImage, required this.isInitialMessage, this.contactNo, required this.message, required this.time, required this.isReceive, required this.theme,});
+  const VideoAndImageCardWidget({super.key, required this.name,required this.conversationId,required this.userId, this.profileImage, required this.isInitialMessage, this.contactNo, required this.message, required this.time, required this.isReceive, required this.theme, this.conversationName, this.conversationProfileImage,});
   final String conversationId;
   final String userId;
   final String? profileImage;
   final String? name;
+  /// Conversation partner (chat person) name/image — used for bookmark
+  /// grouping so a saved photo is filed under the OTHER person, not the sender.
+  final String? conversationName;
+  final String? conversationProfileImage;
   final bool isInitialMessage;
   final String? contactNo;
  final Messages message;
@@ -35,6 +40,17 @@ class VideoAndImageCardWidget extends StatefulWidget {
 class _VideoAndImageCardWidgetState extends State<VideoAndImageCardWidget> {
 
   final chatThemeController = Get.find<ChatThemeController>();
+
+  /// Tap recognizers for clickable caption links; disposed with the state.
+  final List<TapGestureRecognizer> _linkRecognizers = [];
+
+  @override
+  void dispose() {
+    for (final r in _linkRecognizers) {
+      r.dispose();
+    }
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -234,22 +250,74 @@ class _VideoAndImageCardWidgetState extends State<VideoAndImageCardWidget> {
     );
   }
 
-  void _openFullScreen(List<MessageMediaUrl> images, int index) {
+  /// Opens the full-screen viewer seeded with EVERY image/video in the
+  /// conversation (chronological order) so the user can swipe between them,
+  /// starting at [tappedUrl]. Each media carries its message's caption so the
+  /// caption overlay follows as you swipe.
+  void _openFullScreen(String tappedUrl) {
     FocusScope.of(context).unfocus();
     if (chatThemeController.isMessageSelectionActive.value) {
       chatThemeController.selectMoreMessage(
           widget.message.forwardId == null ? widget.message.id : widget.message.forwardId);
-    } else {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => FullImagePreviewPage(
-            images: images,
-            initialIndex: index,
-          ),
-        ),
-      );
+      return;
     }
+
+    final messages = Get.find<ChatViewController>().getListOfMessageData ?? [];
+    final List<MessageMediaUrl> allMedia = [];
+    final List<String?> captions = [];
+    final List<Messages?> mediaMessages = [];
+    for (final m in messages) {
+      if (m.messageType != 'image' && m.messageType != 'video') continue;
+      final urls = m.url;
+      if (urls == null || urls.isEmpty) continue;
+      final caption =
+          (m.message != null && m.message!.trim().isNotEmpty) ? m.message : null;
+      for (final u in urls) {
+        allMedia.add(u);
+        captions.add(caption);
+        mediaMessages.add(m);
+      }
+    }
+
+    int startIndex = allMedia.indexWhere((e) => e.url == tappedUrl);
+
+    // Fallback: if the aggregated list is empty or the tapped media wasn't
+    // found (e.g. list not yet populated), show just this message's media.
+    if (allMedia.isEmpty || startIndex < 0) {
+      final own = widget.message.url ?? [];
+      final ownCaption = (widget.message.message != null &&
+              widget.message.message!.trim().isNotEmpty)
+          ? widget.message.message
+          : null;
+      allMedia
+        ..clear()
+        ..addAll(own);
+      captions
+        ..clear()
+        ..addAll(List.filled(own.length, ownCaption));
+      mediaMessages
+        ..clear()
+        ..addAll(List.filled(own.length, widget.message));
+      startIndex = own.indexWhere((e) => e.url == tappedUrl);
+      if (startIndex < 0) startIndex = 0;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => FullImagePreviewPage(
+          images: allMedia,
+          initialIndex: startIndex,
+          captions: captions,
+          messages: mediaMessages,
+          conversationId: widget.conversationId,
+          // Prefer the conversation partner's identity (falls back to the
+          // per-message name/image if the partner wasn't supplied).
+          personName: widget.conversationName ?? widget.name,
+          personImage: widget.conversationProfileImage ?? widget.profileImage,
+        ),
+      ),
+    );
   }
 
   Widget _buildSingleMedia(MessageMediaUrl path, String time, bool isReceiveMsg,
@@ -259,7 +327,7 @@ class _VideoAndImageCardWidgetState extends State<VideoAndImageCardWidget> {
     if (isVideo ?? false) {
       // Video: wrap with download overlay for received messages
       return GestureDetector(
-        onTap: () => _openFullScreen([path], 0),
+        onTap: () => _openFullScreen(path.url ?? ''),
         child: MediaDownloadOverlay(
           url: path.url ?? '',
           messageType: 'video',
@@ -300,13 +368,13 @@ class _VideoAndImageCardWidgetState extends State<VideoAndImageCardWidget> {
     final bubbleColor = isReceiveMsg
         ? chatThemeController.receiveMessageBgColor.value
         : chatThemeController.myMessageBgColor.value;
-    final textColor = isReceiveMsg ? Colors.black87 : Colors.white;
-    final linkColor = isReceiveMsg
-        ? const Color(0xFF1976D2)
-        : const Color(0xFFB3E5FC);
+    // Caption text is always black (per design), with links rendered in blue
+    // and made tappable to open.
+    const textColor = Colors.black;
+    const linkColor = Color(0xFF1976D2);
 
     final imageBubble = GestureDetector(
-      onTap: () => _openFullScreen([path], 0),
+      onTap: () => _openFullScreen(path.url ?? ''),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: Container(
@@ -345,22 +413,36 @@ class _VideoAndImageCardWidgetState extends State<VideoAndImageCardWidget> {
                     ),
                 ],
               ),
+              // WhatsApp-style caption: media + text, with the time and
+              // read-receipt tucked at the bottom-right of the caption.
               if (hasCaption)
                 Container(
                   width: 252,
                   padding: const EdgeInsets.fromLTRB(10, 8, 10, 6),
-                  child: _buildLinkifiedText(
-                    message.message ?? '',
-                    textColor: textColor,
-                    linkColor: linkColor,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildLinkifiedText(
+                        message.message ?? '',
+                        textColor: textColor,
+                        linkColor: linkColor,
+                      ),
+                      const SizedBox(height: 2),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: timeAndReadInfoWidget(
+                          message: message,
+                          isMyMessage: message.myMessage ?? false,
+                          time: time,
+                          timeColor: Colors.black54,
+                          indicateColor:
+                              message.messageRead == 1 ? Colors.blue : Colors.grey,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ReactionInfoWidget(
-                message: message,
-                time: time,
-                userId: widget.userId.toString(),
-                conversation: widget.conversationId.toString(),
-              ),
             ],
           ),
         ),
@@ -396,19 +478,28 @@ class _VideoAndImageCardWidgetState extends State<VideoAndImageCardWidget> {
     if (matches.isEmpty) {
       return Text(text, style: baseStyle);
     }
+    // Dispose recognizers built in a previous frame before rebuilding them.
+    for (final r in _linkRecognizers) {
+      r.dispose();
+    }
+    _linkRecognizers.clear();
     final spans = <TextSpan>[];
     int cursor = 0;
     for (final m in matches) {
       if (m.start > cursor) {
         spans.add(TextSpan(text: text.substring(cursor, m.start)));
       }
+      final url = m.group(0)!;
+      final recognizer = TapGestureRecognizer()..onTap = () => _openLink(url);
+      _linkRecognizers.add(recognizer);
       spans.add(TextSpan(
-        text: m.group(0),
+        text: url,
         style: TextStyle(
           color: linkColor,
           decoration: TextDecoration.underline,
           decorationColor: linkColor,
         ),
+        recognizer: recognizer,
       ));
       cursor = m.end;
     }
@@ -416,6 +507,18 @@ class _VideoAndImageCardWidgetState extends State<VideoAndImageCardWidget> {
       spans.add(TextSpan(text: text.substring(cursor)));
     }
     return RichText(text: TextSpan(style: baseStyle, children: spans));
+  }
+
+  /// Opens a tapped caption link — BlueEra links use the in-app browser,
+  /// everything else the in-app web view (mirrors the text-bubble behaviour).
+  void _openLink(String url) {
+    final uri = Uri.tryParse(url);
+    if (uri == null) return;
+    final isBlueEra = url.contains('blueera');
+    launchUrl(
+      uri,
+      mode: isBlueEra ? LaunchMode.inAppBrowserView : LaunchMode.inAppWebView,
+    );
   }
 
   /// Footer shown under a payment-screenshot image bubble.
@@ -588,23 +691,7 @@ class _VideoAndImageCardWidgetState extends State<VideoAndImageCardWidget> {
                         paths[index].url?.toLowerCase().endsWith('.mp4');
                         final showOverlay = paths.length > 4 && index == 3;
                         return GestureDetector(
-                          onTap: () {
-                            FocusScope.of(context).unfocus();
-                            if(chatThemeController.isMessageSelectionActive.value){
-                              chatThemeController.selectMoreMessage(message.forwardId==null?message.id:message.forwardId);
-                            }else{
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      FullImagePreviewPage(
-                                        images: paths,
-                                        initialIndex: index,
-                                      ),
-                                ),
-                              );
-                            }
-                          },
+                          onTap: () => _openFullScreen(paths[index].url ?? ''),
                           child: Stack(
                             fit: StackFit.expand,
                             children: [

@@ -2,7 +2,10 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart';
+import 'package:BlueEra/features/chat/auth/model/messageMediaUrl.dart';
 import 'package:BlueEra/features/chat/notification_chat/controller/blueera_notification_controller.dart';
+import 'package:BlueEra/features/chat/view/widget/chat_cached_image.dart';
+import 'package:BlueEra/features/chat/view/widget/media_message_full_view.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -169,6 +172,13 @@ class _BlueEraNotificationScreenState extends State<BlueEraNotificationScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Photos attached to the broadcast — rendered like a chat
+                  // image message, tappable to open the full-screen viewer.
+                  if (item.hasImages)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 5),
+                      child: _buildImages(item),
+                    ),
                   if (hasTitle)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 3),
@@ -205,5 +215,126 @@ class _BlueEraNotificationScreenState extends State<BlueEraNotificationScreen> {
         ),
       ),
     );
+  }
+
+  /// Whether [url]'s file extension marks it as a video (vs an image), so the
+  /// same broadcast media list can carry both and each renders correctly.
+  bool _isVideoUrl(String url) {
+    final lower = url.toLowerCase();
+    // Strip any query string before checking the extension.
+    final path = lower.split('?').first;
+    return path.endsWith('.mp4') ||
+        path.endsWith('.mov') ||
+        path.endsWith('.avi') ||
+        path.endsWith('.webm') ||
+        path.endsWith('.mkv');
+  }
+
+  /// The visual for a single media URL — a video thumbnail (dark backdrop +
+  /// play icon) when the extension is a video, otherwise the cached image.
+  Widget _mediaThumb(String url, {double? width, double? height}) {
+    if (_isVideoUrl(url)) {
+      return Container(
+        width: width,
+        height: height,
+        color: Colors.black87,
+        alignment: Alignment.center,
+        child: Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.45),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(Icons.play_arrow_rounded,
+              color: Colors.white, size: 32),
+        ),
+      );
+    }
+    return ChatCachedImage(
+      url: url,
+      width: width,
+      height: height,
+      fit: BoxFit.cover,
+    );
+  }
+
+  /// Renders the broadcast's media inside the bubble — a single full-width
+  /// item, or a 2-column grid (max 4, with a "+N" overlay) for multiples —
+  /// matching the chat image/video-message look. Each URL is shown as an
+  /// image or a video thumbnail based on its extension. Tapping opens the
+  /// shared full-screen viewer (which plays videos) with the body as caption.
+  Widget _buildImages(BlueEraNotificationItem item) {
+    final images = item.images;
+    final width = MediaQuery.of(context).size.width * 0.85 - 22;
+
+    if (images.length == 1) {
+      return GestureDetector(
+        onTap: () => _openImages(item, 0),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: _mediaThumb(
+            images.first,
+            width: width,
+            height: width * 0.72,
+          ),
+        ),
+      );
+    }
+
+    final displayCount = images.length > 4 ? 4 : images.length;
+    return SizedBox(
+      width: width,
+      child: GridView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: displayCount,
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          mainAxisSpacing: 4,
+          crossAxisSpacing: 4,
+          childAspectRatio: 1,
+        ),
+        itemBuilder: (context, index) {
+          final showOverlay = images.length > 4 && index == 3;
+          return GestureDetector(
+            onTap: () => _openImages(item, index),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  _mediaThumb(images[index]),
+                  if (showOverlay)
+                    Container(
+                      color: Colors.black.withValues(alpha: 0.55),
+                      alignment: Alignment.center,
+                      child: Text(
+                        '+${images.length - 4}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _openImages(BlueEraNotificationItem item, int index) {
+    final caption = item.body.trim().isNotEmpty ? item.body.trim() : null;
+    Get.to(() => FullImagePreviewPage(
+          images: item.images
+              .map((u) => MessageMediaUrl(url: u))
+              .toList(),
+          initialIndex: index,
+          captions: List<String?>.filled(item.images.length, caption),
+        ));
   }
 }

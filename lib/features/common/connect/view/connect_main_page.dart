@@ -14,6 +14,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/chat/auth/controller/add_chat_symbol_controller.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
+import 'package:BlueEra/features/chat/view/bookmarks/bookmarks_screen.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/features/chat/view/call_screen/call_history_screen.dart';
 import 'package:BlueEra/features/chat/view/chat_theme/chat_background_screen.dart';
@@ -1193,6 +1194,18 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
                           onTap: () {
                             Navigator.pop(context);
                             Get.to(() => const StarredMessagesScreen());
+                          },
+                        ),
+                        _menuDivider(),
+                        // Locally saved chat photos, grouped by person.
+                        _drawerMenuItem(
+                          icon: Icons.bookmark_rounded,
+                          label: 'Bookmarks',
+                          iconColor: const Color(0xFF0086FF),
+                          bgColor: const Color(0xFFE8F3FF),
+                          onTap: () {
+                            Navigator.pop(context);
+                            Get.to(() => const BookmarksScreen());
                           },
                         ),
                         _menuDivider(),

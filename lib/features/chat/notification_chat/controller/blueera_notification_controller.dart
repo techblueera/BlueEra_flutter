@@ -10,6 +10,10 @@ class BlueEraNotificationItem {
   final String body;
   final String operation;
   final int timeMillis;
+
+  /// Image URLs attached to a broadcast (e.g. admin_broadcast with photos),
+  /// rendered like a chat image+text message. Empty for plain text pushes.
+  final List<String> images;
   bool read;
 
   BlueEraNotificationItem({
@@ -17,12 +21,27 @@ class BlueEraNotificationItem {
     required this.body,
     required this.operation,
     required this.timeMillis,
+    this.images = const [],
     this.read = false,
   });
+
+  bool get hasImages => images.isNotEmpty;
+
+  static bool _isVideo(String url) {
+    final path = url.toLowerCase().split('?').first;
+    return path.endsWith('.mp4') ||
+        path.endsWith('.mov') ||
+        path.endsWith('.avi') ||
+        path.endsWith('.webm') ||
+        path.endsWith('.mkv');
+  }
 
   /// Preview text shown as the chat-list row's "last message".
   String get preview {
     if (body.trim().isNotEmpty) return body.trim();
+    if (images.isNotEmpty) {
+      return _isVideo(images.first) ? '🎥 Video' : '📷 Photo';
+    }
     return title.trim();
   }
 
@@ -31,6 +50,7 @@ class BlueEraNotificationItem {
         'body': body,
         'operation': operation,
         'timeMillis': timeMillis,
+        'images': images,
         'read': read,
       };
 
@@ -42,6 +62,12 @@ class BlueEraNotificationItem {
         timeMillis: (map['timeMillis'] is int)
             ? map['timeMillis'] as int
             : int.tryParse('${map['timeMillis']}') ?? 0,
+        images: (map['images'] is List)
+            ? (map['images'] as List)
+                .map((e) => e.toString())
+                .where((e) => e.isNotEmpty)
+                .toList()
+            : const [],
         read: map['read'] == true,
       );
 }
@@ -117,15 +143,18 @@ class BlueEraNotificationController extends GetxController {
     required String title,
     required String body,
     required String operation,
+    List<String>? images,
     int? timeMillis,
   }) async {
     final now = timeMillis ?? _nowMillis();
-    if (title.trim().isEmpty && body.trim().isEmpty) return;
+    final imgs = images ?? const <String>[];
+    if (title.trim().isEmpty && body.trim().isEmpty && imgs.isEmpty) return;
 
-    final key = '$operation|$title|$body';
+    final key = '$operation|$title|$body|${imgs.join(',')}';
     final recent = messages.isNotEmpty ? messages.first : null;
     if (recent != null &&
-        '${recent.operation}|${recent.title}|${recent.body}' == key &&
+        '${recent.operation}|${recent.title}|${recent.body}|${recent.images.join(',')}' ==
+            key &&
         (now - recent.timeMillis).abs() < 5000) {
       return;
     }
@@ -137,6 +166,7 @@ class BlueEraNotificationController extends GetxController {
         body: body,
         operation: operation,
         timeMillis: now,
+        images: imgs,
         read: false,
       ),
     );

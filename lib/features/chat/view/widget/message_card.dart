@@ -189,6 +189,10 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
           userId: widget.userId.toString(),
           conversationId: widget.conversationId.toString(),
           name: widget.name,
+          // Conversation partner (chat person) — used for bookmark grouping so
+          // the saved photo shows the OTHER person's name, not the sender's.
+          conversationName: widget.conversationName,
+          conversationProfileImage: widget.conversationProfileImage,
           isInitialMessage: widget.isInitialMessage,
         );
         break;

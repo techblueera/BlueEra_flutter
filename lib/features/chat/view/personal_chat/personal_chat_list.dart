@@ -565,6 +565,19 @@ Widget personalChatListWidget(GetChatListModel? data,ThemeData theme ){
       return chat == null || !lockedIds.contains(chat.conversationId);
     }).toList();
 
+    // Drop the server-side "BlueEra" broadcast conversation — it's already
+    // represented by the synthetic pinned BlueEra row below, so keeping the
+    // server copy would show BlueEra twice. Matched by the system id or the
+    // "BlueEra" sender name/contact.
+    chatList = chatList.where((chat) {
+      if (chat == null) return true;
+      final id = (chat.conversationId ?? '').toLowerCase();
+      if (id == 'blueera_notifications') return false;
+      final name = (chat.sender?.name ?? '').trim().toLowerCase();
+      final contact = (chat.sender?.contactNo ?? '').trim().toLowerCase();
+      return name != 'blueera' && contact != 'blueera';
+    }).toList();
+
     // Sort: pinned chats first, then unpinned
     chatList.sort((a, b) {
       final aPinned = pinnedIds.contains(a?.conversationId);

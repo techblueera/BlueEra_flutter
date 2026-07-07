@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../auth/model/GetListOfMessageData.dart';
 import '../../auth/model/messageMediaUrl.dart';
-import '../orders_chat/order_chat_screen.dart';
+import 'component_widgets.dart';
 import 'custom_video_player.dart';
 
 class ChatVideoMessage extends StatefulWidget {
@@ -57,25 +57,29 @@ class _ChatVideoMessageState extends State<ChatVideoMessage> {
               ),
               child: ChatCustomVideoPlayer(key: ValueKey('vp_${widget.videoUrl?.url ?? widget.filePath?.path ?? ''}'), videoUrl: widget.videoUrl?.url??'',filePath: widget.filePath,isFromFile: widget.isFromFile,),
             ),
-            // (widget.isFromFile==true)?SizedBox():Positioned(
-            //   bottom: 0,
-            //   left: !(widget.isReceiveMsg)?0:null,
-            //   right: (widget.isReceiveMsg)?24:null,
-            //   child: ReactionInfoWidget(),
-            // ),
-            (widget.isFromFile==true)?SizedBox():Positioned(
-              bottom: 2,
-              left: !(widget.isReceiveMsg)?2:null,
-              right: (widget.isReceiveMsg)?2:null,
-              child: ReactionInfoWidget(message: widget.message,conversation: widget.conversation,userId: widget.userId,time: widget.time,),
-            ),
-            // Positioned(
-            //   bottom: 26,
-            //   right: !(widget.isReceiveMsg)?12:null,
-            //   left: (widget.isReceiveMsg)?12:null,
-            //   child: Text(widget.time,
-            //       style: TextStyle(color: Colors.white, fontSize: 10)),
-            // )
+            // WhatsApp-style time + read-receipt chip overlaid on the video,
+            // instead of the like/comment/forward reaction footer.
+            (widget.isFromFile == true)
+                ? const SizedBox()
+                : Positioned(
+                    bottom: 8,
+                    right: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.4),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: timeAndReadInfoWidget(
+                        message: widget.message,
+                        isMyMessage: widget.message.myMessage ?? false,
+                        time: widget.time,
+                        timeColor: Colors.white,
+                        indicateColor:
+                            widget.message.messageRead == 1 ? Colors.blue : Colors.white70,
+                      ),
+                    ),
+                  ),
           ],
         ),
       ),
