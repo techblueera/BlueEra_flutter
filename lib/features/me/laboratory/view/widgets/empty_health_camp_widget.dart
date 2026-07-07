@@ -31,10 +31,8 @@ class EmptyHealthCampWidget extends StatefulWidget {
 }
 
 class _EmptyHealthCampWidgetState extends State<EmptyHealthCampWidget> {
-  static const String _backgroundAsset =
-      'assets/category/medical/health_camp_bg.png';
-  static const String _emptyIconAsset =
-      'assets/category/medical/empty_white_data.png';
+  static const String _backgroundAsset = 'assets/category/medical/health_camp_bg.png';
+  static const String _emptyIconAsset = 'assets/category/medical/empty_white_data.png';
   static const double _stackHeight = 220;
 
   List<HealthCamp> _healthCamps = [];
@@ -161,8 +159,7 @@ class _EmptyHealthCampWidgetState extends State<EmptyHealthCampWidget> {
               ),
               const SizedBox(height: 16),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(12),
@@ -248,8 +245,7 @@ class _EmptyHealthCampWidgetState extends State<EmptyHealthCampWidget> {
               if (dateRange.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),

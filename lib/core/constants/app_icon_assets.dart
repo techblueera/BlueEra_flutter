@@ -363,4 +363,13 @@ class AppIconAssets {
   static const String classIcon = "${iconPath}frame.svg";
   static const String personProfileIcon = "${iconPath}person_profile.svg";
   static const String mediumIcon = "${iconPath}medium.svg";
+  static const String fecilityIcon = "${iconPath}facility.svg";
+  static const String healthcampIcon = "${iconPath}healthcamp.svg";
+  static const String imagingTestIcon = "${iconPath}imaging_test.svg";
+  static const String infectionTestIcon = "${iconPath}infection_test.svg";
+  static const String othersTestIcon = "${iconPath}others_test.svg";
+  static const String routineTestIcon = "${iconPath}routine_test.svg";
+  static const String wellnessTestIcon = "${iconPath}wellness_test.svg";
+  static const String womenTestIcon = "${iconPath}women_test.svg";
+  static const String organTestIcon = "${iconPath}organ_test.svg";
 }

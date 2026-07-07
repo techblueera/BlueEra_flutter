@@ -6,14 +6,13 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/me/grocery/view/admin/grocery_shop_availability_screen.dart';
-import 'package:BlueEra/widgets/go_live_pill.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_flag_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
+import 'package:BlueEra/features/me/grocery/view/admin/grocery_shop_availability_screen.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_full_details_controller.dart';
 import 'package:BlueEra/features/me/laboratory/view/v2/tabs/lab_facilities_tab_v2.dart';
 import 'package:BlueEra/features/me/laboratory/view/v2/tabs/lab_inquiry_tab_v2.dart';
@@ -21,6 +20,7 @@ import 'package:BlueEra/features/me/laboratory/view/v2/tabs/lab_overview_tab_v2.
 import 'package:BlueEra/features/me/laboratory/view/v2/tabs/lab_posts_tab_v2.dart';
 import 'package:BlueEra/features/me/laboratory/view/v2/tabs/lab_stats_tab_v2.dart';
 import 'package:BlueEra/features/me/laboratory/view/v2/tabs/lab_tests_tab_v2.dart';
+import 'package:BlueEra/widgets/go_live_pill.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:flutter/material.dart';
@@ -40,35 +40,31 @@ class LabHomeScreenV2 extends StatefulWidget {
 class _LabHomeScreenV2State extends State<LabHomeScreenV2>
     with SingleTickerProviderStateMixin, MeTabBackHandlerMixin {
   late final LabFullDetailsController _labController;
-  final _businessController =
-      getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+  final _businessController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
   bool isShopGoLive = false;
   late final TabController _tabController;
   List<String> get _tabs => [
-    AppStrings.inquiry.tr,
-    AppStrings.overview.tr,
-    AppStrings.tests.tr,
-    AppStrings.facilities.tr,
-    AppStrings.posts.tr,
-    AppStrings.stats.tr,
-  ];
-
+        AppStrings.inquiry.tr,
+        AppStrings.overview.tr,
+        AppStrings.tests.tr,
+        AppStrings.facilities.tr,
+        AppStrings.posts.tr,
+        AppStrings.stats.tr,
+      ];
 
   // Drives the inquiry list shown under the Inquiry tab — same controller
   // the Connect screen uses, so socket-driven updates land on both.
   // Mirrors the wiring used by `HospitalHomeScreenV2`, `SchoolHomeScreenV2`,
   // `MedicalHomeScreenV2` and the Order tab in `professionals_main.dart`.
-  final ChatViewController _chatViewController =
-      getOrPut(() => ChatViewController());
+  final ChatViewController _chatViewController = getOrPut(() => ChatViewController());
 
   // Pre-registered so the Flagged sub-tab inside `BusinessChatsList`
   // (`BusinessFlagChatList` → `Get.find<ChatFlagController>()`) doesn't
   // crash when this is the first screen the user touches. Mirrors the
   // top-level registration in `connect_main_page.dart`.
   // ignore: unused_field
-  final ChatFlagController _chatFlagController =
-      getOrPut(() => ChatFlagController());
+  final ChatFlagController _chatFlagController = getOrPut(() => ChatFlagController());
 
   @override
   void initState() {
@@ -289,7 +285,4 @@ class _LabHomeScreenV2State extends State<LabHomeScreenV2>
   }
 
   // ─── Profile row ───
-
-
 }
-
