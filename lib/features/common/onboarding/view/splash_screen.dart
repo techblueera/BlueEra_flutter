@@ -16,10 +16,13 @@ import 'package:BlueEra/features/common/Discover/controller/finance_discover_con
 import 'package:BlueEra/features/common/Discover/view/discover_school_home_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/finance/finance_detail_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/healthcare/discover_hospital_home_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/others_service_detail_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/widget/discover_professionals_view_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/vehicle/vehicle_detail_screen.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hospital/model/hospital_full_details_res_model.dart';
 import 'package:BlueEra/features/me/medical/view/medical_pharmacy_detail_screen.dart';
+import 'package:BlueEra/features/me/product/view/customer/visit_product_store_details_screen.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -420,6 +423,68 @@ class _SplashScreenState extends State<SplashScreen> {
         return;
       }
 
+      // Professionals (consultant) share/QR links carry the pair of
+      // `professionals/consultant` segments:
+      //   https://beapp.in/app/professionals/consultant/<visitUserId>
+      // Route these straight to the "other" service detail screen
+      // ([OthersServiceDetailScreen]) instead of the generic business
+      // share-preview. The id sits at segments[3], so this is checked before
+      // the generic 3-segment `app` handling below.
+      else if (segments.length >= 4 &&
+          segments[0] == 'app' &&
+          segments[1] == 'professionals' &&
+          segments[2] == 'consultant') {
+        final consultantId = segments[3];
+        if (!_isValidMongoId(consultantId)) {
+          logs('Invalid professionals consultant id in deep link: $consultantId');
+          return;
+        }
+        _openProfessionalsConsultant(consultantId);
+        return;
+      }
+
+
+      // Product store share/QR links carry an extra `shopping` segment:
+      //   https://beapp.in/app/business/shopping/<visitUserId>
+      // Route these straight to the product store detail screen
+      // ([VisitProductStoreDetailsScreen]) instead of the generic business
+      // share-preview. Like education/grocery/hotel/hospital/medical/financial,
+      // the id sits at segments[3], so this is checked before the generic
+      // 3-segment `app` handling below.
+      else if (segments.length >= 4 &&
+          segments[0] == 'app' &&
+          segments[1] == 'business' &&
+          segments[2] == 'shopping') {
+        final shopUserId = segments[3];
+        if (!_isValidMongoId(shopUserId)) {
+          logs('Invalid shopping id in deep link: $shopUserId');
+          return;
+        }
+        _openProductStore(shopUserId);
+        return;
+      }
+
+      // Professional/consulting business share/QR links carry an extra
+      // `services` segment:
+      //   https://beapp.in/app/business/services/<userId>
+      // Route these straight to the discover professionals view screen
+      // ([DiscoverProfessionalsViewScreen]) instead of the generic business
+      // share-preview. Like education/grocery/hotel/hospital/medical/financial/
+      // shopping, the id sits at segments[3], so this is checked before the
+      // generic 3-segment `app` handling below.
+      else if (segments.length >= 4 &&
+          segments[0] == 'app' &&
+          segments[1] == 'business' &&
+          segments[2] == 'services') {
+        final servicesUserId = segments[3];
+        if (!_isValidMongoId(servicesUserId)) {
+          logs('Invalid business services id in deep link: $servicesUserId');
+          return;
+        }
+        _openBusinessServices(servicesUserId);
+        return;
+      }
+
     else   if (segments.length >= 3 && segments[0] == 'app') {
         final type = segments[1]; // post | video | short | job | product
         final id = segments[2];
@@ -614,6 +679,48 @@ print("type==== ${type}");
     controller.selectedDetail.value = null;
     controller.fetchDetail(id);
     Get.to(() => const FinanceDetailScreen());
+  }
+
+  /// Opens [OthersServiceDetailScreen] for a professional/consultant reached
+  /// via deep link / QR scan
+  /// (`https://beapp.in/app/professionals/consultant/<visitUserId>`). The link
+  /// carries the owner/business (visit) id used when the listing was shared.
+  /// The screen does `Get.find<ViewBusinessDetailsController>()` in its
+  /// initState, so that controller is registered first; the screen then fetches
+  /// its own profile + inventory behind its own loader, so navigation is
+  /// instant — mirroring the in-app tap flow from the service business card
+  /// ([ServiceBusinessCard._openStore]).
+  void _openProfessionalsConsultant(String id) {
+    getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+    Get.to(() => OthersServiceDetailScreen(visitUserId: id));
+  }
+
+
+
+  /// Opens [VisitProductStoreDetailsScreen] for a product store reached via
+  /// deep link / QR scan
+  /// (`https://beapp.in/app/business/shopping/<visitUserId>`). The link carries
+  /// the owner (user) id used when the store was shared. The screen does
+  /// `Get.find<ViewBusinessDetailsController>()` in its initState, so that
+  /// controller is registered first; the screen then fetches its own profile +
+  /// inventory behind its own loader, so navigation is instant — mirroring the
+  /// in-app tap flow that opens `VisitProductStoreDetailsScreen(visitUserId:
+  /// ownerId)`.
+  void _openProductStore(String id) {
+    getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+    Get.to(() => VisitProductStoreDetailsScreen(visitUserId: id));
+  }
+
+  /// Opens [DiscoverProfessionalsViewScreen] for a professional/consulting
+  /// business reached via deep link / QR scan
+  /// (`https://beapp.in/app/business/services/<userId>`). The link carries the
+  /// owner (user) id used when the listing was shared. The screen fetches its
+  /// own [ProfessionalConsData] via `DiscoverController.getProfessionalByUserId`
+  /// in its initState (registering the controller itself), so passing the id as
+  /// `userId` is enough to hydrate the full view — mirroring the in-app tap flow
+  /// from the Discover professionals list.
+  void _openBusinessServices(String id) {
+    Get.to(() => DiscoverProfessionalsViewScreen(userId: id));
   }
 
   @override

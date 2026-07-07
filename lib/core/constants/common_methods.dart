@@ -168,6 +168,14 @@ String medicalPharmacyDeepLink({String? businessId}) =>
 String financialDeepLink({String? businessId}) =>
     _withBdmReferral('https://beapp.in/app/business/financial/${businessId ?? ""}');
 
+
+String professionalsConsultantDeepLink({String? id}) =>
+    _withBdmReferral('https://beapp.in/app/professionals/consultant/${id ?? ""}');
+
+
+String shopDeepLink({String? id}) =>
+    _withBdmReferral('https://beapp.in/app/business/shopping/${id ?? ""}');
+
 /// Returns the signed-in user's BDM referral code (when their BDM
 /// application status is `COMPLETED`), or `null`. Public companion
 /// to the auto-attach inside [_withBdmReferral] — call sites that

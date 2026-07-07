@@ -267,7 +267,7 @@ class OtherOverviewTabV2 extends StatelessWidget {
               child: BusinessQrCodeWidget(
                 data: details,
                 deepLinkOverride: isFinance
-                    ? financialDeepLink(businessId: otherServiceIDGlobal)
+                    ? financialDeepLink(businessId: details.id)
                     : null,
               ),
             );

@@ -143,6 +143,17 @@ class ShareService {
     );
   }
 
+  Future<void> shareProfConsProfile({
+    required String userId,
+    String? subject,
+  }) {
+    final link = professionalsConsultantDeepLink(id: userId);
+    return openShareSheet(
+      text: _profileShareMessage(link),
+      subject: subject,
+    );
+  }
+
   /// Share a single product via its deep link. Mirrors [shareProfile] —
   /// opens the OS share sheet with a short body + the product deeplink
   /// (which auto-carries the signed-in BDM's referral code as a query

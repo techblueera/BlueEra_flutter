@@ -599,20 +599,8 @@ class ServiceBusinessCard extends StatelessWidget {
   }
 
   Future<void> _shareBusiness() async {
-    // final rawName = (_profile?.businessName?.trim().isNotEmpty ?? false)
-    //     ? _profile!.businessName!.trim()
-    //     : (_profile?.profileName?.trim() ?? '');
-    // final name = rawName.isNotEmpty ? rawName : 'this business';
-    //
-    // final lines = <String>['Check out $name on BlueEra'];
-    // if (_categoryDisplay != _na) lines.add('Category: $_categoryDisplay');
-    // final address = _resolveAddress();
-    // if (address != AppStrings.na.tr) lines.add(address);
-    // if (_priceRangeText != _na) lines.add('Price: $_priceRangeText');
-    // final status = _todayStatus;
-    // if (status.isOpen) lines.add(status.label);
-    final shareLink = businessProfileDeepLink(
-      userId: _profile?.userId,
+    final shareLink = professionalsConsultantDeepLink(
+      id: _profile?.userId,
     );
 
     await ShareService.instance.openShareSheet(

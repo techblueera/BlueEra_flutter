@@ -20,6 +20,7 @@ class FinanceSearchResModel {
 class FinanceBusinessItem {
   String? id;
   String? userId;
+  String? businessProfileId;
   String? profileName;
   String? description;
   String? logoUrl;
@@ -46,6 +47,7 @@ class FinanceBusinessItem {
   FinanceBusinessItem({
     this.id,
     this.userId,
+    this.businessProfileId,
     this.profileName,
     this.description,
     this.logoUrl,
@@ -67,6 +69,7 @@ class FinanceBusinessItem {
     final profile = json['profile'] as Map<String, dynamic>?;
     id = json['_id'] ?? profile?['_id'];
     userId = json['userId'] ?? profile?['userId'];
+    businessProfileId = json['businessProfileId'] ?? profile?['businessProfileId'];
     profileName = json['profileName'] ?? profile?['profileName'];
     description = json['description'] ?? profile?['description'];
     logoUrl = (json['logoUrl'] ?? profile?['logoUrl'])?.toString().trim();

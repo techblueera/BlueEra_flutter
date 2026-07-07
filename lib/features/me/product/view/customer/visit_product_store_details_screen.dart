@@ -23,11 +23,14 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/visit_business_common_header.dart';
+
 // import 'package:BlueEra/widgets/visit_business_common_header.dart';
 import 'package:BlueEra/widgets/visit_business_stats_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
+
+import '../../../../../core/constants/common_methods.dart';
 
 class VisitProductStoreDetailsScreen extends StatefulWidget {
   final String visitUserId;
@@ -45,16 +48,17 @@ class VisitProductStoreDetailsScreen extends StatefulWidget {
 class _VisitProductStoreDetailsScreenState
     extends State<VisitProductStoreDetailsScreen> {
   final InventoryController controller =
-  getOrPut<InventoryController>(() => InventoryController());
+      getOrPut<InventoryController>(() => InventoryController());
   final ViewBusinessDetailsController viewBusinessDetailsController =
-  Get.find<ViewBusinessDetailsController>();
+      Get.find<ViewBusinessDetailsController>();
   final StoreController storeController =
-  getOrPut<StoreController>(() => StoreController());
+      getOrPut<StoreController>(() => StoreController());
+
   // Session cart — registered by the products entry point. `getOrPut`
   // here returns the same instance the cart bar on the entry point is
   // watching, so add/remove on this screen flows through.
   final ProductSelfPickupController cartController =
-  getOrPut<ProductSelfPickupController>(
+      getOrPut<ProductSelfPickupController>(
           () => ProductSelfPickupController());
 
   @override
@@ -119,6 +123,11 @@ class _VisitProductStoreDetailsScreenState
                             widget.visitUserId,
                             silent: true,
                           ),
+                          // Encode the owner userId (what this screen expects
+                          // as `visitUserId` and what the deep-link handler in
+                          // splash_screen.dart passes through) — not the
+                          // businessProfile _id.
+                          shareLink: shopDeepLink(id: details?.userId),
                         ),
                         const SizedBox(height: 10),
                         VisitBusinessStatsCard(details: details),
@@ -128,7 +137,8 @@ class _VisitProductStoreDetailsScreenState
 
                   // ─── 2. Top Selling Products (preview of 20) ───
                   Obx(() {
-                    if (controller.ownDraftAndPublicProductResponse.value.status ==
+                    if (controller
+                            .ownDraftAndPublicProductResponse.value.status ==
                         Status.INITIAL) {
                       return Padding(
                         padding: EdgeInsets.only(top: SizeConfig.paddingXSL),
@@ -140,7 +150,6 @@ class _VisitProductStoreDetailsScreenState
                         : const SizedBox.shrink();
                   }),
 
-
                   // ─── 3. Categories ───
                   Obx(() {
                     if (controller.fetchProductCategoryResponse.value.status ==
@@ -149,7 +158,6 @@ class _VisitProductStoreDetailsScreenState
                     }
                     return _categoryWithInventoryWidget();
                   }),
-
 
                   // ─── 4. Live Photos ───
                   Obx(() {
@@ -178,9 +186,9 @@ class _VisitProductStoreDetailsScreenState
                                     .where((p) => p.trim().isNotEmpty)
                                     .toList(),
                                 natureOfBusiness:
-                                details.subCategoryDetails?.name ??
-                                    details.natureOfBusiness ??
-                                    'OTHER',
+                                    details.subCategoryDetails?.name ??
+                                        details.natureOfBusiness ??
+                                        'OTHER',
                                 onViewFullScreen: ({
                                   required int index,
                                   required List<String> storeImage,
@@ -266,7 +274,7 @@ class _VisitProductStoreDetailsScreenState
               SizedBox(width: SizeConfig.size8),
               InkWell(
                 onTap: () => Get.to(
-                      () => CustomerAllTopSellingProductsScreen(
+                  () => CustomerAllTopSellingProductsScreen(
                     visitUserId: widget.visitUserId,
                   ),
                 ),
@@ -286,7 +294,7 @@ class _VisitProductStoreDetailsScreenState
               // Preview only — cap to first 20 items; "View All" opens
               // the paginated grid.
               final previewCount = controller.allProducts.length >
-                  InventoryController.ownProductsPreviewLimit
+                      InventoryController.ownProductsPreviewLimit
                   ? InventoryController.ownProductsPreviewLimit
                   : controller.allProducts.length;
               return ListView.builder(
@@ -348,35 +356,35 @@ class _VisitProductStoreDetailsScreenState
           SizedBox(height: SizeConfig.paddingXSL),
           categoryList.isNotEmpty
               ? MasonryGridView.count(
-            crossAxisCount: 3,
-            crossAxisSpacing: 6,
-            mainAxisSpacing: 6,
-            padding: EdgeInsets.zero,
-            primary: false,
-            shrinkWrap: true,
-            itemCount: categoryList.length,
-            itemBuilder: (context, index) {
-              var categoryItem = categoryList[index];
-              return CommonServiceCard(
-                service: categoryItem,
-                getName: (c) => c.name ?? '',
-                getIcon: (c) => c.image ?? '',
-                iconHeight: SizeConfig.size60,
-                boxShadow: const [],
-                onTap: (c) {
-                  Get.to(
-                        () => VisitProductProductsScreen(
-                      parentCategory: c,
-                      visitBusinessId: widget.visitUserId,
-                    ),
-                  );
-                },
-              );
-            },
-          )
+                  crossAxisCount: 3,
+                  crossAxisSpacing: 6,
+                  mainAxisSpacing: 6,
+                  padding: EdgeInsets.zero,
+                  primary: false,
+                  shrinkWrap: true,
+                  itemCount: categoryList.length,
+                  itemBuilder: (context, index) {
+                    var categoryItem = categoryList[index];
+                    return CommonServiceCard(
+                      service: categoryItem,
+                      getName: (c) => c.name ?? '',
+                      getIcon: (c) => c.image ?? '',
+                      iconHeight: SizeConfig.size60,
+                      boxShadow: const [],
+                      onTap: (c) {
+                        Get.to(
+                          () => VisitProductProductsScreen(
+                            parentCategory: c,
+                            visitBusinessId: widget.visitUserId,
+                          ),
+                        );
+                      },
+                    );
+                  },
+                )
               : EmptyStateWidget(
-            message: 'This store has no products yet.',
-          ),
+                  message: 'This store has no products yet.',
+                ),
           SizedBox(height: SizeConfig.paddingXSL),
         ],
       ),
