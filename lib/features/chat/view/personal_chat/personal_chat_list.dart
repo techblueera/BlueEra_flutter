@@ -1,8 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/features/chat/notification_chat/controller/blueera_notification_controller.dart';
-import 'package:BlueEra/features/chat/notification_chat/view/blueera_notification_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -51,7 +49,6 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
   final pinArchiveController = getOrPut(() => ChatPinArchiveController());
   final lockController = getOrPut(() => ChatLockController());
   final customTabController = getOrPut(() => CustomChatTabController());
-  final blueEraNotifController = BlueEraNotificationController.to;
 
   // Locally-personalized name/image for the personal AI chat row. Loaded from
   // [AiChatProfileStorage] and refreshed when returning from the AI chat
@@ -565,19 +562,6 @@ Widget personalChatListWidget(GetChatListModel? data,ThemeData theme ){
       return chat == null || !lockedIds.contains(chat.conversationId);
     }).toList();
 
-    // Drop the server-side "BlueEra" broadcast conversation — it's already
-    // represented by the synthetic pinned BlueEra row below, so keeping the
-    // server copy would show BlueEra twice. Matched by the system id or the
-    // "BlueEra" sender name/contact.
-    chatList = chatList.where((chat) {
-      if (chat == null) return true;
-      final id = (chat.conversationId ?? '').toLowerCase();
-      if (id == 'blueera_notifications') return false;
-      final name = (chat.sender?.name ?? '').trim().toLowerCase();
-      final contact = (chat.sender?.contactNo ?? '').trim().toLowerCase();
-      return name != 'blueera' && contact != 'blueera';
-    }).toList();
-
     // Sort: pinned chats first, then unpinned
     chatList.sort((a, b) {
       final aPinned = pinnedIds.contains(a?.conversationId);
@@ -589,13 +573,12 @@ Widget personalChatListWidget(GetChatListModel? data,ThemeData theme ){
 
     final hasArchived = archivedIds.isNotEmpty;
 
-    // Count special rows at top: Records row (if archived) + AI chat +
-    // BlueEra notifications row. BlueEra is hidden in the forward picker (you
-    // can't forward a message into the system notifications thread).
+    // Count special rows at top: Records row (if archived) + AI chat. The
+    // BlueEra thread is no longer a synthetic pinned row — it now comes
+    // straight from the server chat list like any other conversation.
     final aiOffset = widget.hideAiChats == true ? 0 : 1;
     final recordsOffset = hasArchived ? 1 : 0;
-    final blueEraOffset = widget.isForwardUI == true ? 0 : 1;
-    final topRowCount = aiOffset + recordsOffset + blueEraOffset;
+    final topRowCount = aiOffset + recordsOffset;
 
     return Container(
       margin: EdgeInsets.only(bottom: SizeConfig.size70),
@@ -665,13 +648,6 @@ Widget personalChatListWidget(GetChatListModel? data,ThemeData theme ){
             );
           }
 
-          // Pinned "BlueEra" system row — broadcast/system notifications shown
-          // as a chat thread. Sits right after the AI row (or in the AI slot
-          // when the AI row is hidden).
-          if (blueEraOffset == 1 && index == recordsOffset + aiOffset) {
-            return _buildBlueEraNotificationRow(theme);
-          }
-
           final chatIndex = index - topRowCount;
           final chat = chatList[chatIndex];
           final isInSelectionMode = chatViewController.isChatListSelectionMode.value;
@@ -704,50 +680,6 @@ Widget personalChatListWidget(GetChatListModel? data,ThemeData theme ){
       ),
     );
 }
-
-  /// The pinned "BlueEra" system row. Reuses [ChatListTile] with the synthetic
-  /// [ChatViewController.blueEraNotificationModule], overwriting its preview /
-  /// time / unread-count from the live notification store, and opens
-  /// [BlueEraNotificationScreen] on tap. Wrapped in [Obx] so a freshly-arrived
-  /// notification updates the row instantly.
-  Widget _buildBlueEraNotificationRow(ThemeData theme) {
-    return Obx(() {
-      final chat = ChatViewController.blueEraNotificationModule;
-      final latest = blueEraNotifController.latest;
-      final unread = blueEraNotifController.unreadCount;
-      // Depend on the reactive list length too, so inserts always rebuild.
-      final _ = blueEraNotifController.messages.length;
-
-      chat?.lastMessage =
-          latest?.preview ?? "Tap to view your BlueEra notifications";
-      chat?.unreadCount = unread;
-      chat?.updatedAt = latest != null
-          ? DateTime.fromMillisecondsSinceEpoch(latest.timeMillis)
-              .toUtc()
-              .toIso8601String()
-          : '';
-
-      return ChatListTile(
-        onTab: () {
-          if (chatViewController.isChatListSelectionMode.value) return;
-          Get.to(() => const BlueEraNotificationScreen());
-        },
-        // No long-press: the system row can't be selected / flagged / pinned.
-        onLongPress: null,
-        isFromGroupSelect: widget.isNewGroupUI,
-        isChatListSelected: false,
-        onSelect: () {},
-        type: AppConstants.personal_Chat_Type,
-        index: -1,
-        chatViewController: chatViewController,
-        chat: chat,
-        theme: theme,
-        isForwardUI: widget.isForwardUI,
-        showFlagBadge: false,
-        context: context,
-      );
-    });
-  }
 
   Widget _buildRecordsRow() {
     return Obx(() {

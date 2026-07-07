@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_theme_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/messageMediaUrl.dart';
@@ -62,6 +63,7 @@ class _BlueEraNotificationScreenState extends State<BlueEraNotificationScreen> {
             Obx(() => chatThemeController.chatBackground()),
             Obx(() {
               final items = controller.messages;
+              logs("ergerfsd ${items.last.toMap()}");
               if (items.isEmpty) {
                 return Center(
                   child: Padding(
