@@ -509,15 +509,14 @@ class _VideoAndImageCardWidgetState extends State<VideoAndImageCardWidget> {
     return RichText(text: TextSpan(style: baseStyle, children: spans));
   }
 
-  /// Opens a tapped caption link — BlueEra links use the in-app browser,
-  /// everything else the in-app web view (mirrors the text-bubble behaviour).
+  /// Opens a tapped caption link in the device's default browser / the
+  /// respective app that handles the URL, instead of an in-app web view.
   void _openLink(String url) {
     final uri = Uri.tryParse(url);
     if (uri == null) return;
-    final isBlueEra = url.contains('blueera');
     launchUrl(
       uri,
-      mode: isBlueEra ? LaunchMode.inAppBrowserView : LaunchMode.inAppWebView,
+      mode: LaunchMode.externalApplication,
     );
   }
 

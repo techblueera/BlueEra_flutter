@@ -144,75 +144,69 @@ class _BlueEraNotificationScreenState extends State<BlueEraNotificationScreen> {
     );
   }
 
-  /// A received (left-aligned) text bubble matching [MessageBubble]'s incoming
-  /// style — same background colour, radius, text style and time widget — but
-  /// always renders the FULL notification text (no 100-char "Read more" cap).
+  /// A full-width broadcast card — the BlueEra conversation spans the whole
+  /// screen (edge to edge, left and right) instead of the usual 85%-width
+  /// received bubble, so long-form announcements read like the reference
+  /// broadcast layout. Text is rendered a step larger than the standard chat
+  /// font. Always renders the FULL notification text (no "Read more" cap).
   Widget _bubble(BlueEraNotificationItem item) {
     final hasTitle = item.title.trim().isNotEmpty &&
         item.title.trim().toLowerCase() != 'blueera';
     final body = item.body.trim();
 
     return Container(
-      width: MediaQuery.of(context).size.width * 0.85,
-      margin: const EdgeInsets.only(right: 50, top: 2, bottom: 2),
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: IntrinsicWidth(
-          child: Obx(
-            () => Container(
-              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
-              decoration: BoxDecoration(
-                color: chatThemeController.receiveMessageBgColor.value,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  topRight: Radius.circular(12),
-                  bottomRight: Radius.circular(12),
-                  bottomLeft: Radius.circular(0),
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      child: Obx(
+        () => Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+          decoration: BoxDecoration(
+            color: chatThemeController.receiveMessageBgColor.value,
+            borderRadius: const BorderRadius.all(Radius.circular(12)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Photos attached to the broadcast — rendered like a chat
+              // image message, tappable to open the full-screen viewer.
+              if (item.hasImages)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: _buildImages(item),
+                ),
+              if (hasTitle)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: CustomText(
+                    item.title.trim(),
+                    fontSize: chatThemeController.chatFontSize.value + 4,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primaryColor,
+                    maxLines: 4,
+                  ),
+                ),
+              if (body.isNotEmpty)
+                // Full text — no truncation / Read more.
+                Text(
+                  body,
+                  style: chatThemeController.chatTextStyle(
+                    fontSize: chatThemeController.chatFontSize.value + 3,
+                    fontWeight: FontWeight.w500,
+                    isMyMessage: false,
+                  ),
+                ),
+              const SizedBox(height: 4),
+              Align(
+                alignment: Alignment.centerRight,
+                child: CustomText(
+                  _formatTime(item.timeMillis),
+                  fontSize: 11.5,
+                  color: chatThemeController.chatTimeColor.value,
                 ),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Photos attached to the broadcast — rendered like a chat
-                  // image message, tappable to open the full-screen viewer.
-                  if (item.hasImages)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 5),
-                      child: _buildImages(item),
-                    ),
-                  if (hasTitle)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 3),
-                      child: CustomText(
-                        item.title.trim(),
-                        fontSize: chatThemeController.chatFontSize.value,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primaryColor,
-                        maxLines: 4,
-                      ),
-                    ),
-                  if (body.isNotEmpty)
-                    // Full text — no truncation / Read more.
-                    Text(
-                      body,
-                      style: chatThemeController.chatTextStyle(
-                        fontWeight: FontWeight.w500,
-                        isMyMessage: false,
-                      ),
-                    ),
-                  const SizedBox(height: 3),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: CustomText(
-                      _formatTime(item.timeMillis),
-                      fontSize: 10.5,
-                      color: chatThemeController.chatTimeColor.value,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            ],
           ),
         ),
       ),
@@ -268,7 +262,9 @@ class _BlueEraNotificationScreenState extends State<BlueEraNotificationScreen> {
   /// shared full-screen viewer (which plays videos) with the body as caption.
   Widget _buildImages(BlueEraNotificationItem item) {
     final images = item.images;
-    final width = MediaQuery.of(context).size.width * 0.85 - 22;
+    // Full-width bubble: screen width minus the outer margins (6*2) and the
+    // bubble's inner horizontal padding (14*2).
+    final width = MediaQuery.of(context).size.width - 40;
 
     if (images.length == 1) {
       return GestureDetector(

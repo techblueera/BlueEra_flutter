@@ -9,6 +9,7 @@ import '../../../../core/constants/app_constant.dart';
 import '../../../../core/services/notification_utils.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
+import '../widget/broadcast_message_card.dart';
 import '../widget/chat_input_box.dart';
 import '../widget/component_widgets.dart';
 import '../widget/message_card.dart';
@@ -260,20 +261,26 @@ class _PersonalChatScreenState extends State<PersonalChatScreen>
                               final message = widget.type == "Admin"
                                   ? messages[index]
                                   : messages[messages.length - 1 - index];
+                              // Broadcast (Admin) thread: render every message as
+                              // the full-width notification-style card so it looks
+                              // identical to the BlueEra notification screen. All
+                              // other chats keep the standard MessageCard bubble.
                               return RepaintBoundary(
                                 key: ValueKey(message.id ?? index),
-                                child: MessageCard(
-                                  message: message,
-                                  isInitialMessage: false,
-                                  conversationId: message.conversationId,
-                                  userId: message.sender?.id,
-                                  name: message.sender?.name,
-                                  contactNo: message.sender?.contactNo,
-                                  profileImage: message.sender?.profileImage,
-                                  conversationUserId: widget.userId,
-                                  conversationName: widget.name,
-                                  conversationProfileImage: widget.profileImage,
-                                ),
+                                child: widget.type == "Admin"
+                                    ? BroadcastMessageCard(message: message)
+                                    : MessageCard(
+                                        message: message,
+                                        isInitialMessage: false,
+                                        conversationId: message.conversationId,
+                                        userId: message.sender?.id,
+                                        name: message.sender?.name,
+                                        contactNo: message.sender?.contactNo,
+                                        profileImage: message.sender?.profileImage,
+                                        conversationUserId: widget.userId,
+                                        conversationName: widget.name,
+                                        conversationProfileImage: widget.profileImage,
+                                      ),
                               );
                             },
                           );

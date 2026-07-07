@@ -1018,7 +1018,7 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
                                   onPressed: () async {
                                     final url = Uri.parse(widget.message.metadata?.order?.trackingUrl ?? '');
                                     if (await canLaunchUrl(url)) {
-                                      await launchUrl(url, mode: LaunchMode.inAppWebView);
+                                      await launchUrl(url, mode: LaunchMode.externalApplication);
                                     }
                                   },
                                   icon: SvgPicture.asset(AppIconAssets.carbon_delivery),
@@ -1572,8 +1572,8 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
 
     return GestureDetector(
       onTap: () {
-        final isBlueEra = link.contains('blueera');
-        launchUrl(Uri.parse(link), mode: isBlueEra ? LaunchMode.inAppBrowserView : LaunchMode.inAppWebView);
+        // Open in the external browser / respective app, not an in-app view.
+        launchUrl(Uri.parse(link), mode: LaunchMode.externalApplication);
       },
       child: ClipRRect(
         borderRadius: BorderRadius.circular(8),
@@ -2660,7 +2660,7 @@ class _FoodCardMessageCardBusinessState extends State<FoodCardMessageCardBusines
                                   onPressed: () async {
                                     final url = Uri.parse(widget.message.metadata?.order?.trackingUrl ?? '');
                                     if (await canLaunchUrl(url)) {
-                                      await launchUrl(url, mode: LaunchMode.inAppWebView);
+                                      await launchUrl(url, mode: LaunchMode.externalApplication);
                                     }
                                   },
                                   icon: SvgPicture.asset(AppIconAssets.carbon_delivery),
