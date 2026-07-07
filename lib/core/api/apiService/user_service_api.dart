@@ -116,6 +116,11 @@ mixin UserServiceApi {
   String profileVisitStats(String userId) =>
       'user-service/profile-visit/$userId/profile-visits';
 
+  // ── Business search ─────────────────────────────────────────────────
+  // Free-text + geo business search. Query params: q, lat, lng, radius,
+  // page, limit. Backs the content-creator "Add associate brands" flow.
+  final String businessSearch = 'user-service/business/search';
+
   // ── Categories & subcategories ──────────────────────────────────────
   final String getAllcategories = 'user-service/business/getAllcategories';
   final String getAllcategoriesByType = 'user-service/business/by-type/';

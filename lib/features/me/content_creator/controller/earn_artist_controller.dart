@@ -1,13 +1,16 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/me/content_creator/model/earn_artist_model.dart';
 import 'package:BlueEra/features/me/content_creator/repo/earn_artist_repo.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Drives the content-creator "Overview" tab. Loads the logged-in creator's own
 /// artist profile (`GET earn-service/earn-artists`) and exposes it as reactive
@@ -49,6 +52,101 @@ class EarnArtistController extends GetxController {
   /// Gallery section's inline "Uploading…" state).
   final RxBool isGalleryUploading = false.obs;
 
+  // ─── ASSOCIATE-BRAND DETAIL CACHE ─────────────────────────────────────────
+  // `brandCollaborations` persists on the backend as bare Business-id strings,
+  // so the artist GET never carries a brand's logo/name/location. To render the
+  // Overview "Associates Brands" strip we keep a local id→details cache (the
+  // full detail is known the moment the user picks a business on the search
+  // page). Persisted to SharedPreferences so the strip survives an app restart.
+
+  /// id → {name, logo, subLabel} for every brand the user has ever added.
+  final RxMap<String, ArtistBrand> brandDetails = <String, ArtistBrand>{}.obs;
+
+  bool _brandCacheLoaded = false;
+
+  String get _brandCacheKey => 'earn_artist_brand_details_$userId';
+
+  /// Loads the persisted brand-detail cache once (no-op after the first call).
+  /// Call before rendering the brands strip so saved logos/names resolve.
+  Future<void> loadBrandDetailsCache() async {
+    if (_brandCacheLoaded) return;
+    _brandCacheLoaded = true;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(_brandCacheKey);
+      if (raw == null || raw.isEmpty) return;
+      final decoded = jsonDecode(raw);
+      if (decoded is Map) {
+        final loaded = <String, ArtistBrand>{};
+        decoded.forEach((k, v) {
+          if (v is Map) {
+            loaded[k.toString()] = ArtistBrand(
+              id: k.toString(),
+              name: (v['name'] ?? '').toString(),
+              logo: (v['logo'] ?? '').toString(),
+              subLabel: (v['subLabel'] ?? '').toString(),
+            );
+          }
+        });
+        brandDetails.assignAll(loaded);
+      }
+    } catch (_) {
+      // Non-fatal — the strip just falls back to initials for unresolved ids.
+    }
+  }
+
+  Future<void> _persistBrandDetailsCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final map = <String, dynamic>{
+        for (final e in brandDetails.entries)
+          e.key: {
+            'name': e.value.name,
+            'logo': e.value.logo,
+            'subLabel': e.value.subLabel,
+          },
+      };
+      await prefs.setString(_brandCacheKey, jsonEncode(map));
+    } catch (_) {
+      // Non-fatal — cache simply isn't persisted this run.
+    }
+  }
+
+  /// The Business ids currently saved on the profile (order preserved).
+  List<String> get brandIds => [
+        for (final b in (artist.value?.brandCollaborations ?? const <ArtistBrand>[]))
+          if (b.id.isNotEmpty) b.id,
+      ];
+
+  /// Resolves a stored brand (usually id-only) to its cached display detail,
+  /// falling back to whatever the stored entry already carries.
+  ArtistBrand resolveBrand(ArtistBrand stored) {
+    final cached = brandDetails[stored.id];
+    if (cached == null) return stored;
+    return ArtistBrand(
+      id: stored.id,
+      name: stored.name.isNotEmpty ? stored.name : cached.name,
+      logo: stored.logo.isNotEmpty ? stored.logo : cached.logo,
+      subLabel: stored.subLabel.isNotEmpty ? stored.subLabel : cached.subLabel,
+    );
+  }
+
+  /// Saves the associate-brand selection: caches each brand's display [details]
+  /// locally (so the strip can render logos/names), then PUTs the full id list
+  /// (`brandCollaborations` REPLACES — see the integration guide §2c). Returns
+  /// true on success.
+  Future<bool> saveBrandCollaborations({
+    required List<String> ids,
+    required Map<String, ArtistBrand> details,
+  }) async {
+    // Merge/refresh the detail cache for the ids we know about.
+    brandDetails.addAll(details);
+    // Drop cache entries no longer selected to keep it from growing unbounded.
+    brandDetails.removeWhere((k, _) => !ids.contains(k));
+    await _persistBrandDetailsCache();
+    return await updateArtist({'brandCollaborations': ids});
+  }
+
   // Expertise picker — the suggestion list is fetched from the predefined
   // catalog (`predefined-artist-expertise/{category}?type=`) and [selectedExpertise]
   // holds the working selection while the sheet is open.
@@ -69,6 +167,10 @@ class EarnArtistController extends GetxController {
   /// Local image paths the user picked for the new certificate's media, held
   /// while the Add-certificate sheet is open (uploaded to S3 on save).
   final RxList<String> certMediaPaths = <String>[].obs;
+
+  /// Existing (already-uploaded) media URLs of the certificate being EDITED,
+  /// shown as removable previews in the edit sheet. Empty in add mode.
+  final RxList<String> certExistingMedia = <String>[].obs;
 
   // Contact-us inputs.
   final TextEditingController contactDescController = TextEditingController();
@@ -164,6 +266,7 @@ class EarnArtistController extends GetxController {
     certNameController.clear();
     certDescController.clear();
     certMediaPaths.clear();
+    certExistingMedia.clear();
   }
 
   // ─── THE ONE WRITE PATH ───────────────────────────────────────────────────
@@ -276,6 +379,53 @@ class EarnArtistController extends GetxController {
     }
   }
 
+  /// The gallery image url currently being deleted (drives a per-tile spinner).
+  final RxnString galleryDeletingUrl = RxnString();
+
+  /// Removes a single gallery [imageUrl] via
+  /// `DELETE .../gallery/{groupIndex}/images` (guide §2d). The group index is
+  /// resolved from whichever gallery group holds the url, then the profile is
+  /// refetched so the mosaic drops the tile.
+  Future<bool> removeGalleryImage(String imageUrl) async {
+    final id = artist.value?.id ?? '';
+    if (id.isEmpty || imageUrl.isEmpty) {
+      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
+      return false;
+    }
+    final groups = artist.value?.gallery ?? const <ArtistGallery>[];
+    var groupIndex = -1;
+    for (var i = 0; i < groups.length; i++) {
+      if (groups[i].images.contains(imageUrl)) {
+        groupIndex = i;
+        break;
+      }
+    }
+    if (groupIndex < 0) {
+      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
+      return false;
+    }
+    try {
+      galleryDeletingUrl.value = imageUrl;
+      final res = await _repo.deleteGalleryImages(
+        id: id,
+        galleryIndex: groupIndex,
+        imageUrls: [imageUrl],
+      );
+      if (!res.isSuccess) {
+        commonSnackBar(
+            message: res.message ?? AppStrings.somethingWentWrong.tr);
+        return false;
+      }
+      await fetchMyArtistProfile();
+      return true;
+    } catch (e) {
+      commonSnackBar(message: e.toString());
+      return false;
+    } finally {
+      galleryDeletingUrl.value = null;
+    }
+  }
+
   // ─── CERTIFICATE (text + media) ───────────────────────────────────────────
   /// Appends a certificate/award. `certificatesAndAwards` REPLACES on PUT, so
   /// the whole [existing] list is re-sent (media preserved as bare keys) plus
@@ -345,6 +495,96 @@ class EarnArtistController extends GetxController {
       // PUT each picked file's bytes to its minted presigned url (same order).
       if (paths.isNotEmpty) {
         final urls = _certificateUploadUrls(res.response?.data, newIndex);
+        final count = urls.length < paths.length ? urls.length : paths.length;
+        for (var i = 0; i < count; i++) {
+          await ChannelRepo().uploadVideoToS3(
+            file: File(paths[i]),
+            fileType: _imageContentType(paths[i]),
+            preSignedUrl: urls[i],
+            onProgress: (_) {},
+          );
+        }
+      }
+
+      await fetchMyArtistProfile();
+      return true;
+    } catch (e) {
+      commonSnackBar(message: e.toString());
+      return false;
+    } finally {
+      isUpdating.value = false;
+    }
+  }
+
+  /// Edits the certificate at [index] in place. `certificatesAndAwards`
+  /// REPLACES on PUT, so the whole [existing] list is re-sent with the entry at
+  /// [index] swapped for the new text (its existing media preserved as bare
+  /// keys). Any [newMediaPaths] are minted via `certificateUploads` and uploaded
+  /// to S3, exactly like [addCertificate].
+  Future<bool> updateCertificate({
+    required int index,
+    required String name,
+    required String description,
+    required List<ArtistCertificate> existing,
+    List<String>? keptMedia,
+    List<String> newMediaPaths = const [],
+  }) async {
+    if (name.trim().isEmpty) {
+      commonSnackBar(message: 'Please enter a title');
+      return false;
+    }
+    final id = artist.value?.id ?? '';
+    if (id.isEmpty || index < 0 || index >= existing.length) {
+      commonSnackBar(message: AppStrings.somethingWentWrong.tr);
+      return false;
+    }
+    try {
+      isUpdating.value = true;
+
+      final paths =
+          newMediaPaths.where((p) => p.trim().isNotEmpty).toList();
+
+      // Full replace list — every cert re-sent with its media as bare keys; the
+      // entry at [index] takes the edited name/description. For that entry the
+      // media is whatever the editor KEPT ([keptMedia]); other entries keep all
+      // their media untouched.
+      final certList = <Map<String, dynamic>>[
+        for (var i = 0; i < existing.length; i++)
+          {
+            'name': i == index ? name.trim() : existing[i].name,
+            'description':
+                i == index ? description.trim() : existing[i].description,
+            'media': [
+              for (final m in (i == index
+                  ? (keptMedia ?? existing[i].media)
+                  : existing[i].media))
+                {'type': 'image', 'key': _bareKey(m)},
+            ],
+          },
+      ];
+
+      final params = <String, dynamic>{'certificatesAndAwards': certList};
+      if (paths.isNotEmpty) {
+        params['certificateUploads'] = [
+          {
+            'certificateIndex': index,
+            'media': [
+              for (final p in paths)
+                {'type': 'image', 'contentType': _imageContentType(p)},
+            ],
+          },
+        ];
+      }
+
+      final res = await _repo.updateArtistProfile(id: id, params: params);
+      if (!res.isSuccess) {
+        commonSnackBar(
+            message: res.message ?? AppStrings.somethingWentWrong.tr);
+        return false;
+      }
+
+      if (paths.isNotEmpty) {
+        final urls = _certificateUploadUrls(res.response?.data, index);
         final count = urls.length < paths.length ? urls.length : paths.length;
         for (var i = 0; i < count; i++) {
           await ChannelRepo().uploadVideoToS3(
@@ -510,6 +750,7 @@ class EarnArtistController extends GetxController {
   /// expertise/pricing/certificate/brands/gallery sections from.
   Future<void> ensureArtistProfile(
       {required String? type, required String? category}) async {
+    await loadBrandDetailsCache();
     await fetchMyArtistProfile();
     if (!hasProfile.value) {
       await createMinimalArtistProfile(type: type, category: category);

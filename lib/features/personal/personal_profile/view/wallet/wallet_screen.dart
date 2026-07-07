@@ -158,7 +158,7 @@ class _WalletScreenState extends State<WalletScreen> {
                         ),
                         CustomText(
                           // Current balance = eligible + awaited amounts.
-                          '\u{20B9}${(controller.walletResponseModalClass.value.data?.eligibleBalance ?? 0) + (controller.walletResponseModalClass.value.data?.awaitedBalance ?? 0)}*',
+                          '\u{20B9}${_amount((controller.walletResponseModalClass.value.data?.eligibleBalance ?? 0) + (controller.walletResponseModalClass.value.data?.awaitedBalance ?? 0))}*',
                           fontSize: SizeConfig.heading,
                           fontWeight: FontWeight.w600,
                           color: Colors.white,
@@ -375,19 +375,48 @@ class _WalletScreenState extends State<WalletScreen> {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _statInline('Eligible Withdrawal', data?.eligibleBalance ?? 0),
-            SizedBox(width: SizeConfig.size16),
-            _statInline('Awaited Amount', data?.awaitedBalance ?? 0),
-          ],
+        // The two-up row of long labels + amounts can exceed the header width
+        // (e.g. "Awaited Amount: ₹3000" clipped off the edge). FittedBox
+        // scales the whole row down to fit instead of overflowing, keeping the
+        // intended single-line layout.
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _statInline('Eligible Withdrawal', data?.eligibleBalance ?? 0),
+              SizedBox(width: SizeConfig.size16),
+              _statInline('Awaited Amount', data?.awaitedBalance ?? 0),
+            ],
+          ),
         ),
         SizedBox(height: 6),
         _statInline(
             AppStrings.totalEarning.tr, data?.computedTotalEarning ?? 0),
       ],
     );
+  }
+
+  /// Compact money text — large values use Indian notation (K / L / Cr) with up
+  /// to 2 decimals (trailing zeros trimmed); values under 1,000 render exact
+  /// (2 decimals only when fractional, so raw doubles like 0.9818… don't leak).
+  String _amount(num v) {
+    final n = v.abs();
+    if (n >= 10000000) return '${_trim(v / 10000000)}Cr';
+    if (n >= 100000) return '${_trim(v / 100000)}L';
+    if (n >= 1000) return '${_trim(v / 1000)}K';
+    return v == v.truncateToDouble()
+        ? v.toInt().toString()
+        : v.toStringAsFixed(2);
+  }
+
+  String _trim(num v) {
+    var s = v.toStringAsFixed(2);
+    if (s.contains('.')) {
+      s = s.replaceFirst(RegExp(r'0+$'), '');
+      s = s.replaceFirst(RegExp(r'\.$'), '');
+    }
+    return s;
   }
 
   /// "<label>: ₹<value>" inline pair in white, used by [_headerStats].
@@ -402,7 +431,7 @@ class _WalletScreenState extends State<WalletScreen> {
           color: Colors.white,
         ),
         CustomText(
-          '\u{20B9}$value',
+          '\u{20B9}${_amount(value)}',
           fontSize: SizeConfig.medium15,
           fontWeight: FontWeight.w700,
           color: Colors.white,
