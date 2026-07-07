@@ -83,6 +83,20 @@ class FoodRepo extends BaseService {
     return response;
   }
 
+  /// Cross-category food product showcase (paginated) for the category menu
+  /// screen's "Suggested Products" section.
+  Future<ResponseModel> getFoodCategoryShowcaseRepo(
+      {required Map<String, dynamic> queryParam}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      foodCategoryShowcase,
+      params: queryParam,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   Future<ResponseModel> getFoodByCategoryIdRepo(
       {required Map<String, dynamic> queryPatrams}) async {
     final response = await ApiBaseHelper().getHTTP(

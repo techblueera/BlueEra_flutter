@@ -81,6 +81,19 @@ class ProductRepo extends BaseService {
     return response;
   }
 
+  /// Cross-category product showcase (paginated) for the super-category
+  /// screen's "Suggested Products" section.
+  Future<ResponseModel> fetchProductCategoryShowcaseRepo({required Map<String, dynamic> queryParams}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      productCategoryShowcase,
+      params: queryParams,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   /// Product Snap Search...
   Future<ResponseModel> fetchProductSnapSearchRepo({Map<String, dynamic>? params}) async {
     final response = await ApiBaseHelper().postHTTP(

@@ -8,6 +8,11 @@ mixin ProductServiceApi {
   /// Admin product create endpoint used by the AI flow's "Post Product".
   final String createProductAdmin = "product-service/api/products/admin";
   final String searchProductViaCategory = 'product-service/api/products/search';
+
+  /// Cross-category product showcase shown at the bottom of the product
+  /// super-category screen. `GET product-service/api/products/category-showcase`.
+  final String productCategoryShowcase =
+      'product-service/api/products/category-showcase';
   String addUpdateProductVariant(String productId) =>
       'product-service/api/products/$productId/variants';
   String getProductById(String productId) =>

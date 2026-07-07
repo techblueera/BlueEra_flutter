@@ -43,6 +43,20 @@ class GroceryRepo extends BaseService {
     return response;
   }
 
+  /// Cross-category product showcase (paginated) shown at the bottom of the
+  /// grocery super-category screen.
+  Future<ResponseModel> fetchGroceryCategoryShowcaseRepo(
+      {Map<String, dynamic>? queryParam}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      groceryCategoryShowcase,
+      params: queryParam,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   Future<ResponseModel> groceryCategoryOfChildrenRepo(
       {required String key}) async {
     final response = await ApiBaseHelper().getHTTP(

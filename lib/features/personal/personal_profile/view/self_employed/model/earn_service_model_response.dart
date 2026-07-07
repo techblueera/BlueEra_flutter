@@ -37,6 +37,16 @@ class EarnServiceModelResponse {
   /// working-hours editor on the update sheet.
   List<Schedule>? schedule;
 
+  /// Security-deposit go-live status — a sibling field the backend returns on
+  /// the selfWork service object (GET /services?all=false, /services/:id, …).
+  /// Null on non-selfWork services / when absent → treated as "allowed"
+  /// (fail-open). See docs/backend/SELF_WORK_GO_LIVE_FRONTEND_INTEGRATION.md.
+  SecurityDepositStatus? securityDeposit;
+
+  /// The go-live decision: allowed when there's no deposit info or the deposit
+  /// is paid / not required; blocked ONLY when explicitly `required && !paid`.
+  bool get canGoLive => securityDeposit?.canGoLive ?? true;
+
   EarnServiceModelResponse(
       {this.sId,
         this.serviceProvider,
@@ -127,6 +137,10 @@ class EarnServiceModelResponse {
         schedule!.add(Schedule.fromJson(v));
       }
     }
+    final sd = json['securityDeposit'];
+    securityDeposit = sd is Map
+        ? SecurityDepositStatus.fromJson(Map<String, dynamic>.from(sd))
+        : null;
   }
 
   Map<String, dynamic> toJson() {
@@ -428,6 +442,52 @@ class SocialLinks {
     data['website'] = this.website;
     return data;
   }
+}
+
+/// Security-deposit go-live status for a selfWork service. Mirrors the backend
+/// `securityDeposit` object 1:1 (see
+/// docs/backend/SELF_WORK_GO_LIVE_FRONTEND_INTEGRATION.md).
+///
+/// Fail-open by construction: [paid] defaults to `true`, so a missing/partial
+/// object never traps a provider offline.
+class SecurityDepositStatus {
+  /// `false` → this profession owes no deposit; never gate.
+  final bool required;
+
+  /// The gate. `true` → allow go-live; `false` → block + show the deposit CTA.
+  final bool paid;
+
+  /// Raw UserSecurityDeposit.status (created / held / refund_requested / …).
+  final String? paymentStatus;
+
+  /// The user's deposit id (deep-link into the deposit/refund screen).
+  final String? depositId;
+
+  /// ISO date the deposit becomes refundable once `held`.
+  final DateTime? refundEligibleAt;
+
+  SecurityDepositStatus({
+    this.required = false,
+    this.paid = true,
+    this.paymentStatus,
+    this.depositId,
+    this.refundEligibleAt,
+  });
+
+  factory SecurityDepositStatus.fromJson(Map<String, dynamic> j) {
+    return SecurityDepositStatus(
+      required: j['required'] ?? false,
+      paid: j['paid'] ?? true, // default true = fail-open
+      paymentStatus: j['paymentStatus'] as String?,
+      depositId: j['depositId'] as String?,
+      refundEligibleAt: j['refundEligibleAt'] != null
+          ? DateTime.tryParse(j['refundEligibleAt'].toString())
+          : null,
+    );
+  }
+
+  /// Block go-live ONLY when the deposit is required and unpaid.
+  bool get canGoLive => !required || paid;
 }
 
 class UserLocation {

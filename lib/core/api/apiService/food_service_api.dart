@@ -7,6 +7,11 @@ mixin FoodServiceApi {
   final String foodCategory = 'food-service/api/categories';
   final String foodProduct = 'food-service/api/foodProduct';
   final String foodServiceProduct = 'food-service/api/foodProduct';
+
+  /// Cross-category food product showcase shown at the bottom of the food
+  /// category menu screen. `GET food-service/api/foodProduct/category-showcase`.
+  final String foodCategoryShowcase =
+      'food-service/api/foodProduct/category-showcase';
   final String kitchenInventory = 'food-service/api/kitchen-inventory';
   // Delete a single kitchen-inventory entry (a product variant) by its id.
   String kitchenInventoryById(String inventoryId) => 'food-service/api/kitchen-inventory/$inventoryId';

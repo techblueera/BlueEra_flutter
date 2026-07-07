@@ -70,9 +70,12 @@ class _ClaimBonusDialogState extends State<ClaimBonusDialog> {
             message: (serverMsg != null && serverMsg.isNotEmpty)
                 ? serverMsg
                 : 'Joining bonus activated 🎉');
-        // Close the dialog, then take the user to their wallet where the
-        // credited bonus now shows.
-        if (mounted) Navigator.of(context).maybePop();
+        // Close THIS dialog SYNCHRONOUSLY before navigating. maybePop() defers
+        // the pop (it awaits willPop as a microtask), so the wallet would get
+        // pushed on top of the still-present dialog — backing out of the wallet
+        // would then reveal the dialog again and let the bonus be claimed a
+        // second time. A plain pop() removes the dialog before the push.
+        if (mounted) Navigator.of(context).pop();
         Get.to(() => const WalletScreen());
       } else {
         commonSnackBar(

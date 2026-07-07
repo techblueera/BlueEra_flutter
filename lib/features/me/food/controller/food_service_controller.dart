@@ -17,6 +17,7 @@ import 'package:BlueEra/features/me/food/model/food_snap_search_response.dart';
 import 'package:BlueEra/features/me/food/model/food_product_response_model.dart';
 import 'package:BlueEra/features/me/food/controller/restaurant_controller.dart';
 import 'package:BlueEra/features/me/food/repo/food_repo.dart';
+import 'package:BlueEra/core/utils/fetch_cache.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/features/me/food/model/food_gen_ai_res_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
@@ -901,6 +902,93 @@ class FoodServiceController extends GetxController {
       } else {
         isFoodCatProductsWithInvLoading.value = false;
       }
+    }
+  }
+
+  /// ─── Category showcase (food-service/api/foodProduct/category-showcase) ───
+  /// Cross-category food product list rendered as "Suggested Products" at the
+  /// bottom of the food category menu screen. TTL-guarded via
+  /// [_foodShowcaseCache] so re-entering the screen within the cache window
+  /// reuses the loaded list instead of refetching.
+  Rx<ApiResponse> foodShowcaseResponse = ApiResponse.initial('Initial').obs;
+  RxList<CategoryFoodProductData> foodShowcaseList =
+      <CategoryFoodProductData>[].obs;
+  RxBool isFoodShowcaseLoadingMore = false.obs;
+  int _foodShowcasePage = 1;
+  bool _foodShowcaseHasMore = true;
+  static const int _foodShowcaseLimit = 50;
+  bool get foodShowcaseHasMore => _foodShowcaseHasMore;
+
+  final FetchCache _foodShowcaseCache = FetchCache();
+
+  /// Fetch the showcase only when it isn't already loaded & fresh (TTL). Use on
+  /// screen (re)entry; call [fetchFoodCategoryShowcase] for explicit refreshes.
+  Future<void> fetchFoodCategoryShowcaseIfNeeded() async {
+    if (_foodShowcaseCache.isFresh('food-showcase',
+        hasData: foodShowcaseList.isNotEmpty)) {
+      return;
+    }
+    await fetchFoodCategoryShowcase();
+  }
+
+  Future<void> fetchFoodCategoryShowcase({bool isLoadMore = false}) async {
+    try {
+      if (isLoadMore) {
+        if (!_foodShowcaseHasMore || isFoodShowcaseLoadingMore.value) return;
+        isFoodShowcaseLoadingMore.value = true;
+      } else {
+        foodShowcaseResponse.value = ApiResponse.loading('loading');
+        _foodShowcasePage = 1;
+        _foodShowcaseHasMore = true;
+      }
+
+      final Map<String, dynamic> params = {
+        ApiKeys.page: _foodShowcasePage,
+        ApiKeys.limit: _foodShowcaseLimit,
+      };
+
+      final response =
+          await FoodRepo().getFoodCategoryShowcaseRepo(queryParam: params);
+
+      if (!response.isSuccess) {
+        if (!isLoadMore && foodShowcaseList.isEmpty) {
+          foodShowcaseResponse.value = ApiResponse.error('error');
+        }
+        return;
+      }
+
+      final data = response.response?.data;
+      final List rawList =
+          (data is Map && data['data'] is List) ? data['data'] as List : const [];
+      final newItems =
+          rawList.map((e) => CategoryFoodProductData.fromJson(e)).toList();
+
+      if (isLoadMore) {
+        foodShowcaseList.addAll(newItems);
+      } else {
+        foodShowcaseList.assignAll(newItems);
+      }
+      if (newItems.isNotEmpty) _foodShowcasePage++;
+
+      final pagination = (data is Map) ? data['pagination'] : null;
+      if (pagination is Map) {
+        final page = int.tryParse('${pagination['page'] ?? 1}') ?? 1;
+        final totalPages = int.tryParse('${pagination['totalPages'] ?? 1}') ?? 1;
+        _foodShowcaseHasMore = page < totalPages;
+      } else {
+        _foodShowcaseHasMore = newItems.isNotEmpty;
+      }
+
+      foodShowcaseResponse.value = ApiResponse.complete(foodShowcaseList);
+      _foodShowcaseCache.mark('food-showcase');
+      log('food showcase loaded -- ${foodShowcaseList.length}');
+    } catch (e, s) {
+      log('food showcase stack trace -- $s');
+      if (!isLoadMore && foodShowcaseList.isEmpty) {
+        foodShowcaseResponse.value = ApiResponse.error('error');
+      }
+    } finally {
+      if (isLoadMore) isFoodShowcaseLoadingMore.value = false;
     }
   }
 }

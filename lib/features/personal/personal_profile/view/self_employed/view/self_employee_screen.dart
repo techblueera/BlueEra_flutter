@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/widget/self_employee_inquiry_tab.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
@@ -34,6 +35,7 @@ import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/earn_profile_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/self_work_service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_profession_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_profile_bottom_sheet.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/profile_designation_bottom_sheet.dart';
@@ -77,6 +79,12 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
   final EarnProfileController _earnProfileCtrl =
       getOrPut(() => EarnProfileController());
 
+  // Backs the Go-Live deposit gate. Holds the selfWork service (with its
+  // `securityDeposit`); shared with the Service tab. Preloaded in initState so
+  // the gate has real data even if the user never opens the Service tab.
+  final SelfWorkServiceController _selfWorkCtrl =
+      getOrPut(() => SelfWorkServiceController());
+
   // True when the user has created one of the home-made earn profiles.
   // Used to decide whether to hydrate the earn profile on load.
   bool get _hasEarnProfile => _viewCtrl.earnProfileType.isNotEmpty;
@@ -112,6 +120,12 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
     // store details (name / cover / address / chips).
     if (_hasEarnProfile) {
       _earnProfileCtrl.fetchEarnProfile();
+    }
+    // Preload the selfWork service so the Go-Live deposit gate knows the real
+    // `securityDeposit` status up-front (only when not already loaded — the
+    // Service tab fetches it too).
+    if (_selfWorkCtrl.professionData.value.sId == null) {
+      _selfWorkCtrl.fetchSelfProfessionData(isLoading: false);
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewCtrl.shopStatusOpenClose.value =
@@ -176,10 +190,28 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
   // user finishes granting them. Turning the shop back off doesn't
   // need any of these checks.
   Future<void> _handleGoLiveTap() async {
+    // Already online → allow toggling offline without re-checking.
     if (_viewCtrl.shopStatusOpenClose.value) {
       _viewCtrl.toggleShopStatus();
       return;
     }
+
+    // The security deposit must be paid before a selfWork provider can go live
+    // and receive service enquiries. Source of truth is the selfWork service's
+    // `securityDeposit` (GET /services?all=false), exposed via
+    // [SelfWorkServiceController.canGoLive]. Fail-open: block ONLY when the
+    // backend explicitly reports `required && !paid` (canGoLive == false); a
+    // missing / paid / not-required deposit always allows go-live. The backend
+    // also enforces this server-side (402 on the /services availability PUT).
+    // See docs/backend/SELF_WORK_GO_LIVE_FRONTEND_INTEGRATION.md.
+    if (!_selfWorkCtrl.canGoLive) {
+      commonSnackBar(
+        message:
+            'Your payment is incomplete. Please complete the security deposit to go live and receive service enquiries.',
+      );
+      return;
+    }
+
     final statuses = await GoLivePermissionService.checkAll();
     if (statuses.values.every((v) => v)) {
       _viewCtrl.toggleShopStatus();
