@@ -206,8 +206,12 @@ class CallMessageCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final chatThemeController = Get.find<ChatThemeController>();
+    return Obx(() {
     final isDark = chatThemeController.isDarkMode.value;
     final isNegative = _isMissedCall || _isDeclined;
+    // Re-evaluated reactively (Obx) so the italic "ongoing" styling appears the
+    // moment a call connects and clears when it ends while the thread is open.
+    final ongoing = _isOngoingCall;
 
     final bubbleColor = isReceive
         ? (isDark ? const Color(0xFF1F2C34) : Colors.white)
@@ -292,6 +296,9 @@ class CallMessageCard extends StatelessWidget {
                               fontWeight: FontWeight.w500,
                               color: primaryText,
                               fontFamily: 'Poppins',
+                              // Oblique styling marks a connected/ongoing call.
+                              fontStyle:
+                                  ongoing ? FontStyle.italic : FontStyle.normal,
                             ),
                           ),
                         ),
@@ -319,11 +326,17 @@ class CallMessageCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontSize: 11,
-                            fontWeight: FontWeight.w400,
-                            color: isNegative
-                                ? const Color(0xFFFF3B30)
-                                : secondaryText,
+                            fontWeight:
+                                ongoing ? FontWeight.w600 : FontWeight.w400,
+                            color: ongoing
+                                ? const Color(0xFF34C759)
+                                : (isNegative
+                                    ? const Color(0xFFFF3B30)
+                                    : secondaryText),
                             fontFamily: 'Poppins',
+                            // Oblique styling marks a connected/ongoing call.
+                            fontStyle:
+                                ongoing ? FontStyle.italic : FontStyle.normal,
                           ),
                         ),
                         Padding(
@@ -365,5 +378,6 @@ class CallMessageCard extends StatelessWidget {
         ),
       ),
     );
+    });
   }
 }

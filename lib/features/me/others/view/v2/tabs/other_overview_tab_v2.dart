@@ -3,6 +3,7 @@ import 'package:BlueEra/core/api/model/school_contact_us_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
@@ -252,9 +253,23 @@ class OtherOverviewTabV2 extends StatelessWidget {
           Obx(() {
             final details = businessController.businessProfileDetails.value?.data;
             if (details == null) return const SizedBox.shrink();
+            // For finance ("Banking Sector") businesses, encode the finance
+            // deep link so scanning opens the finance detail screen directly
+            // (`/app/business/financial/<profileId>` → FinanceDetailScreen)
+            // instead of the generic profile share-preview. The id is the
+            // other-service business-profile `_id` (`otherServiceIDGlobal`,
+            // what this screen fetched with) — that's the key
+            // `FinanceDiscoverController.fetchDetail` expects, not `userId`.
+            final isFinance = businessTypeGlobal.toUpperCase() ==
+                BusinessType.Finance.name.toUpperCase();
             return Padding(
               padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
-              child: BusinessQrCodeWidget(data: details),
+              child: BusinessQrCodeWidget(
+                data: details,
+                deepLinkOverride: isFinance
+                    ? financialDeepLink(businessId: details.id)
+                    : null,
+              ),
             );
           }),
 

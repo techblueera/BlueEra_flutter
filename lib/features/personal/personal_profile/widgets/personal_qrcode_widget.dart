@@ -52,6 +52,13 @@ class PersonalQrCodeWidget extends StatefulWidget {
   /// image only (no deep-link text).
   final VoidCallback? onShare;
 
+  /// Optional deep-link override encoded into the QR. When null, the
+  /// widget falls back to the generic [profileDeepLink]. Callers that
+  /// want the scan to open a specific screen (e.g. the professionals /
+  /// consultant detail via [professionalsConsultantDeepLink]) pass the
+  /// fully-built link here.
+  final String? deepLinkOverride;
+
   const PersonalQrCodeWidget({
     super.key,
     required this.userId,
@@ -60,6 +67,7 @@ class PersonalQrCodeWidget extends StatefulWidget {
     this.margin = const EdgeInsets.only(top: 10.0),
     this.onDownload,
     this.onShare,
+    this.deepLinkOverride,
   });
 
   @override
@@ -74,7 +82,8 @@ class _PersonalQrCodeWidgetState extends State<PersonalQrCodeWidget> {
   @override
   Widget build(BuildContext context) {
     if (widget.userId.isEmpty) return const SizedBox.shrink();
-    final qrData = profileDeepLink(userId: widget.userId);
+    final override = widget.deepLinkOverride?.trim() ?? '';
+    final qrData = override.isNotEmpty ? override : profileDeepLink(userId: widget.userId);
 
     return CustomFormCard(
       padding: const EdgeInsets.all(10.0),

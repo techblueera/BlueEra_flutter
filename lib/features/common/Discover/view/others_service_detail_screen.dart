@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
@@ -209,7 +210,9 @@ class _OthersServiceDetailScreenState extends State<OthersServiceDetailScreen> {
                           onFollowChanged: () => viewBusinessDetailsController.viewBusinessProfileById(
                             widget.visitUserId,
                             silent: true,
-                          ),
+                          ),shareLink: serviceDeepLinkBusiness(
+                          id: details?.userId,
+                        ),
                         ),
                         const SizedBox(height: 10),
                         VisitBusinessStatsCard(details: details),

@@ -315,7 +315,9 @@ class _MessageBubbleState extends State<MessageBubble> {
                                   if (match != null) {
                                     final url = match.group(0)!;
                                     if (url.contains('blueera')) {
-                                      launchUrl(Uri.parse(url), mode: LaunchMode.inAppBrowserView);
+                                      // Open in the external browser / respective
+                                      // app instead of an in-app browser.
+                                      launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
                                     } else {
                                       // YouTube / social / other links open in
                                       // the in-app player and dock to a

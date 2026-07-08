@@ -104,6 +104,17 @@ class _DiscoverHospitalHomeScreenState extends State<DiscoverHospitalHomeScreen>
     final merged = existing == null
         ? parsed
         : (existing
+          // Backfill identity fields the list card normally seeds. On a
+          // deep-link / QR cold start the model is seeded with only the id
+          // (see splash `_openHospital`), so name/userId/logo/cover would
+          // otherwise stay null — breaking the header title and the
+          // "Inquiry" button (which needs userId as the owner id). Keep any
+          // existing value (avoids flashing the in-app list card) and fall
+          // back to the parsed full-profile value.
+          ..name = (existing.name?.isNotEmpty ?? false) ? existing.name : parsed.name
+          ..userId = (existing.userId?.isNotEmpty ?? false) ? existing.userId : parsed.userId
+          ..logoUrl = (existing.logoUrl?.isNotEmpty ?? false) ? existing.logoUrl : parsed.logoUrl
+          ..coverUrl = (existing.coverUrl?.isNotEmpty ?? false) ? existing.coverUrl : parsed.coverUrl
           ..departments = parsed.departments ?? existing.departments
           ..management = parsed.management ?? existing.management
           ..gallery = parsed.gallery ?? existing.gallery

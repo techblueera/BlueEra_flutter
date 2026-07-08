@@ -253,7 +253,7 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
   Future<void> _openUrl(String url) async {
     final uri = Uri.tryParse(url);
     if (uri == null) return;
-    await launchUrl(uri, mode: LaunchMode.inAppWebView);
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   @override
