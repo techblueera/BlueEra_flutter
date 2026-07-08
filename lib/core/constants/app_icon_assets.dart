@@ -372,4 +372,12 @@ class AppIconAssets {
   static const String wellnessTestIcon = "${iconPath}wellness_test.svg";
   static const String womenTestIcon = "${iconPath}women_test.svg";
   static const String organTestIcon = "${iconPath}organ_test.svg";
+  static const String basicHealthCampIcon = "${iconPath}basic_healthcamp.svg";
+  static const String diabetesPackageIcon = "${iconPath}diabetes_package.svg";
+  static const String fullBodycheckupIcon = "${iconPath}full_bodycheckup.svg";
+  static const String healthPackageIcon = "${iconPath}health_pacakge.svg";
+  static const String heartPacakgeIcon = "${iconPath}heart_package.svg";
+  static const String menhealthPackageIcon = "${iconPath}menhealth_package.svg";
+  static const String seniorPackageIcon = "${iconPath}senior_package.svg";
+  static const String thyroidPackageIcon = "${iconPath}thyroid_package.svg";
 }

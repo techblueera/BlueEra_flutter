@@ -6,8 +6,8 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
+import 'package:BlueEra/features/me/laboratory/view/lab_detail_screen.dart';
 import 'package:BlueEra/features/me/medical/controller/nearest_pharmacies_controller.dart';
-import 'package:BlueEra/features/me/medical/view/medical_pharmacy_detail_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -91,7 +91,7 @@ class _LabProfilesListScreenState extends State<LabProfilesListScreen> {
               return _LabCard(
                 item: item,
                 onTap: () => Get.to(
-                  () => MedicalPharmacyDetailScreen(businessId: item.id),
+                  () => LabDetailScreen(businessId: item.id),
                 ),
               );
             },
