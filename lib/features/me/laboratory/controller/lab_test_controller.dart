@@ -18,6 +18,10 @@ class LabTestController extends GetxController {
   final RxList<TestCategory> categories = <TestCategory>[].obs;
   final RxList<TestParameter> parameters = <TestParameter>[].obs;
   final RxList<PathologyTest> tests = <PathologyTest>[].obs;
+  // Kept isolated from [tests] so the Popular Tests carousel on the Lab
+  // Tests tab doesn't get overwritten every time a category screen loads.
+  final RxList<PathologyTest> popularTests = <PathologyTest>[].obs;
+  final RxBool isLoadingPopular = false.obs;
   final RxList<TestCatalogItem> catalogTests = <TestCatalogItem>[].obs;
   final RxString descriptionTest = ''.obs;
 
@@ -98,8 +102,7 @@ class LabTestController extends GetxController {
       final ResponseModel res = await _repo.getTestParameters();
       if (res.isSuccess) {
         final List data = res.response?.data['data'] ?? [];
-        parameters.value =
-            data.map((e) => TestParameter.fromJson(e)).toList();
+        parameters.value = data.map((e) => TestParameter.fromJson(e)).toList();
       }
     } catch (e) {
       logs("LabTestController.fetchParameters ERROR $e");
@@ -121,11 +124,29 @@ class LabTestController extends GetxController {
     }
   }
 
+  /// All-categories fetch used by the Lab Tests tab's Popular Tests
+  /// carousel. Passes an empty groupCategory so the backend returns the
+  /// unfiltered list, then trims to [limit].
+  Future<void> fetchPopularTests({int limit = 5}) async {
+    try {
+      isLoadingPopular.value = true;
+      final ResponseModel res = await _repo.getPathologyTests('');
+      if (res.isSuccess) {
+        final List data = res.response?.data['data'] ?? [];
+        final all = data.map((e) => PathologyTest.fromJson(e)).toList();
+        popularTests.value = all.take(limit).toList();
+      }
+    } catch (e) {
+      logs("LabTestController.fetchPopularTests ERROR $e");
+    } finally {
+      isLoadingPopular.value = false;
+    }
+  }
+
   Future<void> fetchTestsByLab(String labId, String collection) async {
     try {
       isLoading.value = true;
-      final ResponseModel res =
-          await _repo.getPathologyTestsByLab(labId, collection);
+      final ResponseModel res = await _repo.getPathologyTestsByLab(labId, collection);
       if (res.isSuccess) {
         final List data = res.response?.data['data'] ?? [];
         tests.value = data.map((e) => PathologyTest.fromJson(e)).toList();
@@ -151,8 +172,7 @@ class LabTestController extends GetxController {
       );
       if (res.isSuccess) {
         final List data = res.response?.data['data'] ?? [];
-        catalogTests.value =
-            data.map((e) => TestCatalogItem.fromJson(e)).toList();
+        catalogTests.value = data.map((e) => TestCatalogItem.fromJson(e)).toList();
       }
     } catch (e) {
       logs("LabTestController.fetchCatalog ERROR $e");
@@ -163,19 +183,16 @@ class LabTestController extends GetxController {
 
   // ---- Writes ---------------------------------------------------------------
 
-  Future<bool> selectCatalog(String id,
-      {Map<String, dynamic>? customData}) async {
+  Future<bool> selectCatalog(String id, {Map<String, dynamic>? customData}) async {
     try {
       isSaving.value = true;
-      final ResponseModel res =
-          await _repo.selectCatalogTests([id], overrides: customData);
+      final ResponseModel res = await _repo.selectCatalogTests([id], overrides: customData);
       if (res.isSuccess) {
         commonSnackBar(message: AppStrings.labSelectedSuccess.tr);
         return true;
       }
       commonSnackBar(
-        message:
-            res.response?.data['message'] ?? AppStrings.labFailedToSelect.tr,
+        message: res.response?.data['message'] ?? AppStrings.labFailedToSelect.tr,
       );
       return false;
     } catch (e) {
@@ -197,8 +214,7 @@ class LabTestController extends GetxController {
         return true;
       }
       commonSnackBar(
-        message:
-            res.response?.data['message'] ?? AppStrings.labFailedToAddTest.tr,
+        message: res.response?.data['message'] ?? AppStrings.labFailedToAddTest.tr,
       );
       return false;
     } catch (e) {
@@ -213,16 +229,14 @@ class LabTestController extends GetxController {
   Future<bool> updateTest(PathologyTest test) async {
     try {
       isSaving.value = true;
-      final ResponseModel res =
-          await _repo.updatePathologyTest(test.id!, test.toJson());
+      final ResponseModel res = await _repo.updatePathologyTest(test.id!, test.toJson());
       if (res.isSuccess) {
         commonSnackBar(message: AppStrings.labTestUpdatedSuccess.tr);
         await fetchTests(test.collection ?? '');
         return true;
       }
       commonSnackBar(
-        message: res.response?.data['message'] ??
-            AppStrings.labFailedToUpdateTest.tr,
+        message: res.response?.data['message'] ?? AppStrings.labFailedToUpdateTest.tr,
       );
       return false;
     } catch (e) {
@@ -243,8 +257,7 @@ class LabTestController extends GetxController {
         await fetchTests(collection);
       } else {
         commonSnackBar(
-          message: res.response?.data['message'] ??
-              AppStrings.labFailedToDeleteTest.tr,
+          message: res.response?.data['message'] ?? AppStrings.labFailedToDeleteTest.tr,
         );
       }
     } catch (e) {

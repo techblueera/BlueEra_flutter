@@ -1,10 +1,10 @@
 ﻿import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
+import 'package:BlueEra/core/constants/shimmer_utils.dart';
+import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/features/me/medical/model/medical_home_response_model.dart';
 import 'package:BlueEra/features/me/medical/repo/medical_repo.dart';
@@ -15,12 +15,14 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
 import 'package:BlueEra/features/common/store/controller/store_controller.dart';
+import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
+import 'package:BlueEra/widgets/image_view_screen.dart';
+import 'package:BlueEra/widgets/visit_business_common_header.dart';
 import 'package:BlueEra/widgets/visit_business_stats_card.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:BlueEra/widgets/social_gallery_grid.dart';
@@ -28,7 +30,6 @@ import 'package:BlueEra/widgets/webview_common.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class MedicalPharmacyDetailScreen extends StatefulWidget {
   final String businessId;
@@ -81,6 +82,16 @@ class _MedicalPharmacyDetailScreenState
     }
   }
 
+  /// Pull-to-refresh handler — re-hydrates both the shared business
+  /// profile (VisitBusinessStatsCard reads from it) and the pharmacy
+  /// inventory in parallel. Mirrors the grocery store screen's refresh.
+  Future<void> _refresh() async {
+    final id = widget.businessId;
+    if (id.isEmpty) return;
+    viewBusinessDetailsController.viewBusinessProfileById(id);
+    await _fetchData();
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -114,223 +125,98 @@ class _MedicalPharmacyDetailScreenState
     return Scaffold(
       appBar: CommonBackAppBar(title: profile?.businessName ?? AppStrings.pharmacy.tr),
       bottomNavigationBar: _buildEnquiryBottomBar(profile),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildHeader(profile),
-            SizedBox(height: SizeConfig.size10),
-            _buildUploadPrescriptionCard(),
-            SizedBox(height: SizeConfig.size10),
-            Obx(() {
-              viewBusinessDetailsController.profileVersion.value;
-              return VisitBusinessStatsCard(
-                details: viewBusinessDetailsController
+      body: RefreshIndicator(
+        onRefresh: _refresh,
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Shared profile header — same one grocery uses. Handles
+              // banner, logo, name, rating, follow/share/rate actions.
+              // Wrapped in Obx so silent profile refreshes (rating, follow)
+              // rebuild without a full page reload.
+              Obx(() {
+                viewBusinessDetailsController.profileVersion.value;
+                if (viewBusinessDetailsController.isProfileLoading.value) {
+                  return buildBusinessHeaderSkeleton();
+                }
+                final details = viewBusinessDetailsController
                     .visitedBusinessProfileDetails
-                    ?.data,
-              );
-            }),
-            SizedBox(height: SizeConfig.size10),
-
-            // Website preview
-            if (profile?.websiteUrl != null &&
-                profile!.websiteUrl!.isNotEmpty) ...[
-              _buildWebsitePreview(profile.websiteUrl!),
+                    ?.data;
+                return VisitBusinessCommonHeader(
+                  details: details,
+                  onRated: () =>
+                      viewBusinessDetailsController.viewBusinessProfileById(
+                    widget.businessId,
+                    silent: true,
+                  ),
+                  onFollowChanged: () =>
+                      viewBusinessDetailsController.viewBusinessProfileById(
+                    widget.businessId,
+                    silent: true,
+                  ),
+                );
+              }),
               SizedBox(height: SizeConfig.size10),
-            ],
-
-            if (popularProducts.isNotEmpty) ...[
-              _buildPopularProducts(popularProducts),
+              _buildUploadPrescriptionCard(),
               SizedBox(height: SizeConfig.size10),
-            ],
-
-            if (categoriesWithProducts.isNotEmpty) ...[
-              _buildMedicalProductCategories(categoriesWithProducts),
+              Obx(() {
+                viewBusinessDetailsController.profileVersion.value;
+                return VisitBusinessStatsCard(
+                  details: viewBusinessDetailsController
+                      .visitedBusinessProfileDetails
+                      ?.data,
+                );
+              }),
               SizedBox(height: SizeConfig.size10),
+
+              // Website preview
+              if (profile?.websiteUrl != null &&
+                  profile!.websiteUrl!.isNotEmpty) ...[
+                _buildWebsitePreview(profile.websiteUrl!),
+                SizedBox(height: SizeConfig.size10),
+              ],
+
+              if (popularProducts.isNotEmpty) ...[
+                _buildPopularProducts(popularProducts),
+                SizedBox(height: SizeConfig.size10),
+              ],
+
+              if (categoriesWithProducts.isNotEmpty) ...[
+                _buildMedicalProductCategories(categoriesWithProducts),
+                SizedBox(height: SizeConfig.size10),
+              ],
+
+              // Live Photos — mirrors the grocery store screen; sourced
+              // from the shared business profile so the section shows up
+              // as soon as the profile fetch completes.
+              _buildLivePhotosSection(),
+
+              _buildGallerySection(),
+
+              // Unified contact + map card — same widget grocery uses.
+              Obx(() {
+                if (viewBusinessDetailsController.isProfileLoading.value) {
+                  return const SizedBox.shrink();
+                }
+                final details = viewBusinessDetailsController
+                    .visitedBusinessProfileDetails
+                    ?.data;
+                return BusinessContactMapCard(
+                  businessProfileDetails: details,
+                  showEditButton: false,
+                );
+              }),
+              SizedBox(height: kBottomNavigationBarHeight + 30),
             ],
-
-            _buildGallerySection(),
-
-            _buildContactSection(profile),
-            SizedBox(height: kBottomNavigationBarHeight + 30),
-          ],
+          ),
         ),
       ),
     );
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // HEADER â€” Cover, Logo, Rating, Reviews, Distance
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  Widget _buildHeader(BusinessProfile? profile) {
-    final loc = profile?.businessLocation;
-    String? distanceText;
-    if (loc?.lat != null && loc?.lon != null) {
-      final km = calculateDistance(loc!.lat!, loc.lon!);
-      if (km != null) distanceText = '${km.toStringAsFixed(1)} KM';
-    }
-
-    return CommonCardWidget(
-      padding: 0,
-      cardMargin: 0,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Cover + Logo
-          SizedBox(
-            height: 170,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(10),
-                    topRight: Radius.circular(10),
-                  ),
-                  child: SizedBox(
-                    height: 120,
-                    width: double.infinity,
-                    child: _networkImage(profile?.logo, BoxFit.cover),
-                  ),
-                ),
-                Positioned(
-                  left: 16,
-                  top: 80,
-                  child: Container(
-                    width: 80,
-                    height: 80,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 3),
-                      boxShadow: const [
-                        BoxShadow(color: Colors.black12, blurRadius: 8)
-                      ],
-                      color: Colors.grey[200],
-                    ),
-                    child: ClipOval(
-                      child: (profile?.logo != null &&
-                              profile!.logo!.isNotEmpty)
-                          ? CachedNetworkImage(
-                              imageUrl: profile.logo!,
-                              fit: BoxFit.cover,
-                              errorWidget: (_, __, ___) => Icon(
-                                  Icons.local_pharmacy,
-                                  color: Colors.grey,
-                                  size: 36),
-                            )
-                          : Icon(Icons.local_pharmacy,
-                              color: Colors.grey, size: 36),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Name + Stats
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: 6),
-                CustomText(
-                  (profile?.businessName != null &&
-                          profile!.businessName!.isNotEmpty)
-                      ? profile.businessName!
-                      : AppStrings.pharmacy.tr,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  maxLines: 2,
-                ),
-                SizedBox(height: 6),
-
-                // Rating â€¢ Reviews â€¢ Distance
-                Wrap(
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  spacing: 8,
-                  runSpacing: 4,
-                  children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.star_rounded,
-                            size: 16, color: AppColors.yellow00),
-                        SizedBox(width: 2),
-                        CustomText(
-                          (profile?.avgRating != null &&
-                                  profile!.avgRating! > 0)
-                              ? '${profile.avgRating}'
-                              : 'N/A',
-                          fontSize: SizeConfig.small,
-                          color: AppColors.yellow00,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ],
-                    ),
-                    _statDot(),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.rate_review_outlined,
-                            size: 14,
-                            color: AppColors.secondaryTextColor),
-                        SizedBox(width: 3),
-                        CustomText(
-                          '${profile?.totalRatings ?? '0'} ${AppStrings.reviewsLabel.tr}',
-                          fontSize: SizeConfig.small,
-                          color: AppColors.secondaryTextColor,
-                        ),
-                      ],
-                    ),
-                    if (distanceText != null) ...[
-                      _statDot(),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.location_on_outlined,
-                              size: 14, color: AppColors.primaryColor),
-                          SizedBox(width: 2),
-                          CustomText(distanceText,
-                              fontSize: SizeConfig.small,
-                              color: AppColors.primaryColor,
-                              fontWeight: FontWeight.w600),
-                        ],
-                      ),
-                    ],
-                  ],
-                ),
-
-                if (profile?.cityStatePincode != null &&
-                    profile!.cityStatePincode!.isNotEmpty) ...[
-                  SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Icon(Icons.place_outlined,
-                          size: 14, color: AppColors.secondaryTextColor),
-                      SizedBox(width: 4),
-                      Flexible(
-                        child: CustomText(
-                          profile.cityStatePincode!,
-                          fontSize: SizeConfig.small,
-                          color: AppColors.secondaryTextColor,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-                SizedBox(height: 14),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ─────────────────────────────────────────────────────────────────────
   // UPLOAD PRESCRIPTION
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildUploadPrescriptionCard() {
@@ -703,8 +589,69 @@ class _MedicalPharmacyDetailScreenState
     );
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // GALLERY â€” Social style (SocialGalleryGrid)
+  // ─────────────────────────────────────────────────────────────────────
+  // LIVE PHOTOS — recent activity photos published on the business
+  // profile. Ported from `visit_grocery_store_screen.dart` so pharmacy
+  // detail carries the same section language across services.
+  // ─────────────────────────────────────────────────────────────────────
+  Widget _buildLivePhotosSection() {
+    return Obx(() {
+      if (viewBusinessDetailsController.isProfileLoading.value) {
+        return const SizedBox.shrink();
+      }
+      final details =
+          viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
+      final livePhotos = details?.livePhotos
+          ?.where((p) => p.trim().isNotEmpty)
+          .toList();
+      if (livePhotos == null || livePhotos.isEmpty) {
+        return const SizedBox.shrink();
+      }
+      final natureOfBusiness = details?.subCategoryDetails?.name ??
+          details?.natureOfBusiness ??
+          'OTHER';
+      return Padding(
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+        child: CommonCardWidget(
+          padding: 10,
+          cardMargin: 0,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CustomText(
+                AppStrings.groceryViewLivePhotos.tr,
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+              ),
+              const SizedBox(height: 10),
+              StoreLivePhotoWidget(
+                livePhotos: livePhotos,
+                natureOfBusiness: natureOfBusiness,
+                onViewFullScreen: ({
+                  required int index,
+                  required List<String> storeImage,
+                  required String natureOfBusiness,
+                }) {
+                  navigatePushTo(
+                    context,
+                    ImageViewScreen(
+                      appBarTitle: details?.businessName ?? '',
+                      subTitle: natureOfBusiness,
+                      imageUrls: storeImage,
+                      initialIndex: index,
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      );
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────────────
+  // GALLERY — Social style (SocialGalleryGrid)
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildGallerySection() {
     final galleryImages = <String>[];
@@ -736,184 +683,6 @@ class _MedicalPharmacyDetailScreenState
             ServiceHomeTitleWidget(title: AppStrings.gallery),
             SizedBox(height: 12),
             SocialGalleryGrid(imageUrls: galleryImages),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // CONTACT US â€” Clickable (phone, email, website)
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  Widget _buildContactSection(BusinessProfile? profile) {
-    if (profile == null) return const SizedBox.shrink();
-
-    final loc = profile.businessLocation;
-    final phone = profile.businessNumber?.formattedMobile;
-    final owner = profile.ownerDetails?.firstOrNull;
-
-    final hasAnyContact = (profile.websiteUrl?.isNotEmpty ?? false) ||
-        (owner?.name?.isNotEmpty ?? false) ||
-        (owner?.email?.isNotEmpty ?? false) ||
-        phone != null ||
-        (profile.address?.isNotEmpty ?? false);
-
-    if (!hasAnyContact && loc?.lat == null) return const SizedBox.shrink();
-
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-      child: Column(
-        children: [
-          if (hasAnyContact)
-            CommonCardWidget(
-              padding: 12,
-              cardMargin: 0,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  ServiceHomeTitleWidget(title: AppStrings.contactUs),
-                  SizedBox(height: 12),
-
-                  // About
-                  if (profile.businessDescription != null &&
-                      profile.businessDescription!.isNotEmpty) ...[
-                    Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color:
-                            AppColors.primaryColor.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(Icons.info_outline,
-                                  size: 16,
-                                  color: AppColors.primaryColor),
-                              SizedBox(width: 6),
-                              CustomText(AppStrings.aboutUsLabel,
-                                  fontSize: SizeConfig.medium,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.primaryColor),
-                            ],
-                          ),
-                          SizedBox(height: 6),
-                          ExpandableText(
-                            text: profile.businessDescription!,
-                            trimLines: 3,
-                            isReadMoreNewLine: false,
-                            expandMode: ExpandMode.dialog,
-                            style: TextStyle(
-                              color: AppColors.secondaryTextColor,
-                              fontSize: SizeConfig.medium,
-                              fontWeight: FontWeight.w400,
-                              fontFamily: AppConstants.OpenSans,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 12),
-                  ],
-
-                  // Contact items
-                  Container(
-                    padding: EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey.shade200),
-                    ),
-                    child: Column(
-                      children: [
-                        if (profile.websiteUrl?.isNotEmpty ?? false)
-                          _contactItem(
-                            Icons.language_outlined,
-                            profile.websiteUrl!,
-                            isLink: true,
-                            onTap: () => _launchUrl(profile.websiteUrl),
-                          ),
-                        if (owner?.name?.isNotEmpty ?? false)
-                          _contactItem(
-                              Icons.person_outline, owner!.name!),
-                        if (owner?.email?.isNotEmpty ?? false)
-                          _contactItem(
-                            Icons.email_outlined,
-                            owner!.email!,
-                            isLink: true,
-                            onTap: () => _launchEmail(owner.email),
-                          ),
-                        if (phone != null)
-                          _contactItem(
-                            Icons.phone_outlined,
-                            phone,
-                            isLink: true,
-                            onTap: () => _launchPhone(phone),
-                          ),
-                        if (profile.address?.isNotEmpty ?? false)
-                          _contactItem(
-                              Icons.location_on_outlined, profile.address!),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-          // Google Map
-          if (loc?.lat != null && loc?.lon != null) ...[
-            SizedBox(height: SizeConfig.size12),
-            BusinessLocationWidget(
-              locationText: '',
-              latitude: loc!.lat!,
-              longitude: loc.lon!,
-              businessName: profile.businessName ?? '',
-              padding: 0,
-              isTitleShow: true,
-            ),
-          ],
-          SizedBox(height: SizeConfig.size10),
-        ],
-      ),
-    );
-  }
-
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // HELPERS
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-  Widget _contactItem(IconData icon, String text,
-      {bool isLink = false, VoidCallback? onTap}) {
-    return InkWell(
-      onTap: (isLink && onTap != null) ? onTap : null,
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Row(
-          children: [
-            Icon(icon,
-                size: 20,
-                color: isLink
-                    ? AppColors.primaryColor
-                    : AppColors.secondaryTextColor),
-            SizedBox(width: 12),
-            Expanded(
-              child: CustomText(
-                text,
-                fontSize: SizeConfig.medium,
-                color: isLink
-                    ? AppColors.primaryColor
-                    : AppColors.mainTextColor,
-                decoration: isLink
-                    ? TextDecoration.underline
-                    : TextDecoration.none,
-                decorationColor: isLink ? AppColors.primaryColor : null,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
           ],
         ),
       ),
@@ -966,15 +735,6 @@ class _MedicalPharmacyDetailScreenState
     );
   }
 
-  Widget _statDot() => Container(
-        width: 4,
-        height: 4,
-        decoration: BoxDecoration(
-          color: AppColors.secondaryTextColor,
-          shape: BoxShape.circle,
-        ),
-      );
-
   Widget _networkImage(String? url, BoxFit fit) {
     if (url == null || url.isEmpty) {
       return Container(
@@ -995,32 +755,6 @@ class _MedicalPharmacyDetailScreenState
     );
   }
 
-  void _launchUrl(String? url) async {
-    if (url == null || url.isEmpty) return;
-    String finalUrl = url;
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      finalUrl = 'https://$url';
-    }
-    try {
-      await launchUrl(
-          Uri.parse(finalUrl), mode: LaunchMode.externalApplication);
-    } catch (_) {}
-  }
-
-  void _launchEmail(String? email) async {
-    if (email == null || email.isEmpty) return;
-    try {
-      await launchUrl(Uri(scheme: 'mailto', path: email));
-    } catch (_) {}
-  }
-
-  void _launchPhone(String? phone) async {
-    if (phone == null || phone.isEmpty) return;
-    final clean = phone.replaceAll(RegExp(r'\s+'), '');
-    try {
-      await launchUrl(Uri(scheme: 'tel', path: clean));
-    } catch (_) {}
-  }
 }
 
 class _CategoryDisplay {

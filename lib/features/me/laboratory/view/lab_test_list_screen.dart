@@ -5,7 +5,7 @@ import 'package:BlueEra/features/me/laboratory/controller/lab_test_controller.da
 import 'package:BlueEra/features/me/laboratory/model/lab_test_models.dart';
 import 'package:BlueEra/features/me/laboratory/view/add_lab_test_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_test_catalog_screen.dart';
-import 'package:BlueEra/features/me/laboratory/widget/lab_tag_pill.dart';
+import 'package:BlueEra/features/me/laboratory/widget/lab_soft_card_color.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -17,11 +17,17 @@ class LabTestListScreen extends StatefulWidget {
   final String? title;
   final String? labId;
 
+  /// When `false`, hides the "add test" FAB — used by the read-only
+  /// entry from the Lab Tests tab's category grid where the user is
+  /// only browsing what's already been added.
+  final bool showAddButton;
+
   const LabTestListScreen({
     super.key,
     required this.collection,
     this.title,
     this.labId,
+    this.showAddButton = true,
   });
 
   @override
@@ -56,7 +62,7 @@ class _LabTestListScreenState extends State<LabTestListScreen> {
         title: widget.title ?? "",
         showRightTextButton: false,
       ),
-      floatingActionButton: _isOtherProfile
+      floatingActionButton: (_isOtherProfile || !widget.showAddButton)
           ? null
           : FloatingActionButton(
               onPressed: () => Get.to(
@@ -79,11 +85,12 @@ class _LabTestListScreenState extends State<LabTestListScreen> {
         return ListView.separated(
           padding: EdgeInsets.all(SizeConfig.size12),
           itemCount: controller.tests.length,
-          separatorBuilder: (_, __) => SizedBox(height: SizeConfig.size10),
+          separatorBuilder: (_, __) => SizedBox(height: SizeConfig.size16),
           itemBuilder: (_, i) {
             final PathologyTest t = controller.tests[i];
-            return _TestRow(
+            return _TestCard(
               test: t,
+              backgroundColor: LabSoftCardColor.forIndex(i),
               canEdit: !_isOtherProfile,
               onEdit: () => Get.to(() => AddLabTestScreen(
                     testToEdit: t,
@@ -112,14 +119,25 @@ class _LabTestListScreenState extends State<LabTestListScreen> {
   }
 }
 
-class _TestRow extends StatelessWidget {
+/// Card design ported from [_CatalogCard] in
+/// `lab_test_catalog_screen.dart` so the added-tests list matches the
+/// catalog visual language: soft pastel background, title + params,
+/// divider, report-timing + price badges, and a home-collection bar with
+/// a trailing action button.
+///
+/// Owner mode (`canEdit: true`) adds a floating delete pill in the top-right
+/// corner and swaps the chevron for an edit-pencil so the whole card taps
+/// straight into [AddLabTestScreen].
+class _TestCard extends StatelessWidget {
   final PathologyTest test;
+  final Color backgroundColor;
   final bool canEdit;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
-  const _TestRow({
+  const _TestCard({
     required this.test,
+    required this.backgroundColor,
     required this.canEdit,
     required this.onEdit,
     required this.onDelete,
@@ -127,67 +145,183 @@ class _TestRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // `testParameters` is a mixed list — API can return String IDs or full
+    // [TestParameter] objects. Prefer the object names; fall back to
+    // description when only IDs are present so the card never looks empty.
+    final paramNames = (test.testParameters ?? const [])
+        .whereType<TestParameter>()
+        .map((p) => p.name ?? '')
+        .where((s) => s.isNotEmpty)
+        .join(', ');
+    final subtitle = paramNames.isNotEmpty ? paramNames : (test.description ?? '');
+
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
       ),
-      padding: EdgeInsets.all(SizeConfig.size12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(
-                  test.testName ?? "",
-                  fontWeight: FontWeight.w700,
-                  fontSize: SizeConfig.size15,
-                ),
-                if (test.description?.isNotEmpty == true)
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: canEdit ? onEdit : null,
+          child: Stack(
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Padding(
-                    padding: EdgeInsets.only(top: SizeConfig.size4),
-                    child: CustomText(
-                      test.description ?? "",
-                      fontSize: SizeConfig.small,
-                      color: AppColors.black28,
-                      maxLines: 2,
+                    padding: EdgeInsets.all(SizeConfig.size16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomText(
+                          test.testName ?? "",
+                          fontWeight: FontWeight.w700,
+                          fontSize: SizeConfig.size18,
+                          color: Colors.black87,
+                        ),
+                        SizedBox(height: SizeConfig.size4),
+                        if (subtitle.isNotEmpty)
+                          CustomText(
+                            subtitle,
+                            fontSize: SizeConfig.small,
+                            color: Colors.black54,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        const Divider(
+                          height: 20,
+                          color: Color(0xFFDDE2EE),
+                          thickness: 0.5,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _reportTimingBadge(),
+                            _priceBadge(),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                SizedBox(height: SizeConfig.size8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 6,
-                  children: [
-                    LabTagPill("${AppStrings.fees.tr}: ${test.testFees ?? 0}"),
-                    LabTagPill(
-                        "${AppStrings.price.tr}: ${test.customerPrice ?? 0}"),
-                    if (test.gender != null)
-                      LabTagPill("${AppStrings.gender.tr}: ${test.gender}"),
-                    if (test.estimatedReportHours != null)
-                      LabTagPill(
-                          "${AppStrings.report.tr}: ${test.estimatedReportHours}h"),
-                  ],
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      SizeConfig.size16,
+                      0,
+                      SizeConfig.size16,
+                      SizeConfig.size16,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.circle, size: 8, color: Colors.grey.shade600),
+                                const SizedBox(width: 8),
+                                CustomText(
+                                  AppStrings.labHomeSampleAvailable.tr,
+                                  fontSize: 13,
+                                  color: Colors.black54,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            border: Border.all(color: Colors.blue.shade400, width: 1.5),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                            canEdit ? Icons.edit_outlined : Icons.arrow_forward_ios,
+                            size: 18,
+                            color: Colors.blue,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              if (canEdit)
+                Positioned(
+                  top: 8,
+                  right: 8,
+                  child: InkWell(
+                    onTap: onDelete,
+                    customBorder: const CircleBorder(),
+                    child: Container(
+                      padding: EdgeInsets.all(SizeConfig.size6),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.redAccent.withValues(alpha: 0.35),
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.delete_outline,
+                        size: 16,
+                        color: Colors.redAccent,
+                      ),
+                    ),
+                  ),
                 ),
-              ],
-            ),
+            ],
           ),
-          if (canEdit)
-            Column(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.edit, color: Colors.black),
-                  onPressed: onEdit,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline, color: Colors.red),
-                  onPressed: onDelete,
-                ),
-              ],
+        ),
+      ),
+    );
+  }
+
+  Widget _reportTimingBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: RichText(
+        text: TextSpan(
+          style: TextStyle(
+            color: Colors.black87,
+            fontSize: SizeConfig.small,
+          ),
+          children: [
+            TextSpan(text: "${AppStrings.labReportsWithinPrefix.tr} "),
+            TextSpan(
+              text: "${test.estimatedReportHours ?? 0} ${AppStrings.labHoursWord.tr}",
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
-        ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _priceBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.black12),
+      ),
+      child: CustomText(
+        "${AppStrings.labInrPrefix.tr}${test.customerPrice ?? 0}",
+        fontWeight: FontWeight.bold,
+        fontSize: SizeConfig.size14,
       ),
     );
   }
