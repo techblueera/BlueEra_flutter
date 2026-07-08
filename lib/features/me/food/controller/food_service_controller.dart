@@ -19,6 +19,7 @@ import 'package:BlueEra/features/me/food/controller/restaurant_controller.dart';
 import 'package:BlueEra/features/me/food/repo/food_repo.dart';
 import 'package:BlueEra/core/utils/fetch_cache.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
+import 'package:BlueEra/features/me/food/model/food_by_root_category_model.dart';
 import 'package:BlueEra/features/me/food/model/food_gen_ai_res_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
@@ -901,6 +902,66 @@ class FoodServiceController extends GetxController {
         isFoodCatProductsWithInvLoadingMore.value = false;
       } else {
         isFoodCatProductsWithInvLoading.value = false;
+      }
+    }
+  }
+
+  /// ─── Products by root category (food-service/api/foodProduct/by-root-category) ───
+  /// Powers the "Quick Upload" rails on the food category menu screen: one
+  /// horizontal rail per root category, each with a capped product list.
+  /// TTL-guarded via [_foodRootCategoryCache] so re-entering the screen within
+  /// the cache window reuses the loaded sections instead of refetching.
+  Rx<ApiResponse> foodRootCategoryResponse = ApiResponse.initial('Initial').obs;
+  RxList<FoodRootCategorySection> foodRootCategoryList =
+      <FoodRootCategorySection>[].obs;
+  static const int _foodRootCategoryLimit = 10;
+
+  final FetchCache _foodRootCategoryCache = FetchCache();
+
+  /// Fetch the root-category rails only when not already loaded & fresh (TTL).
+  /// Call on screen (re)entry; use [fetchFoodProductsByRootCategory] for
+  /// explicit refreshes.
+  Future<void> fetchFoodProductsByRootCategoryIfNeeded() async {
+    if (_foodRootCategoryCache.isFresh('food-by-root-category',
+        hasData: foodRootCategoryList.isNotEmpty)) {
+      return;
+    }
+    await fetchFoodProductsByRootCategory();
+  }
+
+  Future<void> fetchFoodProductsByRootCategory() async {
+    try {
+      foodRootCategoryResponse.value = ApiResponse.loading('loading');
+
+      final Map<String, dynamic> params = {
+        ApiKeys.limit: _foodRootCategoryLimit,
+        ApiKeys.min: 0,
+      };
+
+      final response = await FoodRepo()
+          .getFoodProductsByRootCategoryRepo(queryParam: params);
+
+      if (!response.isSuccess) {
+        if (foodRootCategoryList.isEmpty) {
+          foodRootCategoryResponse.value = ApiResponse.error('error');
+        }
+        return;
+      }
+
+      final model = FoodByRootCategoryModel.fromJson(
+          (response.response?.data as Map<String, dynamic>?) ?? const {});
+      // Drop empty sections so we never render a titled rail with no products.
+      final sections =
+          model.sections.where((s) => s.products.isNotEmpty).toList();
+
+      foodRootCategoryList.assignAll(sections);
+      foodRootCategoryResponse.value = ApiResponse.complete(foodRootCategoryList);
+      _foodRootCategoryCache.mark('food-by-root-category');
+      log('food by-root-category loaded -- ${foodRootCategoryList.length} sections');
+    } catch (e, s) {
+      log('food by-root-category stack trace -- $s');
+      if (foodRootCategoryList.isEmpty) {
+        foodRootCategoryResponse.value = ApiResponse.error('error');
       }
     }
   }

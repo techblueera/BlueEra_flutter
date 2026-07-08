@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/coin/controller/earn_coin_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/wallet/coin/model/earn_coin_models.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
@@ -69,7 +70,7 @@ class _CoinWalletDashboardScreenState extends State<CoinWalletDashboardScreen>
               controller: _tab,
               children: [
                 _DashboardTab(controller: _controller, tab: _tab),
-                _TasksTab(controller: _controller),
+                _TasksTab(controller: _controller, tab: _tab),
                 _HistoryTab(controller: _controller),
                 _RankTab(controller: _controller),
                 _StreakTab(controller: _controller),
@@ -568,7 +569,8 @@ class _DashboardTabState extends State<_DashboardTab>
 // ═══════════════════════════════════════════════════════════════════
 class _TasksTab extends StatefulWidget {
   final EarnCoinController controller;
-  const _TasksTab({required this.controller});
+  final TabController tab;
+  const _TasksTab({required this.controller, required this.tab});
 
   @override
   State<_TasksTab> createState() => _TasksTabState();
@@ -590,6 +592,78 @@ class _TasksTabState extends State<_TasksTab>
     final key = '${t.eventName} ${t.title}'.toUpperCase();
     if (key.contains('PROFILE')) return AppImageAssets.taskProfile;
     return AppImageAssets.taskDocuments;
+  }
+
+  /// Navigate by `event_name` — the stable task type — per
+  /// docs/backend/FLUTTER-TASK-NAVIGATION.md. Events without a dedicated
+  /// in-app route (or that need context this screen doesn't have) fall back to
+  /// Home; unknown/new types never crash (guide §6).
+  void _onTaskTap(EarnTask t) {
+    // A completed, non-repeatable task has nothing left to do.
+    if (t.completed && !t.repeatable) return;
+
+    void goHome() =>
+        Get.toNamed(RouteHelper.getBottomNavigationBarScreenRoute());
+
+    switch (t.eventName) {
+      // ── Universal ──
+      case 'PROFILE_COMPLETED':
+      case 'BANNER_UPLOADED':
+        // No dedicated profile-edit route is exposed; land on Home.
+        goHome();
+        break;
+      case 'KYC_APPROVED':
+      case 'ACCOUNT_VERIFIED':
+      case 'HOTEL_VERIFIED':
+      case 'LAB_VERIFIED':
+        Get.toNamed(RouteHelper.getBusinessVerificationScreenRoute());
+        break;
+      case 'DAILY_LOGIN':
+        // In-app: jump to the Streak tab instead of leaving the screen.
+        widget.tab.animateTo(4);
+        break;
+      case 'FIRST_LOGIN':
+        // Auto-completes server-side — nothing to open.
+        break;
+
+      // ── Business by category ──
+      case 'PRODUCT_UPLOADED':
+      case 'FIRST_SELL':
+      case 'INVENTORY_ADDED':
+      case 'FIRST_ORDER':
+      case 'ORDER_COMPLETED':
+      case 'REVIEW_RECEIVED':
+      case 'REFERRAL_SUCCESS':
+        // These deep screens need business/owner context not available here.
+        goHome();
+        break;
+
+      // ── Individual / creator ──
+      case 'VIDEO_UPLOADED':
+        Get.toNamed(RouteHelper.getVideoReelRecorderScreenRoute(),
+            arguments: <String, dynamic>{});
+        break;
+      case 'POST_CREATED':
+        Get.toNamed(RouteHelper.getCreateMessagePostScreenRoute(),
+            arguments: <String, dynamic>{});
+        break;
+      case 'CHANNEL_CREATED':
+      case 'CHANNEL_VERIFIED':
+      case 'FOLLOWER_MILESTONE':
+        Get.toNamed(RouteHelper.getManageChannelScreenRoute());
+        break;
+      case 'JOB_POSTED':
+      case 'JOB_HIRED':
+        Get.toNamed(RouteHelper.getCreateJobPostScreenRoute());
+        break;
+      case 'RIDE_COMPLETED':
+        goHome();
+        break;
+
+      // ── Fallback (unknown/new type) ──
+      default:
+        goHome();
+    }
   }
 
   @override
@@ -690,25 +764,29 @@ class _TasksTabState extends State<_TasksTab>
           ),
           if (!t.completed && t.cta.isNotEmpty) ...[
             SizedBox(height: SizeConfig.size16),
-            SizedBox(
-              width: double.infinity,
-              height: 48,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: _blue,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CustomText(t.cta,
-                        fontSize: SizeConfig.medium15,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white),
-                    SizedBox(width: SizeConfig.size8),
-                    const Icon(Icons.arrow_forward_rounded,
-                        size: 18, color: Colors.white),
-                  ],
+            // Tap → navigate by event_name (see [_onTaskTap]).
+            GestureDetector(
+              onTap: () => _onTaskTap(t),
+              child: SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: _blue,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CustomText(t.cta,
+                          fontSize: SizeConfig.medium15,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white),
+                      SizedBox(width: SizeConfig.size8),
+                      const Icon(Icons.arrow_forward_rounded,
+                          size: 18, color: Colors.white),
+                    ],
+                  ),
                 ),
               ),
             ),

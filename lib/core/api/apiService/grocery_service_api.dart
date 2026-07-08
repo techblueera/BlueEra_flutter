@@ -8,6 +8,13 @@ mixin GroceryServiceApi {
   /// super-category screen. `GET grocery-service/api/products/category-showcase`.
   final String groceryCategoryShowcase =
       'grocery-service/api/products/category-showcase';
+
+  /// Products grouped by root category — one section per root category, each
+  /// with a capped product list — powering the "Quick Upload" rails on the
+  /// add-grocery super-category screen.
+  /// `GET grocery-service/api/products/by-root-category`.
+  final String groceryProductsByRootCategory =
+      'grocery-service/api/products/by-root-category';
   String GroceryCategoryOfChildren(String key) =>
       'grocery-service/api/categories/key/$key/children';
   String GroceryCategoryOfChildrenWithInventory(String key) =>

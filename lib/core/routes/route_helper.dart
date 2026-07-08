@@ -749,8 +749,8 @@ class RouteHelper {
   static String getAddSingleProductScreenRoute() =>
       RouteConstant.addSingleProductScreen;
 
-  static String getProductSelectionScreenRoute() =>
-      RouteConstant.productSelectionScreen;
+  static String getFoodProductSelectionScreenRoute() =>
+      RouteConstant.foodProductSelectionScreen;
 
   static String getProductNestedCategoryWithInventoryScreenRoute() =>
       RouteConstant.productNestedCategoryWithInventoryScreen;
@@ -2185,7 +2185,7 @@ class RouteHelper {
                 createMissingProductIndex: createMissingProductIndex),
             settings: RouteSettings(name: getAddSingleProductScreenRoute()));
 
-      case RouteConstant.productSelectionScreen:
+      case RouteConstant.foodProductSelectionScreen:
         final args = settings.arguments as Map<String, dynamic>;
         final GroceryNestedCategoryModel foodCategoryData =
             args[ApiKeys.argCategoryData] as GroceryNestedCategoryModel;
@@ -2193,7 +2193,7 @@ class RouteHelper {
             builder: (_) =>
                 FoodProductSelectionScreen(
                     foodCategoryData: foodCategoryData),
-            settings: RouteSettings(name: getProductSelectionScreenRoute()));
+            settings: RouteSettings(name: getFoodProductSelectionScreenRoute()));
 
       case RouteConstant.productNestedCategoryWithInventoryScreen:
         final args = settings.arguments as Map<String, dynamic>;

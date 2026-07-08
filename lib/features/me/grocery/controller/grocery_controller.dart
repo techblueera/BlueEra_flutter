@@ -17,6 +17,7 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/me/grocery/model/grocery_business_products_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_snap_search_response.dart';
 import 'package:BlueEra/features/me/grocery/repo/grocery_repo.dart';
+import 'package:BlueEra/features/me/grocery/model/grocery_by_root_category_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_products_response.dart';
@@ -1150,6 +1151,69 @@ class GroceryController extends GetxController {
       }
     } finally {
       if (isLoadMore) isGroceryShowcaseLoadingMore.value = false;
+    }
+  }
+
+  /// ─── Products by root category (grocery-service/api/products/by-root-category) ───
+  /// Powers the "Quick Upload" rails on the add-grocery super-category screen:
+  /// one horizontal rail per root category, each with a capped product list.
+  /// TTL-guarded via [_rootCategoryCache] so re-entering the screen within the
+  /// cache window reuses the loaded sections instead of refetching.
+  Rx<ApiResponse> groceryRootCategoryResponse =
+      ApiResponse.initial('Initial').obs;
+  RxList<GroceryRootCategorySection> groceryRootCategoryList =
+      <GroceryRootCategorySection>[].obs;
+  static const int _rootCategoryLimit = 10;
+
+  final FetchCache _rootCategoryCache = FetchCache();
+
+  /// Fetch the root-category rails only when not already loaded & fresh (within
+  /// the [FetchCache] TTL). Call on screen (re)entry; use
+  /// [fetchGroceryProductsByRootCategory] for explicit refreshes.
+  Future<void> fetchGroceryProductsByRootCategoryIfNeeded() async {
+    if (_rootCategoryCache.isFresh('grocery-by-root-category',
+        hasData: groceryRootCategoryList.isNotEmpty)) {
+      return;
+    }
+    await fetchGroceryProductsByRootCategory();
+  }
+
+  Future<void> fetchGroceryProductsByRootCategory() async {
+    try {
+      groceryRootCategoryResponse.value = ApiResponse.loading('loading');
+
+      final Map<String, dynamic> params = {
+        ApiKeys.limit: _rootCategoryLimit,
+        ApiKeys.min: 0,
+      };
+
+      final response = await GroceryRepo()
+          .fetchGroceryProductsByRootCategoryRepo(queryParam: params);
+
+      if (!response.isSuccess) {
+        if (groceryRootCategoryList.isEmpty) {
+          groceryRootCategoryResponse.value = ApiResponse.error('error');
+        }
+        return;
+      }
+
+      final model = GroceryByRootCategoryModel.fromJson(
+          (response.response?.data as Map<String, dynamic>?) ?? const {});
+      // Drop empty sections so we never render a titled rail with no products.
+      final sections =
+          model.sections.where((s) => s.products.isNotEmpty).toList();
+
+      groceryRootCategoryList.assignAll(sections);
+      groceryRootCategoryResponse.value = ApiResponse.complete(response);
+      // Stamp freshness only after the list is populated so a re-entry reuses
+      // it instead of refetching.
+      _rootCategoryCache.mark('grocery-by-root-category');
+      log('by-root-category loaded -- ${groceryRootCategoryList.length} sections');
+    } catch (e, s) {
+      log('by-root-category stack trace -- $s');
+      if (groceryRootCategoryList.isEmpty) {
+        groceryRootCategoryResponse.value = ApiResponse.error('error');
+      }
     }
   }
 

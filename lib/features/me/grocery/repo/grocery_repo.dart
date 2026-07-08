@@ -57,6 +57,20 @@ class GroceryRepo extends BaseService {
     return response;
   }
 
+  /// Products grouped by root category — one section per root category, each
+  /// with a capped product list — for the "Quick Upload" rails.
+  Future<ResponseModel> fetchGroceryProductsByRootCategoryRepo(
+      {Map<String, dynamic>? queryParam}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      groceryProductsByRootCategory,
+      params: queryParam,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   Future<ResponseModel> groceryCategoryOfChildrenRepo(
       {required String key}) async {
     final response = await ApiBaseHelper().getHTTP(

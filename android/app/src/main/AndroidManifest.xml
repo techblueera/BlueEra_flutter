@@ -55,6 +55,13 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="${mapApiKey}" />
 
+        <!-- Google AdMob App ID (primary ad server; Meta Audience Network is
+             mediated behind it in the AdMob dashboard). See
+             docs/ads/ADMOB_MEDIATION_SETUP.md -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-8886065788013100~3740870813" />
+
         <!-- Main Flutter Activity -->
         <activity
             android:name=".MainActivity"

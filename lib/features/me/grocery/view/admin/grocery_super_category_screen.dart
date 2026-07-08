@@ -9,58 +9,50 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
-import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
-import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
-import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
+import 'package:BlueEra/features/me/grocery/model/grocery_by_root_category_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/grocery_floating_cart.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
+import 'package:BlueEra/features/me/grocery/widget/grocery_product_select_card.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/price_row.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
+/// Add-grocery landing: an optional bulk-upload card followed by "Quick Upload"
+/// rails — one horizontal rail per root category (title + icon + "More"),
+/// each showing products from `products/by-root-category`. Tapping a product's
+/// "+" toggles it into [GroceryController.selectedGroceries]; the floating cart
+/// then routes to the Add Grocery Variant flow.
 class GrocerySuperCategoryScreen extends StatefulWidget {
   final bool isAvailBulkUpload;
   const GrocerySuperCategoryScreen({super.key, required this.isAvailBulkUpload});
 
   @override
-  State<GrocerySuperCategoryScreen> createState() => _GrocerySuperCategoryScreenState();
+  State<GrocerySuperCategoryScreen> createState() =>
+      _GrocerySuperCategoryScreenState();
 }
 
-class _GrocerySuperCategoryScreenState extends State<GrocerySuperCategoryScreen> {
+class _GrocerySuperCategoryScreenState
+    extends State<GrocerySuperCategoryScreen> {
   final controller = getOrPut(() => GroceryController());
-  final ScrollController _scrollController = ScrollController();
+
+  /// Fixed width of a rail card (the rail's height is derived from the card's
+  /// own content — see [_rootCategorySection]).
+  static double get _railCardWidth => SizeConfig.size160;
+
+  /// Height of a rail card skeleton only — the real rail sizes itself.
+  static const double _railSkeletonHeight = 250.0;
 
   @override
   void initState() {
     super.initState();
+    // Super-category tree drives the "More" navigation args (super list + key).
     controller.fetchGroceryNestedCategory();
-    // TTL-guarded: reuses the loaded showcase list on re-entry within the
-    // FetchCache window instead of hitting the network again.
-    controller.fetchGroceryCategoryShowcaseIfNeeded();
-    _scrollController.addListener(_onScrollListener);
-  }
-
-  /// Auto-load the next showcase page as the user nears the bottom.
-  void _onScrollListener() {
-    if (_scrollController.position.pixels >=
-            _scrollController.position.maxScrollExtent - 200 &&
-        !controller.isGroceryShowcaseLoadingMore.value &&
-        controller.groceryShowcaseHasMore) {
-      controller.fetchGroceryCategoryShowcase(isLoadMore: true);
-    }
-  }
-
-  @override
-  void dispose() {
-    _scrollController.removeListener(_onScrollListener);
-    _scrollController.dispose();
-    super.dispose();
+    // TTL-guarded: reuses the loaded rails on re-entry within the FetchCache
+    // window instead of hitting the network again.
+    controller.fetchGroceryProductsByRootCategoryIfNeeded();
   }
 
   @override
@@ -82,17 +74,13 @@ class _GrocerySuperCategoryScreenState extends State<GrocerySuperCategoryScreen>
           ),
         ),
       ),
-      // Lazy CustomScrollView: the category grid is a SliverMasonryGrid that
-      // builds only the cards currently on screen, so the screen can't
-      // ANR-crash no matter how many categories the API returns.
       body: SafeArea(
         child: Stack(
           children: [
             _buildScrollBody(),
-            // Selecting a Suggested Product's "Add" toggles it into
+            // Selecting a product's "+" toggles it into
             // controller.selectedGroceries; this floating cart (hidden while
-            // empty) then routes to the Add Grocery Variant screen — same flow
-            // as GroceryProductsSelectionScreen.
+            // empty) then routes to the Add Grocery Variant screen.
             Positioned(
               bottom: 40,
               left: 0,
@@ -109,204 +97,77 @@ class _GrocerySuperCategoryScreenState extends State<GrocerySuperCategoryScreen>
 
   Widget _buildScrollBody() {
     return Obx(() {
-          final resp = controller.fetchNestedGroceryCategoryResponse.value;
-          final categories = controller.grocerySuperCategoryList;
-          return CustomScrollView(
-            controller: _scrollController,
-            slivers: [
-              // ── Snap-search suggestion (conditional) ─────────────────
-              if (widget.isAvailBulkUpload)
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(SizeConfig.size8,
-                        SizeConfig.size15, SizeConfig.size8, SizeConfig.paddingXSL),
-                    child: CustomFormCard(
-                      padding: EdgeInsets.all(SizeConfig.size10),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CustomText(
-                            AppStrings.groceryViewUploadBulkProducts.tr,
-                            fontSize: SizeConfig.large,
-                            color: AppColors.mainTextColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          SizedBox(height: SizeConfig.paddingXSL),
-                          _snapSearchSuggestion(
-                            onTap: () => Get.toNamed(
-                              RouteHelper.getAddGrocerySnapSearchScreenRoute(),
-                            ),
-                          ),
-                        ],
+      final resp = controller.groceryRootCategoryResponse.value;
+      final sections = controller.groceryRootCategoryList;
+      return CustomScrollView(
+        slivers: [
+          // ── Snap-search suggestion (conditional) ─────────────────
+          if (widget.isAvailBulkUpload)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(SizeConfig.size8,
+                    SizeConfig.size15, SizeConfig.size8, SizeConfig.paddingXSL),
+                child: CustomFormCard(
+                  padding: EdgeInsets.all(SizeConfig.size10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      CustomText(
+                        AppStrings.groceryViewUploadBulkProducts.tr,
+                        fontSize: SizeConfig.large,
+                        color: AppColors.mainTextColor,
+                        fontWeight: FontWeight.w600,
                       ),
-                    ),
-                  ),
-                ),
-              // ── Category section (white card: title + lazy grid) ────────
-              // DecoratedSliver paints the white background behind the whole
-              // group while SliverMainAxisGroup keeps the grid lazy.
-              SliverPadding(
-                padding: EdgeInsets.fromLTRB(
-                    SizeConfig.size8,
-                    widget.isAvailBulkUpload ? 0 : SizeConfig.size15,
-                    SizeConfig.size8,
-                    0),
-                sliver: DecoratedSliver(
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.circular(SizeConfig.size12),
-                  ),
-                  sliver: SliverMainAxisGroup(
-                    slivers: [
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: EdgeInsets.fromLTRB(
-                              SizeConfig.size12,
-                              SizeConfig.size12,
-                              SizeConfig.size12,
-                              SizeConfig.paddingXSL),
-                          child: CustomText(
-                            AppStrings.groceryViewCategory.tr,
-                            fontSize: SizeConfig.large,
-                            color: AppColors.mainTextColor,
-                            fontWeight: FontWeight.w600,
-                          ),
+                      SizedBox(height: SizeConfig.paddingXSL),
+                      _snapSearchSuggestion(
+                        onTap: () => Get.toNamed(
+                          RouteHelper.getAddGrocerySnapSearchScreenRoute(),
                         ),
                       ),
-                      // ── Category grid (lazy) / states ──────────────────
-                      _categorySliver(resp, categories),
                     ],
                   ),
                 ),
               ),
-              SliverToBoxAdapter(child: SizedBox(height: SizeConfig.size15)),
-              // ── Product showcase (title + lazy grid) ────────────────────
-              ..._showcaseSlivers(),
-              // Extra bottom room so the floating cart doesn't cover the last
-              // row's Add button once a Suggested Product is selected.
-              SliverToBoxAdapter(
-                child: SizedBox(
-                  height: controller.selectedGroceries.isEmpty
-                      ? SizeConfig.size15
-                      : SizeConfig.size80,
-                ),
+            ),
+          // ── "Quick Upload" heading ──────────────────────────────────
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                  SizeConfig.size12,
+                  widget.isAvailBulkUpload ? SizeConfig.size4 : SizeConfig.size15,
+                  SizeConfig.size12,
+                  SizeConfig.size8),
+              child: CustomText(
+                'Quick Upload',
+                fontSize: SizeConfig.large,
+                color: AppColors.mainTextColor,
+                fontWeight: FontWeight.w600,
               ),
-            ],
-          );
-        });
+            ),
+          ),
+          // ── Root-category rails / states ────────────────────────────
+          _railsSliver(resp, sections),
+          // Extra bottom room so the floating cart doesn't cover the last rail.
+          SliverToBoxAdapter(
+            child: SizedBox(
+              height: controller.selectedGroceries.isEmpty
+                  ? SizeConfig.size15
+                  : SizeConfig.size80,
+            ),
+          ),
+        ],
+      );
+    });
   }
 
-  /// Category grid as a LAZY sliver (builds only visible cards) plus the
-  /// loading / error / empty states.
-  Widget _categorySliver(
-      ApiResponse resp, List<GroceryNestedCategoryModel> categories) {
-    if (resp.status == Status.INITIAL) {
-      return SliverToBoxAdapter(child: buildCategoryGridSkeleton());
-    }
-    if (resp.status == Status.ERROR) {
-      return SliverToBoxAdapter(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10.0),
-            child: CustomText(AppStrings.somethingWentWrong),
-          ),
-        ),
-      );
-    }
-    if (categories.isEmpty) {
-      return SliverToBoxAdapter(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 32),
-            child: Text(AppStrings.groceryViewNoCategoriesFound.tr),
-          ),
-        ),
-      );
-    }
-    return SliverPadding(
-      padding: EdgeInsets.fromLTRB(
-          SizeConfig.size8, 0, SizeConfig.size8, SizeConfig.size12),
-      sliver: SliverMasonryGrid.count(
-        crossAxisCount: 3,
-        mainAxisSpacing: 6,
-        crossAxisSpacing: 6,
-        childCount: categories.length,
-        itemBuilder: (context, index) {
-          final category = categories[index];
-          return CommonServiceCard<GroceryNestedCategoryModel>(
-            service: category,
-            getName: (item) => item.name ?? '',
-            getIcon: (item) => item.image ?? '',
-            iconHeight: SizeConfig.size60,
-            boxShadow: const [],
-            onTap: (item) {
-              Get.toNamed(
-                RouteHelper.getGroceryNestedCategoryScreenRoute(),
-                arguments: {
-                  ApiKeys.argArrGrocerySuperCategory: categories.toList(),
-                  ApiKeys.argArrGroceryCatKey: item.key,
-                  ApiKeys.argArrGroceryCatName: item.name,
-                },
-              );
-            },
-          );
-        },
-      ),
-    );
-  }
-
-  /// Product-showcase section: a title + a LAZY masonry grid of product cards.
-  /// No wrapping white card — the page bg is already white, so each card
-  /// carries its own greyE5 border for separation instead. Returns an empty
-  /// list when there is nothing to show and nothing loading, so the section
-  /// disappears.
-  List<Widget> _showcaseSlivers() {
-    final resp = controller.groceryCategoryShowcaseResponse.value;
-    final products = controller.groceryCategoryShowcaseList;
-
-    final bool isLoading =
-        resp.status == Status.LOADING || resp.status == Status.INITIAL;
-    if (products.isEmpty && !isLoading && resp.status != Status.ERROR) {
-      return const [];
-    }
-
-    return [
-      SliverToBoxAdapter(
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(
-              SizeConfig.size12,
-              SizeConfig.size4,
-              SizeConfig.size12,
-              SizeConfig.paddingXSL),
-          child: CustomText(
-            'Suggested Products',
-            fontSize: SizeConfig.large,
-            color: AppColors.mainTextColor,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-      _showcaseGridSliver(resp, products),
-      // Pagination loader — a full-width sliver so it's centered across the
-      // screen, not stuck in the left grid cell.
-      if (controller.isGroceryShowcaseLoadingMore.value) _loadMoreSliver(),
-    ];
-  }
-
-  /// Full-width, horizontally-centered pagination spinner shown below the grid.
-  Widget _loadMoreSliver() => const SliverToBoxAdapter(
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 12),
-          child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-        ),
-      );
-
-  /// The showcase product grid as a LAZY sliver plus its loading / error
-  /// states. The "loading more" spinner is a separate full-width sliver (see
-  /// [_showcaseSlivers]) so it stays horizontally centered.
-  Widget _showcaseGridSliver(
-      ApiResponse resp, List<GroceryProductData> products) {
-    if (products.isEmpty) {
+  /// The root-category rails as a lazy sliver, plus loading / error / empty
+  /// states.
+  Widget _railsSliver(
+      ApiResponse resp, List<GroceryRootCategorySection> sections) {
+    if (sections.isEmpty) {
+      if (resp.status == Status.LOADING || resp.status == Status.INITIAL) {
+        return SliverToBoxAdapter(child: _buildRailsSkeleton());
+      }
       if (resp.status == Status.ERROR) {
         return SliverToBoxAdapter(
           child: Center(
@@ -317,169 +178,166 @@ class _GrocerySuperCategoryScreenState extends State<GrocerySuperCategoryScreen>
           ),
         );
       }
-      // First-time load → shimmer skeleton (not a bare spinner).
-      return SliverToBoxAdapter(child: _buildShowcaseSkeleton());
+      return SliverToBoxAdapter(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 32),
+            child: Text(AppStrings.groceryViewNoCategoriesFound.tr),
+          ),
+        ),
+      );
     }
 
-    return SliverPadding(
-      padding: EdgeInsets.fromLTRB(
-          SizeConfig.size8, 0, SizeConfig.size8, SizeConfig.size12),
-      sliver: SliverMasonryGrid.count(
-        crossAxisCount: 2,
-        mainAxisSpacing: 10,
-        crossAxisSpacing: 10,
-        childCount: products.length,
-        itemBuilder: (context, index) {
-          return _showcaseCard(products[index]);
-        },
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) => _rootCategorySection(sections[index]),
+        childCount: sections.length,
       ),
     );
   }
 
-  /// Shimmer skeleton shown on the FIRST showcase load — mirrors the 2-column
-  /// product grid so the transition to real cards is seamless.
-  Widget _buildShowcaseSkeleton() {
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-          SizeConfig.size8, 0, SizeConfig.size8, SizeConfig.size12),
-      child: buildLoadingShimmer(
-        child: GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            crossAxisSpacing: 10,
-            mainAxisSpacing: 10,
-            mainAxisExtent: 250,
-          ),
-          itemCount: 4,
-          itemBuilder: (_, __) => shimmerContainer(height: 250, radius: 10),
-        ),
-      ),
-    );
-  }
-
-  /// Grocery product card, matching the design used on
-  /// [GroceryProductsSelectionScreen.groceryCard].
-  Widget _showcaseCard(GroceryProductData product) {
-    final variant =
-        (product.variants?.isNotEmpty ?? false) ? product.variants!.first : null;
-    final price = controller.getPriceDetails(variant?.pricing);
-    final bool isSelected = controller.selectedGroceries.contains(product);
-
+  /// One root-category rail: a white card with a header (icon + title + "More")
+  /// over a horizontal list of product cards.
+  Widget _rootCategorySection(GroceryRootCategorySection section) {
     return Container(
+      margin: EdgeInsets.fromLTRB(
+          SizeConfig.size8, 0, SizeConfig.size8, SizeConfig.size12),
       decoration: BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.greyE5),
+        borderRadius: BorderRadius.circular(SizeConfig.size12),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10.0),
-            child: Container(
-              padding: EdgeInsets.only(top: 4.0),
-              height: SizeConfig.size140,
-              width: double.infinity,
-              child: (product.images?.isNotEmpty ?? false)
-                  ? CachedNetworkImage(
-                      imageUrl: product.images!.first.url ?? '',
+          // Header: icon + title on the left, "More" on the right.
+          Padding(
+            padding: EdgeInsets.fromLTRB(SizeConfig.size12, SizeConfig.size12,
+                SizeConfig.size12, SizeConfig.paddingXSL),
+            child: Row(
+              children: [
+                if (section.image.isNotEmpty) ...[
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: CachedNetworkImage(
+                      imageUrl: section.image,
+                      height: SizeConfig.size24,
+                      width: SizeConfig.size24,
                       fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                        color: Colors.grey.shade200,
-                        child: Center(
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      ),
-                      errorWidget: (context, url, error) => LocalAssets(
+                      errorWidget: (_, __, ___) => LocalAssets(
                         imagePath: AppIconAssets.place_holder_image,
+                        height: SizeConfig.size24,
+                        width: SizeConfig.size24,
                         boxFix: BoxFit.cover,
                       ),
-                    )
-                  : LocalAssets(
-                      imagePath: AppIconAssets.place_holder_image,
-                      boxFix: BoxFit.cover,
                     ),
-            ),
-          ),
-          Padding(
-            padding: EdgeInsets.symmetric(
-                horizontal: 8.0, vertical: SizeConfig.size6),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(
-                  "${product.name}",
-                  fontSize: SizeConfig.small,
-                  maxLines: 1,
-                  color: AppColors.mainTextColor,
-                  overflow: TextOverflow.ellipsis,
-                  fontWeight: FontWeight.w600,
+                  ),
+                  SizedBox(width: SizeConfig.size8),
+                ],
+                Expanded(
+                  child: CustomText(
+                    section.name,
+                    fontSize: SizeConfig.large,
+                    color: AppColors.mainTextColor,
+                    fontWeight: FontWeight.w600,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                SizedBox(height: SizeConfig.size6),
-                Row(
-                  children: [
-                    if (variant?.isVegetarian != null) ...[
-                      FoodTypeIndicator(
-                          isVegetarian: variant?.isVegetarian ?? false),
-                      SizedBox(width: SizeConfig.size6),
-                    ],
-                    Container(
-                      decoration: BoxDecoration(
-                          border:
-                              Border.all(color: AppColors.green00, width: 1),
-                          borderRadius: BorderRadius.circular(2)),
-                      padding: EdgeInsets.all(3.5),
-                      child: Container(
-                        height: 7,
-                        width: 7,
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(7),
-                            color: AppColors.green00),
-                      ),
+                SizedBox(width: SizeConfig.size8),
+                InkWell(
+                  onTap: () => _openCategory(section),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 4, vertical: 2),
+                    child: CustomText(
+                      AppStrings.more.tr,
+                      fontSize: SizeConfig.medium,
+                      color: AppColors.primaryColor,
+                      fontWeight: FontWeight.w600,
                     ),
-                    SizedBox(width: SizeConfig.size6),
-                    Container(
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          border:
-                              Border.all(width: 0.5, color: AppColors.greyE5)),
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      child: CustomText(
-                        '${variant?.quantity ?? ''}',
-                        fontSize: 11,
-                        color: AppColors.secondaryTextColor,
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: SizeConfig.size6),
-                PriceRow(
-                  sellingPrice: "${price.sellingRange}",
-                  mrp: "${price.mrpRange}",
-                  discount: "${price.discountRange}",
-                ),
-                SizedBox(height: SizeConfig.size8),
-                CustomBtn(
-                  height: SizeConfig.size36,
-                  onTap: () => controller.toggleSelection(product),
-                  title: isSelected
-                      ? AppStrings.groceryViewAdded.tr
-                      : AppStrings.groceryViewAdd.tr,
-                  textColor:
-                      isSelected ? AppColors.white : AppColors.primaryColor,
-                  bgColor:
-                      isSelected ? AppColors.primaryColor : AppColors.white,
-                  radius: 6.0,
-                  borderColor: AppColors.primaryColor,
+                  ),
                 ),
               ],
             ),
           ),
-          SizedBox(height: SizeConfig.size4),
+          // Rail: horizontal product cards. The rail height is NOT hardcoded —
+          // each fixed-width card sizes to its own content and the Row sizes to
+          // the tallest, so there is no wasted space. (No IntrinsicHeight: it
+          // would fail on the FittedBox inside PriceRow.)
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: EdgeInsets.fromLTRB(
+                SizeConfig.size12, 0, SizeConfig.size12, SizeConfig.size12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (int i = 0; i < section.products.length; i++) ...[
+                  if (i > 0) SizedBox(width: SizeConfig.size10),
+                  GroceryProductSelectCard(
+                    product: section.products[i],
+                    controller: controller,
+                    width: _railCardWidth,
+                  ),
+                ],
+              ],
+            ),
+          ),
         ],
+      ),
+    );
+  }
+
+  /// "More" → the nested-category screen for this root category (same args as
+  /// the previous category-tile tap).
+  void _openCategory(GroceryRootCategorySection section) {
+    Get.toNamed(
+      RouteHelper.getGroceryNestedCategoryScreenRoute(),
+      arguments: {
+        ApiKeys.argArrGrocerySuperCategory:
+            controller.grocerySuperCategoryList.toList(),
+        ApiKeys.argArrGroceryCatKey: section.key,
+        ApiKeys.argArrGroceryCatName: section.name,
+      },
+    );
+  }
+
+  /// Shimmer skeleton shown on the first rails load — two placeholder rails
+  /// (title bar + a row of card skeletons) so the transition is seamless.
+  Widget _buildRailsSkeleton() {
+    return buildLoadingShimmer(
+      child: Column(
+        children: List.generate(2, (_) {
+          return Container(
+            margin: EdgeInsets.fromLTRB(
+                SizeConfig.size8, 0, SizeConfig.size8, SizeConfig.size12),
+            padding: EdgeInsets.all(SizeConfig.size12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                shimmerContainer(height: 18, width: 140, radius: 4),
+                SizedBox(height: SizeConfig.size12),
+                // Horizontal scroll (non-scrollable) so fixed-width placeholders
+                // can extend past the screen edge without overflowing.
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const NeverScrollableScrollPhysics(),
+                  child: Row(
+                    children: List.generate(
+                      3,
+                      (i) => Padding(
+                        padding: EdgeInsets.only(right: SizeConfig.size10),
+                        child: shimmerContainer(
+                            height: _railSkeletonHeight,
+                            width: _railCardWidth,
+                            radius: 10),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
       ),
     );
   }

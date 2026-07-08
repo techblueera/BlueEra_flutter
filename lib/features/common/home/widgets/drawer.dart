@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
+import 'package:BlueEra/core/services/ads/ad_debug.dart';
 import 'package:BlueEra/core/controller/location_controller.dart';
 import 'package:BlueEra/core/constants/logout_helper.dart';
 import 'package:BlueEra/features/common/referral/view/referral_page.dart';
@@ -825,29 +826,35 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
             ),
           ),
           const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const CustomText(
-                'v 1.0.1',
-                fontSize: 10,
-                color: AppColors.secondaryTextColor,
-                fontWeight: FontWeight.w500,
-              ),
-              const SizedBox(width: 6),
-              const CustomText(
-                '·',
-                fontSize: 10,
-                color: AppColors.secondaryTextColor,
-              ),
-              const SizedBox(width: 6),
-              CustomText(
-                AppStrings.madeInIndia.tr,
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-                color: AppColors.secondaryTextColor,
-              ),
-            ],
+          // Hidden debug trigger: long-press the version line to launch AdMob's
+          // Ad Inspector (per-request fill diagnostics). Invisible to users.
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onLongPress: () => AdDebug.openInspector(),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const CustomText(
+                  'v 1.0.1',
+                  fontSize: 10,
+                  color: AppColors.secondaryTextColor,
+                  fontWeight: FontWeight.w500,
+                ),
+                const SizedBox(width: 6),
+                const CustomText(
+                  '·',
+                  fontSize: 10,
+                  color: AppColors.secondaryTextColor,
+                ),
+                const SizedBox(width: 6),
+                CustomText(
+                  AppStrings.madeInIndia.tr,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.secondaryTextColor,
+                ),
+              ],
+            ),
           ),
         ],
       ),

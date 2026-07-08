@@ -76,6 +76,13 @@ class _MetaNativeAdWidgetState extends State<MetaNativeAdWidget>
       _failed = true;
       return;
     }
+    // Circuit open after repeated No-fills — don't even request; just collapse.
+    if (_MetaNativeLoadGate.isPaused) {
+      print('[META_NATIVE_AD] native loads paused (recent No-fills) — '
+          'collapsing slot');
+      _failed = true;
+      return;
+    }
     print('[META_NATIVE_AD] initState — awaiting SDK init, '
         'unit=${AdConfig.metaNativeUnit}');
     MetaAds.ensureInitialized().then((ok) {
@@ -166,8 +173,13 @@ class _MetaNativeAdWidgetState extends State<MetaNativeAdWidget>
                     _gotCallback = true;
                     print('[META_NATIVE_AD] $result '
                         'unit=${AdConfig.metaNativeUnit} value=$value');
-                    if (result == NativeAdResult.ERROR && mounted) {
-                      setState(() => _failed = true);
+                    if (result == NativeAdResult.ERROR) {
+                      // Feed the circuit-breaker so repeated No-fills pause all
+                      // native loads instead of churning 1001/1002.
+                      _MetaNativeLoadGate.reportFailure();
+                      if (mounted) setState(() => _failed = true);
+                    } else if (result == NativeAdResult.LOADED) {
+                      _MetaNativeLoadGate.reportSuccess();
                     }
                   },
                 ),
@@ -226,10 +238,42 @@ class _MetaNativeLoadGate {
   _MetaNativeLoadGate._();
 
   /// Minimum spacing between the START of two loads of the same placement.
-  static const Duration _minInterval = Duration(seconds: 15);
+  /// Meta rate-limits reloads of one native placement; 15s was still tripping
+  /// 1002 under scroll, so space them wider.
+  static const Duration _minInterval = Duration(seconds: 30);
 
   /// When the most recent load was actually granted (null until the first).
   static DateTime? _lastGrant;
+
+  // ── Session circuit-breaker ─────────────────────────────────────────────
+  // When the account/placement isn't filling, every native slot keeps
+  // re-requesting a dead placement (1001), and the churn periodically trips
+  // 1002. After a few consecutive failures we PAUSE all native loads for a
+  // cooldown (then try again in case fill recovers) — mirrors the interstitial
+  // manager's session cap. A LOADED result resets the counter.
+  static int _consecutiveFailures = 0;
+  static const int _failuresBeforeTrip = 3;
+  static DateTime? _pausedUntil;
+  static const Duration _pauseCooldown = Duration(minutes: 5);
+
+  /// True while native loads are paused after repeated No-fills — slots collapse
+  /// instead of requesting, so the log stops spamming 1001/1002.
+  static bool get isPaused =>
+      _pausedUntil != null && DateTime.now().isBefore(_pausedUntil!);
+
+  static void reportSuccess() {
+    _consecutiveFailures = 0;
+    _pausedUntil = null;
+  }
+
+  static void reportFailure() {
+    _consecutiveFailures++;
+    if (_consecutiveFailures >= _failuresBeforeTrip && !isPaused) {
+      _pausedUntil = DateTime.now().add(_pauseCooldown);
+      print('[META_NATIVE_AD] circuit tripped after $_consecutiveFailures '
+          'consecutive failures — pausing native loads until $_pausedUntil');
+    }
+  }
 
   /// FIFO of slots still waiting for their turn to load.
   static final List<_GateWaiter> _queue = [];

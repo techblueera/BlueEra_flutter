@@ -174,7 +174,7 @@ class RouteConstant {
   static const String addFoodSnapSearchScreen = "/AddFoodSnapSearchScreen";
   static const String missingFoodItemsScreen = "/missingFoodItemsScreen";
   static const String addSingleProductScreen = "/AddSingleProductScreen";
-  static const String productSelectionScreen = "/ProductSelectionScreen";
+  static const String foodProductSelectionScreen = "/FoodProductSelectionScreen";
   static const String foodEntryAiScreen = "/FoodEntryAiScreen";
   static const String foodAiDetailScreen = "/FoodAiDetailScreen";
   static const String foodCustomerListingScreen = "/FoodCustomerListingScreen";

@@ -19,6 +19,8 @@ import 'package:BlueEra/core/services/serper_image_search_service.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/features/me/automotive_products/model/automotive_generate_ai_product_content.dart';
 import 'package:BlueEra/features/me/automotive_products/model/automotive_product_catalog_response.dart';
+import 'package:BlueEra/features/me/automotive_products/model/automotive_product_by_root_category_model.dart';
+import 'package:BlueEra/core/utils/fetch_cache.dart';
 // `AutomotiveProduct` here refers to the catalog model
 // (automotive_product_catalog_response); the nested-category response also
 // declares one, so hide it to keep the inventory list type unambiguous.
@@ -1424,6 +1426,67 @@ class AutomotiveProductController extends GetxController{
     } finally {
       isSingleProductLoading.value = false;
       singleProductDetailsResponse.value = ApiResponse.error('error');
+    }
+  }
+
+  /// ─── Products by root category (automotive-service/api/products/by-root-category) ───
+  /// Powers the "Quick Upload" rails on the automotive product super-category
+  /// screen: one horizontal rail per root category, each with a capped product
+  /// list. Kept SEPARATE from the product module's state. TTL-guarded via
+  /// [_rootCategoryCache] so re-entering the screen within the cache window
+  /// reuses the loaded sections instead of refetching.
+  Rx<ApiResponse> rootCategoryResponse = ApiResponse.initial('Initial').obs;
+  RxList<AutomotiveProductRootCategorySection> rootCategoryList =
+      <AutomotiveProductRootCategorySection>[].obs;
+  static const int _rootCategoryLimit = 10;
+
+  final FetchCache _rootCategoryCache = FetchCache();
+
+  /// Fetch the root-category rails only when not already loaded & fresh (TTL).
+  /// Call on screen (re)entry; use [fetchProductsByRootCategory] for explicit
+  /// refreshes.
+  Future<void> fetchProductsByRootCategoryIfNeeded() async {
+    if (_rootCategoryCache.isFresh('automotive-by-root-category',
+        hasData: rootCategoryList.isNotEmpty)) {
+      return;
+    }
+    await fetchProductsByRootCategory();
+  }
+
+  Future<void> fetchProductsByRootCategory() async {
+    try {
+      rootCategoryResponse.value = ApiResponse.loading('loading');
+
+      final Map<String, dynamic> params = {
+        ApiKeys.limit: _rootCategoryLimit,
+        ApiKeys.min: 0,
+      };
+
+      final responseModel = await AutomotiveProductRepo()
+          .fetchProductsByRootCategoryRepo(queryParams: params);
+
+      if (!responseModel.isSuccess) {
+        if (rootCategoryList.isEmpty) {
+          rootCategoryResponse.value = ApiResponse.error('error');
+        }
+        return;
+      }
+
+      final model = AutomotiveProductByRootCategoryModel.fromJson(
+          (responseModel.response?.data as Map<String, dynamic>?) ?? const {});
+      // Drop empty sections so we never render a titled rail with no products.
+      final sections =
+          model.sections.where((s) => s.products.isNotEmpty).toList();
+
+      rootCategoryList.assignAll(sections);
+      rootCategoryResponse.value = ApiResponse.complete(responseModel);
+      _rootCategoryCache.mark('automotive-by-root-category');
+      log('automotive by-root-category loaded -- ${rootCategoryList.length} sections');
+    } catch (e, s) {
+      log('automotive by-root-category stack trace -- $s');
+      if (rootCategoryList.isEmpty) {
+        rootCategoryResponse.value = ApiResponse.error('error');
+      }
     }
   }
 

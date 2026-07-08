@@ -12,6 +12,13 @@ mixin FoodServiceApi {
   /// category menu screen. `GET food-service/api/foodProduct/category-showcase`.
   final String foodCategoryShowcase =
       'food-service/api/foodProduct/category-showcase';
+
+  /// Food products grouped by root category — one section per root category,
+  /// each with a capped product list — powering the "Quick Upload" rails on the
+  /// food category menu screen.
+  /// `GET food-service/api/foodProduct/by-root-category`.
+  final String foodProductsByRootCategory =
+      'food-service/api/foodProduct/by-root-category';
   final String kitchenInventory = 'food-service/api/kitchen-inventory';
   // Delete a single kitchen-inventory entry (a product variant) by its id.
   String kitchenInventoryById(String inventoryId) => 'food-service/api/kitchen-inventory/$inventoryId';

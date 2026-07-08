@@ -19,6 +19,7 @@ import 'package:BlueEra/core/services/serper_image_search_service.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/features/me/product/model/generate_ai_product_content.dart';
 import 'package:BlueEra/features/me/product/model/product_catalog_response.dart';
+import 'package:BlueEra/features/me/product/model/product_by_root_category_model.dart';
 // `Product` here refers to the catalog model (product_catalog_response);
 // the nested-category response also declares a `Product`, so hide it to
 // keep the inventory list type unambiguous.
@@ -1695,6 +1696,67 @@ class ProductController extends GetxController{
   /// per-product "N in cart" badge in the product card + variant sheet.
   int selectedVariantCountForProduct(String productId) {
     return selectedProducts.where((p) => p.product.id == productId).length;
+  }
+
+  /// ─── Products by root category (product-service/api/products/by-root-category) ───
+  /// Powers the "Quick Upload" rails on the product super-category screen: one
+  /// horizontal rail per root category, each with a capped product list.
+  /// TTL-guarded via [_productRootCategoryCache] so re-entering the screen
+  /// within the cache window reuses the loaded sections instead of refetching.
+  Rx<ApiResponse> productRootCategoryResponse =
+      ApiResponse.initial('Initial').obs;
+  RxList<ProductRootCategorySection> productRootCategoryList =
+      <ProductRootCategorySection>[].obs;
+  static const int _productRootCategoryLimit = 10;
+
+  final FetchCache _productRootCategoryCache = FetchCache();
+
+  /// Fetch the root-category rails only when not already loaded & fresh (TTL).
+  /// Call on screen (re)entry; use [fetchProductsByRootCategory] for explicit
+  /// refreshes.
+  Future<void> fetchProductsByRootCategoryIfNeeded() async {
+    if (_productRootCategoryCache.isFresh('product-by-root-category',
+        hasData: productRootCategoryList.isNotEmpty)) {
+      return;
+    }
+    await fetchProductsByRootCategory();
+  }
+
+  Future<void> fetchProductsByRootCategory() async {
+    try {
+      productRootCategoryResponse.value = ApiResponse.loading('loading');
+
+      final Map<String, dynamic> params = {
+        ApiKeys.limit: _productRootCategoryLimit,
+        ApiKeys.min: 0,
+      };
+
+      final responseModel =
+          await ProductRepo().fetchProductsByRootCategoryRepo(queryParams: params);
+
+      if (!responseModel.isSuccess) {
+        if (productRootCategoryList.isEmpty) {
+          productRootCategoryResponse.value = ApiResponse.error('error');
+        }
+        return;
+      }
+
+      final model = ProductByRootCategoryModel.fromJson(
+          (responseModel.response?.data as Map<String, dynamic>?) ?? const {});
+      // Drop empty sections so we never render a titled rail with no products.
+      final sections =
+          model.sections.where((s) => s.products.isNotEmpty).toList();
+
+      productRootCategoryList.assignAll(sections);
+      productRootCategoryResponse.value = ApiResponse.complete(responseModel);
+      _productRootCategoryCache.mark('product-by-root-category');
+      log('product by-root-category loaded -- ${productRootCategoryList.length} sections');
+    } catch (e, s) {
+      log('product by-root-category stack trace -- $s');
+      if (productRootCategoryList.isEmpty) {
+        productRootCategoryResponse.value = ApiResponse.error('error');
+      }
+    }
   }
 
   /// ─── Category showcase (product-service/api/products/category-showcase) ───

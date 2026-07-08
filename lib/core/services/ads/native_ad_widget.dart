@@ -1,15 +1,15 @@
-import 'package:BlueEra/core/services/ads/meta_native_ad_widget.dart';
+import 'package:BlueEra/core/services/ads/admob_native_ad_widget.dart';
 import 'package:flutter/material.dart';
 
 /// A self-contained native ad slot.
 ///
-/// Ads are served by **Meta (Facebook Audience Network)**. This widget is a
-/// thin wrapper that forwards its card chrome (height / radius / margin /
-/// border / shadow / fill) to [MetaNativeAdWidget]. It keeps the original
-/// public API — including [factoryId] — so existing call sites and
-/// [NativeAdSlot] need no changes. [factoryId] is retained for
-/// source-compatibility only and is IGNORED (Meta renders its own native
-/// template; there are no platform-side ad factories anymore).
+/// Ads are served by **Google AdMob** (primary), with Meta Audience Network
+/// mediated behind it in the AdMob dashboard. This widget is a thin wrapper
+/// that forwards its card chrome (height / radius / margin / border / shadow /
+/// fill) to [AdMobNativeAdWidget]. It keeps the original public API — including
+/// [factoryId] — so existing call sites and [NativeAdSlot] need no changes.
+/// [factoryId] is retained for source-compatibility only and is IGNORED (the
+/// AdMob native template renders itself; no platform-side ad factories).
 class NativeAdWidget extends StatelessWidget {
   const NativeAdWidget({
     super.key,
@@ -52,7 +52,7 @@ class NativeAdWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MetaNativeAdWidget(
+    return AdMobNativeAdWidget(
       height: height,
       borderRadius: borderRadius,
       bottomGap: bottomGap,

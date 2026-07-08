@@ -10,16 +10,24 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/automotive_products/controller/automotive_product_controller.dart';
-import 'package:BlueEra/features/me/automotive_products/model/automotive_product_nested_category_response.dart';
+import 'package:BlueEra/features/me/automotive_products/model/automotive_product_by_root_category_model.dart';
 import 'package:BlueEra/features/me/automotive_products/view/admin/widget/automotive_create_own_product_via_ai_widget.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
+import 'package:BlueEra/features/me/automotive_products/view/admin/widget/automotive_product_selection_product_card.dart';
+import 'package:BlueEra/features/me/automotive_products/view/admin/widget/automotive_product_selection_variant_sheet.dart';
+import 'package:BlueEra/features/me/automotive_products/view/customer/widget/automotive_product_floating_cart.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
+/// Add-automotive-product landing: an "Add Products" snap card followed by
+/// "Quick Upload" rails — one horizontal rail per root category (title + icon +
+/// "More"), each showing products from `automotive-service/.../by-root-category`.
+/// Tapping a card opens the variant picker sheet; selected variants accumulate
+/// in the controller and the floating cart routes to the Add Product Variant
+/// screen.
 class AutomotiveProductSuperCategoryScreen extends StatefulWidget {
   final String? ownerID;
   final ProviderType? providerType;
@@ -39,19 +47,25 @@ class _AutomotiveProductSuperCategoryScreenState
     extends State<AutomotiveProductSuperCategoryScreen> {
   final controller = getOrPut(() => AutomotiveProductController());
 
+  /// Fixed width of a rail card (grid-style card; the rail height follows the
+  /// card's own content — see [_rootCategorySection]).
+  static double get _railCardWidth => SizeConfig.size160;
+
   @override
   void initState() {
     super.initState();
-    // Fetch ONCE on entry — not in build(). build() re-runs on every
-    // keyboard open/close (the root MediaQuery viewInsets change rebuilds
-    // every mounted route, including this one when it sits under the
-    // add-variant dialog), and an unguarded call here hammered
-    // `categories/nested` on each toggle.
+    // Fetch ONCE on entry — not in build(). build() re-runs on every keyboard
+    // open/close, and an unguarded call there hammered the endpoint on each
+    // toggle.
     if (widget.ownerID != null) controller.ownerID = widget.ownerID;
     if (widget.providerType != null) {
       controller.ownerProviderType = widget.providerType;
     }
+    // Nested category tree drives the "More" navigation args (super list).
     controller.fetchProductsNestedCategory();
+    // TTL-guarded: reuses the loaded rails on re-entry within the FetchCache
+    // window instead of hitting the network again.
+    controller.fetchProductsByRootCategoryIfNeeded();
   }
 
   @override
@@ -63,135 +77,282 @@ class _AutomotiveProductSuperCategoryScreenState
           providerType: ProviderType.business,
         ),
       ),
-      // Lazy CustomScrollView: the category grid is a SliverMasonryGrid that
-      // builds only the cards currently on screen, so the screen can't
-      // ANR-crash no matter how many categories the API returns.
       body: SafeArea(
-        child: Obx(() {
-          final resp = controller.nestedProductCategoryResponse.value;
-          final categories = controller.productsNestedCategoryList;
-          return CustomScrollView(
-            slivers: [
-              // ── Snap-search suggestion ─────────────────────────────
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(SizeConfig.size8,
-                      SizeConfig.size15, SizeConfig.size8, SizeConfig.paddingXSL),
-                  child: CustomFormCard(
-                    padding: EdgeInsets.all(SizeConfig.size10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomText(
-                          'Add AutomotiveProducts',
-                          fontSize: SizeConfig.large,
-                          color: AppColors.mainTextColor,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        SizedBox(height: SizeConfig.paddingXSL),
-                        _snapSearchSuggestion(
-                          onTap: () => Get.toNamed(
-                            RouteHelper.getAutomotiveAddProductTextOrSnapScreenRoute(),
-                            arguments: {
-                              ApiKeys.id: controller.ownerID,
-                              ApiKeys.providerType:
-                                  controller.ownerProviderType,
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+        child: Stack(
+          children: [
+            _buildScrollBody(),
+            // Selecting variants via a card's sheet accumulates them in the
+            // controller; this floating cart routes to the Add Product Variant
+            // screen.
+            Positioned(
+              bottom: 40,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: Obx(() => AutomotiveProductFloatingCart(
+                      selectedProducts: controller.selectedProducts.toList(),
+                      onTap: () => Get.toNamed(RouteHelper
+                          .getAutomotiveAddProductVariantScreenRoute()),
+                    )),
               ),
-              // ── AutomotiveCategory card — title + grid on a white surface,
-              // matching the "Add AutomotiveProducts" card above so it reads as
-              // a distinct section against the app background. The category
-              // set is bounded, so a shrink-wrapped grid is fine here.
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(SizeConfig.size8, 0,
-                      SizeConfig.size8, SizeConfig.size15),
-                  child: CustomFormCard(
-                    padding: EdgeInsets.all(SizeConfig.size10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomText(
-                          'AutomotiveCategory',
-                          fontSize: SizeConfig.large,
-                          color: AppColors.mainTextColor,
-                          fontWeight: FontWeight.w600,
-                        ),
-                        SizedBox(height: SizeConfig.paddingXSL),
-                        _categoryContent(resp, categories),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          );
-        }),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  /// AutomotiveCategory grid + error / empty / loading states, as a plain (box)
-  /// widget so it can live inside the white [CustomFormCard]. Shrink-wrapped
-  /// and non-scrollable — the outer [CustomScrollView] owns the scroll.
-  Widget _categoryContent(
-      ApiResponse resp, List<AutomotiveProductNestedCategoryResponse> categories) {
-    if (categories.isNotEmpty) {
-      return MasonryGridView.count(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        padding: EdgeInsets.zero,
-        crossAxisCount: 3,
-        mainAxisSpacing: 6,
-        crossAxisSpacing: 6,
-        itemCount: categories.length,
-        itemBuilder: (context, index) {
-          final category = categories[index];
-          return CommonServiceCard<AutomotiveProductNestedCategoryResponse>(
-            service: category,
-            getName: (item) => item.name ?? '',
-            getIcon: (item) => item.image ?? '',
-            iconHeight: SizeConfig.size60,
-            boxShadow: const [],
-            onTap: (item) {
-              // Navigate immediately and let the nested screen fetch this
-              // category's subtree with its own in-place shimmer — no blocking
-              // loader here. The flat level-0 list is forwarded so the nested
-              // screen's top-level switcher can drill elsewhere.
-              Get.toNamed(
-                RouteHelper.getAutomotiveProductNestedCategoryScreenRoute(),
-                arguments: {
-                  ApiKeys.argArrProductSuperCategory: categories.toList(),
-                  ApiKeys.argArrProductCatId: item.sId,
-                  ApiKeys.argArrProductCatName: item.name,
-                },
-              );
-            },
-          );
-        },
+  Widget _buildScrollBody() {
+    return Obx(() {
+      final resp = controller.rootCategoryResponse.value;
+      final sections = controller.rootCategoryList;
+      return CustomScrollView(
+        slivers: [
+          // ── Snap-search suggestion ─────────────────────────────
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(SizeConfig.size8, SizeConfig.size15,
+                  SizeConfig.size8, SizeConfig.paddingXSL),
+              child: CustomFormCard(
+                padding: EdgeInsets.all(SizeConfig.size10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(
+                      'Add AutomotiveProducts',
+                      fontSize: SizeConfig.large,
+                      color: AppColors.mainTextColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    SizedBox(height: SizeConfig.paddingXSL),
+                    _snapSearchSuggestion(
+                      onTap: () => Get.toNamed(
+                        RouteHelper.getAutomotiveAddProductTextOrSnapScreenRoute(),
+                        arguments: {
+                          ApiKeys.id: controller.ownerID,
+                          ApiKeys.providerType: controller.ownerProviderType,
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // ── "Quick Upload" heading ──────────────────────────────────
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(SizeConfig.size12, SizeConfig.size4,
+                  SizeConfig.size12, SizeConfig.size8),
+              child: CustomText(
+                'Quick Upload',
+                fontSize: SizeConfig.large,
+                color: AppColors.mainTextColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          // ── Root-category rails / states ────────────────────────────
+          _railsSliver(resp, sections),
+          // Bottom clearance so the last rail never hides behind the cart.
+          SliverToBoxAdapter(
+            child: SizedBox(
+              height: controller.selectedProducts.isEmpty
+                  ? SizeConfig.size15
+                  : SizeConfig.size80,
+            ),
+          ),
+        ],
       );
-    } else if (resp.status == Status.ERROR) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.only(top: 10),
-          child: CustomText(AppStrings.somethingWentWrong),
-        ),
-      );
-    } else if (resp.status == Status.COMPLETE) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 32),
-          child: CustomText('No categories found.'),
+    });
+  }
+
+  /// The root-category rails as a lazy sliver, plus loading / error / empty
+  /// states.
+  Widget _railsSliver(
+      ApiResponse resp, List<AutomotiveProductRootCategorySection> sections) {
+    if (sections.isEmpty) {
+      if (resp.status == Status.LOADING || resp.status == Status.INITIAL) {
+        return SliverToBoxAdapter(child: _buildRailsSkeleton());
+      }
+      if (resp.status == Status.ERROR) {
+        return SliverToBoxAdapter(
+          child: Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: SizeConfig.size20),
+              child: CustomText(AppStrings.somethingWentWrong),
+            ),
+          ),
+        );
+      }
+      return SliverToBoxAdapter(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 32),
+            child: CustomText('No categories found.'),
+          ),
         ),
       );
     }
-    return buildCategoryGridSkeleton();
+
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) => _rootCategorySection(sections[index]),
+        childCount: sections.length,
+      ),
+    );
+  }
+
+  /// One root-category rail: a white card with a header (icon + title + "More")
+  /// over a horizontal list of [AutomotiveProductSelectionProductCard]s.
+  Widget _rootCategorySection(AutomotiveProductRootCategorySection section) {
+    return Container(
+      margin: EdgeInsets.fromLTRB(
+          SizeConfig.size8, 0, SizeConfig.size8, SizeConfig.size12),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(SizeConfig.size12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _railHeader(section),
+          // Each fixed-width card sizes to its own content and the Row sizes to
+          // the tallest, so the rail height is not hardcoded.
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: EdgeInsets.fromLTRB(
+                SizeConfig.size12, 0, SizeConfig.size12, SizeConfig.size12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (int i = 0; i < section.products.length; i++) ...[
+                  if (i > 0) SizedBox(width: SizeConfig.size10),
+                  SizedBox(
+                    width: _railCardWidth,
+                    child: AutomotiveProductSelectionProductCard(
+                      product: section.products[i],
+                      controller: controller,
+                      onShowVariants: (p) =>
+                          AutomotiveProductSelectionVariantSheet.show(
+                        product: p,
+                        controller: controller,
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Rail header: icon + title on the left, "More" on the right.
+  Widget _railHeader(AutomotiveProductRootCategorySection section) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(SizeConfig.size12, SizeConfig.size12,
+          SizeConfig.size12, SizeConfig.paddingXSL),
+      child: Row(
+        children: [
+          if (section.image.isNotEmpty) ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: CachedNetworkImage(
+                imageUrl: section.image,
+                height: SizeConfig.size24,
+                width: SizeConfig.size24,
+                fit: BoxFit.cover,
+                errorWidget: (_, __, ___) => LocalAssets(
+                  imagePath: AppIconAssets.place_holder_image,
+                  height: SizeConfig.size24,
+                  width: SizeConfig.size24,
+                  boxFix: BoxFit.cover,
+                ),
+              ),
+            ),
+            SizedBox(width: SizeConfig.size8),
+          ],
+          Expanded(
+            child: CustomText(
+              section.name,
+              fontSize: SizeConfig.large,
+              color: AppColors.mainTextColor,
+              fontWeight: FontWeight.w600,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          SizedBox(width: SizeConfig.size8),
+          InkWell(
+            onTap: () => _openCategory(section),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              child: CustomText(
+                AppStrings.more.tr,
+                fontSize: SizeConfig.medium,
+                color: AppColors.primaryColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// "More" → the nested-category screen for this root category (same args as
+  /// the previous category-tile tap).
+  void _openCategory(AutomotiveProductRootCategorySection section) {
+    Get.toNamed(
+      RouteHelper.getAutomotiveProductNestedCategoryScreenRoute(),
+      arguments: {
+        ApiKeys.argArrProductSuperCategory:
+            controller.productsNestedCategoryList.toList(),
+        ApiKeys.argArrProductCatId: section.category?.sId,
+        ApiKeys.argArrProductCatName: section.category?.name,
+      },
+    );
+  }
+
+  /// First-load shimmer for the rails — two placeholder rails (title bar + a
+  /// row of card skeletons).
+  Widget _buildRailsSkeleton() {
+    return buildLoadingShimmer(
+      child: Column(
+        children: List.generate(2, (_) {
+          return Container(
+            margin: EdgeInsets.fromLTRB(
+                SizeConfig.size8, 0, SizeConfig.size8, SizeConfig.size12),
+            padding: EdgeInsets.all(SizeConfig.size12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                shimmerContainer(height: 18, width: 140, radius: 4),
+                SizedBox(height: SizeConfig.size12),
+                // Horizontal scroll (non-scrollable) so fixed-width placeholders
+                // can extend past the screen edge without overflowing.
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const NeverScrollableScrollPhysics(),
+                  child: Row(
+                    children: List.generate(
+                      3,
+                      (i) => Padding(
+                        padding: EdgeInsets.only(right: SizeConfig.size10),
+                        child: shimmerContainer(
+                            height: 250, width: _railCardWidth, radius: 10),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+      ),
+    );
   }
 
   Widget _snapSearchSuggestion({required VoidCallback onTap}) {

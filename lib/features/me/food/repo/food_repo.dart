@@ -83,6 +83,20 @@ class FoodRepo extends BaseService {
     return response;
   }
 
+  /// Food products grouped by root category — one section per root category,
+  /// each with a capped product list — for the "Quick Upload" rails.
+  Future<ResponseModel> getFoodProductsByRootCategoryRepo(
+      {Map<String, dynamic>? queryParam}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      foodProductsByRootCategory,
+      params: queryParam,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   /// Cross-category food product showcase (paginated) for the category menu
   /// screen's "Suggested Products" section.
   Future<ResponseModel> getFoodCategoryShowcaseRepo(

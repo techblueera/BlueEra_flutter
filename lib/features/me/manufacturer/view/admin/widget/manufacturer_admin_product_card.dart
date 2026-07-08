@@ -96,6 +96,7 @@ class ManufacturerAdminProductCard extends StatelessWidget {
         decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(10),
           color: AppColors.white,
+          border: Border.all(color: AppColors.greyE5),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

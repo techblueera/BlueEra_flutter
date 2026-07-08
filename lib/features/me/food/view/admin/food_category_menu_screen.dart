@@ -12,19 +12,25 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
-import 'package:BlueEra/features/me/food/view/widget/food_floating_cart.dart';
-import 'package:BlueEra/features/me/food/view/widget/food_product_card.dart';
-import 'package:BlueEra/features/me/food/view/widget/food_product_variant_bottom_sheet.dart';
+import 'package:BlueEra/features/me/food/model/food_by_root_category_model.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
+import 'package:BlueEra/features/me/food/view/widget/food_floating_cart.dart';
+import 'package:BlueEra/features/me/food/view/widget/food_product_select_card.dart';
+import 'package:BlueEra/features/me/food/view/widget/food_product_variant_bottom_sheet.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
+/// Add-food landing: a bulk-upload (snap-search) card, the Restaurant Special
+/// card, then "Quick Upload" rails — one horizontal rail per root category
+/// (title + icon + "More"), each showing products from
+/// `foodProduct/by-root-category`. Tapping a card opens the variant sheet;
+/// selected variants accumulate in the controller and the floating cart routes
+/// to Review & Publish.
 class FoodCategoryMenuScreen extends StatefulWidget {
   const FoodCategoryMenuScreen({super.key});
 
@@ -33,35 +39,16 @@ class FoodCategoryMenuScreen extends StatefulWidget {
 }
 
 class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
-  // List mapped to your specific local assets
   final foodServiceController = getOrPut(() => FoodServiceController());
-  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
-    foodServiceController.getFoodNestedCategoryApi();
-    // TTL-guarded: reuses the loaded showcase list on re-entry within the
-    // FetchCache window instead of hitting the network again.
-    foodServiceController.fetchFoodCategoryShowcaseIfNeeded();
-    _scrollController.addListener(_onShowcaseScroll);
     super.initState();
-  }
-
-  /// Auto-load the next "Suggested Products" page near the bottom.
-  void _onShowcaseScroll() {
-    if (_scrollController.position.pixels >=
-            _scrollController.position.maxScrollExtent - 200 &&
-        !foodServiceController.isFoodShowcaseLoadingMore.value &&
-        foodServiceController.foodShowcaseHasMore) {
-      foodServiceController.fetchFoodCategoryShowcase(isLoadMore: true);
-    }
-  }
-
-  @override
-  void dispose() {
-    _scrollController.removeListener(_onShowcaseScroll);
-    _scrollController.dispose();
-    super.dispose();
+    // Nested category tree drives the "More" navigation args.
+    foodServiceController.getFoodNestedCategoryApi();
+    // TTL-guarded: reuses the loaded rails on re-entry within the FetchCache
+    // window instead of hitting the network again.
+    foodServiceController.fetchFoodProductsByRootCategoryIfNeeded();
   }
 
   @override
@@ -85,17 +72,12 @@ class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
           ),
         ),
       ),
-      // Lazy CustomScrollView: the category grid is a SliverMasonryGrid that
-      // builds ONLY the cards currently on screen. This makes the screen
-      // crash-proof regardless of how many categories the API returns (the
-      // food `categories/tree` endpoint can return ~1.7k roots of bad data).
       body: SafeArea(
         child: Stack(
           children: [
             _buildScrollBody(),
             // Selecting variants via a product card's sheet accumulates them in
-            // the controller; this floating cart routes to Review & Publish —
-            // same flow as FoodProductSelectionScreen.
+            // the controller; this floating cart routes to Review & Publish.
             Positioned(
               left: 0,
               right: 0,
@@ -113,129 +95,70 @@ class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
 
   Widget _buildScrollBody() {
     return Obx(() {
-          final status =
-              foodServiceController.getFoodCategoryResponse.value.status;
-          final categories = foodServiceController.foodNestedCateList;
-          return CustomScrollView(
-            controller: _scrollController,
-            slivers: [
-              // Snap-search card
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(SizeConfig.size8,
-                      SizeConfig.size15, SizeConfig.size8, 0),
-                  child: CustomFormCard(
-                    padding: EdgeInsets.all(SizeConfig.size10),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _title(AppStrings.foodUploadBulkProduct.tr),
-                        SizedBox(height: SizeConfig.paddingXSL),
-                        _snapSearchSuggestion(
-                          onTap: () => Get.toNamed(
-                            RouteHelper.getAddFoodSnapSearchScreenRoute(),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              // Category section — white card (title + lazy grid). DecoratedSliver
-              // paints the white background behind the whole group while
-              // SliverMainAxisGroup keeps the grid lazy.
-              SliverPadding(
-                padding: EdgeInsets.fromLTRB(
-                    SizeConfig.size8, SizeConfig.size12, SizeConfig.size8, 0),
-                sliver: DecoratedSliver(
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.circular(SizeConfig.size12),
-                  ),
-                  sliver: SliverMainAxisGroup(
-                    slivers: [
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: EdgeInsets.fromLTRB(
-                              SizeConfig.size12,
-                              SizeConfig.size12,
-                              SizeConfig.size12,
-                              SizeConfig.paddingXSL),
-                          child: _title(AppStrings.category.tr),
-                        ),
+      final resp = foodServiceController.foodRootCategoryResponse.value;
+      final sections = foodServiceController.foodRootCategoryList;
+      return CustomScrollView(
+        slivers: [
+          // Snap-search bulk card.
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                  SizeConfig.size8, SizeConfig.size15, SizeConfig.size8, 0),
+              child: CustomFormCard(
+                padding: EdgeInsets.all(SizeConfig.size10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _title(AppStrings.foodUploadBulkProduct.tr),
+                    SizedBox(height: SizeConfig.paddingXSL),
+                    _snapSearchSuggestion(
+                      onTap: () => Get.toNamed(
+                        RouteHelper.getAddFoodSnapSearchScreenRoute(),
                       ),
-                      // Category grid (lazy) / states
-                      _categorySliver(status, categories),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-              // Restaurant special
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: EdgeInsets.fromLTRB(SizeConfig.size8,
-                      SizeConfig.size10, SizeConfig.size8, SizeConfig.size10),
-                  child: _restaurantSpecialCard(),
-                ),
-              ),
-              // Suggested Products showcase (lazy list of FoodProductCard).
-              ..._showcaseSlivers(),
-              // Bottom clearance so the last card never hides behind the
-              // floating cart once variants are selected.
-              SliverToBoxAdapter(
-                child: SizedBox(
-                  height: foodServiceController.selectedVariantsMap.isEmpty
-                      ? SizeConfig.size20
-                      : FoodFloatingCart.reservedSpace,
-                ),
-              ),
-            ],
-          );
-        });
-  }
-
-  /// "Suggested Products" section: a title + a LAZY list of [FoodProductCard]s
-  /// (same card + variant-sheet flow as [FoodProductSelectionScreen]). Returns
-  /// an empty list when there's nothing to show and nothing loading.
-  List<Widget> _showcaseSlivers() {
-    final resp = foodServiceController.foodShowcaseResponse.value;
-    final products = foodServiceController.foodShowcaseList;
-
-    final bool isLoading =
-        resp.status == Status.LOADING || resp.status == Status.INITIAL;
-    if (products.isEmpty && !isLoading && resp.status != Status.ERROR) {
-      return const [];
-    }
-
-    return [
-      SliverToBoxAdapter(
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(SizeConfig.size8, SizeConfig.size4,
-              SizeConfig.size8, SizeConfig.paddingXSL),
-          child: _title('Suggested Products'),
-        ),
-      ),
-      _showcaseListSliver(resp, products),
-      // Pagination loader — a full-width sliver so it's centered across the
-      // screen.
-      if (foodServiceController.isFoodShowcaseLoadingMore.value)
-        _loadMoreSliver(),
-    ];
-  }
-
-  /// Full-width, horizontally-centered pagination spinner shown below the list.
-  Widget _loadMoreSliver() => const SliverToBoxAdapter(
-        child: Padding(
-          padding: EdgeInsets.symmetric(vertical: 12),
-          child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-        ),
+            ),
+          ),
+          // Restaurant special.
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(SizeConfig.size8, SizeConfig.size10,
+                  SizeConfig.size8, SizeConfig.size10),
+              child: _restaurantSpecialCard(),
+            ),
+          ),
+          // ── "Quick Upload" heading ──────────────────────────────────
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(SizeConfig.size12, SizeConfig.size4,
+                  SizeConfig.size12, SizeConfig.size8),
+              child: _title('Quick Upload'),
+            ),
+          ),
+          // ── Root-category rails / states ────────────────────────────
+          _railsSliver(resp, sections),
+          // Bottom clearance so the last rail never hides behind the cart.
+          SliverToBoxAdapter(
+            child: SizedBox(
+              height: foodServiceController.selectedVariantsMap.isEmpty
+                  ? SizeConfig.size20
+                  : FoodFloatingCart.reservedSpace,
+            ),
+          ),
+        ],
       );
+    });
+  }
 
-  /// Showcase list as a LAZY sliver plus loading / error states. The "loading
-  /// more" spinner is a separate full-width sliver (see [_showcaseSlivers]).
-  Widget _showcaseListSliver(
-      ApiResponse resp, List<CategoryFoodProductData> products) {
-    if (products.isEmpty) {
+  /// The root-category rails as a lazy sliver, plus loading / error / empty
+  /// states.
+  Widget _railsSliver(ApiResponse resp, List<FoodRootCategorySection> sections) {
+    if (sections.isEmpty) {
+      if (resp.status == Status.LOADING || resp.status == Status.INITIAL) {
+        return SliverToBoxAdapter(child: _buildRailsSkeleton());
+      }
       if (resp.status == Status.ERROR) {
         return SliverToBoxAdapter(
           child: Center(
@@ -246,39 +169,140 @@ class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
           ),
         );
       }
-      return SliverToBoxAdapter(child: _buildFoodShowcaseSkeleton());
+      return SliverToBoxAdapter(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 32),
+            child: CustomText(AppStrings.noDataFound),
+          ),
+        ),
+      );
     }
 
-    return SliverPadding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
-      sliver: SliverList.builder(
-        itemCount: products.length,
-        itemBuilder: (context, index) {
-          final product = products[index];
-          return FoodProductCard(
-            product: product,
-            onShowVariants: (p) => _showVariantSheet(context, p),
-          );
-        },
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) => _rootCategorySection(sections[index]),
+        childCount: sections.length,
       ),
     );
   }
 
-  /// First-load shimmer for the showcase — mirrors the full-width food cards.
-  Widget _buildFoodShowcaseSkeleton() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
-      child: buildLoadingShimmer(
-        child: Column(
-          children: List.generate(
-            3,
-            (_) => Padding(
-              padding: const EdgeInsets.only(bottom: 10),
-              child: shimmerContainer(height: 110, radius: 12),
+  /// One root-category rail: a white card with a header (icon + title + "More")
+  /// over a horizontal list of grocery-style [FoodProductSelectCard]s.
+  Widget _rootCategorySection(FoodRootCategorySection section) {
+    return Container(
+      margin: EdgeInsets.fromLTRB(
+          SizeConfig.size8, 0, SizeConfig.size8, SizeConfig.size12),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(SizeConfig.size12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _railHeader(section),
+          // Each fixed-width card sizes to its own content and the Row sizes to
+          // the tallest, so the rail height is not hardcoded.
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: EdgeInsets.fromLTRB(
+                SizeConfig.size12, 0, SizeConfig.size12, SizeConfig.size12),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (int i = 0; i < section.products.length; i++) ...[
+                  if (i > 0) SizedBox(width: SizeConfig.size10),
+                  FoodProductSelectCard(
+                    product: section.products[i],
+                    controller: foodServiceController,
+                    onShowVariants: (p) => _showVariantSheet(context, p),
+                    width: SizeConfig.size160,
+                  ),
+                ],
+              ],
             ),
           ),
-        ),
+        ],
       ),
+    );
+  }
+
+  /// Rail header: icon + title on the left, "More" on the right.
+  Widget _railHeader(FoodRootCategorySection section) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(SizeConfig.size12, SizeConfig.size12,
+          SizeConfig.size12, SizeConfig.paddingXSL),
+      child: Row(
+        children: [
+          if (section.image.isNotEmpty) ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: CachedNetworkImage(
+                imageUrl: section.image,
+                height: SizeConfig.size24,
+                width: SizeConfig.size24,
+                fit: BoxFit.cover,
+                errorWidget: (_, __, ___) => LocalAssets(
+                  imagePath: AppIconAssets.place_holder_image,
+                  height: SizeConfig.size24,
+                  width: SizeConfig.size24,
+                  boxFix: BoxFit.cover,
+                ),
+              ),
+            ),
+            SizedBox(width: SizeConfig.size8),
+          ],
+          Expanded(
+            child: CustomText(
+              section.name,
+              fontSize: SizeConfig.large,
+              color: AppColors.mainTextColor,
+              fontWeight: FontWeight.w600,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          SizedBox(width: SizeConfig.size8),
+          InkWell(
+            onTap: () => _openCategory(section),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              child: CustomText(
+                AppStrings.more.tr,
+                fontSize: SizeConfig.medium,
+                color: AppColors.primaryColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// "More" → the food product-selection screen for this root category.
+  ///
+  /// The by-root-category `section.category` is a lightweight stub with NO
+  /// `children`, but the selection screen builds its sidebar + sub-category
+  /// tabs from `children`. So resolve the FULL tree node (with children) from
+  /// the loaded category tree, matching by id (fallback: key), and pass that.
+  void _openCategory(FoodRootCategorySection section) {
+    GroceryNestedCategoryModel? full;
+    for (final c in foodServiceController.foodNestedCateList) {
+      final byId = section.category?.sId != null && c.sId == section.category!.sId;
+      final byKey = section.key.isNotEmpty && c.key == section.key;
+      if (byId || byKey) {
+        full = c;
+        break;
+      }
+    }
+    final category = full ?? section.category;
+    if (category == null) return;
+
+    foodServiceController.selectedFoodTypeID.value = category.sId ?? "";
+    Get.toNamed(
+      RouteHelper.getFoodProductSelectionScreenRoute(),
+      arguments: {ApiKeys.argCategoryData: category},
     );
   }
 
@@ -294,60 +318,46 @@ class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
     );
   }
 
-  /// Category grid as a LAZY sliver (builds only visible cards) plus the
-  /// loading / error / empty states.
-  Widget _categorySliver(
-      Status? status, List<GroceryNestedCategoryModel> categories) {
-    if (status == Status.COMPLETE) {
-      if (categories.isEmpty) {
-        return SliverToBoxAdapter(
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.only(top: 10),
-              child: CustomText(AppStrings.noDataFound),
+  /// First-load shimmer for the rails — two placeholder rails (title bar + a
+  /// row of card skeletons).
+  Widget _buildRailsSkeleton() {
+    return buildLoadingShimmer(
+      child: Column(
+        children: List.generate(2, (_) {
+          return Container(
+            margin: EdgeInsets.fromLTRB(
+                SizeConfig.size8, 0, SizeConfig.size8, SizeConfig.size12),
+            padding: EdgeInsets.all(SizeConfig.size12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                shimmerContainer(height: 18, width: 140, radius: 4),
+                SizedBox(height: SizeConfig.size12),
+                // Horizontal scroll (non-scrollable) so the fixed-width
+                // placeholders can extend past the screen edge without
+                // overflowing, mirroring the real rail.
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  physics: const NeverScrollableScrollPhysics(),
+                  child: Row(
+                    children: List.generate(
+                      3,
+                      (i) => Padding(
+                        padding: EdgeInsets.only(right: SizeConfig.size10),
+                        child: shimmerContainer(
+                            height: 250,
+                            width: SizeConfig.size160,
+                            radius: 10),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ),
-        );
-      }
-      return SliverPadding(
-        padding: EdgeInsets.fromLTRB(
-            SizeConfig.size8, 0, SizeConfig.size8, SizeConfig.size12),
-        sliver: SliverMasonryGrid.count(
-          crossAxisCount: 3,
-          mainAxisSpacing: 6,
-          crossAxisSpacing: 6,
-          childCount: categories.length,
-          itemBuilder: (context, index) {
-            final item = categories[index];
-            return CommonServiceCard<GroceryNestedCategoryModel>(
-              service: item,
-              getName: (item) => item.name ?? '',
-              getIcon: (item) => item.image ?? '',
-              iconHeight: SizeConfig.size60,
-              boxShadow: const [],
-              onTap: (item) {
-                foodServiceController.selectedFoodTypeID.value =
-                    item.sId ?? "";
-                Get.toNamed(
-                  RouteHelper.getProductSelectionScreenRoute(),
-                  arguments: {ApiKeys.argCategoryData: item},
-                );
-              },
-            );
-          },
-        ),
-      );
-    } else if (status == Status.ERROR) {
-      return SliverToBoxAdapter(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.only(top: 10),
-            child: CustomText(AppStrings.somethingWentWrong),
-          ),
-        ),
-      );
-    }
-    return SliverToBoxAdapter(child: buildCategoryGridSkeleton());
+          );
+        }),
+      ),
+    );
   }
 
   Widget _restaurantSpecialCard() {
@@ -424,13 +434,11 @@ class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
     );
   }
 
-  Widget _title(String title){
-    return CustomText(
-        title,
+  Widget _title(String title) {
+    return CustomText(title,
         fontSize: SizeConfig.large,
         color: AppColors.mainTextColor,
-        fontWeight: FontWeight.w600
-    );
+        fontWeight: FontWeight.w600);
   }
 
   Widget _snapSearchSuggestion({required VoidCallback onTap}) {

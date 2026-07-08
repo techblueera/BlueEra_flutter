@@ -69,7 +69,12 @@ class GroceryProductData {
     name = json['name'];
     description = json['description'];
     brand = json['brand'];
-    category = json['category'];
+    // `category` is usually an id string, but some endpoints (e.g.
+    // products/by-root-category) embed the full category object — keep the id
+    // in either case so this String? field never gets a Map assigned to it.
+    category = json['category'] is Map
+        ? json['category']['_id'] as String?
+        : json['category'] as String?;
     tags = (json['tags'] as List?)?.cast<String>() ?? [];
     if (json['images'] != null) {
       images = <Images>[];

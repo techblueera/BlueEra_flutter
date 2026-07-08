@@ -60,4 +60,23 @@ abstract class Env {
   @EnviedField(varName: 'META_INTERSTITIAL_PLACEMENT_IOS')
   static String metaInterstitialPlacementIos =
       _Env.metaInterstitialPlacementIos;
+
+  // ── Google AdMob IDs — per platform ──
+  @EnviedField(varName: 'ADMOB_APP_ID_ANDROID')
+  static String admobAppIdAndroid = _Env.admobAppIdAndroid;
+
+  @EnviedField(varName: 'ADMOB_APP_ID_IOS')
+  static String admobAppIdIos = _Env.admobAppIdIos;
+
+  @EnviedField(varName: 'ADMOB_NATIVE_ANDROID')
+  static String admobNativeAndroid = _Env.admobNativeAndroid;
+
+  @EnviedField(varName: 'ADMOB_NATIVE_IOS')
+  static String admobNativeIos = _Env.admobNativeIos;
+
+  @EnviedField(varName: 'ADMOB_INTERSTITIAL_ANDROID')
+  static String admobInterstitialAndroid = _Env.admobInterstitialAndroid;
+
+  @EnviedField(varName: 'ADMOB_INTERSTITIAL_IOS')
+  static String admobInterstitialIos = _Env.admobInterstitialIos;
 }

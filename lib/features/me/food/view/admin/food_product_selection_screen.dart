@@ -1,20 +1,23 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
 import 'package:BlueEra/features/me/food/controller/food_service_controller.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_floating_cart.dart';
-import 'package:BlueEra/features/me/food/view/widget/food_product_card.dart';
+import 'package:BlueEra/features/me/food/view/widget/food_product_select_card.dart';
 import 'package:BlueEra/features/me/food/view/widget/food_product_variant_bottom_sheet.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/horizontal_tab_selector.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:get/get.dart';
 
 class FoodProductSelectionScreen extends StatefulWidget {
@@ -33,34 +36,35 @@ class _FoodProductSelectionScreenState extends State<FoodProductSelectionScreen>
   @override
   void initState() {
     super.initState();
-    controller.resetControllerFields();
+    // Defer the controller setup to AFTER the first frame. resetControllerFields()
+    // clears RxMaps (selectedVariantsMap, …); doing that in initState notifies
+    // observers that are still mounted during the navigation transition (the
+    // previous screen's cards/floating cart) while the framework is mid-build →
+    // "setState() called during build". Post-frame side-steps that safely.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      controller.resetControllerFields();
 
-    final firstLevel1 = widget.foodCategoryData.children?.firstOrNull;
+      final firstLevel1 = widget.foodCategoryData.children?.firstOrNull;
 
-    if (firstLevel1 != null) {
-      // 1. Assign Level 1 Data
-      controller.selectedCategoryId.value = firstLevel1.sId ?? "";
+      if (firstLevel1 != null) {
+        // 1. Assign Level 1 Data
+        controller.selectedCategoryId.value = firstLevel1.sId ?? "";
 
-      // 2. Sync Sub-category Tabs list
-      controller.subCategoryTabs.assignAll(firstLevel1.children ?? []);
+        // 2. Sync Sub-category Tabs list
+        controller.subCategoryTabs.assignAll(firstLevel1.children ?? []);
 
-      // 3. Determine Level 2 ID (Defaulting to "All")
-      controller.selectedSubCategoryId.value = "All";
+        // 3. Determine Level 2 ID (Defaulting to "All")
+        controller.selectedSubCategoryId.value = "All";
 
-      // --- DEBUG LOGS ---
-      debugPrint("--- InitState Product Selection ---");
-      debugPrint("Selected Level 1 (Sidebar): ${firstLevel1.name} (ID: ${controller.selectedCategoryId.value})");
-      debugPrint("Sub-categories found: ${controller.subCategoryTabs.length}");
-      debugPrint("Selected Level 2 (Tab): ${controller.selectedSubCategoryId.value}");
-      // ------------------
-
-      // 4. API Call
-      controller.getFoodByCategoryIDController(
-          categoryIdParams: {ApiKeys.parentId: controller.selectedCategoryId.value}
-      );
-    } else {
-      debugPrint("--- InitState Warning: No Level 1 Categories found ---");
-    }
+        // 4. API Call
+        controller.getFoodByCategoryIDController(categoryIdParams: {
+          ApiKeys.parentId: controller.selectedCategoryId.value
+        });
+      } else {
+        debugPrint("--- InitState Warning: No Level 1 Categories found ---");
+      }
+    });
     // scrollController.addListener(_onScrollListener);
   }
 
@@ -215,29 +219,60 @@ class _FoodProductSelectionScreenState extends State<FoodProductSelectionScreen>
             );
           }),
 
-          // Product List
-          Obx(() => Expanded(
-                child: ListView.builder(
-                  padding: EdgeInsets.fromLTRB(
-                    8,
-                    8,
-                    8,
-                    // Reserve space for the floating cart so the last
-                    // item never hides behind it.
-                    FoodFloatingCart.reservedSpace,
-                  ),
-                  itemCount: controller.categoryFoundProductDataList.length,
-                  itemBuilder: (context, index) {
-                    final product =
-                        controller.categoryFoundProductDataList[index];
-                    return FoodProductCard(
-                      product: product,
-                      onShowVariants: (p) => _showVariantSheet(context, p),
-                    );
-                  },
-                ),
-              )),
+          // Product grid — grocery-style cards in a 2-column masonry grid.
+          // While the category request is in flight, show a 2×2 shimmer grid.
+          Obx(() {
+            final status = controller.getFoodByCategoryIDResponse.value.status;
+            final isLoading =
+                status == Status.INITIAL || status == Status.LOADING;
+            return Expanded(
+              child: isLoading
+                  ? _buildGridSkeleton()
+                  : MasonryGridView.count(
+                      padding: EdgeInsets.fromLTRB(
+                        8,
+                        8,
+                        8,
+                        // Reserve space for the floating cart so the last
+                        // item never hides behind it.
+                        FoodFloatingCart.reservedSpace,
+                      ),
+                      crossAxisCount: 2,
+                      mainAxisSpacing: 10,
+                      crossAxisSpacing: 10,
+                      itemCount: controller.categoryFoundProductDataList.length,
+                      itemBuilder: (context, index) {
+                        final product =
+                            controller.categoryFoundProductDataList[index];
+                        return FoodProductSelectCard(
+                          product: product,
+                          controller: controller,
+                          onShowVariants: (p) => _showVariantSheet(context, p),
+                        );
+                      },
+                    ),
+            );
+          }),
         ],
+      ),
+    );
+  }
+
+  /// 2×2 shimmer grid shown while the category products are loading — mirrors
+  /// the real 2-column card grid.
+  Widget _buildGridSkeleton() {
+    return buildLoadingShimmer(
+      child: GridView.builder(
+        padding: EdgeInsets.fromLTRB(8, 8, 8, FoodFloatingCart.reservedSpace),
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 10,
+          mainAxisSpacing: 10,
+          mainAxisExtent: 250,
+        ),
+        itemCount: 4,
+        itemBuilder: (_, __) => shimmerContainer(height: 250, radius: 10),
       ),
     );
   }

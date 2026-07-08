@@ -81,6 +81,20 @@ class ProductRepo extends BaseService {
     return response;
   }
 
+  /// Products grouped by root category — one section per root category, each
+  /// with a capped product list — for the "Quick Upload" rails.
+  Future<ResponseModel> fetchProductsByRootCategoryRepo(
+      {required Map<String, dynamic> queryParams}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      productsByRootCategory,
+      params: queryParams,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   /// Cross-category product showcase (paginated) for the super-category
   /// screen's "Suggested Products" section.
   Future<ResponseModel> fetchProductCategoryShowcaseRepo({required Map<String, dynamic> queryParams}) async {

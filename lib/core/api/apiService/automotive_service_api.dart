@@ -21,6 +21,13 @@ mixin AutomotiveServiceApi {
   final String automotiveProductNestedCategory =
       'automotive-service/api/categories/nested';
 
+  /// Products grouped by root category — one section per root category, each
+  /// with a capped product list — powering the "Quick Upload" rails on the
+  /// automotive product super-category screen.
+  /// `GET automotive-service/api/products/by-root-category`.
+  final String automotiveProductsByRootCategory =
+      'automotive-service/api/products/by-root-category';
+
   /// Front-end AI keys (Google Custom Search key + cx) for product image search.
   /// `GET automotive-service/api/products/fe/ai-keys`.
   final String automotiveProductAiKeys =

@@ -13,6 +13,13 @@ mixin ProductServiceApi {
   /// super-category screen. `GET product-service/api/products/category-showcase`.
   final String productCategoryShowcase =
       'product-service/api/products/category-showcase';
+
+  /// Products grouped by root category — one section per root category, each
+  /// with a capped product list — powering the "Quick Upload" rails on the
+  /// product super-category screen.
+  /// `GET product-service/api/products/by-root-category`.
+  final String productsByRootCategory =
+      'product-service/api/products/by-root-category';
   String addUpdateProductVariant(String productId) =>
       'product-service/api/products/$productId/variants';
   String getProductById(String productId) =>

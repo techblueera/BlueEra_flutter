@@ -43,6 +43,7 @@ class ProductSelectionProductCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: AppColors.greyE5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

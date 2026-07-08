@@ -411,6 +411,20 @@ class AutomotiveProductRepo extends BaseService {
     return response;
   }
 
+  /// Products grouped by root category — one section per root category, each
+  /// with a capped product list — for the "Quick Upload" rails.
+  Future<ResponseModel> fetchProductsByRootCategoryRepo(
+      {required Map<String, dynamic> queryParams}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      automotiveProductsByRootCategory,
+      showProgress: false,
+      params: queryParams,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   /// Fetch categories for a group (e.g. `homeMadeProduct`).
   Future<ResponseModel> productCategoriesByGroupRepo(
       {required String group}) async {
