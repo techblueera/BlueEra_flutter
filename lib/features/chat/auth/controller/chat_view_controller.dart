@@ -2210,6 +2210,23 @@ class ChatViewController extends GetxController {
     chatMainTabController!.animateTo(index);
   }
 
+  /// Refresh the business/inquiry chat list right after a self-pickup order is
+  /// placed. The freshly-created order conversation is frequently not yet
+  /// indexed on the server at the instant the place-order API returns, so a
+  /// single emit races the backend and the new order thread only appears after
+  /// a manual pull-to-refresh. Emitting immediately plus a couple of short
+  /// delayed re-emits lets the new order surface on the Inquiry tab on its own,
+  /// without any user action. Safe to call from any place-order flow.
+  void refreshBusinessChatListAfterOrder() {
+    void emit() => emitEvent(
+          ChatEmitEvents.ChatList,
+          {ApiKeys.type: AppConstants.business_Chat_Type},
+        );
+    emit(); // immediate — catches orders the backend has already indexed
+    Future.delayed(const Duration(milliseconds: 1200), emit);
+    Future.delayed(const Duration(seconds: 3), emit);
+  }
+
   void isChatFromBusinessProfile(bool value) {
     chatFromBusinessProfile.value = value;
   }

@@ -50,6 +50,13 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
   void initState() {
     super.initState();
     _loadHistory();
+    // Ensure the personal (chat) list is available so chat calls can be
+    // whitelisted even when the Call tab is opened first — the Call tab shows
+    // ONLY calls that belong to a personal chat conversation.
+    _chatViewController.emitEvent(
+      ChatEmitEvents.ChatList,
+      {ApiKeys.type: AppConstants.personal_Chat_Type},
+    );
   }
 
   Future<void> _loadHistory() async {
@@ -78,16 +85,37 @@ class _CallHistoryScreenState extends State<CallHistoryScreen> {
 
   bool _isOutgoing(CallModel c) => c.initiatedBy == userId;
 
+  /// Conversation ids that belong to the personal (chat) lane. Only calls
+  /// tied to one of these are shown in the Call tab; inquiry/business calls
+  /// (whose conversations live in the business list, not here) are hidden.
+  Set<String> get _chatConversationIds {
+    final list = _chatViewController.getPersonalChatListModel?.value.chatList;
+    if (list == null) return const {};
+    return list
+        .whereType<ChatList>()
+        .map((c) => c.conversationId ?? '')
+        .where((id) => id.isNotEmpty)
+        .toSet();
+  }
+
+  /// True only when the call belongs to a personal chat conversation. Inquiry
+  /// calls are not in the personal list, so they are filtered out.
+  bool _isChatCall(CallModel c) =>
+      _chatConversationIds.contains(c.conversationId);
+
   List<CallModel> _filteredFor(int tabIndex) {
+    // Keep only chat (personal) calls up-front — inquiry/business calls are
+    // hidden regardless of the missed/incoming/outgoing sub-tab.
+    final base = _calls.where(_isChatCall);
     switch (tabIndex) {
       case 1:
-        return _calls.where(_isMissed).toList();
+        return base.where(_isMissed).toList();
       case 2:
-        return _calls.where((c) => !_isOutgoing(c) && !_isMissed(c)).toList();
+        return base.where((c) => !_isOutgoing(c) && !_isMissed(c)).toList();
       case 3:
-        return _calls.where((c) => _isOutgoing(c) && !_isMissed(c)).toList();
+        return base.where((c) => _isOutgoing(c) && !_isMissed(c)).toList();
       default:
-        return _calls.toList();
+        return base.toList();
     }
   }
 
