@@ -1094,13 +1094,28 @@ class DiscoverController extends GetxController {
       if (!res.isSuccess) return null;
       final data = res.response?.data;
       if (data is! Map<String, dynamic>) return null;
-      if (data['services'] != null) {
-        final parsed = ServiceModelResponse.fromJson(data);
-        for (final s in parsed.services ?? <Services>[]) {
-          if ((s.data ?? []).isNotEmpty) return s.data!.first;
+
+      // The by-user endpoint (`earn-service/services/user/{id}`) returns RAW
+      // service documents, not the grouped Discover-list envelope:
+      //   { "services": [ { _id, providerDetails:{…owner…}, expertise:[],
+      //                      serviceType:[], timings:[], availability, … } ] }
+      // The owner sits under `providerDetails` and the service arrays sit at
+      // the top level of each document — a different shape from the list
+      // response ({ services:[{profession, data:[ServiceData]}], professions }).
+      // Feeding it to ServiceModelResponse threw (its `data[]` is absent and
+      // `professions` is missing), so the old code fell through to null and the
+      // screen showed "No data found". Remap the first document into the flat
+      // ServiceData the screen renders instead.
+      final services = data['services'];
+      if (services is List) {
+        for (final doc in services) {
+          if (doc is Map<String, dynamic>) {
+            return _serviceDataFromEarnDoc(doc);
+          }
         }
         return null;
       }
+
       final inner = data['data'];
       if (inner is Map<String, dynamic>) return ServiceData.fromJson(inner);
       if (inner is List && inner.isNotEmpty) {
@@ -1111,6 +1126,39 @@ class DiscoverController extends GetxController {
       log('getEarnServiceByUserId error: $e\n$s');
       return null;
     }
+  }
+
+  /// Maps ONE raw earn-service document (from `earn-service/services/user/{id}`)
+  /// into the flat [ServiceData] the discover self-employee screen expects.
+  /// The owner is nested under `providerDetails` (whose keys already match the
+  /// user-level fields ServiceData reads), the service detail arrays live at
+  /// the document's top level (so they map straight into the nested `service`
+  /// [ServiceInfo]), photos sit on the document, and price is the migrated
+  /// top-level `priceRange{min,max}` + `feeType` folded back into `priceData`.
+  ServiceData _serviceDataFromEarnDoc(Map<String, dynamic> doc) {
+    final provider = (doc['providerDetails'] as Map<String, dynamic>?) ??
+        const <String, dynamic>{};
+    final merged = <String, dynamic>{
+      // Owner / user-level fields — providerDetails uses the same JSON keys
+      // ServiceData.fromJson reads (id, name, contact_no, profile_image,
+      // skills, projects, experiences, …), so a spread hydrates them directly.
+      ...provider,
+      'category': doc['category'],
+      // Gallery photos live on the service document, not the provider.
+      'serviceMedia': {'photos': doc['photos'] ?? const <String>[]},
+      // ServiceInfo reads timings / expertise / serviceType / serviceOffered /
+      // typesOfWork / workCategories / whyChooseMe / facilities / availability
+      // straight off the service document.
+      'service': doc,
+      // Price migrated to a top-level priceRange{min,max} + feeType; fold it
+      // back into the priceData shape PriceData.fromJson understands.
+      if (doc['priceRange'] != null || doc['feeType'] != null)
+        'priceData': {
+          'feeType': doc['feeType'],
+          'priceRange': doc['priceRange'],
+        },
+    };
+    return ServiceData.fromJson(merged);
   }
 
   /// Fetch ONE professional/consultant by [userId] (search filtered to one,
