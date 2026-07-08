@@ -20,7 +20,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../../core/services/share_service.dart';
-
 class SelfEmployeeViewDiscoverScreen extends StatefulWidget {
   final ServiceData? service;
   final String? userId;

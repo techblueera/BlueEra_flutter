@@ -210,7 +210,7 @@ class _OthersServiceDetailScreenState extends State<OthersServiceDetailScreen> {
                           onFollowChanged: () => viewBusinessDetailsController.viewBusinessProfileById(
                             widget.visitUserId,
                             silent: true,
-                          ),shareLink: professionalsConsultantDeepLink(
+                          ),shareLink: serviceDeepLinkBusiness(
                           id: details?.userId,
                         ),
                         ),

@@ -14,9 +14,14 @@ import 'package:BlueEra/core/services/deeplink_network_resources.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/finance_discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_school_home_screen.dart';
+import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
+import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/view/finance/finance_detail_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/healthcare/discover_hospital_home_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/others_service_detail_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/self_employee_view_discover_screen.dart';
+import 'package:BlueEra/features/common/profile_share_preview/model/share_profile_overview_response.dart';
+import 'package:BlueEra/features/common/profile_share_preview/repo/share_profile_overview_repo.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/discover_professionals_view_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/vehicle/vehicle_detail_screen.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
@@ -439,7 +444,8 @@ class _SplashScreenState extends State<SplashScreen> {
           logs('Invalid professionals consultant id in deep link: $consultantId');
           return;
         }
-        _openProfessionalsConsultant(consultantId);
+        _openBusinessProfessionalServices(consultantId);
+
         return;
       }
 
@@ -481,7 +487,8 @@ class _SplashScreenState extends State<SplashScreen> {
           logs('Invalid business services id in deep link: $servicesUserId');
           return;
         }
-        _openBusinessServices(servicesUserId);
+        _openServicesScreen(servicesUserId);
+
         return;
       }
 
@@ -566,17 +573,23 @@ print("type==== ${type}");
             }
             break;
           case 'profile':
+            // Individual profile share/QR landing
+            // (`https://beapp.in/app/profile/<userId>`). A `profile` link is
+            // generated for *any* individual profile type (self-employed,
+            // consultant, gig, social), so we can't assume self-employed here —
+            // doing so would call the earn-service-only fetch and show an empty
+            // screen for every other type. Resolve the profile type first, then
+            // route straight to the matching rich screen.
+            _openProfileDeepLink(id);
+            break;
           case 'business':
-            // Both share-link shapes land on the public share-preview screen.
-            // The URL prefix ('profile' vs 'business') is just a hint for the
-            // account-type pill while the API fetch is in flight — the
-            // /share/users/{id}/profile-overview response is the source of
-            // truth. Older 4-segment 'profile/{id}/{accountType}' links from
-            // pre-launch sharing pass the same id through cleanly.
-            final accountTypeHint = type == 'business' ? AppConstants.business : AppConstants.individual;
+            // Business share-link lands on the public share-preview screen.
+            // The URL prefix is just a hint for the account-type pill while the
+            // API fetch is in flight — the /share/users/{id}/profile-overview
+            // response is the source of truth.
             Get.to(() => ProfileSharePreviewScreen(
                   userId: id,
-                  accountTypeHint: accountTypeHint,
+                  accountTypeHint: AppConstants.business,
                 ));
             break;
           default:
@@ -690,7 +703,7 @@ print("type==== ${type}");
   /// its own profile + inventory behind its own loader, so navigation is
   /// instant — mirroring the in-app tap flow from the service business card
   /// ([ServiceBusinessCard._openStore]).
-  void _openProfessionalsConsultant(String id) {
+  void _openServicesScreen(String id) {
     getOrPut(() => ViewBusinessDetailsController(), permanent: true);
     Get.to(() => OthersServiceDetailScreen(visitUserId: id));
   }
@@ -711,6 +724,71 @@ print("type==== ${type}");
     Get.to(() => VisitProductStoreDetailsScreen(visitUserId: id));
   }
 
+  /// Resolves a generic `profile` deep link
+  /// (`https://beapp.in/app/profile/<userId>`) to the correct rich profile
+  /// screen. The `profile` prefix is emitted by [profileDeepLink] for every
+  /// individual profile type, so the target screen isn't known from the URL
+  /// alone — we fetch the trimmed share overview (the same
+  /// `/share/users/{id}/profile-overview` endpoint used by
+  /// [ProfileSharePreviewScreen]) to read `accountType` / `professionType`,
+  /// then route:
+  ///   • individual + consultant  → [DiscoverProfessionalsViewScreen]
+  ///   • individual (skilled/self) → [SelfEmployeeViewDiscoverScreen]
+  ///   • business / unknown / null → [ProfileSharePreviewScreen] (which does
+  ///     its own business-category resolution, so nothing dead-ends).
+  /// Both individual screens hydrate themselves from just the `userId`, so the
+  /// self-employed empty-screen case (earn-service fetch returning null for a
+  /// non-self-employed user) can no longer happen.
+  Future<void> _openProfileDeepLink(String id) async {
+    ShareUser? user;
+    try {
+      final res = await ShareProfileOverviewRepo().getShareProfileOverview(id);
+      if (res.isSuccess && res.response?.data is Map<String, dynamic>) {
+        user = ShareProfileOverviewResponse.fromJson(
+          res.response!.data as Map<String, dynamic>,
+        ).user;
+      }
+    } catch (e) {
+      logs('Profile overview fetch failed for deep link $id: $e');
+    }
+
+    final accountType = (user?.accountType ?? '').toUpperCase();
+    if (accountType == AppConstants.individual) {
+      final type = (user?.professionType ?? '').trim().toLowerCase();
+      final isConsultant = type == AppConstants.consultant.toLowerCase() ||
+          type.contains('consult') ||
+          type.contains('professional');
+      if (isConsultant) {
+        Get.to(() => DiscoverProfessionalsViewScreen(userId: id));
+      } else {
+        // Pre-fetch the provider's service document by userId (the by-user
+        // endpoint `earn-service/services/user/{id}`, not the category-scoped
+        // `fetchEarnServices` list — the deep link carries no profession/
+        // category to drive that list). Passing the fetched [ServiceData] as
+        // `service` opens the screen already hydrated; if the fetch returns
+        // null we still hand over `userId` so the screen self-fetches and
+        // shows its own loader/empty state.
+        final controller = getOrPut(() => DiscoverController());
+        final ServiceData? service =
+            await controller.getEarnServiceByUserId(id);
+        Get.to(() => SelfEmployeeViewDiscoverScreen(
+              service: service,
+              userId: id,
+            ));
+      }
+      return;
+    }
+
+    // Business, unknown, or a failed overview fetch: hand off to the
+    // share-preview screen, which resolves the business category itself and
+    // always renders *something* (preview + retry) instead of an empty view.
+    Get.to(() => ProfileSharePreviewScreen(
+          userId: id,
+          accountTypeHint:
+              accountType == AppConstants.business ? AppConstants.business : null,
+        ));
+  }
+
   /// Opens [DiscoverProfessionalsViewScreen] for a professional/consulting
   /// business reached via deep link / QR scan
   /// (`https://beapp.in/app/business/services/<userId>`). The link carries the
@@ -719,7 +797,7 @@ print("type==== ${type}");
   /// in its initState (registering the controller itself), so passing the id as
   /// `userId` is enough to hydrate the full view — mirroring the in-app tap flow
   /// from the Discover professionals list.
-  void _openBusinessServices(String id) {
+  void _openBusinessProfessionalServices(String id) {
     Get.to(() => DiscoverProfessionalsViewScreen(userId: id));
   }
 

@@ -599,7 +599,7 @@ class ServiceBusinessCard extends StatelessWidget {
   }
 
   Future<void> _shareBusiness() async {
-    final shareLink = professionalsConsultantDeepLink(
+    final shareLink = serviceDeepLinkBusiness(
       id: _profile?.userId,
     );
 
