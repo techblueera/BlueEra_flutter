@@ -340,7 +340,11 @@ class _HospitalAppointmentFormState extends State<_HospitalAppointmentForm> {
 
   String? _pickedOpdId;
   DateTime? _date;
-  final _preferredTimeController = TextEditingController();
+  // Preferred time is now a required 24-hour value. Two pickers back an
+  // optional range — start is required; end is optional so a
+  // point-in-time slot ("10:00") is also valid.
+  TimeOfDay? _startTime;
+  TimeOfDay? _endTime;
   final _patientNameController = TextEditingController();
   final _noteController = TextEditingController();
   final List<String> _photos = [];
@@ -390,18 +394,19 @@ class _HospitalAppointmentFormState extends State<_HospitalAppointmentForm> {
 
   @override
   void dispose() {
-    _preferredTimeController.dispose();
     _patientNameController.dispose();
     _noteController.dispose();
     super.dispose();
   }
 
   bool get _canSubmit {
-    // Required per doc §1: opd_id + appointmentDate. hospital_id is on
-    // the listing.
+    // Doc §1 requires opd_id + appointmentDate (hospital_id is on the
+    // listing). We additionally require preferredTime here per the
+    // product ask — no ambiguous "any time" bookings.
     return _pickedOpdId != null &&
         _pickedOpdId!.trim().isNotEmpty &&
-        _date != null;
+        _date != null &&
+        _startTime != null;
   }
 
   Future<void> _pickPhoto() async {
@@ -431,6 +436,70 @@ class _HospitalAppointmentFormState extends State<_HospitalAppointmentForm> {
     setState(() => _date = picked);
   }
 
+  /// Open a 24-hour time picker. Same shape as the school availability
+  /// form's `_pickTime` — default dial input, no forced text-entry — but
+  /// wraps the child in a `MediaQuery` override so the picker always
+  /// renders 24-hour regardless of the device locale. Output is
+  /// formatted downstream via [_fmt24] as `HH:mm`.
+  Future<TimeOfDay?> _pickTime(TimeOfDay initial) async {
+    return showTimePicker(
+      context: context,
+      initialTime: initial,
+      builder: (ctx, child) => MediaQuery(
+        data: MediaQuery.of(ctx).copyWith(alwaysUse24HourFormat: true),
+        child: child ?? const SizedBox.shrink(),
+      ),
+    );
+  }
+
+  Future<void> _pickStartTime() async {
+    final picked = await _pickTime(
+      _startTime ?? const TimeOfDay(hour: 10, minute: 0),
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      _startTime = picked;
+      // If end < start after the change, clear it so we don't ship a
+      // nonsense range like "14:00 – 10:00".
+      if (_endTime != null && _minutesOf(_endTime!) <= _minutesOf(picked)) {
+        _endTime = null;
+      }
+    });
+  }
+
+  Future<void> _pickEndTime() async {
+    final start = _startTime;
+    final picked = await _pickTime(
+      _endTime ??
+          (start != null
+              ? TimeOfDay(
+                  hour: (start.hour + 1) % 24,
+                  minute: start.minute,
+                )
+              : const TimeOfDay(hour: 11, minute: 0)),
+    );
+    if (picked == null || !mounted) return;
+    if (start != null && _minutesOf(picked) <= _minutesOf(start)) {
+      commonSnackBar(message: 'End time must be after start time');
+      return;
+    }
+    setState(() => _endTime = picked);
+  }
+
+  int _minutesOf(TimeOfDay t) => t.hour * 60 + t.minute;
+
+  /// `HH:mm` — 24-hour, always two-digit. Independent of device locale.
+  String _fmt24(TimeOfDay t) =>
+      '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
+
+  /// Human-readable label for the tile. Empty when nothing picked yet.
+  String _fmtRange() {
+    if (_startTime == null) return '';
+    final start = _fmt24(_startTime!);
+    if (_endTime == null) return start;
+    return '$start – ${_fmt24(_endTime!)}';
+  }
+
   String _fmtDate(DateTime? d) {
     if (d == null) return '';
     const months = [
@@ -445,9 +514,8 @@ class _HospitalAppointmentFormState extends State<_HospitalAppointmentForm> {
     widget.onSubmit(
       _pickedOpdId!,
       _date!,
-      _preferredTimeController.text.trim().isEmpty
-          ? null
-          : _preferredTimeController.text.trim(),
+      // 24-hour range string per doc §1 (`preferredTime` is free text).
+      _fmtRange(),
       _patientNameController.text.trim().isEmpty
           ? null
           : _patientNameController.text.trim(),
@@ -504,13 +572,10 @@ class _HospitalAppointmentFormState extends State<_HospitalAppointmentForm> {
                       _dateTile(),
                       const SizedBox(height: 22),
                       _eyebrow(
-                          'PREFERRED TIME · ${AppStrings.optionalLabel.tr}',
-                          0),
+                          'PREFERRED TIME · REQUIRED',
+                          _startTime != null ? 1 : 0),
                       const SizedBox(height: 10),
-                      _plainField(
-                        controller: _preferredTimeController,
-                        hint: 'e.g. 10:00 – 11:00 AM',
-                      ),
+                      _timeRangeTile(),
                       const SizedBox(height: 22),
                       _eyebrow(
                           'PATIENT NAME · ${AppStrings.optionalLabel.tr}',
@@ -860,6 +925,82 @@ class _HospitalAppointmentFormState extends State<_HospitalAppointmentForm> {
             Icon(Icons.chevron_right_rounded,
                 color: AppColors.secondaryTextColor),
           ],
+        ),
+      ),
+    );
+  }
+
+  /// Two side-by-side pickers for start / end (end optional). Both stamp
+  /// their value in `HH:mm` — the picker itself is forced to 24-hour via
+  /// [_pickTime] so no locale-driven AM/PM ever leaks in.
+  Widget _timeRangeTile() {
+    return Row(
+      children: [
+        Expanded(child: _timeCell(
+          label: 'From',
+          value: _startTime == null ? null : _fmt24(_startTime!),
+          onTap: _pickStartTime,
+        )),
+        const SizedBox(width: 10),
+        Expanded(child: _timeCell(
+          label: 'To',
+          value: _endTime == null ? null : _fmt24(_endTime!),
+          onTap: _pickEndTime,
+          enabled: _startTime != null,
+        )),
+      ],
+    );
+  }
+
+  Widget _timeCell({
+    required String label,
+    required String? value,
+    required VoidCallback onTap,
+    bool enabled = true,
+  }) {
+    final unset = value == null || value.isEmpty;
+    return InkWell(
+      onTap: enabled ? onTap : null,
+      borderRadius: BorderRadius.circular(12),
+      child: Opacity(
+        opacity: enabled ? 1 : 0.55,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          decoration: BoxDecoration(
+            color: _surface,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.greyE5),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.access_time_rounded,
+                  size: 20, color: _accent),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CustomText(
+                      label,
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.secondaryTextColor,
+                    ),
+                    const SizedBox(height: 2),
+                    CustomText(
+                      unset ? '--:--' : value,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: unset
+                          ? AppColors.secondaryTextColor
+                          : AppColors.mainTextColor,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -32,4 +32,30 @@ mixin LabServiceApi {
   // See lib/docs/LABORATORY_INTEGRATION.md §2.
   final String labTestimonials = 'lab-service/testimonials';
   final String labTestimonialsByLab = 'lab-service/testimonials/laboratory';
+
+  // Customer → laboratory enquiry — POSTs raise a `healthcare_enquiry`
+  // in-chat card via Kafka (`newHealthcareEnquiryReceived`); PUT flips it
+  // when the owner accepts/declines. Contract matches the hospital /
+  // hotel enquiry card shape — only `category` = "LABORATORY" differs.
+  // See lib/docs/LABORATORY_ENQUIRY_INTEGRATION_GUIDE.md.
+  final String laboratoryEnquiries = 'lab-service/laboratory-enquiries';
+  String laboratoryEnquiryStatus(String enquiryId) =>
+      'lab-service/laboratory-enquiries/$enquiryId/status';
+  String laboratoryEnquiryById(String enquiryId) =>
+      'lab-service/laboratory-enquiries/$enquiryId';
+
+  // Customer → laboratory test booking — the enquiry-first step after
+  // acceptance. POSTs create a `healthcare_booking` card
+  // (`newHealthcareBookingReceived`); PUT status flips it. Owned by
+  // be_laboratory_service. See lib/docs/laboratory-booking-ui-integration.md.
+  final String laboratoryBookings = 'lab-service/laboratory-bookings';
+  String laboratoryBookingStatus(String bookingId) =>
+      'lab-service/laboratory-bookings/$bookingId/status';
+  String laboratoryBookingById(String bookingId) =>
+      'lab-service/laboratory-bookings/$bookingId';
+  // Customer outbox — bookings I sent.
+  final String laboratoryBookingsMe = 'lab-service/laboratory-bookings/me';
+  // Owner inbox — bookings received on my labs.
+  final String laboratoryBookingsOwnerMe =
+      'lab-service/laboratory-bookings/owner/me';
 }

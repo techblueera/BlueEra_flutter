@@ -1,7 +1,9 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/me/laboratory/controller/lab_full_details_controller.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_test_list_screen.dart';
+import 'package:BlueEra/features/me/laboratory/view/v2/widgets/lab_category_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -66,7 +68,11 @@ class CategorySelector extends StatelessWidget {
               Spacer(),
               InkWell(
                 onTap: () {
-                  // LabOverviewTabV2(controller: );
+                  Get.to(
+                    () => LabCategoryScreen(
+                      controller: Get.find<LabFullDetailsController>(),
+                    ),
+                  );
                 },
                 child: CustomText(
                   AppStrings.viewAll.tr,
@@ -76,9 +82,14 @@ class CategorySelector extends StatelessWidget {
               ),
             ],
           ),
-          // SizedBox(height: SizeConfig.size12),
+          SizedBox(height: SizeConfig.size12),
+          // Explicit zero padding — without it, GridView.builder inherits
+          // MediaQuery safe-area padding from an ancestor scroll view and
+          // renders a visible gap between the header row and the first
+          // tile row.
           GridView.builder(
             shrinkWrap: true,
+            padding: EdgeInsets.zero,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: _categories.length,
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
