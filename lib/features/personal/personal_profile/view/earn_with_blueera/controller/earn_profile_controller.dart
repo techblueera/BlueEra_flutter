@@ -172,7 +172,7 @@ class EarnProfileController extends GetxController {
   Future<void> _refreshProfile() async {
     try {
       final controller = Get.find<ViewPersonalDetailsController>();
-      await controller.viewPersonalProfile();
+      await controller.viewPersonalProfile(forceRefresh: true);
     } catch (_) {}
   }
 

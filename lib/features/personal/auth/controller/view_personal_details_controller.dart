@@ -202,7 +202,16 @@ class ViewPersonalDetailsController extends GetxController {
   RxString userProfileType = userProfileTypeGlobal.obs;
   RxList<String> earnProfileType = <String>[].obs;
 
-  Future<void> viewPersonalProfile() async {
+  /// Loads the personal profile (`/user/get`).
+  ///
+  /// **Cache-first, network only when it matters.** The `/user/get` call is
+  /// made only right after login and after the user actually changes their
+  /// profile — those callers pass [forceRefresh] `true`. Every other trigger
+  /// (screen open, drawer, bottom-nav, app resume) serves the locally cached
+  /// profile and skips the network entirely, so we don't fire the same request
+  /// on every navigation. The cache is (re)written on each forced refresh and
+  /// wiped on logout, so a re-login refetches once.
+  Future<void> viewPersonalProfile({bool forceRefresh = false}) async {
     // Skip when logged out: stale screens / in-flight asyncs / Obx rebuilds
     // can re-enter this after token + userId globals were cleared, which
     // would otherwise hit /user/get?contact_no= with an invalidated token.
@@ -218,6 +227,20 @@ class ViewPersonalDetailsController extends GetxController {
     if (cached != null) {
       _applyPersonalProfileData(cached, personalController,
           persistPrefs: false);
+      // Joining-bonus popup is driven off the cached payload too (its
+      // `joining_bounce` sibling is stored with the profile), so it still
+      // surfaces when we serve from cache without a network round-trip.
+      final cachedJb = cached['joining_bounce'];
+      joiningBounce.value = (cachedJb is Map)
+          ? JoiningBounce.fromJson(Map<String, dynamic>.from(cachedJb))
+          : null;
+
+      // Cache-first: only login and post-update callers ask for fresh data.
+      // Everyone else stops here — no `/user/get` request.
+      if (!forceRefresh) {
+        viewPersonalResponse.value = ApiResponse.complete();
+        return;
+      }
     }
 
     try {

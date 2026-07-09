@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/constants/string_utils.dart';
+import 'package:BlueEra/core/services/keyed_json_cache.dart';
 import 'package:BlueEra/core/services/razor_pay_services.dart';
 import 'package:BlueEra/features/contribution/model/initiate_recharge_response_model.dart';
 import 'package:BlueEra/features/contribution/model/recharge_plan_model.dart';
@@ -142,11 +143,34 @@ class ContributionController extends GetxController {
   }
 
   // ─── 1. Plans ─────────────────────────────────────────────────
-  Future<void> fetchPlans({String? entityType}) async {
+  /// How long a cached plans catalog is served before we hit the network
+  /// again. The catalog rarely changes, so once per 24h per user is plenty.
+  static const Duration _plansCacheTtl = Duration(hours: 24);
+
+  /// Fetches the recharge-plans catalog **cache-first**.
+  ///
+  /// The `/recharge/plans` request is made only once after login and then at
+  /// most once every 24h for the same user: a fresh (< 24h) entry in
+  /// [rechargePlansCache] is served from local DB and the network is skipped.
+  /// [forceRefresh] bypasses the cache (used by the error-state "Retry"
+  /// button). On a network failure we fall back to any stored catalog — even a
+  /// stale one — so the user still sees plans.
+  Future<void> fetchPlans({String? entityType, bool forceRefresh = false}) async {
     // Caller's override wins, otherwise auto-resolve from the current
     // profile/business globals so UI sites don't need to know the
     // bucket strings.
     this.entityType = entityType ?? resolveEntityType();
+    final cacheKey = _plansCacheKey(this.entityType);
+
+    // Serve from local DB while the catalog is still fresh (< 24h).
+    if (!forceRefresh) {
+      final cached = await rechargePlansCache.get(cacheKey);
+      if (cached != null && _isPlansCacheFresh(cached)) {
+        _applyPlansCache(cached);
+        return;
+      }
+    }
+
     plansStatus.value = Status.LOADING;
     plansError.value = '';
     final ResponseModel res = await _repo.fetchPlans(entityType: this.entityType);
@@ -158,18 +182,57 @@ class ContributionController extends GetxController {
       mode.value = rawMode?.toString() ?? '';
       final raw = body['data'];
       if (raw is List) {
-        plans.assignAll(
-          raw
-              .whereType<Map<String, dynamic>>()
-              .map(RechargePlan.fromJson)
-              .toList(),
-        );
+        final list = raw.whereType<Map<String, dynamic>>().toList();
+        plans.assignAll(list.map(RechargePlan.fromJson).toList());
         plansStatus.value = Status.COMPLETE;
+        // Persist for the 24h window, keyed by user + entity type, so the
+        // next open serves this instead of re-hitting the network.
+        await rechargePlansCache.save(cacheKey, {
+          'ts': DateTime.now().millisecondsSinceEpoch,
+          'mode': mode.value,
+          'data': list,
+        });
         return;
       }
     }
+
+    // Network failed — fall back to any stored catalog (even if stale) before
+    // surfacing an error, so the user isn't left with an empty screen.
+    final stale = await rechargePlansCache.get(cacheKey);
+    if (stale != null) {
+      _applyPlansCache(stale);
+      return;
+    }
     plansError.value = res.message ?? AppStrings.couldNotLoadPlans.tr;
     plansStatus.value = Status.ERROR;
+  }
+
+  /// Local-DB cache key for the plans catalog: scoped to both the user and the
+  /// entity type so a profile that resolves to a different bucket (or a
+  /// different logged-in user) never reads another's cached plans.
+  String _plansCacheKey(String? entityType) => '${userId}_${entityType ?? ''}';
+
+  /// Whether a cached plans entry is still within the 24h freshness window.
+  bool _isPlansCacheFresh(Map<String, dynamic> cached) {
+    final ts = cached['ts'];
+    if (ts is! int) return false;
+    final age = DateTime.now().millisecondsSinceEpoch - ts;
+    return age >= 0 && age < _plansCacheTtl.inMilliseconds;
+  }
+
+  /// Hydrates the observable plan state from a cached catalog map.
+  void _applyPlansCache(Map<String, dynamic> cached) {
+    mode.value = (cached['mode'] ?? '').toString();
+    final raw = cached['data'];
+    if (raw is List) {
+      plans.assignAll(
+        raw
+            .whereType<Map<String, dynamic>>()
+            .map(RechargePlan.fromJson)
+            .toList(),
+      );
+    }
+    plansStatus.value = Status.COMPLETE;
   }
 
   // ─── 2. Purchase ──────────────────────────────────────────────

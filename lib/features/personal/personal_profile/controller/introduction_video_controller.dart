@@ -201,7 +201,8 @@ class IntroductionVideoController extends GetxController {
           await initializeVideoPlayerFromNetwork(videoUrl.value);
 
         }
-        await Get.find<ViewPersonalDetailsController>().viewPersonalProfile();
+        await Get.find<ViewPersonalDetailsController>()
+            .viewPersonalProfile(forceRefresh: true);
         hasUploadedVideo.value = true;
         commonSnackBar(
             message: response.message ?? AppStrings.videoUploadedSuccessfully);
@@ -230,7 +231,8 @@ class IntroductionVideoController extends GetxController {
         isUploading.value = false;
         resetVideo();
         hasUploadedVideo.value = false;
-        await Get.find<ViewPersonalDetailsController>().viewPersonalProfile();
+        await Get.find<ViewPersonalDetailsController>()
+            .viewPersonalProfile(forceRefresh: true);
         commonSnackBar(
             message: response.message ?? 'Video deleted successfully');
       } else {

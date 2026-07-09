@@ -405,7 +405,7 @@ class SelfWorkServiceController extends GetxController{
         // );
 
         final controller = getOrPut(() => ViewPersonalDetailsController());
-        await controller.viewPersonalProfile();
+        await controller.viewPersonalProfile(forceRefresh: true);
 
         // Refresh profession data so any open SelfProfessionDetailsScreen
         // rebuilds out of its empty state. Done here (single success path)

@@ -265,7 +265,7 @@ class AuthController extends GetxController {
               // PersonalProfileCache makes this near-instant on subsequent
               // logins.
               final personalController = Get.put(ViewPersonalDetailsController(), permanent: true);
-              await personalController.viewPersonalProfile();
+              await personalController.viewPersonalProfile(forceRefresh: true);
 
               // Riders must be reachable for live dispatch. On login, if the
               // go-live device permissions aren't all granted yet, walk them
@@ -403,7 +403,7 @@ class AuthController extends GetxController {
       //      leave this screen.
       final personalController = Get.put(ViewPersonalDetailsController(), permanent: true);
       final pending = <Future<void>>[
-        personalController.viewPersonalProfile(),
+        personalController.viewPersonalProfile(forceRefresh: true),
       ];
       if (reqData?['profileType'] == PROFESSIONAL) {
         final controller = getOrPut(() => AiProfessionalsController());
