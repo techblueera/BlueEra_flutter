@@ -52,11 +52,11 @@ class _ContributionPlansViewState extends State<ContributionPlansView> {
     super.initState();
     _ctrl = getOrPut(() => ContributionController());
     _hydrateBuyerDetails();
-    // Always refetch when the view mounts. The controller's onInit fires
-    // only once per registration; relying on it alone misses the case
-    // where the controller was created earlier (e.g. by the bottom-nav
-    // initState) but the plans didn't actually land. Calling fetchPlans
-    // every mount is cheap and guarantees the user sees fresh data.
+    // Ensure the plans are loaded when the view mounts. This is cache-first:
+    // fetchPlans serves the locally-stored catalog while it's fresh (< 24h)
+    // and only hits the network on a miss/stale entry, so calling it on every
+    // mount is cheap and covers the case where the controller was created
+    // earlier (e.g. by the bottom-nav initState) but the plans hadn't landed.
     _ctrl.fetchPlans(entityType: widget.entityType);
   }
 
@@ -106,8 +106,8 @@ class _ContributionPlansViewState extends State<ContributionPlansView> {
               ),
               SizedBox(height: SizeConfig.size10),
               TextButton(
-                onPressed: () =>
-                    _ctrl.fetchPlans(entityType: widget.entityType),
+                onPressed: () => _ctrl.fetchPlans(
+                    entityType: widget.entityType, forceRefresh: true),
                 child: Text(AppStrings.retry.tr),
               ),
             ],

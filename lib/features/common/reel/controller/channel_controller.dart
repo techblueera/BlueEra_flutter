@@ -114,7 +114,7 @@ class ChannelController extends GetxController{
 
         await socialLinksUpdate(id: channelId, reqData: socialLinkReqData);
         final viewProfileController = Get.find<ViewPersonalDetailsController>();
-        viewProfileController.viewPersonalProfile();
+        viewProfileController.viewPersonalProfile(forceRefresh: true);
 
 
       } else {

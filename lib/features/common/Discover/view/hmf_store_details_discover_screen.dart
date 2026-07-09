@@ -385,7 +385,7 @@ class _HmfStoreDetailsDiscoverScreenState extends State<HmfStoreDetailsDiscoverS
                         asset: AppIconAssets.reelShare,
                         onTap: () {
                           final id = widget.userId;
-                          ShareService.instance.shareProfile(
+                          ShareService.instance.shareHomeMadeFoodProfile(
                             userId: id,
                           );
                         }),

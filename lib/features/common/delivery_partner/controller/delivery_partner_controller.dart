@@ -1451,7 +1451,7 @@ class DeliveryPartnerController extends GetxController {
     final allCompleted = mandatoryStepsCompleted;
     if (allCompleted) {
       final viewProfileController = Get.find<ViewPersonalDetailsController>();
-      viewProfileController.viewPersonalProfile();
+      viewProfileController.viewPersonalProfile(forceRefresh: true);
       Get.offNamedUntil(
         RouteHelper.getBottomNavigationBarScreenRoute(),
         (route) => false,

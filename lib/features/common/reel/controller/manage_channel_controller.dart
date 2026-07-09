@@ -37,7 +37,7 @@ class ManageChannelController extends GetxController {
 
        await socialLinks(id: createChannelModel.data.id, reqData: socialLinkReqData);
         final viewProfileController = Get.find<ViewPersonalDetailsController>();
-        viewProfileController.viewPersonalProfile();
+        viewProfileController.viewPersonalProfile(forceRefresh: true);
       } else {
         createChannelResponse = ApiResponse.error('error');
         commonSnackBar(
@@ -65,7 +65,7 @@ class ManageChannelController extends GetxController {
       if (response.isSuccess) {
         socialLinksResponse = ApiResponse.complete(response);
         final viewProfileController = Get.find<ViewPersonalDetailsController>();
-        viewProfileController.viewPersonalProfile();
+        viewProfileController.viewPersonalProfile(forceRefresh: true);
         Get.back();
       } else {
         socialLinksResponse = ApiResponse.error('error');

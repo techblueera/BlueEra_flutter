@@ -17,6 +17,7 @@ import 'package:BlueEra/features/common/Discover/view/discover_school_home_scree
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/view/finance/finance_detail_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/hmf_store_details_discover_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/healthcare/discover_hospital_home_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/others_service_detail_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/self_employee_view_discover_screen.dart';
@@ -40,6 +41,7 @@ import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_screen.da
 import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
 import 'package:BlueEra/features/common/onboarding/view/select_language_screen.dart';
 import 'package:BlueEra/features/common/profile_share_preview/view/profile_share_preview_screen.dart';
+import 'package:BlueEra/features/me/food/view/customer/visit_food_store_details_screen.dart';
 import 'package:BlueEra/features/me/food/view/share/food_product_share_preview_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/customer/grocery_via_self_pickup/visit_grocery_store_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/share/grocery_product_share_preview_screen.dart';
@@ -492,6 +494,48 @@ class _SplashScreenState extends State<SplashScreen> {
         return;
       }
 
+      // Food store profile share/QR links carry the pair of `profile/food`
+      // segments:
+      //   https://beapp.in/app/profile/food/<businessId>
+      // Route these straight to the food store detail screen
+      // ([VisitFoodStoreDetailsScreen]) instead of the generic profile
+      // share-preview. Like the other typed profile links, the id sits at
+      // segments[3], so this is checked before the generic 3-segment `app`
+      // handling below.
+      else if (segments.length >= 4 &&
+          segments[0] == 'app' &&
+          segments[1] == 'profile' &&
+          segments[2] == 'food') {
+        final foodBusinessId = segments[3];
+        if (!_isValidMongoId(foodBusinessId)) {
+          logs('Invalid food profile id in deep link: $foodBusinessId');
+          return;
+        }
+        _openFoodStore(foodBusinessId);
+        return;
+      }
+
+      // Home-made-food store share/QR links carry the trio of
+      // `business/homemade/food` segments:
+      //   https://beapp.in/app/business/homemade/food/<userId>
+      // Route these straight to the home-made-food store detail screen
+      // ([HmfStoreDetailsDiscoverScreen]) instead of the generic business
+      // share-preview. The store owner's user id sits at segments[4], so this
+      // is checked before the generic 3-segment `app` handling below.
+      else if (segments.length >= 5 &&
+          segments[0] == 'app' &&
+          segments[1] == 'business' &&
+          segments[2] == 'homemade' &&
+          segments[3] == 'food') {
+        final hmfUserId = segments[4];
+        if (!_isValidMongoId(hmfUserId)) {
+          logs('Invalid homemade food id in deep link: $hmfUserId');
+          return;
+        }
+        _openHomeMadeFoodStore(hmfUserId);
+        return;
+      }
+
     else   if (segments.length >= 3 && segments[0] == 'app') {
         final type = segments[1]; // post | video | short | job | product
         final id = segments[2];
@@ -722,6 +766,31 @@ print("type==== ${type}");
   void _openProductStore(String id) {
     getOrPut(() => ViewBusinessDetailsController(), permanent: true);
     Get.to(() => VisitProductStoreDetailsScreen(visitUserId: id));
+  }
+
+  /// Opens [VisitFoodStoreDetailsScreen] for a food store reached via deep
+  /// link / QR scan (`https://beapp.in/app/profile/food/<businessId>`). The
+  /// link carries the store's business id used when it was shared. The screen
+  /// does `Get.find<ViewBusinessDetailsController>()` in its initState, so that
+  /// controller is registered first; the screen then fetches its own profile +
+  /// menu behind its own loader, so navigation is instant — mirroring the
+  /// in-app tap flow from the profile share-preview redirect
+  /// ([ProfileSharePreviewScreen._openBusinessDetail]).
+  void _openFoodStore(String id) {
+    getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+    Get.to(() => VisitFoodStoreDetailsScreen(visitBusinessId: id));
+  }
+
+  /// Opens [HmfStoreDetailsDiscoverScreen] for a home-made-food store reached
+  /// via deep link / QR scan
+  /// (`https://beapp.in/app/business/homemade/food/<userId>`). The link carries
+  /// the store owner's user id — the backend resolves the store (home-foods +
+  /// tiffins) by userId. The screen registers its own [HmfStoreDetailsController]
+  /// (tagged by userId) and self-hydrates behind its own loader, so passing the
+  /// id is enough — mirroring the in-app tap flow from the home-made-food list
+  /// ([HmfCategoryDiscoverScreen._openStore]).
+  void _openHomeMadeFoodStore(String id) {
+    Get.to(() => HmfStoreDetailsDiscoverScreen(userId: id));
   }
 
   /// Resolves a generic `profile` deep link
