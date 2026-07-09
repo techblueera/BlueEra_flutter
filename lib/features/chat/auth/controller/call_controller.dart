@@ -323,6 +323,14 @@ class CallController extends GetxController {
     _setupCallSocketListeners();
     _setupCallKitListeners();
     _setupVolumeKeyChannel();
+    // Clear any stale ongoing-call record left behind by a previous session
+    // that was force-killed mid-call — on a cold start no call can still be
+    // live, so a lingering record would show a phantom "Live call ongoing"
+    // banner. Guarded to the main engine so we never wipe a record the
+    // CallActivity engine is about to write for a genuinely live call.
+    if (!isCallActivityEngine) {
+      clearActiveCallSession();
+    }
     // Ensure socket is connected so incoming `call:incoming` events are
     // delivered even when the user hasn't opened chat yet. Without this,
     // the server falls back to FCM and CallKit's ring timer can elapse,
@@ -1701,6 +1709,67 @@ class CallController extends GetxController {
     }
   }
 
+  // ==================== ACTIVE CALL SESSION (cross-isolate) ====================
+  //
+  // On Android the live call runs in the CallActivity engine — a SEPARATE Dart
+  // isolate from the main app engine that hosts the chat screens. So the chat
+  // screen cannot read the reactive call state (callStatus / callDurationSeconds)
+  // of the engine that actually owns the call. To let the chat show a "Live call
+  // ongoing" banner, the engine that owns the connected call writes a small
+  // session record to disk; the chat screen polls it. Uses secure storage (not
+  // Hive) for the same reason as the pending-ad flag above — Hive caches boxes
+  // per-isolate, secure storage always hits the platform store.
+  static const String _activeCallKey = 'active_call_session';
+
+  /// Persist the currently-connected call so other isolates (chat screens) can
+  /// surface an "ongoing call" banner. Called on connect from [_startCallTimer].
+  static Future<void> saveActiveCallSession({
+    required String conversationId,
+    required String callId,
+    required String roomId,
+    required bool isVideo,
+    required String remoteName,
+    required int startedAtMs,
+    String remoteUserId = '',
+  }) async {
+    try {
+      await SharedPreferenceUtils.setSecureValue(
+        _activeCallKey,
+        jsonEncode({
+          'conversationId': conversationId,
+          'callId': callId,
+          'roomId': roomId,
+          'isVideo': isVideo,
+          'remoteName': remoteName,
+          'startedAtMs': startedAtMs,
+          // The other party's user id. Lets the chat screen match an ongoing
+          // call even when conversationId is missing on the receiver side (the
+          // incoming-call payload doesn't always carry it).
+          'remoteUserId': remoteUserId,
+        }),
+      );
+    } catch (_) {}
+  }
+
+  /// Clear the ongoing-call record. Called on teardown from [_cleanupInternal].
+  static Future<void> clearActiveCallSession() async {
+    try {
+      await SharedPreferenceUtils.setSecureValue(_activeCallKey, '');
+    } catch (_) {}
+  }
+
+  /// Read the ongoing-call record, or null if no call is currently active.
+  static Future<Map<String, dynamic>?> readActiveCallSession() async {
+    try {
+      final raw = await SharedPreferenceUtils.getSecureValue(_activeCallKey);
+      if (raw == null || raw.isEmpty) return null;
+      final decoded = jsonDecode(raw);
+      return decoded is Map<String, dynamic> ? decoded : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
   // ==================== WEBRTC SIGNALING ====================
 
   void _handleRemoteOffer(dynamic data) async {
@@ -2794,6 +2863,19 @@ class CallController extends GetxController {
       // Update floating overlay timer if active
       OverlayService.updateTimer(formattedCallDuration);
     });
+    // Publish an ongoing-call record so the chat screen (a different isolate on
+    // Android) can show a "Live call ongoing" banner for this conversation.
+    saveActiveCallSession(
+      conversationId: conversationId.value,
+      callId: callId.value,
+      roomId: roomId.value,
+      isVideo: callType.value == CallType.video,
+      remoteName: remoteUserName.value.isNotEmpty
+          ? remoteUserName.value
+          : callerName.value,
+      startedAtMs: DateTime.now().millisecondsSinceEpoch,
+      remoteUserId: _remoteUserId ?? '',
+    );
     // Start the ongoing call notification
     _showOngoingCallNotification();
   }
@@ -3130,6 +3212,10 @@ class CallController extends GetxController {
     // --- 2. Cancel all notifications & overlays ---
     _cancelOngoingNotification();
     OverlayService.closeOverlay();
+    // Remove the ongoing-call record so the chat "Live call ongoing" banner
+    // disappears once the call ends (mirrors the connect-time write in
+    // _startCallTimer).
+    clearActiveCallSession();
 
     // Cancel ALL local notifications (ongoing call, missed call, etc.)
     try {

@@ -21,6 +21,7 @@ import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart'
 import 'package:BlueEra/features/chat/notification_chat/controller/blueera_notification_controller.dart';
 import 'package:BlueEra/features/chat/notification_chat/view/blueera_notification_screen.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
+import 'package:BlueEra/features/chat/auth/model/GetChatListModel.dart';
 import 'package:BlueEra/features/chat/auth/model/symbol_details_model.dart';
 import 'package:BlueEra/features/chat/auth/repo/chat_view_repo.dart';
 import 'package:BlueEra/features/chat/view/symbol_view/symbol_view_images.dart';
@@ -2481,20 +2482,21 @@ class AppNotificationHandler {
             ));
         break;
 
-      // Admin broadcast (prodcast) → open the in-app "BlueEra" thread directly
-      // where these broadcast messages are listed. The mirror block above has
-      // already appended this push to the thread, so it's visible on arrival.
-      // Reset the stack onto the Connect (chat) tab first so that pressing
-      // back from the BlueEra thread lands on ConnectMainPage rather than
-      // exiting the app or dropping onto an unrelated screen.
+      // Admin broadcast (prodcast) → open the BlueEra chat the SAME way tapping
+      // the BlueEra row inside ConnectMainPage does: the Admin
+      // [PersonalChatScreen], NOT the read-only [BlueEraNotificationScreen].
+      // Reset the stack onto the Connect (chat) tab first so that pressing back
+      // from the BlueEra thread lands on ConnectMainPage rather than exiting the
+      // app or dropping onto an unrelated screen.
       case 'admin_broadcast':
         BlueEraNotificationController.to.markAllRead();
         Get.offAllNamed(
           RouteHelper.getBottomNavigationBarScreenRoute(),
           arguments: {ApiKeys.initialIndex: 2, 'deferHeavyInit': true},
         );
-        await Future.delayed(const Duration(milliseconds: 250));
-        Get.to(() => const BlueEraNotificationScreen());
+        // Let the Connect tab + its chat list settle before opening the chat.
+        await Future.delayed(const Duration(milliseconds: 350));
+        _openBlueEraChat(data);
         break;
 
       // Admin notifications
@@ -2837,6 +2839,57 @@ class AppNotificationHandler {
     Future.delayed(const Duration(milliseconds: 200), () {
       chatViewController.checkChatConnectionAndOpenChat(userId: userId);
     });
+  }
+
+  /// Open the in-app "BlueEra" chat exactly like tapping its row in
+  /// ConnectMainPage — the Admin [PersonalChatScreen], not the read-only
+  /// [BlueEraNotificationScreen]. Resolution order:
+  ///   1. The BlueEra conversation already present in the loaded personal chat
+  ///      list (identical to a row tap → `openChatFromChatList`).
+  ///   2. The BlueEra account id carried on the push (`senderId`), via the same
+  ///      `checkChatConnectionAndOpenChat` the list-row tap ultimately runs.
+  ///   3. Fallback to the read-only notifications screen when neither exists.
+  static void _openBlueEraChat(Map<String, dynamic> data) {
+    if (_openBlueEraChatFromList()) return;
+
+    final senderId = (data['senderId'] ?? data['sender_id'] ?? '').toString();
+    if (senderId.isNotEmpty) {
+      _openChatWithUser(senderId);
+      return;
+    }
+
+    // Neither the chat-list row nor an id is available — show the notifications
+    // list so the tap still lands somewhere meaningful.
+    Get.to(() => const BlueEraNotificationScreen());
+  }
+
+  /// Find the BlueEra system conversation in the loaded personal chat list and
+  /// open it via [ChatViewController.openChatFromChatList] — the exact path a
+  /// row tap in ConnectMainPage takes. Returns false when the row isn't present
+  /// yet (e.g. the list hasn't finished loading on a cold start).
+  static bool _openBlueEraChatFromList() {
+    try {
+      final chatViewController = getOrPut(() => ChatViewController());
+      final list = chatViewController.getPersonalChatListModel?.value.chatList ??
+          <ChatList?>[];
+      for (final chat in list) {
+        if (chat == null) continue;
+        final name = (chat.sender?.name ?? '').trim().toLowerCase();
+        final type = (chat.sender?.accountType ?? '');
+        final isBlueEra = name == 'blueera' || type == AppStrings.Admin;
+        if (!isBlueEra) continue;
+        chatViewController.openChatFromChatList(
+          userId: chat.sender?.id ?? '',
+          conversationId: chat.conversationId ?? '',
+          type: type.isNotEmpty ? type : AppStrings.Admin,
+          contactName: chat.sender?.name,
+          contactNo: chat.sender?.contactNo,
+          profileImage: chat.sender?.profileImage,
+        );
+        return true;
+      }
+    } catch (_) {}
+    return false;
   }
 
   /// Open the incoming-call receiving screen from a notification body tap.

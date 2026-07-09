@@ -4052,7 +4052,7 @@ class ChatViewController extends GetxController {
     String? contactNo,
     String? profileImage,
   }) async {
-    log("ksdjcsjcnsdc ${type}");
+
     businessTabIndexSelected.value = 0;
     await getLocalConversation(
         conversationId, userId, userId, contactName ?? '');

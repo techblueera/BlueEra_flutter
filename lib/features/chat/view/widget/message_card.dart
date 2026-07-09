@@ -67,12 +67,14 @@ import '../media_view_page/medias_slider_page.dart';
 import '../orders_chat/widget/order_common_widgets.dart';
 import '../symbol_view/symbol_view_images.dart';
 import 'audio_type_message_ui.dart';
+import 'broadcast_message_card.dart';
 import 'call_message_card.dart';
 import 'chat_video_pip_controller.dart';
 import 'component_widgets.dart';
 import 'document_message_card.dart';
 import 'live_location_message_card.dart';
 import 'message_bubble.dart';
+import 'ongoing_call_message_card.dart';
 import 'message_context_menu.dart';
 
 class MessageCard extends StatefulWidget {
@@ -436,6 +438,28 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
           otherUserName: isMineCall ? widget.conversationName : widget.name,
           otherUserImage: isMineCall ? widget.conversationProfileImage : widget.profileImage,
         );
+
+      case "callongoing":
+        // Synthetic system message injected at the bottom of the thread while a
+        // call for this conversation is live. It self-hides when the call ends.
+        // Early-return so it skips the swipe-to-reply / context-menu wrapping.
+        return OngoingCallMessageCard(
+          conversationId:
+              widget.conversationId ?? widget.message.conversationId ?? '',
+          // Conversation partner — fallback match when the active-call record
+          // has no conversationId (incoming calls on the receiver side).
+          userId: widget.conversationUserId ?? widget.userId,
+        );
+
+      case "broadcast":
+        // Broadcast (admin/channel-style) message delivered inside a normal
+        // chat. Render it with the SAME full-width notification card used in
+        // the Admin/BlueEra thread — edge-to-edge image preview, larger body
+        // font (chatFontSize + 3), "Read more" clamp and reactions/forward
+        // footer — instead of the plain text bubble. Early-return so the
+        // self-contained, full-width card skips the alignment / swipe-to-reply
+        // / context-menu wrapping (same treatment as the callongoing case).
+        return BroadcastMessageCard(message: widget.message);
 
       case "reply_to_symbol":
         messageWidget = _buildReplyToSymbolMessage(
