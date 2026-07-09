@@ -4,6 +4,7 @@ import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/me/medical/model/hospital_appointment_item.dart';
 import 'package:BlueEra/features/me/medical/repo/hospital_appointment_repo.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:get/get.dart';
@@ -18,6 +19,11 @@ import 'package:get/get.dart';
 ///     `cancelled` (customer-cancel path)
 class HospitalAppointmentController extends GetxController {
   final RxBool isSubmitting = false.obs;
+
+  /// Owner-inbox list — drives [HospitalBookingsTabV2]. Populated by
+  /// [fetchOwnerAppointments] and refreshed on pull-to-refresh.
+  final RxList<HospitalAppointmentItem> ownerAppointments = <HospitalAppointmentItem>[].obs;
+  final RxBool isLoadingOwnerAppointments = false.obs;
 
   /// Book an appointment with a specific doctor (OPD record).
   ///
@@ -63,19 +69,16 @@ class HospitalAppointmentController extends GetxController {
         'hospital_id': hospitalId.trim(),
         'opd_id': opdId.trim(),
         'appointmentDate': appointmentDate,
-        if (preferredTime != null && preferredTime.trim().isNotEmpty)
-          'preferredTime': preferredTime.trim(),
-        if (patientName != null && patientName.trim().isNotEmpty)
-          'patientName': patientName.trim(),
-        if (enquiryId != null && enquiryId.trim().isNotEmpty)
-          'enquiry_id': enquiryId.trim(),
+        if (preferredTime != null && preferredTime.trim().isNotEmpty) 'preferredTime': preferredTime.trim(),
+        if (patientName != null && patientName.trim().isNotEmpty) 'patientName': patientName.trim(),
+        if (enquiryId != null && enquiryId.trim().isNotEmpty) 'enquiry_id': enquiryId.trim(),
         if (note.trim().isNotEmpty) ApiKeys.note: note.trim(),
       };
       log('[APPOINTMENT] hospital submit → POST hospital-appointments '
           'hospital_id=$hospitalId opd_id=$opdId enquiry_id=$enquiryId '
           'photos=${photoPaths.length}');
-      final res = await HospitalAppointmentRepo()
-          .sendHospitalAppointment(params: body, photoPaths: photoPaths);
+      final res =
+          await HospitalAppointmentRepo().sendHospitalAppointment(params: body, photoPaths: photoPaths);
       log('[APPOINTMENT] response: success=${res.isSuccess} '
           'statusCode=${res.statusCode} message=${res.message} '
           'data=${res.response?.data}');
@@ -86,8 +89,7 @@ class HospitalAppointmentController extends GetxController {
       final data = res.response?.data;
       final inner = (data is Map ? data['data'] : null);
       if (inner is Map) {
-        final id = (inner['appointmentId'] ?? inner['_id'] ?? inner['id'])
-            ?.toString();
+        final id = (inner['appointmentId'] ?? inner['_id'] ?? inner['id'])?.toString();
         if (id != null && id.isNotEmpty) return id;
       }
       // Success without an id is unexpected but not fatal — the
@@ -109,9 +111,7 @@ class HospitalAppointmentController extends GetxController {
     required String appointmentId,
     required bool accept,
   }) =>
-      _updateStatus(
-          appointmentId: appointmentId,
-          status: accept ? 'accepted' : 'declined');
+      _updateStatus(appointmentId: appointmentId, status: accept ? 'accepted' : 'declined');
 
   /// Customer cancel while `pending` **or** `accepted` (doc §2). Same
   /// endpoint as accept/decline.
@@ -125,8 +125,7 @@ class HospitalAppointmentController extends GetxController {
     log('[APPOINTMENT] updateStatus → PUT '
         'appointmentId=$appointmentId status=$status');
     try {
-      final res = await HospitalAppointmentRepo()
-          .updateHospitalAppointmentStatus(
+      final res = await HospitalAppointmentRepo().updateHospitalAppointmentStatus(
         appointmentId: appointmentId,
         params: {ApiKeys.status: status},
       );
@@ -148,15 +147,42 @@ class HospitalAppointmentController extends GetxController {
     }
   }
 
+  /// Owner-inbox fetch — `GET /hospital-appointments/owner/me`. Populates
+  /// [ownerAppointments] used by [HospitalBookingsTabV2].
+  Future<void> fetchOwnerAppointments({String? status}) async {
+    try {
+      isLoadingOwnerAppointments.value = true;
+      final res = await HospitalAppointmentRepo().getOwnerHospitalAppointments(status: status);
+      if (!res.isSuccess) {
+        log('[APPOINTMENT] fetchOwnerAppointments failed: ${res.message}');
+        return;
+      }
+      final data = res.response?.data;
+      final list = (data is Map ? data['data'] : null);
+      if (list is List) {
+        ownerAppointments.assignAll(
+          list
+              .whereType<Map>()
+              .map((m) => HospitalAppointmentItem.fromJson(Map<String, dynamic>.from(m)))
+              .toList(),
+        );
+      } else {
+        ownerAppointments.clear();
+      }
+    } catch (e, st) {
+      log('[APPOINTMENT] fetchOwnerAppointments threw: $e\n$st');
+    } finally {
+      isLoadingOwnerAppointments.value = false;
+    }
+  }
+
   /// Source-of-truth status fetch for a card that lost its local latch
   /// (fresh login on a new device). Returns lowercased status or null
   /// on failure.
   Future<String?> fetchAppointmentStatus(String appointmentId) async {
     if (appointmentId.trim().isEmpty) return null;
     try {
-      final ResponseModel res =
-          await HospitalAppointmentRepo()
-              .getHospitalAppointmentById(appointmentId);
+      final ResponseModel res = await HospitalAppointmentRepo().getHospitalAppointmentById(appointmentId);
       if (!res.isSuccess) return null;
       final data = res.response?.data;
       final inner = (data is Map ? (data['data'] ?? data) : null);

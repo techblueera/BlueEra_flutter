@@ -83,7 +83,7 @@ class _LabTestsTabV2State extends State<LabTestsTabV2> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+      padding: EdgeInsets.only(left: SizeConfig.size25, right: SizeConfig.size12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -290,55 +290,32 @@ class _PopularTestsSection extends StatelessWidget {
             else if (popular.isEmpty)
               const _PopularEmptyCard()
             else ...[
+              // Card content is ~180px; keep the PageView slot just tall
+              // enough for the card plus a hair of breathing room so the
+              // tinted background doesn't leave an empty strip below.
               SizedBox(
-                height: 220,
+                height: 195,
                 child: PageView.builder(
                   controller: pageController,
                   itemCount: popular.length,
                   onPageChanged: onPageChanged,
                   itemBuilder: (_, i) => Padding(
                     padding: EdgeInsets.only(right: SizeConfig.size8),
-                    child: _PopularTestCard(
-                      test: popular[i],
-                      backgroundColor: LabSoftCardColor.forIndex(i),
+                    child: Align(
+                      alignment: Alignment.topCenter,
+                      child: _PopularTestCard(
+                        test: popular[i],
+                        backgroundColor: LabSoftCardColor.forIndex(i),
+                      ),
                     ),
                   ),
                 ),
               ),
-              SizedBox(height: SizeConfig.size10),
-              _PagingDots(count: popular.length, active: currentPage),
             ],
           ],
         ),
       );
     });
-  }
-}
-
-class _PagingDots extends StatelessWidget {
-  final int count;
-  final int active;
-
-  const _PagingDots({required this.count, required this.active});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(count, (i) {
-        final on = i == active;
-        return AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
-          margin: const EdgeInsets.symmetric(horizontal: 3),
-          width: on ? 14 : 6,
-          height: 6,
-          decoration: BoxDecoration(
-            color: on ? AppColors.primaryColor : AppColors.primaryColor.withValues(alpha: 0.25),
-            borderRadius: BorderRadius.circular(3),
-          ),
-        );
-      }),
-    );
   }
 }
 
@@ -408,6 +385,7 @@ class _PopularTestCard extends StatelessWidget {
             ),
           ),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
