@@ -8,6 +8,7 @@ import 'package:BlueEra/features/chat/view/widget/component_widgets.dart';
 import 'package:BlueEra/features/chat/view/widget/media_message_full_view.dart';
 import 'package:BlueEra/features/common/reel/widget/auto_video_playback_manager.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:any_link_preview/any_link_preview.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -157,7 +158,9 @@ class _BroadcastMessageCardState extends State<BroadcastMessageCard> {
   /// text; in-text http(s) links stay tappable blue in either part.
   Widget _buildBody(String body) {
     _disposeRecognizers();
-    final fontSize = _theme.chatFontSize.value + 3;
+    // Match the normal chat message font size (no broadcast up-scale) so a
+    // broadcast reads at the same size as a regular bubble.
+    final fontSize = _theme.chatFontSize.value;
 
     // Split into headline (first line) + description (the remainder).
     final newlineIdx = body.indexOf('\n');
@@ -270,37 +273,91 @@ class _BroadcastMessageCardState extends State<BroadcastMessageCard> {
     return spans;
   }
 
-  /// A compact Telegram-style link-preview chip — a link glyph + the bare
-  /// domain over a faint fill, tappable to open the URL.
+  /// Rich link preview — the SAME card used by normal chat messages
+  /// (see MessageBubble.buildLinkPreview): a cover image with the page title,
+  /// description and domain, tappable to open the URL.
   Widget _buildLinkPreview(String url) {
+    final domain = _domainOf(url);
     return GestureDetector(
       onTap: () => _openLink(url),
       behavior: HitTestBehavior.opaque,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: BoxDecoration(
-          color: const Color(0xFFF2F6FB),
-          borderRadius: BorderRadius.circular(8),
-          border: Border(
-            left: BorderSide(color: AppColors.primaryColor, width: 3),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade200),
           ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.link_rounded, size: 16, color: Color(0xFF5B6472)),
-            const SizedBox(width: 6),
-            Flexible(
-              child: CustomText(
-                _domainOf(url),
-                fontSize: 13,
-                fontWeight: FontWeight.w500,
-                color: const Color(0xFF5B6472),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+          child: AnyLinkPreview.builder(
+            link: url,
+            cache: const Duration(days: 7),
+            placeholderWidget: Container(
+              height: 200,
+              color: Colors.grey.shade100,
+              child: const Center(
+                child: CircularProgressIndicator(
+                    strokeWidth: 2, color: AppColors.primaryColor),
               ),
             ),
-          ],
+            errorWidget: const SizedBox.shrink(),
+            itemBuilder: (context, metadata, imageProvider, svgImage) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (imageProvider != null)
+                    SizedBox(
+                      height: 200,
+                      width: double.infinity,
+                      child: Image(image: imageProvider, fit: BoxFit.cover),
+                    )
+                  else if (svgImage != null)
+                    SizedBox(
+                        height: 140, width: double.infinity, child: svgImage),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (metadata.title != null &&
+                            metadata.title!.isNotEmpty)
+                          CustomText(
+                            metadata.title!,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black87,
+                            height: 1.3,
+                          ),
+                        if (metadata.desc != null &&
+                            metadata.desc!.isNotEmpty) ...[
+                          const SizedBox(height: 3),
+                          CustomText(
+                            metadata.desc!,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            fontSize: 11,
+                            color: Colors.black54,
+                            height: 1.3,
+                          ),
+                        ],
+                        const SizedBox(height: 6),
+                        CustomText(
+                          domain,
+                          fontSize: 11,
+                          color: Colors.grey,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
