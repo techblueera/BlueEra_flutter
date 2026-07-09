@@ -149,6 +149,22 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
     }
 
     final time = formatChatTime(widget.message.createdAt ?? '');
+
+    // Admin broadcast / BlueEra announcement (payment + offer messages).
+    // Backend keeps message_type as text/image/video and flags the message
+    // with `is_announcement` (flat on live socket payloads, mirrored under
+    // `metadata.*` for history). Route on that flag — before the message_type
+    // switch — so these render as the full-width BroadcastMessageCard even
+    // inside a normal 1:1 chat. Early-return so the self-contained card skips
+    // the alignment / swipe-to-reply / context-menu wrapping (same treatment
+    // as the callongoing / broadcast cases below).
+    // See BROADCAST_AND_PAYMENT_NOTIFICATIONS_INTEGRATION.md §6.2.
+    final isAnnouncement = (widget.message.isAnnouncement ?? false) ||
+        (widget.message.metadata?.isAnnouncement ?? false);
+    if (isAnnouncement) {
+      return BroadcastMessageCard(message: widget.message);
+    }
+
     Widget messageWidget;
     switch (widget.message.messageType) {
       case "location":

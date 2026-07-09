@@ -122,6 +122,7 @@ class Messages {
       this.buyer,
       this.isPayment,
       this.paymentStatus,
+      this.isAnnouncement,
   });
 
   Messages.fromJson(dynamic json) {
@@ -152,6 +153,10 @@ class Messages {
     // Null-safe: legacy messages → is_payment false, payment_status 'pending'.
     isPayment = json['is_payment'] == true;
     paymentStatus = json['payment_status']?.toString() ?? 'pending';
+    // Admin broadcast / BlueEra announcement flag (see
+    // BROADCAST_AND_PAYMENT_NOTIFICATIONS_INTEGRATION.md §6.1). Live socket
+    // payloads expose it flat; history mirrors it under `metadata.*`.
+    isAnnouncement = json['is_announcement'] == true;
     videoTime = json['video_time'];
     audioTime = json['audio_time'];
     latitude = json['latitude'];
@@ -240,6 +245,13 @@ class Messages {
   bool? myMessage;
   bool? isPayment;
 
+  /// True when this message is an Admin broadcast / BlueEra announcement (offer
+  /// or payment message). Set from the flat `is_announcement` key on live
+  /// socket payloads; history carries the same value under `metadata.*`. Used
+  /// to route the message to [BroadcastMessageCard] regardless of its
+  /// text/image/video `message_type`.
+  bool? isAnnouncement;
+
   /// Payment lifecycle for an `is_payment` image: 'pending' | 'success' |
   /// 'failed'. Driven entirely by the backend (PUT /chat/payment-status +
   /// the `paymentStatusUpdate` socket). Defaults to 'pending'.
@@ -296,6 +308,7 @@ class Messages {
     map['my_message'] = myMessage;
     map['is_payment'] = isPayment;
     map['payment_status'] = paymentStatus;
+    map['is_announcement'] = isAnnouncement;
     map['visible_to'] = visible_to;
     map['likes_count'] = likes_count;
     map['forwards_count'] = forwards_count;
@@ -549,6 +562,18 @@ class MessageMetadata {
   String? utrNo;
   num? amount;
 
+  // Admin broadcast / BlueEra announcement fields (see
+  // BROADCAST_AND_PAYMENT_NOTIFICATIONS_INTEGRATION.md §6.1). Populated from
+  // `metadata.*` on both live socket payloads and REST history — read these
+  // for a single code path. `title` + `category` are parsed above.
+  bool? isAnnouncement;
+  String? broadcastId;
+  String? link;
+  String? body;
+  String? mediaType;
+  String? mediaThumbnail;
+  String? imageUrl;
+
   MessageMetadata({
     this.foodId,
     this.productId,
@@ -616,6 +641,13 @@ class MessageMetadata {
     this.payeeUserId,
     this.utrNo,
     this.amount,
+    this.isAnnouncement,
+    this.broadcastId,
+    this.link,
+    this.body,
+    this.mediaType,
+    this.mediaThumbnail,
+    this.imageUrl,
   });
 
   factory MessageMetadata.fromJson(Map<String, dynamic> json) {
@@ -778,6 +810,13 @@ class MessageMetadata {
       amount: json['amount'] is num
           ? json['amount']
           : num.tryParse('${json['amount']}'),
+      isAnnouncement: json['is_announcement'] == true,
+      broadcastId: json['broadcast_id']?.toString(),
+      link: json['link']?.toString(),
+      body: json['body']?.toString(),
+      mediaType: json['media_type']?.toString(),
+      mediaThumbnail: json['media_thumbnail']?.toString(),
+      imageUrl: json['image_url']?.toString(),
     );
   }
 
@@ -846,6 +885,13 @@ class MessageMetadata {
       'payee_user_id': payeeUserId,
       'utr_no': utrNo,
       'amount': amount,
+      'is_announcement': isAnnouncement,
+      'broadcast_id': broadcastId,
+      'link': link,
+      'body': body,
+      'media_type': mediaType,
+      'media_thumbnail': mediaThumbnail,
+      'image_url': imageUrl,
     };
   }
 }
