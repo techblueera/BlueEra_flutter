@@ -143,6 +143,17 @@ class ShareService {
     );
   }
 
+  Future<void> shareHomeMadeFoodProfile({
+    required String userId,
+    String? subject,
+  }) {
+    final link = homeMadeFoodProfileDeepLink(userId: userId);
+    return openShareSheet(
+      text: _profileShareMessage(link),
+      subject: subject,
+    );
+  }
+
   Future<void> shareProfConsProfile({
     required String userId,
     String? subject,

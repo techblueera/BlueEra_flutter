@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/me/laboratory/repo/lab_enquiry_repo.dart';
 import 'package:BlueEra/features/me/medical/repo/healthcare_enquiry_repo.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:get/get.dart';
@@ -22,9 +23,16 @@ class HealthcareEnquiryController extends GetxController {
   /// Backend is live. Flip to `true` to exercise the sheet offline.
   static const bool _useStub = false;
 
-  /// Server-recognised category for the hospital producer. Anything else
+  /// Server-recognised category for the hospital producer. Anything
+  /// else — except [categoryLaboratory] which has its own producer —
   /// routes through the generic business endpoint.
   static const String categoryHospital = 'HOSPITAL';
+
+  /// Server-recognised category for the laboratory producer
+  /// (`lab-service/laboratory-enquiries`). Owner accept/decline and
+  /// status GET have to hit this endpoint too, not `business-enquiries`.
+  /// See lib/docs/LABORATORY_ENQUIRY_INTEGRATION_GUIDE.md.
+  static const String categoryLaboratory = 'LABORATORY';
 
   final RxBool isSubmitting = false.obs;
 
@@ -155,23 +163,32 @@ class HealthcareEnquiryController extends GetxController {
       await Future.delayed(const Duration(milliseconds: 400));
       return true;
     }
-    final repo = HealthcareEnquiryRepo();
-    final isHospital = category.toUpperCase() == categoryHospital;
-    log('[ENQUIRY] healthcare/${isHospital ? 'HOSPITAL' : category} '
-        'updateStatus → PUT enquiryId=$enquiryId status=$status');
+    final upper = category.toUpperCase();
+    final isHospital = upper == categoryHospital;
+    final isLaboratory = upper == categoryLaboratory;
+    log('[ENQUIRY] healthcare/$upper updateStatus → PUT '
+        'enquiryId=$enquiryId status=$status');
     try {
+      // Route by producer: HOSPITAL → hospital-service, LABORATORY →
+      // lab-service, everything else → the generic user-service
+      // business-enquiries endpoint.
       final res = isHospital
-          ? await repo.updateHospitalEnquiryStatus(
+          ? await HealthcareEnquiryRepo().updateHospitalEnquiryStatus(
               enquiryId: enquiryId,
               params: {ApiKeys.status: status},
             )
-          : await repo.updateBusinessEnquiryStatus(
-              enquiryId: enquiryId,
-              params: {ApiKeys.status: status},
-            );
-      log('[ENQUIRY] healthcare/${isHospital ? 'HOSPITAL' : category} '
-          'updateStatus response: success=${res.isSuccess} '
-          'statusCode=${res.statusCode} message=${res.message}');
+          : isLaboratory
+              ? await LabEnquiryRepo().updateLaboratoryEnquiryStatus(
+                  enquiryId: enquiryId,
+                  params: {ApiKeys.status: status},
+                )
+              : await HealthcareEnquiryRepo().updateBusinessEnquiryStatus(
+                  enquiryId: enquiryId,
+                  params: {ApiKeys.status: status},
+                );
+      log('[ENQUIRY] healthcare/$upper updateStatus response: '
+          'success=${res.isSuccess} statusCode=${res.statusCode} '
+          'message=${res.message}');
       if (res.statusCode == 409) return true;
       if (!res.isSuccess) {
         commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
@@ -179,8 +196,7 @@ class HealthcareEnquiryController extends GetxController {
       }
       return true;
     } catch (e) {
-      log('[ENQUIRY] healthcare/${isHospital ? 'HOSPITAL' : category} '
-          'updateStatus threw: $e');
+      log('[ENQUIRY] healthcare/$upper updateStatus threw: $e');
       commonSnackBar(message: AppStrings.somethingWentWrong);
       return false;
     }
@@ -188,19 +204,22 @@ class HealthcareEnquiryController extends GetxController {
 
   /// Fetch the current server-side status of a healthcare enquiry.
   /// Routes by [category] — HOSPITAL uses the hospital-service GET,
-  /// everything else uses the user-service business-enquiries GET. See
-  /// [HotelEnquiryController.fetchHotelEnquiryStatus] for the rationale.
+  /// LABORATORY uses the lab-service GET, everything else uses the
+  /// user-service business-enquiries GET.
   Future<String?> fetchHealthcareEnquiryStatus({
     required String enquiryId,
     required String category,
   }) async {
     if (enquiryId.trim().isEmpty) return null;
-    final isHospital = category.toUpperCase() == categoryHospital;
+    final upper = category.toUpperCase();
+    final isHospital = upper == categoryHospital;
+    final isLaboratory = upper == categoryLaboratory;
     try {
-      final repo = HealthcareEnquiryRepo();
       final res = isHospital
-          ? await repo.getHospitalEnquiryById(enquiryId)
-          : await repo.getBusinessEnquiryById(enquiryId);
+          ? await HealthcareEnquiryRepo().getHospitalEnquiryById(enquiryId)
+          : isLaboratory
+              ? await LabEnquiryRepo().getLaboratoryEnquiryById(enquiryId)
+              : await HealthcareEnquiryRepo().getBusinessEnquiryById(enquiryId);
       if (!res.isSuccess) return null;
       final data = res.response?.data;
       final inner = (data is Map ? (data['data'] ?? data) : null);

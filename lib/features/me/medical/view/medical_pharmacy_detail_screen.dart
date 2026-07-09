@@ -1,31 +1,31 @@
 ﻿import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/constants/shimmer_utils.dart';
-import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
-import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
-import 'package:BlueEra/features/me/medical/model/medical_home_response_model.dart';
-import 'package:BlueEra/features/me/medical/repo/medical_repo.dart';
-import 'package:BlueEra/features/me/medical/widget/healthcare_enquiry_sheet.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
-import 'package:BlueEra/features/me/medical/view/medical_inventory_category_screen.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
-import 'package:BlueEra/widgets/common_card_widget.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/constants/shimmer_utils.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
+import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
+import 'package:BlueEra/features/me/medical/model/medical_home_response_model.dart';
+import 'package:BlueEra/features/me/medical/repo/medical_repo.dart';
+import 'package:BlueEra/features/me/medical/view/medical_inventory_category_screen.dart';
+import 'package:BlueEra/features/me/medical/widget/healthcare_enquiry_sheet.dart';
+import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/common_card_widget.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
-import 'package:BlueEra/widgets/visit_business_common_header.dart';
-import 'package:BlueEra/widgets/visit_business_stats_card.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:BlueEra/widgets/social_gallery_grid.dart';
+import 'package:BlueEra/widgets/visit_business_common_header.dart';
+import 'package:BlueEra/widgets/visit_business_stats_card.dart';
 import 'package:BlueEra/widgets/webview_common.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -37,14 +37,11 @@ class MedicalPharmacyDetailScreen extends StatefulWidget {
   const MedicalPharmacyDetailScreen({super.key, required this.businessId});
 
   @override
-  State<MedicalPharmacyDetailScreen> createState() =>
-      _MedicalPharmacyDetailScreenState();
+  State<MedicalPharmacyDetailScreen> createState() => _MedicalPharmacyDetailScreenState();
 }
 
-class _MedicalPharmacyDetailScreenState
-    extends State<MedicalPharmacyDetailScreen> {
-  final viewBusinessDetailsController =
-      Get.find<ViewBusinessDetailsController>();
+class _MedicalPharmacyDetailScreenState extends State<MedicalPharmacyDetailScreen> {
+  final viewBusinessDetailsController = Get.find<ViewBusinessDetailsController>();
   final storeController = getOrPut(() => StoreController());
   MedicalHomeResponseModel? _data;
   bool _isLoading = true;
@@ -65,8 +62,7 @@ class _MedicalPharmacyDetailScreenState
 
   Future<void> _fetchData() async {
     try {
-      final res = await MedicalRepo()
-          .fetchMedicalProfileFd(businessId: widget.businessId);
+      final res = await MedicalRepo().fetchMedicalProfileFd(businessId: widget.businessId);
       if (res.isSuccess && res.response?.data != null) {
         final data = res.response?.data['data'] ?? res.response?.data;
         if (data != null && data is Map<String, dynamic>) {
@@ -95,8 +91,7 @@ class _MedicalPharmacyDetailScreenState
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-          body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     if (_data == null) {
       return Scaffold(
@@ -105,12 +100,10 @@ class _MedicalPharmacyDetailScreenState
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.storefront_outlined,
-                  size: 64, color: Colors.grey.shade300),
+              Icon(Icons.storefront_outlined, size: 64, color: Colors.grey.shade300),
               SizedBox(height: 12),
               CustomText(AppStrings.pharmacyDetailsNotAvailable,
-                  fontSize: SizeConfig.large,
-                  color: AppColors.secondaryTextColor),
+                  fontSize: SizeConfig.large, color: AppColors.secondaryTextColor),
             ],
           ),
         ),
@@ -141,39 +134,38 @@ class _MedicalPharmacyDetailScreenState
                 if (viewBusinessDetailsController.isProfileLoading.value) {
                   return buildBusinessHeaderSkeleton();
                 }
-                final details = viewBusinessDetailsController
-                    .visitedBusinessProfileDetails
-                    ?.data;
-                return VisitBusinessCommonHeader(
-                  details: details,
-                  onRated: () =>
-                      viewBusinessDetailsController.viewBusinessProfileById(
-                    widget.businessId,
-                    silent: true,
-                  ),
-                  onFollowChanged: () =>
-                      viewBusinessDetailsController.viewBusinessProfileById(
-                    widget.businessId,
-                    silent: true,
+                final details = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
+                return Padding(
+                  padding: EdgeInsets.all(SizeConfig.size12),
+                  child: VisitBusinessCommonHeader(
+                    details: details,
+                    onRated: () => viewBusinessDetailsController.viewBusinessProfileById(
+                      widget.businessId,
+                      silent: true,
+                    ),
+                    onFollowChanged: () => viewBusinessDetailsController.viewBusinessProfileById(
+                      widget.businessId,
+                      silent: true,
+                    ),
                   ),
                 );
               }),
-              SizedBox(height: SizeConfig.size10),
+              // SizedBox(height: SizeConfig.size10),
               _buildUploadPrescriptionCard(),
               SizedBox(height: SizeConfig.size10),
               Obx(() {
                 viewBusinessDetailsController.profileVersion.value;
-                return VisitBusinessStatsCard(
-                  details: viewBusinessDetailsController
-                      .visitedBusinessProfileDetails
-                      ?.data,
+                return Padding(
+                  padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+                  child: VisitBusinessStatsCard(
+                    details: viewBusinessDetailsController.visitedBusinessProfileDetails?.data,
+                  ),
                 );
               }),
               SizedBox(height: SizeConfig.size10),
 
               // Website preview
-              if (profile?.websiteUrl != null &&
-                  profile!.websiteUrl!.isNotEmpty) ...[
+              if (profile?.websiteUrl != null && profile!.websiteUrl!.isNotEmpty) ...[
                 _buildWebsitePreview(profile.websiteUrl!),
                 SizedBox(height: SizeConfig.size10),
               ],
@@ -200,12 +192,13 @@ class _MedicalPharmacyDetailScreenState
                 if (viewBusinessDetailsController.isProfileLoading.value) {
                   return const SizedBox.shrink();
                 }
-                final details = viewBusinessDetailsController
-                    .visitedBusinessProfileDetails
-                    ?.data;
-                return BusinessContactMapCard(
-                  businessProfileDetails: details,
-                  showEditButton: false,
+                final details = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
+                return Padding(
+                  padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+                  child: BusinessContactMapCard(
+                    businessProfileDetails: details,
+                    showEditButton: false,
+                  ),
                 );
               }),
               SizedBox(height: kBottomNavigationBarHeight + 30),
@@ -234,8 +227,7 @@ class _MedicalPharmacyDetailScreenState
                 color: AppColors.primaryColor.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(Icons.description_outlined,
-                  color: AppColors.primaryColor, size: 28),
+              child: Icon(Icons.description_outlined, color: AppColors.primaryColor, size: 28),
             ),
             SizedBox(width: 12),
             Expanded(
@@ -248,18 +240,15 @@ class _MedicalPharmacyDetailScreenState
                       color: AppColors.mainTextColor),
                   SizedBox(height: 2),
                   CustomText(AppStrings.scheduleYourVisitEasily,
-                      fontSize: SizeConfig.small,
-                      color: AppColors.secondaryTextColor),
+                      fontSize: SizeConfig.small, color: AppColors.secondaryTextColor),
                 ],
               ),
             ),
             InkWell(
               onTap: () async {
-                final path =
-                    await CommonImageUploadTile.pickImage(context: context);
+                final path = await CommonImageUploadTile.pickImage(context: context);
                 if (path != null && path.isNotEmpty) {
-                  commonSnackBar(
-                      message: AppStrings.prescriptionUploadedSuccessfully.tr);
+                  commonSnackBar(message: AppStrings.prescriptionUploadedSuccessfully.tr);
                 }
               },
               borderRadius: BorderRadius.circular(8),
@@ -272,8 +261,7 @@ class _MedicalPharmacyDetailScreenState
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.camera_alt_outlined,
-                        size: 16, color: AppColors.mainTextColor),
+                    Icon(Icons.camera_alt_outlined, size: 16, color: AppColors.mainTextColor),
                     SizedBox(width: 6),
                     CustomText(AppStrings.uploadLabel,
                         fontSize: SizeConfig.small,
@@ -314,8 +302,8 @@ class _MedicalPharmacyDetailScreenState
                         overflow: TextOverflow.ellipsis),
                   ),
                   InkWell(
-                    onTap: () => Get.to(
-                        () => CommonWebView(urlLink: url, urlTitle: AppStrings.websiteLabel.tr)),
+                    onTap: () =>
+                        Get.to(() => CommonWebView(urlLink: url, urlTitle: AppStrings.websiteLabel.tr)),
                     child: CustomText(AppStrings.visitLabel,
                         fontSize: SizeConfig.small,
                         color: AppColors.primaryColor,
@@ -328,8 +316,7 @@ class _MedicalPharmacyDetailScreenState
             SizedBox(
               height: 180,
               child: AbsorbPointer(
-                child:
-                    CommonWebView(urlLink: url, urlTitle: '', hideAppBar: true),
+                child: CommonWebView(urlLink: url, urlTitle: '', hideAppBar: true),
               ),
             ),
           ],
@@ -355,14 +342,10 @@ class _MedicalPharmacyDetailScreenState
           children: [
             Row(
               children: [
-                Expanded(
-                    child: ServiceHomeTitleWidget(
-                        title: AppStrings.popularMedicalProducts.tr)),
+                Expanded(child: ServiceHomeTitleWidget(title: AppStrings.popularMedicalProducts.tr)),
                 if (showViewMore)
                   CustomText(AppStrings.viewAllLabel,
-                      fontSize: SizeConfig.small,
-                      color: AppColors.primaryColor,
-                      fontWeight: FontWeight.w600),
+                      fontSize: SizeConfig.small, color: AppColors.primaryColor, fontWeight: FontWeight.w600),
               ],
             ),
             SizedBox(height: SizeConfig.size10),
@@ -371,8 +354,7 @@ class _MedicalPharmacyDetailScreenState
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: displayList.length,
-                separatorBuilder: (_, __) =>
-                    SizedBox(width: SizeConfig.size10),
+                separatorBuilder: (_, __) => SizedBox(width: SizeConfig.size10),
                 itemBuilder: (_, i) => _popularProductCard(displayList[i]),
               ),
             ),
@@ -383,17 +365,12 @@ class _MedicalPharmacyDetailScreenState
   }
 
   Widget _popularProductCard(PopularProduct item) {
-    final productName =
-        item.product?.name ?? item.variant?.variantName ?? AppStrings.productParcel.tr;
-    final imageUrl = item.product?.images?.firstOrNull?.url ??
-        item.variant?.images?.firstOrNull?.url;
-    final mrp =
-        item.batches?.mrp ?? item.variant?.pricing?.firstOrNull?.mrp;
-    final sellingPrice = item.batches?.sellingPrice ??
-        item.variant?.pricing?.firstOrNull?.sellingPrice;
-    final discount = (mrp != null && sellingPrice != null && mrp > 0)
-        ? (((mrp - sellingPrice) / mrp) * 100).toInt()
-        : 0;
+    final productName = item.product?.name ?? item.variant?.variantName ?? AppStrings.productParcel.tr;
+    final imageUrl = item.product?.images?.firstOrNull?.url ?? item.variant?.images?.firstOrNull?.url;
+    final mrp = item.batches?.mrp ?? item.variant?.pricing?.firstOrNull?.mrp;
+    final sellingPrice = item.batches?.sellingPrice ?? item.variant?.pricing?.firstOrNull?.sellingPrice;
+    final discount =
+        (mrp != null && sellingPrice != null && mrp > 0) ? (((mrp - sellingPrice) / mrp) * 100).toInt() : 0;
 
     return Container(
       width: 140,
@@ -427,15 +404,11 @@ class _MedicalPharmacyDetailScreenState
                     children: [
                       if (sellingPrice != null || mrp != null)
                         CustomText('â‚¹${sellingPrice ?? mrp}',
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.mainTextColor),
+                            fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.mainTextColor),
                       if (discount > 0) ...[
                         SizedBox(width: 4),
                         CustomText('$discount% off',
-                            fontSize: 9,
-                            color: AppColors.green00,
-                            fontWeight: FontWeight.w600),
+                            fontSize: 9, color: AppColors.green00, fontWeight: FontWeight.w600),
                       ],
                     ],
                   ),
@@ -452,19 +425,37 @@ class _MedicalPharmacyDetailScreenState
   // CATEGORIES â€” Only with products, View More if > 6
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   static const List<Map<String, String>> _staticCategories = [
-    {'title': 'Ayurveda &\nNutrition', 'key': 'AYURVEDA___NUTRITION', 'image': 'assets/category/medical/AyurvedaNutrition.png'},
-    {'title': 'Home &\nPatient Care', 'key': 'HOME___PATIENT_CARE', 'image': 'assets/category/medical/Home_Patient_Care.png'},
-    {'title': 'Medical\nDevices', 'key': 'MEDICAL_DEVICES', 'image': 'assets/category/medical/Medical_Devices.png'},
+    {
+      'title': 'Ayurveda &\nNutrition',
+      'key': 'AYURVEDA___NUTRITION',
+      'image': 'assets/category/medical/AyurvedaNutrition.png'
+    },
+    {
+      'title': 'Home &\nPatient Care',
+      'key': 'HOME___PATIENT_CARE',
+      'image': 'assets/category/medical/Home_Patient_Care.png'
+    },
+    {
+      'title': 'Medical\nDevices',
+      'key': 'MEDICAL_DEVICES',
+      'image': 'assets/category/medical/Medical_Devices.png'
+    },
     {'title': 'OTC\nMedicines', 'key': 'OTC_MEDICINES', 'image': 'assets/category/medical/OTC_Medicines.png'},
-    {'title': 'Personal\n& Baby Care', 'key': 'PERSONAL___BABY_CARE', 'image': 'assets/category/medical/Personal_Baby_Care.png'},
-    {'title': 'Wound Care\n& First Aid', 'key': 'WOUND_CARE___FIRST_AID', 'image': 'assets/category/medical/Wound_Care_First_Aid.png'},
+    {
+      'title': 'Personal\n& Baby Care',
+      'key': 'PERSONAL___BABY_CARE',
+      'image': 'assets/category/medical/Personal_Baby_Care.png'
+    },
+    {
+      'title': 'Wound Care\n& First Aid',
+      'key': 'WOUND_CARE___FIRST_AID',
+      'image': 'assets/category/medical/Wound_Care_First_Aid.png'
+    },
   ];
 
-  static String _normalizeKey(String key) =>
-      key.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
+  static String _normalizeKey(String key) => key.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
 
-  Widget _buildMedicalProductCategories(
-      List<CategoryWithProducts> apiCategories) {
+  Widget _buildMedicalProductCategories(List<CategoryWithProducts> apiCategories) {
     final activeCats = <_CategoryDisplay>[];
     for (final sc in _staticCategories) {
       final staticNorm = _normalizeKey(sc['key']!);
@@ -483,8 +474,7 @@ class _MedicalPharmacyDetailScreenState
     for (final apiCat in apiCategories) {
       if (!apiCat.hasProducts || apiCat.key == null) continue;
       final apiNorm = _normalizeKey(apiCat.key!);
-      final alreadyAdded =
-          activeCats.any((a) => _normalizeKey(a.category.key ?? '') == apiNorm);
+      final alreadyAdded = activeCats.any((a) => _normalizeKey(a.category.key ?? '') == apiNorm);
       if (!alreadyAdded) {
         activeCats.add(_CategoryDisplay(
           title: apiCat.name?.replaceAll('_', ' ') ?? AppStrings.parcelCategory.tr,
@@ -497,8 +487,7 @@ class _MedicalPharmacyDetailScreenState
     if (activeCats.isEmpty) return const SizedBox.shrink();
 
     final showViewMore = activeCats.length > 6;
-    final displayList =
-        showViewMore ? activeCats.sublist(0, 6) : activeCats;
+    final displayList = showViewMore ? activeCats.sublist(0, 6) : activeCats;
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
@@ -510,14 +499,10 @@ class _MedicalPharmacyDetailScreenState
           children: [
             Row(
               children: [
-                Expanded(
-                    child:
-                        ServiceHomeTitleWidget(title: AppStrings.medicalProducts.tr)),
+                Expanded(child: ServiceHomeTitleWidget(title: AppStrings.medicalProducts.tr)),
                 if (showViewMore)
                   CustomText(AppStrings.viewAllLabel,
-                      fontSize: SizeConfig.small,
-                      color: AppColors.primaryColor,
-                      fontWeight: FontWeight.w600),
+                      fontSize: SizeConfig.small, color: AppColors.primaryColor, fontWeight: FontWeight.w600),
               ],
             ),
             SizedBox(height: SizeConfig.size12),
@@ -546,8 +531,7 @@ class _MedicalPharmacyDetailScreenState
   Widget _productCategoryCard(_CategoryDisplay item, int productCount) {
     return InkWell(
       onTap: () {
-        if (item.category.children != null &&
-            item.category.children!.isNotEmpty) {
+        if (item.category.children != null && item.category.children!.isNotEmpty) {
           Get.to(() => MedicalInventoryCategoryScreen(
                 title: item.title,
                 children: item.category.children!,
@@ -565,11 +549,9 @@ class _MedicalPharmacyDetailScreenState
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (item.image.isNotEmpty)
-              Image.asset(item.image,
-                  width: 44, height: 44, fit: BoxFit.contain)
+              Image.asset(item.image, width: 44, height: 44, fit: BoxFit.contain)
             else
-              Icon(Icons.medical_services_outlined,
-                  size: 44, color: AppColors.primaryColor),
+              Icon(Icons.medical_services_outlined, size: 44, color: AppColors.primaryColor),
             SizedBox(height: 4),
             CustomText(item.title,
                 fontSize: 11,
@@ -580,9 +562,7 @@ class _MedicalPharmacyDetailScreenState
                 color: Colors.blueGrey.shade700),
             SizedBox(height: 2),
             CustomText('$productCount ${AppStrings.productsCountLabel.tr}',
-                fontSize: 9,
-                color: AppColors.green00,
-                fontWeight: FontWeight.w600),
+                fontSize: 9, color: AppColors.green00, fontWeight: FontWeight.w600),
           ],
         ),
       ),
@@ -599,17 +579,12 @@ class _MedicalPharmacyDetailScreenState
       if (viewBusinessDetailsController.isProfileLoading.value) {
         return const SizedBox.shrink();
       }
-      final details =
-          viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
-      final livePhotos = details?.livePhotos
-          ?.where((p) => p.trim().isNotEmpty)
-          .toList();
+      final details = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
+      final livePhotos = details?.livePhotos?.where((p) => p.trim().isNotEmpty).toList();
       if (livePhotos == null || livePhotos.isEmpty) {
         return const SizedBox.shrink();
       }
-      final natureOfBusiness = details?.subCategoryDetails?.name ??
-          details?.natureOfBusiness ??
-          'OTHER';
+      final natureOfBusiness = details?.subCategoryDetails?.name ?? details?.natureOfBusiness ?? 'OTHER';
       return Padding(
         padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
         child: CommonCardWidget(
@@ -681,7 +656,7 @@ class _MedicalPharmacyDetailScreenState
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ServiceHomeTitleWidget(title: AppStrings.gallery),
-            SizedBox(height: 12),
+            SizedBox(height: SizeConfig.size12),
             SocialGalleryGrid(imageUrls: galleryImages),
           ],
         ),
@@ -739,8 +714,7 @@ class _MedicalPharmacyDetailScreenState
     if (url == null || url.isEmpty) {
       return Container(
         color: Colors.grey.shade200,
-        child: Icon(Icons.image_outlined,
-            color: Colors.grey.shade400, size: 40),
+        child: Icon(Icons.image_outlined, color: Colors.grey.shade400, size: 40),
       );
     }
     return CachedNetworkImage(
@@ -749,12 +723,10 @@ class _MedicalPharmacyDetailScreenState
       placeholder: (_, __) => Container(color: Colors.grey.shade200),
       errorWidget: (_, __, ___) => Container(
         color: Colors.grey.shade200,
-        child: Icon(Icons.broken_image_outlined,
-            color: Colors.grey.shade400, size: 40),
+        child: Icon(Icons.broken_image_outlined, color: Colors.grey.shade400, size: 40),
       ),
     );
   }
-
 }
 
 class _CategoryDisplay {

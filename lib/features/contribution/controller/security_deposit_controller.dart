@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/keyed_json_cache.dart';
 import 'package:BlueEra/core/services/razor_pay_services.dart';
+import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/contribution/model/security_deposit_models.dart';
 import 'package:BlueEra/features/contribution/repo/security_deposit_repo.dart';
 import 'package:get/get.dart';
@@ -244,6 +245,7 @@ class SecurityDepositController extends GetxController {
       isProcessing.value = false;
       commonSnackBar(message: 'Security deposit activated');
       await fetchCurrent();
+      await _refreshRiderDepositGate();
       return;
     }
 
@@ -288,11 +290,35 @@ class SecurityDepositController extends GetxController {
           message: res.message ?? AppStrings.paymentVerificationFailedWebhook.tr);
     }
     await fetchCurrent();
+    // Payment done → flip the rider "Go Live" gate. `verify-payment` (200)
+    // holds the deposit server-side; even on the webhook-fallback branch the
+    // deposit will be held, so refresh the onboarding status either way.
+    await _refreshRiderDepositGate();
   }
 
   void _onRazorpayError(PaymentFailureResponse response) {
     isProcessing.value = false;
     commonSnackBar(message: response.message ?? AppStrings.paymentFailed.tr);
+  }
+
+  /// After a deposit is successfully activated, refresh the rider onboarding
+  /// status so the "Go Live" gate flips from "payment incomplete" to allowed.
+  ///
+  /// That gate ([DeliveryPartnerController.isSecurityDepositPaid], checked in
+  /// rider_service_screen / rider_me_screen) reads `securityDeposit.paid` from
+  /// the onboarding-status endpoint, which is served **cache-first**. Without a
+  /// forced refresh the stale cached `paid: false` would keep blocking Go Live
+  /// even after a successful payment — so re-fetch from the network, which also
+  /// rewrites the Hive cache. Only bike riders / cab drivers pay a deposit (and
+  /// only they have the controller registered), so this is a no-op for every
+  /// other account type.
+  Future<void> _refreshRiderDepositGate() async {
+    final isRiderRole = userProfessionGlobal == BIKE_RIDER ||
+        userProfessionGlobal == CAR_TAXI_DRIVER;
+    if (!isRiderRole) return;
+    if (!Get.isRegistered<DeliveryPartnerController>()) return;
+    await Get.find<DeliveryPartnerController>()
+        .ridersOnboardingStatusRepoApi(forceRefresh: true);
   }
 
   // ─── 4a. Refund ───────────────────────────────────────────────

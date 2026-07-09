@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/features/chat/auth/model/healthcare_enquiry_model.dart';
+import 'package:BlueEra/features/me/laboratory/widget/lab_booking_sheet.dart';
 import 'package:BlueEra/features/me/medical/controller/healthcare_enquiry_controller.dart';
 import 'package:BlueEra/features/me/medical/widget/hospital_appointment_sheet.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -397,8 +398,9 @@ class _HealthcareEnquiryMsgCardState extends State<HealthcareEnquiryMsgCard> {
 
   // ── Footer — status band (waiting / accepted / declined) or, for the
   // provider while pending, the Accept / Decline actions. Accepted state
-  // on a HOSPITAL-category enquiry appends the Book Appointment CTA for
-  // the customer (enquiry-first hospital flow). ────────────────────────
+  // on a HOSPITAL-category enquiry appends the Book Appointment CTA and
+  // on a LABORATORY-category enquiry appends the Book Test CTA (both
+  // enquiry-first flows). ────────────────────────────────────────────
   Widget _footer() {
     if (_isAccepted) {
       return Column(
@@ -410,6 +412,7 @@ class _HealthcareEnquiryMsgCardState extends State<HealthcareEnquiryMsgCard> {
             label: AppStrings.enquiryAccepted.tr,
           ),
           if (_isMyMessage && _canOpenAppointmentSheet) _bookAppointmentRow(),
+          if (_isMyMessage && _canOpenLabBookingSheet) _bookTestRow(),
         ],
       );
     }
@@ -648,6 +651,71 @@ class _HealthcareEnquiryMsgCardState extends State<HealthcareEnquiryMsgCard> {
               const SizedBox(width: 5),
               const Text(
                 'Book Appointment',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ── Laboratory booking (LABORATORY-category enquiry-first flow) ────
+
+  /// Only wire the CTA when
+  ///  1. the enquiry is on a LABORATORY listing (booking endpoint is
+  ///     lab-service only),
+  ///  2. we have a laboratory id + owner id + enquiry id to send.
+  /// Any missing → hide the button rather than opening a broken sheet.
+  bool get _canOpenLabBookingSheet {
+    final e = _e;
+    if (e == null) return false;
+    if ((e.category ?? '').toUpperCase() != 'LABORATORY') return false;
+    return (e.listingId ?? '').trim().isNotEmpty &&
+        (e.ownerId ?? '').trim().isNotEmpty &&
+        (e.enquiryId ?? '').trim().isNotEmpty;
+  }
+
+  void _openLabBookingSheet() {
+    final e = _e!;
+    LabBookingSheet.open(
+      context,
+      listing: LabBookingListing(
+        laboratoryId: (e.listingId ?? '').trim(),
+        ownerId: (e.ownerId ?? '').trim(),
+        labName: (e.listingName ?? '').trim(),
+        labImage: (e.listingImage ?? '').trim(),
+        location: (e.location ?? '').trim(),
+      ),
+      enquiryId: (e.enquiryId ?? '').trim(),
+    );
+  }
+
+  Widget _bookTestRow() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+      child: InkWell(
+        onTap: _openLabBookingSheet,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(colors: [_accentDeep, _accent]),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.biotech_rounded,
+                  size: 15, color: Colors.white),
+              const SizedBox(width: 5),
+              const Text(
+                'Book Test',
                 style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w700,

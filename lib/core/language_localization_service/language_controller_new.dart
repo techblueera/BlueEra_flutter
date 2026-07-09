@@ -207,7 +207,8 @@ class LanguageControllerNew extends GetxController {
         // await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.authToken, upgraded.token);
         // await getUserAuthToken();
         if (accountTypeGlobal.toUpperCase() == "INDIVIDUAL") {
-          await Get.find<ViewPersonalDetailsController>().viewPersonalProfile();
+          await Get.find<ViewPersonalDetailsController>()
+              .viewPersonalProfile(forceRefresh: true);
         }
         if (accountTypeGlobal.toUpperCase() == "BUSINESS") {
           final viewProfileController =

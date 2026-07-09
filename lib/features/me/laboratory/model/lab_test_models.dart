@@ -137,7 +137,7 @@ class PathologyTest {
         prescriptionRequired: json["prescriptionRequired"],
         testFees: json["testFees"],
         customerPrice: json["customerPrice"],
-        collection: json["collection"],
+        collection: json["groupCategory"] ?? json["collection"],
     packageType: json["packageType"],
       );
 

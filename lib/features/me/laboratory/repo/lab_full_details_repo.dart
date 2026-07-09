@@ -9,4 +9,8 @@ class LabFullDetailsRepo extends BaseService {
   Future<ResponseModel> getFullDetailsByUser() async {
     return await ApiBaseHelper().getHTTP("$testLabServiceFullDetails/$userId");
   }
+
+  Future<ResponseModel> getFullDetailsByUserId(String targetUserId) async {
+    return await ApiBaseHelper().getHTTP("$testLabServiceFullDetails/$targetUserId");
+  }
 }

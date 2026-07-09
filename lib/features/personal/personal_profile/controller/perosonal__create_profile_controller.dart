@@ -126,7 +126,8 @@ class PersonalCreateProfileController extends GetxController {
         await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.authToken, upgraded.token);
         await getUserAuthToken();
 
-        unawaited(Get.find<ViewPersonalDetailsController>().viewPersonalProfile());
+        unawaited(Get.find<ViewPersonalDetailsController>()
+            .viewPersonalProfile(forceRefresh: true));
         if (!isFromProfileOnly) {
           Get.back();
         }
@@ -172,7 +173,8 @@ class PersonalCreateProfileController extends GetxController {
 
       if (responseModel.isSuccess) {
         deleteProjectResponse.value = ApiResponse.complete(responseModel);
-        await Get.find<ViewPersonalDetailsController>().viewPersonalProfile();
+        await Get.find<ViewPersonalDetailsController>()
+            .viewPersonalProfile(forceRefresh: true);
         Get.back();
         commonSnackBar(message: responseModel.response?.data?['message'] ?? "Deleted successfully");
       } else {
@@ -198,7 +200,8 @@ class PersonalCreateProfileController extends GetxController {
 
       if (responseModel.isSuccess) {
         deleteExperienceResponse.value = ApiResponse.complete(responseModel);
-        await Get.find<ViewPersonalDetailsController>().viewPersonalProfile();
+        await Get.find<ViewPersonalDetailsController>()
+            .viewPersonalProfile(forceRefresh: true);
         Get.back();
         commonSnackBar(message: responseModel.response?.data?['message'] ?? "Deleted successfully");
       } else {
