@@ -803,6 +803,9 @@ class ApiKeys {
       'argGroceryCategoryWithInventory';
   static const argFoodGenAiResModel = 'argFoodGenAiResModel';
   static const argCreateMissingProductIndex = 'argCreateMissingProductIndex';
+  // Selects which category tree the food AI-entry picker loads, e.g.
+  // "RESTAURANT_SPECIAL" when arriving from the Restaurant Special card.
+  static const argFoodCategoryType = 'argFoodCategoryType';
   static const argIsGroceryStore = 'argIsGroceryStore';
   static const argIsDeliveredByRider = 'argIsDeliveredByRider';
   static const argBusinessId = 'argBusinessId';

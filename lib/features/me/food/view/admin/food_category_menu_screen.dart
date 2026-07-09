@@ -55,7 +55,7 @@ class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: AppStrings.foodFoodItemsLabel.tr,
+        title: '${AppStrings.add.tr} ${AppStrings.foodFoodItemsLabel.tr}',
         // "Create Manually" now lives as a top-right action instead of a
         // full-width button in the footer.
         buildCustomActionWidget: () => Padding(
@@ -133,7 +133,21 @@ class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
             child: Padding(
               padding: EdgeInsets.fromLTRB(SizeConfig.size8, SizeConfig.size10,
                   SizeConfig.size8, SizeConfig.size10),
-              child: _restaurantSpecialCard(),
+              // Opens the same manual add-food form as "Create Manually", but
+              // scoped into the Restaurant Special category so the picker skips
+              // level 0 and starts on its sub-categories.
+              child: InkWell(
+                borderRadius: BorderRadius.circular(10),
+                onTap: () => Get.toNamed(
+                  RouteHelper.getFoodEntryAiScreenRoute(),
+                  arguments: {
+                    ApiKeys.argCreateMissingProductIndex: null,
+                    ApiKeys.argFoodCategoryType:
+                        FoodServiceController.restaurantSpecialType,
+                  },
+                ),
+                child: _restaurantSpecialCard(),
+              ),
             ),
           ),
           // ── "Quick Upload" heading ──────────────────────────────────

@@ -20,9 +20,15 @@ import 'package:get/get.dart';
 class FoodEntryAiScreen extends StatefulWidget {
   final int? createMissingProductIndex;
 
+  /// Category type driving which category tree the picker shows. Pass
+  /// [FoodServiceController.restaurantSpecialType] (from the Restaurant Special
+  /// card) to load the restaurant-special categories; null → the normal tree.
+  final String? categoryType;
+
   const FoodEntryAiScreen({
     super.key,
     this.createMissingProductIndex,
+    this.categoryType,
   });
 
   @override
@@ -37,15 +43,29 @@ class _FoodEntryAiScreenState extends State<FoodEntryAiScreen> {
   void initState() {
     super.initState();
 
-   // Wait for the frame to be ready before updating the controller list
+   // Wait for the frame to be ready before loading the category source.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (vc.foodNestedCateList.isNotEmpty) {
-        controller.foodCateList.assignAll(vc.foodNestedCateList);
-        debugPrint("Categories assigned: ${controller.foodCateList.length}");
-      } else {
-        debugPrint("Warning: vc.foodSubCateList is empty at post-frame.");
-      }
+      _loadCategorySource();
     });  }
+
+  /// Feeds the picker its category tree. For [categoryType] ==
+  /// RESTAURANT_SPECIAL we use the restaurant-special categories (fetched
+  /// on demand); otherwise the normal food category tree. Selections are reset
+  /// on entry so the two trees can't bleed into each other.
+  Future<void> _loadCategorySource() async {
+    if (widget.categoryType == FoodServiceController.restaurantSpecialType) {
+      if (vc.restaurantSpecialCateList.isEmpty) {
+        await vc.getRestaurantSpecialCategoryApi();
+      }
+      if (!mounted) return;
+      controller.foodCateList.assignAll(vc.restaurantSpecialCateList);
+    } else if (vc.foodNestedCateList.isNotEmpty) {
+      controller.foodCateList.assignAll(vc.foodNestedCateList);
+    }
+    controller.selectedLevel0.value = null;
+    controller.selectedLevel1.value = null;
+    controller.selectedLevel2.value = null;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -230,8 +250,12 @@ class _FoodEntryAiScreenState extends State<FoodEntryAiScreen> {
                         return;
                       }
 
-                      // 2. Determine the deepest selected category
-                      final lastCategory = controller.selectedLevel2.value ?? controller.selectedLevel1.value;
+                      // 2. Determine the deepest selected category. Falls back
+                      // to level 0 so a leaf top-level pick (e.g. a Restaurant
+                      // Special category) still counts as the chosen category.
+                      final lastCategory = controller.selectedLevel2.value ??
+                          controller.selectedLevel1.value ??
+                          controller.selectedLevel0.value;
 
                       // 3. Check if the selected category has further sub-categories (children)
                       // If it has children, it means the user hasn't finished selecting the "last" category.
@@ -289,10 +313,17 @@ class _FoodEntryAiScreenState extends State<FoodEntryAiScreen> {
       onTap: _showCategoryPicker,
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+        padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.paddingM,
+          vertical: SizeConfig.paddingXSL,
+        ),
+        // Match the food-name text field: white fill, 1px greyE5 border and
+        // the shared text-field shadow at radius 10 (mirrors the theme's
+        // inputDecorationTheme so both controls read as the same family).
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AppColors.white,
           borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: AppColors.greyE5, width: 1),
           boxShadow: [AppShadows.textFieldShadow],
         ),
         child: Obx(() {
@@ -303,7 +334,13 @@ class _FoodEntryAiScreenState extends State<FoodEntryAiScreen> {
               Expanded(
                 child: hasSelection
                     ? _buildSelectionPath()
-                    : CustomText(AppStrings.foodChooseCategoryLabel.tr, color: Colors.grey[400]),
+                    // Same hint styling as the text fields (theme hintStyle).
+                    : CustomText(
+                        AppStrings.foodChooseCategoryLabel.tr,
+                        color: AppColors.grey9A,
+                        fontWeight: FontWeight.w400,
+                        fontSize: SizeConfig.large,
+                      ),
               ),
               const Icon(
                   Icons.keyboard_arrow_down_outlined,
@@ -391,7 +428,15 @@ class _FoodEntryAiScreenState extends State<FoodEntryAiScreen> {
                         controller.selectedLevel0.value = item;
                         controller.selectedLevel1.value = null;
                         controller.selectedLevel2.value = null;
-                        currentDisplayList.assignAll(item.children!);
+                        // Drill in only when this root has children; otherwise
+                        // it's a leaf (e.g. a Restaurant Special category) —
+                        // commit the pick and close instead of showing an empty
+                        // list the user can't advance from.
+                        if (hasChildren) {
+                          currentDisplayList.assignAll(item.children!);
+                        } else {
+                          Get.back();
+                        }
                       } else if (item.level == 1) {
                         controller.selectedLevel1.value = item;
                         controller.selectedLevel2.value = null;

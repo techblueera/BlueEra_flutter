@@ -3,10 +3,10 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/product/controller/product_controller.dart';
 import 'package:BlueEra/features/me/product/model/product_catalog_response.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/price_row.dart';
+import 'package:BlueEra/widgets/product_select_plus_button.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -48,31 +48,49 @@ class ProductSelectionProductCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10.0),
-            child: SizedBox(
-              height: SizeConfig.size140,
-              width: double.infinity,
-              child: imageUrl.isNotEmpty
-                  ? CachedNetworkImage(
-                      imageUrl: imageUrl,
-                      fit: BoxFit.cover,
-                      placeholder: (_, __) => Container(
-                        color: Colors.grey.shade200,
-                        child: Center(
-                          child: CircularProgressIndicator(strokeWidth: 2),
+          Stack(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10.0),
+                child: SizedBox(
+                  height: SizeConfig.size140,
+                  width: double.infinity,
+                  child: imageUrl.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: imageUrl,
+                          fit: BoxFit.cover,
+                          placeholder: (_, __) => Container(
+                            color: Colors.grey.shade200,
+                            child: Center(
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          ),
+                          errorWidget: (_, __, ___) => LocalAssets(
+                            imagePath: AppIconAssets.place_holder_image,
+                            boxFix: BoxFit.cover,
+                          ),
+                        )
+                      : LocalAssets(
+                          imagePath: AppIconAssets.place_holder_image,
+                          boxFix: BoxFit.cover,
                         ),
-                      ),
-                      errorWidget: (_, __, ___) => LocalAssets(
-                        imagePath: AppIconAssets.place_holder_image,
-                        boxFix: BoxFit.cover,
-                      ),
-                    )
-                  : LocalAssets(
-                      imagePath: AppIconAssets.place_holder_image,
-                      boxFix: BoxFit.cover,
-                    ),
-            ),
+                ),
+              ),
+              // Top-right add button (replaces the old full-width "Add").
+              Positioned(
+                top: SizeConfig.size8,
+                right: SizeConfig.size8,
+                child: Obx(() {
+                  final count =
+                      controller.selectedVariantCountForProduct(product.id);
+                  return ProductSelectPlusButton(
+                    added: count > 0,
+                    count: count,
+                    onTap: () => onShowVariants(product),
+                  );
+                }),
+              ),
+            ],
           ),
           Padding(
             padding:
@@ -113,22 +131,6 @@ class ProductSelectionProductCard extends StatelessWidget {
                   mrp: '₹${mrp.toStringAsFixed(0)}',
                   discount: '$discount% off',
                 ),
-                SizedBox(height: SizeConfig.size8),
-                Obx(() {
-                  final count =
-                      controller.selectedVariantCountForProduct(product.id);
-                  final added = count > 0;
-                  return CustomBtn(
-                    height: SizeConfig.size36,
-                    onTap: () => onShowVariants(product),
-                    title: added ? '$count Added' : 'Add',
-                    textColor:
-                        added ? AppColors.white : AppColors.primaryColor,
-                    bgColor: added ? AppColors.primaryColor : AppColors.white,
-                    radius: 6.0,
-                    borderColor: AppColors.primaryColor,
-                  );
-                }),
               ],
             ),
           ),

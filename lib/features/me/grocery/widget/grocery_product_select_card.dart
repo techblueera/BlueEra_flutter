@@ -1,14 +1,13 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/price_row.dart';
+import 'package:BlueEra/widgets/product_select_plus_button.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -50,32 +49,50 @@ class GroceryProductSelectCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10.0),
-            child: Container(
-              padding: EdgeInsets.only(top: 4.0),
-              height: SizeConfig.size140,
-              width: double.infinity,
-              child: (product.images?.isNotEmpty ?? false)
-                  ? CachedNetworkImage(
-                      imageUrl: product.images!.first.url ?? '',
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                        color: Colors.grey.shade200,
-                        child: Center(
-                          child: CircularProgressIndicator(strokeWidth: 2),
+          Stack(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10.0),
+                child: Container(
+                  padding: EdgeInsets.only(top: 4.0),
+                  height: SizeConfig.size140,
+                  width: double.infinity,
+                  child: (product.images?.isNotEmpty ?? false)
+                      ? CachedNetworkImage(
+                          imageUrl: product.images!.first.url ?? '',
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(
+                            color: Colors.grey.shade200,
+                            child: Center(
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            ),
+                          ),
+                          errorWidget: (context, url, error) => LocalAssets(
+                            imagePath: AppIconAssets.place_holder_image,
+                            boxFix: BoxFit.cover,
+                          ),
+                        )
+                      : LocalAssets(
+                          imagePath: AppIconAssets.place_holder_image,
+                          boxFix: BoxFit.cover,
                         ),
-                      ),
-                      errorWidget: (context, url, error) => LocalAssets(
-                        imagePath: AppIconAssets.place_holder_image,
-                        boxFix: BoxFit.cover,
-                      ),
-                    )
-                  : LocalAssets(
-                      imagePath: AppIconAssets.place_holder_image,
-                      boxFix: BoxFit.cover,
-                    ),
-            ),
+                ),
+              ),
+              // Top-right add toggle (replaces the old full-width "Add").
+              // Boolean selection → shows a check when added.
+              Positioned(
+                top: SizeConfig.size8,
+                right: SizeConfig.size8,
+                child: Obx(() {
+                  final bool isSelected =
+                      controller.selectedGroceries.contains(product);
+                  return ProductSelectPlusButton(
+                    added: isSelected,
+                    onTap: () => controller.toggleSelection(product),
+                  );
+                }),
+              ),
+            ],
           ),
           Padding(
             padding: EdgeInsets.symmetric(
@@ -139,26 +156,6 @@ class GroceryProductSelectCard extends StatelessWidget {
                   mrp: "${price.mrpRange}",
                   discount: "${price.discountRange}",
                 ),
-                SizedBox(height: SizeConfig.size8),
-                // Own Obx so the button reflects selection changes even when the
-                // host list doesn't observe selectedGroceries.
-                Obx(() {
-                  final bool isSelected =
-                      controller.selectedGroceries.contains(product);
-                  return CustomBtn(
-                    height: SizeConfig.size36,
-                    onTap: () => controller.toggleSelection(product),
-                    title: isSelected
-                        ? AppStrings.groceryViewAdded.tr
-                        : AppStrings.groceryViewAdd.tr,
-                    textColor:
-                        isSelected ? AppColors.white : AppColors.primaryColor,
-                    bgColor:
-                        isSelected ? AppColors.primaryColor : AppColors.white,
-                    radius: 6.0,
-                    borderColor: AppColors.primaryColor,
-                  );
-                }),
               ],
             ),
           ),

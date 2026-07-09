@@ -18,6 +18,14 @@ class FoodRepo extends BaseService {
     return response;
   }
 
+  ///GET CHILDREN OF A FOOD CATEGORY BY KEY (e.g. RESTAURANT_SPECIAL)...
+  Future<ResponseModel> getFoodCategoryChildrenByKeyRepo(String key) async {
+    final response = await ApiBaseHelper().getHTTP(
+        foodCategoryChildrenByKey(key),
+        showProgress: false, onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
   Future<ResponseModel> createFoodCategoryRepo(
       {required Map<String, dynamic> params}) async {
     final response = await ApiBaseHelper().postHTTP(

@@ -56,6 +56,17 @@ class FoodServiceController extends GetxController {
   RxList<GroceryNestedCategoryModel> foodNestedCateList =
       <GroceryNestedCategoryModel>[].obs;
 
+  /// `type` value used to fetch only the Restaurant Special category tree.
+  static const String restaurantSpecialType = 'RESTAURANT_SPECIAL';
+
+  /// Restaurant Special category tree (GET categoryTree?type=RESTAURANT_SPECIAL),
+  /// used by the manual add-food form when opened from the Restaurant Special
+  /// card. Kept separate from [foodNestedCateList] so the normal tree is intact.
+  Rx<ApiResponse> restaurantSpecialCategoryResponse =
+      ApiResponse.initial('Initial').obs;
+  RxList<GroceryNestedCategoryModel> restaurantSpecialCateList =
+      <GroceryNestedCategoryModel>[].obs;
+
   RxList<CategoryFoodProductData> categoryFoundProductDataList =
       <CategoryFoodProductData>[].obs;
   RxList<MissingFoodProducts> missingProducts = <MissingFoodProducts>[].obs;
@@ -288,6 +299,58 @@ class FoodServiceController extends GetxController {
           getFoodCategoryResponse.value =
               ApiResponse.error(AppStrings.somethingWentWrong);
         } catch (_) {}
+      }
+    }
+  }
+
+  /// Fetches the Restaurant Special categories via
+  /// `GET categories/key/RESTAURANT_SPECIAL/children`. Skips the network when
+  /// already loaded. The returned children are re-levelled to 0-based so the
+  /// entry-form picker (which branches on level 0/1/2) treats them as a normal
+  /// top-level tree.
+  Future<void> getRestaurantSpecialCategoryApi() async {
+    try {
+      if (restaurantSpecialCateList.isNotEmpty) return;
+      restaurantSpecialCategoryResponse.value = ApiResponse.loading('loading');
+      final ResponseModel response = await FoodRepo()
+          .getFoodCategoryChildrenByKeyRepo(restaurantSpecialType);
+      if (response.isSuccess) {
+        final data = response.response?.data;
+        // The children endpoint may return the list directly or wrapped in
+        // `data` — handle both.
+        final List<dynamic> rawList = data is List
+            ? data
+            : (data is Map && data['data'] is List)
+                ? data['data'] as List
+                : const [];
+        final parsed = rawList.isEmpty
+            ? <GroceryNestedCategoryModel>[]
+            : await compute(_parseFoodNestedCategories, rawList);
+        _relevelCategories(parsed, 0);
+        restaurantSpecialCateList.assignAll(parsed);
+        restaurantSpecialCategoryResponse.value =
+            ApiResponse.complete(restaurantSpecialCateList);
+      } else {
+        restaurantSpecialCategoryResponse.value =
+            ApiResponse.error(AppStrings.somethingWentWrong);
+      }
+    } catch (e, s) {
+      log('getRestaurantSpecialCategoryApi error: $e\n$s');
+      restaurantSpecialCategoryResponse.value =
+          ApiResponse.error(AppStrings.somethingWentWrong);
+    }
+  }
+
+  /// Recursively rewrites [nodes]' `level` to be 0-based (children +1). Used so
+  /// a fetched sub-tree (e.g. a category's children) drills down correctly in
+  /// the level-driven picker regardless of the server's absolute levels.
+  void _relevelCategories(
+      List<GroceryNestedCategoryModel> nodes, int level) {
+    for (final n in nodes) {
+      n.level = level;
+      final kids = n.children;
+      if (kids != null && kids.isNotEmpty) {
+        _relevelCategories(kids, level + 1);
       }
     }
   }

@@ -3,6 +3,10 @@
 /// Mixed into [BaseService] alongside the other per-service API mixins.
 mixin FoodServiceApi {
   final String categoryTree = 'food-service/api/categories/tree';
+  /// Children of a category by its key, e.g.
+  /// `GET food-service/api/categories/key/RESTAURANT_SPECIAL/children`.
+  String foodCategoryChildrenByKey(String key) =>
+      'food-service/api/categories/key/$key/children';
   final String foodSnapSearch = 'food-service/api/smart-cart/snap-search';
   final String foodCategory = 'food-service/api/categories';
   final String foodProduct = 'food-service/api/foodProduct';

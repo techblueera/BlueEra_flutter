@@ -895,9 +895,6 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
           List<GroceryCategoryWithInventoryModel>.from(_groceryController.groceryCategoryList);
 
       return Container(
-        // White-bordered shell wrapping the whole category section
-        // (header + inventory grid) with a uniform 10-px inner padding —
-        // mirrors the top-selling section's container.
         margin: EdgeInsets.only(right: SizeConfig.size12),
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
@@ -1043,7 +1040,6 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
   // Two-tone storefront card. Tinted hero zone with the full image
   // (BoxFit.contain so nothing crops), crisp white footer with the
   // name + a small filled brand-blue chevron. Single tap target â€”
-  // no separate "View Products" CTA â€” for a clean silhouette.
   Widget _groceryCategoryCard(
     GroceryCategoryWithInventoryModel item,
     List<GroceryCategoryWithInventoryModel> all,

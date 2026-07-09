@@ -2451,9 +2451,12 @@ class RouteHelper {
         final args = settings.arguments as Map<String, dynamic>;
         final int? createMissingProductIndex =
             args[ApiKeys.argCreateMissingProductIndex] as int?;
+        final String? foodCategoryType =
+            args[ApiKeys.argFoodCategoryType] as String?;
         return MaterialPageRoute(
             builder: (_) => FoodEntryAiScreen(
-                createMissingProductIndex: createMissingProductIndex),
+                createMissingProductIndex: createMissingProductIndex,
+                categoryType: foodCategoryType),
             settings: RouteSettings(name: getFoodEntryAiScreenRoute()));
 
       case RouteConstant.foodAiDetailScreen:

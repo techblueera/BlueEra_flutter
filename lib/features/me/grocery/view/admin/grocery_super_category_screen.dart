@@ -78,6 +78,7 @@ class _GrocerySuperCategoryScreenState
         child: Stack(
           children: [
             _buildScrollBody(),
+
             // Selecting a product's "+" toggles it into
             // controller.selectedGroceries; this floating cart (hidden while
             // empty) then routes to the Add Grocery Variant screen.
