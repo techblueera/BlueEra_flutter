@@ -1,20 +1,20 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/model/type_of_business_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/api/model/type_of_business_model.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
-import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
-import 'package:BlueEra/widgets/commom_textfield.dart';
-import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_bottom_sheet.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
+import 'package:BlueEra/features/common/auth/model/get_categories_model.dart';
+import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
+import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -31,18 +31,16 @@ class BusinessContactMapCard extends StatelessWidget {
     this.showEditButton = true,
   });
 
-
   Future<void> updateLocationDialog(
-      BuildContext context,
-      BusinessProfileDetails? details,
-     ) {
+    BuildContext context,
+    BusinessProfileDetails? details,
+  ) {
     return showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           insetPadding: EdgeInsets.symmetric(horizontal: SizeConfig.size40),
-          shape:
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
           backgroundColor: AppColors.white,
           contentPadding: EdgeInsets.zero,
           content: Container(
@@ -59,7 +57,7 @@ class BusinessContactMapCard extends StatelessWidget {
                 Align(
                     alignment: Alignment.topRight,
                     child: InkWell(
-                      onTap: () =>  Get.back(),
+                      onTap: () => Get.back(),
                       child: Icon(
                         Icons.close,
                         color: AppColors.secondaryTextColor,
@@ -82,8 +80,7 @@ class BusinessContactMapCard extends StatelessWidget {
                 SizedBox(
                   height: SizeConfig.size7,
                 ),
-                CustomText(
-                    AppStrings.updateLocationWarning,
+                CustomText(AppStrings.updateLocationWarning,
                     fontSize: SizeConfig.medium,
                     textAlign: TextAlign.center,
                     color: AppColors.secondaryTextColor),
@@ -93,7 +90,7 @@ class BusinessContactMapCard extends StatelessWidget {
                     Expanded(
                       child: CustomBtn(
                         height: SizeConfig.size45,
-                        onTap: () =>  Get.back(),
+                        onTap: () => Get.back(),
                         title: AppStrings.cancel,
                         textColor: AppColors.secondaryTextColor,
                         bgColor: AppColors.white,
@@ -111,8 +108,7 @@ class BusinessContactMapCard extends StatelessWidget {
                             context: context,
                             isScrollControlled: true,
                             backgroundColor: Colors.transparent,
-                            builder: (context) => BusinessLocationBottomSheet(
-                                prevBusinessDetails: details),
+                            builder: (context) => BusinessLocationBottomSheet(prevBusinessDetails: details),
                           );
                         },
                         title: AppStrings.confirm,
@@ -137,9 +133,7 @@ class BusinessContactMapCard extends StatelessWidget {
 
     return CustomFormCard(
       padding: EdgeInsets.all(SizeConfig.size10),
-      margin: EdgeInsets.only(
-          top: 10.0
-       ),
+      // margin: EdgeInsets.only(top: 10.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -156,10 +150,7 @@ class BusinessContactMapCard extends StatelessWidget {
               ),
               if (showEditButton)
                 InkWell(
-                  onTap: () => updateLocationDialog(
-                      context,
-                      businessProfileDetails
-                  ),
+                  onTap: () => updateLocationDialog(context, businessProfileDetails),
                   child: LocalAssets(
                     height: 16,
                     imagePath: AppIconAssets.pen_line,
@@ -179,13 +170,13 @@ class BusinessContactMapCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-
                 // ─── Logo + Name + Description ───
                 Row(
                   children: [
                     Container(
                       key: ValueKey(logoUrl),
-                      width: 60, height: 60,
+                      width: 60,
+                      height: 60,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: AppColors.white,
@@ -207,28 +198,22 @@ class BusinessContactMapCard extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                CustomText(
-                                  businessProfileDetails?.businessName,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.mainTextColor
-                                ),
+                                CustomText(businessProfileDetails?.businessName,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.mainTextColor),
                                 SizedBox(height: 3),
-                                CustomText(
-                                  businessProfileDetails?.subCategoryDetails?.name ?? AppStrings.na,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w400,
-                                  color: AppColors.secondaryTextColor
-                                ),
+                                CustomText(businessProfileDetails?.subCategoryDetails?.name ?? AppStrings.na,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w400,
+                                    color: AppColors.secondaryTextColor),
                               ],
                             ),
                           ),
                           // Name stays editable only until GST is verified —
                           // once verified the business name is locked to the
                           // GST record, so hide the rename chip.
-                          if (showEditButton &&
-                              businessProfileDetails?.gst?.gstVerification !=
-                                  true) ...[
+                          if (showEditButton && businessProfileDetails?.gst?.gstVerification != true) ...[
                             const SizedBox(width: 6),
                             _updateChip(() => _openNameEditSheet(context)),
                           ],
@@ -258,9 +243,9 @@ class BusinessContactMapCard extends StatelessWidget {
 
           // ─── Map ───
           BusinessLocationMapWidget(
-            latitude:     businessProfileDetails?.businessLocation?.lat  ?? 0.0,
-            longitude:    businessProfileDetails?.businessLocation?.lon  ?? 0.0,
-            businessName: businessProfileDetails?.businessName           ?? '',
+            latitude: businessProfileDetails?.businessLocation?.lat ?? 0.0,
+            longitude: businessProfileDetails?.businessLocation?.lon ?? 0.0,
+            businessName: businessProfileDetails?.businessName ?? '',
           ),
         ],
       ),
@@ -271,8 +256,7 @@ class BusinessContactMapCard extends StatelessWidget {
   /// `updateBusinessProfileDetails` (same endpoint the website/cover edits use).
   void _openNameEditSheet(BuildContext context) {
     final controller = Get.find<ViewBusinessDetailsController>();
-    final nameController =
-        TextEditingController(text: businessProfileDetails?.businessName ?? '');
+    final nameController = TextEditingController(text: businessProfileDetails?.businessName ?? '');
 
     showModalBottomSheet(
       context: context,
@@ -332,8 +316,7 @@ class BusinessContactMapCard extends StatelessWidget {
                     onTap: () async {
                       final name = nameController.text.trim();
                       if (name.isEmpty) {
-                        commonSnackBar(
-                            message: AppStrings.businessNameRequired.tr);
+                        commonSnackBar(message: AppStrings.businessNameRequired.tr);
                         return;
                       }
                       await controller.updateBusinessProfileDetails({
@@ -508,8 +491,7 @@ class BusinessContactMapCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 16),
-                CustomText('Category of Business',
-                    fontSize: SizeConfig.medium, fontWeight: FontWeight.w500),
+                CustomText('Category of Business', fontSize: SizeConfig.medium, fontWeight: FontWeight.w500),
                 const SizedBox(height: 8),
                 Obx(() {
                   if (controller.isCategoriesLoading.value) {
@@ -534,8 +516,7 @@ class BusinessContactMapCard extends StatelessWidget {
                   );
                 }),
                 const SizedBox(height: 16),
-                CustomText('Sub-category',
-                    fontSize: SizeConfig.medium, fontWeight: FontWeight.w500),
+                CustomText('Sub-category', fontSize: SizeConfig.medium, fontWeight: FontWeight.w500),
                 const SizedBox(height: 8),
                 // Sub-category stays locked until a category is chosen.
                 Obx(() {
@@ -547,13 +528,10 @@ class BusinessContactMapCard extends StatelessWidget {
                       child: CommonDropdownDialog<SubCategories>(
                         items: controller.subCategoryList.toList(),
                         selectedValue: controller.selectedSubCategory.value,
-                        hintText: hasCategory
-                            ? 'Select Sub-category'
-                            : 'Select a category first',
+                        hintText: hasCategory ? 'Select Sub-category' : 'Select a category first',
                         title: 'Sub-category',
                         displayValue: (s) => s.name ?? '',
-                        onChanged: (s) =>
-                            controller.selectedSubCategory.value = s,
+                        onChanged: (s) => controller.selectedSubCategory.value = s,
                       ),
                     ),
                   );
@@ -565,8 +543,7 @@ class BusinessContactMapCard extends StatelessWidget {
                       radius: 10,
                       bgColor: AppColors.primaryColor,
                       title: AppStrings.save,
-                      isLoading:
-                          controller.isUpdateBusinessDetailsLoading.value,
+                      isLoading: controller.isUpdateBusinessDetailsLoading.value,
                       onTap: () async {
                         final cat = controller.selectedCategory.value;
                         if (cat?.id == null || cat!.id!.isEmpty) {
@@ -581,8 +558,7 @@ class BusinessContactMapCard extends StatelessWidget {
                         if (sub?.sId != null && sub!.sId!.isNotEmpty) {
                           params[ApiKeys.sub_category_Of_Business] = sub.sId;
                         }
-                        await controller.updateBusinessDetails(params,
-                            showProgress: false);
+                        await controller.updateBusinessDetails(params, showProgress: false);
                         if (ctx.mounted) Navigator.pop(ctx);
                       },
                     )),
@@ -616,5 +592,4 @@ class BusinessContactMapCard extends StatelessWidget {
       ),
     );
   }
-
 }

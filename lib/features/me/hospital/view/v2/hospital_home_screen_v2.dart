@@ -15,12 +15,14 @@ import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_h
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/me/grocery/view/admin/grocery_shop_availability_screen.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
+import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_bookings_tab_v2.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_departments_tab_v2.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_facilities_tab_v2.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_inquiry_tab_v2.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_overview_tab_v2.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_posts_tab_v2.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_stats_tab_v2.dart';
+import 'package:BlueEra/features/me/medical/controller/hospital_appointment_controller.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:flutter/material.dart';
@@ -43,10 +45,15 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2>
 
   late final HospitalServiceAiController _hospitalController;
   final _businessController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+  // Registered up-front so the Bookings tab's Obx has a live controller
+  // to observe even if the user opens the tab before it hydrates.
+  final _appointmentController =
+      getOrPut(() => HospitalAppointmentController());
   late final TabController _tabController;
 
   static final _tabs = [
     AppStrings.hospitalInquiry.tr,
+    'Bookings',
     AppStrings.overview.tr,
     AppStrings.hospitalDepartments.tr,
     AppStrings.facilities.tr,
@@ -96,10 +103,17 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2>
   }
 
   /// Wraps a tab body in a refreshable scroll view for the [TabBarView].
+  /// Pull-to-refresh always refetches hospital details, and also refreshes
+  /// the owner-inbox appointments when the Bookings tab is active so
+  /// swiping down there feels responsive.
   Widget _tabScroll(Widget child) {
     return RefreshIndicator(
       onRefresh: () async {
-        await _hospitalController.getHospitalFullDetailsController();
+        await Future.wait([
+          _hospitalController.getHospitalFullDetailsController(),
+          if (_tabController.index == 4)
+            _appointmentController.fetchOwnerAppointments(),
+        ]);
       },
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -126,11 +140,13 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2>
                 _tabScroll(HospitalInquiryTabV2(
                   onAddDepartments: () => _tabController.animateTo(2),
                 )),
+                _tabScroll(const HospitalBookingsTabV2()),
                 _tabScroll(HospitalOverviewTabV2(controller: _hospitalController)),
                 _tabScroll(
                     HospitalDepartmentsTabV2(controller: _hospitalController)),
                 _tabScroll(
                     HospitalFacilitiesTabV2(controller: _hospitalController)),
+
                 _tabScroll(const HospitalPostsTabV2()),
                 _tabScroll(const HospitalStatsTabV2()),
               ],
