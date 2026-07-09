@@ -7,11 +7,12 @@
 
 class MessageMediaUrl {
   MessageMediaUrl({
-      this.url, 
-      this.type, 
-      this.name, 
-      this.size, 
-      this.mimetype, 
+      this.url,
+      this.type,
+      this.name,
+      this.size,
+      this.mimetype,
+      this.thumbnail,
       this.id,});
 
   MessageMediaUrl.fromJson(dynamic json) {
@@ -20,6 +21,8 @@ class MessageMediaUrl {
     name = json['name'];
     size = json['size'];
     mimetype = json['mimetype'];
+    // Video poster frame for broadcast media (see integration guide §4/§6.4).
+    thumbnail = json['thumbnail'];
     createdAt= json['created_at'];
     myMessage= json['my_message'];
     conversationId= json['conversation_id'];
@@ -35,6 +38,7 @@ class MessageMediaUrl {
   String? name;
   num? size;
   String? mimetype;
+  String? thumbnail;
   String? id;
 
   Map<String, dynamic> toJson() {
@@ -44,6 +48,7 @@ class MessageMediaUrl {
     map['name'] = name;
     map['size'] = size;
     map['mimetype'] = mimetype;
+    map['thumbnail'] = thumbnail;
     map['_id'] = id;
     return map;
   }

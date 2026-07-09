@@ -24,6 +24,7 @@ import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/features/chat/auth/model/GetChatListModel.dart';
 import 'package:BlueEra/features/chat/auth/model/symbol_details_model.dart';
 import 'package:BlueEra/features/chat/auth/repo/chat_view_repo.dart';
+import 'package:BlueEra/features/chat/auth/socket/chat_socket.dart';
 import 'package:BlueEra/features/chat/view/symbol_view/symbol_view_images.dart';
 import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
 import 'package:BlueEra/main.dart';
@@ -2489,6 +2490,13 @@ class AppNotificationHandler {
       // from the BlueEra thread lands on ConnectMainPage rather than exiting the
       // app or dropping onto an unrelated screen.
       case 'admin_broadcast':
+        // Warm the chat socket up front. Tapping the push resumes the app with
+        // a socket that's often mid-backoff (2s→4s→…→32s); kicking an immediate
+        // reconnect here means the handshake overlaps the settle delay +
+        // navigation below, so the broadcast-history fetch in the chat screen
+        // goes out on a live socket and the message shows fast. No-op when
+        // already connected.
+        ChatSocketService().reconnectNow();
         BlueEraNotificationController.to.markAllRead();
         Get.offAllNamed(
           RouteHelper.getBottomNavigationBarScreenRoute(),

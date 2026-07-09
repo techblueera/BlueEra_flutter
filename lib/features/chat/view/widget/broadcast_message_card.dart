@@ -115,7 +115,12 @@ class _BroadcastMessageCardState extends State<BroadcastMessageCard> {
     final body = (message.message ?? '').trim();
     final images = _mediaUrls;
     final time = formatChatTime(message.createdAt ?? '');
-    final link = _firstBodyLink;
+    // Prefer the explicit announcement link from metadata; fall back to the
+    // first http(s) link found in the body. (Guide §6.3.)
+    final metaLink = message.metadata?.link?.trim();
+    final link = (metaLink != null && metaLink.isNotEmpty)
+        ? metaLink
+        : _firstBodyLink;
 
     return Container(
       width: double.infinity,
@@ -162,12 +167,17 @@ class _BroadcastMessageCardState extends State<BroadcastMessageCard> {
     // broadcast reads at the same size as a regular bubble.
     final fontSize = _theme.chatFontSize.value;
 
-    // Split into headline (first line) + description (the remainder).
+    // Prefer the backend's `metadata.title` as the headline — the body is kept
+    // clean and the whole body becomes the description. When there is no
+    // metadata title, fall back to the first-line-is-headline split. (Guide §6.3.)
+    final metaTitle = message.metadata?.title?.trim() ?? '';
     final newlineIdx = body.indexOf('\n');
-    final title =
-        (newlineIdx == -1 ? body : body.substring(0, newlineIdx)).trim();
-    final description =
-        newlineIdx == -1 ? '' : body.substring(newlineIdx + 1).trim();
+    final title = metaTitle.isNotEmpty
+        ? metaTitle
+        : (newlineIdx == -1 ? body : body.substring(0, newlineIdx)).trim();
+    final description = metaTitle.isNotEmpty
+        ? body
+        : (newlineIdx == -1 ? '' : body.substring(newlineIdx + 1).trim());
 
     final titleStyle = _theme.chatTextStyle(
       fontSize: fontSize,

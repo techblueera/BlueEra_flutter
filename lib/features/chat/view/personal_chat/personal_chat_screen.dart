@@ -12,6 +12,7 @@ import '../../../../core/services/notification_utils.dart';
 import '../../auth/controller/call_controller.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
+import '../../auth/socket/chat_socket.dart';
 import '../../auth/model/GetListOfMessageData.dart';
 import '../widget/broadcast_message_card.dart';
 import '../widget/chat_input_box.dart';
@@ -114,6 +115,14 @@ class _PersonalChatScreenState extends State<PersonalChatScreen>
       // broadcast history. Mirrors the resume handler's fetch below.
       final id = widget.conversationId ?? '';
       if (id.isNotEmpty) {
+        // When the app was backgrounded (e.g. this screen was reached from a
+        // broadcast-notification tap), the chat socket may be sitting in its
+        // 2s→4s→…→32s reconnect backoff. The messageReceived fetch below would
+        // then be buffered on the dead socket and only flush after that
+        // backoff — so the broadcast history takes seconds to appear. Force an
+        // immediate reconnect first (a no-op when already connected) so the
+        // fetch goes out right away and the message shows fast.
+        ChatSocketService().reconnectNow();
         chatViewController.emitEvent(ChatEmitEvents.messageReceived, {
           ApiKeys.conversation_id: id,
           ApiKeys.page: 1,
@@ -311,7 +320,12 @@ class _PersonalChatScreenState extends State<PersonalChatScreen>
                               _ongoingCallActive.value;
                           return ListView.builder(
                             controller: chatViewController.scrollController,
-                            reverse: widget.type != "Admin",
+                            // Reversed for every thread (incl. Admin/broadcast)
+                            // so it opens anchored at the newest message at the
+                            // bottom — same as a normal chat — and stays pinned
+                            // there even as broadcast images / link previews load
+                            // and change height.
+                            reverse: true,
                             addAutomaticKeepAlives: true,
                             padding: const EdgeInsets.symmetric(horizontal: 10),
                             itemCount: messages.length + (showOngoing ? 1 : 0),
@@ -333,9 +347,10 @@ class _PersonalChatScreenState extends State<PersonalChatScreen>
                                 );
                               }
                               final dataIndex = showOngoing ? index - 1 : index;
-                              final message = widget.type == "Admin"
-                                  ? messages[dataIndex]
-                                  : messages[messages.length - 1 - dataIndex];
+                              // Newest message at the bottom (index 0) for all
+                              // threads now that the list is reversed.
+                              final message =
+                                  messages[messages.length - 1 - dataIndex];
                               // Broadcast (Admin) thread: render every message as
                               // the full-width notification-style card so it looks
                               // identical to the BlueEra notification screen. All
@@ -371,8 +386,8 @@ class _PersonalChatScreenState extends State<PersonalChatScreen>
                             }
                             final count = chatViewController.unreadNewMessageCount.value;
                             return GestureDetector(
-                              onTap: () => chatViewController
-                                  .jumpToBottom(reversed: widget.type != "Admin"),
+                              onTap: () =>
+                                  chatViewController.jumpToBottom(reversed: true),
                               child: Container(
                                 width: 40,
                                 height: 40,
