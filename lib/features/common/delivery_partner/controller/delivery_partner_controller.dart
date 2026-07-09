@@ -200,13 +200,20 @@ class DeliveryPartnerController extends GetxController {
   /// refetches once.
   Future<void> ridersOnboardingStatusRepoApi({bool forceRefresh = false}) async {
     try {
+      // Cache-first — but never serve a cached *unpaid* deposit. The security
+      // deposit is reconciled server-side (Razorpay webhook) with no in-app
+      // trigger, so a cached `paid:false` can be stale the moment payment
+      // clears. Serve from cache only once the deposit is paid; otherwise fall
+      // through to the network so a freshly-paid rider sees `paid:true`.
       if (!forceRefresh) {
         final cached = await riderOnboardingStatusCache.get(userId);
         if (cached != null) {
-          _applyOnboardingStatus(
-              RiderOnboardingStatusResponse.fromJson(cached));
-          isRiderStatusLoading.value = false;
-          return;
+          final parsed = RiderOnboardingStatusResponse.fromJson(cached);
+          if (parsed.data?.securityDepositPaid == true) {
+            _applyOnboardingStatus(parsed);
+            isRiderStatusLoading.value = false;
+            return;
+          }
         }
       }
 

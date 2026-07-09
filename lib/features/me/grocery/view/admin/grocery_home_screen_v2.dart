@@ -40,6 +40,7 @@ import 'package:BlueEra/widgets/common_business_live_photo.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:BlueEra/widgets/gradient_add_button.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/post_via_dialog.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
@@ -344,6 +345,13 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
   // this top button is the dedicated bulk-upload entry point.
   List<Widget> _buildProductsTab() {
     return [
+      GradientAddButton(
+        label: AppStrings.addGrocery.tr,
+        onTap: _onAddMoreProducts,
+        margin: EdgeInsets.only(
+            top: SizeConfig.size10, right: SizeConfig.size12),
+      ),
+      SizedBox(height: SizeConfig.size16),
       _buildTopSellingSection(),
       SizedBox(height: SizeConfig.size16),
       _buildCategoryWithInventorySection(),

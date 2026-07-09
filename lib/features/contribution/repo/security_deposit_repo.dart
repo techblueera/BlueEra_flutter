@@ -115,4 +115,9 @@ class SecurityDepositRepo extends BaseService {
       showProgress: false,
     );
   }
+
+  /// `GET /security-deposit/videos` — explainer videos for the deposit screen.
+  Future<ResponseModel> fetchVideos() {
+    return ApiBaseHelper().getHTTP(securityDepositVideos, showProgress: false);
+  }
 }

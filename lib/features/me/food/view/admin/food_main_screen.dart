@@ -45,6 +45,7 @@ import 'package:BlueEra/widgets/business_live_photo_bottom_sheet.dart';
 import 'package:BlueEra/widgets/common_business_live_photo.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:BlueEra/widgets/gradient_add_button.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/post_via_dialog.dart';
@@ -319,6 +320,15 @@ class _FoodMainScreenState extends State<FoodMainScreen>
   // PRODUCTS TAB â€” food menu categories grid
   List<Widget> _buildProductsTab() {
     return [
+      Padding(
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+        child: GradientAddButton(
+          label: AppStrings.addFood.tr,
+          onTap: () => Get.to(() => FoodCategoryMenuScreen()),
+          margin: EdgeInsets.only(top: SizeConfig.size10),
+        ),
+      ),
+      SizedBox(height: SizeConfig.size12),
       _buildPopularDishesSection(),
       SizedBox(height: SizeConfig.size12),
       // --- Menu section header + category cards wrapped in one white

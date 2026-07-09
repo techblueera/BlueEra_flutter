@@ -11,6 +11,7 @@ import 'package:BlueEra/features/contribution/model/security_deposit_models.dart
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/widget/horizonatal_video_player.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -33,26 +34,49 @@ class ContributionScreenV2 extends StatelessWidget {
         isLeading: true,
         showElevation: 0,
       ),
+      // Pinned "Pay Security Deposit" CTA — always visible on the plans view
+      // whenever a payable plan exists (defaults to the first payable plan, so
+      // it never hides waiting for the user to pick one). The active-deposit
+      // view carries its own action, so the bar is hidden there.
+      bottomNavigationBar: Obx(() {
+        final status = controller.currentStatus.value;
+        if (status == Status.INITIAL || status == Status.LOADING) {
+          return const SizedBox.shrink();
+        }
+        if (controller.hasActiveDeposit) return const SizedBox.shrink();
+        final plan =
+            controller.selectedPlan.value ?? controller.firstPayablePlan;
+        if (plan == null) return const SizedBox.shrink();
+        return _PayBottomBar(
+          plan: plan,
+          busy: controller.isProcessing.value,
+          onPay: () => controller.payDeposit(plan),
+        );
+      }),
       body: SafeArea(
-        child: Column(
-          children: [
-            Obx(() => controller.isTestMode
-                ? const _TestModeBanner()
-                : const SizedBox.shrink()),
-            Expanded(
-              child: Obx(() {
-                final status = controller.currentStatus.value;
-                if (status == Status.INITIAL || status == Status.LOADING) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (controller.hasActiveDeposit) {
-                  return _ActiveDepositView(controller: controller);
-                }
-                return _PlansView(controller: controller);
-              }),
+        child: Obx(() {
+          final status = controller.currentStatus.value;
+          if (status == Status.INITIAL || status == Status.LOADING) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          // The whole page scrolls as one — test banner, explainer video, and
+          // the plans / active-deposit content. Only the Pay CTA stays pinned
+          // (in bottomNavigationBar).
+          return SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (controller.isTestMode) const _TestModeBanner(),
+                _SecurityDepositVideoSection(controller: controller),
+                if (controller.hasActiveDeposit)
+                  _ActiveDepositView(controller: controller)
+                else
+                  _PlansView(controller: controller),
+                SizedBox(height: SizeConfig.size24),
+              ],
             ),
-          ],
-        ),
+          );
+        }),
       ),
     );
   }
@@ -92,6 +116,104 @@ String _rupees(int paise) {
 }
 
 // ─────────────────────────────────────────────
+// EXPLAINER VIDEO (top of screen)
+// ─────────────────────────────────────────────
+/// Pinned explainer video shown above the plan catalog / active deposit.
+/// Hidden entirely until the videos API returns at least one active video.
+/// Reuses the shared [HorizontalVideoPlayer] (network streaming,
+/// tap-to-play/pause, pause-on-scroll-away, multi-video paging) instead of a
+/// bespoke player.
+class _SecurityDepositVideoSection extends StatelessWidget {
+  const _SecurityDepositVideoSection({required this.controller});
+
+  final SecurityDepositController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return Obx(() {
+      final videos = controller.videos;
+      if (videos.isEmpty) return const SizedBox.shrink();
+      final urls = videos.map((v) => v.fileUrl).toList();
+      final first = videos.first;
+      // Only caption a single video — with multiple, the player pages between
+      // them and a fixed title/description would no longer match the visible one.
+      final showCaption = videos.length == 1 &&
+          (first.title.isNotEmpty || first.description.isNotEmpty);
+      return Padding(
+        padding: EdgeInsets.fromLTRB(
+          SizeConfig.size12,
+          SizeConfig.size12,
+          SizeConfig.size12,
+          0,
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE6E8EE)),
+            boxShadow: const [
+              BoxShadow(
+                  color: Color(0x14001120), blurRadius: 10, offset: Offset(0, 2)),
+            ],
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Keyed by the URL set so a changed list rebuilds the player.
+              // Fixed square (1:1) box — the source clip is portrait, but a
+              // full-height portrait player is too tall here, so we cap it to a
+              // square instead of adopting the video's own ratio.
+              HorizontalVideoPlayer(
+                key: ValueKey(urls.join(',')),
+                videoUrls: urls,
+                isNetworkUrl: true,
+                aspectRatio: 1,
+                isAutoPlay: true,
+                showMuteButton: true,
+              ),
+              if (showCaption)
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    SizeConfig.size14,
+                    SizeConfig.size12,
+                    SizeConfig.size14,
+                    SizeConfig.size14,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (first.title.isNotEmpty)
+                        CustomText(
+                          first.title,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.mainTextColor,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      if (first.description.isNotEmpty) ...[
+                        SizedBox(height: SizeConfig.size4),
+                        CustomText(
+                          first.description,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.secondaryTextColor,
+                          maxLines: 3,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
+      );
+    });
+  }
+}
+
+// ─────────────────────────────────────────────
 // PLANS CATALOG
 // ─────────────────────────────────────────────
 class _PlansView extends StatelessWidget {
@@ -103,38 +225,52 @@ class _PlansView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx(() {
       final status = controller.plansStatus.value;
+      // States get a bounded height so they can sit inside the parent scroll.
       if (status == Status.INITIAL || status == Status.LOADING) {
-        return const Center(child: CircularProgressIndicator());
+        return const SizedBox(
+          height: 320,
+          child: Center(child: CircularProgressIndicator()),
+        );
       }
       if (status == Status.ERROR) {
-        return _ErrorState(
-          message: controller.plansError.value,
-          onRetry: controller.fetchPlans,
+        return SizedBox(
+          height: 320,
+          child: _ErrorState(
+            message: controller.plansError.value,
+            onRetry: controller.fetchPlans,
+          ),
         );
       }
       final plans = controller.plans;
       if (plans.isEmpty) {
-        return _ErrorState(
-          message: 'No deposit plans available',
-          onRetry: controller.fetchPlans,
+        return SizedBox(
+          height: 320,
+          child: _ErrorState(
+            message: 'No deposit plans available',
+            onRetry: controller.fetchPlans,
+          ),
         );
       }
+      // Plain Column (no inner scroll) — the parent SingleChildScrollView owns
+      // the vertical scroll so the header + video + cards move as one.
       return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const _PlansHeader(),
-          Expanded(
-            child: ListView.separated(
-              padding: EdgeInsets.fromLTRB(
-                SizeConfig.size12,
-                SizeConfig.size4,
-                SizeConfig.size12,
-                SizeConfig.size40,
-              ),
-              itemCount: plans.length,
-              separatorBuilder: (_, __) =>
-                  SizedBox(height: SizeConfig.size14),
-              itemBuilder: (_, i) =>
+          Padding(
+            padding: EdgeInsets.fromLTRB(
+              SizeConfig.size12,
+              SizeConfig.size4,
+              SizeConfig.size12,
+              0,
+            ),
+            child: Column(
+              children: [
+                for (int i = 0; i < plans.length; i++) ...[
+                  if (i > 0) SizedBox(height: SizeConfig.size14),
                   _PlanCard(plan: plans[i], controller: controller),
+                ],
+              ],
             ),
           ),
         ],
@@ -224,6 +360,82 @@ class _PlansHeader extends StatelessWidget {
   }
 }
 
+/// Pinned bottom bar that pays the security deposit for the currently selected
+/// plan. Replaces the per-card pay button so the primary CTA stays reachable
+/// without scrolling. Only rendered on the plans view for a payable selection.
+class _PayBottomBar extends StatelessWidget {
+  const _PayBottomBar({
+    required this.plan,
+    required this.busy,
+    required this.onPay,
+  });
+
+  final SecurityDepositPlan plan;
+  final bool busy;
+  final VoidCallback onPay;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        SizeConfig.size12,
+        SizeConfig.size10,
+        SizeConfig.size12,
+        SizeConfig.size12,
+      ),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Color(0xFFE6E8EE))),
+        boxShadow: [
+          BoxShadow(
+              color: Color(0x14001120), blurRadius: 12, offset: Offset(0, -2)),
+        ],
+      ),
+      child: SafeArea(
+        child: SizedBox(
+          width: double.infinity,
+          height: 46,
+          child: ElevatedButton(
+            onPressed: busy ? null : onPay,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryColor,
+              disabledBackgroundColor:
+                  AppColors.primaryColor.withValues(alpha: 0.5),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              elevation: 0,
+            ),
+            child: busy
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CustomText(
+                        'Pay Security Deposit  ₹${_rupees(plan.depositAmount)}',
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                      ),
+                      const SizedBox(width: 8),
+                      const Icon(Icons.arrow_forward_rounded,
+                          size: 18, color: Colors.white),
+                    ],
+                  ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _PlanCard extends StatefulWidget {
   const _PlanCard({required this.plan, required this.controller});
 
@@ -297,11 +509,21 @@ class _PlanCardState extends State<_PlanCard>
             ? 'First ${plan.firstDayFreeLimit} free'
             : plan.firstDayFreeText);
 
-    return Container(
+    return Obx(() {
+      // Payable cards are selectable — the pinned bottom bar pays for the
+      // selected one. Zero-deposit cards are informational and never selected.
+      final selected = !zeroDeposit &&
+          controller.selectedPlan.value?.id == plan.id;
+      return GestureDetector(
+        onTap: zeroDeposit ? null : () => controller.selectPlan(plan),
+        child: Container(
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE6E8EE)),
+        border: Border.all(
+          color: selected ? AppColors.primaryColor : const Color(0xFFE6E8EE),
+          width: selected ? 1.6 : 1,
+        ),
         boxShadow: const [
           BoxShadow(color: Color(0x14001120), blurRadius: 10, offset: Offset(0, 2)),
         ],
@@ -470,51 +692,55 @@ class _PlanCardState extends State<_PlanCard>
               ),
             )
           else
-            Obx(() {
-              final busy = controller.isProcessing.value;
-              return SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: busy ? null : () => controller.payDeposit(plan),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor,
-                    disabledBackgroundColor:
-                        AppColors.primaryColor.withValues(alpha: 0.5),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: busy
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            CustomText(
-                              'Pay Security Deposit',
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                            const SizedBox(width: 8),
-                            const Icon(Icons.arrow_forward_rounded,
-                                size: 18, color: Colors.white),
-                          ],
-                        ),
-                ),
-              );
-            }),
+            // Payable plans no longer carry an inline pay button — the pinned
+            // bottom bar pays for the selected plan. This is just the selection
+            // affordance (tap anywhere on the card to select it).
+            _buildSelectionRow(selected),
               ],
             ),
+          ),
+        ],
+      ),
+        ),
+      );
+    });
+  }
+
+  /// Bottom-of-card selection affordance shown on payable plans in place of the
+  /// old inline pay button — reflects whether this card is the one the pinned
+  /// "Pay Security Deposit" bar will charge.
+  Widget _buildSelectionRow(bool selected) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        vertical: SizeConfig.size12,
+        horizontal: SizeConfig.size12,
+      ),
+      decoration: BoxDecoration(
+        color: selected
+            ? AppColors.primaryColor.withValues(alpha: 0.06)
+            : const Color(0xFFF7F8FA),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: selected ? AppColors.primaryColor : const Color(0xFFE6E8EE),
+          width: selected ? 1.4 : 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            selected ? Icons.check_circle_rounded : Icons.radio_button_unchecked,
+            size: 20,
+            color:
+                selected ? AppColors.primaryColor : AppColors.secondaryTextColor,
+          ),
+          SizedBox(width: SizeConfig.size8),
+          CustomText(
+            selected ? 'Selected' : 'Tap to select',
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color:
+                selected ? AppColors.primaryColor : AppColors.secondaryTextColor,
           ),
         ],
       ),
@@ -711,7 +937,7 @@ class _ActiveDepositView extends StatelessWidget {
     final plan = deposit.plan;
     final planName = plan?.name ?? AppStrings.activeContribution.tr;
 
-    return SingleChildScrollView(
+    return Padding(
       padding: EdgeInsets.fromLTRB(
         SizeConfig.size12,
         SizeConfig.size12,
