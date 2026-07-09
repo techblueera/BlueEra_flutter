@@ -97,7 +97,8 @@ String jobDeepLink({String? jobId}) => _withBdmReferral('https://beapp.in/app/jo
 String profileDeepLink({String? userId}) => _withBdmReferral('https://beapp.in/app/profile/${userId ?? ""}');
 String schoolProfileDeepLink({String? userId}) => _withBdmReferral('https://beapp.in/app/business/education/${userId ?? ""}');
 String groceryProfileDeepLink({String? userId}) => _withBdmReferral('https://beapp.in/app/business/grocery/${userId ?? ""}');
-String foodProfileDeepLink({String? userId}) => _withBdmReferral('https://beapp.in/app/business/food/${userId ?? ""}');
+String foodProfileDeepLink({String? userId}) => _withBdmReferral('https://beapp.in/app/profile/food/${userId ?? ""}');
+String homeMadeFoodProfileDeepLink({String? userId}) => _withBdmReferral('https://beapp.in/app/business/homemade/food/${userId ?? ""}');
 
 String businessProfileDeepLink({String? userId}) =>
     _withBdmReferral('https://beapp.in/app/business/${userId ?? ""}');
