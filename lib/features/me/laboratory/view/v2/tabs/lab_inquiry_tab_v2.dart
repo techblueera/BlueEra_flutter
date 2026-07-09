@@ -32,7 +32,7 @@ class LabInquiryTabV2 extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(height: SizeConfig.size12),
+        SizedBox(height: SizeConfig.size10),
         OrderActionsCarousel(
           onAddCatalog: onAddTests,
           catalogIcon: Icons.biotech_rounded,

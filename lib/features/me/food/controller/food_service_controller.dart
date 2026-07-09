@@ -316,12 +316,15 @@ class FoodServiceController extends GetxController {
           .getFoodCategoryChildrenByKeyRepo(restaurantSpecialType);
       if (response.isSuccess) {
         final data = response.response?.data;
-        // The children endpoint may return the list directly or wrapped in
-        // `data` — handle both.
-        final List<dynamic> rawList = data is List
-            ? data
-            : (data is Map && data['data'] is List)
-                ? data['data'] as List
+        // The endpoint returns the RESTAURANT_SPECIAL node itself under `data`,
+        // with the actual sub-categories in its `children`. Resolve the node
+        // (data.data), then take its children — falling back to a bare list at
+        // either level for safety.
+        final dynamic node = (data is Map) ? data['data'] : data;
+        final List<dynamic> rawList = node is List
+            ? node
+            : (node is Map && node['children'] is List)
+                ? node['children'] as List
                 : const [];
         final parsed = rawList.isEmpty
             ? <GroceryNestedCategoryModel>[]

@@ -36,6 +36,9 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:BlueEra/features/me/grocery/view/admin/grocery_shop_availability_screen.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/contribution/view/contribution_screen_v2.dart';
 import 'package:get/get.dart';
 
 class ProductScreen extends StatefulWidget {
@@ -407,13 +410,45 @@ class _ProductScreenState extends State<ProductScreen>
     );
   }
 
+  /// Drive the Go-Live toggle. Turning ON opens the shop-availability
+  /// (open-timer) form directly — same as the grocery v2 home. The form
+  /// persists the hours and goes live via the backend, popping back `true`
+  /// on success. Turning OFF just flips the local toggle.
+  Future<void> handleGoLiveTap() async {
+    if (_isGoLive) {
+      setState(() => _isGoLive = false);
+      return;
+    }
+
+    // Security-deposit go-live gate — sourced from the business profile's
+    // `securityDeposit` (GET business profile). Block only when the backend
+    // explicitly reports `required && !paid`; fail-open otherwise. See
+    // docs/backend/BUSINESS_GO_LIVE_BACKEND_INTEGRATION.md.
+    if (!viewBusinessDetailsController.canGoLive) {
+      // Tell the merchant why go-live is blocked, then route them to the
+      // security-deposit flow to complete payment — go-live stays blocked
+      // until it's paid.
+      commonSnackBar(
+        message:
+            'Your payment is incomplete. Please complete the security deposit to go live and receive service enquiries.',
+      );
+      Get.to(() => const ContributionScreenV2());
+      return;
+    }
+
+    final result = await Get.to(() => const GroceryShopAvailabilityScreen());
+    if (result == true && mounted) {
+      setState(() => _isGoLive = true);
+    }
+  }
+
   /// Go-live toggle pill. Off-state: white track + grey thumb.
   /// On-state: brand-blue track + white thumb. Same chip language
   /// the grocery v2 top bar uses.
   Widget _goLivePill() {
     return GoLivePill(
       value: _isGoLive,
-      onTap: () => setState(() => _isGoLive = !_isGoLive),
+      onTap: handleGoLiveTap,
       showShadow: false,
     );
   }

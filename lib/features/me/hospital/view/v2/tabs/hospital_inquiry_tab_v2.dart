@@ -32,7 +32,7 @@ class HospitalInquiryTabV2 extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(height: SizeConfig.size12),
+        SizedBox(height: SizeConfig.size10),
         OrderActionsCarousel(
           onAddCatalog: onAddDepartments,
           catalogIcon: Icons.medical_services_rounded,

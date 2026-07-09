@@ -29,6 +29,8 @@ import 'package:BlueEra/features/me/automotive_products/model/automotive_product
 import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_admin_all_top_selling_products_screen.dart';
 import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_product_home_screen.dart';
 import 'package:BlueEra/features/me/grocery/view/admin/grocery_shop_availability_screen.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/contribution/view/contribution_screen_v2.dart';
 import 'package:BlueEra/features/me/automotive_products/view/admin/widget/automotive_admin_product_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -416,6 +418,22 @@ class _AutomotivePartsScreenState extends State<AutomotivePartsScreen>
   Future<void> handleGoLiveTap() async {
     if (isShopGoLive) {
       setState(() => isShopGoLive = false);
+      return;
+    }
+
+    // Security-deposit go-live gate — sourced from the business profile's
+    // `securityDeposit` (GET business profile). Block only when the backend
+    // explicitly reports `required && !paid`; fail-open otherwise. See
+    // docs/backend/BUSINESS_GO_LIVE_BACKEND_INTEGRATION.md.
+    if (!viewBusinessDetailsController.canGoLive) {
+      // Tell the merchant why go-live is blocked, then route them to the
+      // security-deposit flow to complete payment — go-live stays blocked
+      // until it's paid.
+      commonSnackBar(
+        message:
+            'Your payment is incomplete. Please complete the security deposit to go live and receive service enquiries.',
+      );
+      Get.to(() => const ContributionScreenV2());
       return;
     }
 

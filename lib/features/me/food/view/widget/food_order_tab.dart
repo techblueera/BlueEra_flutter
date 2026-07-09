@@ -19,6 +19,7 @@ class FoodOrderTab extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        SizedBox(height: SizeConfig.size10),
         Padding(
           padding: EdgeInsets.only(right: SizeConfig.size12),
           child: OrderActionsCarousel(

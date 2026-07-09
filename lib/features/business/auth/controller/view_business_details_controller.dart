@@ -83,6 +83,15 @@ class ViewBusinessDetailsController extends GetxController {
   final Rx<ViewBusinessProfileModel?> businessProfileDetails =
       Rx<ViewBusinessProfileModel?>(null);
 
+  /// Security-deposit go-live gate for this business. Sourced from the business
+  /// profile's `securityDeposit` (GET business profile). Fail-open when absent:
+  /// blocked ONLY when the backend reports `required && !paid`. Mirrors the
+  /// selfWork gate — see docs/backend/BUSINESS_GO_LIVE_BACKEND_INTEGRATION.md.
+  bool get canGoLive =>
+      businessProfileDetails.value?.data?.canGoLive ?? true;
+  // bool get canGoLive =>
+  //     businessProfileDetails.value?.data?.canGoLive ?? false;
+
   /// Joining-bonus object embedded in the `business/:id` response. Drives the
   /// app-open claim popup; null until the profile loads (or when absent).
   final Rxn<JoiningBounce> joiningBounce = Rxn<JoiningBounce>();

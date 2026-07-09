@@ -32,7 +32,7 @@ class SchoolInquiryTabV2 extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(height: SizeConfig.size12),
+        SizedBox(height: SizeConfig.size10),
         OrderActionsCarousel(
           onAddCatalog: onAddAcademics,
           catalogIcon: Icons.menu_book_rounded,

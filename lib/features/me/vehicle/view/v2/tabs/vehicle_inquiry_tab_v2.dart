@@ -31,7 +31,7 @@ class VehicleInquiryTabV2 extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(height: SizeConfig.size12),
+        SizedBox(height: SizeConfig.size10),
         OrderActionsCarousel(
           onAddCatalog: onAddVehicles,
           catalogIcon: Icons.directions_car_rounded,

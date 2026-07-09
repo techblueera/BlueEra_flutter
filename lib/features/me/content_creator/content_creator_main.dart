@@ -320,6 +320,7 @@ class _ContentCreatorMainScreenState extends State<ContentCreatorMainScreen>
   // ─── ORDER TAB ───────────────────────────────────────────────────────────
   List<Widget> _buildOrderTab() {
     return [
+      SizedBox(height: SizeConfig.size10),
       Padding(
         padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
         child: OrderActionsCarousel(

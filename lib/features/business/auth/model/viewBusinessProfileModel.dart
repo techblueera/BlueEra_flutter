@@ -1,5 +1,6 @@
 import 'package:BlueEra/features/business/auth/model/ReleatedStoresList.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/earn_service_model_response.dart';
 
 class ViewBusinessProfileModel {
   ViewBusinessProfileModel({
@@ -143,6 +144,10 @@ class BusinessProfileDetails {
     userContactNo = json['userContactNo'];
     availability = json['availability'] != null ? AvailabilityData.fromJson(json['availability']) : null;
     dietaryType = json['dietaryType'];
+    final sd = json['securityDeposit'];
+    securityDeposit = sd is Map
+        ? SecurityDepositStatus.fromJson(Map<String, dynamic>.from(sd))
+        : null;
 
     // ── Location fallbacks ──
     // Service-business profiles often carry coordinates and the human
@@ -241,6 +246,16 @@ class BusinessProfileDetails {
   String? userContactNo;
   AvailabilityData? availability;
   String? dietaryType;
+
+  /// Security-deposit go-live gate for this business — a sibling field the
+  /// backend returns on the business profile (GET business profile). Null when
+  /// absent → treated as "allowed" (fail-open). Mirrors the selfWork gate; see
+  /// docs/backend/BUSINESS_GO_LIVE_BACKEND_INTEGRATION.md.
+  SecurityDepositStatus? securityDeposit;
+
+  /// The go-live decision: allowed when there's no deposit info or the deposit
+  /// is paid / not required; blocked ONLY when explicitly `required && !paid`.
+  bool get canGoLive => securityDeposit?.canGoLive ?? true;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};

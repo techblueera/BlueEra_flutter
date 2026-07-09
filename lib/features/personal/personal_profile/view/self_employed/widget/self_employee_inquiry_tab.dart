@@ -17,6 +17,7 @@ class SelfEmployeeInquiryTab extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        SizedBox(height: SizeConfig.size10),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
           child: OrderActionsCarousel(
