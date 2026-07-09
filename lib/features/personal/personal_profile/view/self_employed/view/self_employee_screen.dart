@@ -31,6 +31,7 @@ import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_property_card.dart';
 import 'package:BlueEra/features/common/statistics/view/profile_statistics_screen.dart';
+import 'package:BlueEra/features/contribution/view/contribution_screen_v2.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting_cards.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
@@ -205,10 +206,14 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
     // also enforces this server-side (402 on the /services availability PUT).
     // See docs/backend/SELF_WORK_GO_LIVE_FRONTEND_INTEGRATION.md.
     if (!_selfWorkCtrl.canGoLive) {
+      // Tell the provider why go-live is blocked, then route them to the
+      // security-deposit flow to complete payment — go-live stays blocked
+      // until it's paid.
       commonSnackBar(
         message:
             'Your payment is incomplete. Please complete the security deposit to go live and receive service enquiries.',
       );
+      Get.to(() => const ContributionScreenV2());
       return;
     }
 

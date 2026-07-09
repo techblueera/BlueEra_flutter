@@ -54,7 +54,8 @@ import 'package:get/get.dart';
 import '../../bottomNavigationBar/controller/bottom_bar_controller.dart';
 
 class AuthController extends GetxController {
-  ApiResponse mobileNoOtpSendResponse = ApiResponse.initial('Initial');
+  final Rx<ApiResponse> mobileNoOtpSendResponse =
+      Rx<ApiResponse>(ApiResponse.initial('Initial'));
   ApiResponse businessCategoryResponse = ApiResponse.initial('Initial');
   ApiResponse professionListingResponse = ApiResponse.initial('Initial');
   final Rx<ApiResponse> otpVerificationResponse = Rx<ApiResponse>(ApiResponse.initial('Initial'));
@@ -126,21 +127,27 @@ class AuthController extends GetxController {
       ApiKeys.action: AppConstants.REGISTER,
       ApiKeys.type: isOtpType.value,
     };
+    // Drive the mobile screen's loader + dim overlay while the send is in
+    // flight. Every exit path below resolves this (complete/error) so the
+    // overlay can never get stuck up.
+    mobileNoOtpSendResponse.value = ApiResponse.loading('loading');
     try {
       ResponseModel responseModel = await AuthRepo().authMobileOtpSendRepo(bodyRequest: requestData);
       // logs("responseModel: ${responseModel.statusCode}");
       if (responseModel.isSuccess) {
+        mobileNoOtpSendResponse.value = ApiResponse.complete(responseModel);
         commonSnackBar(message: responseModel.message ?? AppStrings.success);
         Get.offNamed(
           RouteHelper.getOtpPageScreenRoute(),
           arguments: {ApiKeys.argMobileNumber: mobileNumberEditController.text},
         );
-        mobileNoOtpSendResponse = ApiResponse.complete(responseModel);
       } else {
+        mobileNoOtpSendResponse.value =
+            ApiResponse.error(responseModel.message ?? AppStrings.somethingWentWrong);
         commonSnackBar(message: responseModel.message ?? AppStrings.somethingWentWrong);
       }
     } catch (e) {
-      mobileNoOtpSendResponse = ApiResponse.error('error');
+      mobileNoOtpSendResponse.value = ApiResponse.error('error');
       commonSnackBar(message: e.toString());
     }
   }

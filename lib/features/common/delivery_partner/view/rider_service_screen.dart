@@ -32,6 +32,7 @@ import 'package:BlueEra/features/common/delivery_partner/model/rider_onboarding_
 import 'package:BlueEra/features/common/delivery_partner/view/delivery_partner_orders/delivery_partner_orders.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
+import 'package:BlueEra/features/contribution/view/contribution_screen_v2.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/reel/view/channel/follower_following_screen.dart';
 import 'package:BlueEra/features/common/rental/widget/rental_property_card.dart';
@@ -193,9 +194,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     });
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // BUILD
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   @override
   Widget build(BuildContext context) {
     return _buildScaffold(context);
@@ -532,9 +531,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     );
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // SET PREFERENCE TAB
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // Two stacked cards rendered for the first ("Preference") sub-tab:
   //   1. Service Preference â€” a radio choice between Passenger,
   //      Goods, or Both, with a Submit button that switches to an
@@ -2119,10 +2116,20 @@ Future<void> handleGoLiveTap() async {
   final isRiderRole = userProfessionGlobal == BIKE_RIDER ||
       userProfessionGlobal == CAR_TAXI_DRIVER;
   if (isRiderRole && !riderCtrl.isSecurityDepositPaid) {
-    commonSnackBar(
-        message:
-            'Your payment is incomplete. Please complete the payment process to go live.');
-    return;
+    // The deposit may have just been paid/reconciled server-side while the
+    // screen held a stale `paid:false` status — re-pull the live onboarding
+    // status before blocking so a paid rider isn't dead-ended on old state.
+    await riderCtrl.ridersOnboardingStatusRepoApi(forceRefresh: true);
+    if (!riderCtrl.isSecurityDepositPaid) {
+      // Still unpaid → tell the rider why, then route them to the
+      // security-deposit flow to complete payment. Going live stays blocked
+      // until it's paid.
+      commonSnackBar(
+          message:
+              'Your payment is incomplete. Please complete the payment process to go live.');
+      Get.to(() => const ContributionScreenV2());
+      return;
+    }
   }
 
   final statuses = await GoLivePermissionService.checkAll();

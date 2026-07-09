@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -11,7 +12,6 @@ import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
-import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/webview_common.dart';
@@ -44,6 +44,11 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
     _getPhoneNumber();
     langController = Get.find<LanguageListController>();
     _authController.mobileNumberEditController.addListener(_onMobileChanged);
+    // AuthController is permanent, so a stale LOADING from a previous send
+    // could otherwise mount this screen with the overlay already showing.
+    // Reset to INITIAL on entry (mirrors OtpPageScreen).
+    _authController.mobileNoOtpSendResponse.value =
+        ApiResponse.initial('Initial');
 
     super.initState();
   }
@@ -71,7 +76,9 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       resizeToAvoidBottomInset: true,
-      body: Padding(
+      body: Stack(
+        children: [
+          Padding(
         padding: EdgeInsets.symmetric(horizontal: SizeConfig.size30),
         child: Form(
           key: _formKey,
@@ -241,15 +248,59 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
 
                   SizedBox(height: SizeConfig.size20),
 
-                  CustomBtn(
-                    bgColor:
-                        _canSubmit ? AppColors.primaryColor : AppColors.grey9B,
-                    textColor: AppColors.white,
-                    title: AppStrings.getOtp.tr,
-                    onTap: _canSubmit
-                        ? () => _onNextButtonPressed(context)
-                        : null,
-                  ),
+                  Obx(() {
+                    final loading = _authController
+                            .mobileNoOtpSendResponse.value.status ==
+                        Status.LOADING;
+                    final canSubmit = _canSubmit && !loading;
+                    return SizedBox(
+                      width: double.infinity,
+                      height: SizeConfig.size44,
+                      child: ElevatedButton.icon(
+                        onPressed: canSubmit
+                            ? () => _onNextButtonPressed(context)
+                            : null,
+                        icon: loading
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor:
+                                      AlwaysStoppedAnimation(Colors.white),
+                                ),
+                              )
+                            : const SizedBox.shrink(),
+                        label: Text(
+                          loading
+                              ? '${AppStrings.getOtp.tr}…'
+                              : AppStrings.getOtp.tr,
+                          style: TextStyle(
+                            fontFamily: AppConstants.OpenSans,
+                            fontSize: SizeConfig.medium,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.white,
+                            letterSpacing: 0.2,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryColor,
+                          disabledBackgroundColor: loading
+                              ? AppColors.primaryColor.withValues(alpha: 0.5)
+                              : AppColors.grey9B,
+                          padding: EdgeInsets.symmetric(
+                            vertical: SizeConfig.size12,
+                            horizontal: SizeConfig.size16,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius:
+                                BorderRadius.circular(SizeConfig.size8),
+                          ),
+                          elevation: 0,
+                        ),
+                      ),
+                    );
+                  }),
 
                   SizedBox(height: SizeConfig.size22),
 
@@ -268,6 +319,25 @@ class _MobileNumberScreenState extends State<MobileNumberScreen> {
             ),
           ),
         ),
+      ),
+          // Dimmed full-screen overlay while sendOTP is in flight — catches
+          // taps so the user can't double-submit or re-tap Get OTP mid-request.
+          // The inline button spinner above signals progress; this just adds
+          // the visual veil. Mirrors OtpPageScreen's verifyOTP overlay.
+          Obx(() {
+            final loading =
+                _authController.mobileNoOtpSendResponse.value.status ==
+                    Status.LOADING;
+            if (!loading) return const SizedBox.shrink();
+            return Positioned.fill(
+              child: AbsorbPointer(
+                child: Container(
+                  color: Colors.black.withValues(alpha: 0.20),
+                ),
+              ),
+            );
+          }),
+        ],
       ),
     );
   }

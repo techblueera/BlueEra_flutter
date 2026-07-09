@@ -63,7 +63,14 @@ class _FoodCategoryMenuScreenState extends State<FoodCategoryMenuScreen> {
           child: CustomBtn(
             height: SizeConfig.size35,
             width: SizeConfig.size120,
-            onTap: () {},
+            // Restores the manual add-food entry: opens the "add your own food
+            // item" form (name / category / type / cooking method / image) —
+            // the same screen the product-selection screen's "Add Own Food
+            // Items" action routes to.
+            onTap: () => Get.toNamed(
+              RouteHelper.getFoodEntryAiScreenRoute(),
+              arguments: {ApiKeys.argCreateMissingProductIndex: null},
+            ),
             title: AppStrings.foodCreateManually.tr,
             borderColor: AppColors.primaryColor,
             bgColor: AppColors.white,

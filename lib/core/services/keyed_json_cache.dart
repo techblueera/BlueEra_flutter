@@ -78,6 +78,14 @@ const KeyedJsonCache riderOrdersCache = KeyedJsonCache('rider_orders_box');
 /// logout. Stored as `{'feed': [<post json>, ...]}`.
 const KeyedJsonCache socialFeedCache = KeyedJsonCache('social_feed_cache_box');
 
+/// Caches the security-deposit explainer videos (global — same for every user)
+/// under a constant key, so the contribution screen serves them from Hive and
+/// skips the videos API after the first successful fetch. Stores the raw master
+/// list as `{'videos': [<video json>, ...]}`. Auto-reset on logout
+/// (`Hive.deleteFromDisk()`), so a re-login refetches once.
+const KeyedJsonCache securityDepositVideosCache =
+    KeyedJsonCache('security_deposit_videos_box');
+
 /// Caches the Social-tab symbol story row (raw grouped-data JSON; the row
 /// renders the first 5 user groups) keyed by user id, served instantly on open
 /// while the live symbol feed refreshes. Stored as `{'data': {...}}`.

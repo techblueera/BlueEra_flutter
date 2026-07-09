@@ -67,6 +67,30 @@ class SecurityDepositPlan {
   double get postpaidRupees => postpaidChargePerUnit / 100.0;
 }
 
+/// An explainer video for the security-deposit screen
+/// (`GET /security-deposit/videos`). Only `active` videos are surfaced.
+class SecurityDepositVideo {
+  final String id;
+  final String title;
+  final String description;
+  final String fileUrl;
+  final String fileName;
+  final String mimeType;
+  final String status;
+
+  SecurityDepositVideo.fromJson(Map<String, dynamic> j)
+      : id = (j['_id'] ?? '').toString(),
+        title = (j['title'] ?? '').toString(),
+        description = (j['description'] ?? '').toString(),
+        fileUrl = (j['fileUrl'] ?? '').toString(),
+        fileName = (j['fileName'] ?? '').toString(),
+        mimeType = (j['mimeType'] ?? '').toString(),
+        status = (j['status'] ?? '').toString();
+
+  bool get isActive => status.toLowerCase() == 'active';
+  bool get hasUrl => fileUrl.isNotEmpty;
+}
+
 /// Response of `POST /security-deposit/initiate` — the Razorpay order to open
 /// checkout with. A **zero-deposit** tag returns [orderId] = null,
 /// [finalAmount] = 0 and [status] = `held` (already active, no payment needed).

@@ -32,6 +32,11 @@ mixin SubscriptionServiceApi {
   final String securityDepositCancel =
       'subscription-service/security-deposit/cancel';
 
+  /// `GET /security-deposit/videos` — explainer videos shown on top of the
+  /// security-deposit (contribution v2) screen.
+  final String securityDepositVideos =
+      'subscription-service/security-deposit/videos';
+
   /// Joining Bounce (joining bonus) — the inverse of the Security Deposit:
   /// the platform pays the user a one-time joining bonus once genuine
   /// onboarding is proven. No Razorpay / payment — it's a wallet payout.

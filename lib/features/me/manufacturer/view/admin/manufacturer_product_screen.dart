@@ -31,6 +31,7 @@ import 'package:BlueEra/features/me/manufacturer/view/admin/widget/manufacturer_
 import 'package:BlueEra/features/me/manufacturer/view/admin/widget/manufacturer_orders_tab_body.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:BlueEra/widgets/gradient_add_button.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -462,6 +463,13 @@ class _ProductsTabBodyState extends State<_ProductsTabBody> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        GradientAddButton(
+          label: AppStrings.addProduct.tr,
+          onTap: widget.onAddProduct,
+          margin: EdgeInsets.only(
+              top: SizeConfig.size10, right: SizeConfig.size12),
+        ),
+        SizedBox(height: SizeConfig.size12),
         // --- Top Selling Products ---
         Obx(() {
           if (controller.ownDraftAndPublicProductResponse.value.status ==

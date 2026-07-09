@@ -4,6 +4,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/keyed_json_cache.dart';
 import 'package:BlueEra/core/services/razor_pay_services.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/contribution/model/security_deposit_models.dart';
@@ -30,10 +31,31 @@ class SecurityDepositController extends GetxController {
   final Rx<Status> plansStatus = Status.INITIAL.obs;
   final RxString plansError = ''.obs;
 
+  /// Plan backing the pinned "Pay Security Deposit" bottom bar. Auto-set to the
+  /// first payable plan when the catalog loads; the user can switch it by
+  /// tapping another payable plan card. Zero-deposit plans are informational
+  /// (no payment) and never become the selection.
+  final Rxn<SecurityDepositPlan> selectedPlan = Rxn<SecurityDepositPlan>();
+
+  void selectPlan(SecurityDepositPlan plan) => selectedPlan.value = plan;
+
+  /// First plan that actually requires a payment (deposit > 0), or null when
+  /// none. Backs the always-visible bottom Pay bar when no explicit selection
+  /// has been made yet.
+  SecurityDepositPlan? get firstPayablePlan {
+    for (final p in plans) {
+      if (p.depositAmount > 0) return p;
+    }
+    return null;
+  }
+
   /// `live` / `test` (Razorpay env), surfaced from the plan/deposit payload so
   /// the UI can show a "TEST MODE" banner.
   final RxString mode = ''.obs;
   bool get isTestMode => mode.value.toLowerCase() == 'test';
+
+  // ── Explainer videos (shown on top of the deposit screen) ────
+  final RxList<SecurityDepositVideo> videos = <SecurityDepositVideo>[].obs;
 
   // ── Current (held) deposit ───────────────────────────────────
   final Rx<Status> currentStatus = Status.INITIAL.obs;
@@ -64,6 +86,7 @@ class SecurityDepositController extends GetxController {
     super.onInit();
     fetchCurrent();
     fetchPlans();
+    fetchVideos();
   }
 
   @override
@@ -89,12 +112,69 @@ class SecurityDepositController extends GetxController {
         if (parsed.isNotEmpty && mode.value.isEmpty) {
           mode.value = parsed.first.mode;
         }
+        // Default the bottom-bar selection to the first payable plan (preserve
+        // an existing valid selection across refreshes).
+        final current = selectedPlan.value;
+        final stillPresent =
+            current != null && parsed.any((p) => p.id == current.id);
+        if (!stillPresent) {
+          SecurityDepositPlan? firstPayable;
+          for (final p in parsed) {
+            if (p.depositAmount > 0) {
+              firstPayable = p;
+              break;
+            }
+          }
+          selectedPlan.value = firstPayable;
+        }
         plansStatus.value = Status.COMPLETE;
         return;
       }
     }
     plansError.value = res.message ?? 'Could not load deposit plans';
     plansStatus.value = Status.ERROR;
+  }
+
+  // ─── 1b. Explainer videos ─────────────────────────────────────
+  static const String _videosCacheKey = 'videos';
+
+  /// Loads the deposit-screen explainer videos. Cache-first: once fetched, the
+  /// raw list is persisted to Hive and served from there on subsequent opens so
+  /// the API isn't called again (the videos are effectively static; the box is
+  /// wiped on logout, so a re-login refetches once). Only a cache miss hits the
+  /// network. Silent on failure — the video section just stays hidden, it's not
+  /// critical to the pay/refund flow.
+  Future<void> fetchVideos() async {
+    // 1) Serve from cache and skip the network when we already have a copy.
+    final cached = await securityDepositVideosCache.get(_videosCacheKey);
+    final cachedList = cached?['videos'];
+    if (cachedList is List && cachedList.isNotEmpty) {
+      _applyVideos(cachedList);
+      return;
+    }
+
+    // 2) Cache miss → hit the API, render, then persist the raw master list.
+    final ResponseModel res = await _repo.fetchVideos();
+    if (res.statusCode == 200 && res.response?.data?['data'] is List) {
+      final raw = res.response!.data['data'] as List;
+      _applyVideos(raw);
+      final maps = raw
+          .whereType<Map>()
+          .map((e) => Map<String, dynamic>.from(e))
+          .toList();
+      await securityDepositVideosCache.save(_videosCacheKey, {'videos': maps});
+    }
+  }
+
+  /// Parses a raw video list (from cache or API) into the observable [videos],
+  /// keeping only active videos that carry a playable URL.
+  void _applyVideos(List raw) {
+    final parsed = raw
+        .whereType<Map>()
+        .map((e) => SecurityDepositVideo.fromJson(Map<String, dynamic>.from(e)))
+        .where((v) => v.isActive && v.hasUrl)
+        .toList();
+    videos.assignAll(parsed);
   }
 
   // ─── 2. Current held deposit ──────────────────────────────────

@@ -14,11 +14,28 @@ class HorizontalVideoPlayer extends StatefulWidget {
   final bool isAutoPlay;
   final List<String>? videoUrls;
   final bool? isNetworkUrl;
+
+  /// Aspect ratio of the player box. Defaults to 16:9 (landscape). Pass a
+  /// smaller value (e.g. 3/4, 9/16) to make the player taller for portrait
+  /// content. Also used as the placeholder ratio while a video initializes.
+  final double aspectRatio;
+
+  /// When true, once a video is initialized the box adopts the video's own
+  /// aspect ratio (so portrait clips render tall and undistorted) instead of
+  /// the fixed [aspectRatio]. [aspectRatio] then acts as the loading fallback.
+  final bool useVideoAspectRatio;
+
+  /// Shows a mute / unmute toggle in the top-right corner of the player.
+  final bool showMuteButton;
+
   const HorizontalVideoPlayer({
     super.key,
     this.isAutoPlay = false,
     this.videoUrls,
-    this.isNetworkUrl
+    this.isNetworkUrl,
+    this.aspectRatio = 16 / 9,
+    this.useVideoAspectRatio = false,
+    this.showMuteButton = false,
   });
 
   @override
@@ -44,6 +61,22 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
 
   VideoPlayerController? _controller;
   int _currentPage = 0;
+  // Sound state for the mute/unmute toggle. Starts unmuted so the video plays
+  // with audio the first time the screen opens; the user can mute it.
+  bool _isMuted = false;
+
+  /// The ratio the player box should use right now — the initialized video's
+  /// own ratio when [useVideoAspectRatio] is on, otherwise the fixed
+  /// [widget.aspectRatio] (also the fallback while a video loads).
+  double get _effectiveAspectRatio {
+    if (widget.useVideoAspectRatio) {
+      final c = _controller;
+      if (c != null && c.value.isInitialized && c.value.aspectRatio > 0) {
+        return c.value.aspectRatio;
+      }
+    }
+    return widget.aspectRatio;
+  }
 
   @override
   void initState() {
@@ -129,6 +162,8 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
     try {
       await _controller!.initialize();
       _controller!.setLooping(true);
+      // Apply the current mute state before playback starts.
+      await _controller!.setVolume(_isMuted ? 0.0 : 1.0);
       _controller!.addListener(() {
         if (mounted) setState(() {});
       });
@@ -141,6 +176,15 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
     } catch (e) {
       log('Video init failed: $e');
     }
+  }
+
+  void _toggleMute() {
+    final controller = _controller;
+    if (controller == null) return;
+    setState(() {
+      _isMuted = !_isMuted;
+      controller.setVolume(_isMuted ? 0.0 : 1.0);
+    });
   }
 
   void _disposeController() {
@@ -191,7 +235,7 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
       final loading = _usingOverview &&
           (status == Status.LOADING || status == Status.INITIAL);
       return AspectRatio(
-        aspectRatio: 16 / 9,
+        aspectRatio: _effectiveAspectRatio,
         child: Center(
           child: loading
               ? const CircularProgressIndicator()
@@ -209,7 +253,7 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
         // User must manually tap to play
       },
       child: AspectRatio(
-        aspectRatio: 16 / 9,
+        aspectRatio: _effectiveAspectRatio,
         child: PageView.builder(
           controller: _pageController,
           scrollDirection: Axis.horizontal,
@@ -245,6 +289,13 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
                   if (isCurrent &&
                       controller != null &&
                       controller.value.isInitialized) _buildPlayPauseOverlay(controller),
+
+                  // Mute / unmute toggle (top-right), above the play/pause.
+                  if (widget.showMuteButton &&
+                      isCurrent &&
+                      controller != null &&
+                      controller.value.isInitialized)
+                    _buildMuteButton(),
 
                   // Navigation buttons
                   if (_videoUrls.length > 1) _buildNavigationButtons(),
@@ -290,6 +341,34 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
       ),
     );
   }
+
+  // Circular glass mute/unmute button pinned to the player's top-right,
+  // mirroring the nav-button styling.
+  Widget _buildMuteButton() => Positioned(
+        top: 8,
+        right: 8,
+        child: GestureDetector(
+          onTap: _toggleMute,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(30),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.black.withValues(alpha: 0.55),
+                  shape: BoxShape.circle,
+                ),
+                padding: const EdgeInsets.all(8),
+                child: Icon(
+                  _isMuted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+                  color: AppColors.white,
+                  size: 20,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
 
   Widget _buildNavigationButtons() => Stack(
     children: [
