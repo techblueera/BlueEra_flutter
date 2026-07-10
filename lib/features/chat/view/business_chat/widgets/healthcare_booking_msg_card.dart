@@ -5,20 +5,25 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/chat/auth/model/GetListOfMessageData.dart';
 import 'package:BlueEra/features/chat/auth/model/healthcare_booking_model.dart';
+import 'package:BlueEra/features/me/laboratory/controller/lab_booking_controller.dart';
 import 'package:BlueEra/features/me/medical/controller/hospital_appointment_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// In-chat card for `message_type: "healthcare_booking"` — hospital
-/// appointment booking (doc `healthcare-appointment-ui-integration.md`
-/// §4). Uses the same hero + 2×2 tile grid layout as [HotelBookingMsgCard]:
-/// hero shows Doctor name + department, and four tinted tiles cover date,
-/// time, patient and fee. Owner (`!_isMyMessage`) sees Accept / Decline
-/// while pending; customer (`_isMyMessage`) sees Cancel while pending OR
-/// accepted (doc §2 customer-cancel path). All transitions land on the
-/// same PUT via [HospitalAppointmentController].
+/// In-chat card for `message_type: "healthcare_booking"` — covers both
+/// **hospital appointment** bookings
+/// (`healthcare-appointment-ui-integration.md` §4) and **laboratory
+/// test** bookings (`laboratory-booking-ui-integration.md`). The two
+/// share the message type; category (`HOSPITAL` vs `LABORATORY`)
+/// drives the header, hero, tile grid, and — critically — which
+/// service controller answers accept/decline/cancel:
+///   • HOSPITAL   → [HospitalAppointmentController]
+///   • LABORATORY → [LabBookingController]
+/// Owner (`!_isMyMessage`) sees Accept / Decline while pending;
+/// customer (`_isMyMessage`) sees Cancel while pending OR accepted
+/// (doc §2b customer-cancel path).
 class HealthcareBookingMsgCard extends StatefulWidget {
   final Messages message;
   final String time;
@@ -49,6 +54,24 @@ class _HealthcareBookingMsgCardState extends State<HealthcareBookingMsgCard> {
   bool get _isDeclined => _status == 'declined';
   bool get _isCancelled => _status == 'cancelled';
 
+  /// `HOSPITAL` (default) or `LABORATORY`. Read from the booking
+  /// snapshot first, then fall back to the enquiry-level category on
+  /// the parent message metadata (older payloads may only carry it
+  /// there).
+  String get _category =>
+      (_b?.category ?? widget.message.metadata?.category ?? 'HOSPITAL')
+          .toUpperCase();
+  bool get _isLab => _category == 'LABORATORY' || _category == 'LAB';
+
+  String get _cardTitle =>
+      _isLab ? 'Lab Test Booking' : 'Hospital Appointment';
+  String get _acceptedLabel =>
+      _isLab ? 'Booking accepted' : 'Appointment accepted';
+  String get _declinedLabel =>
+      _isLab ? 'Booking declined' : 'Appointment declined';
+  String get _cancelledLabel =>
+      _isLab ? 'Booking cancelled' : 'Appointment cancelled';
+
   List<String> get _photos => _b?.photos ?? const [];
   String get _note => (_b?.note ?? '').trim();
 
@@ -65,8 +88,9 @@ class _HealthcareBookingMsgCardState extends State<HealthcareBookingMsgCard> {
     return parts.isEmpty ? 'Hospital Appointment' : parts.join(' · ');
   }
 
-  /// Non-empty grid tiles in display order — mirrors the reference card's
-  /// 2×2 booking-detail grid (date / time / patient / fee here).
+  /// Non-empty grid tiles in display order. Hospital layout stays
+  /// date / time / patient / fee; lab swaps fee → price and adds
+  /// report hours + collection mode (+ address when HOME) per doc §3.
   List<_Tile> get _tiles {
     final b = _b;
     final out = <_Tile>[];
@@ -86,9 +110,31 @@ class _HealthcareBookingMsgCardState extends State<HealthcareBookingMsgCard> {
       out.add(_Tile('Patient', patient, Icons.person_outline_rounded));
     }
 
-    final fees = b?.fees;
-    if (fees != null && fees > 0) {
-      out.add(_Tile('Fee', '₹$fees', Icons.currency_rupee_rounded));
+    if (_isLab) {
+      final price = b?.price;
+      if (price != null && price > 0) {
+        out.add(_Tile('Price', '₹$price', Icons.currency_rupee_rounded));
+      }
+      final hrs = b?.estimatedReportHours;
+      if (hrs != null && hrs > 0) {
+        out.add(_Tile('Report in', '${hrs.toInt()} hrs',
+            Icons.receipt_long_outlined));
+      }
+      final mode = (b?.collectionMode ?? '').trim().toUpperCase();
+      if (mode.isNotEmpty) {
+        final label = mode == 'HOME' ? 'Home collection' : 'At lab';
+        out.add(_Tile('Mode', label,
+            mode == 'HOME' ? Icons.home_outlined : Icons.science_outlined));
+      }
+      final address = (b?.address ?? '').trim();
+      if (mode == 'HOME' && address.isNotEmpty) {
+        out.add(_Tile('Address', address, Icons.location_on_outlined));
+      }
+    } else {
+      final fees = b?.fees;
+      if (fees != null && fees > 0) {
+        out.add(_Tile('Fee', '₹$fees', Icons.currency_rupee_rounded));
+      }
     }
 
     return out;
@@ -115,11 +161,22 @@ class _HealthcareBookingMsgCardState extends State<HealthcareBookingMsgCard> {
       return;
     }
     setState(() => _isUpdating = true);
-    final controller = getOrPut(() => HospitalAppointmentController());
-    final ok = cancel
-        ? await controller.cancelAppointment(id)
-        : await controller.respondToAppointment(
-            appointmentId: id, accept: accept);
+    // Route to the correct service per doc §2/§2b — LABORATORY hits
+    // `/laboratory-bookings/:id/{status,cancel}`, HOSPITAL keeps its
+    // existing `/hospital-appointments/:id/status` path.
+    final bool ok;
+    if (_isLab) {
+      final lab = getOrPut(() => LabBookingController());
+      ok = cancel
+          ? await lab.cancelLabBooking(bookingId: id)
+          : await lab.respondToLabBooking(bookingId: id, accept: accept);
+    } else {
+      final hosp = getOrPut(() => HospitalAppointmentController());
+      ok = cancel
+          ? await hosp.cancelAppointment(id)
+          : await hosp.respondToAppointment(
+              appointmentId: id, accept: accept);
+    }
     if (!mounted) return;
     if (ok) {
       widget.message.metadata?.healthcareBooking?.status =
@@ -174,8 +231,10 @@ class _HealthcareBookingMsgCardState extends State<HealthcareBookingMsgCard> {
               color: _accent.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(9),
             ),
-            child: const Icon(Icons.medical_services_rounded,
-                color: _accent, size: 16),
+            child: Icon(
+                _isLab ? Icons.science_rounded : Icons.medical_services_rounded,
+                color: _accent,
+                size: 16),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -183,7 +242,7 @@ class _HealthcareBookingMsgCardState extends State<HealthcareBookingMsgCard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  'Hospital Appointment',
+                  _cardTitle,
                   fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: AppColors.mainTextColor,
@@ -239,21 +298,32 @@ class _HealthcareBookingMsgCardState extends State<HealthcareBookingMsgCard> {
     );
   }
 
-  // ── Body — hero (doctor + department) + 2×2 tile grid ───────────────
+  // ── Body — hero + 2×2 tile grid. Hospital hero = doctor + dept;
+  // lab hero = test name + laboratory name (`listingName`). ─────────
   Widget _body() {
-    final doctor = (_b?.doctorName ?? '').trim();
-    final dept = (_b?.department ?? '').trim();
     final tiles = _tiles;
-    final hasHero = doctor.isNotEmpty || dept.isNotEmpty;
+    final String heroTitle;
+    final String heroSubtitle;
+    final IconData heroSubtitleIcon;
+    if (_isLab) {
+      heroTitle = (_b?.testName ?? '').trim();
+      heroSubtitle = (_b?.listingName ?? '').trim();
+      heroSubtitleIcon = Icons.science_outlined;
+    } else {
+      heroTitle = (_b?.doctorName ?? '').trim();
+      heroSubtitle = (_b?.department ?? '').trim();
+      heroSubtitleIcon = Icons.local_hospital_outlined;
+    }
+    final hasHero = heroTitle.isNotEmpty || heroSubtitle.isNotEmpty;
     if (!hasHero && tiles.isEmpty) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (doctor.isNotEmpty)
+          if (heroTitle.isNotEmpty)
             CustomText(
-              doctor,
+              heroTitle,
               fontSize: 18,
               fontWeight: FontWeight.w800,
               color: AppColors.mainTextColor,
@@ -261,16 +331,16 @@ class _HealthcareBookingMsgCardState extends State<HealthcareBookingMsgCard> {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-          if (dept.isNotEmpty) ...[
-            if (doctor.isNotEmpty) const SizedBox(height: 3),
+          if (heroSubtitle.isNotEmpty) ...[
+            if (heroTitle.isNotEmpty) const SizedBox(height: 3),
             Row(
               children: [
-                Icon(Icons.local_hospital_outlined,
+                Icon(heroSubtitleIcon,
                     size: 14, color: AppColors.secondaryTextColor),
                 const SizedBox(width: 4),
                 Expanded(
                   child: CustomText(
-                    dept,
+                    heroSubtitle,
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                     color: AppColors.secondaryTextColor,
@@ -407,21 +477,21 @@ class _HealthcareBookingMsgCardState extends State<HealthcareBookingMsgCard> {
       return _statusBand(
         icon: Icons.cancel_rounded,
         color: Colors.red,
-        label: 'Appointment declined',
+        label: _declinedLabel,
       );
     }
     if (_isCancelled) {
       return _statusBand(
         icon: Icons.block_rounded,
         color: AppColors.secondaryTextColor,
-        label: 'Appointment cancelled',
+        label: _cancelledLabel,
       );
     }
     if (_isAccepted) {
       final band = _statusBand(
         icon: Icons.check_circle_rounded,
         color: Colors.green,
-        label: 'Appointment accepted',
+        label: _acceptedLabel,
       );
       if (_isMyMessage) {
         return Column(

@@ -19,8 +19,8 @@ import 'package:BlueEra/features/me/hospital/view/gallery/hospital_home_gallery_
 import 'package:BlueEra/features/me/hospital/view/hospital_job_listing_screen.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/hospital_contact_us_view.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/hospital_department_widget.dart';
-import 'package:BlueEra/features/me/hospital/view/widget/hospital_header_view.dart';
 import 'package:BlueEra/features/me/hospital/view/widget/managment_card_widget.dart';
+import 'package:BlueEra/widgets/visit_business_common_header.dart';
 import 'package:BlueEra/features/me/medical/controller/healthcare_enquiry_controller.dart';
 import 'package:BlueEra/features/me/medical/widget/healthcare_enquiry_sheet.dart';
 import 'package:BlueEra/features/me/medical/widget/hospital_appointment_sheet.dart';
@@ -279,10 +279,34 @@ class _DiscoverHospitalHomeScreenState extends State<DiscoverHospitalHomeScreen>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                /// HEADER
-                HospitalHeaderView(isReadOnly: true),
+                /// HEADER — shared business profile header. Same layout
+                /// as lab / medical detail screens: banner + logo +
+                /// rating / follow / share row + address + availability.
+                /// Rating and follow/unfollow re-fetch the business
+                /// profile silently so counts stay in sync without a
+                /// full-screen shimmer.
+                Obx(() {
+                  viewBusinessDetailsController.profileVersion.value;
+                  if (viewBusinessDetailsController.isProfileLoading.value) {
+                    return buildBusinessHeaderSkeleton();
+                  }
+                  final details = viewBusinessDetailsController
+                      .visitedBusinessProfileDetails?.data;
+                  final businessId =
+                      controller.hospitalDataResModel?.value.data?.id ?? '';
+                  return Padding(
+                    padding: EdgeInsets.all(SizeConfig.size12),
+                    child: VisitBusinessCommonHeader(
+                      details: details,
+                      onRated: () => viewBusinessDetailsController
+                          .viewBusinessProfileById(businessId, silent: true),
+                      onFollowChanged: () => viewBusinessDetailsController
+                          .viewBusinessProfileById(businessId, silent: true),
+                    ),
+                  );
+                }),
 
-                // Only horizontal padding here — HospitalHeaderView (above)
+                // Only horizontal padding here — the shared header (above)
                 // and the next section's card (below) already carry the
                 // 10dp CommonCardWidget margin, so any vertical padding
                 // here stacks on top of it and reads as an extra empty

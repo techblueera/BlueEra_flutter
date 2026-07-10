@@ -53,6 +53,12 @@ mixin LabServiceApi {
       'lab-service/laboratory-bookings/$bookingId/status';
   String laboratoryBookingById(String bookingId) =>
       'lab-service/laboratory-bookings/$bookingId';
+  // Customer-cancel path (doc §2b): customer can cancel their own
+  // booking while it is `pending` OR `accepted`. Distinct from the
+  // owner-only status PUT above so the chat card can pick the right
+  // transition per role.
+  String laboratoryBookingCancel(String bookingId) =>
+      'lab-service/laboratory-bookings/$bookingId/cancel';
   // Customer outbox — bookings I sent.
   final String laboratoryBookingsMe = 'lab-service/laboratory-bookings/me';
   // Owner inbox — bookings received on my labs.
