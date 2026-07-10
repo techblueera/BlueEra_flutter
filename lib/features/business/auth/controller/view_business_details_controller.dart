@@ -5,8 +5,9 @@ import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/features/business/auth/model/shop_open_status.dart';
 import 'package:BlueEra/features/contribution/view/contribution_screen_v2.dart';
-import 'package:BlueEra/features/me/grocery/view/admin/grocery_shop_availability_screen.dart';
+import 'package:BlueEra/features/me/grocery/view/admin/shop_availability_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
+import 'package:BlueEra/widgets/shop_availability_host.dart';
 import 'package:BlueEra/widgets/shop_availability_sheet.dart';
 import 'package:BlueEra/core/services/business_profile_cache.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
@@ -79,7 +80,8 @@ Future<double?> getDistanceInKm(double targetLat, double targetLng) async {
   }
 }
 
-class ViewBusinessDetailsController extends GetxController {
+class ViewBusinessDetailsController extends GetxController
+    implements ShopAvailabilityHost {
   ApiResponse viewBusinessResponse = ApiResponse.initial('Initial');
   ApiResponse viewBusinessResponseNew = ApiResponse.initial('Initial');
   Rx<ApiResponse> businessProductResponse = ApiResponse.initial('Initial').obs;
@@ -710,10 +712,13 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
   /// Entry point for the shared "Go live" pill. First run (no schedule yet)
   /// opens the weekly hours editor; once hours exist it opens the availability
   /// sheet (status + today override + edit hours). Deposit-gated up front.
-  Future<void> openAvailabilityControl() async {
-    // 1. Payment gate FIRST — an unpaid business is told why and routed to the
+  /// [gate] overrides the deposit check — pass a custom gate for callers whose
+  /// deposit lives elsewhere (e.g. professionals gate on the personal profile,
+  /// not the business one). Defaults to the business [ensureCanGoLive].
+  Future<void> openAvailabilityControl({bool Function()? gate}) async {
+    // 1. Payment gate FIRST — an unpaid provider is told why and routed to the
     //    security-deposit flow; the sheet never opens.
-    if (!ensureCanGoLive()) return;
+    if (!(gate != null ? gate() : ensureCanGoLive())) return;
 
     // 2. Safety net: hydrate the hours if the profile hasn't populated them yet
     //    so the sheet shows the correct state (set-hours prompt vs live status).
@@ -727,11 +732,27 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
 
   /// Open the weekly hours editor and re-hydrate on save. Used by both the
   /// sheet's "Set visiting hours" empty state and its "Edit weekly hours" row.
+  @override
   Future<void> openWeeklyEditor() async {
     final result = await Get.to(
-      () => GroceryShopAvailabilityScreen(initialSchedule: weeklySchedule),
+      () => ShopAvailabilityScreen(
+        initialSchedule: weeklySchedule,
+        onSave: _saveWeeklyHours,
+      ),
     );
     if (result == true) await loadHours();
+  }
+
+  /// Persist the weekly schedule to the BUSINESS endpoint. Returns null on
+  /// success, else an error message for the editor to surface.
+  Future<String?> _saveWeeklyHours(List<Schedule> schedule) async {
+    final res = await BusinessProfileRepo().setBusinessHours({
+      'timezone': 'Asia/Kolkata',
+      'schedule': schedule.map((s) => s.toJson()).toList(),
+    });
+    return res.isSuccess
+        ? null
+        : (res.message ?? AppStrings.somethingWentWrong.tr);
   }
 
   /// Force the shop OPEN for today only (open all remaining day). Reverts to

@@ -1,5 +1,4 @@
 import 'dart:ui';
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -214,7 +213,6 @@ class _ContentCreatorMainScreenState extends State<ContentCreatorMainScreen>
                   ),
                 ),
                 SizedBox(width: SizeConfig.size6),
-                _goLivePill(),
                 if (!isGuestUser()) ...[
                   SizedBox(width: SizeConfig.size6),
                   _circleIconButton(
@@ -267,17 +265,6 @@ class _ContentCreatorMainScreenState extends State<ContentCreatorMainScreen>
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _goLivePill() {
-    return Obx(
-      () => GoLivePill(
-        value: _viewCtrl.shopStatusOpenClose.value,
-        isUpdating: _viewCtrl.isShopStatusUpdating.value,
-        onTap: () => _viewCtrl.toggleShopStatus(),
-        label: AppStrings.proConsultGoLive.tr,
       ),
     );
   }

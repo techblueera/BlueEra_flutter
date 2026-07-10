@@ -1,10 +1,10 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/auth/model/shop_open_status.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:BlueEra/widgets/shop_availability_host.dart';
 import 'package:BlueEra/widgets/custom_switch_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -20,7 +20,7 @@ import 'package:get/get.dart';
 /// There is deliberately no per-day *time* editing here — times are only set in
 /// the weekly editor; the override is a plain open/closed switch for today.
 Future<void> showShopAvailabilitySheet(
-  ViewBusinessDetailsController controller,
+  ShopAvailabilityHost controller,
 ) {
   return Get.bottomSheet(
     _ShopAvailabilitySheet(controller: controller),
@@ -32,7 +32,7 @@ Future<void> showShopAvailabilitySheet(
 class _ShopAvailabilitySheet extends StatelessWidget {
   const _ShopAvailabilitySheet({required this.controller});
 
-  final ViewBusinessDetailsController controller;
+  final ShopAvailabilityHost controller;
 
   @override
   Widget build(BuildContext context) {

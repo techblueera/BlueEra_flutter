@@ -37,16 +37,6 @@ class EarnServiceModelResponse {
   /// working-hours editor on the update sheet.
   List<Schedule>? schedule;
 
-  /// Security-deposit go-live status — a sibling field the backend returns on
-  /// the selfWork service object (GET /services?all=false, /services/:id, …).
-  /// Null on non-selfWork services / when absent → treated as "allowed"
-  /// (fail-open). See docs/backend/SELF_WORK_GO_LIVE_FRONTEND_INTEGRATION.md.
-  SecurityDepositStatus? securityDeposit;
-
-  /// The go-live decision: allowed when there's no deposit info or the deposit
-  /// is paid / not required; blocked ONLY when explicitly `required && !paid`.
-  bool get canGoLive => securityDeposit?.canGoLive ?? true;
-
   EarnServiceModelResponse(
       {this.sId,
         this.serviceProvider,
@@ -137,10 +127,6 @@ class EarnServiceModelResponse {
         schedule!.add(Schedule.fromJson(v));
       }
     }
-    final sd = json['securityDeposit'];
-    securityDeposit = sd is Map
-        ? SecurityDepositStatus.fromJson(Map<String, dynamic>.from(sd))
-        : null;
   }
 
   Map<String, dynamic> toJson() {

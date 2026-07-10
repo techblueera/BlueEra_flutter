@@ -13,7 +13,6 @@ import 'package:BlueEra/features/me/professionals_consultant/view/professional_c
 import 'package:BlueEra/features/me/professionals_consultant/view/professional_profile_screen.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/professional_service_offered.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/professionals_certificates_screen.dart';
-import 'package:BlueEra/features/me/professionals_consultant/view/professionals_timing_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -92,10 +91,9 @@ class ProfessionalsServiceScreen extends StatelessWidget {
 
             // Contact Us + Map (merged into a single card)
             _buildContactSection(data),
-            SizedBox(height: SizeConfig.size14),
-
-            // Working Hours
-            _buildTimingsSection(data),
+            // Working Hours moved to the schedule-based Go-Live availability
+            // (status sheet + weekly hours), so the old per-service timings
+            // section is no longer rendered here.
           ],
         ),
       );
@@ -837,88 +835,6 @@ class ProfessionalsServiceScreen extends StatelessWidget {
     );
   }
 
-  // ============================================================
-  // WORKING HOURS
-  // ============================================================
-
-  Widget _buildTimingsSection(ProfessionalProfileData data) {
-    final timings = data.timings;
-    final hasData = timings?.schedule != null;
-
-    return CommonCardWidget(
-      cardMargin: 0,
-      padding: 10,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _sectionHeader(AppStrings.workingHours.tr,
-              onEdit: hasData
-                  ? () => _navigateToEdit(ProfessionalsTimingScreen())
-                  : null),
-          if (hasData)
-            _buildTimingsGrid(timings!)
-          else
-            _emptyStateCard(
-              icon: Icons.schedule_rounded,
-              title: AppStrings.proConsultSetWorkingHours.tr,
-              subtitle: AppStrings.proConsultHoursEmptyBody.tr,
-              actionLabel: AppStrings.add.tr,
-              onAdd: () => _navigateToEdit(ProfessionalsTimingScreen()),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTimingsGrid(Timings timings) {
-    final schedule = timings.schedule;
-    Widget item(
-        String day, bool? open, String? openTime, String? closeTime) {
-      final isOpen = open == true;
-      final text = isOpen ? "$openTime - $closeTime" : AppStrings.proConsultClosed.tr;
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            CustomText(day, fontWeight: FontWeight.w500),
-            CustomText(
-              text,
-              color: isOpen ? Colors.green : Colors.red,
-            ),
-          ],
-        ),
-      );
-    }
-
-    return Column(
-      children: [
-        item(AppStrings.monday.tr, schedule?.monday?.isOpen,
-            schedule?.monday?.openTime, schedule?.monday?.closeTime),
-        item(AppStrings.tuesday.tr, schedule?.tuesday?.isOpen,
-            schedule?.tuesday?.openTime, schedule?.tuesday?.closeTime),
-        item(
-            AppStrings.wednesday.tr,
-            schedule?.wednesday?.isOpen,
-            schedule?.wednesday?.openTime,
-            schedule?.wednesday?.closeTime),
-        item(
-            AppStrings.thursday.tr,
-            schedule?.thursday?.isOpen,
-            schedule?.thursday?.openTime,
-            schedule?.thursday?.closeTime),
-        item(AppStrings.friday.tr, schedule?.friday?.isOpen,
-            schedule?.friday?.openTime, schedule?.friday?.closeTime),
-        item(
-            AppStrings.saturday.tr,
-            schedule?.saturday?.isOpen,
-            schedule?.saturday?.openTime,
-            schedule?.saturday?.closeTime),
-        item(AppStrings.sunday.tr, schedule?.sunday?.isOpen,
-            schedule?.sunday?.openTime, schedule?.sunday?.closeTime),
-      ],
-    );
-  }
 }
 
 // ============================================================

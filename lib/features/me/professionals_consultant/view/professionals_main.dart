@@ -9,6 +9,8 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/contribution/view/contribution_screen_v2.dart';
 import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
@@ -108,10 +110,9 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
       ChatEmitEvents.ChatList,
       {ApiKeys.type: AppConstants.business_Chat_Type},
     );
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _viewCtrl.shopStatusOpenClose.value =
-          serviceProviderStatusGlobal.toUpperCase() == AppConstants.OPEN.toUpperCase();
-    });
+    // Hydrate the weekly schedule + today override (individual endpoints) so
+    // the Go-Live pill reflects the real auto open/close state on entry.
+    _viewCtrl.loadHours();
   }
 
   @override
@@ -260,12 +261,35 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
   Widget _goLivePill() {
     return Obx(
       () => GoLivePill(
-        value: _viewCtrl.shopStatusOpenClose.value,
-        isUpdating: _viewCtrl.isShopStatusUpdating.value,
-        onTap: () => _viewCtrl.toggleShopStatus(),
+        // Open now (schedule-driven) AND the personal deposit is paid — the
+        // deposit is the first wall, so an unpaid provider is never shown live.
+        value: _viewCtrl.isShopOpenNow.value && _viewCtrl.canGoLive,
+        onTap: _handleGoLiveTap,
         label: AppStrings.proConsultGoLive.tr,
       ),
     );
+  }
+
+  /// Opens the schedule-based availability control (status sheet → weekly hours
+  /// / today override), reusing the business flow. Gated on the PROFESSIONAL's
+  /// PERSONAL profile deposit — professionals are individuals, so the deposit
+  /// lives on the personal profile (`ViewPersonalDetailsController.canGoLive`),
+  /// not a business one. See docs/backend/PROFESSIONAL_GO_LIVE_BACKEND_GUIDE.md.
+  Future<void> _handleGoLiveTap() async {
+    await _viewCtrl.openAvailabilityControl(gate: _ensureCanGoLive);
+  }
+
+  /// Personal-profile deposit gate. Returns true when the professional may go
+  /// live; otherwise shows why and routes to the deposit flow. Fail-open —
+  /// blocks only when the backend reports `required && !paid`.
+  bool _ensureCanGoLive() {
+    if (_viewCtrl.canGoLive) return true;
+    commonSnackBar(
+      message:
+          'Your payment is incomplete. Please complete the security deposit to go live and receive service enquiries.',
+    );
+    Get.to(() => const ContributionScreenV2());
+    return false;
   }
 
   void _openDrawer(BuildContext context) {

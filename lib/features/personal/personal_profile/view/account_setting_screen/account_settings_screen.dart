@@ -15,7 +15,6 @@ import 'package:get/get.dart';
 
 import '../../../../../core/constants/getx_utils.dart';
 import '../../../../../core/constants/shared_preference_utils.dart';
-import '../../../../../widgets/common_dialog.dart';
 import '../../../../business/auth/controller/view_business_details_controller.dart';
 import '../../../../chat/auth/service/location_update_service.dart';
 import '../../../../contribution/view/contribution_screen_v2.dart';
@@ -165,30 +164,14 @@ class _AccountSettingScreenState extends State<AccountSettingScreen> {
               _helpServiceCard(
                 AppIconAssets.deleteIcon,
                 AppStrings.accountDelete,
-                    () async{
-
-                        await showCommonDialog(
-                        context: context,
-                        text: AppStrings.deleteAccountConfirmationMessage,
-                        confirmCallback: () async {
-Get.back();
-                          Get.put(AccountDeletionController())
-                              .startAccountDeletion(context);
-
-
-                         /* await SharedPreferenceUtils.clearPreference();
-                          Navigator.of(context).pushNamedAndRemoveUntil(
-                              RouteHelper.getMobileNumberLoginRoute(),
-                                  (Route<dynamic> route) => false);*/
-                        },
-                        cancelCallback: () {
-                          Navigator.of(context).pop(); // Close the dialog
-                        },
-                        confirmText: AppStrings.yes,
-                        cancelText: AppStrings.no);
-
-                  // accountController.setIndex("8");
-                  // accountController.setTitle("Delete Account");
+                () {
+                  // The controller owns the whole guided flow: a single confirm
+                  // dialog → POST /account/deletion/init → open the deletion web
+                  // page in an in-app browser (OTP + Terms happen there). Don't
+                  // wrap it in another dialog here — that double-confirms.
+                  // See docs/backend/FLUTTER_ACCOUNT_DELETION_INTEGRATION.md.
+                  Get.put(AccountDeletionController())
+                      .startAccountDeletion(context);
                 },
               ),
 

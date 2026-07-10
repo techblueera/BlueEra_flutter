@@ -3,7 +3,6 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/business/auth/repo/business_profile_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -23,20 +22,29 @@ import 'package:get/get.dart';
 /// shop opens and closes automatically within them (the live state is computed
 /// from the schedule + wall clock). A per-day manual override lives in the
 /// shop-status sheet, not here.
-class GroceryShopAvailabilityScreen extends StatefulWidget {
+class ShopAvailabilityScreen extends StatefulWidget {
   /// Optional previously-saved schedule used to pre-fill the form so the
   /// seller edits rather than re-enters their hours.
   final List<Schedule>? initialSchedule;
 
-  const GroceryShopAvailabilityScreen({super.key, this.initialSchedule});
+  /// Persists the assembled 7-day [Schedule]. Returns `null` on success, or an
+  /// error message to surface. The host owns the endpoint (business vs
+  /// individual), so this screen stays availability-source agnostic.
+  final Future<String?> Function(List<Schedule> schedule) onSave;
+
+  const ShopAvailabilityScreen({
+    super.key,
+    this.initialSchedule,
+    required this.onSave,
+  });
 
   @override
-  State<GroceryShopAvailabilityScreen> createState() =>
-      _GroceryShopAvailabilityScreenState();
+  State<ShopAvailabilityScreen> createState() =>
+      _ShopAvailabilityScreenState();
 }
 
-class _GroceryShopAvailabilityScreenState
-    extends State<GroceryShopAvailabilityScreen> {
+class _ShopAvailabilityScreenState
+    extends State<ShopAvailabilityScreen> {
   // Weekdays in display order. The same order is used for the Weekly rows
   // and for fanning the Daily hours across every day on save.
   static const List<String> _days = [
@@ -63,10 +71,6 @@ class _GroceryShopAvailabilityScreenState
   // True while the save request is in flight — drives the Save button loader
   // (the availability endpoints no longer show the global progress dialog).
   bool _isSaving = false;
-
-  // Persists the weekly schedule and flips the shop live via the
-  // business availability endpoints.
-  final BusinessProfileRepo _repo = BusinessProfileRepo();
 
   @override
   void initState() {
@@ -493,21 +497,16 @@ class _GroceryShopAvailabilityScreenState
       }
     }
 
-    // Persist the weekly schedule (full 7-day array replaces the stored one).
-    // No explicit go-live step: once hours are saved the shop opens and closes
-    // automatically within them (computed from the schedule + wall clock). A
-    // 402 here means the security deposit is unpaid — surfaced as a snackbar.
-    final body = {
-      'timezone': 'Asia/Kolkata',
-      'schedule': schedule.map((s) => s.toJson()).toList(),
-    };
+    // Persist the weekly schedule via the host (business or individual
+    // endpoint). No explicit go-live step: once hours are saved the shop opens
+    // and closes automatically within them. A 402 (deposit unpaid) comes back
+    // as an error message and is surfaced as a snackbar.
     setState(() => _isSaving = true);
-    final saveRes = await _repo.setBusinessHours(body);
+    final err = await widget.onSave(schedule);
     if (!mounted) return;
-    if (!saveRes.isSuccess) {
+    if (err != null) {
       setState(() => _isSaving = false);
-      commonSnackBar(
-          message: saveRes.message ?? AppStrings.somethingWentWrong.tr);
+      commonSnackBar(message: err);
       return;
     }
 

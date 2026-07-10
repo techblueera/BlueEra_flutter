@@ -1,6 +1,12 @@
+import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/features/business/auth/model/shop_open_status.dart';
+import 'package:BlueEra/features/me/grocery/view/admin/shop_availability_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
+import 'package:BlueEra/widgets/shop_availability_host.dart';
+import 'package:BlueEra/widgets/shop_availability_sheet.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/api/model/personal_profile_details_model.dart';
@@ -50,7 +56,8 @@ class _ProfileFieldStatus {
   });
 }
 
-class ViewPersonalDetailsController extends GetxController {
+class ViewPersonalDetailsController extends GetxController
+    implements ShopAvailabilityHost {
   bool updateBtnLoading = false;
 
   @override
@@ -168,6 +175,159 @@ class ViewPersonalDetailsController extends GetxController {
       ApiResponse.initial('Initial').obs;
   Rx<PersonalProfileDetailsModel> personalProfileDetails =
       PersonalProfileDetailsModel().obs;
+
+  /// Security-deposit go-live gate for this individual/self-employed provider.
+  /// Sourced from the individual profile's `securityDeposit` (mirrors the
+  /// business profile gate). Fail-open: blocked ONLY when the backend reports
+  /// `required && !paid`. See docs/backend/SELF_WORK_GO_LIVE_FRONTEND_INTEGRATION.md.
+  bool get canGoLive => personalProfileDetails.value.canGoLive;
+
+  // ── Schedule-driven availability (auto open/close) ──────────────────
+  // Individual analogue of the business availability flow — same UI (shared
+  // shop-status sheet + weekly editor) but hitting the INDIVIDUAL endpoints.
+  // Used by the professionals/consultant Go-Live pill.
+
+  @override
+  final RxList<Schedule> weeklySchedule = <Schedule>[].obs;
+
+  final Rxn<SpecialOverrides> todayOverride = Rxn<SpecialOverrides>();
+
+  @override
+  final Rx<ShopOpenStatus> shopStatus = const ShopOpenStatus.closed().obs;
+
+  @override
+  final RxBool isAvailabilityUpdating = false.obs;
+
+  /// Whether the shop is open right now (schedule ∩ clock). The pill also ANDs
+  /// this with [canGoLive] so an unpaid provider is never shown live.
+  final RxBool isShopOpenNow = false.obs;
+
+  Timer? _availTimer;
+
+  bool get hasSchedule => weeklySchedule.any((s) => (s.isOpen ?? false));
+
+  void _hydrateAvailability(AvailabilityData? availability) {
+    weeklySchedule.value = availability?.schedule ?? <Schedule>[];
+    todayOverride.value = ShopOpenStatus.overrideForToday(
+      availability?.specialOverrides,
+      DateTime.now(),
+    );
+    _recomputeShopStatus();
+    _ensureAvailTimer();
+  }
+
+  void _recomputeShopStatus() {
+    final status = ShopOpenStatus.compute(
+      schedule: weeklySchedule,
+      todayOverride: todayOverride.value,
+      now: DateTime.now(),
+    );
+    shopStatus.value = status;
+    isShopOpenNow.value = status.isOpenNow;
+  }
+
+  void _ensureAvailTimer() {
+    _availTimer ??= Timer.periodic(
+      const Duration(minutes: 1),
+      (_) => _recomputeShopStatus(),
+    );
+  }
+
+  @override
+  void onClose() {
+    _availTimer?.cancel();
+    _availTimer = null;
+    super.onClose();
+  }
+
+  /// Read the individual availability document and recompute.
+  Future<void> loadHours() async {
+    final res = await PersonalProfileRepo().getIndividualHours();
+    if (!res.isSuccess) return;
+    final body = res.response?.data;
+    final data = (body is Map) ? body['data'] : null;
+    if (data is Map<String, dynamic>) {
+      _hydrateAvailability(AvailabilityData.fromJson(data));
+    }
+  }
+
+  /// Entry point for the professional Go-Live pill. [gate] defaults to the
+  /// personal deposit check; callers pass one that also routes to the deposit
+  /// screen. First run (no schedule) opens the weekly editor via the sheet's
+  /// empty state; otherwise the status sheet.
+  Future<void> openAvailabilityControl({bool Function()? gate}) async {
+    if (!(gate != null ? gate() : canGoLive)) return;
+    if (!hasSchedule) await loadHours();
+    await showShopAvailabilitySheet(this);
+  }
+
+  @override
+  Future<void> setOpenToday() async {
+    await _applyTodayOverride({
+      'isOpen': true,
+      'shopOpenTime': '00:00',
+      'shopCloseTime': '23:59',
+    });
+  }
+
+  @override
+  Future<void> setClosedToday() async {
+    await _applyTodayOverride({'isOpen': false});
+  }
+
+  Future<void> _applyTodayOverride(Map<String, dynamic> body) async {
+    isAvailabilityUpdating.value = true;
+    try {
+      final res = await PersonalProfileRepo().setIndividualTodayHours(body);
+      if (res.isSuccess) {
+        await loadHours();
+      } else {
+        commonSnackBar(
+            message: res.message ?? AppStrings.somethingWentWrong.tr);
+      }
+    } finally {
+      isAvailabilityUpdating.value = false;
+    }
+  }
+
+  @override
+  Future<void> revertTodayOverride() async {
+    isAvailabilityUpdating.value = true;
+    try {
+      final res = await PersonalProfileRepo().clearIndividualTodayHours();
+      if (res.isSuccess) {
+        await loadHours();
+      } else {
+        commonSnackBar(
+            message: res.message ?? AppStrings.somethingWentWrong.tr);
+      }
+    } finally {
+      isAvailabilityUpdating.value = false;
+    }
+  }
+
+  @override
+  Future<void> openWeeklyEditor() async {
+    final result = await Get.to(
+      () => ShopAvailabilityScreen(
+        initialSchedule: weeklySchedule,
+        onSave: _saveWeeklyHours,
+      ),
+    );
+    if (result == true) await loadHours();
+  }
+
+  /// Persist the weekly schedule to the INDIVIDUAL endpoint. Returns null on
+  /// success, else an error message for the editor to surface.
+  Future<String?> _saveWeeklyHours(List<Schedule> schedule) async {
+    final res = await PersonalProfileRepo().setIndividualHours({
+      'timezone': 'Asia/Kolkata',
+      'schedule': schedule.map((s) => s.toJson()).toList(),
+    });
+    return res.isSuccess
+        ? null
+        : (res.message ?? AppStrings.somethingWentWrong.tr);
+  }
   RxBool isSocialEdit = false.obs, isSelfVideo = false.obs;
   RxString isYoutubeEdit = "".obs;
   RxString youtube = ''.obs;

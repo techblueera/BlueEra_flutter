@@ -1,5 +1,7 @@
 import 'dart:convert';
 
+import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/earn_service_model_response.dart';
+
 PersonalProfileDetailsModel personalProfileDetailsModelFromJson(String str) =>
     PersonalProfileDetailsModel.fromJson(json.decode(str));
 
@@ -14,6 +16,7 @@ class PersonalProfileDetailsModel {
     this.isProfileCreated,
     this.isRiderServiceUser,
     this.isEarnServiceUser,
+    this.securityDeposit,
     this.earnProfileType = const <String>[],
   });
 
@@ -26,6 +29,13 @@ class PersonalProfileDetailsModel {
     isProfileCreated = json['isProfileCreated'];
     isRiderServiceUser = json['isRiderServiceUser'];
     isEarnServiceUser = json['isEarnServiceUser'];
+    // Security-deposit go-live gate — a sibling field on the individual profile
+    // (mirrors the business profile). Null / absent → treated as "allowed"
+    // (fail-open). See docs/backend/SELF_WORK_GO_LIVE_FRONTEND_INTEGRATION.md.
+    final sd = json['securityDeposit'];
+    securityDeposit = sd is Map
+        ? SecurityDepositStatus.fromJson(Map<String, dynamic>.from(sd))
+        : null;
   }
 
   /// Tolerates the API returning a list, a single string (legacy), or null.
@@ -43,7 +53,13 @@ class PersonalProfileDetailsModel {
   bool? isProfileCreated;
   bool? isRiderServiceUser;
   bool? isEarnServiceUser;
+  SecurityDepositStatus? securityDeposit;
   List<String> earnProfileType;
+
+  /// Go-live decision for the individual/self-employed provider: allowed when
+  /// there's no deposit info or the deposit is paid / not required; blocked
+  /// ONLY when the backend explicitly reports `required && !paid`.
+  bool get canGoLive => securityDeposit?.canGoLive ?? true;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -55,6 +71,7 @@ class PersonalProfileDetailsModel {
     map['isProfileCreated'] = isProfileCreated;
     map['isRiderServiceUser'] = isRiderServiceUser;
     map['isEarnServiceUser'] = isEarnServiceUser;
+    // securityDeposit is read-only from the server — not serialized back.
     map['earnProfileTypes'] = earnProfileType;
     return map;
   }

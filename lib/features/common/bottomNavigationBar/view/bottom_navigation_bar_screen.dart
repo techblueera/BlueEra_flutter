@@ -444,9 +444,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     // only the deep-link background host, skip it now — it runs from
     // _ensureHeavyInit() the first time the user navigates a tab.
     if (widget.deferHeavyInit) return;
-    if (isIndividual()) {
-      await _initializeIndividualUser();
-    }
+    if (isIndividual()) await _initializeIndividualUser();
   }
 
   Future<void> _initializeIndividualUser() async {
@@ -500,6 +498,10 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   void _handlePostFrameInitialization() {
+    // Own-profile fetch is part of the home boot. When this screen is only the
+    // deep-link background host (deferHeavyInit), skip it until the user first
+    // navigates a tab — it then runs from _ensureHeavyInit().
+    final boot = !widget.deferHeavyInit;
     if (isBusiness()) {
       // Business users land on the Me tab (0) by default on app open / login /
       // signup so their own shop/dashboard is front and centre. An explicit
@@ -508,8 +510,15 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       bottomBarController.currentIndex.value = widget.initialIndex ?? 0;
       // Keep the controller registered even on a deferred open so any
       // Get.find<ViewBusinessDetailsController>() elsewhere stays safe; only
-      // the network fetch below is part of the home boot and gets deferred.
-      getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+      // the network fetch is part of the home boot and gets deferred.
+      final businessCtrl =
+          getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+      // Already in the business branch — fetch directly (no second isBusiness
+      // check), unless it's already loaded.
+      if (boot &&
+          businessCtrl.viewBusinessResponse.status != Status.COMPLETE) {
+        businessCtrl.viewBusinessProfile();
+      }
     } else {
       // Riders (bike rider / car-taxi driver) and gig workers always land on
       // the Me tab (index 0) on login — regardless of whether their profile
@@ -523,12 +532,18 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       } else {
         bottomBarController.currentIndex.value = widget.initialIndex ?? 1;
       }
-    }
-    // Own-profile fetch is part of the home boot. When this screen is only the
-    // deep-link background host (deferHeavyInit), skip it until the user first
-    // navigates a tab — it then runs from _ensureHeavyInit().
-    if (!widget.deferHeavyInit) {
-      _fetchOwnProfileIfNeeded();
+      // Individual own-profile fetch — the personal profile carries
+      // securityDeposit (Go-Live gate), joining_bounce, etc. Fetch directly
+      // here since we already know it's an individual, unless already loaded.
+      if (boot &&
+          viewPersonalDetailsController.viewPersonalResponse.value.status !=
+              Status.COMPLETE) {
+        // forceRefresh so we actually hit /user/get on every launch (the
+        // method is cache-first and would otherwise skip the network on
+        // cached launches) — needed for fresh securityDeposit / go-live gate.
+        // It still shows the cached profile first, then updates from the API.
+        viewPersonalDetailsController.viewPersonalProfile(forceRefresh: true);
+      }
     }
   }
 

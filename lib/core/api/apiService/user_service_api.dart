@@ -101,6 +101,14 @@ mixin UserServiceApi {
   final String businessGoLive = '/user-service/business/availability/go-live';
   final String businessEndLive = '/user-service/business/availability/end-live';
 
+  // Individual (personal / professional-consultant) availability — same shape
+  // as the business endpoints above, but resolved from the caller's own
+  // INDIVIDUAL account (no businessId). Drives the professional Go-Live.
+  final String individualAvailabilityHours =
+      '/user-service/individual/availability/hours';
+  final String individualAvailabilityToday =
+      '/user-service/individual/availability/today';
+
 
   // too — the same id keys a business account or an individual profile.
   String chatClickRecord(String userId) =>

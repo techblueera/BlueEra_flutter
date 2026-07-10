@@ -30,15 +30,21 @@ selfWork Service { category }  ── gRPC ──▶ SecurityDepositService
 - Every selfWork provider is an **`INDIVIDUAL`** account whose deposit **`tag_id`
   is their `category`** (their profession — e.g. `Electrician` → `ELECTRICIAN`).
   The backend normalises casing/spacing, so `category` is passed through as-is.
-- This service **does not store** deposit state. On every selfWork read it asks
-  the subscribe service *"has this user paid?"* and returns the answer to you as
-  a **`securityDeposit`** object.
+- The backend **does not store** deposit state. On every **individual-profile
+  read** it asks the subscribe service *"has this user paid?"* and returns the
+  answer as a **`securityDeposit`** object **on the profile** — exactly the same
+  pattern the business gate uses on the business profile.
 - It also **enforces** the gate server-side: an unpaid provider **cannot save an
-  "open" availability** (see §4).
+  "open" availability / go live** (see §4).
+
+> **Changed:** the `securityDeposit` object used to be returned on the **selfWork
+> service** object (`GET /services`). It now lives on the **individual profile**
+> so the app reads it from one place (mirroring business). The service object no
+> longer needs to carry it.
 
 You therefore have **two touch-points**:
-1. **Read** `securityDeposit.paid` on the service to decide whether to enable the
-   Go-Live toggle (and what to show).
+1. **Read** `securityDeposit.paid` on the **individual profile** to decide whether
+   to enable the Go-Live toggle (and what to show).
 2. **Handle the 402** the backend returns if an unpaid provider tries to go live
    anyway.
 
@@ -46,8 +52,8 @@ You therefore have **two touch-points**:
 
 ## 2. The `securityDeposit` object
 
-Returned as a **sibling field on the selfWork service object** on every
-selfWork-returning endpoint (§3). Non-selfWork services never carry it.
+Returned as a **sibling field on the individual profile object** (top-level,
+alongside `user`) — exactly where the business gate sits on the business profile.
 
 ```jsonc
 "securityDeposit": {
@@ -80,50 +86,51 @@ zero-deposit tags also return `required: false, paid: true`. So a missing or
 
 ---
 
-## 3. Which endpoints return it
+## 3. Which endpoint returns it
 
-Base prefix: **`/services`**. Auth: `Authorization: Bearer <JWT>`.
+The **individual profile** read — the same endpoint that already returns `user`,
+`earnProfileTypes`, etc. Auth: `Authorization: Bearer <JWT>`.
 
 | Endpoint | Where `securityDeposit` sits |
 |---|---|
-| `POST /services` (create) | `response.service.securityDeposit` |
-| `GET /services` (own single, `all` not `true`) | top-level on the returned object |
-| `GET /services/:id` | top-level on the returned object |
-| `GET /services/user/:userId` | on each item in `services[]` |
-| `PUT /services/:id` (update) | `response.service.securityDeposit` |
+| `GET` individual profile (own — the `PersonalProfileDetailsModel` read) | **top-level** on the profile object, next to `user` |
 
-> Discovery/list/map/search endpoints (`?all=true`, `/all/map`,
-> `/all-type/search`) intentionally **omit** it — the gate is about the
-> provider's **own** service, so read it from one of the rows above.
+```jsonc
+{
+  "status": true,
+  "user": { /* … */ },
+  "earnProfileTypes": ["home_made_food"],
+  "securityDeposit": {          // ← the gate, here (not on /services anymore)
+    "required": true,
+    "paid": false,
+    "paymentStatus": "created",
+    "depositId": null,
+    "refundEligibleAt": null
+  }
+}
+```
 
-### Dart model
+> Discovery/list/map/search endpoints intentionally **omit** it — the gate is
+> about the provider's **own** account. The selfWork **service** object
+> (`GET /services`) no longer needs to carry `securityDeposit`.
+
+### Dart model (already implemented in the app)
 
 ```dart
-class SecurityDepositStatus {
-  final bool required;
-  final bool paid;
-  final String? paymentStatus;
-  final String? depositId;
-  final DateTime? refundEligibleAt;
+// PersonalProfileDetailsModel (lib/core/api/model/personal_profile_details_model.dart):
+final sd = json['securityDeposit'];
+securityDeposit = sd is Map
+    ? SecurityDepositStatus.fromJson(Map<String, dynamic>.from(sd))
+    : null;
+bool get canGoLive => securityDeposit?.canGoLive ?? true; // null = allow
 
-  SecurityDepositStatus.fromJson(Map<String, dynamic> j)
-      : required = j['required'] ?? false,
-        paid = j['paid'] ?? true,          // default true = fail-open
-        paymentStatus = j['paymentStatus'],
-        depositId = j['depositId'],
-        refundEligibleAt = j['refundEligibleAt'] != null
-            ? DateTime.tryParse(j['refundEligibleAt'])
-            : null;
-
-  /// The go-live decision: block only when explicitly unpaid.
-  bool get canGoLive => !required || paid;
-}
-
-// On the service model:
-//   final sd = json['securityDeposit'];
-//   securityDeposit = sd != null ? SecurityDepositStatus.fromJson(sd) : null;
-//   bool get canGoLive => securityDeposit?.canGoLive ?? true; // null = allow
+// SecurityDepositStatus.canGoLive:  !required || paid  (block only when required && !paid)
 ```
+
+`ViewPersonalDetailsController.canGoLive` proxies
+`personalProfileDetails.value.canGoLive`, and the self-employed dashboard's
+`_handleGoLiveTap()` checks it before going live — identical to the business
+`ViewBusinessDetailsController.canGoLive` gate.
 
 ---
 
@@ -214,8 +221,8 @@ After a successful deposit, **re-fetch the service** (e.g. `GET /services/:id`);
 
 ```
 ┌─ selfWork dashboard ──────────────────────────────────────────────┐
-│ 1. GET /services?all=false   (or /services/:id)                    │
-│      → read service.securityDeposit                                │
+│ 1. GET individual profile                                          │
+│      → read profile.securityDeposit                                │
 │                                                                    │
 │ 2. if securityDeposit == null || paid == true                      │
 │        → enable "Go Live" toggle                                   │
@@ -238,8 +245,8 @@ After a successful deposit, **re-fetch the service** (e.g. `GET /services/:id`);
 
 ## 7. Checklist
 
-- [ ] Parse `securityDeposit` on the selfWork service (create / get / get-by-id /
-      get-by-user / update responses).
+- [ ] Return & parse `securityDeposit` on the **individual profile** read
+      (top-level, next to `user`) — not on the selfWork service anymore.
 - [ ] Enable Go-Live when `securityDeposit == null || paid == true`; block only on
       `required && !paid`.
 - [ ] Handle **402** on `PUT /services/:id` → open the deposit flow (don't toast).
