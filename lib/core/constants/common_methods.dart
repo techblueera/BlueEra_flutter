@@ -26,7 +26,7 @@ import 'app_colors.dart';
 
 ///SHOW APP LOGS
 logs(String logMsg) {
-  log(logMsg);
+  print(logMsg);
 }
 
 ///UN FOCUS KEYBOARD
@@ -167,6 +167,14 @@ String medicalPharmacyDeepLink({String? businessId}) =>
 /// [medicalPharmacyDeepLink] / [hospitalDeepLink].
 String financialDeepLink({String? businessId}) =>
     _withBdmReferral('https://beapp.in/app/business/financial/${businessId ?? ""}');
+
+/// Generate deep link for a Laboratory business profile. The extra `labs`
+/// path segment routes the link to the lab detail screen ([LabDetailScreen])
+/// instead of the generic business share-preview, while still carrying the
+/// business-profile id the screen hydrates from. Mirrors
+/// [medicalPharmacyDeepLink] / [hospitalDeepLink].
+String labsDeepLink({String? businessId}) =>
+    _withBdmReferral('https://beapp.in/app/business/labs/${businessId ?? ""}');
 
 
 String professionalsConsultantDeepLink({String? id}) =>
