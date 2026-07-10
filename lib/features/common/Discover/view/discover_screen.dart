@@ -1,8 +1,5 @@
-import 'dart:ui';
-
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
-import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
@@ -10,7 +7,9 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
-import 'package:BlueEra/features/common/Discover/view/discover_banner_slider.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_categories_data.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_category_section.dart';
+import 'package:BlueEra/features/common/Discover/widget/recently_visited_stores_section.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/automotive_service_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/book_home_service_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/education_service_card_widget.dart';
@@ -28,6 +27,7 @@ import 'package:BlueEra/features/common/Discover/view/widget/transport_service_w
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/qr_code/view/emergency_qr_screen.dart';
 import 'package:BlueEra/features/common/qr_code/view/qr_design_options_widget.dart';
+import 'package:BlueEra/features/me/food/view/customer/restaurant_near_me_screen.dart';
 import 'package:BlueEra/features/personal/emergency/controller/emergency_profile_controller.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -45,121 +45,95 @@ class DiscoverScreen extends StatefulWidget {
 class _DiscoverScreenState extends State<DiscoverScreen> {
   final controller = getOrPut(() => DiscoverController());
 
-  late final double userLat;
-  late final double userLng;
-
   final ScrollController _scrollController = ScrollController();
-  final GlobalKey _qrWidgetKey = GlobalKey();
   final GlobalKey _riderWidgetKey = GlobalKey();
   late final EmergencyProfileController emergencyController;
 
-  /// 0=Overview, 1=Bookings, 2=Professionals, 3=Shopping, 4=Services
+  /// Active quick-access tab — see [discoverQuickAccessTabs]:
+  /// 0=Quick Access, 1=Grocery & Food, 2=Travel & Booking,
+  /// 3=Shopping & Sell, 4=Services & Professional, 5=Jobs & Other.
+  ///
+  /// Tab 0 (Quick Access) is the overview and shows every section; the rest
+  /// filter down to the sections tagged with their index in [_sections].
   int _activeTabIndex = 0;
 
-  /// Every Discover section fetches against the user's lat/lng, so we hold
-  /// the sections back behind the shimmer until the location attempt has
-  /// resolved — otherwise on first launch they'd fire with 0,0. Flips true
-  /// once coords are available OR the fetch attempt finishes (even if the
-  /// user denied permission, so we never block forever).
+  /// Discover sections fetch against the user's lat/lng, so we hold the
+  /// content behind the shimmer until the location attempt resolves —
+  /// otherwise on first launch they'd fire with 0,0. Flips true once coords
+  /// are available OR the fetch attempt finishes (even on denial), so we
+  /// never block forever.
   bool _locationResolved = false;
 
-  /// Section list with the set of tab indices each section belongs to.
-  /// Tab 0 (Overview) shows everything, so it's not listed explicitly.
-  ///
-  /// Widgets that have separate horizontal-list and grid layouts read
-  /// [_isInGridMode] so they switch automatically when the user moves
-  /// between Overview and a filter tab.
+  /// Widgets that ship separate horizontal-list and grid layouts read this so
+  /// they switch automatically when the user moves off the overview tab.
   bool get _isInGridMode => _activeTabIndex != 0;
 
+  /// Every Discover section with the set of tab indices it belongs to.
+  /// Tab 0 (Quick Access / overview) shows everything, so it's not listed.
+  ///
+  /// The first three entries are the redesigned circular Grocery / Food
+  /// blocks and the Recently Visited Stores carousel; the remainder are the
+  /// original service sections, preserved so no functionality is lost.
   List<({Widget widget, Set<int> tabs})> get _sections {
     final inGrid = _isInGridMode;
     return [
-      (widget: GroceryCardWidget(), tabs: {3}),
+      // --- Redesigned landing sections ---
       (
-        widget: TransportServiceWidget(
-          targetRiderKey: _riderWidgetKey,
+        widget: DiscoverCategorySection(
+          title: AppStrings.grocery.tr,
+          items: discoverGroceryCategories,
+          columns: 5,
+          onViewAll: () =>
+              Get.toNamed(RouteHelper.getGroceryStoresScreenRoute()),
+          onItemTap: (_) =>
+              Get.toNamed(RouteHelper.getGroceryStoresScreenRoute()),
         ),
         tabs: {1}
       ),
-      (widget: BookHomeServiceWidget(), tabs: {2}),
-      (widget: ProfessionalsCardWidget(), tabs: {2}),
-      (widget: HealthServiceCardWidget(), tabs: {4}),
+      (
+        widget: DiscoverCategorySection(
+          title: AppStrings.food.tr,
+          items: discoverFoodCategories,
+          columns: 5,
+          onItemTap: (_) => Get.to(() => const RestaurantNearMeScreen()),
+        ),
+        tabs: {1}
+      ),
+      (
+        widget: RecentlyVisitedStoresSection(
+          onViewAll: () =>
+              Get.toNamed(RouteHelper.getGroceryStoresScreenRoute()),
+        ),
+        tabs: {1}
+      ),
+      // --- Original service sections ---
+      (widget: GroceryCardWidget(), tabs: {1, 3}),
+      (widget: TransportServiceWidget(targetRiderKey: _riderWidgetKey), tabs: {2}),
+      (widget: HotelStayServiceCard(isShowInGrid: inGrid), tabs: {2}),
       (widget: ShoppingCardWidget(), tabs: {3}),
       (widget: HomeMadeProductAndServiceWidget(), tabs: {3}),
+      (widget: BookHomeServiceWidget(), tabs: {4}),
+      (widget: ProfessionalsCardWidget(), tabs: {4}),
+      (widget: HealthServiceCardWidget(), tabs: {4}),
       (widget: FindServiceCardWidget(), tabs: {4}),
       (widget: RentalCardWidget(), tabs: {4}),
-      (widget: HotelStayServiceCard(isShowInGrid: inGrid), tabs: {1}),
       (widget: AutomotiveServiceCardWidget(), tabs: {4}),
       (widget: FinancialSectors(isShowInGrid: inGrid), tabs: {4}),
       (widget: EducationServiceCardWidget(), tabs: {4}),
-      (widget: JobServiceCardWidget(), tabs: {2}),
+      (widget: JobServiceCardWidget(), tabs: {5}),
     ];
-  }
-
-  /// Real Discover sections, stacked vertically inside a single sliver.
-  /// Gated by [_buildSectionsSliver] on the AuthController's loading flag
-  /// — when categories aren't ready yet we render shimmer placeholders of
-  /// the same shape instead.
-  Widget _buildSectionsColumn() {
-    final visible = _sections.where((s) => _activeTabIndex == 0 || s.tabs.contains(_activeTabIndex)).toList();
-    return Column(
-      children: [
-        for (final s in visible) ...[
-          Container(
-            decoration: const BoxDecoration(color: AppColors.white),
-            child: s.widget,
-          ),
-          SizedBox(height: SizeConfig.paddingXSL),
-        ],
-      ],
-    );
-  }
-
-  /// Single sliver that swaps between shimmer and the real section column.
-  ///
-  /// We collapse what used to be N alternating SliverToBoxAdapter+gap
-  /// slivers into one because the loading state is reactive — wrapping a
-  /// list of slivers in `Obx` isn't possible (Obx returns a single
-  /// widget). The visual layout is identical: each section card still
-  /// renders inside a white container with the same vertical gap below.
-  Widget _buildSectionsSliver() {
-    return SliverToBoxAdapter(
-      child: Obx(() {
-        final auth = Get.find<AuthController>();
-        // Subscribe to every onboarding bucket so the silent network refresh
-        // repaints these cards even when `isInitialCategoriesLoading` has
-        // already settled to false (cache-hit path) — the section card
-        // widgets below read the buckets in their own build methods, across a
-        // boundary this parent Obx can't see into.
-        auth.onboardingBucketsWatch;
-        if (auth.isInitialCategoriesLoading.value || !_locationResolved) {
-          return const _DiscoverSectionsShimmer();
-        }
-        return _buildSectionsColumn();
-      }),
-    );
   }
 
   @override
   void initState() {
     super.initState();
-    userLat = LocationService.lat;
-    userLng = LocationService.lng;
-
-    // Register controllers here not in build
     emergencyController = getOrPut(() => EmergencyProfileController());
 
-    // Gate the location-dependent sections until coords are ready (device GPS
-    // or the profile fallback). If already available, build immediately.
     _locationResolved = LocationService.hasUsableLocation;
     if (!_locationResolved) _ensureLocationThenBuild();
   }
 
   Future<void> _ensureLocationThenBuild() async {
-    // Wait for usable coords — device GPS, or a profile seed that may still be
-    // loading — before building the sections, so they don't fire with 0,0.
-    // Bounded internally, so a denied fetch with no profile fallback still
-    // releases the shimmer instead of hanging forever.
     await LocationService.ensureUsableLocation();
     if (mounted) setState(() => _locationResolved = true);
   }
@@ -172,192 +146,327 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final statusBarHeight = MediaQuery.of(context).padding.top;
     return AnnotatedRegion<SystemUiOverlayStyle>(
-        // Banner is dark and the header gradient stays consistent across
-        // states, so keep status bar icons light (white) throughout.
-        value: SystemUiOverlayStyle.light.copyWith(
-          statusBarColor: Colors.transparent,
-          statusBarIconBrightness: Brightness.light,
-          statusBarBrightness: Brightness.dark,
-        ),
-        child: Scaffold(
-          body: SafeArea(
-            top: false,
-            child: CustomScrollView(
-                controller: _scrollController,
-                physics: const AlwaysScrollableScrollPhysics(),
-                slivers: [
-                  /// Banner covering full top: status bar + notch + icons overlay
-                  SliverToBoxAdapter(
-                    child: Stack(
+      value: SystemUiOverlayStyle.dark.copyWith(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.dark,
+        statusBarBrightness: Brightness.light,
+      ),
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF4F6FA),
+        body: CustomScrollView(
+          controller: _scrollController,
+          physics: const AlwaysScrollableScrollPhysics(),
+          slivers: [
+            /// Light-blue header: location + wishlist, quick-access tabs,
+            /// search bar. Covers the status bar area.
+            SliverToBoxAdapter(child: _buildHeader(context)),
+
+            SliverToBoxAdapter(child: SizedBox(height: SizeConfig.size12)),
+
+            /// Category content — gated behind the shimmer while location and
+            /// the initial fetch are still in flight.
+            _buildSectionsSliver(),
+
+            /// Emergency QR + sticker options — only on the overview tab, as
+            /// in the previous design.
+            if (_activeTabIndex == 0) ...[
+              SliverToBoxAdapter(
+                child: Builder(
+                  builder: (_) =>
+                      EmergencyQrWidget(key: const ValueKey('emergency_qr')),
+                ),
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.only(bottom: 100),
+                sliver: SliverToBoxAdapter(
+                  child: Obx(() {
+                    if (!emergencyController.hasEmergencyData.value) {
+                      return const SizedBox.shrink();
+                    }
+                    return Column(
                       children: [
-                        /// Banner image — full width, covers status bar & notch
-                        DiscoverBannerSlider(
-                          parentScrollController: _scrollController,
-                          targetKey: _qrWidgetKey,
-                          targetRiderKey: _riderWidgetKey,
-                          onTabSelected: (i) {
-                            if (i == _activeTabIndex) return;
-                            setState(() => _activeTabIndex = i);
-                          },
-                        ),
-
-                        /// Overlay: location + cart on top of banner
-                        Positioned(
-                          top: statusBarHeight,
-                          left: SizeConfig.size12,
-                          right: SizeConfig.size12,
-                          child: Row(
-                            children: [
-                              /// Location with rounded bg
-                              Expanded(
-                                child: Container(
-                                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                                  decoration: BoxDecoration(
-                                    color: AppColors.black.withValues(alpha: 0.3),
-                                    borderRadius: BorderRadius.circular(24),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.location_on_outlined, color: AppColors.white, size: 20),
-                                      SizedBox(width: SizeConfig.size6),
-                                      Flexible(
-                                        child: CustomText(
-                                          [
-                                            LocationService.userCurrentAddress.value.subLocality,
-                                            LocationService.userCurrentAddress.value.city,
-                                          ].where((e) => e.isNotEmpty).join(', '),
-                                          fontSize: SizeConfig.medium,
-                                          color: AppColors.white,
-                                          fontWeight: FontWeight.w700,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      ),
-                                      Icon(Icons.keyboard_arrow_down, color: AppColors.white, size: 18),
-                                    ],
-                                  ),
-                                ),
-                              ),
-
-                              SizedBox(width: SizeConfig.size8),
-
-                              /// Cart with rounded bg
-                              _appBarAction(
-                                icon: AppIconAssets.cartIcon,
-                                onTap: () =>
-                                    Navigator.pushNamed(context, RouteHelper.getYourCartScreenRoute()),
-                              ),
-                            ],
-                          ),
+                        SizedBox(height: SizeConfig.size8),
+                        QrDesignOptionsWidget(
+                          userName: emergencyController.fullName.value,
                         ),
                       ],
-                    ),
-                  ),
-
-                  /// Search Bar + Tabs - sticky on scroll.
-                  /// Search bar collapses away on scroll, tabs stay pinned.
-                  SliverPersistentHeader(
-                    pinned: true,
-                    delegate: _StickySearchBarDelegate(
-                      topPadding: MediaQuery.of(context).padding.top,
-                      activeIndex: _activeTabIndex,
-                      onTabSelected: (i) {
-                        if (i == _activeTabIndex) return;
-                        setState(() => _activeTabIndex = i);
-                      },
-                      onSearchTap: () => Navigator.pushNamed(
-                        context,
-                        RouteHelper.getGlobalSearchScreenRoute(),
-                      ),
-                    ),
-                  ),
-
-                  _sliverGap(),
-
-                  /// Sections filtered by the currently selected tab.
-                  /// While categories are loading (no Hive cache yet AND
-                  /// first network call still in flight) this renders a
-                  /// matching shimmer skeleton instead.
-                  _buildSectionsSliver(),
-
-                  /// Emergency QR + sticker options - only on Overview tab.
-                  if (_activeTabIndex == 0) ...[
-                    SliverToBoxAdapter(
-                      child: Builder(
-                        key: _qrWidgetKey,
-                        builder: (_) {
-                          return EmergencyQrWidget(key: ValueKey('emergency_qr'));
-                        },
-                      ),
-                    ),
-                    SliverPadding(
-                      padding: EdgeInsets.only(bottom: 100),
-                      sliver: SliverToBoxAdapter(
-                        child: Obx(() {
-                          if (!emergencyController.hasEmergencyData.value) {
-                            return const SizedBox.shrink();
-                          }
-                          return Column(
-                            children: [
-                              SizedBox(height: SizeConfig.size8),
-                              QrDesignOptionsWidget(
-                                userName: emergencyController.fullName.value,
-                              ),
-                            ],
-                          );
-                        }),
-                      ),
-                    ),
-                  ] else
-                    SliverPadding(padding: EdgeInsets.only(bottom: 100)),
-                ],
+                    );
+                  }),
+                ),
               ),
-          ),
-        ));
-  }
-
-  Widget _appBarAction({required String icon, required VoidCallback onTap}) {
-    return Padding(
-      padding: EdgeInsets.only(right: SizeConfig.size6),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(20),
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: AppColors.black.withValues(alpha: 0.3),
-            shape: BoxShape.circle,
-          ),
-          child: LocalAssets(imagePath: icon, imgColor: AppColors.white),
+            ] else
+              const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+          ],
         ),
       ),
     );
   }
 
-  Widget _sliverGap([double? gap]) {
+  // ---------------------------------------------------------------------------
+  // Sections
+  // ---------------------------------------------------------------------------
+
+  /// Single sliver that swaps between shimmer and the real section column.
+  ///
+  /// Gated on the location attempt AND the AuthController's category-loading
+  /// flag — the section widgets read the onboarding buckets in their own build
+  /// methods, so we subscribe to them here to repaint on the silent refresh.
+  Widget _buildSectionsSliver() {
     return SliverToBoxAdapter(
-      child: SizedBox(height: gap ?? SizeConfig.paddingXSL),
+      child: Obx(() {
+        final auth = Get.find<AuthController>();
+        auth.onboardingBucketsWatch;
+        if (auth.isInitialCategoriesLoading.value || !_locationResolved) {
+          return const _DiscoverSectionsShimmer();
+        }
+        return _buildSectionsColumn();
+      }),
+    );
+  }
+
+  Widget _buildSectionsColumn() {
+    final visible = _sections
+        .where((s) => _activeTabIndex == 0 || s.tabs.contains(_activeTabIndex))
+        .toList();
+    return Column(
+      children: [
+        for (final s in visible) ...[
+          Container(
+            decoration: const BoxDecoration(color: AppColors.white),
+            child: s.widget,
+          ),
+          SizedBox(height: SizeConfig.size12),
+        ],
+      ],
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Header
+  // ---------------------------------------------------------------------------
+
+  Widget _buildHeader(BuildContext context) {
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFCFE6FF), Color(0xFFDFEEFF)],
+        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(22)),
+      ),
+      padding: EdgeInsets.only(
+        top: statusBarHeight + SizeConfig.size12,
+        left: SizeConfig.size12,
+        right: SizeConfig.size12,
+        bottom: SizeConfig.size16,
+      ),
+      child: Column(
+        children: [
+          _locationRow(context),
+          SizedBox(height: SizeConfig.size16),
+          _quickAccessTabs(),
+          SizedBox(height: SizeConfig.size16),
+          _searchRow(context),
+        ],
+      ),
+    );
+  }
+
+  Widget _locationRow(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(28),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.location_on,
+                    color: AppColors.primaryColor, size: 20),
+                SizedBox(width: SizeConfig.size6),
+                Expanded(
+                  child: Obx(
+                    () => CustomText(
+                      [
+                        LocationService
+                            .userCurrentAddress.value.subLocality,
+                        LocationService.userCurrentAddress.value.city,
+                      ].where((e) => e.isNotEmpty).join(', '),
+                      fontSize: SizeConfig.medium,
+                      color: AppColors.mainTextColor,
+                      fontWeight: FontWeight.w600,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        SizedBox(width: SizeConfig.size10),
+        _circleIconButton(
+          child: const Icon(Icons.favorite_border,
+              color: AppColors.primaryColor, size: 22),
+          onTap: () {
+            Navigator.pushNamed(context, RouteHelper.getYourCartScreenRoute());
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _circleIconButton({required Widget child, required VoidCallback onTap}) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(28),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: const BoxDecoration(
+          color: AppColors.white,
+          shape: BoxShape.circle,
+        ),
+        child: child,
+      ),
+    );
+  }
+
+  Widget _quickAccessTabs() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: List.generate(discoverQuickAccessTabs.length, (index) {
+        final item = discoverQuickAccessTabs[index];
+        final isActive = _activeTabIndex == index;
+        return Expanded(
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              if (_activeTabIndex == index) return;
+              setState(() => _activeTabIndex = index);
+            },
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(9),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: isActive
+                          ? AppColors.primaryColor
+                          : const Color(0xFFE1E8F2),
+                      width: isActive ? 1.6 : 1,
+                    ),
+                    boxShadow: isActive
+                        ? const [
+                            BoxShadow(
+                              color: Color(0x1A0086FF),
+                              blurRadius: 8,
+                              offset: Offset(0, 2),
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: LocalAssets(
+                    imagePath: item['icon']!,
+                    width: 30,
+                    height: 30,
+                    boxFix: BoxFit.contain,
+                  ),
+                ),
+                SizedBox(height: SizeConfig.size6),
+                CustomText(
+                  item['title']!,
+                  fontSize: SizeConfig.small,
+                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                  color: isActive
+                      ? AppColors.primaryColor
+                      : AppColors.mainTextColor,
+                  maxLines: 2,
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        );
+      }),
+    );
+  }
+
+  Widget _searchRow(BuildContext context) {
+    return Row(
+      children: [
+        _circleIconButton(
+          child: LocalAssets(
+            imagePath: AppIconAssets.riderIconColorful,
+            width: 24,
+            height: 24,
+          ),
+          onTap: () => Navigator.pushNamed(
+              context, RouteHelper.getGroceryStoresScreenRoute()),
+        ),
+        SizedBox(width: SizeConfig.size10),
+        Expanded(
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => Navigator.pushNamed(
+              context,
+              RouteHelper.getGlobalSearchScreenRoute(),
+            ),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 15),
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(28),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.search,
+                      color: AppColors.secondaryTextColor, size: 22),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: CustomText(
+                      AppStrings.searchAnything.tr,
+                      fontSize: SizeConfig.medium,
+                      color: AppColors.secondaryTextColor,
+                    ),
+                  ),
+                  LocalAssets(
+                    imagePath: AppIconAssets.mic,
+                    width: 20,
+                    height: 20,
+                    imgColor: AppColors.secondaryTextColor,
+                  ),
+                  const SizedBox(width: 12),
+                  LocalAssets(imagePath: AppIconAssets.camera_black),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
 
-/// Shimmer skeleton shown in place of the Discover section cards while
-/// the AuthController is still hydrating its category buckets from Hive
-/// or the network. Mirrors the real card layout — a stack of white cards
-/// each containing a short title bar and a 3-column grid of 6 icon-sized
-/// placeholders — so the swap to real content reads as a content load,
-/// not a layout shift.
+/// Shimmer skeleton shown in place of the Discover content while location and
+/// the initial fetch are still resolving. Mirrors the card layout — a stack of
+/// white cards each with a short title bar and a grid of round placeholders —
+/// so the swap to real content reads as a content load, not a layout shift.
 class _DiscoverSectionsShimmer extends StatelessWidget {
   const _DiscoverSectionsShimmer();
 
-  static const int _cardCount = 4;
-  static const int _columns = 3;
-  static const int _tilesPerCard = 6;
+  static const int _cardCount = 3;
+  static const int _columns = 5;
+  static const int _tilesPerCard = 5;
   static const double _tileSpacing = 8;
-  static const double _tileHeight = 80;
 
   @override
   Widget build(BuildContext context) {
@@ -365,7 +474,7 @@ class _DiscoverSectionsShimmer extends StatelessWidget {
       children: [
         for (int i = 0; i < _cardCount; i++) ...[
           _shimmerCard(),
-          SizedBox(height: SizeConfig.paddingXSL),
+          SizedBox(height: SizeConfig.size12),
         ],
       ],
     );
@@ -374,37 +483,44 @@ class _DiscoverSectionsShimmer extends StatelessWidget {
   Widget _shimmerCard() {
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(color: AppColors.white),
-      padding: EdgeInsets.all(SizeConfig.size12),
+      color: AppColors.white,
+      padding: EdgeInsets.all(SizeConfig.size16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Title bar placeholder — matches `titleWidget(...)` height.
           buildLoadingShimmer(
             child: shimmerContainer(height: 22, width: 140),
           ),
-          SizedBox(height: SizeConfig.paddingXSL),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: LayoutBuilder(builder: (context, constraints) {
-              final double itemWidth = (constraints.maxWidth - _tileSpacing * (_columns - 1)) / _columns;
-              return Wrap(
-                spacing: _tileSpacing,
-                runSpacing: _tileSpacing,
-                children: List.generate(_tilesPerCard, (_) {
-                  return SizedBox(
-                    width: itemWidth,
-                    child: buildLoadingShimmer(
-                      child: shimmerContainer(
-                        height: _tileHeight,
-                        radius: 12,
+          SizedBox(height: SizeConfig.size16),
+          LayoutBuilder(builder: (context, constraints) {
+            final double itemWidth =
+                (constraints.maxWidth - _tileSpacing * (_columns - 1)) /
+                    _columns;
+            return Wrap(
+              spacing: _tileSpacing,
+              runSpacing: _tileSpacing,
+              children: List.generate(_tilesPerCard, (_) {
+                return SizedBox(
+                  width: itemWidth,
+                  child: Column(
+                    children: [
+                      buildLoadingShimmer(
+                        child: shimmerContainer(
+                          height: itemWidth * 0.9,
+                          width: itemWidth * 0.9,
+                          radius: itemWidth,
+                        ),
                       ),
-                    ),
-                  );
-                }),
-              );
-            }),
-          ),
+                      const SizedBox(height: 6),
+                      buildLoadingShimmer(
+                        child: shimmerContainer(height: 10, radius: 4),
+                      ),
+                    ],
+                  ),
+                );
+              }),
+            );
+          }),
         ],
       ),
     );
@@ -439,336 +555,7 @@ class DottedLinePainter extends CustomPainter {
 
 Widget titleWidget(String title) {
   return CustomText(title,
-      fontSize: SizeConfig.large18, color: AppColors.mainTextColor, fontWeight: FontWeight.w600);
-  // return Container(
-  //   padding: EdgeInsets.symmetric(horizontal: 10),
-  //   decoration: BoxDecoration(
-  //       border: Border.all(
-  //           color: AppColors.secondaryTextColor,
-  //           width: 0.1),
-  //       borderRadius: BorderRadius.circular(8)),
-  //   child: CustomText(
-  //       title,
-  //       fontSize: SizeConfig.large18,
-  //       color: AppColors.mainTextColor,
-  //       fontWeight: FontWeight.w600),
-  // );
-}
-
-class _StickySearchBarDelegate extends SliverPersistentHeaderDelegate {
-  final double topPadding;
-  final int activeIndex;
-  final ValueChanged<int> onTabSelected;
-  final VoidCallback onSearchTap;
-
-  _StickySearchBarDelegate({
-    required this.topPadding,
-    required this.activeIndex,
-    required this.onTabSelected,
-    required this.onSearchTap,
-  });
-
-  // Fixed inner heights so min/maxExtent stay consistent with the layout.
-  static const double _searchBarHeight = 52;
-  static const double _searchTabsGap = 16;
-
-  // Tab row is deterministic: the icon square + the gap + a generous
-  // reservation for the label row. The label fontSize (`SizeConfig.small`)
-  // is 12 on phones and 16 on tablets, so the reserved row height is
-  // sized for tablet line-height with headroom — prevents the bottom
-  // overflow we hit when the icon square grew from 46 → 60.
-  static const double _tabIconSquare = 60; // 10 padding + 40 icon + 10 padding
-  static const double _tabIconToText = 6;
-  static const double _tabLabelRow = 24;
-  static const double _tabsHeight = _tabIconSquare + _tabIconToText + _tabLabelRow; // 90
-
-  static const double _vTop = 10;
-  static const double _vBottom = 10;
-
-  // The chunk that collapses on scroll: search bar + the 16px gap below it.
-  static const double _collapsibleHeight = _searchBarHeight + _searchTabsGap;
-
-  // Non-sticky: no statusbar padding above search (sits flush below banner).
-  // Sticky: statusbar padding above tabs so they clear the system status bar.
-  @override
-  double get maxExtent => _vTop + _collapsibleHeight + _tabsHeight + _vBottom;
-
-  @override
-  double get minExtent => topPadding + _vTop + _tabsHeight + _vBottom;
-
-  List<Map<String, String>> get _sectionData => [
-        {'title': AppStrings.overview.tr, 'icon': AppImageAssets.overviewDiscover},
-        {'title': AppStrings.bookings.tr, 'icon': AppImageAssets.bookingDiscover},
-        {'title': AppStrings.professionals.tr, 'icon': AppImageAssets.professionalDiscover},
-        {'title': AppStrings.shopping.tr, 'icon': AppImageAssets.shoppingDiscover},
-        {'title': AppStrings.services.tr, 'icon': AppImageAssets.servicesDiscover},
-      ];
-
-  @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
-    final collapseRange = maxExtent - minExtent; // _collapsibleHeight - topPadding
-    final t = collapseRange <= 0 ? 1.0 : (shrinkOffset / collapseRange).clamp(0.0, 1.0);
-    final currentCollapsibleHeight = (1 - t) * _collapsibleHeight;
-    final currentTopPad = _vTop + t * topPadding;
-    final searchOpacity = (1 - t * 1.4).clamp(0.0, 1.0);
-
-    return ClipRect(
-      child: BackdropFilter(
-        // iOS-style glass: as scroll content passes behind the header
-        // (including the status bar area once it's pinned), the blur
-        // frosts it. The translucent gradient below tints the blurred
-        // content with the brand blue.
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                AppColors.blue5CAF.withValues(alpha: 0.25),
-                AppColors.blue5CAF.withValues(alpha: 0.65),
-              ],
-            ),
-          ),
-          padding: EdgeInsets.only(
-            top: currentTopPad,
-            left: SizeConfig.size12,
-            right: SizeConfig.size12,
-            bottom: _vBottom,
-          ),
-          child: Column(
-            children: [
-              // Collapsing search bar + 16px gap below it.
-              SizedBox(
-                height: currentCollapsibleHeight,
-                child: ClipRect(
-                  child: OverflowBox(
-                    minHeight: _collapsibleHeight,
-                    maxHeight: _collapsibleHeight,
-                    alignment: Alignment.topCenter,
-                    child: Opacity(
-                      opacity: searchOpacity,
-                      child: IgnorePointer(
-                        ignoring: searchOpacity < 0.05,
-                        child: Column(
-                          children: [
-                            SizedBox(
-                              height: _searchBarHeight,
-                              child: GestureDetector(
-                                behavior: HitTestBehavior.opaque,
-                                onTap: onSearchTap,
-                                child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: AppColors.white,
-                                  border: Border.all(width: 1, color: AppColors.greyE5),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(Icons.search, color: AppColors.secondaryTextColor, size: 22),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: CustomText(
-                                        AppStrings.searchAnything.tr,
-                                        fontSize: 16,
-                                        color: AppColors.secondaryTextColor,
-                                      ),
-                                    ),
-                                    LocalAssets(
-                                      imagePath: AppIconAssets.mic,
-                                      width: 20,
-                                      height: 20,
-                                      imgColor: AppColors.secondaryTextColor,
-                                    ),
-                                    const SizedBox(width: 12),
-                                    LocalAssets(imagePath: AppIconAssets.camera_black),
-                                  ],
-                                ),
-                              ),
-                              ),
-                            ),
-                            const SizedBox(height: _searchTabsGap),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-
-              // Tabs - always visible, distributed evenly across width.
-              SizedBox(
-                height: _tabsHeight,
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: List.generate(_sectionData.length, (index) {
-                    final isActive = activeIndex == index;
-                    final item = _sectionData[index];
-                    return Expanded(
-                      child: GestureDetector(
-                        onTap: () => onTabSelected(index),
-                        behavior: HitTestBehavior.opaque,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: [
-                            _DiscoverTabIconTile(
-                              isActive: isActive,
-                              child: LocalAssets(
-                                imagePath: item['icon']!,
-                                width: 40,
-                                height: 40,
-                                boxFix: BoxFit.cover,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 2),
-                              child: CustomText(
-                                item['title']!,
-                                fontSize: SizeConfig.small,
-                                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
-                                // White on both states — sticky is dark and
-                                // the expanded gradient ends in saturated
-                                // blue where the tabs sit, so white reads
-                                // cleanly in both.
-                                color: AppColors.white,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  @override
-  bool shouldRebuild(covariant _StickySearchBarDelegate oldDelegate) =>
-      topPadding != oldDelegate.topPadding ||
-      activeIndex != oldDelegate.activeIndex ||
-      onTabSelected != oldDelegate.onTabSelected ||
-      onSearchTap != oldDelegate.onSearchTap;
-}
-
-/// Animated tile behind the active discover tab icon. Inactive tiles stay
-/// flat white with a grey border; active tiles cross-fade through three
-/// brand gradients every three seconds with a white border + blue shadow.
-/// The [AnimationController] lives in a stateful widget (not the delegate)
-/// so it survives the shrink-on-scroll rebuilds.
-class _DiscoverTabIconTile extends StatefulWidget {
-  final bool isActive;
-  final Widget child;
-
-  const _DiscoverTabIconTile({
-    required this.isActive,
-    required this.child,
-  });
-
-  @override
-  State<_DiscoverTabIconTile> createState() => _DiscoverTabIconTileState();
-}
-
-class _DiscoverTabIconTileState extends State<_DiscoverTabIconTile> with SingleTickerProviderStateMixin {
-  static const List<RadialGradient> _gradients = <RadialGradient>[
-    RadialGradient(
-      center: Alignment.center,
-      radius: 0.8,
-      colors: [Color(0xFFC9FFB7), Color(0xFF0DA217), Color(0xFF04650B)],
-    ),
-    RadialGradient(
-      center: Alignment.center,
-      radius: 0.8,
-      colors: [Color(0xFFC0FFF9), Color(0xFF12CEBB), Color(0xFF018D7F)],
-    ),
-    RadialGradient(
-      center: Alignment.center,
-      radius: 0.8,
-      colors: [Color(0xFFE1B6FF), Color(0xFF7D0CCD), Color(0xFF3D0366)],
-    ),
-  ];
-
-  late final AnimationController _ctl;
-  int _index = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctl = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 3),
-    )..addStatusListener((status) {
-        if (status == AnimationStatus.completed && mounted) {
-          setState(() => _index = (_index + 1) % _gradients.length);
-          _ctl.forward(from: 0);
-        }
-      });
-    if (widget.isActive) _ctl.forward();
-  }
-
-  @override
-  void didUpdateWidget(covariant _DiscoverTabIconTile old) {
-    super.didUpdateWidget(old);
-    if (widget.isActive && !_ctl.isAnimating) {
-      _ctl.forward();
-    } else if (!widget.isActive && _ctl.isAnimating) {
-      _ctl.stop();
-    }
-  }
-
-  @override
-  void dispose() {
-    _ctl.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (!widget.isActive) {
-      return Container(
-        padding: const EdgeInsets.all(10.0),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.greyE5),
-        ),
-        child: widget.child,
-      );
-    }
-    final safeIndex = _index % _gradients.length;
-    final from = _gradients[safeIndex];
-    final to = _gradients[(safeIndex + 1) % _gradients.length];
-    return AnimatedBuilder(
-      animation: _ctl,
-      builder: (context, child) {
-        final g = RadialGradient.lerp(from, to, _ctl.value) ?? from;
-        return Container(
-          padding: const EdgeInsets.all(10.0),
-          decoration: BoxDecoration(
-            gradient: g,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.white, width: 1.5),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x4D00294E),
-                offset: Offset(0, 2),
-                blurRadius: 10,
-              ),
-            ],
-          ),
-          child: child,
-        );
-      },
-      child: widget.child,
-    );
-  }
+      fontSize: SizeConfig.large18,
+      color: AppColors.mainTextColor,
+      fontWeight: FontWeight.w600);
 }
