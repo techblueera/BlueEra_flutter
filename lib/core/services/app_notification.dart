@@ -1601,6 +1601,27 @@ class AppNotificationHandler {
         'fareCallOrderId': orderId,
       });
 
+      // Job descriptor (passenger ride / goods pickup / parcel delivery) —
+      // fare-call pushes carry it inside rideDetails, standard ride-request
+      // pushes carry it at the payload top level. IncomingRiderOrderScreen
+      // reads these to label the job correctly instead of assuming "Ride".
+      final jobType =
+          ((rideDetails is Map ? rideDetails['jobType'] : null) ??
+                  payload['jobType'])
+              ?.toString();
+      final jobLabel =
+          ((rideDetails is Map ? rideDetails['jobLabel'] : null) ??
+                  payload['jobLabel'])
+              ?.toString();
+      final callTitle =
+          ((rideDetails is Map ? rideDetails['callTitle'] : null) ??
+                  payload['callTitle'])
+              ?.toString();
+      final riderTask =
+          ((rideDetails is Map ? rideDetails['riderTask'] : null) ??
+                  payload['riderTask'])
+              ?.toString();
+
       // Set fare-call ride details (initStateFromCallKitExtra doesn't handle these)
       callController.fareCallRideDetails.value = {
         'pickup': {
@@ -1618,6 +1639,10 @@ class AppNotificationHandler {
         'distance': distance,
         'modeOfPayment': modeOfPayment,
         'orderFor': orderFor,
+        if (jobType != null && jobType.isNotEmpty) 'jobType': jobType,
+        if (jobLabel != null && jobLabel.isNotEmpty) 'jobLabel': jobLabel,
+        if (callTitle != null && callTitle.isNotEmpty) 'callTitle': callTitle,
+        if (riderTask != null && riderTask.isNotEmpty) 'riderTask': riderTask,
         if (customerPhone.isNotEmpty) 'customerPhone': customerPhone,
         if (etaDurationMin > 0)
           'eta': {
