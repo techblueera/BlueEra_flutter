@@ -265,16 +265,23 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         .toList();
     return Column(
       children: [
-        for (final s in visible) ...[
-          Container(
-            decoration: BoxDecoration(
+        for (final s in visible)
+          // The recently-visited rail is self-managing: it renders with its own
+          // spacing when there are shops, or collapses to zero when there are
+          // none. Skip the white card wrapper + trailing gap so an EMPTY rail
+          // leaves no leftover padding/margin.
+          if (s.widget is RecentlyVisitedStoresSection)
+            s.widget
+          else ...[
+            Container(
+              decoration: BoxDecoration(
                 color: AppColors.white,
                 borderRadius: BorderRadius.circular(10),
+              ),
+              child: s.widget,
             ),
-            child: s.widget,
-          ),
-          SizedBox(height: SizeConfig.size12),
-        ],
+            SizedBox(height: SizeConfig.size12),
+          ],
       ],
     );
   }
