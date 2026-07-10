@@ -26,18 +26,16 @@ const int _kListFirstAdAfter = 1;
 
 /// After the first ad, insert another native ad every this many items in a LIST,
 /// giving a uniform, sparse cadence (ad after 1, 11, 21, ...). The wide interval
-/// is what avoids Meta error 1002 ("Ad was re-loaded too frequently"): every
-/// native slot shares ONE Meta placement id, so consecutive slots must never
-/// come into view — and try to fill that shared placement — at the same time.
+/// keeps consecutive native slots from coming into view — and requesting an ad —
+/// at the same time, which keeps concurrent ad loads down.
 /// (The first ad's position doesn't affect concurrency; only the spacing does.)
 const int _kListAdEveryAfterFirst = 10;
 
 /// GRID/masonry cadence — deliberately WIDER than the list cadence. A multi-
 /// column grid packs 2+ cards per row, so for the same scroll distance far more
 /// ad slots come into view and request an ad almost at once. Loading native ads
-/// too frequently trips Meta Audience Network's rate limit (error 1002, "ad
-/// loaded too frequently"), which surfaces as blank/failed slots. A bigger gap
-/// keeps concurrent ad loads down. First ad after the 10th card...
+/// too frequently can surface as blank/failed slots. A bigger gap keeps
+/// concurrent ad loads down. First ad after the 10th card...
 const int _kGridFirstAdAfter = 10;
 
 /// ...then one every 10 cards thereafter (ad after 6, 16, 26, ...). With a

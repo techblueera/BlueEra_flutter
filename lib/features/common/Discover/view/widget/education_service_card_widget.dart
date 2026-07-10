@@ -1,13 +1,8 @@
-import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/view/all_education_service_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_category_section.dart';
 import 'package:flutter/material.dart';
-
 import 'package:get/get.dart';
 
 class EducationServiceCardWidget extends StatelessWidget {
@@ -15,47 +10,17 @@ class EducationServiceCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomFormCard(
-      color: AppColors.white,
-      padding: EdgeInsets.all(SizeConfig.size12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          titleWidget(AppStrings.educationTrainingAndSectors.tr),
-          SizedBox(height: SizeConfig.paddingXSL),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: LayoutBuilder(builder: (context, constraints) {
-              const double spacing = 8;
-              const int columns = 3;
-              final double itemWidth =
-                  (constraints.maxWidth - spacing * (columns - 1)) / columns;
-              return Wrap(
-                spacing: spacing,
-                runSpacing: spacing,
-                children: businessOnboardingEducationTrainingCategories.map((item) {
-                  return SizedBox(
-                    width: itemWidth,
-                    child: CommonServiceCard(
-                      service: item,
-                      flex: 2,
-                      getName: (i) => i.name.tr,
-                      getIcon: (i) => i.icon ?? "",
-                      iconHeight: SizeConfig.size60,
-                      onTap: (i) {
-                        Get.to(() => AllEducationServiceScreen(
-                            professionalConsultantCategories:
-                                businessOnboardingEducationTrainingCategories,
-                            selectedProfessionConsultantData: i));
-                      },
-                    ),
-                  );
-                }).toList(),
-              );
-            }),
-          ),
-        ],
-      ),
+    return DiscoverGridSection(
+      title: AppStrings.educationTrainingAndSectors.tr,
+      items: businessOnboardingEducationTrainingCategories,
+      getName: (item) => item.name.tr,
+      getIcon: (item) => item.icon ?? '',
+      onItemTap: (item) {
+        Get.to(() => AllEducationServiceScreen(
+            professionalConsultantCategories:
+                businessOnboardingEducationTrainingCategories,
+            selectedProfessionConsultantData: item));
+      },
     );
   }
 }

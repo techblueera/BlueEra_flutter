@@ -46,21 +46,6 @@ abstract class Env {
   @EnviedField(varName: 'PROD_RAZORPAY_KEY')
   static String prodRazorPayKey = _Env.prodRazorPayKey;
 
-  // ── Meta (Facebook Audience Network) placement IDs — per platform ──
-  @EnviedField(varName: 'META_NATIVE_PLACEMENT_ANDROID')
-  static String metaNativePlacementAndroid = _Env.metaNativePlacementAndroid;
-
-  @EnviedField(varName: 'META_NATIVE_PLACEMENT_IOS')
-  static String metaNativePlacementIos = _Env.metaNativePlacementIos;
-
-  @EnviedField(varName: 'META_INTERSTITIAL_PLACEMENT_ANDROID')
-  static String metaInterstitialPlacementAndroid =
-      _Env.metaInterstitialPlacementAndroid;
-
-  @EnviedField(varName: 'META_INTERSTITIAL_PLACEMENT_IOS')
-  static String metaInterstitialPlacementIos =
-      _Env.metaInterstitialPlacementIos;
-
   // ── Google AdMob IDs — per platform ──
   @EnviedField(varName: 'ADMOB_APP_ID_ANDROID')
   static String admobAppIdAndroid = _Env.admobAppIdAndroid;

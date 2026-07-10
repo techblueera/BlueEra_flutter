@@ -3,10 +3,9 @@ import 'package:flutter/material.dart';
 
 /// A self-contained native ad slot.
 ///
-/// Ads are served by **Google AdMob** (primary), with Meta Audience Network
-/// mediated behind it in the AdMob dashboard. This widget is a thin wrapper
-/// that forwards its card chrome (height / radius / margin / border / shadow /
-/// fill) to [AdMobNativeAdWidget]. It keeps the original public API — including
+/// Ads are served by **Google AdMob**. This widget is a thin wrapper that
+/// forwards its card chrome (height / radius / margin / border / shadow / fill)
+/// to [AdMobNativeAdWidget]. It keeps the original public API — including
 /// [factoryId] — so existing call sites and [NativeAdSlot] need no changes.
 /// [factoryId] is retained for source-compatibility only and is IGNORED (the
 /// AdMob native template renders itself; no platform-side ad factories).
@@ -23,10 +22,10 @@ class NativeAdWidget extends StatelessWidget {
     this.backgroundColor,
   });
 
-  /// Retained for API compatibility only — ignored under Meta ads.
+  /// Retained for API compatibility only — ignored under AdMob ads.
   static const String defaultFactoryId = 'groceryAdFactory';
 
-  /// Ignored (Meta renders its own layout); kept so call sites still compile.
+  /// Ignored (AdMob renders its own layout); kept so call sites still compile.
   final String factoryId;
 
   /// Reserved height for the ad slot.
@@ -35,7 +34,7 @@ class NativeAdWidget extends StatelessWidget {
   /// Outer corner radius of the slot.
   final double borderRadius;
 
-  /// Gap below the slot. Defaults to `size10` inside [MetaNativeAdWidget].
+  /// Gap below the slot. Defaults to `size10` inside [AdMobNativeAdWidget].
   final double? bottomGap;
 
   /// Outer spacing around the slot (overrides [bottomGap] when set).

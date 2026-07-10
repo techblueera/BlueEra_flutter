@@ -111,14 +111,8 @@ dependencies:
   gal: ^2.3.2
   pdf: ^3.12.0
   flutter_cache_manager: any
-  facebook_audience_network: ^1.0.1   # Meta (Facebook) Audience Network ads
-  google_mobile_ads: ^5.1.0           # Google AdMob (primary; Meta AN mediated behind it)
+  google_mobile_ads: ^5.1.0           # Google AdMob
 dependency_overrides:
-  # Local patched fork of facebook_audience_network: adds the AGP-8 `namespace`,
-  # removes the manifest `package` attribute + legacy jcenter/AGP-3.6 buildscript,
-  # and bumps the Dart SDK cap to <4.0.0. See packages/.../android/build.gradle.
-  facebook_audience_network:
-    path: packages/facebook_audience_network
   intl: ^0.19.0
   # Local patched fork: fixes createConfiguration so iOS can play the device's
   # default ringtone (upstream 3.0.0 always forces a custom ringtoneSound). See

@@ -6,13 +6,11 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 /// Google AdMob interstitial manager (call-end interstitial).
 ///
-/// AdMob is the primary ad server; Meta Audience Network is mediated behind it
-/// in the AdMob dashboard, so this code only ever talks to AdMob. AdMob handles
-/// its own reload cadence and backfill, so — unlike the direct-Meta manager —
-/// there's no hand-rolled cooldown / session cap / 1002 handling here.
+/// AdMob handles its own reload cadence and backfill, so there's no hand-rolled
+/// cooldown / session cap / rate-limit handling here.
 ///
-/// Public shape matches [MetaInterstitialManager] so the [InterstitialAdManager]
-/// forwarder can delegate here with no call-site changes.
+/// The [InterstitialAdManager] forwarder delegates here with no call-site
+/// changes.
 class AdMobInterstitialManager {
   AdMobInterstitialManager._();
 
