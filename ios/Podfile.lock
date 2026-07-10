@@ -53,10 +53,6 @@ PODS:
     - SwiftyGif
   - emoji_picker_flutter (0.0.1):
     - Flutter
-  - facebook_audience_network (0.0.1):
-    - FBAudienceNetwork (~> 6.3)
-    - Flutter
-  - FBAudienceNetwork (6.21.1)
   - file_picker (0.0.1):
     - DKImagePickerController/PhotoGallery
     - Flutter
@@ -308,7 +304,6 @@ DEPENDENCIES:
   - croppy (from `.symlinks/plugins/croppy/ios`)
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - emoji_picker_flutter (from `.symlinks/plugins/emoji_picker_flutter/ios`)
-  - facebook_audience_network (from `.symlinks/plugins/facebook_audience_network/ios`)
   - file_picker (from `.symlinks/plugins/file_picker/ios`)
   - firebase_core (from `.symlinks/plugins/firebase_core/ios`)
   - firebase_crashlytics (from `.symlinks/plugins/firebase_crashlytics/ios`)
@@ -362,7 +357,6 @@ SPEC REPOS:
     - CwlCatchExceptionSupport
     - DKImagePickerController
     - DKPhotoGallery
-    - FBAudienceNetwork
     - Firebase
     - FirebaseCore
     - FirebaseCoreExtension
@@ -410,8 +404,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/device_info_plus/ios"
   emoji_picker_flutter:
     :path: ".symlinks/plugins/emoji_picker_flutter/ios"
-  facebook_audience_network:
-    :path: ".symlinks/plugins/facebook_audience_network/ios"
   file_picker:
     :path: ".symlinks/plugins/file_picker/ios"
   firebase_core:
@@ -518,8 +510,6 @@ SPEC CHECKSUMS:
   DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
   emoji_picker_flutter: ece213fc274bdddefb77d502d33080dc54e616cc
-  facebook_audience_network: ca776d93385735b6ed38720a7b38f72f74ed117b
-  FBAudienceNetwork: 85d18a65c9e35bc426bd4664cf3ae2a1172d7b60
   file_picker: a0560bc09d61de87f12d246fc47d2119e6ef37be
   Firebase: f07b15ae5a6ec0f93713e30b923d9970d144af3e
   firebase_core: f1aafb21c14f497e5498f7ffc4dc63cbb52b2594
