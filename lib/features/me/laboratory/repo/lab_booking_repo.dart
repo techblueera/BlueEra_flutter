@@ -51,9 +51,9 @@ class LabBookingRepo extends BaseService {
     );
   }
 
-  /// PUT: lab owner accepts / declines while the booking is `pending`.
-  /// The doc notes `cancelled` exists in the model but no endpoint sets
-  /// it yet — customer cancel is deliberately not exposed here.
+  /// PUT: lab owner accepts / declines while the booking is `pending`
+  /// (doc §2). Customer-cancel goes through [cancelLabBooking] on a
+  /// distinct endpoint.
   Future<ResponseModel> updateLabBookingStatus({
     required String bookingId,
     required Map<String, dynamic> params,
@@ -61,6 +61,21 @@ class LabBookingRepo extends BaseService {
     return ApiBaseHelper().putHTTP(
       laboratoryBookingStatus(bookingId),
       params: params,
+      showProgress: false,
+      onSuccess: (_) {},
+      onError: (_) {},
+    );
+  }
+
+  /// PUT: customer cancels their own booking while it is `pending`
+  /// OR `accepted` (doc §2b). No body. 200 + already-cancelled is
+  /// idempotent; 409 means the booking was settled through another
+  /// path (owner declined via socket, etc.) — the controller treats
+  /// 409 as success so the card just re-syncs to the settled state.
+  Future<ResponseModel> cancelLabBooking({required String bookingId}) async {
+    return ApiBaseHelper().putHTTP(
+      laboratoryBookingCancel(bookingId),
+      params: const <String, dynamic>{},
       showProgress: false,
       onSuccess: (_) {},
       onError: (_) {},

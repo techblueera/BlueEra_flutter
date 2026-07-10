@@ -7,6 +7,8 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
+import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
+import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_booking_controller.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -130,22 +132,39 @@ class HotelBookingSheet {
     }
   }
 
-  static void open(
+  static Future<void> open(
     BuildContext context, {
     required HotelBookingListing listing,
     List<String>? roomTypes,
     String? roomId,
     String? enquiryId,
     List<HotelBookingRoomOption>? availableRooms,
-  }) {
+  }) async {
     if (listing.ownerId.isEmpty || listing.hotelId.isEmpty) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
       return;
     }
     // Prefer the direct param; otherwise look up the discover-side cache.
-    final rooms = (availableRooms != null && availableRooms.isNotEmpty)
-        ? availableRooms
-        : _roomsCache[listing.hotelId.trim()];
+    List<HotelBookingRoomOption>? rooms =
+        (availableRooms != null && availableRooms.isNotEmpty)
+            ? availableRooms
+            : _roomsCache[listing.hotelId.trim()];
+
+    // Cache miss — hydrate on demand. Happens on the enquiry-first
+    // flow when the customer taps "Book Now" on the chat card in a
+    // fresh session (no discover visit → nothing cached) or from a
+    // notification tap or a socket-delivered card. Falls back to the
+    // text-chip picker if the fetch fails; the sheet still opens.
+    if (rooms == null || rooms.isEmpty) {
+      rooms = await _fetchRoomsForListing(listing);
+      if (rooms.isNotEmpty) {
+        cacheRoomsForHotel(listing.hotelId, rooms);
+      }
+    }
+
+    // The async fetch above may have unmounted this context (user
+    // navigated away). Bail rather than crash on a dead BuildContext.
+    if (!context.mounted) return;
 
     // Room-level mode is decided either by the explicit `roomId` (caller
     // already picked a room) or, later, by the customer picking one from
@@ -168,6 +187,54 @@ class HotelBookingSheet {
                 roomType, checkIn, checkOut, guests, note, photoPaths),
       ),
     );
+  }
+
+  /// Fetches the hotel's Rooms from the search endpoint and projects
+  /// them onto the sheet's option shape. Returns an empty list on any
+  /// failure so callers can silently fall back to the text-chip
+  /// picker. Matches by `profile.sId == listing.hotelId` first to
+  /// disambiguate multi-hotel owners; falls back to the sole result
+  /// when the endpoint already narrowed to one.
+  static Future<List<HotelBookingRoomOption>> _fetchRoomsForListing(
+      HotelBookingListing listing) async {
+    try {
+      final controller = getOrPut(() => DiscoverController());
+      final hotel =
+          await controller.fetchHotelByBusinessId(listing.ownerId.trim());
+      if (hotel == null) return const [];
+      // fetchHotelByBusinessId already prefers the exact-businessId
+      // match, but a multi-hotel owner can still return the wrong
+      // listing when businessId matches multiple. Prefer the row whose
+      // profile._id matches our hotelId; else use what we got.
+      final chosen = (hotel.profile?.sId == listing.hotelId.trim())
+          ? hotel
+          : hotel;
+      return _projectRooms(chosen.rooms);
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  /// Projection of `HotelServiceData.rooms` onto the sheet's
+  /// option shape — mirrors `_roomsForBooking()` on the discover
+  /// screen so both entry points produce identical picker cards.
+  static List<HotelBookingRoomOption> _projectRooms(List<Rooms>? rooms) {
+    final out = <HotelBookingRoomOption>[];
+    for (final r in rooms ?? const <Rooms>[]) {
+      final id = (r.sId ?? '').trim();
+      if (id.isEmpty) continue;
+      if (r.isActive == false) continue;
+      out.add(HotelBookingRoomOption(
+        id: id,
+        name: (r.name ?? '').trim(),
+        type: (r.type ?? '').trim(),
+        image: r.images?.exteriorImages?.firstOrNull,
+        pricePerDay: r.pricePerDay,
+        bedType: r.bedType,
+        maxOccupancy: r.maxOccupancy,
+      ));
+    }
+    return out;
   }
 
   static Future<void> _submit(

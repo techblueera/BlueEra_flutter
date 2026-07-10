@@ -1,4 +1,4 @@
-c# Laboratory Test Booking — UI Integration Guide
+# Laboratory Test Booking — UI Integration Guide
 
 The **booking step for a laboratory**: the customer books a **specific test**
 (a `PathologyTest` offered by the lab) — the lab analog of the hotel room-booking
@@ -13,8 +13,8 @@ show a **Book Test** button that opens the booking sheet and passes the enquiry'
 id as `enquiry_id`. Direct booking from the lab's test list also works —
 `enquiry_id` is optional.
 
-**Statuses:** `pending` → `accepted` | `declined` (owner decides).
-*(`cancelled` exists in the model for future use but no endpoint sets it yet.)*
+**Statuses:** `pending` → `accepted` | `declined` (owner decides) | `cancelled`
+(customer cancels).
 
 | Vertical | REST base | Owning service | Chat card |
 |---|---|---|---|
@@ -110,6 +110,21 @@ is already `accepted`/`declined` → `409`.
 | 403 | not the owner |
 | 404 | booking not found |
 | 409 | already accepted/declined |
+
+---
+
+## 2b. Cancel — `PUT /laboratory-bookings/:bookingId/cancel`
+
+No body. **Customer only** (the one who raised it), while the booking is
+`pending` **or** `accepted`. Sets status to `cancelled`. Re-sending on an
+already-cancelled booking → `200` (idempotent). Already `declined`/`cancelled`
+by another path → `409`.
+
+| Status | `message` |
+|---|---|
+| 403 | `Only the customer who raised this booking can cancel it` |
+| 404 | `Booking not found` |
+| 409 | already declined/cancelled |
 
 ---
 

@@ -6,7 +6,6 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/widgets/go_live_pill.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_flag_controller.dart';
@@ -14,7 +13,6 @@ import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart'
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
-import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_bookings_tab_v2.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_departments_tab_v2.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_facilities_tab_v2.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_inquiry_tab_v2.dart';
@@ -22,6 +20,7 @@ import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_overview_tab_
 import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_posts_tab_v2.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_stats_tab_v2.dart';
 import 'package:BlueEra/features/me/medical/controller/hospital_appointment_controller.dart';
+import 'package:BlueEra/widgets/go_live_pill.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:flutter/material.dart';
@@ -43,13 +42,11 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2>
   final _businessController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
   // Registered up-front so the Bookings tab's Obx has a live controller
   // to observe even if the user opens the tab before it hydrates.
-  final _appointmentController =
-      getOrPut(() => HospitalAppointmentController());
+  final _appointmentController = getOrPut(() => HospitalAppointmentController());
   late final TabController _tabController;
 
   static final _tabs = [
     AppStrings.hospitalInquiry.tr,
-    'Bookings',
     AppStrings.overview.tr,
     AppStrings.hospitalDepartments.tr,
     AppStrings.facilities.tr,
@@ -107,8 +104,7 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2>
       onRefresh: () async {
         await Future.wait([
           _hospitalController.getHospitalFullDetailsController(),
-          if (_tabController.index == 4)
-            _appointmentController.fetchOwnerAppointments(),
+          if (_tabController.index == 4) _appointmentController.fetchOwnerAppointments(),
         ]);
       },
       child: SingleChildScrollView(
@@ -136,13 +132,9 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2>
                 _tabScroll(HospitalInquiryTabV2(
                   onAddDepartments: () => _tabController.animateTo(2),
                 )),
-                _tabScroll(const HospitalBookingsTabV2()),
                 _tabScroll(HospitalOverviewTabV2(controller: _hospitalController)),
-                _tabScroll(
-                    HospitalDepartmentsTabV2(controller: _hospitalController)),
-                _tabScroll(
-                    HospitalFacilitiesTabV2(controller: _hospitalController)),
-
+                _tabScroll(HospitalDepartmentsTabV2(controller: _hospitalController)),
+                _tabScroll(HospitalFacilitiesTabV2(controller: _hospitalController)),
                 _tabScroll(const HospitalPostsTabV2()),
                 _tabScroll(const HospitalStatsTabV2()),
               ],
@@ -298,4 +290,3 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2>
   // TABS CARD
   // ─────────────────────────────────────────────
 }
-
