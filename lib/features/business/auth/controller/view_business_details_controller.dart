@@ -1,7 +1,13 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/features/business/auth/model/shop_open_status.dart';
+import 'package:BlueEra/features/contribution/view/contribution_screen_v2.dart';
+import 'package:BlueEra/features/me/grocery/view/admin/grocery_shop_availability_screen.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
+import 'package:BlueEra/widgets/shop_availability_sheet.dart';
 import 'package:BlueEra/core/services/business_profile_cache.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/utils/fetch_cache.dart';
@@ -290,13 +296,12 @@ logs("BUSINESS ID=== ${businessId}");
     isBusinessVerified.value =
         businessProfileDetails.value?.data?.businessIsVerified ?? false;
 
-    // Hydrate the Go-Live toggle from the profile so the pill reflects the real
-    // server state on load. The API returns `availability.liveState.isLive`;
-    // without this the toggle always renders OFF until the user taps it, even
-    // when the business is already live for today.
-    isLive.value = businessProfileDetails
-            .value?.data?.availability?.liveState?.isLive ??
-        false;
+    // Hydrate the schedule-driven auto open/close from the profile so the pill
+    // reflects the real state on load and starts flipping itself at the open /
+    // close boundaries. The availability document carries the weekly hours and
+    // any same-day override; `isLive` is then a *computed* value (open now),
+    // not a manual flag.
+    _hydrateAvailability(businessProfileDetails.value?.data?.availability);
 
     if (Get.isRegistered<AuthController>()) {
       Get.find<AuthController>().imgPath.value =
@@ -599,30 +604,181 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
     }
   }
 
-  final visitingcontroller = Get.put(VisitProfileController());
+  final visitingController = Get.put(VisitProfileController());
 
-  // ── Go-live state ───────────────────────────────────────────────────
-  // Reflects whether the business is currently live for today. Driven by the
-  // availability go-live / end-live endpoints; hydrate from the profile's
-  // `availability.liveState` when available.
+  // ── Schedule-driven availability (auto open/close) ──────────────────
+  // The shop opens & closes automatically within the weekly hours the merchant
+  // sets once; a same-day override can force it open/closed for today only and
+  // auto-reverts tomorrow. `isLive` is COMPUTED (open right now) from
+  // [weeklySchedule] + [todayOverride] + the wall clock — not a manual flag.
+
+  /// Whether the shop is open *right now* (the pill's value). Recomputed on a
+  /// minute timer so it flips at the scheduled open / close times on its own.
   final RxBool isLive = false.obs;
 
-  /// Mark the business live for today. Used by the dashboard Go-Live button
-  /// and the `business_go_live_reminder` notification deep-link.
-  Future<void> goLiveNow() async {
-    final res = await BusinessProfileRepo().goLive();
-    if (res.isSuccess) {
-      isLive.value = res.response?.data['data']?['isLive'] ?? true;
-      commonSnackBar(message: AppStrings.youAreNowLive.tr);
-    } else {
-      commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong.tr);
+  /// The full weekly open/close schedule (one row per weekday).
+  final RxList<Schedule> weeklySchedule = <Schedule>[].obs;
+
+  /// Today's manual override, if any (force open / closed for today only).
+  final Rxn<SpecialOverrides> todayOverride = Rxn<SpecialOverrides>();
+
+  /// Rich effective status (open-now, open-today, close time, override flag)
+  /// consumed by the availability sheet.
+  final Rx<ShopOpenStatus> shopStatus =
+      const ShopOpenStatus.closed().obs;
+
+  /// True while a today-override / hours call is in flight (drives the pill
+  /// spinner and disables the sheet controls).
+  final RxBool isAvailabilityUpdating = false.obs;
+
+  Timer? _statusTimer;
+
+  /// True once the merchant has saved a weekly schedule with at least one open
+  /// day. Until then the pill routes straight to the hours editor.
+  bool get hasSchedule =>
+      weeklySchedule.any((s) => (s.isOpen ?? false));
+
+  /// Pull the weekly schedule + today's override off an availability document
+  /// and recompute the live state, (re)starting the minute recompute timer.
+  void _hydrateAvailability(AvailabilityData? availability) {
+    weeklySchedule.value = availability?.schedule ?? <Schedule>[];
+    todayOverride.value = ShopOpenStatus.overrideForToday(
+      availability?.specialOverrides,
+      DateTime.now(),
+    );
+    _recomputeShopStatus();
+    _ensureStatusTimer();
+  }
+
+  /// Recompute [shopStatus] / [isLive] from the current schedule + override and
+  /// the wall clock. Cheap and pure — safe to call from the minute timer.
+  void _recomputeShopStatus() {
+    final status = ShopOpenStatus.compute(
+      schedule: weeklySchedule,
+      todayOverride: todayOverride.value,
+      now: DateTime.now(),
+    );
+    shopStatus.value = status;
+    // Security deposit is the FIRST wall: an unpaid business is never shown as
+    // live, even inside its scheduled hours (e.g. the deposit was set up, hours
+    // saved, then the deposit later became unpaid/refunded). `canGoLive`
+    // fail-opens when the backend doesn't report a deposit requirement.
+    isLive.value = status.isOpenNow && canGoLive;
+  }
+
+  /// Start the once-a-minute recompute so the pill crosses open/close
+  /// boundaries without a network call. Idempotent (permanent controller).
+  void _ensureStatusTimer() {
+    _statusTimer ??= Timer.periodic(
+      const Duration(minutes: 1),
+      (_) => _recomputeShopStatus(),
+    );
+  }
+
+  @override
+  void onClose() {
+    _statusTimer?.cancel();
+    _statusTimer = null;
+    super.onClose();
+  }
+
+  /// Re-read the availability document (schedule + override + effective hours)
+  /// and recompute. Called after editing hours or changing today's override.
+  Future<void> loadHours() async {
+    final res = await BusinessProfileRepo().getBusinessHours();
+    if (!res.isSuccess) return;
+    final body = res.response?.data;
+    final data = (body is Map) ? body['data'] : null;
+    if (data is Map<String, dynamic>) {
+      _hydrateAvailability(AvailabilityData.fromJson(data));
     }
   }
 
-  /// Mark the business offline.
-  Future<void> endLiveNow() async {
-    final res = await BusinessProfileRepo().endLive();
-    if (res.isSuccess) isLive.value = false;
+  /// Security-deposit gate. Returns true when the merchant may open the shop;
+  /// otherwise shows the reason and routes to the deposit flow, returning
+  /// false. Fail-open — blocks only when the backend reports required && !paid.
+  bool ensureCanGoLive() {
+    if (canGoLive) return true;
+    commonSnackBar(
+      message:
+          'Your payment is incomplete. Please complete the security deposit to go live and receive service enquiries.',
+    );
+    Get.to(() => const ContributionScreenV2());
+    return false;
+  }
+
+  /// Entry point for the shared "Go live" pill. First run (no schedule yet)
+  /// opens the weekly hours editor; once hours exist it opens the availability
+  /// sheet (status + today override + edit hours). Deposit-gated up front.
+  Future<void> openAvailabilityControl() async {
+    // 1. Payment gate FIRST — an unpaid business is told why and routed to the
+    //    security-deposit flow; the sheet never opens.
+    if (!ensureCanGoLive()) return;
+
+    // 2. Safety net: hydrate the hours if the profile hasn't populated them yet
+    //    so the sheet shows the correct state (set-hours prompt vs live status).
+    if (!hasSchedule) await loadHours();
+
+    // 3. Always open the shop-status sheet. With no weekly hours it shows a
+    //    "Set visiting hours" prompt; once hours exist it shows the live status
+    //    + the today-only override + edit-hours.
+    await showShopAvailabilitySheet(this);
+  }
+
+  /// Open the weekly hours editor and re-hydrate on save. Used by both the
+  /// sheet's "Set visiting hours" empty state and its "Edit weekly hours" row.
+  Future<void> openWeeklyEditor() async {
+    final result = await Get.to(
+      () => GroceryShopAvailabilityScreen(initialSchedule: weeklySchedule),
+    );
+    if (result == true) await loadHours();
+  }
+
+  /// Force the shop OPEN for today only (open all remaining day). Reverts to
+  /// the weekly schedule automatically tomorrow.
+  Future<void> setOpenToday() async {
+    await _applyTodayOverride({
+      'isOpen': true,
+      'shopOpenTime': '00:00',
+      'shopCloseTime': '23:59',
+    });
+  }
+
+  /// Force the shop CLOSED for today only. Reverts tomorrow.
+  Future<void> setClosedToday() async {
+    await _applyTodayOverride({'isOpen': false});
+  }
+
+  Future<void> _applyTodayOverride(Map<String, dynamic> body) async {
+    if (!ensureCanGoLive()) return;
+    isAvailabilityUpdating.value = true;
+    try {
+      final res = await BusinessProfileRepo().setTodayHours(body);
+      if (res.isSuccess) {
+        await loadHours();
+      } else {
+        commonSnackBar(
+            message: res.message ?? AppStrings.somethingWentWrong.tr);
+      }
+    } finally {
+      isAvailabilityUpdating.value = false;
+    }
+  }
+
+  /// Clear today's override and fall back to the weekly schedule immediately.
+  Future<void> revertTodayOverride() async {
+    isAvailabilityUpdating.value = true;
+    try {
+      final res = await BusinessProfileRepo().clearTodayHours();
+      if (res.isSuccess) {
+        await loadHours();
+      } else {
+        commonSnackBar(
+            message: res.message ?? AppStrings.somethingWentWrong.tr);
+      }
+    } finally {
+      isAvailabilityUpdating.value = false;
+    }
   }
 
   /// Freshness guard for the visited business profile, keyed per business id.
@@ -663,7 +819,7 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
             visitedBusinessProfileDetails?.data?.businessDescription ?? "";
 
         viewBusinessResponseNew = ApiResponse.complete(responseModel);
-        visitingcontroller.isFollow.value =
+        visitingController.isFollow.value =
             visitedBusinessProfileDetails?.data?.is_following ?? false;
         distanceFromKm.value = await getDistanceInKm(
                 visitedBusinessProfileDetails?.data?.businessLocation?.lat ?? 0,

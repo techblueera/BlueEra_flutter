@@ -13,7 +13,6 @@ import 'package:BlueEra/features/chat/auth/controller/chat_flag_controller.dart'
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
-import 'package:BlueEra/features/me/grocery/view/admin/grocery_shop_availability_screen.dart';
 import 'package:BlueEra/features/me/automotive_service/controller/business_profile_full_controller.dart';
 import 'package:BlueEra/features/me/automotive_service/view/v2/tabs/other_inquiry_tab_v2.dart';
 import 'package:BlueEra/features/me/automotive_service/view/v2/tabs/other_overview_tab_v2.dart';
@@ -38,9 +37,6 @@ class OtherHomeScreenV2 extends StatefulWidget {
 
 class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
     with SingleTickerProviderStateMixin, MeTabBackHandlerMixin {
-  /// Local live state backing the Go-Live toggle/pill.
-  bool isShopGoLive = false;
-
   late final AutomotiveBusinessProfileFullController _otherController;
   final _businessController =
       getOrPut(() => ViewBusinessDetailsController(), permanent: true);
@@ -260,21 +256,18 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
   /// Drive the Go-Live toggle. Turning ON opens the shop-availability
   /// (set-time) form directly. Turning OFF just flips the local toggle.
   Future<void> handleGoLiveTap() async {
-    if (isShopGoLive) {
-      setState(() => isShopGoLive = false);
-      return;
-    }
-
-    final result = await Get.to(() => const GroceryShopAvailabilityScreen());
-    if (result == true && mounted) {
-      setState(() => isShopGoLive = true);
-    }
+    // The pill reflects the schedule-driven auto open/close state; tapping
+    // opens the shop-status control — first run routes to the weekly hours
+    // editor, thereafter the status sheet (with the today-only override).
+    await _businessController.openAvailabilityControl();
   }
 
   Widget _goLivePill() {
-    return GoLivePill(
-      value: isShopGoLive,
-      onTap: handleGoLiveTap,
+    return Obx(
+      () => GoLivePill(
+        value: _businessController.isLive.value,
+        onTap: handleGoLiveTap,
+      ),
     );
   }
 }

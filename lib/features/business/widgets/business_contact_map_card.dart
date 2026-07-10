@@ -137,26 +137,11 @@ class BusinessContactMapCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: CustomText(
-                  AppStrings.contactUs.tr,
-                  fontSize: SizeConfig.large,
-                  color: AppColors.mainTextColor,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              if (showEditButton)
-                InkWell(
-                  onTap: () => updateLocationDialog(context, businessProfileDetails),
-                  child: LocalAssets(
-                    height: 16,
-                    imagePath: AppIconAssets.pen_line,
-                  ),
-                ),
-            ],
+          CustomText(
+            AppStrings.contactUs.tr,
+            fontSize: SizeConfig.large,
+            color: AppColors.mainTextColor,
+            fontWeight: FontWeight.w600,
           ),
           const SizedBox(height: 10),
           Container(
@@ -233,8 +218,7 @@ class BusinessContactMapCard extends StatelessWidget {
                 if (businessProfileDetails?.userContactNo?.isNotEmpty ?? false)
                   _contactItem(AppIconAssets.phone_outline, businessProfileDetails!.userContactNo!),
 
-                if (businessProfileDetails?.address?.isNotEmpty ?? false)
-                  _contactItem(AppIconAssets.location_new, businessProfileDetails!.address!),
+                _locationItem(context),
               ],
             ),
           ),
@@ -568,6 +552,42 @@ class BusinessContactMapCard extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  /// Business address/location row. Shows the current address and, for the
+  /// owner, an Update chip that opens the location-update confirm dialog →
+  /// picker. Always visible to the owner (even with no address yet) so an
+  /// unset location can still be added — the old header pen icon was the only
+  /// entry point and was hidden whenever the address was empty.
+  Widget _locationItem(BuildContext context) {
+    final address = businessProfileDetails?.address ?? '';
+    // Hide entirely for visitors when there's no address to show.
+    if (address.isEmpty && !showEditButton) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12.0),
+      child: Row(
+        children: [
+          LocalAssets(
+            imagePath: AppIconAssets.location_new,
+            imgColor: AppColors.secondaryTextColor,
+            height: 20,
+            width: 20,
+            boxFix: BoxFit.contain,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: CustomText(
+              address.isEmpty ? 'Location not set' : address,
+              fontSize: 15,
+              color: AppColors.mainTextColor,
+            ),
+          ),
+          if (showEditButton)
+            _updateChip(
+                () => updateLocationDialog(context, businessProfileDetails)),
+        ],
+      ),
     );
   }
 

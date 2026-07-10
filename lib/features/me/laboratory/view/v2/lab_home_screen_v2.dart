@@ -12,7 +12,6 @@ import 'package:BlueEra/features/chat/auth/controller/chat_flag_controller.dart'
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
-import 'package:BlueEra/features/me/grocery/view/admin/grocery_shop_availability_screen.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_full_details_controller.dart';
 import 'package:BlueEra/features/me/laboratory/view/v2/tabs/lab_facilities_tab_v2.dart';
 import 'package:BlueEra/features/me/laboratory/view/v2/tabs/lab_inquiry_tab_v2.dart';
@@ -42,7 +41,6 @@ class _LabHomeScreenV2State extends State<LabHomeScreenV2>
   late final LabFullDetailsController _labController;
   final _businessController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
-  bool isShopGoLive = false;
   late final TabController _tabController;
   List<String> get _tabs => [
         AppStrings.inquiry.tr,
@@ -266,21 +264,18 @@ class _LabHomeScreenV2State extends State<LabHomeScreenV2>
   /// hours and goes live via the backend, popping back `true` on success.
   /// Turning OFF just flips the local toggle.
   Future<void> handleGoLiveTap() async {
-    if (isShopGoLive) {
-      setState(() => isShopGoLive = false);
-      return;
-    }
-
-    final result = await Get.to(() => const GroceryShopAvailabilityScreen());
-    if (result == true && mounted) {
-      setState(() => isShopGoLive = true);
-    }
+    // The pill reflects the schedule-driven auto open/close state; tapping
+    // opens the shop-status control — first run routes to the weekly hours
+    // editor, thereafter the status sheet (with the today-only override).
+    await _businessController.openAvailabilityControl();
   }
 
   Widget _goLivePill() {
-    return GoLivePill(
-      value: isShopGoLive,
-      onTap: handleGoLiveTap,
+    return Obx(
+      () => GoLivePill(
+        value: _businessController.isLive.value,
+        onTap: handleGoLiveTap,
+      ),
     );
   }
 

@@ -28,9 +28,6 @@ import 'package:BlueEra/features/me/automotive_products/controller/automotive_in
 import 'package:BlueEra/features/me/automotive_products/model/automotive_product_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_admin_all_top_selling_products_screen.dart';
 import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_product_home_screen.dart';
-import 'package:BlueEra/features/me/grocery/view/admin/grocery_shop_availability_screen.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/contribution/view/contribution_screen_v2.dart';
 import 'package:BlueEra/features/me/automotive_products/view/admin/widget/automotive_admin_product_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -53,9 +50,6 @@ class AutomotivePartsScreen extends StatefulWidget {
 
 class _AutomotivePartsScreenState extends State<AutomotivePartsScreen>
     with SingleTickerProviderStateMixin, MeTabBackHandlerMixin {
-  /// Local live state backing the Go-Live toggle/pill.
-  bool isShopGoLive = false;
-
   TabController? _tabController;
   int _selectedTab = 0; // land on the first tab (Order) on open
   bool _isLoading = true;
@@ -414,43 +408,25 @@ class _AutomotivePartsScreenState extends State<AutomotivePartsScreen>
   /// Drive the Go-Live toggle. Turning ON opens the shop-availability
   /// (open-timer) form directly — same as the grocery v2 home. The form
   /// persists the hours and goes live via the backend, popping back `true`
-  /// on success. Turning OFF just flips the local toggle.
+  /// on success. Turning OFF calls end-live so it persists across restarts.
   Future<void> handleGoLiveTap() async {
-    if (isShopGoLive) {
-      setState(() => isShopGoLive = false);
-      return;
-    }
-
-    // Security-deposit go-live gate — sourced from the business profile's
-    // `securityDeposit` (GET business profile). Block only when the backend
-    // explicitly reports `required && !paid`; fail-open otherwise. See
-    // docs/backend/BUSINESS_GO_LIVE_BACKEND_INTEGRATION.md.
-    if (!viewBusinessDetailsController.canGoLive) {
-      // Tell the merchant why go-live is blocked, then route them to the
-      // security-deposit flow to complete payment — go-live stays blocked
-      // until it's paid.
-      commonSnackBar(
-        message:
-            'Your payment is incomplete. Please complete the security deposit to go live and receive service enquiries.',
-      );
-      Get.to(() => const ContributionScreenV2());
-      return;
-    }
-
-    final result = await Get.to(() => const GroceryShopAvailabilityScreen());
-    if (result == true && mounted) {
-      setState(() => isShopGoLive = true);
-    }
+    // The pill reflects the schedule-driven auto open/close state; tapping
+    // opens the shop-status control — first run routes to the weekly hours
+    // editor, thereafter the status sheet (with the today-only override). The
+    // security-deposit gate is enforced inside openAvailabilityControl().
+    await viewBusinessDetailsController.openAvailabilityControl();
   }
 
   /// Go-live toggle pill. Off-state: white track + grey thumb.
   /// On-state: brand-blue track + white thumb. Same chip language
   /// the grocery v2 top bar uses.
   Widget _goLivePill() {
-    return GoLivePill(
-      value: isShopGoLive,
-      onTap: handleGoLiveTap,
-      showShadow: false,
+    return Obx(
+      () => GoLivePill(
+        value: viewBusinessDetailsController.isLive.value,
+        onTap: handleGoLiveTap,
+        showShadow: false,
+      ),
     );
   }
 

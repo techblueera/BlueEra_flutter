@@ -54,8 +54,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:croppy/croppy.dart';
 import 'package:BlueEra/features/business/widgets/business_joined_profile_card.dart';
 import 'package:flutter/material.dart';
-import 'package:BlueEra/features/me/grocery/view/admin/grocery_shop_availability_screen.dart';
-import 'package:BlueEra/features/contribution/view/contribution_screen_v2.dart';
 import 'package:get/get.dart';
 
 class FoodMainScreen extends StatefulWidget {
@@ -70,7 +68,6 @@ class FoodMainScreen extends StatefulWidget {
 class _FoodMainScreenState extends State<FoodMainScreen>
     with SingleTickerProviderStateMixin, MeTabBackHandlerMixin {
   int _selectedTab = 0; // Order tab
-  bool _isGoLive = false;
   late final TabController _tabController;
 
   late final RestaurantController _foodController;
@@ -276,9 +273,7 @@ class _FoodMainScreenState extends State<FoodMainScreen>
   List<Widget> _buildOverviewSlivers() {
     return [
       BusinessJoinedProfileCard(businessController: _businessController),
-      SizedBox(height: SizeConfig.size10),
       _buildLivePhotosSection(),
-      SizedBox(height: SizeConfig.size10),
       Padding(
         padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
         child: const BusinessDescriptionCard(),
@@ -938,62 +933,24 @@ class _FoodMainScreenState extends State<FoodMainScreen>
   /// persists the hours and goes live via the backend, popping back `true`
   /// on success. Turning OFF just flips the local toggle.
   Future<void> handleGoLiveTap() async {
-    if (_isGoLive) {
-      setState(() => _isGoLive = false);
-      return;
-    }
-
-    // Security-deposit go-live gate — sourced from the business profile's
-    // `securityDeposit` (GET business profile). Block only when the backend
-    // explicitly reports `required && !paid`; fail-open otherwise. See
-    // docs/backend/BUSINESS_GO_LIVE_BACKEND_INTEGRATION.md.
-    if (!_businessController.canGoLive) {
-      // Tell the merchant why go-live is blocked, then route them to the
-      // security-deposit flow to complete payment — go-live stays blocked
-      // until it's paid.
-      commonSnackBar(
-        message:
-            'Your payment is incomplete. Please complete the security deposit to go live and receive service enquiries.',
-      );
-      Get.to(() => const ContributionScreenV2());
-      return;
-    }
-
-    final result = await Get.to(() => const GroceryShopAvailabilityScreen());
-    if (result == true && mounted) {
-      setState(() => _isGoLive = true);
-    }
+    // The pill reflects the schedule-driven auto open/close state; tapping
+    // opens the shop-status control — first run routes to the weekly hours
+    // editor, thereafter the status sheet (with the today-only override). The
+    // security-deposit gate is enforced inside openAvailabilityControl().
+    await _businessController.openAvailabilityControl();
   }
 
   Widget _goLivePill() {
-    return GoLivePill(
-      value: _isGoLive,
-      onTap: handleGoLiveTap,
-      showShadow: false,
+    return Obx(
+      () => GoLivePill(
+        value: _businessController.isLive.value,
+        onTap: handleGoLiveTap,
+        showShadow: false,
+      ),
     );
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // PROFILE ROW
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // TABS â€” solid white card with high-contrast labels and an animated
-  // underline that glides under the selected tab. Mirrors the grocery
-  // home v2 design.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-  // JOINED + IDENTITY + COVER STACK â€” three stacked cards mirroring
-  // the grocery v2 overview header:
-  //   Card 1. Joined-date pill (calendar + DD/MM/YYYY)
-  //   Card 2. Identity card (avatar w/ edit pin, name, sub-cat, rating)
-  //   Card 3. Cover-photo banner with footer Edit pill
-  // Card containers share the #00112042 / blur-10 shadow language used
-  // across other section cards.
-
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // QR CODE â€” share/download the business profile
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildQrCodeSection() {
     return Obx(() {
       final details = _businessController.businessProfileDetails.value?.data;

@@ -223,7 +223,7 @@ class BusinessProfileRepo extends BaseService {
       businessAvailabilityHours,
       params: params,
       isMultipart: false,
-      showProgress: true,
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );
@@ -246,7 +246,7 @@ class BusinessProfileRepo extends BaseService {
       businessAvailabilityToday,
       params: params,
       isMultipart: false,
-      showProgress: true,
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );
@@ -256,7 +256,7 @@ class BusinessProfileRepo extends BaseService {
   Future<ResponseModel> clearTodayHours() async {
     return await ApiBaseHelper().deleteHTTP(
       businessAvailabilityToday,
-      showProgress: true,
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );
@@ -267,7 +267,7 @@ class BusinessProfileRepo extends BaseService {
     return await ApiBaseHelper().postHTTP(
       businessGoLive,
       params: {},
-      showProgress: true,
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );
@@ -278,7 +278,7 @@ class BusinessProfileRepo extends BaseService {
     return await ApiBaseHelper().postHTTP(
       businessEndLive,
       params: {},
-      showProgress: true,
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );

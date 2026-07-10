@@ -7318,4 +7318,23 @@ class AppStrings {
   static const String youAreNowLive = "youAreNowLive";
   static const String keepAtLeastOneDayOpen = "keepAtLeastOneDayOpen";
   static const String closingTimeMustBeAfterOpening = "closingTimeMustBeAfterOpening";
+
+  // ── Shop status sheet (auto open/close + today override) ─────────
+  static const String daily = "daily";
+  static const String shopStatus = "shopStatus";
+  static const String openNowLabel = "openNowLabel";
+  static const String closedNowLabel = "closedNowLabel";
+  static const String closedTodayLabel = "closedTodayLabel";
+  static const String opensAtLabel = "opensAtLabel";
+  static const String tillLabel = "tillLabel";
+  static const String todayOnly = "todayOnly";
+  static const String openTodayLabel = "openTodayLabel";
+  static const String revertsToScheduleTomorrow = "revertsToScheduleTomorrow";
+  static const String autoOpenCloseNote = "autoOpenCloseNote";
+  static const String revertToScheduleNow = "revertToScheduleNow";
+  static const String editWeeklyHours = "editWeeklyHours";
+  static const String setVisitingHours = "setVisitingHours";
+  static const String noHoursSetSubtitle = "noHoursSetSubtitle";
+  static const String weeklyHoursTitle = "weeklyHoursTitle";
+  static const String todayTag = "todayTag";
 }

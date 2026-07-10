@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:ui';
 
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/services/ads/ad_debug.dart';
@@ -78,10 +79,19 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
 
   Future<void> _loadInitialData() async {
     walletController.getWalletApiIfNeeded();
+    // Only fetch the own profile when it isn't already loaded — the home boot
+    // (bottom nav) and each business home screen already fetch it, so an
+    // unguarded call here re-hit the same profile API on every drawer open.
     if (accountTypeGlobal != "BUSINESS") {
-      await viewProfileController.viewPersonalProfile();
+      if (viewProfileController.viewPersonalResponse.value.status !=
+          Status.COMPLETE) {
+        await viewProfileController.viewPersonalProfile();
+      }
     } else {
-      viewBusinessProfileController.viewBusinessProfile();
+      if (viewBusinessProfileController.viewBusinessResponse.status !=
+          Status.COMPLETE) {
+        viewBusinessProfileController.viewBusinessProfile();
+      }
     }
   }
 
@@ -115,7 +125,15 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
     if (accountTypeGlobal != "BUSINESS") {
       return Get.find<AuthController>().imgPath.value;
     } else {
-      return viewBusinessProfileController.imagePath?.value ?? "";
+      // Read the logo from the OWN business profile object — the same stable
+      // source as the name/designation above. The controller's `imagePath`
+      // observable is reused as scratch state for *visited* businesses
+      // (viewBusinessProfileById), so on the shared permanent controller it
+      // gets overwritten/blanked when a related store or another profile
+      // loads — which made the drawer logo appear and then vanish.
+      return viewBusinessProfileController
+              .businessProfileDetails.value?.data?.logo ??
+          "";
     }
   }
 
@@ -306,6 +324,9 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
                           ? Image.network(
                               image,
                               fit: BoxFit.cover,
+                              // Keep the current frame during any rebuild/reload
+                              // so the avatar never blinks to blank.
+                              gaplessPlayback: true,
                               errorBuilder: (_, __, ___) => _avatarFallback(),
                             )
                           : _avatarFallback(),

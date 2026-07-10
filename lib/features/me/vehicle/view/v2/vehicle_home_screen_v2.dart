@@ -9,6 +9,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/go_live_pill.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_service_screen.dart';
@@ -64,7 +65,8 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2>
     AppStrings.posts.tr,
     AppStrings.statsTab.tr,
   ];
-  bool isShopGoLive = false;
+  final _businessController =
+      getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
   @override
   void initState() {
@@ -277,21 +279,19 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2>
     );
   }
   Widget _goLivePill() {
-    return GoLivePill(
-      value: isShopGoLive,
-      onTap: handleGoLiveTap_,
+    return Obx(
+      () => GoLivePill(
+        value: _businessController.isLive.value,
+        onTap: handleGoLiveTap_,
+      ),
     );
   }
-  Future<void> handleGoLiveTap_() async {
-    if (isShopGoLive) {
-      setState(() => isShopGoLive = false);
-      return;
-    }
 
-    final result = await Get.to(() => const GroceryShopAvailabilityScreen());
-    if (result == true && mounted) {
-      setState(() => isShopGoLive = true);
-    }
+  Future<void> handleGoLiveTap_() async {
+    // The pill reflects the schedule-driven auto open/close state; tapping
+    // opens the shop-status control — first run routes to the weekly hours
+    // editor, thereafter the status sheet (with the today-only override).
+    await _businessController.openAvailabilityControl();
   }
 
 }

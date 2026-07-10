@@ -2116,20 +2116,11 @@ Future<void> handleGoLiveTap() async {
   final isRiderRole = userProfessionGlobal == BIKE_RIDER ||
       userProfessionGlobal == CAR_TAXI_DRIVER;
   if (isRiderRole && !riderCtrl.isSecurityDepositPaid) {
-    // The deposit may have just been paid/reconciled server-side while the
-    // screen held a stale `paid:false` status — re-pull the live onboarding
-    // status before blocking so a paid rider isn't dead-ended on old state.
-    await riderCtrl.ridersOnboardingStatusRepoApi(forceRefresh: true);
-    if (!riderCtrl.isSecurityDepositPaid) {
-      // Still unpaid → tell the rider why, then route them to the
-      // security-deposit flow to complete payment. Going live stays blocked
-      // until it's paid.
-      commonSnackBar(
-          message:
-              'Your payment is incomplete. Please complete the payment process to go live.');
-      Get.to(() => const ContributionScreenV2());
-      return;
-    }
+    commonSnackBar(
+        message:
+            'Your payment is incomplete. Please complete the payment process to go live.');
+    Get.to(() => const ContributionScreenV2());
+    return;
   }
 
   final statuses = await GoLivePermissionService.checkAll();

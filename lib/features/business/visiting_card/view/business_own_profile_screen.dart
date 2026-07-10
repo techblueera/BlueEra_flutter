@@ -33,12 +33,13 @@ class _BusinessOwnProfileScreenState extends State<BusinessOwnProfileScreen> {
     ///GET PROFILE API CALLING...
     viewProfileController.viewBusinessProfile();
     viewProfileController.getAllCategories();
-    // Deep-link from the `business_go_live_reminder` notification: auto-prompt
-    // go-live once the profile is on screen.
+    // Deep-link from the `business_go_live_reminder` notification: open the
+    // shop-availability control once the profile is on screen (weekly hours
+    // editor first run, else the status sheet with the today-only override).
     final args = Get.arguments;
     if (args is Map && args['open_go_live'] == true) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        viewProfileController.goLiveNow();
+        viewProfileController.openAvailabilityControl();
       });
     }
     super.initState();

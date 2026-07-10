@@ -18,9 +18,11 @@ import 'package:get/get.dart';
 /// hours per weekday (Weekly) — by setting an open + closing time.
 ///
 /// On save the screen persists the assembled weekly [Schedule] through the
-/// business availability endpoint (`PUT /availability/hours`) and then flips
-/// the shop live (`POST /availability/go-live`). It pops back `true` only on
-/// full success so the caller can reflect the live state.
+/// business availability endpoint (`PUT /availability/hours`) and pops back
+/// `true`. There is no explicit go-live step: once the hours are saved the
+/// shop opens and closes automatically within them (the live state is computed
+/// from the schedule + wall clock). A per-day manual override lives in the
+/// shop-status sheet, not here.
 class GroceryShopAvailabilityScreen extends StatefulWidget {
   /// Optional previously-saved schedule used to pre-fill the form so the
   /// seller edits rather than re-enters their hours.
@@ -57,6 +59,10 @@ class _GroceryShopAvailabilityScreenState
 
   // Weekly mode — one editable row per weekday.
   late final Map<String, _DayHours> _weekly;
+
+  // True while the save request is in flight — drives the Save button loader
+  // (the availability endpoints no longer show the global progress dialog).
+  bool _isSaving = false;
 
   // Persists the weekly schedule and flips the shop live via the
   // business availability endpoints.
@@ -195,7 +201,7 @@ class _GroceryShopAvailabilityScreenState
               Positioned.fill(
                 child: Row(
                   children: [
-                    Expanded(child: _modeTab(AppStrings.today.tr, false)),
+                    Expanded(child: _modeTab(AppStrings.daily.tr, false)),
                     Expanded(child: _modeTab(AppStrings.weekly.tr, true)),
                   ],
                 ),
@@ -428,9 +434,10 @@ class _GroceryShopAvailabilityScreenState
         ],
       ),
       child: CustomBtn(
-        title: AppStrings.saveAndGoLive.tr,
+        title: AppStrings.save.tr,
         radius: 10,
         bgColor: AppColors.primaryColor,
+        isLoading: _isSaving,
         onTap: _onSave,
       ),
     );
@@ -486,23 +493,21 @@ class _GroceryShopAvailabilityScreenState
       }
     }
 
-    // 1. Persist the weekly schedule (full 7-day array replaces the stored one).
+    // Persist the weekly schedule (full 7-day array replaces the stored one).
+    // No explicit go-live step: once hours are saved the shop opens and closes
+    // automatically within them (computed from the schedule + wall clock). A
+    // 402 here means the security deposit is unpaid — surfaced as a snackbar.
     final body = {
       'timezone': 'Asia/Kolkata',
       'schedule': schedule.map((s) => s.toJson()).toList(),
     };
+    setState(() => _isSaving = true);
     final saveRes = await _repo.setBusinessHours(body);
+    if (!mounted) return;
     if (!saveRes.isSuccess) {
+      setState(() => _isSaving = false);
       commonSnackBar(
           message: saveRes.message ?? AppStrings.somethingWentWrong.tr);
-      return;
-    }
-
-    // 2. Go live for today now that hours are saved.
-    final liveRes = await _repo.goLive();
-    if (!liveRes.isSuccess) {
-      commonSnackBar(
-          message: liveRes.message ?? AppStrings.somethingWentWrong.tr);
       return;
     }
 

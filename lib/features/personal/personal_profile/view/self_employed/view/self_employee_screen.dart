@@ -180,11 +180,6 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
     );
   }
 
-  // TOP BAR â€” glassmorphic strip:
-  //   [drawer] [Earn/profile selector]   â€¦   [bell] [Go Live]
-
-
-
   // Going live needs background location, battery-optimization, and
   // display-over-other-apps. If any are missing we route through
   // [GoLivePermissionScreen] and only flip the shop status once the

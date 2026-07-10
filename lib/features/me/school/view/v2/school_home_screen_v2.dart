@@ -14,7 +14,6 @@ import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart'
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_service_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
-import 'package:BlueEra/features/me/grocery/view/admin/grocery_shop_availability_screen.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/features/me/school/view/v2/tabs/school_academics_tab_v2.dart';
 import 'package:BlueEra/features/me/school/view/v2/tabs/school_inquiry_tab_v2.dart';
@@ -225,19 +224,10 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2>
   /// hours and goes live via the backend, popping back `true` on success.
   /// Turning OFF just flips the local toggle.
   Future<void> handleGoLiveTap() async {
-    // Turning OFF persists the end-live to the backend (endLiveNow flips the
-    // controller's isLive on success, which the reactive pill picks up).
-    if (_businessController.isLive.value) {
-      await _businessController.endLiveNow();
-      return;
-    }
-
-    // Turning ON: the availability form persists the hours and goes live via
-    // the backend, popping back `true` on success.
-    final result = await Get.to(() => const GroceryShopAvailabilityScreen());
-    if (result == true && mounted) {
-      _businessController.isLive.value = true;
-    }
+    // The pill reflects the schedule-driven auto open/close state; tapping
+    // opens the shop-status control — first run routes to the weekly hours
+    // editor, thereafter the status sheet (with the today-only override).
+    await _businessController.openAvailabilityControl();
   }
 
   Widget _goLivePill() {

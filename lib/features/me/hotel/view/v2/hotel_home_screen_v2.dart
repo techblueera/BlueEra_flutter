@@ -13,7 +13,6 @@ import 'package:BlueEra/features/chat/auth/controller/chat_flag_controller.dart'
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
-import 'package:BlueEra/features/me/grocery/view/admin/grocery_shop_availability_screen.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_home_detail_controller.dart';
 import 'package:BlueEra/features/me/hotel/view/v2/tabs/hotel_amenities_tab_v2.dart';
 import 'package:BlueEra/features/me/hotel/view/v2/tabs/hotel_inquiry_tab_v2.dart';
@@ -39,9 +38,6 @@ class HotelHomeScreenV2 extends StatefulWidget {
 
 class _HotelHomeScreenV2State extends State<HotelHomeScreenV2>
     with SingleTickerProviderStateMixin, MeTabBackHandlerMixin {
-  /// Local live state backing the Go-Live toggle/pill.
-  bool isShopGoLive = false;
-
   late final HotelDetailController _hotelController;
   final _businessController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
   late final TabController _tabController;
@@ -254,9 +250,11 @@ class _HotelHomeScreenV2State extends State<HotelHomeScreenV2>
   }
 
   Widget _goLivePill() {
-    return GoLivePill(
-      value: isShopGoLive,
-      onTap: handleGoLiveTap,
+    return Obx(
+      () => GoLivePill(
+        value: _businessController.isLive.value,
+        onTap: handleGoLiveTap,
+      ),
     );
   }
 
@@ -265,14 +263,9 @@ class _HotelHomeScreenV2State extends State<HotelHomeScreenV2>
   /// hours and goes live via the backend, popping back `true` on success.
   /// Turning OFF just flips the local toggle.
   Future<void> handleGoLiveTap() async {
-    if (isShopGoLive) {
-      setState(() => isShopGoLive = false);
-      return;
-    }
-
-    final result = await Get.to(() => const GroceryShopAvailabilityScreen());
-    if (result == true && mounted) {
-      setState(() => isShopGoLive = true);
-    }
+    // The pill reflects the schedule-driven auto open/close state; tapping
+    // opens the shop-status control — first run routes to the weekly hours
+    // editor, thereafter the status sheet (with the today-only override).
+    await _businessController.openAvailabilityControl();
   }
 }
