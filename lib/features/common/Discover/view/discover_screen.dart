@@ -1,3 +1,5 @@
+import 'dart:ui' show ImageFilter;
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -289,62 +291,22 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   Widget _buildHeaderSliver(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
 
-    // Collapsing area = status bar + location row + tabs (with paddings). A
-    // slight over-estimate is harmless (extra gradient below the tabs); too
-    // small would clip, so we keep a little headroom.
-    final double expandedHeight = statusBarHeight + 190;
-    const double searchBarHeight = 88;
-
-    return SliverAppBar(
+    // ONE continuous frosted-glass panel for the WHOLE header — a single
+    // BackdropFilter (not two adjacent ones), so the location row, tabs and
+    // search bar share one seamless background. As it collapses the tabs fade /
+    // slide up while the search bar stays pinned at the bottom of the SAME
+    // glass, so the tint/blur is identical at every scroll position.
+    return SliverPersistentHeader(
       pinned: true,
-      floating: false,
-      automaticallyImplyLeading: false,
-      // backgroundColor:Colors.transparent,
-      backgroundColor: Colors.black26.withOpacity(0.1),
-      surfaceTintColor: Colors.transparent,
-      elevation: 0,
-      toolbarHeight: 0,
-      expandedHeight: expandedHeight,
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          // decoration: const BoxDecoration(
-          //   gradient: LinearGradient(
-          //     begin: Alignment.topCenter,
-          //     end: Alignment.bottomCenter,
-          //     colors: [Color(0xFFCFE6FF), Color(0xFFDFEEFF)],
-          //   ),
-          // ),
-          padding: EdgeInsets.only(
-            top: statusBarHeight + SizeConfig.size12,
-            left: SizeConfig.size12,
-            right: SizeConfig.size12,
-            bottom: SizeConfig.size8,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _locationRow(context),
-              SizedBox(height: SizeConfig.size16),
-              _quickAccessTabs(),
-            ],
-          ),
-        ),
-      ),
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(searchBarHeight),
-        child: Container(
-          decoration: const BoxDecoration(
-            color: Colors.transparent,
-            borderRadius: BorderRadius.vertical(bottom: Radius.circular(22)),
-          ),
-          padding: EdgeInsets.only(
-            left: SizeConfig.size12,
-            right: SizeConfig.size12,
-            top: SizeConfig.size8,
-            bottom: SizeConfig.size16,
-          ),
-          child: _searchRow(context),
-        ),
+      delegate: _DiscoverHeaderDelegate(
+        statusBarHeight: statusBarHeight,
+        // Location row + tabs + top/bottom padding (the collapsing part).
+        headerBlockHeight: 158,
+        // Search row + its padding (always pinned at the bottom of the glass).
+        searchAreaHeight: 78,
+        locationRow: _locationRow(context),
+        tabs: _quickAccessTabs(),
+        searchRow: _searchRow(context),
       ),
     );
   }
@@ -541,6 +503,89 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       ],
     );
   }
+}
+
+/// One continuous frosted-glass Discover header. A single [BackdropFilter] fills
+/// the whole (pinned) header extent — so location + tabs + search read as ONE
+/// background — while the location row and tabs fade/slide up as the header
+/// collapses and the search bar stays pinned at the bottom of the same glass.
+/// This keeps the exact same tint/blur at every scroll position (no seam, and
+/// no colour change when the search sticks).
+class _DiscoverHeaderDelegate extends SliverPersistentHeaderDelegate {
+  _DiscoverHeaderDelegate({
+    required this.statusBarHeight,
+    required this.headerBlockHeight,
+    required this.searchAreaHeight,
+    required this.locationRow,
+    required this.tabs,
+    required this.searchRow,
+  });
+
+  final double statusBarHeight;
+  final double headerBlockHeight;
+  final double searchAreaHeight;
+  final Widget locationRow;
+  final Widget tabs;
+  final Widget searchRow;
+
+  @override
+  double get maxExtent =>
+      statusBarHeight + headerBlockHeight + searchAreaHeight;
+
+  @override
+  double get minExtent => statusBarHeight + searchAreaHeight;
+
+  @override
+  Widget build(
+      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    final double range = maxExtent - minExtent;
+    final double collapse = shrinkOffset.clamp(0.0, range);
+    final double opacity =
+        range == 0 ? 1.0 : (1 - collapse / range).clamp(0.0, 1.0);
+
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(22)),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+        // The same translucent-white tint the "Me" home top bars use.
+        child: Container(
+          color: const Color(0x33FFFFFF),
+          child: Stack(
+            clipBehavior: Clip.hardEdge,
+            children: [
+              // Location + tabs — slide up & fade out as the header collapses.
+              Positioned(
+                top: statusBarHeight + 12 - collapse,
+                left: 12,
+                right: 12,
+                child: Opacity(
+                  opacity: opacity,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      locationRow,
+                      const SizedBox(height: 16),
+                      tabs,
+                    ],
+                  ),
+                ),
+              ),
+              // Search bar — always pinned to the bottom of the same glass.
+              Positioned(
+                left: 12,
+                right: 12,
+                bottom: 16,
+                child: searchRow,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant _DiscoverHeaderDelegate oldDelegate) => true;
 }
 
 /// Shimmer skeleton shown in place of the Discover content while location and

@@ -2,11 +2,15 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/account_deletion/repo/account_deletion_repo.dart';
 import 'package:BlueEra/features/common/auth/model/deletion_init_response_model.dart';
 import 'package:BlueEra/widgets/common_dialog.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -14,21 +18,85 @@ import 'package:url_launcher/url_launcher.dart';
 class AccountDeletionController extends GetxController {
   final RxBool isLoading = false.obs;
 
-  /// Entry point from Settings. Confirms, calls /init, and launches the
-  /// deletion web flow in an in-app browser. All post-browser handling
-  /// (401 → logout, login-side auto-cancel banner) lives elsewhere.
+  /// Entry point from Settings. Shows a confirm dialog whose "Continue" button
+  /// carries an inline loader (and a dim full-screen veil, like the OTP screen)
+  /// while `/init` runs; on success it launches the deletion web flow in an
+  /// in-app browser. All post-browser handling (401 → logout, login-side
+  /// auto-cancel banner) lives elsewhere.
   Future<void> startAccountDeletion(BuildContext context) async {
-    showCommonDialog(
-      context: context,
-      header: AppStrings.deleteAccount.tr,
-      text: AppStrings.deleteAccountDialogBody.tr,
-      confirmText: AppStrings.deleteAccountContinue.tr,
-      cancelText: AppStrings.no.tr,
-      confirmCallback: () async {
-        Navigator.of(context).pop();
-        await _initDeletion();
-      },
-      cancelCallback: () => Navigator.of(context).pop(),
+    Get.dialog(
+      Obx(() {
+        final loading = isLoading.value;
+        return Dialog(
+          backgroundColor: AppColors.white,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: Get.width,
+                    color: AppColors.primaryColor,
+                    alignment: Alignment.center,
+                    padding: EdgeInsets.symmetric(vertical: SizeConfig.size10),
+                    child: CustomText(
+                      AppStrings.deleteAccount.tr,
+                      color: Colors.white,
+                      fontSize: SizeConfig.large,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  SizedBox(height: SizeConfig.size20),
+                  Padding(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: SizeConfig.size10),
+                    child: CustomText(
+                      AppStrings.deleteAccountDialogBody.tr,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  SizedBox(height: SizeConfig.size20),
+                  Padding(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: SizeConfig.size20),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: CustomBtn(
+                            bgColor: AppColors.white,
+                            borderColor: AppColors.primaryColor,
+                            textColor: AppColors.primaryColor,
+                            isLoading: loading,
+                            onTap: _initDeletion,
+                            title: AppStrings.deleteAccountContinue.tr,
+                          ),
+                        ),
+                        SizedBox(width: SizeConfig.size10),
+                        Expanded(
+                          child: PositiveCustomBtn(
+                            // Can't cancel mid-request.
+                            onTap: loading ? () {} : () => Get.back(),
+                            title: AppStrings.no.tr,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: SizeConfig.size15),
+                ],
+              ),
+            ),
+          ),
+        );
+      }),
+      barrierDismissible: false,
+      // Slight full-screen black veil behind the dialog while it's up —
+      // matches the OTP screen's in-flight overlay.
+      barrierColor: Colors.black.withValues(alpha: 0.2),
     );
   }
 
@@ -38,6 +106,9 @@ class AccountDeletionController extends GetxController {
     try {
       final ResponseModel response =
           await AccountDeletionRepo().initAccountDeletionRepo();
+
+      // Close the confirm dialog before routing / launching the browser.
+      if (Get.isDialogOpen ?? false) Get.back();
 
       switch (response.statusCode) {
         case 200:
@@ -81,6 +152,7 @@ class AccountDeletionController extends GetxController {
           );
       }
     } catch (e, s) {
+      if (Get.isDialogOpen ?? false) Get.back();
       log('AccountDeletionController error: $e\n$s');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {

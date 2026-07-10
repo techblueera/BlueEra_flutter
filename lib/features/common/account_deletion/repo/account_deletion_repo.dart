@@ -9,6 +9,9 @@ class AccountDeletionRepo extends BaseService {
     final response = await ApiBaseHelper().postHTTP(
       accountDeletionInit,
       params: const {},
+      // No global progress dialog — the confirm dialog shows an inline button
+      // loader + a dim overlay while this runs.
+      showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},
     );
