@@ -27,6 +27,7 @@ import 'package:BlueEra/features/common/Discover/view/widget/discover_profession
 import 'package:BlueEra/features/common/Discover/view/vehicle/vehicle_detail_screen.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hospital/model/hospital_full_details_res_model.dart';
+import 'package:BlueEra/features/me/laboratory/view/lab_detail_screen.dart';
 import 'package:BlueEra/features/me/medical/view/medical_pharmacy_detail_screen.dart';
 import 'package:BlueEra/features/me/product/view/customer/visit_product_store_details_screen.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
@@ -410,6 +411,25 @@ class _SplashScreenState extends State<SplashScreen> {
         return;
       }
 
+      // Laboratory share/QR links carry an extra `labs` segment:
+      //   https://beapp.in/app/business/labs/<businessId>
+      // Route these straight to the lab detail screen ([LabDetailScreen])
+      // instead of the generic business share-preview. Like education/grocery/
+      // hotel/hospital/medical, the id sits at segments[3], so this is checked
+      // before the generic 3-segment `app` handling below.
+      else if (segments.length >= 4 &&
+          segments[0] == 'app' &&
+          segments[1] == 'business' &&
+          segments[2] == 'labs') {
+        final labBusinessId = segments[3];
+        if (!_isValidMongoId(labBusinessId)) {
+          logs('Invalid lab id in deep link: $labBusinessId');
+          return;
+        }
+        _openLaboratory(labBusinessId);
+        return;
+      }
+
       // Financial (finance) share/QR links carry an extra `financial` segment:
       //   https://beapp.in/app/business/financial/<businessId>
       // Route these straight to the finance detail screen
@@ -721,6 +741,22 @@ print("type==== ${type}");
   void _openMedicalPharmacy(String id) {
     getOrPut(() => ViewBusinessDetailsController(), permanent: true);
     Get.to(() => MedicalPharmacyDetailScreen(businessId: id));
+  }
+
+  /// Opens [LabDetailScreen] for a laboratory reached via deep link / QR scan
+  /// (`https://beapp.in/app/business/labs/<businessId>`). The link carries the
+  /// lab's business-profile id — the same `item.id` the in-app lab list passes
+  /// into the screen. [LabDetailScreen] does
+  /// `Get.find<ViewBusinessDetailsController>()` in its field initializers, so
+  /// that controller is registered first; the screen then self-hydrates in its
+  /// initState — fetching the business profile, resolving the
+  /// `LaboratoryProfile._id`, and loading the tests — so passing the id is
+  /// enough to render the full detail view and keep the popular-test /
+  /// category / enquiry taps working, mirroring the in-app tap flow from the
+  /// lab list ([LabProfilesListScreen]).
+  void _openLaboratory(String id) {
+    getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+    Get.to(() => LabDetailScreen(businessId: id));
   }
 
   /// Opens [FinanceDetailScreen] for a finance business reached via deep link /

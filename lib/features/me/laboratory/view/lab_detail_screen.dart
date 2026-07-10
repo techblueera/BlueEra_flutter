@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
@@ -202,6 +203,11 @@ class _LabDetailScreenState extends State<LabDetailScreen> {
                   padding: EdgeInsets.all(SizeConfig.size12),
                   child: VisitBusinessCommonHeader(
                     details: details,
+                    // Share the lab via its typed deep link so the recipient
+                    // lands back on this detail screen (not the generic
+                    // profile preview). Uses the same business-profile id the
+                    // screen hydrates from.
+                    shareLink: labsDeepLink(businessId: widget.businessId),
                     onRated: () => viewBusinessDetailsController.viewBusinessProfileById(
                       widget.businessId,
                       silent: true,
