@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
+import 'package:BlueEra/features/common/Discover/view/book_your_transport/parcel_pickup_drop_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_categories_data.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_category_section.dart';
 import 'package:BlueEra/features/common/Discover/widget/recently_visited_stores_section.dart';
@@ -15,7 +16,6 @@ import 'package:BlueEra/features/common/Discover/view/widget/book_home_service_w
 import 'package:BlueEra/features/common/Discover/view/widget/education_service_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/financial_sectors.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/find_service_card_widget.dart';
-import 'package:BlueEra/features/common/Discover/view/widget/grocery_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/health_service_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/home_made_product_service_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/hotel_stay_service_card.dart';
@@ -24,6 +24,8 @@ import 'package:BlueEra/features/common/Discover/view/widget/professionals_card_
 import 'package:BlueEra/features/common/Discover/view/widget/rental_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/shopping_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/transport_service_widget.dart';
+import 'package:BlueEra/features/common/Discover/view/hmf_category_discover_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/v2/home_service_discover_screen_v2.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/qr_code/view/emergency_qr_screen.dart';
 import 'package:BlueEra/features/common/qr_code/view/qr_design_options_widget.dart';
@@ -46,7 +48,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   final controller = getOrPut(() => DiscoverController());
 
   final ScrollController _scrollController = ScrollController();
-  final GlobalKey _riderWidgetKey = GlobalKey();
   late final EmergencyProfileController emergencyController;
 
   /// Active quick-access tab — see [discoverQuickAccessTabs]:
@@ -64,23 +65,20 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   /// never block forever.
   bool _locationResolved = false;
 
-  /// Widgets that ship separate horizontal-list and grid layouts read this so
-  /// they switch automatically when the user moves off the overview tab.
-  bool get _isInGridMode => _activeTabIndex != 0;
-
-  /// Every Discover section with the set of tab indices it belongs to.
-  /// Tab 0 (Quick Access / overview) shows everything, so it's not listed.
+  /// Every Discover section with the set of tab indices it belongs to, in the
+  /// same top-to-bottom order as the redesign. Tab 0 (Quick Access / overview)
+  /// shows everything, so it's not listed; the other tabs filter down to the
+  /// sections tagged with their index.
   ///
-  /// The first three entries are the redesigned circular Grocery / Food
-  /// blocks and the Recently Visited Stores carousel; the remainder are the
-  /// original service sections, preserved so no functionality is lost.
+  /// Every section renders as the same uniform circular-icon grid, but each
+  /// keeps its original data source and tap routing untouched.
   List<({Widget widget, Set<int> tabs})> get _sections {
-    final inGrid = _isInGridMode;
     return [
-      // --- Redesigned landing sections ---
+      // --- Tab 1 · Grocery & Food (ref: g1.jpeg) ---
       (
         widget: DiscoverCategorySection(
-          title: AppStrings.grocery.tr,
+          title: "Grocery & General Store",
+          // title: AppStrings.grocery.tr,
           items: discoverGroceryCategories,
           columns: 5,
           onViewAll: () =>
@@ -92,10 +90,20 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       ),
       (
         widget: DiscoverCategorySection(
-          title: AppStrings.food.tr,
+          title: "Restaurant & Food Service",
+          // title:" AppStrings.food.tr",
           items: discoverFoodCategories,
           columns: 5,
           onItemTap: (_) => Get.to(() => const RestaurantNearMeScreen()),
+        ),
+        tabs: {1}
+      ),
+      (
+        widget: DiscoverCategorySection(
+          title: AppStrings.homeMadeFood.tr,
+          items: discoverHomeMadeFoodCategories,
+          columns: 5,
+          onItemTap: (_) => Get.to(() => const HmfCategoryDiscoverScreen()),
         ),
         tabs: {1}
       ),
@@ -106,21 +114,44 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         ),
         tabs: {1}
       ),
-      // --- Original service sections ---
-      (widget: GroceryCardWidget(), tabs: {1, 3}),
-      (widget: TransportServiceWidget(targetRiderKey: _riderWidgetKey), tabs: {2}),
-      (widget: HotelStayServiceCard(isShowInGrid: inGrid), tabs: {2}),
-      (widget: ShoppingCardWidget(), tabs: {3}),
+
+      // --- Tab 2 · Travel & Booking (ref: t1.jpeg) ---
+      (widget: const TransportServiceWidget(), tabs: {2}),
+      (widget: HotelStayServiceCard(), tabs: {2}),
+
+      // --- Tab 3 · Shopping & Sell (ref: s1.jpeg) ---
       (widget: HomeMadeProductAndServiceWidget(), tabs: {3}),
-      (widget: BookHomeServiceWidget(), tabs: {4}),
-      (widget: ProfessionalsCardWidget(), tabs: {4}),
+      (widget: ShoppingCardWidget(), tabs: {3}),
+      (widget: RentalCardWidget(), tabs: {3}),
+      (widget: AutomotiveServiceCardWidget(), tabs: {3}),
+      (
+        widget: RecentlyVisitedStoresSection(
+          onViewAll: () =>
+              Get.toNamed(RouteHelper.getGroceryStoresScreenRoute()),
+        ),
+        tabs: {3}
+      ),
+
+      // --- Tab 4 · Services & Professional (ref: ss2.jpeg) ---
       (widget: HealthServiceCardWidget(), tabs: {4}),
       (widget: FindServiceCardWidget(), tabs: {4}),
-      (widget: RentalCardWidget(), tabs: {4}),
-      (widget: AutomotiveServiceCardWidget(), tabs: {4}),
-      (widget: FinancialSectors(isShowInGrid: inGrid), tabs: {4}),
-      (widget: EducationServiceCardWidget(), tabs: {4}),
+
+      (widget: BookHomeServiceWidget(), tabs: {4}),
+      (
+        widget: DiscoverCategorySection(
+          title: "Home Services",
+          items: discoverHomeServicesCategories,
+          columns: 5,
+          onItemTap: (_) => Get.to(() => HomeServiceDiscoverScreenV2()),
+        ),
+        tabs: {4}
+      ),
+      (widget: ProfessionalsCardWidget(), tabs: {4}),
+      (widget: FinancialSectors(), tabs: {4}),
+
+      // --- Tab 5 · Jobs & Other (ref: j1.jpeg) ---
       (widget: JobServiceCardWidget(), tabs: {5}),
+      (widget: EducationServiceCardWidget(), tabs: {5}),
     ];
   }
 
@@ -153,14 +184,15 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         statusBarBrightness: Brightness.light,
       ),
       child: Scaffold(
-        backgroundColor: const Color(0xFFF4F6FA),
         body: CustomScrollView(
           controller: _scrollController,
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             /// Light-blue header: location + wishlist, quick-access tabs,
-            /// search bar. Covers the status bar area.
-            SliverToBoxAdapter(child: _buildHeader(context)),
+            /// search bar. Covers the status bar area. The location row and
+            /// quick-access tabs collapse away on scroll while the search bar
+            /// stays pinned below the status bar.
+            _buildHeaderSliver(context),
 
             SliverToBoxAdapter(child: SizedBox(height: SizeConfig.size12)),
 
@@ -233,7 +265,10 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       children: [
         for (final s in visible) ...[
           Container(
-            decoration: const BoxDecoration(color: AppColors.white),
+            decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(10),
+            ),
             child: s.widget,
           ),
           SizedBox(height: SizeConfig.size12),
@@ -246,56 +281,102 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   // Header
   // ---------------------------------------------------------------------------
 
-  Widget _buildHeader(BuildContext context) {
+  /// Header as a pinned [SliverAppBar]: the location row + quick-access tabs
+  /// live in the collapsing [flexibleSpace] and scroll away, while the search
+  /// bar sits in [bottom] so it stays pinned just below the status bar. Using a
+  /// SliverAppBar (rather than a manual persistent header) lets Flutter handle
+  /// the status-bar inset automatically as the header collapses.
+  Widget _buildHeaderSliver(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFFCFE6FF), Color(0xFFDFEEFF)],
+
+    // Collapsing area = status bar + location row + tabs (with paddings). A
+    // slight over-estimate is harmless (extra gradient below the tabs); too
+    // small would clip, so we keep a little headroom.
+    final double expandedHeight = statusBarHeight + 190;
+    const double searchBarHeight = 88;
+
+    return SliverAppBar(
+      pinned: true,
+      floating: false,
+      automaticallyImplyLeading: false,
+      // backgroundColor:Colors.transparent,
+      backgroundColor: Colors.black26.withOpacity(0.1),
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      toolbarHeight: 0,
+      expandedHeight: expandedHeight,
+      flexibleSpace: FlexibleSpaceBar(
+        background: Container(
+          // decoration: const BoxDecoration(
+          //   gradient: LinearGradient(
+          //     begin: Alignment.topCenter,
+          //     end: Alignment.bottomCenter,
+          //     colors: [Color(0xFFCFE6FF), Color(0xFFDFEEFF)],
+          //   ),
+          // ),
+          padding: EdgeInsets.only(
+            top: statusBarHeight + SizeConfig.size12,
+            left: SizeConfig.size12,
+            right: SizeConfig.size12,
+            bottom: SizeConfig.size8,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _locationRow(context),
+              SizedBox(height: SizeConfig.size16),
+              _quickAccessTabs(),
+            ],
+          ),
         ),
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(22)),
       ),
-      padding: EdgeInsets.only(
-        top: statusBarHeight + SizeConfig.size12,
-        left: SizeConfig.size12,
-        right: SizeConfig.size12,
-        bottom: SizeConfig.size16,
-      ),
-      child: Column(
-        children: [
-          _locationRow(context),
-          SizedBox(height: SizeConfig.size16),
-          _quickAccessTabs(),
-          SizedBox(height: SizeConfig.size16),
-          _searchRow(context),
-        ],
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(searchBarHeight),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Colors.transparent,
+            borderRadius: BorderRadius.vertical(bottom: Radius.circular(22)),
+          ),
+          padding: EdgeInsets.only(
+            left: SizeConfig.size12,
+            right: SizeConfig.size12,
+            top: SizeConfig.size8,
+            bottom: SizeConfig.size16,
+          ),
+          child: _searchRow(context),
+        ),
       ),
     );
   }
 
   Widget _locationRow(BuildContext context) {
     return Row(
+      // Space the pill and the wishlist button apart so the pill can hug its
+      // address text (left) while the button stays at the far right.
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Expanded(
+        // Loose flex: the pill is only as wide as its address text, but still
+        // caps at the available width and ellipsizes a long address.
+        Flexible(
+          fit: FlexFit.loose,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             decoration: BoxDecoration(
               color: AppColors.white,
               borderRadius: BorderRadius.circular(28),
+              boxShadow: _kTopViewShadow,
             ),
             child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 const Icon(Icons.location_on,
                     color: AppColors.primaryColor, size: 20),
                 SizedBox(width: SizeConfig.size6),
-                Expanded(
+                Flexible(
                   child: Obx(
                     () => CustomText(
                       [
-                        LocationService
-                            .userCurrentAddress.value.subLocality,
+                        LocationService.userCurrentAddress.value.subLocality,
                         LocationService.userCurrentAddress.value.city,
                       ].where((e) => e.isNotEmpty).join(', '),
                       fontSize: SizeConfig.medium,
@@ -312,6 +393,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         ),
         SizedBox(width: SizeConfig.size10),
         _circleIconButton(
+          boxShadow: _kTopViewShadow,
           child: const Icon(Icons.favorite_border,
               color: AppColors.primaryColor, size: 22),
           onTap: () {
@@ -322,15 +404,20 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     );
   }
 
-  Widget _circleIconButton({required Widget child, required VoidCallback onTap}) {
+  Widget _circleIconButton({
+    required Widget child,
+    required VoidCallback onTap,
+    List<BoxShadow>? boxShadow,
+  }) {
     return InkWell(
       borderRadius: BorderRadius.circular(28),
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(12),
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           color: AppColors.white,
           shape: BoxShape.circle,
+          boxShadow: boxShadow,
         ),
         child: child,
       ),
@@ -383,8 +470,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                 SizedBox(height: SizeConfig.size6),
                 CustomText(
                   item['title']!,
-                  fontSize: SizeConfig.small,
-                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                  fontSize: SizeConfig.small11,
+                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
                   color: isActive
                       ? AppColors.primaryColor
                       : AppColors.mainTextColor,
@@ -409,8 +496,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             width: 24,
             height: 24,
           ),
-          onTap: () => Navigator.pushNamed(
-              context, RouteHelper.getGroceryStoresScreenRoute()),
+          // onTap: () => null,
+          onTap: () => Get.to(ParcelPickupDropScreen()),
         ),
         SizedBox(width: SizeConfig.size10),
         Expanded(
@@ -559,3 +646,14 @@ Widget titleWidget(String title) {
       color: AppColors.mainTextColor,
       fontWeight: FontWeight.w600);
 }
+
+/// Soft drop shadow for the floating white pills in the Discover header
+/// (location bar + wishlist button), so they read as elevated over the
+/// header background.
+const List<BoxShadow> _kTopViewShadow = [
+  BoxShadow(
+    color: Color(0x14101828),
+    blurRadius: 16,
+    offset: Offset(0, 6),
+  ),
+];

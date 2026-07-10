@@ -62,14 +62,5 @@
 -keep class org.jitsi.** { *; }
 -dontwarn org.webrtc.**
 
-# Meta Audience Network (Facebook Ads) SDK
-# The SDK references Facebook's compile-only `infer` annotations
-# (com.facebook.infer.annotation.Nullsafe) that aren't on the runtime
-# classpath — silence R8's "Missing class" errors and keep the ad classes.
--keep class com.facebook.ads.** { *; }
--dontwarn com.facebook.ads.**
--keep class com.facebook.infer.** { *; }
--dontwarn com.facebook.infer.annotation.**
-
 
 

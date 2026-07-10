@@ -68,7 +68,10 @@ class RecentlyVisitedStoresSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: AppColors.white,
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(10),
+        // color: AppColors.white,
+
+      ),
       padding: EdgeInsets.symmetric(vertical: SizeConfig.size16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

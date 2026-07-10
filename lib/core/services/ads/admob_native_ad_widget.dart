@@ -6,13 +6,12 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 /// Renders a Google AdMob native ad using the plugin's built-in **platform
 /// native template** (`NativeTemplateStyle`) — no platform-side `NativeAdFactory`
-/// / XML is needed. AdMob is the primary server; Meta Audience Network is
-/// mediated behind it in the AdMob dashboard.
+/// / XML is needed.
 ///
-/// Same public shape as `MetaNativeAdWidget` (height + card chrome, collapse on
-/// failure, keepAlive across scroll recycling) so the [NativeAdWidget] forwarder
-/// can swap to it with no call-site changes. AdMob manages its own load cadence,
-/// so there's no hand-rolled load-gate / circuit-breaker here.
+/// The [NativeAdWidget] forwarder delegates to this widget (height + card
+/// chrome, collapse on failure, keepAlive across scroll recycling) with no
+/// call-site changes. AdMob manages its own load cadence, so there's no
+/// hand-rolled load-gate / circuit-breaker here.
 class AdMobNativeAdWidget extends StatefulWidget {
   const AdMobNativeAdWidget({
     super.key,
