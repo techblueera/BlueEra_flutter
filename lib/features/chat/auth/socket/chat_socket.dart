@@ -32,6 +32,14 @@ class ChatSocketService {
   // All registered listeners — kept so they can be re-registered on reconnect
   final List<MapEntry<String, Function(dynamic)>> _registeredListeners = [];
 
+  /// Invoked on every successful (re)connect, AFTER listeners are re-registered
+  /// and the standard `screenRoom` / `ChatList` emits fire. The chat controller
+  /// uses this to re-fetch the currently-open conversation's messages: a
+  /// `messageReceived` fetch emitted while the socket was still connecting —
+  /// e.g. a cold start from a killed-state broadcast-notification tap — would
+  /// otherwise be lost, leaving the thread empty until the user reopens it.
+  void Function()? onConnected;
+
   // ─── Connect ───────────────────────────────────────────────────────────────
 
   Future<void> connectToSocket() async {
@@ -107,6 +115,13 @@ class ChatSocketService {
         _socket!.emit(ChatEmitEvents.screenRoom, {ApiKeys.conversation_id: "online"});
         _socket!.emit(ChatEmitEvents.isOnlineFromChatList, {});
         _socket!.emit(ChatEmitEvents.ChatList, {ApiKeys.type: AppConstants.personal_Chat_Type});
+
+        // Re-fetch the currently-open conversation (if any). Without this, a
+        // fetch emitted before the socket finished connecting is dropped, so a
+        // chat opened from a killed-state notification tap would stay empty.
+        try {
+          onConnected?.call();
+        } catch (_) {}
 
         // Socket reconnect is also a strong signal that the network is back —
         // flush any pending chat messages in the background.

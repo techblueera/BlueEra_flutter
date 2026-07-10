@@ -912,7 +912,30 @@ class ChatViewController extends GetxController {
     }
   }
 
+  @override
+  void onInit() {
+    super.onInit();
+    // Register the on-(re)connect re-fetch as early as the controller exists,
+    // so it's in place even when the socket first connects via a path that
+    // bypasses [connectSocket] (e.g. the chat screen calling
+    // ChatSocketService().reconnectNow() on a killed-state notification tap).
+    chatSocket.onConnected = _refetchOpenConversationOnConnect;
+  }
+
+  /// Re-emit the open conversation's history fetch when the socket connects.
+  /// A `messageReceived` emitted while the socket was still connecting (cold
+  /// start from a killed-state broadcast tap) is dropped by socket.io, so
+  /// without this the thread renders empty until manually reopened.
+  void _refetchOpenConversationOnConnect() {
+    final convId = userOpenConversationId.value;
+    if (convId.isEmpty) return;
+    _emitFetchMessages(convId);
+  }
+
   Future<void> connectSocket() async {
+    // Belt-and-suspenders: ensure the on-connect re-fetch is wired even if the
+    // controller was constructed before this callback field existed.
+    chatSocket.onConnected = _refetchOpenConversationOnConnect;
     // Always ensure socket is connected
     await chatSocket.connectToSocket();
 
