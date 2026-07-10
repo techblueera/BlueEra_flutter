@@ -1758,8 +1758,13 @@ class DiscoverController extends GetxController {
           : null;
       fareCallAcceptedRiderId.value =
           data['riderId'] ?? data['riderInfo']?['riderId'] ?? '';
-      fareCallPickupOtp.value = data['pickupOTP']?.toString() ?? '';
-      fareCallDeliveryOtp.value = data['deliveryOTP']?.toString() ?? '';
+      // Never wipe an OTP already captured from the order-creation response —
+      // older backends omit deliveryOTP on this event, and overwriting with ''
+      // blanked the delivery OTP card for the rest of the ride.
+      final evPickupOtp = (data['pickupOTP'] ?? '').toString();
+      if (evPickupOtp.isNotEmpty) fareCallPickupOtp.value = evPickupOtp;
+      final evDeliveryOtp = (data['deliveryOTP'] ?? '').toString();
+      if (evDeliveryOtp.isNotEmpty) fareCallDeliveryOtp.value = evDeliveryOtp;
       isFareCallInProgress.value = false;
     });
 
@@ -1812,7 +1817,10 @@ class DiscoverController extends GetxController {
   /// leaving and re-entering the map). The backend returns deliveryOTP only to
   /// the order owner. No-op if we already have it.
   Future<void> hydrateFareCallDeliveryOtp(String orderId) async {
-    if (fareCallDeliveryOtp.value.isNotEmpty) return;
+    // Rehydrate BOTH customer OTPs: pickup (ride-start, passenger rides only —
+    // backend returns it only for ride jobs) and delivery (completion).
+    if (fareCallDeliveryOtp.value.isNotEmpty &&
+        fareCallPickupOtp.value.isNotEmpty) return;
     if (orderId.isEmpty) return;
     try {
       final res = await ChatViewRepo().checkTrackOrderStatusSilentApi(orderId);
@@ -1821,6 +1829,9 @@ class DiscoverController extends GetxController {
         final otp =
             (data is Map ? data['deliveryOTP'] : null)?.toString() ?? '';
         if (otp.isNotEmpty) fareCallDeliveryOtp.value = otp;
+        final pickupOtp =
+            (data is Map ? data['pickupOTP'] : null)?.toString() ?? '';
+        if (pickupOtp.isNotEmpty) fareCallPickupOtp.value = pickupOtp;
       }
     } catch (_) {
       // Tracking is best-effort; the chat card remains the durable OTP source.

@@ -908,10 +908,12 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
 
   Widget _buildMapBottomPanel() {
     return Obx(() {
-    // Customer holds ONLY the DELIVERY (completion) OTP — read out to the rider
-    // at drop. The pickup OTP belongs to the shop and is never shown here.
-    // Visible to the customer only, for both single- and multi-shop orders, and
-    // kept on screen for the whole ride so it is never lost.
+    // Passenger rides: the customer holds BOTH OTPs. The PICKUP (ride-start)
+    // OTP is read to the rider on arrival — showing only the delivery OTP
+    // here made customers read the wrong code and the rider's start-ride call
+    // failed with INVALID_PICKUP_OTP. So: pickup OTP until the ride starts,
+    // delivery (completion) OTP after, each clearly labelled.
+    final pickupOtp = discoverController.fareCallPickupOtp.value;
     final deliveryOtp = discoverController.fareCallDeliveryOtp.value;
     final rideStarted = discoverController.isFareCallRideStarted.value;
 
@@ -1039,10 +1041,23 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
 
           const SizedBox(height: 16),
 
-          // Delivery (completion) OTP — the customer gives this to the rider at
-          // drop. Shown for both single- and multi-shop orders, the whole ride.
-          if (deliveryOtp.isNotEmpty) ...[
-            _buildDeliveryOtpCard(deliveryOtp),
+          // Before the ride starts the customer shares the PICKUP (ride-start)
+          // OTP with the rider; once started, the DELIVERY (completion) OTP to
+          // be shared at the drop.
+          if (!rideStarted && pickupOtp.isNotEmpty) ...[
+            _buildOtpCard(
+              label: 'Ride Start OTP',
+              otp: pickupOtp,
+              color: const Color(0xFF1A73E8),
+            ),
+            const SizedBox(height: 16),
+          ],
+          if (rideStarted && deliveryOtp.isNotEmpty) ...[
+            _buildOtpCard(
+              label: 'Delivery OTP',
+              otp: deliveryOtp,
+              color: const Color(0xFF00C853),
+            ),
             const SizedBox(height: 16),
           ],
 
@@ -1463,30 +1478,34 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
     );
   }
 
-  /// Delivery (completion) OTP card — the customer reads this OTP to the rider
-  /// at drop. Customer-only; never shown to the shop/business.
-  Widget _buildDeliveryOtpCard(String otp) {
+  /// Customer OTP card — pickup (ride-start) OTP before the ride starts,
+  /// delivery (completion) OTP at drop. Customer-only; never shown to the
+  /// shop/business.
+  Widget _buildOtpCard({
+    required String label,
+    required String otp,
+    required Color color,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
         decoration: BoxDecoration(
-          color: const Color(0xFF00C853).withValues(alpha: 0.06),
+          color: color.withValues(alpha: 0.06),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: const Color(0xFF00C853).withValues(alpha: 0.2),
+            color: color.withValues(alpha: 0.2),
           ),
         ),
         child: Row(
           children: [
-            const Icon(Icons.verified_user_rounded,
-                color: Color(0xFF00C853), size: 20),
+            Icon(Icons.verified_user_rounded, color: color, size: 20),
             const SizedBox(width: 10),
-            const Expanded(
+            Expanded(
               child: Text(
-                'Delivery OTP',
-                style: TextStyle(
+                label,
+                style: const TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   fontFamily: 'OpenSans',
@@ -1504,17 +1523,17 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: const Color(0xFF00C853).withValues(alpha: 0.3),
+                      color: color.withValues(alpha: 0.3),
                     ),
                   ),
                   alignment: Alignment.center,
                   child: Text(
                     digit,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
                       fontFamily: 'OpenSans',
-                      color: Color(0xFF00C853),
+                      color: color,
                     ),
                   ),
                 );

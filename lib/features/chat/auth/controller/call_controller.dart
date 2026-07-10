@@ -1039,6 +1039,7 @@ class CallController extends GetxController {
             'target_user_id': savedRemoteUserId,
             'sdp': {'sdp': offer.sdp, 'type': offer.type},
           });
+          _scheduleOfferRetry(savedRemoteUserId);
           // print('[FARE_CALL] acceptCall → call:offer emitted to $savedRemoteUserId (rider-initiated)');
         } else {
           // print('[CALL_DEBUG] acceptCall → NO pending offer, sending our own offer (glare-safe)');
@@ -1050,6 +1051,7 @@ class CallController extends GetxController {
             'target_user_id': savedRemoteUserId,
             'sdp': {'sdp': offer.sdp, 'type': offer.type},
           });
+          _scheduleOfferRetry(savedRemoteUserId);
           // print('[CALL_DEBUG] acceptCall → call:offer emitted to $savedRemoteUserId (receiver-initiated)');
         }
       } else {
@@ -1093,6 +1095,7 @@ class CallController extends GetxController {
 
   Timer? _connectionTimer;
   Timer? _peerDisconnectTimer;
+  Timer? _offerRetryTimer;
 
   void _startConnectionTimeout() {
     _connectionTimer?.cancel();
@@ -1106,6 +1109,45 @@ class CallController extends GetxController {
           commonSnackBar(message: AppStrings.callConnectionTimedOut.tr);
         }
         endCall();
+      }
+    });
+  }
+
+  /// Re-send the SDP offer while the handshake hasn't progressed. Heals the
+  /// lost-offer race: the caller emits `call:offer` the moment `call:accepted`
+  /// arrives, but the receiver only joins the socket room after its accept
+  /// API returns — an offer broadcast before that join is dropped and both
+  /// sides sit on "Connecting" until the 30s timeout. The SAME local
+  /// description is re-emitted (never a fresh createOffer), so a duplicate is
+  /// harmless: the receiver just sets it and answers again — which also heals
+  /// a lost `call:answer` in the opposite direction.
+  void _scheduleOfferRetry(String peerId) {
+    _offerRetryTimer?.cancel();
+    int attempts = 0;
+    _offerRetryTimer = Timer.periodic(const Duration(seconds: 4), (t) async {
+      final pc = peerConnections[peerId];
+      if (_disposed ||
+          pc == null ||
+          attempts >= 2 ||
+          callStatus.value != CallStatus.connecting ||
+          pc.signalingState !=
+              RTCSignalingState.RTCSignalingStateHaveLocalOffer) {
+        t.cancel();
+        return;
+      }
+      attempts++;
+      try {
+        final local = await pc.getLocalDescription();
+        if (local == null || local.sdp == null) return;
+        print(
+            '[CALL_DEBUG] offer retry #$attempts → re-emitting call:offer to $peerId');
+        _socket.emitEvent('call:offer', {
+          'room_id': roomId.value,
+          'target_user_id': peerId,
+          'sdp': {'sdp': local.sdp, 'type': local.type},
+        });
+      } catch (e) {
+        print('[CALL_DEBUG] offer retry failed: $e');
       }
     });
   }
@@ -1374,6 +1416,9 @@ class CallController extends GetxController {
         'sdp': {'sdp': offer.sdp, 'type': offer.type},
       });
       print('[CALL_DEBUG] _handleCallAccepted → call:offer emitted to $_remoteUserId');
+      // The receiver may not have joined the socket room yet (its accept API
+      // is still in flight) — retry the offer until the handshake progresses.
+      _scheduleOfferRetry(_remoteUserId!);
     } catch (e, stack) {
       print('[FARE_CALL_DEBUG] _handleCallAccepted → OFFER CREATION FAILED: $e');
       print('[FARE_CALL_DEBUG] _handleCallAccepted → stack: $stack');
@@ -2318,19 +2363,21 @@ class CallController extends GetxController {
     pc.onIceConnectionState = (RTCIceConnectionState state) {
       print('[CALL_DEBUG] onIceConnectionState → $state (peer=$peerId)');
       if (_disposed) return;
-      // iOS fallback: flutter_webrtc's `onConnectionState` is unreliable on
-      // iOS (often never reports Connected), which leaves the UI stuck on
-      // "Connecting" even though ICE has succeeded and audio is flowing.
-      // Drive the connected transition off ICE state here as well. Idempotent
-      // on Android because onConnectionState already fires first there.
-      if (Platform.isIOS &&
-          (state == RTCIceConnectionState.RTCIceConnectionStateConnected ||
+      // Fallback for ALL platforms: flutter_webrtc's `onConnectionState` is
+      // unreliable on iOS (often never reports Connected) and has been seen
+      // missing on some Android devices too — either way the UI stays stuck
+      // on "Connecting" even though ICE has succeeded and audio is flowing.
+      // ICE Connected/Completed means the transport is genuinely up, so
+      // drive the connected transition off ICE state as well. Idempotent
+      // where onConnectionState already fired first.
+      if ((state == RTCIceConnectionState.RTCIceConnectionStateConnected ||
               state == RTCIceConnectionState.RTCIceConnectionStateCompleted) &&
           callStatus.value != CallStatus.connected) {
-        print('[CALL_DEBUG] ✅ iOS: promoting to connected via ICE state (peer=$peerId)');
+        print('[CALL_DEBUG] ✅ promoting to connected via ICE state (peer=$peerId)');
         _connectionTimer?.cancel();
         _peerDisconnectTimer?.cancel();
         _ringTimer?.cancel();
+        _offerRetryTimer?.cancel();
         callStatus.value = CallStatus.connected;
         _startCallTimer();
       }
@@ -2351,6 +2398,7 @@ class CallController extends GetxController {
           _connectionTimer?.cancel();
           _peerDisconnectTimer?.cancel();
           _ringTimer?.cancel();
+          _offerRetryTimer?.cancel();
           callStatus.value = CallStatus.connected;
           _startCallTimer();
           break;
@@ -3199,6 +3247,8 @@ class CallController extends GetxController {
     _connectionTimer = null;
     _peerDisconnectTimer?.cancel();
     _peerDisconnectTimer = null;
+    _offerRetryTimer?.cancel();
+    _offerRetryTimer = null;
 
     // Stop live audio-device monitoring and reset routing state for next call.
     _stopAudioRouteMonitoring();

@@ -275,8 +275,19 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
       final metadata = payload['metadata'];
 
+      // Job-aware wording: the backend sends jobLabel/title per job type
+      // (Passenger ride / Grocery pickup / Parcel delivery...). Fall back to
+      // the legacy "Ride Request" copy for old payloads without them.
+      final jobLabel = (payload['jobLabel'] ?? '').toString();
+      final backendTitle = (data['title'] ?? '').toString();
+      final notifTitle = backendTitle.isNotEmpty
+          ? backendTitle
+          : (jobLabel.isNotEmpty ? 'New $jobLabel request' : 'Ride Request');
+
       // Build notification body from ride details
-      String notifBody = 'New ride request from $callerName';
+      String notifBody = jobLabel.isNotEmpty
+          ? 'New ${jobLabel.toLowerCase()} request from $callerName'
+          : 'New ride request from $callerName';
       if (metadata is Map) {
         final rideDetails = metadata['rideDetails'];
         if (rideDetails is Map) {
@@ -284,14 +295,14 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
           final pickup = rideDetails['pickup'];
           final pickupAddr = pickup is Map ? (pickup['address'] ?? '') : '';
           if (fare != null) {
-            notifBody = 'Ride fare: ₹$fare';
+            notifBody = 'Fare: ₹$fare';
             if (pickupAddr.toString().isNotEmpty) {
               notifBody += ' • Pickup: $pickupAddr';
             }
           }
         } else {
           final rideFare = metadata['ridefare'];
-          if (rideFare != null) notifBody = 'Ride fare: ₹$rideFare';
+          if (rideFare != null) notifBody = 'Fare: ₹$rideFare';
         }
       }
 
@@ -311,7 +322,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
       await plugin.show(
         notifId,
-        'Ride Request',
+        notifTitle,
         notifBody,
         NotificationDetails(
           android: AndroidNotificationDetails(
