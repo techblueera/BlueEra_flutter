@@ -618,6 +618,18 @@ class AppNotificationHandler {
   /// SplashScreen checks this to hold its UI instead of navigating to home.
   static bool launchedFromNotification = false;
 
+  /// True while a notification tap is re-navigating the root stack onto a new
+  /// [BottomNavigationBarScreen] (currently the `admin_broadcast` broadcast
+  /// flow). GetX builds the incoming host and disposes the outgoing one during
+  /// the same transition, and BottomNavigationBarScreen.dispose() tears the
+  /// chat socket down (clears every listener + nulls the socket). Without this
+  /// guard that teardown races the reconnect we just kicked off and drops the
+  /// broadcast-history fetch, so the tapped message never renders until the
+  /// thread is reopened. dispose() honours this flag and keeps the warmed
+  /// socket alive across the transition. Transient — cleared once the target
+  /// chat has been opened.
+  static bool suppressSocketDisposeForRenav = false;
+
   /// Completes when notification-based navigation has finished.
   /// SplashScreen awaits this before deciding its own navigation.
   static Completer<void>? notificationNavigationCompleter;
@@ -2301,9 +2313,22 @@ class AppNotificationHandler {
       data['sender_user'] = jsonDecode(data['sender_user']);
     }
 
+    // New-style notifications key off `type` rather than `operation`
+    // (see NEW_NOTIFICATIONS_FRONTEND_GUIDE.md); fall back to it so their
+    // body-tap routing works without disturbing the existing operations.
+    final operation =
+        (data['operation'] ?? data['type'] ?? '').toString().toLowerCase();
+
     // When launched from terminated state, push home screen first so the user
     // has a proper back stack after viewing the notification target screen.
-    if (fromColdStart) {
+    //
+    // `admin_broadcast` is excluded: it runs its OWN `offAllNamed` onto the
+    // Connect tab (index 2) below. Doing the generic index-0 push here first
+    // would spin up a bottom-nav host that the second `offAllNamed` disposes
+    // mid-flow — and that dispose tears the chat socket down right after we
+    // warmed it, dropping the broadcast-history fetch so the tapped message
+    // never appears. One navigation → no mid-transition dispose.
+    if (fromColdStart && operation != 'admin_broadcast') {
       Get.offAllNamed(
         RouteHelper.getBottomNavigationBarScreenRoute(),
         // deferHeavyInit: the home is only the background host here, so its
@@ -2315,11 +2340,6 @@ class AppNotificationHandler {
       await Future.delayed(const Duration(milliseconds: 200));
     }
 
-    // New-style notifications key off `type` rather than `operation`
-    // (see NEW_NOTIFICATIONS_FRONTEND_GUIDE.md); fall back to it so their
-    // body-tap routing works without disturbing the existing operations.
-    final operation =
-        (data['operation'] ?? data['type'] ?? '').toString().toLowerCase();
     logs("data==== ${data}");
     logs("operation==== ${operation}");
     // logs("operation==== ${data['payload']['post_id']}");
@@ -2496,6 +2516,13 @@ class AppNotificationHandler {
         // navigation below, so the broadcast-history fetch in the chat screen
         // goes out on a live socket and the message shows fast. No-op when
         // already connected.
+        // Guard the socket across the stack swap below: replacing the root with
+        // a fresh bottom-nav host disposes the outgoing one (background tap) and
+        // its dispose() would otherwise call disposeSocket() — killing the very
+        // connection reconnectNow() just warmed and clearing its listeners, so
+        // the broadcast-history fetch is dropped. dispose() honours this flag
+        // and keeps the socket alive; cleared once the chat has opened below.
+        suppressSocketDisposeForRenav = true;
         ChatSocketService().reconnectNow();
         BlueEraNotificationController.to.markAllRead();
         Get.offAllNamed(
@@ -2505,6 +2532,10 @@ class AppNotificationHandler {
         // Let the Connect tab + its chat list settle before opening the chat.
         await Future.delayed(const Duration(milliseconds: 350));
         _openBlueEraChat(data);
+        // The outgoing host's dispose() has run by now (it fires during the
+        // transition above), so it's safe to drop the guard for the next
+        // legitimate backgrounding-driven teardown.
+        suppressSocketDisposeForRenav = false;
         break;
 
       // Admin notifications

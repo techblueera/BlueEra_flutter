@@ -574,7 +574,13 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     final hasActiveCall = Get.isRegistered<CallController>() &&
         (Get.find<CallController>().callStatus.value != CallStatus.idle ||
             CallController.isCallActivityActive);
-    if (!hasActiveCall) {
+    // Also skip when a notification tap is re-navigating the root onto a new
+    // bottom-nav host (e.g. the admin_broadcast flow). This dispose fires while
+    // the incoming host is being built; tearing the socket down here would kill
+    // the connection that tap just warmed and drop the broadcast-history fetch,
+    // leaving the tapped message invisible until the thread is reopened.
+    if (!hasActiveCall &&
+        !AppNotificationHandler.suppressSocketDisposeForRenav) {
       chatViewController.disposeSocket();
     }
     super.dispose();
