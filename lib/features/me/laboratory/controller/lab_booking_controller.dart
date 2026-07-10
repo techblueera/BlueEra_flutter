@@ -12,6 +12,8 @@ import 'package:get/get.dart';
 ///
 ///   • [submitLabBooking]      → POST `/laboratory-bookings`
 ///   • [respondToLabBooking]   → owner PUT `/:id/status` (accept/decline)
+///   • [cancelLabBooking]      → customer PUT `/:id/cancel` while
+///                               `pending` OR `accepted` (doc §2b)
 ///   • [fetchOwnerLabBookings] → RxList inbox for a future owner tab
 ///
 /// Server-side validation to be aware of:
@@ -143,6 +145,32 @@ class LabBookingController extends GetxController {
       return true;
     } catch (e) {
       log('[LAB_BOOKING] updateStatus threw: $e');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
+    }
+  }
+
+  /// Customer cancels their own booking while it is `pending` OR
+  /// `accepted` (doc §2b). Idempotent: 409 (settled through another
+  /// path — e.g. owner declined and the socket already flipped the
+  /// card) is treated as success so the UI can re-sync without a
+  /// snackbar. Mirrors [HospitalAppointmentController.cancelAppointment].
+  Future<bool> cancelLabBooking({required String bookingId}) async {
+    final id = bookingId.trim();
+    if (id.isEmpty) return false;
+    log('[LAB_BOOKING] cancel → PUT bookingId=$id');
+    try {
+      final res = await LabBookingRepo().cancelLabBooking(bookingId: id);
+      log('[LAB_BOOKING] cancel response: success=${res.isSuccess} '
+          'statusCode=${res.statusCode} message=${res.message}');
+      if (res.statusCode == 409) return true;
+      if (!res.isSuccess) {
+        commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong);
+        return false;
+      }
+      return true;
+    } catch (e) {
+      log('[LAB_BOOKING] cancel threw: $e');
       commonSnackBar(message: AppStrings.somethingWentWrong);
       return false;
     }

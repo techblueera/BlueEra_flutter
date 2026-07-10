@@ -18,17 +18,33 @@ class HealthcareBookingModel {
   String? ownerId;
   String? customerId;
 
-  /// Always `HOSPITAL` per doc §3 — the appointment flow is
-  /// hospital-only. Kept on the model so the chat card can render a
-  /// category ribbon consistent with the enquiry card.
+  /// `HOSPITAL` for hospital-appointment bookings; `LABORATORY` for
+  /// lab test bookings (`laboratory-booking-ui-integration.md`). Both
+  /// share the `healthcare_booking` message type — the chat card
+  /// branches on this value to pick lab vs hospital labels/tiles and
+  /// to route accept/decline/cancel to the correct service.
   String? category;
 
-  // Doctor snapshot (server-derived from the OPD record).
+  // Doctor snapshot (server-derived from the OPD record) — hospital
+  // bookings only. Empty for lab bookings.
   String? opdId;
   String? doctorName;
   String? department;
   num? fees;
   String? doctorImage;
+
+  // Test snapshot (server-derived from the PathologyTest record) —
+  // lab bookings only. Per doc §3 the server denormalizes these onto
+  // the booking so the chat card renders standalone.
+  String? testId;
+  String? testName;
+  num? price;
+  num? estimatedReportHours;
+
+  // Lab collection preferences (doc §1): `HOME` requires [address];
+  // `AT_LAB` hides it. Both are absent for hospital bookings.
+  String? collectionMode;
+  String? address;
 
   /// ISO-8601 timestamp (day precision — server enforces today-or-later).
   String? appointmentDate;
@@ -67,6 +83,12 @@ class HealthcareBookingModel {
     this.department,
     this.fees,
     this.doctorImage,
+    this.testId,
+    this.testName,
+    this.price,
+    this.estimatedReportHours,
+    this.collectionMode,
+    this.address,
     this.appointmentDate,
     this.preferredTime,
     this.patientName,
@@ -121,6 +143,17 @@ class HealthcareBookingModel {
       doctorImage:
           pick('doctorImage', 'image')?.toString() ??
               pick('doctorImage', 'imageUrl')?.toString(),
+      // Lab test snapshot — flat or nested (`test: {...}`), same
+      // dual-shape treatment as the doctor snapshot above.
+      testId: (json['testId'] ?? json['test_id'])?.toString(),
+      testName: (json['testName'] ?? json['test_name'])?.toString(),
+      price: _num(json['price']),
+      estimatedReportHours: _num(json['estimatedReportHours'] ??
+          json['estimated_report_hours'] ??
+          json['reportHours']),
+      collectionMode:
+          (json['collectionMode'] ?? json['collection_mode'])?.toString(),
+      address: json['address']?.toString(),
       appointmentDate: (json['appointmentDate'] ??
               json['appointment_date'])
           ?.toString(),
@@ -157,6 +190,12 @@ class HealthcareBookingModel {
       'department': department,
       'fees': fees,
       'doctorImage': doctorImage,
+      'testId': testId,
+      'testName': testName,
+      'price': price,
+      'estimatedReportHours': estimatedReportHours,
+      'collectionMode': collectionMode,
+      'address': address,
       'appointmentDate': appointmentDate,
       'preferredTime': preferredTime,
       'patientName': patientName,

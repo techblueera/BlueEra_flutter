@@ -109,7 +109,7 @@ class ApiBaseHelper {
             // // Increment the request count and show the loader
             final isFormData = options.data is FormData;
 
-            if (kDebugMode) {
+            // if (kDebugMode) {
               // ====== 🌟 Beautified Request Log ======
 
               // Full resolved URL (baseUrl + path + query) and method — so
@@ -136,7 +136,7 @@ class ApiBaseHelper {
               } else {
                 log("🔹 Body: null");
               }
-            }
+            // }
             if (authTokenGlobal != null &&
                 (authTokenGlobal?.isNotEmpty ?? false)) {
               options.headers[ApiKeys.authorization] =
