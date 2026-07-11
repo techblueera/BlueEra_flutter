@@ -225,6 +225,8 @@ class _GoodsMultiCallTrackingScreenState
 
       _setupPickupMarker();
       _observeRideStarted();
+      // Fallback in case the ride:started socket/FCM signal is missed.
+      discoverController.startRideStartedFallbackPoll(widget.orderId);
     }
   }
 
@@ -266,6 +268,10 @@ class _GoodsMultiCallTrackingScreenState
     // Setup initial markers for customer pickup location
     _setupPickupMarker();
     _observeRideStarted();
+    // Fallback in case the ride:started socket/FCM signal is missed — polls the
+    // order status and flips isFareCallRideStarted so the delivery OTP, the
+    // Share-Ride button and the destination route all surface.
+    discoverController.startRideStartedFallbackPoll(widget.orderId);
     // Persist now so the card restores even if the user never minimises before
     // the app is killed.
     _persistOngoingRide();
@@ -503,6 +509,7 @@ class _GoodsMultiCallTrackingScreenState
     _riderLngWorker?.dispose();
     _rideStartedWorker?.dispose();
     _localTimer?.cancel();
+    discoverController.stopRideStartedFallbackPoll();
 
     _mapController?.dispose();
     if (_liveTrackController != null && Get.isRegistered<LiveTrachRiderController>()) {

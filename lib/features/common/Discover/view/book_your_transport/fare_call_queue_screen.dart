@@ -227,6 +227,8 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
 
       _setupPickupMarker();
       _observeRideStarted();
+      // Fallback in case the ride:started socket/FCM signal is missed.
+      discoverController.startRideStartedFallbackPoll(widget.orderId);
     }
   }
 
@@ -268,6 +270,10 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
     // Setup initial markers for customer pickup location
     _setupPickupMarker();
     _observeRideStarted();
+    // Fallback in case the ride:started socket/FCM signal is missed — polls the
+    // order status and flips isFareCallRideStarted so the delivery OTP, the
+    // Share-Ride button and the destination route all surface.
+    discoverController.startRideStartedFallbackPoll(widget.orderId);
     // Persist now so the card restores even if the user never minimises before
     // the app is killed.
     _persistOngoingRide();
@@ -505,6 +511,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
     _riderLngWorker?.dispose();
     _rideStartedWorker?.dispose();
     _localTimer?.cancel();
+    discoverController.stopRideStartedFallbackPoll();
 
     _mapController?.dispose();
     if (_liveTrackController != null && Get.isRegistered<LiveTrachRiderController>()) {
@@ -1044,6 +1051,10 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
           // Before the ride starts the customer shares the PICKUP (ride-start)
           // OTP with the rider; once started, the DELIVERY (completion) OTP to
           // be shared at the drop.
+          //
+          // A passenger ride has ONLY the pickup/ride-start OTP — there is no
+          // delivery OTP (that belongs to product/parcel/goods pickups). So the
+          // delivery card is suppressed for passenger rides.
           if (!rideStarted && pickupOtp.isNotEmpty) ...[
             _buildOtpCard(
               label: 'Ride Start OTP',
@@ -1052,7 +1063,9 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
             ),
             const SizedBox(height: 16),
           ],
-          if (rideStarted && deliveryOtp.isNotEmpty) ...[
+          if (rideStarted &&
+              deliveryOtp.isNotEmpty &&
+              !discoverController.isFareCallPassengerRide) ...[
             _buildOtpCard(
               label: 'Delivery OTP',
               otp: deliveryOtp,
