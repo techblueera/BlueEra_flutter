@@ -118,7 +118,9 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       physics: const BouncingScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+      // Breathing room above the sub-tabs (gap from the app bar), but no bottom
+      // pad so the first chat row sits right under the sub-tabs (no empty gap).
+      padding: const EdgeInsets.only(left: 14, right: 14, top: 12),
       child: Row(
         children: [
           for (int i = 0; i < builtin.length; i++) ...[
@@ -581,13 +583,16 @@ Widget personalChatListWidget(GetChatListModel? data,ThemeData theme ){
     final topRowCount = aiOffset + recordsOffset;
 
     return Container(
-      margin: EdgeInsets.only(bottom: SizeConfig.size70),
       // Still render the list when there are no real chats but pinned system
       // rows exist (AI / BlueEra notifications), so those stay visible for a
       // brand-new user. Only the truly-empty case shows the empty state.
       child: (chatList.isEmpty && !hasArchived && topRowCount == 0)
           ? noChatsFound()
           : ListView.builder(
+        // Kill the top inset ListView auto-injects when it's the primary
+        // scrollable (it adds MediaQuery.padding.top), which showed up as an
+        // empty strip above the first chat row.
+        padding: EdgeInsets.zero,
         itemCount: chatList.length + topRowCount,
         shrinkWrap: true,
         physics: widget.isForwardUI == true

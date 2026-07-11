@@ -2046,7 +2046,11 @@ AppBar getChatTitleAppBar(BuildContext context, {
                           statusLabel = chatViewController.userOnlineStatus.value;
                         }
                       } else {
-                        statusLabel = AppStrings.offline.tr;
+                        // Admin/broadcast (BlueEra community) thread: it's a
+                        // one-way channel, not a person, so "offline" is
+                        // meaningless — label it "Community" instead. The
+                        // BlueEra Orders admin thread is handled above.
+                        statusLabel = "Community";
                       }
                       return CustomText(
                         statusLabel,
