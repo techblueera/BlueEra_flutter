@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -320,30 +321,56 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
       final notifId = DateTime.now().millisecondsSinceEpoch % 2147483647;
 
+      // Call-style presentation, mirroring showIncomingCallLocalNotification:
+      // ringtone channel + CATEGORY_CALL + insistent repeating ring +
+      // full-screen intent — a ride request must RING like an incoming call,
+      // not ding like a chat message. NEW channel id ('..._ringtone'): the old
+      // 'fare_ride_incoming' channel was created with the default notification
+      // sound on existing installs, and Android channel settings are immutable
+      // after creation — only a fresh channel picks up the ringtone config.
+      // timeoutAfter auto-dismisses so the insistent ring can't go on forever
+      // (the request is stale by then anyway — customer reassigns/cancels).
       await plugin.show(
         notifId,
         notifTitle,
         notifBody,
         NotificationDetails(
           android: AndroidNotificationDetails(
-            'fare_ride_incoming',
+            'fare_ride_incoming_ringtone',
             'Ride Requests',
+            channelDescription: 'Incoming ride request alerts',
             importance: Importance.max,
-            priority: Priority.high,
-            playSound: true,
-            enableVibration: true,
-            icon: '@drawable/ic_stat',
+            priority: Priority.max,
+            category: AndroidNotificationCategory.call,
             fullScreenIntent: true,
+            visibility: NotificationVisibility.public,
+            ongoing: true,
+            autoCancel: false,
+            playSound: true,
+            sound: const RawResourceAndroidNotificationSound('hangouts_call'),
+            enableVibration: true,
+            vibrationPattern: Int64List.fromList([0, 1000, 500, 1000]),
+            icon: '@drawable/ic_stat',
+            color: const Color(0xFF0955FA),
+            colorized: true,
+            audioAttributesUsage: AudioAttributesUsage.notificationRingtone,
+            // FLAG_INSISTENT (4): ringtone repeats until the rider acts
+            additionalFlags: Int32List.fromList([4]),
+            timeoutAfter: 45000,
             actions: <AndroidNotificationAction>[
               const AndroidNotificationAction(
                 'fare_ride_decline',
                 'Decline',
+                titleColor: Color(0xFFF44336),
                 showsUserInterface: false,
+                cancelNotification: true,
               ),
               const AndroidNotificationAction(
                 'fare_ride_view',
                 'View',
+                titleColor: Color(0xFF4CAF50),
                 showsUserInterface: true,
+                cancelNotification: true,
               ),
             ],
           ),
