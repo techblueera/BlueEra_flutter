@@ -7,6 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import '../../../../core/constants/app_strings.dart';
 import '../../../../core/constants/snackbar_helper.dart';
 import '../repo/make_order_repo.dart';
+import 'socket_keep_alive_service.dart';
 // Singleton — every `LiveLocationService()` call returns the same
 // object so the timer started by [ViewPersonalDetailsController] is
 // the same one [LogoutHelper] cancels. Previously each `new` made a
@@ -25,6 +26,15 @@ class LiveLocationService {
     if (_isRunning) return;
     _isRunning = true;
 
+    // Android: hold the foreground service so this timer keeps firing while
+    // the app is backgrounded. Without it, pings stop the moment Android
+    // freezes the process, the map-service auto-closes the provider after
+    // 5 minutes of silence, and "go live" silently turns itself off.
+    SocketKeepAliveService.setRiderLiveHold(true);
+
+    // Ping immediately, then every 30s — no 30s gap between going live and
+    // the first lastSeen stamp (discovery filters on fresh lastSeen).
+    _updateLocation();
     _timer = Timer.periodic(const Duration(seconds: 30), (_) async {
       await _updateLocation();
     });
@@ -34,6 +44,7 @@ class LiveLocationService {
     _timer?.cancel();
     _timer = null;
     _isRunning = false;
+    SocketKeepAliveService.setRiderLiveHold(false);
   }
 
   Future<void> _updateLocation() async {
