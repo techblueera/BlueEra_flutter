@@ -1565,7 +1565,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
             ),
             const SizedBox(width: 4),
             Text(
-              'Member Â· $since',
+              'Member · $since',
               style: TextStyle(
                 fontFamily: AppConstants.OpenSans,
                 fontSize: 10,

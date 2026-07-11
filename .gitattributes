@@ -1,0 +1,28 @@
+# Normalize line endings: store LF in the repo, check out per the platform.
+# This keeps Dart/config sources consistent across Windows/macOS/Linux and,
+# together with .editorconfig's `charset = utf-8`, prevents the encoding
+# round-trips that produced mojibake ("â”€", "â€”", "Â·", …) in comments/strings.
+* text=auto
+
+# Source & config are always UTF-8 text.
+*.dart   text
+*.yaml   text
+*.yml    text
+*.json   text
+*.md     text
+*.gradle text
+*.kt     text
+*.xml    text
+
+# Binary assets — never touch their bytes.
+*.png    binary
+*.jpg    binary
+*.jpeg   binary
+*.gif    binary
+*.webp   binary
+*.ico    binary
+*.ttf    binary
+*.otf    binary
+*.jar    binary
+*.keystore binary
+*.jks    binary

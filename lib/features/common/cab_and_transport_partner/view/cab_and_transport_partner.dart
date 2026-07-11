@@ -9,7 +9,6 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
@@ -70,7 +69,7 @@ class CabAndTransportPartner extends StatefulWidget {
 }
 
 class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
-    with SingleTickerProviderStateMixin, RouteAware, MeTabBackHandlerMixin {
+    with SingleTickerProviderStateMixin, MeTabBackHandlerMixin {
   final controller = getOrPut(() => EarnServiceController());
   final deliveryPartnerController = getOrPut(() => DeliveryPartnerController());
   final _viewCtrl =
@@ -107,28 +106,21 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final route = ModalRoute.of(context);
-    if (route is PageRoute) {
-      RouteHelper.routeObserver.subscribe(this, route);
-    }
-  }
-
-  @override
-  void didPopNext() {
-    _checkRiderStatus();
-  }
-
-  @override
   void dispose() {
     _tabController.dispose();
     deleteIfRegistered<EarnServiceController>();
     deleteIfRegistered<DeliveryPartnerController>();
-    RouteHelper.routeObserver.unsubscribe(this);
     super.dispose();
   }
 
+  // Status is fetched once in initState. We deliberately do NOT re-fetch on
+  // every back-press (the old RouteAware.didPopNext) — that hammered the API.
+  // The only return that can change onboarding status is coming back from the
+  // deposit-payment flow, which the shared handleGoLiveTap refreshes explicitly.
+  // Other changes are covered: in-app step mutations self-refresh via
+  // forceRefresh, and RiderMeScreen (sharing this controller + reactive
+  // riderOnboardingStatusData) refreshes on its own return / app resume, which
+  // this screen's Obx reflects.
   void _checkRiderStatus() {
     deliveryPartnerController.ridersOnboardingStatusRepoApi();
   }
@@ -965,7 +957,7 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
             ),
             const SizedBox(width: 4),
             Text(
-              'Member Â· $since',
+              'Member · $since',
               style: TextStyle(
                 fontFamily: AppConstants.OpenSans,
                 fontSize: 10,
