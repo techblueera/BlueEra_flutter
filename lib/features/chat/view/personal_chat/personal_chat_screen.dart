@@ -99,6 +99,38 @@ class _PersonalChatScreenState extends State<PersonalChatScreen>
     // re-open the chat.
     WidgetsBinding.instance.addObserver(this);
 
+    // Always pull page-1 history from the server on open, AFTER
+    // `listenUserNewMessages` above has set `userOpenConversationId`.
+    // `listenUserNewMessages` only paints the Hive cache; the authoritative
+    // server fetch normally rides in via `getLocalConversation` on the open
+    // path. But some entry points force a socket reconnect right before this
+    // screen mounts — most notably a broadcast/Admin notification tap, whose
+    // handler calls `ChatSocketService().reconnectNow()` (see
+    // app_notification.dart `case 'admin_broadcast'`). That reconnect tears the
+    // socket down and back up, so the `getLocalConversation` fetch races an
+    // unconnected socket and is lost — leaving the thread showing only the
+    // just-pushed message instead of the full history, and dropping live
+    // `newMessageReceived` broadcasts because nothing re-fetches.
+    //
+    // Re-emitting here fixes that: the socket buffers this emit while connecting
+    // and flushes it on connect, and the on-connect refetch is now armed because
+    // `userOpenConversationId` is already set. This used to be gated on
+    // `type == "Admin"`, but the cold-start notification path opens the BlueEra
+    // thread with the backend conversation type (NOT the literal "Admin"), so
+    // that gate silently skipped the very case it was meant to cover. Running it
+    // for every chat type is harmless (the history handler dedups by message id)
+    // and mirrors the resume handler's fetch below.
+    final id = widget.conversationId ?? '';
+    if (id.isNotEmpty) {
+      ChatSocketService().reconnectNow(); // no-op when already connected
+      chatViewController.emitEvent(ChatEmitEvents.messageReceived, {
+        ApiKeys.conversation_id: id,
+        ApiKeys.page: 1,
+        ApiKeys.is_online_user: widget.userId,
+        ApiKeys.per_page_message: 30,
+      });
+    }
+
     // Poll for a live call on this conversation so the in-chat "Ongoing call"
     // message appears/disappears without the user leaving the screen. Admin
     // (broadcast) threads never have calls, so skip the poll there.
@@ -106,30 +138,6 @@ class _PersonalChatScreenState extends State<PersonalChatScreen>
       _pollOngoingCall();
       _ongoingCallPoll = Timer.periodic(
           const Duration(seconds: 2), (_) => _pollOngoingCall());
-    } else {
-      // Admin (BlueEra broadcast) thread: always pull page-1 history from the
-      // server on open. `listenUserNewMessages` only paints the Hive cache, so
-      // when this screen is reached from a broadcast-notification tap (which may
-      // not have pre-fetched via getLocalConversation) the thread would
-      // otherwise show only the just-pushed message instead of the full
-      // broadcast history. Mirrors the resume handler's fetch below.
-      final id = widget.conversationId ?? '';
-      if (id.isNotEmpty) {
-        // When the app was backgrounded (e.g. this screen was reached from a
-        // broadcast-notification tap), the chat socket may be sitting in its
-        // 2s→4s→…→32s reconnect backoff. The messageReceived fetch below would
-        // then be buffered on the dead socket and only flush after that
-        // backoff — so the broadcast history takes seconds to appear. Force an
-        // immediate reconnect first (a no-op when already connected) so the
-        // fetch goes out right away and the message shows fast.
-        ChatSocketService().reconnectNow();
-        chatViewController.emitEvent(ChatEmitEvents.messageReceived, {
-          ApiKeys.conversation_id: id,
-          ApiKeys.page: 1,
-          ApiKeys.is_online_user: widget.userId,
-          ApiKeys.per_page_message: 30,
-        });
-      }
     }
 
     // checkPendingMessages();
