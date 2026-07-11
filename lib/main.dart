@@ -343,7 +343,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
             priority: Priority.max,
             category: AndroidNotificationCategory.call,
             fullScreenIntent: true,
-            visibility: NotificationVisibility.public,
+            // visibility: NotificationVisibility.public,
             ongoing: true,
             autoCancel: false,
             playSound: true,
