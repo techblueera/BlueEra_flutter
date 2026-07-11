@@ -453,7 +453,7 @@ class _RiderMeScreenState extends State<RiderMeScreen>
               )
             else
               GestureDetector(
-                onTap: () {
+                onTap: () async {
                   // Go Live is allowed only once the rider is verified
                   // (isVerified == approved). Otherwise route them to finish
                   // document upload / verification first.
@@ -469,9 +469,13 @@ class _RiderMeScreenState extends State<RiderMeScreen>
                   // After document verification, the security deposit must be
                   // paid before going online. This gate applies only to bike
                   // riders / cab drivers (the professions that pay a deposit).
+                  // ensureSecurityDepositPaid re-fetches the onboarding
+                  // status when the snapshot says unpaid, so a freshly paid
+                  // deposit is honored instead of re-routing to payment.
                   final isRiderRole = userProfessionGlobal == BIKE_RIDER ||
                       userProfessionGlobal == CAR_TAXI_DRIVER;
-                  if (isRiderRole && !_riderCtrl.isSecurityDepositPaid) {
+                  if (isRiderRole &&
+                      !await _riderCtrl.ensureSecurityDepositPaid()) {
                     commonSnackBar(
                         message:
                             'Your payment is incomplete. Please complete the payment process to go live.');

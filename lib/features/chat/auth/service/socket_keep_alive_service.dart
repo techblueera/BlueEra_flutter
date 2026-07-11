@@ -18,6 +18,23 @@ class SocketKeepAliveService {
 
   static Timer? _iosKeepAliveTimer;
 
+  /// While a provider (rider/shop) is LIVE, the foreground service must stay
+  /// up even after a call ends — the map-service auto-closes providers whose
+  /// app stops pinging location for 5 minutes, and a plain Dart timer dies as
+  /// soon as Android freezes the backgrounded process. The hold makes
+  /// call-end `stop()` calls a no-op until the provider goes offline.
+  static bool _riderLiveHold = false;
+
+  /// Acquire/release the provider-live hold on the foreground service.
+  static Future<void> setRiderLiveHold(bool active) async {
+    _riderLiveHold = active;
+    if (active) {
+      await start();
+    } else {
+      await stop();
+    }
+  }
+
   /// Start keeping the socket alive. Call when a call starts.
   static Future<void> start() async {
     if (Platform.isAndroid) {
@@ -33,7 +50,9 @@ class SocketKeepAliveService {
   }
 
   /// Stop the keep-alive. Call when the call ends.
+  /// No-op while the provider-live hold is active (provider still online).
   static Future<void> stop() async {
+    if (_riderLiveHold) return;
     if (Platform.isAndroid) {
       try {
         await _channel.invokeMethod('stopService');

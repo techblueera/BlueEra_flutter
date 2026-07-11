@@ -63,8 +63,28 @@ class ViewPersonalDetailsController extends GetxController
   @override
   void onInit() {
     // getAllPostApi();
-    // TODO: implement onInit
     super.onInit();
+    // Restore the provider's live state on every controller creation (app
+    // start / bottom-nav mount). Previously the toggle Rx defaulted to false
+    // after an app kill+restart, so the pill showed Offline and — because the
+    // map-service auto-closes providers whose app stops pinging for 5 min —
+    // the provider really was CLOSED on the backend even though they never
+    // toggled off. If the cached status says OPEN, re-assert it.
+    restoreProviderLiveState();
+  }
+
+  /// If the locally cached provider status is OPEN, the user went live and
+  /// never chose to go offline — bring that state back: flip the toggle on,
+  /// re-PATCH OPEN to the map-service (heals the auto-close that fired when
+  /// the previous app session died), and restart the periodic location
+  /// pinger. No-op for users who never went live (empty/CLOSED cache).
+  Future<void> restoreProviderLiveState() async {
+    await getServiceProviderStatusUtils();
+    if (serviceProviderStatusGlobal.toUpperCase() ==
+        AppConstants.OPEN.toUpperCase()) {
+      shopStatusOpenClose.value = true;
+      await toggleShopOnlyStatus(isActive: true);
+    }
   }
 
   // ViewPersonalDetailsController() {
@@ -78,6 +98,11 @@ class ViewPersonalDetailsController extends GetxController
 
   Future<void> toggleShopStatus() async {
     shopStatusOpenClose.value = !shopStatusOpenClose.value;
+    // Persist the INTENT immediately — before the API round-trip. The cache
+    // is what onInit's restoreProviderLiveState reads after a kill+restart;
+    // writing it only on API success meant a kill (or any API hiccup) right
+    // after toggling left the cache stale and the toggle came back OFF.
+    await _persistLiveIntent(shopStatusOpenClose.value);
     if (shopStatusOpenClose.value) {
       locationService.start();
     } else {
@@ -88,7 +113,18 @@ class ViewPersonalDetailsController extends GetxController
 
   Future<void> toggleShopOnlyStatus({required bool isActive}) async {
     shopStatusOpenClose.value = isActive;
+    await _persistLiveIntent(isActive);
     await callApiForChangeStatus();
+  }
+
+  /// Write the user's go-live intent to secure storage + refresh the global
+  /// so every reader (bottom-nav pill, rider screens, restart restore) agrees
+  /// with what the user chose, independent of network state.
+  Future<void> _persistLiveIntent(bool isOpen) async {
+    await SharedPreferenceUtils.setSecureValue(
+        SharedPreferenceUtils.serviceProviderStatus,
+        isOpen ? 'OPEN' : 'CLOSED');
+    await getServiceProviderStatusUtils();
   }
 
   void getServiceProviderStatus() async {
@@ -103,6 +139,11 @@ class ViewPersonalDetailsController extends GetxController
         if (statusData == AppConstants.OPEN.toUpperCase()) {
           shopStatusOpenClose.value = true;
           callLocationAPI();
+          // Backend says OPEN — start the periodic location pinger. A single
+          // ping is not enough: the map-service auto-closes providers whose
+          // lastSeen goes stale for 5 minutes, so without the pinger the
+          // provider silently dropped offline right after app restart.
+          locationService.start();
         } else {
           shopStatusOpenClose.value = false;
         }
@@ -149,8 +190,12 @@ class ViewPersonalDetailsController extends GetxController
         await getServiceProviderStatusUtils();
         if (statusData == AppConstants.OPEN.toUpperCase()) {
           callLocationAPI();
-
-          // Get.put(LocationServiceProviderController()); // initialize controller
+          // Keep the periodic pinger in lockstep with the confirmed backend
+          // status — covers toggleShopOnlyStatus(), which (unlike
+          // toggleShopStatus) never touched the location service.
+          locationService.start();
+        } else {
+          locationService.stop();
         }
         changeShopStatusResponse.value = ApiResponse.complete(responseModel);
       }
@@ -585,20 +630,25 @@ class ViewPersonalDetailsController extends GetxController
     userProfileType.value = userProfileTypeGlobal;
     debugPrint("userProfileTypeGlobal after api: ${userProfileType.value}");
 
-    /// need to verify (for checking is service open or not)
-    if (user?.profession?.toUpperCase() == SELF_EMPLOYED ||
-        user?.profession?.toUpperCase() == GIG_WORKER) {
-      await getServiceProviderStatusUtils();
-      if (serviceProviderStatusGlobal.isNotEmpty) {
-        if (serviceProviderStatusGlobal.toUpperCase() ==
-            AppConstants.OPEN.toUpperCase()) {
-          shopStatusOpenClose.value = true;
-        } else {
-          shopStatusOpenClose.value = false;
-        }
+    /// need to verify (for checking is service exists or not)
+    // Cached-status restore applies to EVERY provider type — riders carry
+    // professions like BIKE_RIDER / CAR_TAXI_DRIVER, not just SELF_EMPLOYED /
+    // GIG_WORKER, and only providers ever write this cache. The profession
+    // gate stays only on the empty-cache backend fetch below.
+    await getServiceProviderStatusUtils();
+    if (serviceProviderStatusGlobal.isNotEmpty) {
+      if (serviceProviderStatusGlobal.toUpperCase() ==
+          AppConstants.OPEN.toUpperCase()) {
+        // Went live and never toggled off — re-assert OPEN + restart the
+        // location pinger (map-service auto-closed the provider when the
+        // previous app session stopped pinging).
+        await restoreProviderLiveState();
       } else {
-        getServiceProviderStatus();
+        shopStatusOpenClose.value = false;
       }
+    } else if (user?.profession?.toUpperCase() == SELF_EMPLOYED ||
+        user?.profession?.toUpperCase() == GIG_WORKER) {
+      getServiceProviderStatus();
     }
   }
 
