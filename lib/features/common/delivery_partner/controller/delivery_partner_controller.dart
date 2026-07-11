@@ -379,6 +379,19 @@ class DeliveryPartnerController extends GetxController {
         .every((e) => e.value == true);
   }
 
+  /// Gate check used by the Go Live toggles. Returns true when the deposit is
+  /// paid. When the in-memory snapshot says unpaid/unknown, it FORCE-REFRESHES
+  /// the onboarding status once before deciding — the deposit is reconciled
+  /// server-side by the Razorpay webhook and nothing refreshed the snapshot
+  /// after the rider paid on the contribution screen, so the gate kept seeing
+  /// the stale pre-payment `paid:false` and bounced an already-paid rider
+  /// back to the payment page forever.
+  Future<bool> ensureSecurityDepositPaid() async {
+    if (isSecurityDepositPaid) return true;
+    await ridersOnboardingStatusRepoApi(forceRefresh: true);
+    return isSecurityDepositPaid;
+  }
+
   /// Whether the rider's security deposit is paid. Gates "Go Live": a rider
   /// can go online only once this is true. Reads the `securityDeposit.paid`
   /// flag from the latest onboarding-status response (null → treated as unpaid).

@@ -2113,9 +2113,12 @@ Future<void> handleGoLiveTap() async {
   // After document verification, the security deposit must be paid before
   // going online. This gate applies only to bike riders / cab drivers (the
   // professions that pay a deposit); other roles skip it.
+  // ensureSecurityDepositPaid re-fetches the onboarding status when the
+  // in-memory snapshot says unpaid, so a deposit paid moments ago (webhook
+  // reconciled) is honored instead of bouncing back to the payment page.
   final isRiderRole = userProfessionGlobal == BIKE_RIDER ||
       userProfessionGlobal == CAR_TAXI_DRIVER;
-  if (isRiderRole && !riderCtrl.isSecurityDepositPaid) {
+  if (isRiderRole && !await riderCtrl.ensureSecurityDepositPaid()) {
     commonSnackBar(
         message:
             'Your payment is incomplete. Please complete the payment process to go live.');

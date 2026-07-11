@@ -98,6 +98,11 @@ class ViewPersonalDetailsController extends GetxController
 
   Future<void> toggleShopStatus() async {
     shopStatusOpenClose.value = !shopStatusOpenClose.value;
+    // Persist the INTENT immediately — before the API round-trip. The cache
+    // is what onInit's restoreProviderLiveState reads after a kill+restart;
+    // writing it only on API success meant a kill (or any API hiccup) right
+    // after toggling left the cache stale and the toggle came back OFF.
+    await _persistLiveIntent(shopStatusOpenClose.value);
     if (shopStatusOpenClose.value) {
       locationService.start();
     } else {
@@ -108,7 +113,18 @@ class ViewPersonalDetailsController extends GetxController
 
   Future<void> toggleShopOnlyStatus({required bool isActive}) async {
     shopStatusOpenClose.value = isActive;
+    await _persistLiveIntent(isActive);
     await callApiForChangeStatus();
+  }
+
+  /// Write the user's go-live intent to secure storage + refresh the global
+  /// so every reader (bottom-nav pill, rider screens, restart restore) agrees
+  /// with what the user chose, independent of network state.
+  Future<void> _persistLiveIntent(bool isOpen) async {
+    await SharedPreferenceUtils.setSecureValue(
+        SharedPreferenceUtils.serviceProviderStatus,
+        isOpen ? 'OPEN' : 'CLOSED');
+    await getServiceProviderStatusUtils();
   }
 
   void getServiceProviderStatus() async {
