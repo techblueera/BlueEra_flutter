@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
@@ -194,12 +195,34 @@ class DiscoverController extends GetxController {
   // drop. Goods/multi-shop orders surface this on the customer tracking screen
   // instead of the pickup OTP (see RIDER_FRONTEND_INTEGRATION_GUIDE §8).
   RxString fareCallDeliveryOtp = ''.obs;
+  // The order category of the active fare-call order (`InCity` / `OutStation` /
+  // `HourlyRental` / `Parcel` / `product` / `grocery` …). Used to decide which
+  // OTPs apply: a passenger ride has ONLY a pickup (ride-start) OTP and no
+  // delivery OTP, whereas product/parcel/goods pickups also have a delivery OTP.
+  RxString fareCallOrderFor = ''.obs;
   RxBool isFareCallRideStarted = false.obs;
   Rxn<Map<String, dynamic>> fareCallRideStartedData =
   Rxn<Map<String, dynamic>>();
   RxBool isFareCallRideCompleted = false.obs;
   Rxn<Map<String, dynamic>> fareCallRideCompletedData =
   Rxn<Map<String, dynamic>>();
+
+  /// A passenger ride (`InCity` / `OutStation` / `HourlyRental`) has a single
+  /// OTP — the pickup / ride-start OTP the customer reads to the rider. It has
+  /// NO delivery OTP; that belongs only to product / parcel / goods pickups.
+  bool get isFareCallPassengerRide => const {
+        'InCity',
+        'OutStation',
+        'HourlyRental',
+      }.contains(fareCallOrderFor.value);
+
+  /// Fallback poll that flips [isFareCallRideStarted] when the backend order
+  /// status reaches the ride-started stage. The customer normally learns the
+  /// rider verified the pickup OTP via the `ride:started` socket event (or the
+  /// `ride_started` FCM data-push), but both can be missed (socket reconnect /
+  /// different room, silenced notifications). Without this, the customer never
+  /// sees the delivery OTP, the Share-Ride button, or the destination route.
+  Timer? _rideStartedPollTimer;
 
   Rx<RiderUser> selectedRider = RiderUser().obs;
   RxList<RiderUser> selectedRiders = <RiderUser>[].obs;
@@ -1680,6 +1703,11 @@ class DiscoverController extends GetxController {
       final data = response.response?.data;
       if (data != null && data is Map) {
         fareCallOrderId.value = data['orderId'] ?? data['_id'] ?? '';
+        // Remember the order category so the tracking screen knows whether a
+        // delivery OTP applies (passenger rides have none — pickup OTP only).
+        fareCallOrderFor.value =
+            (data['orderFor'] ?? getTabName(selectedHorizontalTab.value))
+                .toString();
         // Save pickup OTP from order creation response so the customer
         // can see it even if ride:queue:accepted socket event is missed.
         fareCallPickupOtp.value = (data['pickupOTP'] ?? '').toString();
@@ -1799,6 +1827,93 @@ class DiscoverController extends GetxController {
     });
   }
 
+  /// Start a low-frequency fallback poll that tracks the order status through
+  /// the whole ride lifecycle, in case the `ride:started` / `ride:completed`
+  /// socket events (or FCM pushes) are missed. It flips [isFareCallRideStarted]
+  /// at the in-progress / picked-up stage and [isFareCallRideCompleted] at
+  /// completion (which removes the OTP cards and shows the ride-completed
+  /// panel), then stops. Safe to call repeatedly — no-op if already polling or
+  /// the ride is already completed. Cancelled on [resetFareCallState] / screen
+  /// dispose / logout.
+  void startRideStartedFallbackPoll(String orderId) {
+    if (orderId.isEmpty) return;
+    if (isFareCallRideCompleted.value) return; // nothing left to detect
+    if (_rideStartedPollTimer?.isActive ?? false) return;
+
+    // Order status state machine (RIDER_FRONTEND_INTEGRATION_GUIDE §"status"):
+    // pending → payment-pending → confirmed → in-progress → picked-up → completed
+    // The ride has "started" at in-progress and stays started through picked-up.
+    const startedStatuses = {'in-progress', 'picked-up'};
+    const abortedStatuses = {'cancelled', 'rejected'};
+
+    _rideStartedPollTimer =
+        Timer.periodic(const Duration(seconds: 7), (timer) async {
+      // Completion (from any source) is the terminal signal — stop polling.
+      if (isFareCallRideCompleted.value) {
+        stopRideStartedFallbackPoll();
+        return;
+      }
+      try {
+        final res =
+            await ChatViewRepo().checkTrackOrderStatusSilentApi(orderId);
+        if (!res.isSuccess) return;
+        final data = res.response?.data;
+        if (data is! Map) return;
+
+        final status =
+            (data['status'] ?? '').toString().toLowerCase().replaceAll('_', '-');
+
+        // Capture the order category if not already known (killed-state restore
+        // enters tracking without going through order creation).
+        final polledOrderFor = (data['orderFor'] ?? '').toString();
+        if (polledOrderFor.isNotEmpty && fareCallOrderFor.value.isEmpty) {
+          fareCallOrderFor.value = polledOrderFor;
+        }
+
+        if (status == 'completed') {
+          _applyRideCompletedFromPoll(Map<String, dynamic>.from(data));
+          stopRideStartedFallbackPoll();
+        } else if (startedStatuses.contains(status)) {
+          if (!isFareCallRideStarted.value) {
+            isFareCallRideStarted.value = true;
+            fareCallRideStartedData.value = Map<String, dynamic>.from(data);
+            // Rehydrate the customer's delivery OTP if the status payload
+            // carries it, so the OTP card shows without a separate fetch.
+            final deliveryOtp = (data['deliveryOTP'] ?? '').toString();
+            if (deliveryOtp.isNotEmpty) fareCallDeliveryOtp.value = deliveryOtp;
+            print('[FARE_CALL_QUEUE] ride-started detected via status poll '
+                '(status=$status) → isFareCallRideStarted=true');
+          }
+          // Keep polling — we still need to catch completion.
+        } else if (abortedStatuses.contains(status)) {
+          stopRideStartedFallbackPoll();
+        }
+      } catch (_) {
+        // Best-effort fallback; the socket/FCM paths remain the primary signal.
+      }
+    });
+  }
+
+  /// Mirror the `ride:completed` socket handler when completion is detected via
+  /// the status poll instead: flip the flag, stash the payload, and clear the
+  /// floating overlay + persisted ongoing-ride snapshot.
+  void _applyRideCompletedFromPoll(Map<String, dynamic> data) {
+    if (isFareCallRideCompleted.value) return;
+    isFareCallRideCompleted.value = true;
+    fareCallRideCompletedData.value = data;
+    if (Get.isRegistered<RideNavigationOverlayController>()) {
+      Get.find<RideNavigationOverlayController>().clearRideData();
+    }
+    OngoingRideStore.clear();
+    print('[FARE_CALL_QUEUE] ride-completed detected via status poll → '
+        'isFareCallRideCompleted=true');
+  }
+
+  void stopRideStartedFallbackPoll() {
+    _rideStartedPollTimer?.cancel();
+    _rideStartedPollTimer = null;
+  }
+
   /// Cancel fare-call queue
   Future<void> cancelFareCallQueue() async {
     if (fareCallOrderId.value.isEmpty) return;
@@ -1818,9 +1933,11 @@ class DiscoverController extends GetxController {
   /// the order owner. No-op if we already have it.
   Future<void> hydrateFareCallDeliveryOtp(String orderId) async {
     // Rehydrate BOTH customer OTPs: pickup (ride-start, passenger rides only —
-    // backend returns it only for ride jobs) and delivery (completion).
+    // backend returns it only for ride jobs) and delivery (completion), plus
+    // the order category so we know whether a delivery OTP applies at all.
     if (fareCallDeliveryOtp.value.isNotEmpty &&
-        fareCallPickupOtp.value.isNotEmpty) return;
+        fareCallPickupOtp.value.isNotEmpty &&
+        fareCallOrderFor.value.isNotEmpty) return;
     if (orderId.isEmpty) return;
     try {
       final res = await ChatViewRepo().checkTrackOrderStatusSilentApi(orderId);
@@ -1832,6 +1949,11 @@ class DiscoverController extends GetxController {
         final pickupOtp =
             (data is Map ? data['pickupOTP'] : null)?.toString() ?? '';
         if (pickupOtp.isNotEmpty) fareCallPickupOtp.value = pickupOtp;
+        final orderFor =
+            (data is Map ? data['orderFor'] : null)?.toString() ?? '';
+        if (orderFor.isNotEmpty && fareCallOrderFor.value.isEmpty) {
+          fareCallOrderFor.value = orderFor;
+        }
       }
     } catch (_) {
       // Tracking is best-effort; the chat card remains the durable OTP source.
@@ -1849,10 +1971,12 @@ class DiscoverController extends GetxController {
     fareCallAcceptedRiderId.value = '';
     fareCallPickupOtp.value = '';
     fareCallDeliveryOtp.value = '';
+    fareCallOrderFor.value = '';
     isFareCallRideStarted.value = false;
     fareCallRideStartedData.value = null;
     isFareCallRideCompleted.value = false;
     fareCallRideCompletedData.value = null;
+    stopRideStartedFallbackPoll();
 
     // Clean up live tracking controller if registered
     if (Get.isRegistered<LiveTrachRiderController>()) {

@@ -137,7 +137,9 @@ void enablePip()async{
             distanceKm: distance,
             customerName: customerName,
             customerImage: customerImage,
-            otp: order.pickupOTP ?? '',
+            // Passenger rides: rider must not hold the ride-start OTP (the
+            // customer holds it; the server verifies). Goods/parcel keep it.
+            otp: (order.jobInfo?.isRide ?? false) ? '' : (order.pickupOTP ?? ''),
             paymentMethod: paymentMethod,
             customerUserId: order.user?.id ?? '',
           ),

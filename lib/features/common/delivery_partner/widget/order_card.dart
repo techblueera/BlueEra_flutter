@@ -229,24 +229,30 @@ class _OrderCardState extends State<OrderCard> {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        SizedBox(height: SizeConfig.size6),
-        Row(
-          children: [
-            CustomText(
-              '${AppStrings.pickUpOTP.tr}: ',
-              fontSize: SizeConfig.small11,
-              fontWeight: FontWeight.w400,
-              color: AppColors.secondaryTextColor,
-            ),
-            CustomText(
-              '${widget.order.pickupOTP}',
-              fontSize: SizeConfig.small11,
-              fontWeight: FontWeight.w600,
-              overflow: TextOverflow.ellipsis,
-              color: AppColors.secondaryTextColor,
-            ),
-          ],
-        ),
+        // Passenger rides: the CUSTOMER holds the ride-start (pickup) OTP and
+        // reads it to the rider, who only enters it — the rider must never see
+        // the digits. Goods/parcel keep showing it (the rider reads it out to
+        // the shop/sender). See RIDER_FRONTEND_INTEGRATION_GUIDE §8.
+        if (!(widget.order.jobInfo?.isRide ?? false)) ...[
+          SizedBox(height: SizeConfig.size6),
+          Row(
+            children: [
+              CustomText(
+                '${AppStrings.pickUpOTP.tr}: ',
+                fontSize: SizeConfig.small11,
+                fontWeight: FontWeight.w400,
+                color: AppColors.secondaryTextColor,
+              ),
+              CustomText(
+                '${widget.order.pickupOTP}',
+                fontSize: SizeConfig.small11,
+                fontWeight: FontWeight.w600,
+                overflow: TextOverflow.ellipsis,
+                color: AppColors.secondaryTextColor,
+              ),
+            ],
+          ),
+        ],
       ],
     );
   }
@@ -930,7 +936,10 @@ class _OrderCardState extends State<OrderCard> {
             distanceKm: distance,
             customerName: customerName,
             customerImage: customerImage,
-            otp: order.pickupOTP ?? '',
+            // Passenger rides: rider must not hold the OTP — pass empty so
+            // verification always goes through the server (the customer holds
+            // it). Goods/parcel keep passing it (rider reads it to the shop).
+            otp: (order.jobInfo?.isRide ?? false) ? '' : (order.pickupOTP ?? ''),
             paymentMethod: paymentMethod,
             customerUserId: order.user?.id ?? '',
           ),
