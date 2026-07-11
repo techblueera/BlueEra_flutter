@@ -585,7 +585,7 @@ class ViewPersonalDetailsController extends GetxController
     userProfileType.value = userProfileTypeGlobal;
     debugPrint("userProfileTypeGlobal after api: ${userProfileType.value}");
 
-    /// need to verify (for checking is service exists or not)
+    /// need to verify (for checking is service open or not)
     if (user?.profession?.toUpperCase() == SELF_EMPLOYED ||
         user?.profession?.toUpperCase() == GIG_WORKER) {
       await getServiceProviderStatusUtils();

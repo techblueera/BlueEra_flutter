@@ -32,6 +32,21 @@ class GoLivePermissionService {
     return map.values.every((granted) => granted);
   }
 
+  /// The permissions that MUST be granted before going live.
+  ///
+  /// Battery optimization is intentionally EXCLUDED. Its check relies on
+  /// [Permission.ignoreBatteryOptimizations] → `isIgnoringBatteryOptimizations()`,
+  /// which only reflects the Doze whitelist. On Android 13+/16 the toggle users
+  /// actually reach (App info → Battery → "Unrestricted") is a different setting
+  /// and does NOT flip that flag, so gating on it leaves the go-live permission
+  /// screen re-appearing forever even after the user "granted" everything.
+  /// It stays visible in the UI as an optional nudge, just not a hard blocker.
+  static Future<bool> areRequiredGranted() async {
+    final bgLocation = await isBackgroundLocationGranted();
+    final overlay = await isDisplayOverOtherAppsGranted();
+    return bgLocation && overlay;
+  }
+
   // ---------------- BACKGROUND LOCATION ----------------
   static Future<bool> isBackgroundLocationGranted() async {
     try {

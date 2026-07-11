@@ -275,13 +275,20 @@ class AuthController extends GetxController {
               await personalController.viewPersonalProfile(forceRefresh: true);
 
               // Riders must be reachable for live dispatch. On login, if the
-              // go-live device permissions aren't all granted yet, walk them
-              // through the permission gate → set-availability screen (which
-              // persists their hours), then land on home.
+              // required go-live device permissions aren't granted yet, walk
+              // them through the permission gate → set-availability screen
+              // (which persists their hours), then land on home.
+              // NB: gate on areRequiredGranted (background location + overlay),
+              // NOT areAllGranted — battery optimization can't be reliably
+              // satisfied on Android 13+/16, so including it would force every
+              // rider into the permission screen on every login. Same reasoning
+              // as the go-live handlers.
               final isRider = userProfessionGlobal == BIKE_RIDER ||
                   userProfessionGlobal == CAR_TAXI_DRIVER;
-              if (isRider && !await GoLivePermissionService.areAllGranted()) {
-                final granted = await Get.to(() => const GoLivePermissionScreen());
+              if (isRider &&
+                  !await GoLivePermissionService.areRequiredGranted()) {
+                await Get.to(() => const GoLivePermissionScreen());
+                // final granted = await Get.to(() => const GoLivePermissionScreen());
                 // if (granted == true) {
                 //   await Get.to(() => const GroceryShopAvailabilityScreen());
                 // }

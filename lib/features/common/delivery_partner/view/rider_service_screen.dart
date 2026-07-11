@@ -1,4 +1,5 @@
-﻿import 'dart:io';
+﻿import 'dart:developer';
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -12,7 +13,6 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/controller/location_controller.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/core/services/share_service.dart';
@@ -65,7 +65,7 @@ class RiderServiceScreen extends StatefulWidget {
 }
 
 class _RiderServiceScreenState extends State<RiderServiceScreen>
-    with SingleTickerProviderStateMixin, RouteAware, MeTabBackHandlerMixin {
+    with SingleTickerProviderStateMixin, MeTabBackHandlerMixin {
   final controller = getOrPut(() => DeliveryPartnerController());
   final _ordersCtrl = getOrPut(() => DeliverPartnerOrdersController());
   final _viewCtrl = getOrPut(() => ViewPersonalDetailsController(), permanent: true);
@@ -143,20 +143,6 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final route = ModalRoute.of(context);
-    if (route is PageRoute) {
-      RouteHelper.routeObserver.subscribe(this, route);
-    }
-  }
-
-  @override
-  void didPopNext() {
-    _checkRiderStatus();
-  }
-
-  @override
   void dispose() {
     _tabController.dispose();
     _prefWorker?.dispose();
@@ -167,10 +153,16 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     // down so the connection isn't leaked once the screen is gone.
     _ordersCtrl.stopStream();
     deleteIfRegistered<DeliveryPartnerController>();
-    RouteHelper.routeObserver.unsubscribe(this);
     super.dispose();
   }
 
+  // Status is fetched once in initState. We deliberately do NOT re-fetch on
+  // every back-press (the old RouteAware.didPopNext) — that hammered the API.
+  // The only return that can change onboarding status is coming back from the
+  // deposit-payment flow, which handleGoLiveTap refreshes explicitly. Other
+  // changes are covered: in-app mutations self-refresh via forceRefresh, and
+  // RiderMeScreen (sharing this controller + reactive riderOnboardingStatusData)
+  // refreshes on its own return / app resume, which this screen's Obx reflects.
   void _checkRiderStatus() {
     controller.ridersOnboardingStatusRepoApi();
   }
@@ -324,14 +316,11 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
             if (_orderSubTab == _orderSubOrders)
               _buildPreferenceOrOrders(hasActiveOrders)
             else ...[
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-                child: OrderActionsCarousel(
-                  onAddCatalog: () => _tabController.animateTo(2),
-                  catalogIcon: Icons.storefront_rounded,
-                  catalogTitle: AppStrings.store.tr,
-                  catalogSubtitle: 'Manage your store',
-                ),
+              OrderActionsCarousel(
+                onAddCatalog: () => _tabController.animateTo(2),
+                catalogIcon: Icons.storefront_rounded,
+                catalogTitle: AppStrings.store.tr,
+                catalogSubtitle: 'Manage your store',
               ),
               SizedBox(height: SizeConfig.size12),
               BusinessChatsList(
@@ -2115,16 +2104,27 @@ Future<void> handleGoLiveTap() async {
   // professions that pay a deposit); other roles skip it.
   final isRiderRole = userProfessionGlobal == BIKE_RIDER ||
       userProfessionGlobal == CAR_TAXI_DRIVER;
+  log('GoLive deposit gate → profession=$userProfessionGlobal'
+      ' isRiderRole=$isRiderRole'
+      ' isSecurityDepositPaid=${riderCtrl.isSecurityDepositPaid}'
+      ' blocked=${isRiderRole && !riderCtrl.isSecurityDepositPaid}');
   if (isRiderRole && !riderCtrl.isSecurityDepositPaid) {
     commonSnackBar(
         message:
             'Your payment is incomplete. Please complete the payment process to go live.');
-    Get.to(() => const ContributionScreenV2());
+    // Await the deposit flow, then refresh so a freshly-paid deposit is picked
+    // up (it's reconciled server-side by a Razorpay webhook with no in-app
+    // trigger). This replaces the old RouteAware.didPopNext refresh — it targets
+    // the one return that can actually change onboarding status.
+    await Get.to(() => const ContributionScreenV2());
+    await riderCtrl.ridersOnboardingStatusRepoApi(forceRefresh: true);
     return;
   }
 
-  final statuses = await GoLivePermissionService.checkAll();
-  if (statuses.values.every((v) => v)) {
+  // Battery optimization is excluded from the gate — see
+  // GoLivePermissionService.areRequiredGranted. Gating on it looped the
+  // permission screen forever on Android 13+/16.
+  if (await GoLivePermissionService.areRequiredGranted()) {
     _viewCtrl.toggleShopStatus();
     return;
   }

@@ -67,11 +67,14 @@ class ContributionScreenV2 extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (controller.isTestMode) const _TestModeBanner(),
-                _SecurityDepositVideoSection(controller: controller),
                 if (controller.hasActiveDeposit)
+                  // Deposit already held — nothing to buy, so no explainer video.
                   _ActiveDepositView(controller: controller)
-                else
+                else ...[
+                  // Only shown on the plans (needs-to-purchase) view.
+                  _SecurityDepositVideoSection(controller: controller),
                   _PlansView(controller: controller),
+                ],
                 SizedBox(height: SizeConfig.size24),
               ],
             ),

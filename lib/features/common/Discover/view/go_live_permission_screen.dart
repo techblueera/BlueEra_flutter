@@ -187,10 +187,15 @@ class _GoLivePermissionScreenState extends State<GoLivePermissionScreen>
     });
   }
 
-  bool get _allGranted => _granted.values.every((v) => v);
+  // Battery optimization is an optional nudge, not a hard requirement — its
+  // status can't be reliably satisfied on Android 13+/16 (see
+  // GoLivePermissionService.areRequiredGranted), so it must not block Submit.
+  bool get _requiredGranted =>
+      (_granted[GoLivePermissionType.backgroundLocation] ?? false) &&
+      (_granted[GoLivePermissionType.displayOverOtherApps] ?? false);
 
   void _onSubmit() {
-    if (!_allGranted) {
+    if (!_requiredGranted) {
       commonSnackBar(
         message: 'Please grant all required permissions to go live.',
       );
@@ -324,7 +329,7 @@ class _GoLivePermissionScreenState extends State<GoLivePermissionScreen>
                 width: double.infinity,
                 height: 52,
                 child: ElevatedButton(
-                  onPressed: _allGranted ? _onSubmit : null,
+                  onPressed: _requiredGranted ? _onSubmit : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primaryColor,
                     disabledBackgroundColor: AppColors.greyE5,
@@ -339,7 +344,7 @@ class _GoLivePermissionScreenState extends State<GoLivePermissionScreen>
                     'Submit',
                     fontSize: SizeConfig.large,
                     fontWeight: FontWeight.w700,
-                    color: _allGranted
+                    color: _requiredGranted
                         ? AppColors.white
                         : AppColors.secondaryTextColor,
                   ),

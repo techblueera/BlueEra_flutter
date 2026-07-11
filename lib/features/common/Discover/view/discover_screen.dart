@@ -1,6 +1,7 @@
 import 'dart:ui' show ImageFilter;
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -28,8 +29,10 @@ import 'package:BlueEra/features/common/Discover/view/widget/shopping_card_widge
 import 'package:BlueEra/features/common/Discover/view/widget/transport_service_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/hmf_category_discover_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/v2/home_service_discover_screen_v2.dart';
+import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/qr_code/view/emergency_qr_screen.dart';
+import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/common/qr_code/view/qr_design_options_widget.dart';
 import 'package:BlueEra/features/me/food/view/customer/restaurant_near_me_screen.dart';
 import 'package:BlueEra/features/personal/emergency/controller/emergency_profile_controller.dart';
@@ -51,6 +54,11 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
   final ScrollController _scrollController = ScrollController();
   late final EmergencyProfileController emergencyController;
+
+  /// The share-profile promo dialog is shown once per app launch, the first
+  /// time Discover mounts. Static so it survives this screen being rebuilt /
+  /// re-entered via the bottom nav within the same process.
+  static bool _sharePromoShown = false;
 
   /// Active quick-access tab — see [discoverQuickAccessTabs]:
   /// 0=Quick Access, 1=Grocery & Food, 2=Travel & Booking,
@@ -164,6 +172,105 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
     _locationResolved = LocationService.hasUsableLocation;
     if (!_locationResolved) _ensureLocationThenBuild();
+
+    _maybeShowSharePromo();
+  }
+
+  /// Pops the share-profile promo dialog once per app launch (first Discover
+  /// mount). Deferred to after the first frame so a valid context/overlay
+  /// exists. Renders the same [BusinessShareBanner] the me-screens use,
+  /// configured for the signed-in account type.
+  void _maybeShowSharePromo() {
+    if (_sharePromoShown) return;
+    _sharePromoShown = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _showSharePromoDialog();
+    });
+  }
+
+  Future<void> _showSharePromoDialog() async {
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (ctx) => Dialog(
+        backgroundColor: AppColors.white,
+        insetPadding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size16,
+          vertical: SizeConfig.size24,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              SizeConfig.size14,
+              SizeConfig.size12,
+              SizeConfig.size14,
+              SizeConfig.size14,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: CustomText(
+                        isBusinessUser()
+                            ? 'Promote your business'
+                            : 'Share your profile',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.mainTextColor,
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () => Navigator.of(ctx).pop(),
+                      borderRadius: BorderRadius.circular(20),
+                      child: const Padding(
+                        padding: EdgeInsets.all(4),
+                        child: Icon(Icons.close,
+                            size: 20, color: AppColors.secondaryTextColor),
+                      ),
+                    ),
+                  ],
+                ),
+                _sharePromoBanner(),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// The share banner configured for the signed-in account type — business
+  /// reads its own [ViewBusinessDetailsController]; individual is fed name /
+  /// photo / designation from the personal profile (same as the me-screens).
+  Widget _sharePromoBanner() {
+    if (isBusinessUser()) {
+      return const BusinessShareBanner();
+    }
+    final viewCtrl = getOrPut(() => ViewPersonalDetailsController());
+    return Obx(() {
+      final user = viewCtrl.personalProfileDetails.value.user;
+      final name = (user?.name ?? '').trim();
+      return BusinessShareBanner(
+        // Always non-empty so the widget takes its override (individual) path
+        // instead of falling back to the business profile.
+        overrideName: name.isNotEmpty ? _capitalizeFirst(name) : 'My Profile',
+        overridePhoto: user?.profileImage,
+        overrideSubCategory: user?.designation ?? '',
+        accountType: AppConstants.individual,
+      );
+    });
+  }
+
+  String _capitalizeFirst(String text) {
+    if (text.isEmpty) return '';
+    return text[0].toUpperCase() + text.substring(1).toLowerCase();
   }
 
   Future<void> _ensureLocationThenBuild() async {

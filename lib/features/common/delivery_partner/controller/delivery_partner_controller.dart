@@ -189,6 +189,9 @@ class DeliveryPartnerController extends GetxController {
   Rx<RiderOnboardingStatusData?> riderOnboardingStatusData =
       Rx<RiderOnboardingStatusData?>(null);
 
+  /// Tracks an in-flight status fetch so concurrent callers share one request.
+  Future<void>? _statusInFlight;
+
   /// Fetches the rider onboarding status.
   ///
   /// Cache-first: serves the rider's own status from the local cache and does
@@ -198,7 +201,26 @@ class DeliveryPartnerController extends GetxController {
   /// pull-to-refresh — and the fresh response is written back to the cache.
   /// The cache is wiped on logout (`Hive.deleteFromDisk()`), so a re-login
   /// refetches once.
-  Future<void> ridersOnboardingStatusRepoApi({bool forceRefresh = false}) async {
+  ///
+  /// Coalesces concurrent callers: on login the bottom nav mounts both the
+  /// rider dashboard (RiderServiceScreen) and the rider "me" tab (RiderMeScreen)
+  /// at once, and each requests the status in its own initState — which fired
+  /// two identical network GETs back to back. Any call arriving while a fetch is
+  /// already running shares that single request instead. (A cached paid deposit
+  /// is terminal, so a forceRefresh caller coalescing onto an in-flight fetch
+  /// still gets a correct, current result.)
+  Future<void> ridersOnboardingStatusRepoApi({bool forceRefresh = false}) {
+    final inFlight = _statusInFlight;
+    if (inFlight != null) return inFlight;
+    final future = _fetchOnboardingStatus(forceRefresh: forceRefresh);
+    _statusInFlight = future;
+    future.whenComplete(() {
+      if (identical(_statusInFlight, future)) _statusInFlight = null;
+    });
+    return future;
+  }
+
+  Future<void> _fetchOnboardingStatus({bool forceRefresh = false}) async {
     try {
       // Cache-first — but never serve a cached *unpaid* deposit. The security
       // deposit is reconciled server-side (Razorpay webhook) with no in-app

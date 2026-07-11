@@ -81,6 +81,12 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
   // Used to decide whether to hydrate the earn profile on load.
   bool get _hasEarnProfile => _viewCtrl.earnProfileType.isNotEmpty;
 
+  // Store tab is index 3. We hydrate the earn profile lazily — only the
+  // first time the user actually opens the Store tab — so the three
+  // earn-profiles/user requests don't fire while sitting on the Order tab.
+  static const int _storeTabIndex = 3;
+  bool _earnProfileHydrated = false;
+
   // The Store tab is always present, placed just before Statics (index 4).
   List<String> get _tabs => [
         AppStrings.order.tr,
@@ -100,6 +106,8 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
       vsync: this,
     );
     registerMeTabBackHandler(_tabController);
+    // Hydrate the earn profile lazily when the Store tab is first opened.
+    _tabController.addListener(_maybeHydrateEarnProfile);
     _viewCtrl.UserFollowersAndPostsCount(userId);
     // Hydrate the business chat list so the Order tab's inquiry list
     // has data ready when the user switches to it. Mirrors what
@@ -108,19 +116,27 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
       ChatEmitEvents.ChatList,
       {ApiKeys.type: AppConstants.business_Chat_Type},
     );
-    // Hydrate the earn profile so the "Store" tab card can show real
-    // store details (name / cover / address / chips).
-    if (_hasEarnProfile) {
-      _earnProfileCtrl.fetchEarnProfile();
-    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _viewCtrl.shopStatusOpenClose.value =
           serviceProviderStatusGlobal.toUpperCase() == AppConstants.OPEN.toUpperCase();
     });
   }
 
+  // Fetches the earn profile the first time the Store tab is reached (via tap
+  // or swipe). Runs once — subsequent tab changes are no-ops. Only fires when
+  // the user actually owns an earn profile, so users without a store never
+  // trigger the earn-profiles/user requests.
+  void _maybeHydrateEarnProfile() {
+    if (_earnProfileHydrated) return;
+    if (_tabController.index != _storeTabIndex) return;
+    if (!_hasEarnProfile) return;
+    _earnProfileHydrated = true;
+    _earnProfileCtrl.fetchEarnProfile();
+  }
+
   @override
   void dispose() {
+    _tabController.removeListener(_maybeHydrateEarnProfile);
     _tabController.dispose();
     super.dispose();
   }
@@ -197,8 +213,10 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
       return;
     }
 
-    final statuses = await GoLivePermissionService.checkAll();
-    if (statuses.values.every((v) => v)) {
+    // Battery optimization is excluded from the gate — see
+    // GoLivePermissionService.areRequiredGranted. Gating on it looped the
+    // permission screen forever on Android 13+/16.
+    if (await GoLivePermissionService.areRequiredGranted()) {
       _viewCtrl.toggleShopStatus();
       return;
     }
