@@ -13,6 +13,12 @@ class CustomFormCard extends StatelessWidget {
   final BorderRadiusGeometry? borderRadius;
   final BoxBorder? border;
 
+  /// Optional debug tag. When non-null, the card prints a log line every time
+  /// it (re)builds — pass it from an order card (e.g. the order id / status) to
+  /// watch just those cards without every other CustomFormCard in the app
+  /// spamming the console.
+  final String? logLabel;
+
   const CustomFormCard({
     super.key,
     required this.child,
@@ -23,10 +29,14 @@ class CustomFormCard extends StatelessWidget {
     this.color,
     this.borderRadius,
     this.border,
+    this.logLabel,
   });
 
   @override
   Widget build(BuildContext context) {
+    if (logLabel != null) {
+      debugPrint('🧾 CustomFormCard build → $logLabel');
+    }
     return Container(
       width: width ?? double.infinity,
       margin: margin,

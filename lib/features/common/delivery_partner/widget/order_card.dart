@@ -15,6 +15,7 @@ import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -46,8 +47,6 @@ class OrderCard extends StatefulWidget {
 }
 
 class _OrderCardState extends State<OrderCard> {
-  double dragX = 0;
-
   @override
   Widget build(BuildContext context) {
     final controller = getOrPut(() => DeliverPartnerOrdersController());
@@ -902,10 +901,15 @@ class _OrderCardState extends State<OrderCard> {
     final paymentMethod = order.modeOfPayment ?? 'Cash';
     final pickupAddress = order.pickupLocation?.address ?? 'Pickup location';
     final dropAddress = order.dropLocation?.address ?? 'Drop location';
-    final isPickedUp = order.status == 'picked-up' || order.status == 'completed';
+    // Past-pickup = OTP already verified. After the pickup OTP the ride order
+    // becomes 'in-progress' (parcel/goods may report 'picked-up'); both, plus
+    // 'completed', mean the pickup leg is done → go to the destination screen.
+    final isPickedUp = order.status == 'in-progress' ||
+        order.status == 'picked-up' ||
+        order.status == 'completed';
 
     if (isPickedUp) {
-      // OTP verified / picked-up — open the rider destination screen (live
+      // OTP verified / past pickup — open the rider destination screen (live
       // map + fare + slide-to-complete).
       Navigator.of(context).push(
         MaterialPageRoute(
@@ -921,7 +925,7 @@ class _OrderCardState extends State<OrderCard> {
             customerName: customerName,
             customerImage: customerImage,
             paymentMethod: paymentMethod,
-            orderId: order.orderId ?? '',
+            orderId: order.id ?? '',
           ),
         ),
       );
@@ -943,6 +947,10 @@ class _OrderCardState extends State<OrderCard> {
             // verification always goes through the server (the customer holds
             // it). Goods/parcel keep passing it (rider reads it to the shop).
             otp: (order.jobInfo?.isRide ?? false) ? '' : (order.pickupOTP ?? ''),
+            // REQUIRED so the pickup screen can call verifyPickupOtpRideOrParcelApi.
+            // For a ride the rider doesn't hold the OTP (otp is empty), so
+            // without this the screen has no order reference and can't verify.
+            orderId: order.id ?? '',
             paymentMethod: paymentMethod,
             customerUserId: order.user?.id ?? '',
           ),
@@ -952,7 +960,11 @@ class _OrderCardState extends State<OrderCard> {
   }
 
   Widget _buildViewRideOnMapButton() {
-    final isPickedUp = widget.order.status == 'picked-up' || widget.order.status == 'completed';
+    // 'in-progress' (ride) / 'picked-up' (parcel) / 'completed' all mean the
+    // pickup OTP is done, so the CTA reads "View Ride on Map".
+    final isPickedUp = widget.order.status == 'in-progress' ||
+        widget.order.status == 'picked-up' ||
+        widget.order.status == 'completed';
     return GestureDetector(
       onTap: _navigateToRideMap,
       child: Container(
@@ -1036,12 +1048,9 @@ class _OrderCardState extends State<OrderCard> {
                 ||widget.order.orderFor==AppConstants.HourlyRental
                 ||widget.order.orderFor==AppConstants.Parcel)&& widget.order.status=='in-progress')
               Expanded(
-                child: slideToComplete(
-                  dragX: dragX,
-                  onDragUpdate: (val) => setState(() => dragX = val),
-                  onComplete: () async{
-                    await controller.completePickupRiderApi(widget.order.id??'');
-                  },
+                child: SlideToCompleteButton(
+                  onComplete: () =>
+                      controller.completePickupRiderApi(widget.order.id ?? ''),
                 ),
               )
 
@@ -1068,70 +1077,6 @@ class _OrderCardState extends State<OrderCard> {
     );
   }
 
-  Widget slideToComplete({
-    required double dragX,
-    required Function(double) onDragUpdate,
-    required VoidCallback onComplete,
-    double height = 44,
-    String text = "Slide to complete",
-  }) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final sliderWidth = constraints.maxWidth;
-        final buttonWidth = height;
-
-        return Container(
-          height: height,
-          decoration: BoxDecoration(
-            color: Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(height / 2),
-          ),
-          child: Stack(
-            alignment: Alignment.centerLeft,
-            children: [
-              Center(
-                child: Text(
-                  text,
-                  style: TextStyle(
-                    color: Colors.grey.shade600,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
-              Positioned(
-                left: dragX,
-                child: GestureDetector(
-                  onHorizontalDragUpdate: (details) {
-                    double newDrag =
-                    (dragX + details.delta.dx).clamp(0, sliderWidth - buttonWidth);
-                    onDragUpdate(newDrag);
-                  },
-                  onHorizontalDragEnd: (_) {
-                    if (dragX > (sliderWidth - buttonWidth) * 0.7) {
-                      onComplete();
-                    }
-                    onDragUpdate(0);
-                  },
-                  child: Container(
-                    height: height,
-                    width: buttonWidth,
-                    decoration: BoxDecoration(
-                      color: Colors.green,
-                      borderRadius: BorderRadius.circular(height / 2),
-                    ),
-                    child: const Icon(
-                      Icons.arrow_forward_ios,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
 
 
 
@@ -1415,5 +1360,155 @@ class _OrderCardState extends State<OrderCard> {
   String _formatTime(String isoString) {
     final dateTime = DateTime.parse(isoString).toLocal();
     return DateFormat('hh:mm a').format(dateTime);
+  }
+}
+
+/// Self-contained slide-to-complete control.
+///
+/// Kept in its own [StatefulWidget] so dragging only rebuilds THIS widget (not
+/// the whole heavy order card) — that's what makes the slide feel smooth. It
+/// also shows an inline "Completing…" loader while [onComplete] runs, so no
+/// global progress dialog is needed.
+class SlideToCompleteButton extends StatefulWidget {
+  /// The completion action. Awaited so the inline loader shows for its whole
+  /// duration.
+  final Future<void> Function() onComplete;
+  final double height;
+  final String text;
+
+  const SlideToCompleteButton({
+    super.key,
+    required this.onComplete,
+    this.height = 46,
+    this.text = 'Slide to complete',
+  });
+
+  @override
+  State<SlideToCompleteButton> createState() => _SlideToCompleteButtonState();
+}
+
+class _SlideToCompleteButtonState extends State<SlideToCompleteButton> {
+  double _dragX = 0;
+  bool _completing = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final height = widget.height;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final sliderWidth = constraints.maxWidth;
+        final buttonWidth = height;
+        final maxDrag = (sliderWidth - buttonWidth).clamp(0.0, double.infinity);
+
+        // While the API runs, replace the track with an inline loader.
+        if (_completing) {
+          return Container(
+            height: height,
+            decoration: BoxDecoration(
+              color: Colors.green,
+              borderRadius: BorderRadius.circular(height / 2),
+            ),
+            alignment: Alignment.center,
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.2,
+                    color: Colors.white,
+                  ),
+                ),
+                SizedBox(width: 10),
+                Text(
+                  'Completing…',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return Container(
+          height: height,
+          decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(height / 2),
+          ),
+          child: Stack(
+            alignment: Alignment.centerLeft,
+            children: [
+              Center(
+                child: Text(
+                  widget.text,
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              Positioned(
+                left: _dragX,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  // Start tracking on touch-down (not after the scroll slop) so
+                  // the knob follows the finger immediately and doesn't lose the
+                  // gesture to the surrounding scroll view.
+                  dragStartBehavior: DragStartBehavior.down,
+                  onHorizontalDragUpdate: (details) {
+                    setState(() {
+                      _dragX =
+                          (_dragX + details.delta.dx).clamp(0.0, maxDrag);
+                    });
+                  },
+                  onHorizontalDragEnd: (_) => _onDragEnd(maxDrag),
+                  child: Container(
+                    height: height,
+                    width: buttonWidth,
+                    decoration: BoxDecoration(
+                      color: Colors.green,
+                      borderRadius: BorderRadius.circular(height / 2),
+                    ),
+                    child: const Icon(
+                      Icons.arrow_forward_ios,
+                      color: Colors.white,
+                      size: 18,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _onDragEnd(double maxDrag) async {
+    // Completed if dragged past 70% of the track.
+    if (_dragX > maxDrag * 0.7) {
+      setState(() {
+        _dragX = maxDrag;
+        _completing = true;
+      });
+      try {
+        await widget.onComplete();
+      } finally {
+        if (mounted) {
+          setState(() {
+            _completing = false;
+            _dragX = 0;
+          });
+        }
+      }
+    } else {
+      // Snap back.
+      setState(() => _dragX = 0);
+    }
   }
 }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -90,29 +91,42 @@ class DeliverPartnerOrdersController extends GetxController {
     // connection (multiple consumers share this singleton controller).
     if (isStreaming) return;
     isStreaming = true;
+    log('[RIDER_ORDERS_STREAM] opening SSE connection…');
     ordersListResponse.value =
         ApiResponse.complete('');
     stream = await getOrderFromUserStream();
     subscription = stream.listen((event) {
       if (event is List) {
+        log('[RIDER_ORDERS_STREAM] event received → ${event.length} order(s)');
         List<RiderOrdersDetailsModel> riderOrdersList = event
             .map((item) => RiderOrdersDetailsModel.fromJson(
                   Map<String, dynamic>.from(item),
                 ))
             .toList();
 
+        // Log a compact per-order summary (id + status + fare) so the live
+        // stream can be traced without dumping full payloads.
+        for (final o in riderOrdersList) {
+          log('[RIDER_ORDERS_STREAM]   order=${o.orderId} '
+              'status=${o.status} fare=${o.fare} '
+              'drop=${o.dropLocation?.address}');
+        }
+
         updateOrders(riderOrdersList);
 
       } else {
+        log('[RIDER_ORDERS_STREAM] non-list event → ${event.runtimeType}: $event');
         ordersListResponse.value =
             ApiResponse.error(AppStrings.somethingWentWrong);
       }
     }, onError: (error) {
+      log('[RIDER_ORDERS_STREAM] stream error → $error');
       ordersListResponse.value =
           ApiResponse.error(AppStrings.somethingWentWrong);
     }, onDone: () {
       // Connection closed by the server — clear the flag so a later
       // fetchStream() can re-open it.
+      log('[RIDER_ORDERS_STREAM] stream closed by server (onDone)');
       isStreaming = false;
     });
   }

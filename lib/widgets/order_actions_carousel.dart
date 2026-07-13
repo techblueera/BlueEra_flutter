@@ -1,12 +1,16 @@
 import 'dart:async';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/referral/view/referral_page.dart';
 import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
 import 'package:BlueEra/features/contribution/view/contribution_screen_v2.dart';
+import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/payment/view/payment_setting_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -55,7 +59,11 @@ class _OrderActionsCarouselState extends State<OrderActionsCarousel> {
   // is scaled down to fit, so all slides read as one consistent, small height.
   static const double _viewportHeight = 70;
   static const Duration _interval = Duration(seconds: 4);
-  static const int _count = 4;
+
+  /// Number of slides currently in the deck. Dynamic because the "Contribute"
+  /// card is dropped once the security-deposit / go-live gate is satisfied.
+  /// Recomputed in [_buildDeck]; defaults to the full deck.
+  int _slideCount = 4;
 
   // Inset on each side of every slide so neighbouring cards show a clear gap
   // as the deck swipes between them (the PageView itself is edge-to-edge).
@@ -81,7 +89,7 @@ class _OrderActionsCarouselState extends State<OrderActionsCarousel> {
     _timer?.cancel();
     _timer = Timer.periodic(_interval, (_) {
       if (!mounted || !_pageController.hasClients) return;
-      final next = (_index + 1) % _count;
+      final next = (_index + 1) % _slideCount;
       _pageController.animateToPage(
         next,
         duration: const Duration(milliseconds: 450),
@@ -103,8 +111,61 @@ class _OrderActionsCarouselState extends State<OrderActionsCarousel> {
     super.dispose();
   }
 
+  /// Riders (bike / car / auto / goods) pay the security deposit via the
+  /// onboarding gate; other individuals via the personal-profile go-live gate.
+  bool get _isRiderRole =>
+      userProfessionGlobal == BIKE_RIDER ||
+      userProfessionGlobal == CAR_TAXI_DRIVER ||
+      userProfessionGlobal == AUTO_TAXI ||
+      userProfessionGlobal == GOODS_TAXI;
+
+  /// Whether a security-deposit / go-live gate even applies to this user — used
+  /// to decide whether to wrap the deck in an [Obx] (GetX forbids an Obx that
+  /// reads no observable).
+  bool get _hasDepositGate =>
+      (_isRiderRole && Get.isRegistered<DeliveryPartnerController>()) ||
+      (!isBusinessUser() && Get.isRegistered<ViewPersonalDetailsController>());
+
+  /// True once the deposit gate is satisfied (paid, or no deposit required) —
+  /// the "Contribute" card is then dropped from the deck. Mirrors the go-live
+  /// check used across the me-screens:
+  ///   • riders            → DeliveryPartnerController.isSecurityDepositPaid
+  ///   • other individuals → ViewPersonalDetailsController.canGoLive
+  /// Reads reactive controller state, so it must be evaluated inside an [Obx].
+  bool get _depositGateSatisfied {
+    if (_isRiderRole && Get.isRegistered<DeliveryPartnerController>()) {
+      return Get.find<DeliveryPartnerController>().isSecurityDepositPaid;
+    }
+    if (!isBusinessUser() && Get.isRegistered<ViewPersonalDetailsController>()) {
+      return Get.find<ViewPersonalDetailsController>().canGoLive;
+    }
+    // No deposit gate applies (e.g. a business account) → keep the card.
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Only wrap in Obx when a gate applies, so the Contribute card disappears
+    // the instant the deposit is paid. Businesses (no gate) render statically.
+    if (_hasDepositGate) {
+      return Obx(() => _buildDeck(hideContribution: _depositGateSatisfied));
+    }
+    return _buildDeck(hideContribution: false);
+  }
+
+  Widget _buildDeck({required bool hideContribution}) {
+    // The Contribute card is dropped once the deposit gate is satisfied; the
+    // other three always show.
+    final slides = <Widget>[
+      if (!hideContribution) _slide(_contributionCard()),
+      _slide(_bankCard()),
+      _slide(_catalogCard()),
+      _slide(_referCard()),
+    ];
+    _slideCount = slides.length;
+    // Keep the active page in range if the deck shrank (card removed).
+    if (_index >= _slideCount) _index = _slideCount - 1;
+
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -123,12 +184,7 @@ class _OrderActionsCarouselState extends State<OrderActionsCarousel> {
             child: PageView(
               controller: _pageController,
               onPageChanged: (i) => setState(() => _index = i),
-              children: [
-                _slide(_contributionCard()),
-                _slide(_bankCard()),
-                _slide(_catalogCard()),
-                _slide(_referCard()),
-              ],
+              children: slides,
             ),
           ),
         ),
@@ -152,7 +208,7 @@ class _OrderActionsCarouselState extends State<OrderActionsCarousel> {
   Widget _dotIndicator() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(_count, (i) {
+      children: List.generate(_slideCount, (i) {
         final active = i == _index;
         return AnimatedContainer(
           duration: const Duration(milliseconds: 280),

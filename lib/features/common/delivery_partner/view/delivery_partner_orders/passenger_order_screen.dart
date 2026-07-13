@@ -18,8 +18,6 @@ import '../../../../chat/view/call_screen/rider_call/rider_pickup_navigation_scr
 import '../../../../chat/view/call_screen/rider_call/passenger_destination_screen.dart';
 import '../../controller/pip_floating_page_controller.dart';
 
-
-
 class PassengerOrderScreen extends StatefulWidget {
   /// When true, the widget skips its [Scaffold] chrome, drops the
   /// inner [Expanded] around the tab body, and switches its
@@ -649,7 +647,7 @@ class _PassengerOrderScreenState extends State<PassengerOrderScreen> {
           ? const NeverScrollableScrollPhysics()
           : null,
       padding: EdgeInsets.only(
-        top: SizeConfig.size10,
+        top: 0,
         bottom: kBottomNavigationBarHeight + SizeConfig.size40,
         left: SizeConfig.size15,
         right: SizeConfig.size15,

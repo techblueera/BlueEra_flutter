@@ -157,7 +157,9 @@ class MakeOrderRepo extends BaseService {
   Future<ResponseModel> completePickupRiderApi(Map<String,dynamic> params,String orderId) async {
     final response = await ApiBaseHelper().postHTTP(
         completePickupRider(orderId),
-        showProgress: true,
+        // No global progress dialog — the slide-to-complete controls show their
+        // own inline "Completing…" loader while this runs.
+        showProgress: false,
      params: params,
      onError: (error) {}, onSuccess: (data) {});
     return response;

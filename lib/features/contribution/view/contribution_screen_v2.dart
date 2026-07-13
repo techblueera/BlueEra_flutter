@@ -1085,7 +1085,7 @@ class _ActiveDepositView extends StatelessWidget {
             return SizedBox(
               width: double.infinity,
               height: 48,
-              child: OutlinedButton(
+              child: ElevatedButton(
                 onPressed: busy
                     ? null
                     : () => controller.requestRefund(
@@ -1094,24 +1094,30 @@ class _ActiveDepositView extends StatelessWidget {
                             _formatDate(eligibleAt),
                           ),
                         ),
-                style: OutlinedButton.styleFrom(
-                  side: BorderSide(color: AppColors.primaryColor),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryColor,
+                  disabledBackgroundColor:
+                      AppColors.primaryColor.withValues(alpha: 0.5),
+                  elevation: 0,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
-
                   ),
                 ),
                 child: busy
                     ? const SizedBox(
                         width: 20,
                         height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
                       )
                     : CustomText(
                         'Request Refund',
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.primaryColor,
+                        color: Colors.white,
                       ),
               ),
             );

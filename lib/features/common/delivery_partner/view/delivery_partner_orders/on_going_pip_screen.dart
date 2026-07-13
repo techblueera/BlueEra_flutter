@@ -71,9 +71,13 @@ void enablePip()async{
   }
 
 
-  /// Check if pickup OTP has been verified (status is 'picked-up' or later)
+  /// Whether the pickup OTP has already been verified. After the pickup OTP a
+  /// ride order becomes 'in-progress' (parcel/goods may report 'picked-up');
+  /// both — plus 'completed' — mean the pickup leg is done.
   bool _isPickupOtpVerified(RiderOrdersDetailsModel order) {
-    return order.status == 'picked-up' || order.status == 'completed';
+    return order.status == 'in-progress' ||
+        order.status == 'picked-up' ||
+        order.status == 'completed';
   }
 
   /// Navigate to the appropriate screen based on OTP verification status
@@ -120,7 +124,7 @@ void enablePip()async{
             customerName: customerName,
             customerImage: customerImage,
             paymentMethod: paymentMethod,
-            orderId: order.orderId ?? '',
+            orderId: order.id ?? '',
           ),
         ),
       );
@@ -142,6 +146,9 @@ void enablePip()async{
             // Passenger rides: rider must not hold the ride-start OTP (the
             // customer holds it; the server verifies). Goods/parcel keep it.
             otp: (order.jobInfo?.isRide ?? false) ? '' : (order.pickupOTP ?? ''),
+            // REQUIRED so the pickup screen can call the verify-OTP API — for a
+            // ride the otp is empty, so without this it has no order reference.
+            orderId: order.id ?? '',
             paymentMethod: paymentMethod,
             customerUserId: order.user?.id ?? '',
           ),
