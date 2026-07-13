@@ -1834,6 +1834,15 @@ class DiscoverController extends GetxController {
       if (evPickupOtp.isNotEmpty || evDeliveryOtp.isNotEmpty) {
         fareCallOtpOrderId = fareCallOrderId.value;
       }
+      // Re-confirm the OTPs against the server the moment a rider is
+      // assigned — this is right before the customer reads the ride-start
+      // OTP aloud, so whatever is on screen MUST match the DB value the
+      // rider's start call verifies against.
+      final evOrderId =
+          (data['orderId'] ?? fareCallOrderId.value).toString();
+      if (evOrderId.isNotEmpty) {
+        unawaited(hydrateFareCallDeliveryOtp(evOrderId));
+      }
       isFareCallInProgress.value = false;
     });
 
@@ -1926,8 +1935,15 @@ class DiscoverController extends GetxController {
             (data['status'] ?? '').toString().toLowerCase().replaceAll('_', '-');
 
         // Capture the order category if not already known (killed-state restore
-        // enters tracking without going through order creation).
-        final polledOrderFor = (data['orderFor'] ?? '').toString();
+        // enters tracking without going through order creation). orderFor sits
+        // inside `metadata` on this endpoint — the old top-level read was
+        // always empty, so passenger-ride detection never worked via the poll.
+        final polledMeta = data['metadata'];
+        final polledOrderFor =
+            ((polledMeta is Map ? polledMeta['orderFor'] : null) ??
+                    data['orderFor'] ??
+                    '')
+                .toString();
         if (polledOrderFor.isNotEmpty && fareCallOrderFor.value.isEmpty) {
           fareCallOrderFor.value = polledOrderFor;
         }
@@ -1993,28 +2009,17 @@ class DiscoverController extends GetxController {
     }
   }
 
-  /// Re-fetch the customer's delivery OTP from the order so the tracking map
-  /// can show it again after the in-memory value is lost (app restart, or
-  /// leaving and re-entering the map). The backend returns deliveryOTP only to
-  /// the order owner. No-op if we already have it.
+  /// Re-fetch the customer's OTPs from the order status endpoint — the SAME
+  /// source of truth the rider's start/complete calls verify against. Always
+  /// fetches and overwrites the in-memory values with the server's; memory is
+  /// only ever an instant-display cache, never authoritative. This closes
+  /// every "customer read out an OTP the backend rejects" staleness class in
+  /// one move (stale Rx from a previous ride, missed socket events, replayed
+  /// state after restore — all of it).
   Future<void> hydrateFareCallDeliveryOtp(String orderId) async {
     if (orderId.isEmpty) return;
 
-    // Rehydrate BOTH customer OTPs: pickup (ride-start, passenger rides only —
-    // backend returns it only for ride jobs) and delivery (completion), plus
-    // the order category so we know whether a delivery OTP applies at all.
-    //
-    // The in-memory values are only reusable when they belong to THIS order.
-    // The old guard skipped the fetch whenever the values were merely
-    // non-empty, so OTPs left over from a previous ride displayed for the new
-    // one — the customer read out the stale pickup OTP and the rider's
-    // ride-start call failed with INVALID_PICKUP_OTP.
-    final sameOrder = fareCallOtpOrderId == orderId;
-    if (sameOrder &&
-        fareCallDeliveryOtp.value.isNotEmpty &&
-        fareCallPickupOtp.value.isNotEmpty &&
-        fareCallOrderFor.value.isNotEmpty) return;
-    if (!sameOrder) {
+    if (fareCallOtpOrderId != orderId) {
       // Never display another order's OTPs while the fetch is in flight.
       fareCallPickupOtp.value = '';
       fareCallDeliveryOtp.value = '';
@@ -2024,6 +2029,8 @@ class DiscoverController extends GetxController {
       final res = await ChatViewRepo().checkTrackOrderStatusSilentApi(orderId);
       if (res.isSuccess) {
         final data = res.response?.data;
+        // Server values OVERWRITE memory (not fill-if-empty): the endpoint
+        // returns the exact OTPs the rider will be verified against.
         final otp =
             (data is Map ? data['deliveryOTP'] : null)?.toString() ?? '';
         if (otp.isNotEmpty) fareCallDeliveryOtp.value = otp;
@@ -2033,9 +2040,17 @@ class DiscoverController extends GetxController {
         if (otp.isNotEmpty || pickupOtp.isNotEmpty) {
           fareCallOtpOrderId = orderId;
         }
-        final orderFor =
-            (data is Map ? data['orderFor'] : null)?.toString() ?? '';
-        if (orderFor.isNotEmpty && fareCallOrderFor.value.isEmpty) {
+        print('[FARE_CALL_OTP] hydrated from server for $orderId → '
+            'pickup=${pickupOtp.isNotEmpty ? pickupOtp : '(not returned)'}, '
+            'delivery=${otp.isNotEmpty ? otp : '(not returned)'}');
+        // orderFor lives inside `metadata` on this endpoint (top-level read
+        // always came back empty — passenger-ride detection never hydrated).
+        final metadata = (data is Map ? data['metadata'] : null);
+        final orderFor = ((metadata is Map ? metadata['orderFor'] : null) ??
+                (data is Map ? data['orderFor'] : null))
+            ?.toString() ??
+            '';
+        if (orderFor.isNotEmpty) {
           fareCallOrderFor.value = orderFor;
         }
       }
