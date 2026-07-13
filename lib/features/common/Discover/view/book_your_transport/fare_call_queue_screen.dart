@@ -1063,8 +1063,13 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
             ),
             const SizedBox(height: 16),
           ],
+          // Delivery card only when the order category is KNOWN and not a
+          // passenger ride — with orderFor still unresolved this used to
+          // fail open and show a "Delivery OTP" the ride flow never asks for
+          // (passenger rides complete Ola-style, without any drop OTP).
           if (rideStarted &&
               deliveryOtp.isNotEmpty &&
+              discoverController.fareCallOrderFor.value.isNotEmpty &&
               !discoverController.isFareCallPassengerRide) ...[
             _buildOtpCard(
               label: 'Delivery OTP',

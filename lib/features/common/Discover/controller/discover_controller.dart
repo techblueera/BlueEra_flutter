@@ -232,6 +232,10 @@ class DiscoverController extends GetxController {
   /// sees the delivery OTP, the Share-Ride button, or the destination route.
   Timer? _rideStartedPollTimer;
 
+  /// The orderId the active [_rideStartedPollTimer] was started for. Lets a
+  /// rebook replace the old order's poll instead of being blocked by it.
+  String _rideStartedPollOrderId = '';
+
   Rx<RiderUser> selectedRider = RiderUser().obs;
   RxList<RiderUser> selectedRiders = <RiderUser>[].obs;
   Rxn<OnboardingCategoryModel> selectedStayCategory =
@@ -1881,7 +1885,15 @@ class DiscoverController extends GetxController {
   void startRideStartedFallbackPoll(String orderId) {
     if (orderId.isEmpty) return;
     if (isFareCallRideCompleted.value) return; // nothing left to detect
-    if (_rideStartedPollTimer?.isActive ?? false) return;
+    // Same order already being polled → no-op. A DIFFERENT order means the
+    // customer rebooked: the old poll must die, or it keeps applying the OLD
+    // order's status and delivery OTP to the new ride's state (the customer
+    // then reads out a stale delivery OTP the backend rejects).
+    if (_rideStartedPollTimer?.isActive ?? false) {
+      if (_rideStartedPollOrderId == orderId) return;
+      stopRideStartedFallbackPoll();
+    }
+    _rideStartedPollOrderId = orderId;
 
     // Order status state machine (RIDER_FRONTEND_INTEGRATION_GUIDE §"status"):
     // pending → payment-pending → confirmed → in-progress → picked-up → completed
@@ -1893,6 +1905,13 @@ class DiscoverController extends GetxController {
         Timer.periodic(const Duration(seconds: 7), (timer) async {
       // Completion (from any source) is the terminal signal — stop polling.
       if (isFareCallRideCompleted.value) {
+        stopRideStartedFallbackPoll();
+        return;
+      }
+      // The active order changed since this poll started (rebook) — this
+      // poll's results belong to the old order and must not touch state.
+      if (fareCallOrderId.value.isNotEmpty &&
+          fareCallOrderId.value != orderId) {
         stopRideStartedFallbackPoll();
         return;
       }
@@ -1923,7 +1942,10 @@ class DiscoverController extends GetxController {
             // Rehydrate the customer's delivery OTP if the status payload
             // carries it, so the OTP card shows without a separate fetch.
             final deliveryOtp = (data['deliveryOTP'] ?? '').toString();
-            if (deliveryOtp.isNotEmpty) fareCallDeliveryOtp.value = deliveryOtp;
+            if (deliveryOtp.isNotEmpty) {
+              fareCallDeliveryOtp.value = deliveryOtp;
+              fareCallOtpOrderId = orderId;
+            }
             print('[FARE_CALL_QUEUE] ride-started detected via status poll '
                 '(status=$status) → isFareCallRideStarted=true');
           }
@@ -1955,6 +1977,7 @@ class DiscoverController extends GetxController {
   void stopRideStartedFallbackPoll() {
     _rideStartedPollTimer?.cancel();
     _rideStartedPollTimer = null;
+    _rideStartedPollOrderId = '';
   }
 
   /// Cancel fare-call queue
