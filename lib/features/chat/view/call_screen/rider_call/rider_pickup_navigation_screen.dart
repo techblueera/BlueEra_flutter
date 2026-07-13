@@ -15,7 +15,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../../common/delivery_partner/controller/delivery_partner_orders_controller.dart';
 import '../../../auth/controller/call_controller.dart';
 import 'ride_navigation_overlay_controller.dart';
-import 'rider_ride_navigation_screen.dart';
+import 'passenger_destination_screen.dart';
 
 /// Screen shown after rider accepts an order.
 /// Shows map from rider's current location → pickup location with OTP verification.
@@ -386,10 +386,11 @@ class _RiderPickupNavigationScreenState
 
   void _startRide() {
     setState(() => _isStartingRide = true);
-    // Navigate to ride screen (pickup → drop)
+    // Pickup OTP verified — move to the destination screen (rider carries the
+    // passenger from pickup → drop): live map + fare + slide-to-complete.
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (_) => RiderRideNavigationScreen(
+        builder: (_) => PassengerDestinationScreen(
           pickupLocation: widget.pickupLocation,
           dropLocation: widget.dropLocation,
           pickupLat: widget.pickupLat,

@@ -27,7 +27,7 @@ import '../../../me/laboratory/view/widgets/me_menu_card_design.dart';
 import '../controller/delivery_partner_orders_controller.dart';
 import '../model/grocery_order_details.dart';
 import '../../../chat/view/call_screen/rider_call/rider_pickup_navigation_screen.dart';
-import '../../../chat/view/call_screen/rider_call/rider_ride_navigation_screen.dart';
+import '../../../chat/view/call_screen/rider_call/passenger_destination_screen.dart';
 import 'delivery_pickup_shops_list.dart';
 
 class OrderCard extends StatefulWidget {
@@ -900,14 +900,16 @@ class _OrderCardState extends State<OrderCard> {
     final fare = order.fare?.toDouble() ?? 0.0;
     final distance = double.tryParse(order.distancePickupToDrop ?? '') ?? 0.0;
     final paymentMethod = order.modeOfPayment ?? 'Cash';
-    final pickupAddress = order.dropLocation?.address ?? 'Pickup location';
+    final pickupAddress = order.pickupLocation?.address ?? 'Pickup location';
     final dropAddress = order.dropLocation?.address ?? 'Drop location';
     final isPickedUp = order.status == 'picked-up' || order.status == 'completed';
 
     if (isPickedUp) {
+      // OTP verified / picked-up — open the rider destination screen (live
+      // map + fare + slide-to-complete).
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (_) => RiderRideNavigationScreen(
+          builder: (_) => PassengerDestinationScreen(
             pickupLocation: pickupAddress,
             dropLocation: dropAddress,
             pickupLat: pickupLat,
@@ -919,6 +921,7 @@ class _OrderCardState extends State<OrderCard> {
             customerName: customerName,
             customerImage: customerImage,
             paymentMethod: paymentMethod,
+            orderId: order.orderId ?? '',
           ),
         ),
       );

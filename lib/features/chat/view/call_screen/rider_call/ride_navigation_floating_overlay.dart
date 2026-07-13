@@ -6,7 +6,7 @@ import '../../../../common/Discover/view/book_your_transport/fare_call_queue_scr
 import '../../business_chat/widgets/track_rider_live_location_page.dart';
 import 'ride_navigation_overlay_controller.dart';
 import 'rider_pickup_navigation_screen.dart';
-import 'rider_ride_navigation_screen.dart';
+import 'passenger_destination_screen.dart';
 
 /// Draggable floating mini-map overlay shown when rider minimises the
 /// pickup / ride navigation screen.
@@ -128,7 +128,7 @@ class _DraggableMiniMapState extends State<_DraggableMiniMap> {
             orderId: p['orderId'],
           ));
     } else {
-      Get.to(() => RiderRideNavigationScreen(
+      Get.to(() => PassengerDestinationScreen(
             pickupLocation: p['pickupLocation'] ?? '',
             dropLocation: p['dropLocation'] ?? '',
             pickupLat: (p['pickupLat'] as num?)?.toDouble() ?? 0,

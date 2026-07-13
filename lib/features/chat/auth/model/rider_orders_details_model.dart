@@ -468,15 +468,18 @@ class DropLocation {
 }
 
 class PickupLocation {
-  PickupLocation({this.location});
+  PickupLocation({this.address, this.location});
 
   PickupLocation.fromJson(dynamic json) {
+    address = json['address'];
     location = json['location'] != null ? Location.fromJson(json['location']) : null;
   }
 
+  String? address;
   Location? location;
 
   Map<String, dynamic> toJson() => {
+    'address': address,
     'location': location?.toJson(),
   };
 }

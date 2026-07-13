@@ -7,7 +7,7 @@ import '../../../../../core/constants/getx_utils.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../../chat/auth/model/rider_orders_details_model.dart';
 import '../../../../chat/view/call_screen/rider_call/rider_pickup_navigation_screen.dart';
-import '../../../../chat/view/call_screen/rider_call/rider_ride_navigation_screen.dart';
+import '../../../../chat/view/call_screen/rider_call/passenger_destination_screen.dart';
 import '../../controller/delivery_partner_orders_controller.dart';
 import '../../controller/pip_floating_page_controller.dart';
 
@@ -100,14 +100,15 @@ void enablePip()async{
     final fare = order.fare?.toDouble() ?? 0.0;
     final distance = double.tryParse(order.distancePickupToDrop ?? '') ?? 0.0;
     final paymentMethod = order.modeOfPayment ?? 'Cash';
-    final pickupAddress = order.dropLocation?.address ?? 'Pickup location';
+    final pickupAddress = order.pickupLocation?.address ?? 'Pickup location';
     final dropAddress = order.dropLocation?.address ?? 'Drop location';
 
     if (_isPickupOtpVerified(order)) {
-      // OTP verified — go to ride navigation (pickup → drop)
+      // OTP verified — the rider is carrying the passenger, so go straight to
+      // the destination screen (live map + fare + slide-to-complete).
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (_) => RiderRideNavigationScreen(
+          builder: (_) => PassengerDestinationScreen(
             pickupLocation: pickupAddress,
             dropLocation: dropAddress,
             pickupLat: pickupLat,
@@ -119,6 +120,7 @@ void enablePip()async{
             customerName: customerName,
             customerImage: customerImage,
             paymentMethod: paymentMethod,
+            orderId: order.orderId ?? '',
           ),
         ),
       );
