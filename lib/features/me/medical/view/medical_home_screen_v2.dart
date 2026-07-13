@@ -13,23 +13,22 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/widgets/go_live_pill.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
-import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_verfication.dart';
+import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_verify_now_button.dart';
+import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_flag_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
-import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/view/self_employee_view_discover_screen.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
@@ -43,8 +42,9 @@ import 'package:BlueEra/features/me/medical/view/medical_gallery/medical_gallery
 import 'package:BlueEra/features/me/medical/view/medical_inquiry_tab_v2.dart';
 import 'package:BlueEra/features/me/others/model/other_service_gallery_res_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:BlueEra/widgets/go_live_pill.dart';
+import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/post_via_dialog.dart';
@@ -55,6 +55,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
+
+import '../../../business/widgets/business_share_banner.dart';
 
 /// Medical Home screen (v2) â€” redesigned to match IMG-3 reference.
 class MedicalHomeScreenV2 extends StatefulWidget {
@@ -75,20 +77,23 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
 
   late final MedicalGalleryController _galleryController;
   late final MedicalController _medicalController;
-  final _businessController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+  final _businessController =
+      getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
   // Drives the inquiry list shown under the Inquiry tab â€” same controller
   // the Connect screen uses, so socket-driven updates land on both.
   // Mirrors the wiring used by `HospitalHomeScreenV2`, `SchoolHomeScreenV2`
   // and the Order tab in `professionals_main.dart`.
-  final ChatViewController _chatViewController = getOrPut(() => ChatViewController());
+  final ChatViewController _chatViewController =
+      getOrPut(() => ChatViewController());
 
   // Pre-registered so the Flagged sub-tab inside `BusinessChatsList`
   // (`BusinessFlagChatList` â†’ `Get.find<ChatFlagController>()`) doesn't
   // crash when this is the first screen the user touches. Mirrors the
   // top-level registration in `connect_main_page.dart`.
   // ignore: unused_field
-  final ChatFlagController _chatFlagController = getOrPut(() => ChatFlagController());
+  final ChatFlagController _chatFlagController =
+      getOrPut(() => ChatFlagController());
 
   bool _productsFetched = false;
 
@@ -104,8 +109,9 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _tabs.length, initialIndex: 0, vsync: this)
-      ..addListener(_handleTabChange);
+    _tabController =
+        TabController(length: _tabs.length, initialIndex: 0, vsync: this)
+          ..addListener(_handleTabChange);
     registerMeTabBackHandler(_tabController);
     _galleryController = Get.put(MedicalGalleryController());
     _medicalController = getOrPut(() => MedicalController());
@@ -127,7 +133,8 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
 
   Future<void> _fetchData() async {
     try {
-      final res = await MedicalRepo().fetchMedicalProfileFd(businessId: widget.businessId);
+      final res = await MedicalRepo()
+          .fetchMedicalProfileFd(businessId: widget.businessId);
       if (res.isSuccess && res.response?.data != null) {
         final data = res.response?.data['data'] ?? res.response?.data;
         if (data != null && data is Map<String, dynamic>) {
@@ -257,21 +264,21 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
   List<Widget> _buildOverviewSlivers() {
     return [
       _buildBannerSection(_data?.businessProfile),
-      SizedBox(height: SizeConfig.size12),
+      SizedBox(height: SizeConfig.size8),
       _buildCreateOffersButton(),
-      SizedBox(height: SizeConfig.size16),
-      if ((_data?.inventorySummary?.popularProducts ?? []).isNotEmpty) ...[
-        _buildBikesSection(_data!.inventorySummary!.popularProducts!),
-        SizedBox(height: SizeConfig.size16),
-      ],
+      SizedBox(height: SizeConfig.size12),
+      // if ((_data?.inventorySummary?.popularProducts ?? []).isNotEmpty) ...[
+      // _buildBikesSection(_data!.inventorySummary!.popularProducts!),
+      // SizedBox(height: SizeConfig.size16),
+      // ],
       _buildLivePhotosSection(),
-      SizedBox(height: SizeConfig.size16),
+      SizedBox(height: SizeConfig.size12),
       _buildGallerySection(),
-      SizedBox(height: SizeConfig.size16),
+      SizedBox(height: SizeConfig.size12),
       _buildTestimonialsSection(),
-      SizedBox(height: SizeConfig.size16),
+      // SizedBox(height: SizeConfig.size12),
       _buildContactSection(_data?.businessProfile),
-      SizedBox(height: SizeConfig.size16),
+      SizedBox(height: SizeConfig.size12),
       Obx(() => Padding(
             padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
             child: WebsiteOverviewCard(
@@ -281,8 +288,10 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
                   .updateBusinessProfileDetails({ApiKeys.websiteUrl: url}),
             ),
           )),
-      SizedBox(height: SizeConfig.size16),
-
+      Padding(
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+        child: const BusinessShareBanner(),
+      ),
       // ── QR Code (mirrors the hospital overview QR card) ──
       Obx(() {
         final details = _businessController.businessProfileDetails.value?.data;
@@ -295,11 +304,12 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
             // directly (`/app/medical/<ownerUserId>` →
             // MedicalPharmacyDetailScreen) instead of the generic profile
             // share-preview. Mirrors the hospital/grocery QR overrides.
-            deepLinkOverride: medicalBusinessDeepLink(medicalBusinessId: details.userId),
+            deepLinkOverride:
+                medicalBusinessDeepLink(medicalBusinessId: details.userId),
           ),
         );
       }),
-      SizedBox(height: SizeConfig.size16),
+      SizedBox(height: SizeConfig.size12),
     ];
   }
 
@@ -317,14 +327,19 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
               color: AppColors.mainTextColor,
             ),
             ElevatedButton.icon(
-              onPressed: () => Get.toNamed(RouteHelper.getAddMedicalSnapSearchScreenRoute()),
+              onPressed: () =>
+                  Get.toNamed(RouteHelper.getAddMedicalSnapSearchScreenRoute()),
               icon: const Icon(Icons.add, size: 18, color: Colors.white),
               label: CustomText(AppStrings.addMoreProduct.tr,
-                  fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryColor,
-                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16, vertical: SizeConfig.size8),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                padding: EdgeInsets.symmetric(
+                    horizontal: SizeConfig.size16, vertical: SizeConfig.size8),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20)),
                 elevation: 0,
               ),
             ),
@@ -346,7 +361,8 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
         );
       }
 
-      final list = List<MyMedicalSuperCategoryModel>.from(_medicalController.myMedicalCategoryList);
+      final list = List<MyMedicalSuperCategoryModel>.from(
+          _medicalController.myMedicalCategoryList);
 
       if (list.isEmpty) {
         return Padding(
@@ -355,7 +371,8 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
             child: EmptyStateWidget(
               message: AppStrings.medicalHaveNotPostedProducts.tr,
               actionText: AppStrings.medicalAddProductsNow.tr,
-              actionCallback: () => Get.toNamed(RouteHelper.getMedicalCategoryScreenRoute()),
+              actionCallback: () =>
+                  Get.toNamed(RouteHelper.getMedicalCategoryScreenRoute()),
             ),
           ),
         );
@@ -412,14 +429,18 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
                 ),
                 child: Center(
                   child: _categoryImage(
-                      hasImage: hasImage, isNetwork: isNetwork, isSvg: isSvg, imagePath: item.image ?? ''),
+                      hasImage: hasImage,
+                      isNetwork: isNetwork,
+                      isSvg: isSvg,
+                      imagePath: item.image ?? ''),
                 ),
               ),
             ),
             Expanded(
               flex: 2,
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10, vertical: SizeConfig.size8),
+                padding: EdgeInsets.symmetric(
+                    horizontal: SizeConfig.size10, vertical: SizeConfig.size8),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -434,7 +455,8 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
                     ),
                     SizedBox(height: SizeConfig.size6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: AppColors.primaryColor.withValues(alpha: 0.08),
                         borderRadius: BorderRadius.circular(6),
@@ -442,7 +464,8 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.arrow_forward_ios_rounded, size: 10, color: AppColors.primaryColor),
+                          Icon(Icons.arrow_forward_ios_rounded,
+                              size: 10, color: AppColors.primaryColor),
                           SizedBox(width: 4),
                           CustomText(
                             AppStrings.medicalViewProducts.tr,
@@ -484,8 +507,10 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
         width: size,
         height: size,
         fit: BoxFit.contain,
-        placeholderBuilder: (_) =>
-            const SizedBox(width: size, height: size, child: CircularProgressIndicator(strokeWidth: 2)),
+        placeholderBuilder: (_) => const SizedBox(
+            width: size,
+            height: size,
+            child: CircularProgressIndicator(strokeWidth: 2)),
       );
     }
     if (isNetwork) {
@@ -495,11 +520,18 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
         height: size,
         fit: BoxFit.contain,
         placeholder: (_, __) => const SizedBox(
-            width: size, height: size, child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
-        errorWidget: (_, __, ___) => Icon(Icons.broken_image, size: size, color: Colors.grey),
+            width: size,
+            height: size,
+            child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
+        errorWidget: (_, __, ___) =>
+            Icon(Icons.broken_image, size: size, color: Colors.grey),
       );
     }
-    return LocalAssets(imagePath: imagePath, height: size, width: size, boxFix: BoxFit.contain);
+    return LocalAssets(
+        imagePath: imagePath,
+        height: size,
+        width: size,
+        boxFix: BoxFit.contain);
   }
 
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -536,8 +568,10 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
             fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primaryColor,
-          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16, vertical: SizeConfig.size8),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          padding: EdgeInsets.symmetric(
+              horizontal: SizeConfig.size16, vertical: SizeConfig.size8),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           elevation: 0,
         ),
       ),
@@ -583,7 +617,8 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
         backgroundColor: Colors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16, vertical: SizeConfig.size16),
+          padding: EdgeInsets.symmetric(
+              horizontal: SizeConfig.size16, vertical: SizeConfig.size16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -603,18 +638,26 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
                     _handlePostMenu(entries[i].type);
                   },
                   child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: SizeConfig.size10, horizontal: SizeConfig.size4),
+                    padding: EdgeInsets.symmetric(
+                        vertical: SizeConfig.size10,
+                        horizontal: SizeConfig.size4),
                     child: Row(
                       children: [
-                        LocalAssets(imagePath: entries[i].iconAsset, height: 24, width: 24),
+                        LocalAssets(
+                            imagePath: entries[i].iconAsset,
+                            height: 24,
+                            width: 24),
                         SizedBox(width: SizeConfig.size12),
                         CustomText(entries[i].label,
-                            fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.mainTextColor),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.mainTextColor),
                       ],
                     ),
                   ),
                 ),
-                if (i != entries.length - 1) Divider(height: 1, color: Colors.grey.shade200),
+                if (i != entries.length - 1)
+                  Divider(height: 1, color: Colors.grey.shade200),
               ],
             ],
           ),
@@ -653,13 +696,16 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
         alignment: Alignment.centerRight,
         child: ElevatedButton.icon(
           onPressed: _onCreateOffer,
-          icon: const Icon(Icons.local_offer_outlined, size: 18, color: Colors.white),
+          icon: const Icon(Icons.local_offer_outlined,
+              size: 18, color: Colors.white),
           label: CustomText(AppStrings.createYourOffers.tr,
               fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primaryColor,
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16, vertical: SizeConfig.size8),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            padding: EdgeInsets.symmetric(
+                horizontal: SizeConfig.size16, vertical: SizeConfig.size8),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
             elevation: 0,
           ),
         ),
@@ -680,7 +726,8 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
       Padding(
         padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
         child: Obx(() {
-          final details = _businessController.businessProfileDetails.value?.data;
+          final details =
+              _businessController.businessProfileDetails.value?.data;
           final isVerified = details?.businessIsVerified ?? false;
 
           return Container(
@@ -708,7 +755,9 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
                     SizedBox(width: SizeConfig.size10),
                     Expanded(
                       child: CustomText(
-                        isVerified ? AppStrings.verifiedProfile.tr : AppStrings.profileNotVerified.tr,
+                        isVerified
+                            ? AppStrings.verifiedProfile.tr
+                            : AppStrings.profileNotVerified.tr,
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
                         color: AppColors.mainTextColor,
@@ -719,7 +768,9 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
                 ),
                 SizedBox(height: SizeConfig.size10),
                 CustomText(
-                  isVerified ? AppStrings.profileVerifiedHint.tr : AppStrings.profileNotVerifiedHint.tr,
+                  isVerified
+                      ? AppStrings.profileVerifiedHint.tr
+                      : AppStrings.profileNotVerifiedHint.tr,
                   fontSize: 12,
                   color: AppColors.secondaryTextColor,
                   maxLines: 4,
@@ -730,14 +781,19 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
                     alignment: Alignment.centerLeft,
                     child: ElevatedButton.icon(
                       onPressed: () => Get.to(() => BusinessVerification()),
-                      icon: const Icon(Icons.verified_outlined, size: 18, color: Colors.white),
+                      icon: const Icon(Icons.verified_outlined,
+                          size: 18, color: Colors.white),
                       label: CustomText(AppStrings.startVerification.tr,
-                          fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryColor,
-                        padding:
-                            EdgeInsets.symmetric(horizontal: SizeConfig.size16, vertical: SizeConfig.size8),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        padding: EdgeInsets.symmetric(
+                            horizontal: SizeConfig.size16,
+                            vertical: SizeConfig.size8),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20)),
                         elevation: 0,
                       ),
                     ),
@@ -819,7 +875,10 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
         alignment: Alignment.centerLeft,
         child: SizedBox(
           height: double.infinity,
-          child: Drawer(backgroundColor: Colors.transparent, elevation: 0, child: ProfileMenuDrawer()),
+          child: Drawer(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              child: ProfileMenuDrawer()),
         ),
       ),
     );
@@ -829,7 +888,8 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
     Navigator.pushNamed(context, RouteHelper.getNotificationScreenRoute());
   }
 
-  Widget _circleIconButton({required IconData icon, required VoidCallback onTap}) {
+  Widget _circleIconButton(
+      {required IconData icon, required VoidCallback onTap}) {
     return InkWell(
       onTap: onTap,
       customBorder: const CircleBorder(),
@@ -893,14 +953,16 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
   Widget _buildProfileRow(BusinessProfile? profile) {
     return Container(
       color: Colors.white,
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12, vertical: SizeConfig.size12),
+      padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size12, vertical: SizeConfig.size12),
       child: Row(
         children: [
           Stack(
             clipBehavior: Clip.none,
             children: [
               Obx(() {
-                final logo = _businessController.imagePath?.value ?? profile?.logo ?? '';
+                final logo =
+                    _businessController.imagePath?.value ?? profile?.logo ?? '';
                 return Container(
                   height: SizeConfig.size40,
                   width: SizeConfig.size40,
@@ -951,12 +1013,14 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
                     ),
                     SizedBox(width: SizeConfig.size6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 1),
                       decoration: BoxDecoration(
                         color: Colors.grey.shade200,
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: CustomText('+1', fontSize: 11, color: AppColors.secondaryTextColor),
+                      child: CustomText('+1',
+                          fontSize: 11, color: AppColors.secondaryTextColor),
                     ),
                   ],
                 ),
@@ -988,7 +1052,8 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
 
   Widget _logoFallback() => Container(
         color: Colors.grey.shade200,
-        child: Icon(Icons.storefront, size: 20, color: AppColors.secondaryTextColor),
+        child: Icon(Icons.storefront,
+            size: 20, color: AppColors.secondaryTextColor),
       );
 
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -1000,7 +1065,10 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildBannerSection(BusinessProfile? profile) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+      padding: EdgeInsets.only(
+          left: SizeConfig.size12,
+          right: SizeConfig.size12,
+          top: SizeConfig.size12),
       child: Obx(() {
         final cover = _businessController.coverImage?.value ?? '';
         final hasBanner = cover.isNotEmpty;
@@ -1015,7 +1083,9 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
                 borderRadius: BorderRadius.circular(14),
               ),
               clipBehavior: Clip.hardEdge,
-              child: hasBanner ? _filledBannerContent(cover) : _emptyBannerContent(),
+              child: hasBanner
+                  ? _filledBannerContent(cover)
+                  : _emptyBannerContent(),
             ),
           ),
         );
@@ -1037,10 +1107,13 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.photo_camera_outlined, size: 20, color: AppColors.primaryColor),
+                Icon(Icons.photo_camera_outlined,
+                    size: 20, color: AppColors.primaryColor),
                 SizedBox(width: SizeConfig.size6),
                 CustomText(AppStrings.otherAddYourBannerHere.tr,
-                    fontSize: 14, fontWeight: FontWeight.w700, color: AppColors.primaryColor),
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primaryColor),
               ],
             ),
           ),
@@ -1063,20 +1136,26 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
           right: SizeConfig.size10,
           bottom: SizeConfig.size10,
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12, vertical: SizeConfig.size6),
+            padding: EdgeInsets.symmetric(
+                horizontal: SizeConfig.size12, vertical: SizeConfig.size6),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(8),
               boxShadow: const [
-                BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(0, 1)),
+                BoxShadow(
+                    color: Colors.black26, blurRadius: 4, offset: Offset(0, 1)),
               ],
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.edit_outlined, size: 16, color: AppColors.primaryColor),
+                Icon(Icons.edit_outlined,
+                    size: 16, color: AppColors.primaryColor),
                 SizedBox(width: SizeConfig.size4),
-                CustomText(AppStrings.edit, fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.primaryColor),
+                CustomText(AppStrings.edit,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.primaryColor),
               ],
             ),
           ),
@@ -1101,7 +1180,8 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
         "${file.path}_compressed.jpg",
         quality: 75,
       );
-      final dataImage = await multiPartImage(imagePath: compressed?.path ?? newPath);
+      final dataImage =
+          await multiPartImage(imagePath: compressed?.path ?? newPath);
       if (dataImage == null) {
         commonSnackBar(message: AppStrings.imageProcessingFailed.tr);
         return;
@@ -1142,9 +1222,11 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
   Widget _bikeCard(PopularProduct item, double width) {
     final productName = item.product?.name ?? item.variant?.variantName ?? '';
     final description = item.product?.description ?? '';
-    final imageUrl = item.product?.images?.firstOrNull?.url ?? item.variant?.images?.firstOrNull?.url;
+    final imageUrl = item.product?.images?.firstOrNull?.url ??
+        item.variant?.images?.firstOrNull?.url;
     final mrp = item.batches?.mrp ?? item.variant?.pricing?.firstOrNull?.mrp;
-    final sellingPrice = item.batches?.sellingPrice ?? item.variant?.pricing?.firstOrNull?.sellingPrice;
+    final sellingPrice = item.batches?.sellingPrice ??
+        item.variant?.pricing?.firstOrNull?.sellingPrice;
 
     return Container(
       width: width,
@@ -1163,7 +1245,8 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
                 ? CachedNetworkImage(
                     imageUrl: imageUrl,
                     fit: BoxFit.cover,
-                    placeholder: (_, __) => Container(color: Colors.grey.shade100),
+                    placeholder: (_, __) =>
+                        Container(color: Colors.grey.shade100),
                     errorWidget: (_, __, ___) => Container(
                       color: Colors.grey.shade100,
                       child: Icon(Icons.image_outlined, color: Colors.grey),
@@ -1180,7 +1263,10 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(productName,
-                    fontSize: 13, fontWeight: FontWeight.w700, maxLines: 1, overflow: TextOverflow.ellipsis),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
                 SizedBox(height: 2),
                 if (description.isNotEmpty)
                   CustomText(description,
@@ -1200,7 +1286,8 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _priceCol(AppStrings.exShowroomPrice.tr, mrp ?? sellingPrice),
+                    _priceCol(
+                        AppStrings.exShowroomPrice.tr, mrp ?? sellingPrice),
                     _priceCol(AppStrings.onRoadPrice.tr, sellingPrice ?? mrp),
                   ],
                 ),
@@ -1229,7 +1316,9 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
       children: [
         CustomText(label, fontSize: 9, color: AppColors.secondaryTextColor),
         CustomText('â‚¹${value ?? '-'}',
-            fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.mainTextColor),
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: AppColors.mainTextColor),
       ],
     );
   }
@@ -1246,7 +1335,9 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
           child: GetBuilder<ViewBusinessDetailsController>(
             id: 'livePhotos',
             builder: (_) {
-              final photos = _businessController.businessProfileDetails.value?.data?.livePhotos ?? [];
+              final photos = _businessController
+                      .businessProfileDetails.value?.data?.livePhotos ??
+                  [];
               return GridView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
@@ -1258,7 +1349,8 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
                   childAspectRatio: 1.05,
                 ),
                 itemBuilder: (_, index) {
-                  final hasPhoto = index < photos.length && photos[index].isNotEmpty;
+                  final hasPhoto =
+                      index < photos.length && photos[index].isNotEmpty;
                   return _LivePhotoSlot(
                     index: index,
                     photoUrl: hasPhoto ? photos[index] : null,
@@ -1282,10 +1374,12 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
               color: Colors.white,
               shape: BoxShape.circle,
               boxShadow: const [
-                BoxShadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 2)),
+                BoxShadow(
+                    color: Colors.black26, blurRadius: 6, offset: Offset(0, 2)),
               ],
             ),
-            child: Icon(Icons.edit_outlined, size: 18, color: AppColors.primaryColor),
+            child: Icon(Icons.edit_outlined,
+                size: 18, color: AppColors.primaryColor),
           ),
         ),
       ],
@@ -1376,7 +1470,8 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
                 child: Image.asset(
                   'assets/images/other_gallery.png',
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(color: Colors.grey.shade300),
+                  errorBuilder: (_, __, ___) =>
+                      Container(color: Colors.grey.shade300),
                 ),
               ),
               Container(color: Colors.black.withValues(alpha: 0.35)),
@@ -1384,10 +1479,13 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.add_photo_alternate_outlined, color: Colors.white, size: 32),
+                    Icon(Icons.add_photo_alternate_outlined,
+                        color: Colors.white, size: 32),
                     SizedBox(height: SizeConfig.size6),
                     CustomText(AppStrings.medicalAddPhotos.tr,
-                        fontSize: 13, fontWeight: FontWeight.w600, color: Colors.white),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white),
                   ],
                 ),
               ),
@@ -1438,7 +1536,10 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
                     alignment: Alignment.center,
                     child: Text(
                       '+$extra',
-                      style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold),
                     ),
                   ),
               ],
@@ -1518,7 +1619,9 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
       child: Column(
         children: [
           CustomText(AppStrings.testimonialsTitle.tr,
-              fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.mainTextColor),
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: AppColors.mainTextColor),
           SizedBox(height: SizeConfig.size12),
           Container(
             padding: EdgeInsets.all(SizeConfig.size16),
@@ -1536,7 +1639,8 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
 
   Widget _testimonialCard(dynamic raw) {
     final m = raw is Map<String, dynamic> ? raw : <String, dynamic>{};
-    final text = (m['testimonial'] ?? m['text'] ?? m['message'] ?? '').toString();
+    final text =
+        (m['testimonial'] ?? m['text'] ?? m['message'] ?? '').toString();
     final name = (m['name'] ?? m['author'] ?? '').toString();
     final role = (m['role'] ?? m['designation'] ?? '').toString();
 
@@ -1566,19 +1670,26 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
                 children: [
                   if (name.isNotEmpty)
                     CustomText('-$name',
-                        fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.mainTextColor),
-                  if (role.isNotEmpty) CustomText(role, fontSize: 11, color: AppColors.secondaryTextColor),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.mainTextColor),
+                  if (role.isNotEmpty)
+                    CustomText(role,
+                        fontSize: 11, color: AppColors.secondaryTextColor),
                 ],
               ),
             ),
             OutlinedButton(
               onPressed: () {},
               style: OutlinedButton.styleFrom(
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16, vertical: SizeConfig.size4),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
+                padding: EdgeInsets.symmetric(
+                    horizontal: SizeConfig.size16, vertical: SizeConfig.size4),
                 side: BorderSide(color: Colors.grey.shade300),
               ),
-              child: CustomText(AppStrings.reply.tr, fontSize: 12, color: AppColors.mainTextColor),
+              child: CustomText(AppStrings.reply.tr,
+                  fontSize: 12, color: AppColors.mainTextColor),
             ),
           ],
         ),
@@ -1600,9 +1711,6 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomText(AppStrings.contactUsTitle.tr,
-              fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.mainTextColor),
-          SizedBox(height: SizeConfig.size12),
           Container(
             padding: EdgeInsets.all(SizeConfig.size16),
             decoration: BoxDecoration(
@@ -1613,13 +1721,20 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                CustomText(AppStrings.contactUsTitle.tr,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.mainTextColor),
+                SizedBox(height: SizeConfig.size12),
                 if (profile.logo != null && profile.logo!.isNotEmpty)
                   Container(
                     width: SizeConfig.size60,
                     height: SizeConfig.size60,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6)],
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black12, blurRadius: 6)
+                      ],
                       image: DecorationImage(
                         image: NetworkImage(profile.logo!),
                         fit: BoxFit.cover,
@@ -1627,7 +1742,8 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
                     ),
                   ),
                 SizedBox(height: SizeConfig.size10),
-                CustomText(profile.businessName ?? '', fontSize: 15, fontWeight: FontWeight.w700),
+                CustomText(profile.businessName ?? '',
+                    fontSize: 15, fontWeight: FontWeight.w700),
                 if (profile.businessDescription?.isNotEmpty ?? false) ...[
                   SizedBox(height: SizeConfig.size4),
                   CustomText(profile.businessDescription!,
@@ -1638,15 +1754,20 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
                 ],
                 Divider(height: SizeConfig.size20),
                 if (profile.websiteUrl?.isNotEmpty ?? false)
-                  _contactItem(AppIconAssets.website_click, profile.websiteUrl!, AppColors.primaryColor),
+                  _contactItem(AppIconAssets.website_click, profile.websiteUrl!,
+                      AppColors.primaryColor),
                 if (owner?.name?.isNotEmpty ?? false)
-                  _contactItem(AppIconAssets.principal, owner!.name!, Colors.grey[700]!),
+                  _contactItem(
+                      AppIconAssets.principal, owner!.name!, Colors.grey[700]!),
                 if (owner?.email?.isNotEmpty ?? false)
-                  _contactItem(AppIconAssets.email, owner!.email!, AppColors.secondaryTextColor),
+                  _contactItem(AppIconAssets.email, owner!.email!,
+                      AppColors.secondaryTextColor),
                 if (phone != null)
-                  _contactItem(AppIconAssets.phone_outline, phone, AppColors.secondaryTextColor),
+                  _contactItem(AppIconAssets.phone_outline, phone,
+                      AppColors.secondaryTextColor),
                 if (profile.address?.isNotEmpty ?? false)
-                  _contactItem(AppIconAssets.location_new, profile.address!, Colors.grey[700]!),
+                  _contactItem(AppIconAssets.location_new, profile.address!,
+                      Colors.grey[700]!),
               ],
             ),
           ),
@@ -1672,11 +1793,15 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          LocalAssets(imagePath: icon, imgColor: iconColor, height: 16, width: 16),
+          LocalAssets(
+              imagePath: icon, imgColor: iconColor, height: 16, width: 16),
           SizedBox(width: SizeConfig.size10),
           Expanded(
             child: CustomText(label,
-                fontSize: 12, color: AppColors.mainTextColor, maxLines: 3, overflow: TextOverflow.ellipsis),
+                fontSize: 12,
+                color: AppColors.mainTextColor,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis),
           ),
         ],
       ),
@@ -1762,12 +1887,17 @@ class _SectionCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                CustomText(title, fontSize: 15, fontWeight: FontWeight.w700, color: AppColors.mainTextColor),
+                CustomText(title,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.mainTextColor),
                 if (trailingLabel != null)
                   GestureDetector(
                     onTap: onTrailingTap,
                     child: CustomText(trailingLabel!,
-                        fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primaryColor),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primaryColor),
                   ),
               ],
             ),
@@ -1832,7 +1962,8 @@ class _LivePhotoSlotState extends State<_LivePhotoSlot> {
                 );
                 if (imgStr != null) {
                   setState(() => _isLoading = true);
-                  await widget.controller.saveBusinessImages(imgStr, widget.controller);
+                  await widget.controller
+                      .saveBusinessImages(imgStr, widget.controller);
                   widget.controller.update(['livePhotos']);
                   if (mounted) setState(() => _isLoading = false);
                 }
@@ -1847,7 +1978,8 @@ class _LivePhotoSlotState extends State<_LivePhotoSlot> {
                   ? CachedNetworkImage(
                       imageUrl: widget.photoUrl!,
                       fit: BoxFit.cover,
-                      placeholder: (_, __) => Container(color: Colors.grey.shade200),
+                      placeholder: (_, __) =>
+                          Container(color: Colors.grey.shade200),
                       errorWidget: (_, __, ___) => _placeholderError(),
                     )
                   : _blurredPlaceholder(),
@@ -1889,7 +2021,8 @@ class _LivePhotoSlotState extends State<_LivePhotoSlot> {
               child: Center(
                 child: Container(
                   padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+                  decoration: const BoxDecoration(
+                      color: Colors.black54, shape: BoxShape.circle),
                   child: LocalAssets(
                     imagePath: AppIconAssets.profile_camera_pic,
                     height: 18,
@@ -1908,7 +2041,9 @@ class _LivePhotoSlotState extends State<_LivePhotoSlot> {
                   setState(() => _isLoading = true);
                   final data = {ApiKeys.image_url: widget.photoUrl};
                   await widget.controller.deleteLiveStoreImage(data);
-                  widget.controller.businessProfileDetails.value?.data?.livePhotos?.removeAt(widget.index);
+                  widget
+                      .controller.businessProfileDetails.value?.data?.livePhotos
+                      ?.removeAt(widget.index);
                   widget.controller.update(['livePhotos']);
                   if (mounted) setState(() => _isLoading = false);
                 },
@@ -1938,7 +2073,8 @@ class _LivePhotoSlotState extends State<_LivePhotoSlot> {
                     child: SizedBox(
                       height: 24,
                       width: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white),
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2.5, color: Colors.white),
                     ),
                   ),
                 ),
@@ -1979,4 +2115,3 @@ class _LivePhotoSlotState extends State<_LivePhotoSlot> {
     );
   }
 }
-

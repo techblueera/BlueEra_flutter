@@ -105,49 +105,49 @@ class _HmpDiscoverScreenV2State extends State<HmpDiscoverScreenV2> {
           children: [
             NestedScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
-          headerSliverBuilder: (context, _) => [
-            SliverToBoxAdapter(
-              child: Container(
-                decoration: BoxDecoration(gradient: _bgGradient),
-                child: BannerCarousel(
-                  images: _bannerImages,
-                  onBack: () => Navigator.of(context).pop(),
-                  statusBarHeight: statusBarHeight,
-                  backgroundColor: Colors.transparent,
-                  bottomBorderSide:
-                      const BorderSide(color: AppColors.white, width: 2),
+              headerSliverBuilder: (context, _) => [
+                SliverToBoxAdapter(
+                  child: Container(
+                    decoration: BoxDecoration(gradient: _bgGradient),
+                    child: BannerCarousel(
+                      images: _bannerImages,
+                      onBack: () => Navigator.of(context).pop(),
+                      statusBarHeight: statusBarHeight,
+                      backgroundColor: Colors.transparent,
+                      bottomBorderSide:
+                          const BorderSide(color: AppColors.white, width: 2),
+                    ),
+                  ),
                 ),
+                if (categories.isNotEmpty)
+                  SliverPersistentHeader(
+                    pinned: true,
+                    delegate: StickyCategoryHeaderDelegate(
+                      topPadding: statusBarHeight,
+                      singleLineLabel: true,
+                      categories: categories
+                          .map((c) => StickyCategory(
+                                id: c.slugId,
+                                name: c.name,
+                                imageUrl: c.icon,
+                              ))
+                          .toList(),
+                      selectedId: selectedId,
+                      onCategoryTap: (item) {
+                        final idx =
+                            categories.indexWhere((c) => c.slugId == item.id);
+                        if (idx >= 0) controller.onCategorySelected(idx);
+                      },
+                      onBack: () => Navigator.of(context).pop(),
+                      backgroundGradient: _bgGradient,
+                      expandedLabelColor: AppColors.white,
+                    ),
+                  ),
+              ],
+              body: NotificationListener<ScrollNotification>(
+                onNotification: _onScrollNotification,
+                child: _buildBody(),
               ),
-            ),
-            if (categories.isNotEmpty)
-              SliverPersistentHeader(
-                pinned: true,
-                delegate: StickyCategoryHeaderDelegate(
-                  topPadding: statusBarHeight,
-                  singleLineLabel: true,
-                  categories: categories
-                      .map((c) => StickyCategory(
-                            id: c.slugId,
-                            name: c.name,
-                            imageUrl: c.icon,
-                          ))
-                      .toList(),
-                  selectedId: selectedId,
-                  onCategoryTap: (item) {
-                    final idx = categories
-                        .indexWhere((c) => c.slugId == item.id);
-                    if (idx >= 0) controller.onCategorySelected(idx);
-                  },
-                  onBack: () => Navigator.of(context).pop(),
-                  backgroundGradient: _bgGradient,
-                  expandedLabelColor: AppColors.white,
-                ),
-              ),
-          ],
-          body: NotificationListener<ScrollNotification>(
-            onNotification: _onScrollNotification,
-            child: _buildBody(),
-          ),
             ),
             if (isIndividualUser())
               Positioned(
@@ -217,8 +217,9 @@ class _HmpDiscoverScreenV2State extends State<HmpDiscoverScreenV2> {
     // `user_id`; for ownerType=User the seller's userId comes back as the
     // inventory `businessId`. Prefer user_id, fall back to businessId.
     final rawUserId = (data.product.user_id ?? '').trim();
-    final userId =
-        rawUserId.isNotEmpty ? rawUserId : (data.product.businessId ?? '').trim();
+    final userId = rawUserId.isNotEmpty
+        ? rawUserId
+        : (data.product.businessId ?? '').trim();
     if (userId.isEmpty) return;
     Get.to(() => HmpStoreDetailsDiscoverScreenV2(
           userId: userId,
@@ -323,8 +324,7 @@ class _HmpProductGridCard extends StatelessWidget {
 
   static double get _imageHeight => SizeConfig.size150 - 10;
   static const double _nameLineHeight = 1.3;
-  static double get _nameBlockHeight =>
-      SizeConfig.medium * _nameLineHeight * 2;
+  static double get _nameBlockHeight => SizeConfig.medium * _nameLineHeight * 2;
   static const double _buttonHeight = 32.0;
   static const double _buttonSpacing = 8.0;
 

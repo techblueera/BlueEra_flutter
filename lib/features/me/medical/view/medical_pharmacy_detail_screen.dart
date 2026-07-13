@@ -13,10 +13,13 @@ import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
 import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
+import 'package:BlueEra/features/me/medical/controller/medical_cart_controller.dart';
 import 'package:BlueEra/features/me/medical/model/medical_home_response_model.dart';
 import 'package:BlueEra/features/me/medical/repo/medical_repo.dart';
 import 'package:BlueEra/features/me/medical/view/medical_inventory_category_screen.dart';
 import 'package:BlueEra/features/me/medical/widget/healthcare_enquiry_sheet.dart';
+import 'package:BlueEra/features/me/medical/widget/medical_floating_cart.dart';
+import 'package:BlueEra/features/me/medical/widget/medical_product_card.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -37,12 +40,16 @@ class MedicalPharmacyDetailScreen extends StatefulWidget {
   const MedicalPharmacyDetailScreen({super.key, required this.businessId});
 
   @override
-  State<MedicalPharmacyDetailScreen> createState() => _MedicalPharmacyDetailScreenState();
+  State<MedicalPharmacyDetailScreen> createState() =>
+      _MedicalPharmacyDetailScreenState();
 }
 
-class _MedicalPharmacyDetailScreenState extends State<MedicalPharmacyDetailScreen> {
-  final viewBusinessDetailsController = Get.find<ViewBusinessDetailsController>();
+class _MedicalPharmacyDetailScreenState
+    extends State<MedicalPharmacyDetailScreen> {
+  final viewBusinessDetailsController =
+      Get.find<ViewBusinessDetailsController>();
   final storeController = getOrPut(() => StoreController());
+  final medicalCart = getOrPut(() => MedicalCartController(), permanent: true);
   MedicalHomeResponseModel? _data;
   bool _isLoading = true;
 
@@ -62,7 +69,8 @@ class _MedicalPharmacyDetailScreenState extends State<MedicalPharmacyDetailScree
 
   Future<void> _fetchData() async {
     try {
-      final res = await MedicalRepo().fetchMedicalProfileFd(businessId: widget.businessId);
+      final res = await MedicalRepo()
+          .fetchMedicalProfileFd(businessId: widget.businessId);
       if (res.isSuccess && res.response?.data != null) {
         final data = res.response?.data['data'] ?? res.response?.data;
         if (data != null && data is Map<String, dynamic>) {
@@ -100,10 +108,12 @@ class _MedicalPharmacyDetailScreenState extends State<MedicalPharmacyDetailScree
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.storefront_outlined, size: 64, color: Colors.grey.shade300),
+              Icon(Icons.storefront_outlined,
+                  size: 64, color: Colors.grey.shade300),
               SizedBox(height: 12),
               CustomText(AppStrings.pharmacyDetailsNotAvailable,
-                  fontSize: SizeConfig.large, color: AppColors.secondaryTextColor),
+                  fontSize: SizeConfig.large,
+                  color: AppColors.secondaryTextColor),
             ],
           ),
         ),
@@ -116,8 +126,9 @@ class _MedicalPharmacyDetailScreenState extends State<MedicalPharmacyDetailScree
     final categoriesWithProducts = inventory?.categoriesWithProducts ?? [];
 
     return Scaffold(
-      appBar: CommonBackAppBar(title: profile?.businessName ?? AppStrings.pharmacy.tr),
-      bottomNavigationBar: _buildEnquiryBottomBar(profile),
+      appBar: CommonBackAppBar(
+          title: profile?.businessName ?? AppStrings.pharmacy.tr),
+      bottomNavigationBar: _buildBottomBar(profile),
       body: RefreshIndicator(
         onRefresh: _refresh,
         child: SingleChildScrollView(
@@ -134,16 +145,19 @@ class _MedicalPharmacyDetailScreenState extends State<MedicalPharmacyDetailScree
                 if (viewBusinessDetailsController.isProfileLoading.value) {
                   return buildBusinessHeaderSkeleton();
                 }
-                final details = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
+                final details = viewBusinessDetailsController
+                    .visitedBusinessProfileDetails?.data;
                 return Padding(
                   padding: EdgeInsets.all(SizeConfig.size12),
                   child: VisitBusinessCommonHeader(
                     details: details,
-                    onRated: () => viewBusinessDetailsController.viewBusinessProfileById(
+                    onRated: () =>
+                        viewBusinessDetailsController.viewBusinessProfileById(
                       widget.businessId,
                       silent: true,
                     ),
-                    onFollowChanged: () => viewBusinessDetailsController.viewBusinessProfileById(
+                    onFollowChanged: () =>
+                        viewBusinessDetailsController.viewBusinessProfileById(
                       widget.businessId,
                       silent: true,
                     ),
@@ -158,14 +172,16 @@ class _MedicalPharmacyDetailScreenState extends State<MedicalPharmacyDetailScree
                 return Padding(
                   padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
                   child: VisitBusinessStatsCard(
-                    details: viewBusinessDetailsController.visitedBusinessProfileDetails?.data,
+                    details: viewBusinessDetailsController
+                        .visitedBusinessProfileDetails?.data,
                   ),
                 );
               }),
               SizedBox(height: SizeConfig.size10),
 
               // Website preview
-              if (profile?.websiteUrl != null && profile!.websiteUrl!.isNotEmpty) ...[
+              if (profile?.websiteUrl != null &&
+                  profile!.websiteUrl!.isNotEmpty) ...[
                 _buildWebsitePreview(profile.websiteUrl!),
                 SizedBox(height: SizeConfig.size10),
               ],
@@ -192,7 +208,8 @@ class _MedicalPharmacyDetailScreenState extends State<MedicalPharmacyDetailScree
                 if (viewBusinessDetailsController.isProfileLoading.value) {
                   return const SizedBox.shrink();
                 }
-                final details = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
+                final details = viewBusinessDetailsController
+                    .visitedBusinessProfileDetails?.data;
                 return Padding(
                   padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
                   child: BusinessContactMapCard(
@@ -227,7 +244,8 @@ class _MedicalPharmacyDetailScreenState extends State<MedicalPharmacyDetailScree
                 color: AppColors.primaryColor.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(Icons.description_outlined, color: AppColors.primaryColor, size: 28),
+              child: Icon(Icons.description_outlined,
+                  color: AppColors.primaryColor, size: 28),
             ),
             SizedBox(width: 12),
             Expanded(
@@ -240,15 +258,18 @@ class _MedicalPharmacyDetailScreenState extends State<MedicalPharmacyDetailScree
                       color: AppColors.mainTextColor),
                   SizedBox(height: 2),
                   CustomText(AppStrings.scheduleYourVisitEasily,
-                      fontSize: SizeConfig.small, color: AppColors.secondaryTextColor),
+                      fontSize: SizeConfig.small,
+                      color: AppColors.secondaryTextColor),
                 ],
               ),
             ),
             InkWell(
               onTap: () async {
-                final path = await CommonImageUploadTile.pickImage(context: context);
+                final path =
+                    await CommonImageUploadTile.pickImage(context: context);
                 if (path != null && path.isNotEmpty) {
-                  commonSnackBar(message: AppStrings.prescriptionUploadedSuccessfully.tr);
+                  commonSnackBar(
+                      message: AppStrings.prescriptionUploadedSuccessfully.tr);
                 }
               },
               borderRadius: BorderRadius.circular(8),
@@ -261,7 +282,8 @@ class _MedicalPharmacyDetailScreenState extends State<MedicalPharmacyDetailScree
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.camera_alt_outlined, size: 16, color: AppColors.mainTextColor),
+                    Icon(Icons.camera_alt_outlined,
+                        size: 16, color: AppColors.mainTextColor),
                     SizedBox(width: 6),
                     CustomText(AppStrings.uploadLabel,
                         fontSize: SizeConfig.small,
@@ -302,8 +324,8 @@ class _MedicalPharmacyDetailScreenState extends State<MedicalPharmacyDetailScree
                         overflow: TextOverflow.ellipsis),
                   ),
                   InkWell(
-                    onTap: () =>
-                        Get.to(() => CommonWebView(urlLink: url, urlTitle: AppStrings.websiteLabel.tr)),
+                    onTap: () => Get.to(() => CommonWebView(
+                        urlLink: url, urlTitle: AppStrings.websiteLabel.tr)),
                     child: CustomText(AppStrings.visitLabel,
                         fontSize: SizeConfig.small,
                         color: AppColors.primaryColor,
@@ -316,7 +338,8 @@ class _MedicalPharmacyDetailScreenState extends State<MedicalPharmacyDetailScree
             SizedBox(
               height: 180,
               child: AbsorbPointer(
-                child: CommonWebView(urlLink: url, urlTitle: '', hideAppBar: true),
+                child:
+                    CommonWebView(urlLink: url, urlTitle: '', hideAppBar: true),
               ),
             ),
           ],
@@ -342,20 +365,34 @@ class _MedicalPharmacyDetailScreenState extends State<MedicalPharmacyDetailScree
           children: [
             Row(
               children: [
-                Expanded(child: ServiceHomeTitleWidget(title: AppStrings.popularMedicalProducts.tr)),
+                Expanded(
+                    child: ServiceHomeTitleWidget(
+                        title: AppStrings.popularMedicalProducts.tr)),
                 if (showViewMore)
                   CustomText(AppStrings.viewAllLabel,
-                      fontSize: SizeConfig.small, color: AppColors.primaryColor, fontWeight: FontWeight.w600),
+                      fontSize: SizeConfig.small,
+                      color: AppColors.primaryColor,
+                      fontWeight: FontWeight.w600),
               ],
             ),
             SizedBox(height: SizeConfig.size10),
             SizedBox(
-              height: 200,
+              height: 290,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: displayList.length,
                 separatorBuilder: (_, __) => SizedBox(width: SizeConfig.size10),
-                itemBuilder: (_, i) => _popularProductCard(displayList[i]),
+                // Align.topLeft lets the card size to its intrinsic height —
+                // otherwise the horizontal ListView's tight 290h cross-axis
+                // constraint stretches the bordered Container down past the
+                // content, leaving a big blank gap below the ADD button.
+                itemBuilder: (_, i) => Align(
+                  alignment: Alignment.topLeft,
+                  child: SizedBox(
+                    width: SizeConfig.size160,
+                    child: _popularProductCard(displayList[i]),
+                  ),
+                ),
               ),
             ),
           ],
@@ -364,57 +401,151 @@ class _MedicalPharmacyDetailScreenState extends State<MedicalPharmacyDetailScree
     );
   }
 
-  Widget _popularProductCard(PopularProduct item) {
-    final productName = item.product?.name ?? item.variant?.variantName ?? AppStrings.productParcel.tr;
-    final imageUrl = item.product?.images?.firstOrNull?.url ?? item.variant?.images?.firstOrNull?.url;
-    final mrp = item.batches?.mrp ?? item.variant?.pricing?.firstOrNull?.mrp;
-    final sellingPrice = item.batches?.sellingPrice ?? item.variant?.pricing?.firstOrNull?.sellingPrice;
-    final discount =
-        (mrp != null && sellingPrice != null && mrp > 0) ? (((mrp - sellingPrice) / mrp) * 100).toInt() : 0;
+  /// Business context passed to every product card so cart lines carry
+  /// enough info for the cart screen (name, logo, address, coords) without
+  /// a re-fetch. Always buildable — `widget.businessId` is guaranteed
+  /// non-empty on this screen, so we never return null just because the
+  /// business profile hasn't populated yet. Profile fields fill in only
+  /// when available.
+  MedicalCartBusiness? _businessCtxFor(BusinessProfile? profile) {
+    final id = (profile?.id ?? widget.businessId).trim();
+    if (id.isEmpty) return null;
+    return MedicalCartBusiness(
+      businessId: id,
+      businessName: profile?.businessName ?? AppStrings.pharmacy.tr,
+      logo: profile?.logo,
+      address: profile?.address ?? profile?.cityStatePincode,
+      lat: profile?.businessLocation?.lat,
+      lng: profile?.businessLocation?.lon,
+      category: profile?.typeOfBusiness,
+    );
+  }
 
+  Widget _popularProductCard(PopularProduct item) {
+    //
+    // final productName = item.product?.name ?? item.variant?.variantName ?? AppStrings.productParcel.tr;
+    // final imageUrl = item.product?.images?.firstOrNull?.url ?? item.variant?.images?.firstOrNull?.url;
+    // final mrp = item.batches?.mrp ?? item.variant?.pricing?.firstOrNull?.mrp;
+    // final sellingPrice = item.batches?.sellingPrice ?? item.variant?.pricing?.firstOrNull?.sellingPrice;
+    // final discount =
+    // (mrp != null && sellingPrice != null && mrp > 0) ? (((mrp - sellingPrice) / mrp) * 100).toInt() : 0;
+    //
+    // return Container(
+    //     width: 140,
+    //     decoration: BoxDecoration(
+    //       color: Colors.white,
+    //       borderRadius: BorderRadius.circular(10),
+    //       border: Border.all(color: Colors.grey.shade200),
+    //     ),
+    //     clipBehavior: Clip.hardEdge,
+    //     child: Column(
+    //       crossAxisAlignment: CrossAxisAlignment.start,
+    //       children: [
+    //       SizedBox(
+    //       height: 90,
+    //       width: double.infinity,
+    //       child: _networkImage(imageUrl, BoxFit.cover),
+    //     ),
+    //     Expanded(
+    //         child: Padding(
+    //           padding: const EdgeInsets.all(8),
+    //           child: Column(
+    //             crossAxisAlignment: CrossAxisAlignment.start,
+    //             children: [
+    //               CustomText(productName,
+    //                   fontSize: 11,
+    //                   maxLines: 2,
+    //                   overflow: TextOverflow.ellipsis,
+    //                   fontWeight: FontWeight.w600),
+    //               Spacer(),
+    //               Row(
+    //                 children: [
+    //                   if (sellingPrice != null || mrp != null)
+    //                     CustomText('â‚¹${sellingPrice ?? mrp}',
+    //                         fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.mainTextColor),
+    //                   if (discount > 0) ...[
+    //                     SizedBox(width: 4),
+    //                     CustomText('$discount% off',
+    //                         fontSize: 9, color: AppColors.green00, fontWeight: FontWeight.w600),
+    //                   ],
+    //                 ],
+    //               ),
+    //             ],
+    //           ),
+    //         ),
+    final ctx = _businessCtxFor(_data?.businessProfile);
+    // Fall back to the popular-product entry id when the API doesn't include
+    // an explicit variant._id — keeps us on the rich MedicalProductCard
+    // instead of dropping to the sparse image+name tile.
+    final variantId = item.variant?.sId ?? item.sId;
+    if (ctx == null || variantId == null || variantId.isEmpty) {
+      debugPrint(
+          '[MedicalPharmacy] static tile fallback for "${item.product?.name}" — '
+          'ctx=${ctx == null ? 'null' : 'ok'} variantId=$variantId');
+      return _staticProductTile(item);
+    }
+    final mrp = item.batches?.mrp ?? item.variant?.pricing?.firstOrNull?.mrp;
+    final sellingPrice = item.batches?.sellingPrice ??
+        item.variant?.pricing?.firstOrNull?.sellingPrice;
+    final variantImage = item.variant?.images?.firstOrNull?.url;
+    final productImage = item.product?.images?.firstOrNull?.url;
+
+    return MedicalProductCard(
+      product: MedicalCardProduct(
+        productId: item.product?.sId,
+        name: item.product?.name ??
+            item.variant?.variantName ??
+            AppStrings.productParcel.tr,
+        brand: item.product?.brand,
+        form: null,
+        isPrescriptionRequired: false,
+        imageUrl: (productImage ?? '').isNotEmpty ? productImage : variantImage,
+        variants: [
+          MedicalCardVariant(
+            variantId: variantId,
+            variantName: item.variant?.variantName,
+            inventoryId: item.sId,
+            mrp: mrp,
+            sellingPrice: sellingPrice,
+            imageUrl:
+                (variantImage ?? '').isNotEmpty ? variantImage : productImage,
+          ),
+        ],
+      ),
+      businessCtx: ctx,
+    );
+  }
+
+  Widget _staticProductTile(PopularProduct item) {
+    final productName = item.product?.name ??
+        item.variant?.variantName ??
+        AppStrings.productParcel.tr;
+    final imageUrl = item.product?.images?.firstOrNull?.url ??
+        item.variant?.images?.firstOrNull?.url;
     return Container(
-      width: 140,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.grey.shade200),
       ),
       clipBehavior: Clip.hardEdge,
+      // mainAxisSize.min so the tile hugs its content — otherwise the parent
+      // rail's tight height stretches this Column and leaves blank space.
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(
-            height: 90,
-            width: double.infinity,
-            child: _networkImage(imageUrl, BoxFit.cover),
-          ),
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.all(8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomText(productName,
-                      fontSize: 11,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      fontWeight: FontWeight.w600),
-                  Spacer(),
-                  Row(
-                    children: [
-                      if (sellingPrice != null || mrp != null)
-                        CustomText('â‚¹${sellingPrice ?? mrp}',
-                            fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.mainTextColor),
-                      if (discount > 0) ...[
-                        SizedBox(width: 4),
-                        CustomText('$discount% off',
-                            fontSize: 9, color: AppColors.green00, fontWeight: FontWeight.w600),
-                      ],
-                    ],
-                  ),
-                ],
-              ),
-            ),
+              height: 140,
+              width: double.infinity,
+              child: _networkImage(imageUrl, BoxFit.contain)),
+          Padding(
+            padding: const EdgeInsets.all(8),
+            child: CustomText(productName,
+                fontSize: SizeConfig.small,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                fontWeight: FontWeight.w600),
           ),
         ],
       ),
@@ -440,7 +571,11 @@ class _MedicalPharmacyDetailScreenState extends State<MedicalPharmacyDetailScree
       'key': 'MEDICAL_DEVICES',
       'image': 'assets/category/medical/Medical_Devices.png'
     },
-    {'title': 'OTC\nMedicines', 'key': 'OTC_MEDICINES', 'image': 'assets/category/medical/OTC_Medicines.png'},
+    {
+      'title': 'OTC\nMedicines',
+      'key': 'OTC_MEDICINES',
+      'image': 'assets/category/medical/OTC_Medicines.png'
+    },
     {
       'title': 'Personal\n& Baby Care',
       'key': 'PERSONAL___BABY_CARE',
@@ -453,9 +588,11 @@ class _MedicalPharmacyDetailScreenState extends State<MedicalPharmacyDetailScree
     },
   ];
 
-  static String _normalizeKey(String key) => key.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
+  static String _normalizeKey(String key) =>
+      key.toUpperCase().replaceAll(RegExp(r'[^A-Z0-9]'), '');
 
-  Widget _buildMedicalProductCategories(List<CategoryWithProducts> apiCategories) {
+  Widget _buildMedicalProductCategories(
+      List<CategoryWithProducts> apiCategories) {
     final activeCats = <_CategoryDisplay>[];
     for (final sc in _staticCategories) {
       final staticNorm = _normalizeKey(sc['key']!);
@@ -474,10 +611,12 @@ class _MedicalPharmacyDetailScreenState extends State<MedicalPharmacyDetailScree
     for (final apiCat in apiCategories) {
       if (!apiCat.hasProducts || apiCat.key == null) continue;
       final apiNorm = _normalizeKey(apiCat.key!);
-      final alreadyAdded = activeCats.any((a) => _normalizeKey(a.category.key ?? '') == apiNorm);
+      final alreadyAdded =
+          activeCats.any((a) => _normalizeKey(a.category.key ?? '') == apiNorm);
       if (!alreadyAdded) {
         activeCats.add(_CategoryDisplay(
-          title: apiCat.name?.replaceAll('_', ' ') ?? AppStrings.parcelCategory.tr,
+          title:
+              apiCat.name?.replaceAll('_', ' ') ?? AppStrings.parcelCategory.tr,
           image: '',
           category: apiCat,
         ));
@@ -499,10 +638,14 @@ class _MedicalPharmacyDetailScreenState extends State<MedicalPharmacyDetailScree
           children: [
             Row(
               children: [
-                Expanded(child: ServiceHomeTitleWidget(title: AppStrings.medicalProducts.tr)),
+                Expanded(
+                    child: ServiceHomeTitleWidget(
+                        title: AppStrings.medicalProducts.tr)),
                 if (showViewMore)
                   CustomText(AppStrings.viewAllLabel,
-                      fontSize: SizeConfig.small, color: AppColors.primaryColor, fontWeight: FontWeight.w600),
+                      fontSize: SizeConfig.small,
+                      color: AppColors.primaryColor,
+                      fontWeight: FontWeight.w600),
               ],
             ),
             SizedBox(height: SizeConfig.size12),
@@ -531,7 +674,8 @@ class _MedicalPharmacyDetailScreenState extends State<MedicalPharmacyDetailScree
   Widget _productCategoryCard(_CategoryDisplay item, int productCount) {
     return InkWell(
       onTap: () {
-        if (item.category.children != null && item.category.children!.isNotEmpty) {
+        if (item.category.children != null &&
+            item.category.children!.isNotEmpty) {
           Get.to(() => MedicalInventoryCategoryScreen(
                 title: item.title,
                 children: item.category.children!,
@@ -549,9 +693,11 @@ class _MedicalPharmacyDetailScreenState extends State<MedicalPharmacyDetailScree
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             if (item.image.isNotEmpty)
-              Image.asset(item.image, width: 44, height: 44, fit: BoxFit.contain)
+              Image.asset(item.image,
+                  width: 44, height: 44, fit: BoxFit.contain)
             else
-              Icon(Icons.medical_services_outlined, size: 44, color: AppColors.primaryColor),
+              Icon(Icons.medical_services_outlined,
+                  size: 44, color: AppColors.primaryColor),
             SizedBox(height: 4),
             CustomText(item.title,
                 fontSize: 11,
@@ -562,7 +708,9 @@ class _MedicalPharmacyDetailScreenState extends State<MedicalPharmacyDetailScree
                 color: Colors.blueGrey.shade700),
             SizedBox(height: 2),
             CustomText('$productCount ${AppStrings.productsCountLabel.tr}',
-                fontSize: 9, color: AppColors.green00, fontWeight: FontWeight.w600),
+                fontSize: 9,
+                color: AppColors.green00,
+                fontWeight: FontWeight.w600),
           ],
         ),
       ),
@@ -579,12 +727,16 @@ class _MedicalPharmacyDetailScreenState extends State<MedicalPharmacyDetailScree
       if (viewBusinessDetailsController.isProfileLoading.value) {
         return const SizedBox.shrink();
       }
-      final details = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
-      final livePhotos = details?.livePhotos?.where((p) => p.trim().isNotEmpty).toList();
+      final details =
+          viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
+      final livePhotos =
+          details?.livePhotos?.where((p) => p.trim().isNotEmpty).toList();
       if (livePhotos == null || livePhotos.isEmpty) {
         return const SizedBox.shrink();
       }
-      final natureOfBusiness = details?.subCategoryDetails?.name ?? details?.natureOfBusiness ?? 'OTHER';
+      final natureOfBusiness = details?.subCategoryDetails?.name ??
+          details?.natureOfBusiness ??
+          'OTHER';
       return Padding(
         padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
         child: CommonCardWidget(
@@ -664,6 +816,24 @@ class _MedicalPharmacyDetailScreenState extends State<MedicalPharmacyDetailScree
     );
   }
 
+  /// Reactive bottom bar: shows the floating cart summary when items are
+  /// present, otherwise falls back to the Send Enquiry CTA. Both are hidden
+  /// on the owner's own listing (the enquiry endpoint would reject a
+  /// self-enquiry with 400, and the cart won't have a valid checkout target).
+  Widget? _buildBottomBar(BusinessProfile? profile) {
+    final enquiryBar = _buildEnquiryBottomBar(profile);
+    // Owner's own listing → hide both (enquiryBar returns SizedBox.shrink()).
+    if (enquiryBar is SizedBox) return enquiryBar;
+    return Obx(() {
+      // ignore: unused_local_variable
+      final _ = medicalCart.cartQuantities.length;
+      if (medicalCart.isNotEmpty) {
+        return MedicalFloatingCart(controller: medicalCart);
+      }
+      return enquiryBar ?? const SizedBox.shrink();
+    });
+  }
+
   /// Sticky bottom CTA — opens the unified healthcare-enquiry sheet for
   /// this pharmacy listing. Hidden when viewing your own listing (the
   /// server would reject an enquiry against yourself with 400 anyway).
@@ -714,7 +884,8 @@ class _MedicalPharmacyDetailScreenState extends State<MedicalPharmacyDetailScree
     if (url == null || url.isEmpty) {
       return Container(
         color: Colors.grey.shade200,
-        child: Icon(Icons.image_outlined, color: Colors.grey.shade400, size: 40),
+        child:
+            Icon(Icons.image_outlined, color: Colors.grey.shade400, size: 40),
       );
     }
     return CachedNetworkImage(
@@ -723,7 +894,8 @@ class _MedicalPharmacyDetailScreenState extends State<MedicalPharmacyDetailScree
       placeholder: (_, __) => Container(color: Colors.grey.shade200),
       errorWidget: (_, __, ___) => Container(
         color: Colors.grey.shade200,
-        child: Icon(Icons.broken_image_outlined, color: Colors.grey.shade400, size: 40),
+        child: Icon(Icons.broken_image_outlined,
+            color: Colors.grey.shade400, size: 40),
       ),
     );
   }

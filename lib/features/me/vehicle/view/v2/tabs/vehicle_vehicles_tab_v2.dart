@@ -1,8 +1,8 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/me/vehicle/controller/vehicle_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/vehicle/vehicle_detail_screen.dart';
+import 'package:BlueEra/features/me/vehicle/controller/vehicle_controller.dart';
 import 'package:BlueEra/features/me/vehicle/view/v2/actions/vehicle_owner_actions.dart';
 import 'package:BlueEra/features/me/vehicle/view/v2/widgets/vehicle_overview_sections.dart';
 import 'package:BlueEra/features/me/vehicle/view/widgets/vehicle_discover_card.dart';
@@ -19,7 +19,10 @@ class VehicleVehiclesTabV2 extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+      padding: EdgeInsets.only(
+          left: SizeConfig.size12,
+          right: SizeConfig.size12,
+          top: SizeConfig.size12),
       child: Obx(() {
         final state = controller.myVehiclesState.value.status;
         if (state == Status.LOADING && controller.myVehicles.isEmpty) {
@@ -57,9 +60,10 @@ class VehicleVehiclesTabV2 extends StatelessWidget {
               onTap: openDetail,
               onChat: openDetail,
               onBook: openDetail,
-              onEdit: () => VehicleOwnerActions.editVehicle(context, controller, v),
-              onDelete: () =>
-                  VehicleOwnerActions.confirmDeleteVehicle(context, controller, v),
+              onEdit: () =>
+                  VehicleOwnerActions.editVehicle(context, controller, v),
+              onDelete: () => VehicleOwnerActions.confirmDeleteVehicle(
+                  context, controller, v),
             );
           },
         );
