@@ -71,19 +71,23 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   void _openNextScreen() async {
-    final tempLoginType = await SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.accountType);
-    accountTypeGlobal = tempLoginType.toString();
-
-    var isLoginStatus = await SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.isUserLogin);
-    if (isLoginStatus == null) isLoginStatus = "false";
+    // Both secure reads in one parallel batch — each is a platform-channel
+    // round trip.
+    final prefValues = await Future.wait<dynamic>([
+      SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.accountType),
+      SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.isUserLogin),
+    ]);
+    accountTypeGlobal = prefValues[0].toString();
+    final String isLoginStatus = prefValues[1] ?? "false";
 
     // Fresh install attribution: a shared Play Store link carries the
     // referrer (`referralCode=…`). Capture it before the user reaches
     // signup so onboarding can auto-fill the promo code. Only needed for
     // not-yet-logged-in users; logged-in sessions already have it (or
-    // never will).
+    // never will). Fire-and-forget: the code is only consumed at signup
+    // (minutes away), so the Play Store IPC must not delay the splash.
     if (isLoginStatus != "true") {
-      await _captureInstallReferrerOnce();
+      unawaited(_captureInstallReferrerOnce());
     }
 
     // ✅ Check if app was updated
@@ -134,6 +138,17 @@ class _SplashScreenState extends State<SplashScreen> {
       // CallController will navigate directly to ActiveCallScreen
       if (CallController.launchedForCall.value) {
         return;
+      }
+
+      // The notification-launch check runs in _initDeferred after runApp —
+      // wait for it (bounded) before reading its flag, otherwise this timer
+      // can race the check, misread a notification launch as a normal one,
+      // and clobber the deep-link routing with home navigation.
+      final launchCheck = AppNotificationHandler.notificationLaunchCheckFuture;
+      if (launchCheck != null) {
+        try {
+          await launchCheck.timeout(const Duration(seconds: 3));
+        } catch (_) {}
       }
 
       // If app was launched by tapping a notification, stay on splash screen

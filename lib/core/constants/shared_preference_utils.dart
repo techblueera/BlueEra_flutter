@@ -485,71 +485,51 @@ Future<String> getUserServiceExistsKey() async {
 
 ///GET USER DATA....
 getUserLoginData() async {
-  authTokenGlobal = await SharedPreferenceUtils.getSecureValue(
-      SharedPreferenceUtils.authToken);
-  accountTypeGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.accountType) ??
-      '';
+  // Every getSecureValue is a full platform-channel round trip (Android
+  // EncryptedSharedPreferences decrypt / iOS Keychain read). Running all
+  // ~18 reads sequentially added hundreds of ms to every cold start, so
+  // fire them in parallel and assign from the resolved batch.
+  final values = await Future.wait<dynamic>([
+    SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.authToken),
+    SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.accountType),
+    SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.loginUserId),
+    SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.userBusinessId),
+    SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.userLoginMobile),
+    SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.userProfile),
+    SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.userName),
+    SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.userProfileType),
+    SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.userProfession),
+    SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.userDesignation),
+    SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.has_reel_profile),
+    SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.businessName),
+    SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.businessOwnerName),
+    SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.businessOwnerAddress),
+    SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.userNameAtKey),
+    SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.businessCategory),
+    SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.businessSubCategory),
+    SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.businessType),
+  ]);
 
-  // userName = await SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.userName) ?? "";
-  userId = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.loginUserId) ??
-      "";
-  businessId = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.userBusinessId) ??
-      "";
-  userMobileGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.userLoginMobile) ??
-      "";
+  authTokenGlobal = values[0];
+  accountTypeGlobal = values[1] ?? '';
+  userId = values[2] ?? "";
+  businessId = values[3] ?? "";
+  userMobileGlobal = values[4] ?? "";
+  userProfileGlobal = values[5] ?? "";
+  userNameGlobal = values[6] ?? "";
+  userProfileTypeGlobal = values[7] ?? "";
+  userProfessionGlobal = values[8] ?? "";
+  userDesignationGlobal = values[9] ?? "";
+  has_reel_profile_status = values[10] ?? "false";
+  businessNameGlobal = values[11] ?? "";
+  businessOwnerNameGlobal = values[12] ?? "";
+  businessOwnerAddressGlobal = values[13] ?? "";
+  userNameAtGlobal = values[14] ?? "";
+  businessCategoryGlobal = values[15] ?? "";
+  businessSubCategoryGlobal = values[16] ?? "";
+  businessTypeGlobal = values[17] ?? "OTHER";
 
-  userProfileGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.userProfile) ??
-      "";
-
-  userNameGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.userName) ??
-      "";
-  userProfileTypeGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.userProfileType) ??
-      "";
-  userProfessionGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.userProfession) ??
-      "";
-  userDesignationGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.userDesignation) ??
-      "";
   Get.find<AuthController>().imgPath.value = userProfileGlobal;
-  has_reel_profile_status = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.has_reel_profile) ??
-      "false";
-
-  businessNameGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.businessName) ??
-      "";
-
-  businessOwnerNameGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.businessOwnerName) ??
-      "";
-
-  businessOwnerAddressGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.businessOwnerAddress) ??
-      "";
-
-  userNameAtGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.userNameAtKey) ??
-      "";
-
-  businessCategoryGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.businessCategory) ??
-      "";
-
-  businessSubCategoryGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.businessSubCategory) ??
-      "";
-
-  businessTypeGlobal = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.businessType) ??
-      "OTHER";
 }
 
 ///GET USER DATA....
@@ -577,15 +557,14 @@ getGuestUserLoginData() async {
 
 /// GET CHANNEL DATA...
 getChannelData() async {
-  channelId = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.channel_Id) ??
-      "";
-  channelName = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.channelName) ??
-      "";
-  channelOwner = await SharedPreferenceUtils.getSecureValue(
-          SharedPreferenceUtils.channelOwner) ??
-      "";
+  final values = await Future.wait<dynamic>([
+    SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.channel_Id),
+    SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.channelName),
+    SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.channelOwner),
+  ]);
+  channelId = values[0] ?? "";
+  channelName = values[1] ?? "";
+  channelOwner = values[2] ?? "";
 }
 
 Future<void> clearSecureStorageIfFreshInstall() async {

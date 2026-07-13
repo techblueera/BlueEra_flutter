@@ -618,6 +618,13 @@ class AppNotificationHandler {
   /// SplashScreen checks this to hold its UI instead of navigating to home.
   static bool launchedFromNotification = false;
 
+  /// The in-flight [checkNotificationLaunch] future, set by main()'s
+  /// `_initDeferred` the moment it kicks the check off. SplashScreen awaits
+  /// this (bounded) before reading [launchedFromNotification] — without it,
+  /// the splash timer could race the check, misread a notification launch as
+  /// a normal one, and clobber the deep-link routing with home navigation.
+  static Future<void>? notificationLaunchCheckFuture;
+
   /// True while a notification tap is re-navigating the root stack onto a new
   /// [BottomNavigationBarScreen] (currently the `admin_broadcast` broadcast
   /// flow). GetX builds the incoming host and disposes the outgoing one during
