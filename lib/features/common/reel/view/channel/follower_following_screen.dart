@@ -28,7 +28,15 @@ class FollowersFollowingPage extends StatefulWidget {
 class _FollowersFollowingPageState extends State<FollowersFollowingPage>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
-  final followFollowerController = Get.put(FollowerController());
+
+  // Unique tag per screen instance so each FollowersFollowingPage on the
+  // navigation stack gets its OWN controller/data. Without this, GetX reuses a
+  // single singleton and every stacked page shares the same follower/following
+  // list — so opening a deeper profile's followers overwrites the lists that
+  // the earlier (still-alive) pages are showing.
+  final String _controllerTag = UniqueKey().toString();
+  late final FollowerController followFollowerController =
+      Get.put(FollowerController(), tag: _controllerTag);
 
   @override
   void initState() {
@@ -51,6 +59,8 @@ class _FollowersFollowingPageState extends State<FollowersFollowingPage>
   @override
   void dispose() {
     _tabController.dispose();
+    // Remove this instance's controller so its data doesn't leak between pages.
+    Get.delete<FollowerController>(tag: _controllerTag);
     super.dispose();
   }
 
@@ -168,24 +178,19 @@ class _FollowersFollowingPageState extends State<FollowersFollowingPage>
   Widget _buildUserTile(FollowingFollower? user, String? viewTag) {
     return InkWell(
       onTap: () {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (user?.accountType?.toUpperCase() == AppConstants.business) {
-            Get.off(() => VisitBusinessProfileNew(
-                  businessId: user?.id ?? "",
-                  screenName: AppConstants.feedScreen,
-                ));
-          } else {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => NewVisitProfileScreen(
-                  authorId: user?.id ?? '',
-                  screenFromName: AppConstants.feedScreen,
-                ),
-              ),
-            );
-          }
-        });
+        final userId = user?.id ?? "";
+        if (userId.isEmpty) return;
+        if (user?.accountType?.toUpperCase() == AppConstants.business) {
+          Get.to(() => VisitBusinessProfileNew(
+                businessId: userId,
+                screenName: AppConstants.feedScreen,
+              ));
+        } else {
+          Get.to(() => NewVisitProfileScreen(
+                authorId: userId,
+                screenFromName: AppConstants.feedScreen,
+              ));
+        }
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),

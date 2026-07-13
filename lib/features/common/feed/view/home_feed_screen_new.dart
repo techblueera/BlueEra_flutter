@@ -194,9 +194,6 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
         // post in feedController.allPosts) at the shared series positions —
         // independent of each post's individual type.
         final rows = buildNativeAdRows(blocks.length);
-        print('[HOME_FEED_AD] type=${widget.postFilterType} '
-            'posts=${posts.length} blocks=${blocks.length} '
-            'rows=${rows.length} ads=${rows.where((r) => r.isAd).length}');
         final listView = ListView.builder(
           controller: _scrollController,
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,

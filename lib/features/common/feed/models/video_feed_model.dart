@@ -59,13 +59,18 @@ class VideoResponse {
     if (p is Map<String, dynamic>) {
       final page = (p['page'] as num?)?.toInt();
       final totalPages = (p['totalPages'] as num?)?.toInt();
+      // The random-order hot feed now returns `hasMore` (and a shuffle `seed`)
+      // directly. Honour the explicit flag when present; otherwise fall back to
+      // deriving it from page/totalPages for older responses.
+      final serverHasMore = p['hasMore'] as bool?;
       pagination = Pagination(
         page: page,
         limit: (p['limit'] as num?)?.toInt(),
         totalVideos: ((p['total'] ?? p['totalVideos']) as num?)?.toInt(),
         totalPages: totalPages,
-        hasMore:
-            (page != null && totalPages != null) ? page < totalPages : false,
+        hasMore: serverHasMore ??
+            ((page != null && totalPages != null) ? page < totalPages : false),
+        seed: p['seed']?.toString(),
       );
     }
 
@@ -1130,12 +1135,18 @@ class Pagination {
   final int? totalPages;
   final bool? hasMore;
 
+  /// Shuffle seed for the random-order hot feed (`/videos/hot/:type`). The
+  /// server mints one on page 1 and the client replays it on later pages so a
+  /// session paginates a stable random order with zero repeats. String.
+  final String? seed;
+
   Pagination({
     this.page,
     this.limit,
     this.totalVideos,
     this.totalPages,
     this.hasMore,
+    this.seed,
   });
 
   factory Pagination.fromJson(Map<String, dynamic> json) {
@@ -1145,6 +1156,7 @@ class Pagination {
       totalVideos: (json['totalVideos'] as num?)?.toInt(),
       totalPages: (json['totalPages'] as num?)?.toInt(),
       hasMore: json['hasMore'],
+      seed: json['seed']?.toString(),
     );
   }
 
@@ -1154,6 +1166,7 @@ class Pagination {
     int? totalVideos,
     int? totalPages,
     bool? hasMore,
+    String? seed,
   }) {
     return Pagination(
       page: page ?? this.page,
@@ -1161,6 +1174,7 @@ class Pagination {
       totalVideos: totalVideos ?? this.totalVideos,
       totalPages: totalPages ?? this.totalPages,
       hasMore: hasMore ?? this.hasMore,
+      seed: seed ?? this.seed,
     );
   }
 }

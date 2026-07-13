@@ -42,11 +42,29 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
   late AnimationController _progressController;
   bool _isPaused = false;
 
+  /// Whether the current symbol's media (image) has finished buffering. For
+  /// image stories the 5s progress timer must not run until this is true —
+  /// otherwise a slow-loading image gets skipped before the user ever sees it
+  /// (WhatsApp behaviour). Text/link stories set this true immediately.
+  bool _mediaReady = false;
+
+  /// Mutable, growable copy of the groups passed in. Silent pagination appends
+  /// freshly-loaded user groups here so the story flow continues seamlessly
+  /// instead of the viewer closing at the end of the first page.
+  late final List<SymbolUserGroup> _groups;
+
+  /// In-flight next-page load, if any. Lets the background prefetch and the
+  /// end-of-list handler share a single request instead of firing duplicates.
+  Future<void>? _pendingLoad;
+
   static const Duration _storyDuration = Duration(seconds: 5);
+
+  /// Prefetch the next page once the user is within this many groups of the end.
+  static const int _prefetchThreshold = 2;
 
   SymbolFeedController get _feedController => Get.find<SymbolFeedController>();
 
-  SymbolUserGroup get _currentGroup => widget.groups[_groupIndex];
+  SymbolUserGroup get _currentGroup => _groups[_groupIndex];
   SymbolFeedItem get _currentSymbol =>
       _currentGroup.symbols[_symbolIndex];
 
@@ -55,6 +73,7 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
     super.initState();
     _groupIndex = widget.initialGroupIndex;
     _symbolIndex = 0;
+    _groups = List<SymbolUserGroup>.of(widget.groups);
 
     _progressController = AnimationController(
       vsync: this,
@@ -66,6 +85,9 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
       });
 
     _startCurrentSymbol();
+    // If the viewer opened near the end of the loaded groups, warm up the next
+    // page right away so paging stays ahead of the user.
+    _maybeLoadMoreGroups();
 
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -85,12 +107,38 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
 
   void _startCurrentSymbol() {
     _progressController.reset();
-    _progressController.forward();
+
+    final symbol = _currentSymbol;
+    // Image stories wait for the image to buffer; the timer is kicked off in
+    // [_onMediaLoaded]. Everything else (text / link) starts right away.
+    _mediaReady = !_isImageSymbol(symbol);
+    if (_mediaReady) {
+      _progressController.forward();
+    }
 
     // Mark as viewed if not yet seen
-    final symbol = _currentSymbol;
     if (symbol.hasSeen != true && symbol.id != null) {
       _feedController.markAsViewed(symbol.id!);
+    }
+  }
+
+  /// True when the symbol renders as a full-screen image (explicit image type
+  /// or a content URL that points at an image file). Mirrors the check in
+  /// [_buildContent] so the timer gating and the rendering stay in sync.
+  bool _isImageSymbol(SymbolFeedItem symbol) {
+    final content = symbol.content;
+    final hasContent = content != null && content.isNotEmpty;
+    return hasContent && (symbol.type == 'image' || _isImageUrl(content));
+  }
+
+  /// Called once the current image has finished buffering (or failed). Starts
+  /// the progress timer unless the user is holding the screen (paused) or has
+  /// already moved on.
+  void _onMediaLoaded() {
+    if (_mediaReady || !mounted) return;
+    _mediaReady = true;
+    if (!_isPaused) {
+      _progressController.forward();
     }
   }
 
@@ -116,14 +164,16 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
   }
 
   void _goToNextGroup() {
-    if (_groupIndex < widget.groups.length - 1) {
+    if (_groupIndex < _groups.length - 1) {
       setState(() {
         _groupIndex++;
         _symbolIndex = 0;
       });
       _startCurrentSymbol();
+      // Keep paging ahead of the user as they move through the groups.
+      _maybeLoadMoreGroups();
     } else {
-      Navigator.of(context).pop();
+      _handleEndOfGroups();
     }
   }
 
@@ -131,13 +181,72 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
     if (_groupIndex > 0) {
       setState(() {
         _groupIndex--;
-        _symbolIndex = widget.groups[_groupIndex].symbols.length - 1;
+        _symbolIndex = _groups[_groupIndex].symbols.length - 1;
       });
       _startCurrentSymbol();
     } else {
       setState(() => _symbolIndex = 0);
       _startCurrentSymbol();
     }
+  }
+
+  /// Silently prefetches the next page of story groups once the viewer gets
+  /// within [_prefetchThreshold] groups of the end. This runs in the
+  /// background — the current story keeps playing and nothing on screen
+  /// changes until the new groups are appended to [_groups].
+  void _maybeLoadMoreGroups() {
+    if (!_feedController.hasMore.value) return;
+    if (_groupIndex < _groups.length - _prefetchThreshold) return;
+    _loadNextPage();
+  }
+
+  /// Kicks off (or joins) an in-flight next-page load and merges any new user
+  /// groups into [_groups] when it completes. Uses [_pendingLoad] so the
+  /// prefetch and the end-of-list handler never fire duplicate requests.
+  Future<void> _loadNextPage() {
+    return _pendingLoad ??= _feedController.loadMoreSymbols().then((_) {
+      _absorbNewGroups();
+    }).whenComplete(() {
+      _pendingLoad = null;
+    });
+  }
+
+  /// Appends any user groups the controller has that the viewer doesn't yet
+  /// (de-duplicated by user id, preserving feed order). Returns the count added.
+  int _absorbNewGroups() {
+    if (!mounted) return 0;
+    final existingIds = _groups.map((g) => g.user?.id).toSet();
+    final newOnes = _feedController.userGroups.where((g) {
+      final id = g.user?.id;
+      return id != null && !existingIds.contains(id);
+    }).toList();
+    if (newOnes.isNotEmpty) {
+      setState(() => _groups.addAll(newOnes));
+    }
+    return newOnes.length;
+  }
+
+  /// Invoked when the user advances past the last loaded group. If more pages
+  /// are still available (or a prefetch is mid-flight), hold on the last frame,
+  /// wait for the page, then continue into the fresh groups. Otherwise close
+  /// the viewer, exactly as before.
+  Future<void> _handleEndOfGroups() async {
+    final controller = _feedController;
+    if (controller.hasMore.value || _pendingLoad != null) {
+      _progressController.stop(); // hold the last frame while paging
+      final before = _groups.length;
+      await _loadNextPage();
+      if (!mounted) return;
+      if (_groups.length > before) {
+        setState(() {
+          _groupIndex = before;
+          _symbolIndex = 0;
+        });
+        _startCurrentSymbol();
+        return;
+      }
+    }
+    if (mounted) Navigator.of(context).pop();
   }
 
   void _onTapDown(TapDownDetails details) {
@@ -160,7 +269,9 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
   void _onTapCancel() {
     if (!_isPaused) return;
     _isPaused = false;
-    _progressController.forward();
+    // Only resume if the media is actually ready; a still-buffering image
+    // resumes on its own via [_onMediaLoaded].
+    if (_mediaReady) _progressController.forward();
   }
 
   Color _parseColor(String? hex) {
@@ -177,7 +288,9 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
 
   void _resumeTimer() {
     _isPaused = false;
-    _progressController.forward();
+    // Don't start the timer for an image that's still buffering — it will
+    // start itself once loaded via [_onMediaLoaded].
+    if (_mediaReady) _progressController.forward();
   }
 
   @override
@@ -354,29 +467,16 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
                 ),
               ),
 
-              /// Center: caption + link preview
-              if ((symbol.caption != null && symbol.caption!.isNotEmpty) ||
-                  _shouldShowLinkPreview(symbol))
+              /// Center: link-preview card only. The caption is rendered pinned
+              /// to the bottom (WhatsApp-style) so it never overlaps the image.
+              if (_shouldShowLinkPreview(symbol))
                 Center(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        if (symbol.caption != null &&
-                            symbol.caption!.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: CustomText(
-                              symbol.caption!,
-                              color: Colors.white,
-                              fontSize: 15,
-                              textAlign: TextAlign.center,
-                              maxLines: 3,
-                            ),
-                          ),
-                        if (_shouldShowLinkPreview(symbol))
-                          GestureDetector(
+                        GestureDetector(
                             onTap: () async {
                               final uri = Uri.tryParse(symbol.content!);
                               if (uri != null && await canLaunchUrl(uri)) {
@@ -497,28 +597,37 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
                   ),
                 ),
 
-              /// Bottom action bar: like, comment, seen count
+              /// Bottom: caption (WhatsApp-style, pinned above the bar) + the
+              /// like/comment/seen action bar.
               Positioned(
                 bottom: 0,
                 left: 0,
                 right: 0,
                 child: SafeArea(
-                  child: Obx(() {
-                    // Access userGroups to register reactive dependency
-                    _feedController.userGroups.length;
-                    final isOwn = (symbol.userId != null &&
-                            symbol.userId == userId) ||
-                        (_currentGroup.user?.id != null &&
-                            _currentGroup.user?.id == userId);
-                    return _BottomActionBar(
-                      symbol: symbol,
-                      isOwn: isOwn,
-                      onLike: () => _feedController.toggleLike(symbol),
-                      onComment: () => _showCommentSheet(symbol),
-                      onPause: _pauseTimer,
-                      onResume: _resumeTimer,
-                    );
-                  }),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (symbol.caption != null &&
+                          symbol.caption!.isNotEmpty)
+                        _buildBottomCaption(symbol.caption!),
+                      Obx(() {
+                        // Access userGroups to register reactive dependency
+                        _feedController.userGroups.length;
+                        final isOwn = (symbol.userId != null &&
+                                symbol.userId == userId) ||
+                            (_currentGroup.user?.id != null &&
+                                _currentGroup.user?.id == userId);
+                        return _BottomActionBar(
+                          symbol: symbol,
+                          isOwn: isOwn,
+                          onLike: () => _feedController.toggleLike(symbol),
+                          onComment: () => _showCommentSheet(symbol),
+                          onPause: _pauseTimer,
+                          onResume: _resumeTimer,
+                        );
+                      }),
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -575,6 +684,31 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
     ).whenComplete(_resumeTimer);
   }
 
+  /// Caption pinned to the bottom of the story, above the reply/action bar —
+  /// WhatsApp-style. It sits on the existing bottom gradient scrim so it stays
+  /// legible over any image without ever covering the centre of the photo.
+  /// Long captions scroll within a capped height instead of pushing the bar
+  /// off screen.
+  Widget _buildBottomCaption(String caption) {
+    return Container(
+      width: double.infinity,
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.22,
+      ),
+      padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
+      child: SingleChildScrollView(
+        child: CustomText(
+          caption,
+          color: Colors.white,
+          fontSize: 15,
+          fontWeight: FontWeight.w500,
+          textAlign: TextAlign.center,
+          maxLines: 100,
+        ),
+      ),
+    );
+  }
+
   Widget _buildContent(SymbolFeedItem symbol, Color bgColor) {
     final String? content = symbol.content;
     final bool hasContent = content != null && content.isNotEmpty;
@@ -585,10 +719,28 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
           fit: BoxFit.contain,
           width: double.infinity,
           height: double.infinity,
+          // Image is fully buffered → let the progress timer start. Deferred to
+          // the next frame so we don't drive the animation during build.
+          imageBuilder: (context, imageProvider) {
+            WidgetsBinding.instance
+                .addPostFrameCallback((_) => _onMediaLoaded());
+            return Image(
+              image: imageProvider,
+              fit: BoxFit.contain,
+              width: double.infinity,
+              height: double.infinity,
+            );
+          },
           placeholder: (_, __) => const Center(
             child: CircularProgressIndicator(color: Colors.white),
           ),
-          errorWidget: (_, __, ___) => _buildTextContent(symbol, bgColor),
+          // A broken image shouldn't hang the story forever — fall back to the
+          // text view and start the timer.
+          errorWidget: (_, __, ___) {
+            WidgetsBinding.instance
+                .addPostFrameCallback((_) => _onMediaLoaded());
+            return _buildTextContent(symbol, bgColor);
+          },
         ),
       );
     }

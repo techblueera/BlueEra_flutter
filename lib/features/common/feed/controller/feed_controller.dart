@@ -374,46 +374,48 @@ class FeedController extends GetxController {
     }
 
     ResponseModel response;
-    switch (type) {
-      case PostType.all:
-        if (query == null) {
-          response = await FeedRepo().fetchAllPosts(queryParams: queryParams);
-        } else {
-          queryParams[ApiKeys.query] = query;
-          response = await FeedRepo().postsFeedSearch(queryParams: queryParams);
-        }
-        break;
-      case PostType.myPosts:
-        response = await FeedRepo().getAllMyPosts(queryParams: queryParams);
-        // final upgraded = IndividualUserResponseModel.fromJson(response.response?.data ?? {});
-        // // await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.authToken, upgraded.token);
-        // // await getUserAuthToken();
-        break;
-      case PostType.otherPosts:
-        if (id != null) queryParams[ApiKeys.authorId] = id;
-        response = await FeedRepo().getAllOtherPosts(queryParams: queryParams);
-        break;
-      case PostType.otherChannelPosts:
-        queryParams[ApiKeys.filter] = 'latest';
-        queryParams[ApiKeys.authorId] = id;
-
-        response = await ChannelRepo().getChannelAllPosts(queryParams: queryParams);
-
-        break;
-      case PostType.latest || PostType.popular || PostType.oldest:
-        if (id != null) queryParams[ApiKeys.authorId] = id;
-        queryParams[ApiKeys.filter] = (type == PostType.latest)
-            ? 'latest'
-            : (type == PostType.popular)
-                ? 'popular'
-                : 'oldest';
-        response = await ChannelRepo().getChannelAllPosts(queryParams: queryParams);
-        break;
-      default:
-        return;
-    }
-
+    // The API call must live inside this try/catch: on network failures
+    // (timeout / no internet) the repo throws from ApiBaseHelper.handleError.
+    // If the call sits outside the try, that throw bubbles up through
+    // getPostsByType as an unhandled exception (feed crash on getAllMyPosts).
     try {
+      switch (type) {
+        case PostType.all:
+          if (query == null) {
+            response = await FeedRepo().fetchAllPosts(queryParams: queryParams);
+          } else {
+            queryParams[ApiKeys.query] = query;
+            response =
+                await FeedRepo().postsFeedSearch(queryParams: queryParams);
+          }
+          break;
+        case PostType.myPosts:
+          response = await FeedRepo().getAllMyPosts(queryParams: queryParams);
+          break;
+        case PostType.otherPosts:
+          if (id != null) queryParams[ApiKeys.authorId] = id;
+          response = await FeedRepo().getAllOtherPosts(queryParams: queryParams);
+          break;
+        case PostType.otherChannelPosts:
+          queryParams[ApiKeys.filter] = 'latest';
+          queryParams[ApiKeys.authorId] = id;
+          response =
+              await ChannelRepo().getChannelAllPosts(queryParams: queryParams);
+          break;
+        case PostType.latest || PostType.popular || PostType.oldest:
+          if (id != null) queryParams[ApiKeys.authorId] = id;
+          queryParams[ApiKeys.filter] = (type == PostType.latest)
+              ? 'latest'
+              : (type == PostType.popular)
+                  ? 'popular'
+                  : 'oldest';
+          response =
+              await ChannelRepo().getChannelAllPosts(queryParams: queryParams);
+          break;
+        default:
+          return;
+      }
+
       if (response.isSuccess) {
         postsResponse.value = ApiResponse.complete(response);
         final postResponse = PostResponse.fromJson(response.response?.data);

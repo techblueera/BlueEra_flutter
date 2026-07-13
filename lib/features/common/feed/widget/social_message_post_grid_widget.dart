@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
+import 'package:BlueEra/features/common/feed/view/image_post_feed_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -13,11 +14,34 @@ class SocialImageGrid extends StatelessWidget {
   final subTitle;
   final Post postData;
 
+  /// When true (home feed only), tapping an image opens the full-screen,
+  /// reels-style [ImagePostFeedScreen] that paginates through image posts with
+  /// all actions. When false, it opens the plain [ImageViewScreen] (this post's
+  /// images only) — the default used everywhere else so other flows don't change.
+  final bool openImageFeedOnTap;
+
   const SocialImageGrid(
       {super.key,
       required this.imageUrls,
       required this.subTitle,
-      required this.postData});
+      required this.postData,
+      this.openImageFeedOnTap = false});
+
+  /// Routes an image tap to the correct viewer for [index].
+  void _onImageTap(int index) {
+    if (openImageFeedOnTap) {
+      Get.to(() => ImagePostFeedScreen(
+            initialPost: postData,
+            initialImageIndex: index,
+          ));
+    } else {
+      Get.to(() => ImageViewScreen(
+            appBarTitle: 'Item Image',
+            imageUrls: imageUrls,
+            initialIndex: index,
+          ));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,10 +113,13 @@ class SocialImageGrid extends StatelessWidget {
                       borderRadius: const BorderRadius.only(
                         topRight: Radius.circular(12),
                       ),
-                      child: Image.network(
-                        imageUrls[1],
-                        fit: BoxFit.cover,
-                        width: double.infinity,
+                      child: InkWell(
+                        onTap: () => _onImageTap(1),
+                        child: Image.network(
+                          imageUrls[1],
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                        ),
                       ),
                     ),
                   ),
@@ -102,10 +129,13 @@ class SocialImageGrid extends StatelessWidget {
                       borderRadius: const BorderRadius.only(
                         bottomRight: Radius.circular(12),
                       ),
-                      child: Image.network(
-                        imageUrls[2],
-                        fit: BoxFit.cover,
-                        width: double.infinity,
+                      child: InkWell(
+                        onTap: () => _onImageTap(2),
+                        child: Image.network(
+                          imageUrls[2],
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                        ),
                       ),
                     ),
                   ),
@@ -242,10 +272,7 @@ class SocialImageGrid extends StatelessWidget {
 
     final double aspectRatio = hasValidSize ? (mediaWidth / mediaHeight) : 1.0;
     return InkWell(
-      onTap: (){
-        Get.to(() => ImageViewScreen(appBarTitle: 'Item Image', imageUrls: imageUrls, initialIndex: index));
-
-      },
+      onTap: () => _onImageTap(index),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(borderRadiusValue),
         child: AspectRatio(
@@ -275,10 +302,7 @@ class SocialImageGrid extends StatelessWidget {
       {required String urlLink, required int index, double? heightImg}) {
 
    return    InkWell(
-     onTap: (){
-       Get.to(() => ImageViewScreen(appBarTitle: 'Item Image', imageUrls: imageUrls, initialIndex: index));
-
-     },
+     onTap: () => _onImageTap(index),
      child: Container(
        color: Colors.black,
        child: CachedNetworkImage(
