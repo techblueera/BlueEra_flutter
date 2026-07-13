@@ -19,6 +19,16 @@ class UserByPhoneModel {
   /// Eyewear"). Present for BUSINESS users; null for individuals.
   final String? categoryName;
 
+  /// Business vertical from `business.type_of_business` (e.g. "Grocery",
+  /// "Food", "Product", "Healthcare"). Drives which dedicated visit screen the
+  /// "View Profile" CTA opens via [VisitProfileResolver]. Null for individuals.
+  final String? businessType;
+
+  /// Business category tag from `business.category_Of_Business`
+  /// (e.g. "GENERAL_STORE", "Sales Sector"). Used alongside [businessType] to
+  /// resolve automotive sub-sector screens. Null for individuals.
+  final String? categoryOfBusiness;
+
   /// Individual user's designation (e.g. "Bike Rider"), shown as the header
   /// subtext when there's no business category.
   final String? designation;
@@ -34,6 +44,8 @@ class UserByPhoneModel {
     this.accountType,
     this.businessId,
     this.categoryName,
+    this.businessType,
+    this.categoryOfBusiness,
     this.designation,
   });
 
@@ -62,6 +74,10 @@ class UserByPhoneModel {
       accountType: json['account_type']?.toString(),
       businessId: business?['_id']?.toString() ?? business?['id']?.toString(),
       categoryName: category is Map ? category['name']?.toString() : null,
+      businessType: business?['type_of_business']?.toString() ??
+          (category is Map ? category['type']?.toString() : null),
+      categoryOfBusiness: business?['category_Of_Business']?.toString() ??
+          (category is Map ? category['tag_id']?.toString() : null),
       designation: json['designation']?.toString(),
     );
   }

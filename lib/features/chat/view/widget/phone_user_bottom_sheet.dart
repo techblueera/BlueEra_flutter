@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/navigation/visit_profile_resolver.dart';
 import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/user_by_phone_model.dart';
@@ -15,8 +16,6 @@ import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
-
-import 'component_widgets.dart' show navigateToProfileFromChat;
 
 /// Bottom sheet shown after a phone number tapped inside a chat message is
 /// resolved to a BlueEra user via `user-service/user/by-phone/{phone}`.
@@ -320,9 +319,12 @@ class _PhoneUserSheet extends StatelessWidget {
     );
   }
 
-  /// Open the resolved user's visiting profile, reusing the app-wide chat
-  /// profile navigation. Business accounts route through their [businessId];
-  /// individuals through their user id.
+  /// Open the resolved user's visiting profile, routing to the dedicated
+  /// vertical screen (grocery / food / product / … store) when the account is a
+  /// business, or the individual visit screen otherwise. Uses the canonical
+  /// [VisitProfileResolver] — the same type/category → screen mapping used
+  /// everywhere else in the app — so a business opens its store view instead of
+  /// the generic business profile.
   void _onViewProfile() {
     Get.back();
     final isBusiness =
@@ -332,12 +334,22 @@ class _PhoneUserSheet extends StatelessWidget {
           ? user.businessId!
           : user.id;
       if (businessId.isEmpty) return;
-      navigateToProfileFromChat(
-          authorId: businessId, type: AppConstants.business);
+      VisitProfileResolver.open(
+        accountType: AppConstants.business,
+        businessType: user.businessType,
+        businessCategory: user.categoryOfBusiness,
+        businessId: businessId,
+        userId: user.id,
+        screenFrom: AppConstants.chatScreen,
+      );
     } else {
       if (user.id.isEmpty) return;
-      navigateToProfileFromChat(
-          authorId: user.id, type: AppConstants.individual);
+      VisitProfileResolver.open(
+        accountType: AppConstants.individual,
+        businessId: user.id,
+        userId: user.id,
+        screenFrom: AppConstants.chatScreen,
+      );
     }
   }
 
