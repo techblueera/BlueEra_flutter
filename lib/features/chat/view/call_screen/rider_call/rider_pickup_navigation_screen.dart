@@ -9,13 +9,15 @@ import 'package:BlueEra/environment_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../../common/delivery_partner/controller/delivery_partner_orders_controller.dart';
 import '../../../auth/controller/call_controller.dart';
+import '../../../auth/model/rider_orders_details_model.dart';
 import 'ride_navigation_overlay_controller.dart';
-import 'rider_ride_navigation_screen.dart';
+import 'passenger_destination_screen.dart';
 
 /// Screen shown after rider accepts an order.
 /// Shows map from rider's current location → pickup location with OTP verification.
@@ -65,6 +67,10 @@ class _RiderPickupNavigationScreenState
   final Set<Polyline> _polylines = {};
   List<LatLng> _routeCoords = [];
 
+  // Live GPS stream so the rider marker + camera follow the rider as they head
+  // to the pickup, instead of sitting frozen at the initial fix.
+  StreamSubscription<Position>? _locationSubscription;
+
   // OTP
   final List<TextEditingController> _otpControllers =
       List.generate(4, (_) => TextEditingController());
@@ -88,11 +94,16 @@ class _RiderPickupNavigationScreenState
     WidgetsBinding.instance.addObserver(this);
     _setupMarkers();
     _fetchRoute();
+    _startLocationTracking();
     // Hide floating overlay after first frame to avoid setState during build
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (Get.isRegistered<RideNavigationOverlayController>()) {
         Get.find<RideNavigationOverlayController>().hideOverlay();
       }
+      // If we somehow land here for an order whose pickup OTP was ALREADY
+      // verified (status is picked-up), skip OTP entry entirely and go to the
+      // destination — re-submitting the consumed OTP would be rejected.
+      _redirectIfAlreadyPickedUp();
     });
     // Enable PiP auto-entry when user leaves the app
     if (Platform.isAndroid) {
@@ -106,6 +117,7 @@ class _RiderPickupNavigationScreenState
     if (Platform.isAndroid) {
       PipService.updatePipStatus(false);
     }
+    _locationSubscription?.cancel();
     _mapController?.dispose();
     for (final c in _otpControllers) {
       c.dispose();
@@ -140,6 +152,38 @@ class _RiderPickupNavigationScreenState
         infoWindow: InfoWindow(title: 'Pickup', snippet: widget.pickupLocation),
       ),
     ]);
+  }
+
+  /// Streams the rider's live GPS location and moves the 'rider' marker + the
+  /// camera to follow it, so the map tracks the rider as they travel to the
+  /// pickup (previously the marker stayed frozen at the initial fix).
+  void _startLocationTracking() {
+    const locationSettings = LocationSettings(
+      accuracy: LocationAccuracy.high,
+      distanceFilter: 10,
+    );
+    _locationSubscription =
+        Geolocator.getPositionStream(locationSettings: locationSettings)
+            .listen((position) {
+      if (!mounted) return;
+      final newPos = LatLng(position.latitude, position.longitude);
+      setState(() {
+        _markers.removeWhere((m) => m.markerId.value == 'rider');
+        _markers.add(
+          Marker(
+            markerId: const MarkerId('rider'),
+            position: newPos,
+            icon:
+                BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+            infoWindow: const InfoWindow(title: 'Your Location'),
+            rotation: position.heading,
+            anchor: const Offset(0.5, 0.5),
+          ),
+        );
+      });
+      // Gently follow the rider.
+      _mapController?.animateCamera(CameraUpdate.newLatLng(newPos));
+    });
   }
 
   Future<void> _fetchRoute() async {
@@ -195,6 +239,95 @@ class _RiderPickupNavigationScreenState
     _mapController!.animateCamera(CameraUpdate.newLatLngBounds(bounds, 80));
   }
 
+  /// Looks the current order up in the rider-orders controller and, if it is
+  /// already `picked-up`/`completed` (OTP consumed on a previous verify),
+  /// skips OTP entry and jumps straight to the destination screen. This stops
+  /// the pickup/OTP sheet from re-appearing — and re-prompting for an OTP the
+  /// server would now reject — after the rider comes back to this screen.
+  void _redirectIfAlreadyPickedUp() {
+    if (widget.orderId.isEmpty) return;
+    if (!Get.isRegistered<DeliverPartnerOrdersController>()) return;
+    final ctrl = Get.find<DeliverPartnerOrdersController>();
+
+    RiderOrdersDetailsModel? match;
+    for (final list in <List<RiderOrdersDetailsModel>>[
+      ctrl.onGoingOrders,
+      ctrl.riderOrdersDetailsModel,
+      ctrl.completedOrders,
+    ]) {
+      for (final o in list) {
+        // widget.orderId is the Mongo _id (what the fare endpoints use), so
+        // match on the model's `id`, not the human 'ORD-…' orderId.
+        if (o.id == widget.orderId) {
+          match = o;
+          break;
+        }
+      }
+      if (match != null) break;
+    }
+
+    // After the pickup OTP the ride order becomes 'in-progress' (parcel/goods
+    // may report 'picked-up'); both — plus 'completed' — mean the OTP is
+    // already consumed, so skip OTP entry and go straight to the destination.
+    final status = match?.status;
+    if (status == 'in-progress' ||
+        status == 'picked-up' ||
+        status == 'completed') {
+      if (!mounted) return;
+      _otpVerified = true;
+      _startRide();
+    }
+  }
+
+  /// Resolves the Mongo order id the fare endpoints expect, trying in order:
+  ///   1. [widget.orderId] (threaded from the order card / PiP mini-card),
+  ///   2. the fare-call CallController capture (incoming-call flow),
+  ///   3. the live orders controller — matched to THIS pickup by the customer
+  ///      id, or the single not-yet-picked-up ongoing order.
+  ///
+  /// Step 3 is what recovers the id when the screen is re-opened through the
+  /// PiP / floating overlay, where widget.orderId can arrive empty.
+  String _resolveOrderId() {
+    if (widget.orderId.isNotEmpty) return widget.orderId;
+
+    if (Get.isRegistered<CallController>()) {
+      final cc = Get.find<CallController>();
+      if (cc.fareCallOrderMongoId.value.isNotEmpty) {
+        return cc.fareCallOrderMongoId.value;
+      }
+      if (cc.fareCallOrderId.value.isNotEmpty) {
+        return cc.fareCallOrderId.value;
+      }
+    }
+
+    if (Get.isRegistered<DeliverPartnerOrdersController>()) {
+      final ctrl = Get.find<DeliverPartnerOrdersController>();
+      // Only orders still awaiting the pickup OTP are valid candidates.
+      final candidates = ctrl.onGoingOrders
+          .where((o) =>
+              o.status == 'accepted' ||
+              o.status == 'confirmed' ||
+              o.status == 'payment-pending')
+          .toList();
+
+      // Prefer the one for this customer; otherwise, if there's exactly one
+      // pending pickup, it must be this one.
+      RiderOrdersDetailsModel? match;
+      if (widget.customerUserId.isNotEmpty) {
+        for (final o in candidates) {
+          if (o.user?.id == widget.customerUserId) {
+            match = o;
+            break;
+          }
+        }
+      }
+      match ??= candidates.length == 1 ? candidates.first : null;
+      if (match != null) return match.id ?? '';
+    }
+
+    return '';
+  }
+
   Future<void> _verifyOtp() async {
     // Trim each digit — FilteringTextInputFormatter strips non-digits but
     // belt-and-braces guards against stray whitespace / invisible chars
@@ -203,21 +336,11 @@ class _RiderPickupNavigationScreenState
     final entered = _otpControllers.map((c) => c.text.trim()).join();
     if (entered.length < 4) return;
 
-    // Resolve the server-side order id. widget.orderId is the primary source
-    // (set by the fare-call rider flow). When it's missing — e.g. the
-    // metadata.orderMongoId didn't arrive in the incoming-call payload — fall
-    // back to whatever CallController has captured so the API path can still
-    // be attempted rather than silently short-circuiting to a local check
-    // against an empty widget.otp (which would reject every correct OTP).
-    String orderId = widget.orderId;
-    if (orderId.isEmpty && Get.isRegistered<CallController>()) {
-      final cc = Get.find<CallController>();
-      if (cc.fareCallOrderMongoId.value.isNotEmpty) {
-        orderId = cc.fareCallOrderMongoId.value;
-      } else if (cc.fareCallOrderId.value.isNotEmpty) {
-        orderId = cc.fareCallOrderId.value;
-      }
-    }
+    // Resolve the server-side order id — see [_resolveOrderId]. Some entry
+    // paths (PiP / floating-overlay re-entry) lose widget.orderId, so we
+    // recover it from the live orders controller before falling back to the
+    // local OTP compare.
+    final String orderId = _resolveOrderId();
 
     debugPrint(
         '[PICKUP_OTP] verifying entered=$entered orderId=$orderId widgetOtp=${widget.otp}');
@@ -354,16 +477,23 @@ class _RiderPickupNavigationScreenState
 
   void _minimiseToOverlay() {
     final overlayCtrl = Get.put(RideNavigationOverlayController());
+    // Once the pickup OTP is verified the order is already `picked-up` and the
+    // OTP is consumed — re-opening the pickup/OTP screen would let the rider
+    // re-submit it, which the server now rejects ("OTP incorrect"). So after
+    // verification we minimise as the DESTINATION leg ('ride' → drop): both the
+    // floating mini-map and any re-entry then land on the destination screen,
+    // never back on OTP entry.
+    final verified = _otpVerified;
     overlayCtrl.showOverlay(
       riderLatVal: _riderLatLng.latitude,
       riderLngVal: _riderLatLng.longitude,
-      destLatVal: _pickupLatLng.latitude,
-      destLngVal: _pickupLatLng.longitude,
-      destLabelVal: widget.pickupLocation,
+      destLatVal: verified ? widget.dropLat : _pickupLatLng.latitude,
+      destLngVal: verified ? widget.dropLng : _pickupLatLng.longitude,
+      destLabelVal: verified ? widget.dropLocation : widget.pickupLocation,
       customerNameVal: widget.customerName,
       fareAmountVal: widget.fareAmount,
-      routePoints: _routeCoords,
-      type: 'pickup',
+      routePoints: verified ? const [] : _routeCoords,
+      type: verified ? 'ride' : 'pickup',
       params: {
         'pickupLocation': widget.pickupLocation,
         'dropLocation': widget.dropLocation,
@@ -386,10 +516,11 @@ class _RiderPickupNavigationScreenState
 
   void _startRide() {
     setState(() => _isStartingRide = true);
-    // Navigate to ride screen (pickup → drop)
+    // Pickup OTP verified — move to the destination screen (rider carries the
+    // passenger from pickup → drop): live map + fare + slide-to-complete.
     Navigator.of(context).pushReplacement(
       MaterialPageRoute(
-        builder: (_) => RiderRideNavigationScreen(
+        builder: (_) => PassengerDestinationScreen(
           pickupLocation: widget.pickupLocation,
           dropLocation: widget.dropLocation,
           pickupLat: widget.pickupLat,

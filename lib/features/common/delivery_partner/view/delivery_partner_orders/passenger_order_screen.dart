@@ -15,10 +15,8 @@ import '../../../../chat/auth/model/rider_orders_details_model.dart';
 import '../../../../chat/view/call_screen/rider_call/ride_navigation_overlay_controller.dart';
 import 'no_orders_widget.dart';
 import '../../../../chat/view/call_screen/rider_call/rider_pickup_navigation_screen.dart';
-import '../../../../chat/view/call_screen/rider_call/rider_ride_navigation_screen.dart';
+import '../../../../chat/view/call_screen/rider_call/passenger_destination_screen.dart';
 import '../../controller/pip_floating_page_controller.dart';
-
-
 
 class PassengerOrderScreen extends StatefulWidget {
   /// When true, the widget skips its [Scaffold] chrome, drops the
@@ -411,7 +409,7 @@ class _PassengerOrderScreenState extends State<PassengerOrderScreen> {
                       customerUserId: p['customerUserId'] ?? '',
                     ));
               } else {
-                Get.to(() => RiderRideNavigationScreen(
+                Get.to(() => PassengerDestinationScreen(
                       pickupLocation: p['pickupLocation'] ?? '',
                       dropLocation: p['dropLocation'] ?? '',
                       pickupLat: (p['pickupLat'] as num?)?.toDouble() ?? 0,
@@ -649,7 +647,7 @@ class _PassengerOrderScreenState extends State<PassengerOrderScreen> {
           ? const NeverScrollableScrollPhysics()
           : null,
       padding: EdgeInsets.only(
-        top: SizeConfig.size10,
+        top: 0,
         bottom: kBottomNavigationBarHeight + SizeConfig.size40,
         left: SizeConfig.size15,
         right: SizeConfig.size15,

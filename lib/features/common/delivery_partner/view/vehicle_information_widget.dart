@@ -85,7 +85,10 @@ class _VehicleInformationWidgetState extends State<VehicleInformationWidget> {
                       ),
                       SizedBox(height: SizeConfig.size8),
                       CommonDropdownDialog<VehicleEnumItem>(
-                        items: controller.vehicleEnumResponse?.registrationType ?? [],
+                        items: controller.getFilteredRegistrationTypes(
+                            userProfessionGlobal,
+                            controller.vehicleEnumResponse?.registrationType ??
+                                []),
                         selectedValue: controller.selectedVehicleRegistrationType.value,
                         title: AppStrings.registrationType,
                         hintText: AppStrings.egPersonalCommercial,
@@ -108,7 +111,10 @@ class _VehicleInformationWidgetState extends State<VehicleInformationWidget> {
                       ),
                       SizedBox(height: SizeConfig.size8),
                       CommonDropdownDialog<VehicleEnumItem>(
-                        items: controller.vehicleEnumResponse?.vehicleUsesType ?? [],
+                        items: controller.getFilteredVehicleUseTypes(
+                            userProfessionGlobal,
+                            controller.vehicleEnumResponse?.vehicleUsesType ??
+                                []),
                         selectedValue: controller.selectedVehicleUseType.value,
                         title: AppStrings.vehicleUseType,
                         hintText: AppStrings.egPassengerDeliveryGoods,

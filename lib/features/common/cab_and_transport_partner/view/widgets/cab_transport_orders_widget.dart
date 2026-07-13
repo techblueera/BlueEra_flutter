@@ -8,11 +8,6 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 
 class CabsAndTransportPartnerOrders extends StatefulWidget {
-  /// When true, this widget is being embedded inside a parent
-  /// [CustomScrollView] (e.g. the cab/transport partner tab body) and
-  /// should NOT introduce its own [Scaffold]/[Expanded] chrome — the
-  /// inner [PassengerOrderScreen] will run in shrink-wrap mode so the
-  /// parent owns the scroll. Defaults to `false` for standalone use.
   final bool isInParentScroll;
 
   const CabsAndTransportPartnerOrders({super.key, this.isInParentScroll = false});

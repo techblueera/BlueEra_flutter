@@ -45,6 +45,7 @@ import 'package:get/get.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:share_handler/share_handler.dart';
 import 'core/constants/getx_utils.dart';
 import 'core/services/address_cache_service.dart';
@@ -644,26 +645,43 @@ Future<void> main() async {
     await clearSecureStorageIfFreshInstall();
   }
 
-  /// Localization (needs Hive, so runs after Hive.initFlutter)
+  /// Localization, app-background preload, and auth/user data are three
+  /// independent pipelines (translations Hive box vs. background-settings
+  /// Hive box vs. secure storage) — run them concurrently instead of
+  /// serially. Each pipeline keeps its own internal ordering.
   final localizationService = LocalizationService();
-  await localizationService.init();
+  String savedLangCode = 'en';
 
-  final box = Hive.box('translations');
-  final savedLangCode = box.get('selectedLanguage', defaultValue: 'en');
-  await localizationService.loadTranslations(savedLangCode);
-  await localizationService.ensureFallbackLoaded();
-  Get.addTranslations(localizationService.keys);
-  final locale = Locale(savedLangCode);
-
-  /// Reapply the saved app-background colour (if any) before the first frame
-  /// so `AppThemes.light` / `AppColors.appBackgroundColor` reflect it from
-  /// launch. Hive is already initialised above.
-  await AppBackgroundController.preload();
-
-  /// Auth + user data (needed to decide which screen to show)
+  /// AuthController must be registered before getUserLoginData() (it sets
+  /// imgPath on it). Get.put is synchronous — safe to do up front.
   Get.put(AuthController());
-  await getUserLoginStatus();
-  await getUserLoginData();
+
+  await Future.wait<void>([
+    /// Localization (needs Hive, so runs after Hive.initFlutter)
+    () async {
+      await localizationService.init();
+      final box = Hive.box('translations');
+      savedLangCode = box.get('selectedLanguage', defaultValue: 'en');
+      await localizationService.loadTranslations(savedLangCode);
+      await localizationService.ensureFallbackLoaded();
+      Get.addTranslations(localizationService.keys);
+    }(),
+
+    /// Reapply the saved app-background colour (if any) before the first frame
+    /// so `AppThemes.light` / `AppColors.appBackgroundColor` reflect it from
+    /// launch. Hive is already initialised above.
+    AppBackgroundController.preload(),
+
+    /// Auth + user data (needed to decide which screen to show)
+    () async {
+      await Future.wait<void>([
+        getUserLoginStatus(),
+        getUserLoginData(),
+      ]);
+    }(),
+  ]);
+
+  final locale = Locale(savedLangCode);
 
   /// Controllers needed at first frame
   unFocus();
@@ -695,16 +713,50 @@ Future<void> main() async {
   /// Always clear the stashed extras + flag so a stale value can't replay
   /// and so firebaseNotificationSetup()'s tap router can't accidentally
   /// open chat for an incoming-call payload.
+  /// All five cold-start call signals below are independent platform-channel
+  /// reads; fetch them in parallel (one round-trip of wall-clock instead of
+  /// five sequential ones). The pending-extras read-and-clear happens exactly
+  /// once here — the two consumer blocks share the single value with the same
+  /// consume-order semantics as the old sequential reads.
+  Map<String, dynamic>? nativeAction;
+  String? acceptedCallId;
+  Map<String, dynamic>? pendingCallExtras;
+  NotificationAppLaunchDetails? launchDetails;
+  dynamic activeCalls;
+  await Future.wait<void>([
+    readAndClearPendingNativeCallAction().then((v) => nativeAction = v),
+    readAndClearPendingIncomingCallAccept().then((v) => acceptedCallId = v),
+    readAndClearPendingIncomingCallExtras().then((v) => pendingCallExtras = v),
+    () async {
+      try {
+        launchDetails = await FlutterLocalNotificationsPlugin()
+            .getNotificationAppLaunchDetails();
+      } catch (e) {
+        debugPrint(
+            '[COLD_START_CALL] getNotificationAppLaunchDetails error: $e');
+      }
+    }(),
+    () async {
+      try {
+        activeCalls = await FlutterCallkitIncoming.activeCalls();
+      } catch (e, st) {
+        debugPrint('[COLD_START_CALL] activeCalls check threw: $e\n$st');
+      }
+    }(),
+  ]);
+
   // Check for native call notification action (filled-button notification)
   try {
-    final nativeAction = await readAndClearPendingNativeCallAction();
     if (nativeAction != null) {
-      final action = nativeAction['action']?.toString() ?? '';
-      final callId = nativeAction['callId']?.toString() ?? '';
-      final roomId = nativeAction['roomId']?.toString() ?? '';
-      final callType = nativeAction['callType']?.toString() ?? '';
+      final action = nativeAction!['action']?.toString() ?? '';
+      final callId = nativeAction!['callId']?.toString() ?? '';
+      final roomId = nativeAction!['roomId']?.toString() ?? '';
+      final callType = nativeAction!['callType']?.toString() ?? '';
       final isVideo = callType == 'video_call';
-      final pending = await readAndClearPendingIncomingCallExtras();
+      // Consume the shared extras — mirrors the old code, where this block's
+      // read-and-clear left nothing for the fallback block below.
+      final pending = pendingCallExtras;
+      pendingCallExtras = null;
 
       if (action == 'accept' && callId.isNotEmpty) {
         debugPrint(
@@ -731,9 +783,7 @@ Future<void> main() async {
   }
 
   try {
-    String? acceptedCallId = await readAndClearPendingIncomingCallAccept();
-    Map<String, dynamic>? pending =
-        await readAndClearPendingIncomingCallExtras();
+    final Map<String, dynamic>? pending = pendingCallExtras;
 
     // Path 1: read the launch details. If the user tapped the Accept action
     // button on the cold-start notification, use its payload directly — the
@@ -741,17 +791,15 @@ Future<void> main() async {
     Map<String, dynamic>? launchPayload;
     String launchActionId = '';
     try {
-      final details = await FlutterLocalNotificationsPlugin()
-          .getNotificationAppLaunchDetails();
-      launchActionId = details?.notificationResponse?.actionId ?? '';
-      final raw = details?.notificationResponse?.payload;
+      launchActionId = launchDetails?.notificationResponse?.actionId ?? '';
+      final raw = launchDetails?.notificationResponse?.payload;
       if (raw != null && raw.isNotEmpty) {
         launchPayload = Map<String, dynamic>.from(jsonDecode(raw));
       }
       debugPrint(
           '[COLD_START_CALL] launch details → actionId=$launchActionId, hasPayload=${launchPayload != null}');
     } catch (e) {
-      debugPrint('[COLD_START_CALL] getNotificationAppLaunchDetails error: $e');
+      debugPrint('[COLD_START_CALL] launch details parse error: $e');
     }
 
     // Only auto-accept on cold start when the launch was triggered by the
@@ -766,7 +814,7 @@ Future<void> main() async {
     if (launchPayloadIsAccept && launchPayload != null) {
       acceptExtras = launchPayload;
     } else if (acceptedCallId != null &&
-        acceptedCallId.isNotEmpty &&
+        acceptedCallId!.isNotEmpty &&
         pending != null &&
         (pending['callId'] ?? '').toString() == acceptedCallId) {
       acceptExtras = pending;
@@ -803,7 +851,6 @@ Future<void> main() async {
 
   /// Check if app was launched by accepting an incoming call from killed state
   try {
-    final activeCalls = await FlutterCallkitIncoming.activeCalls();
     debugPrint('[COLD_START_CALL] activeCalls result: $activeCalls');
     if (activeCalls is List && activeCalls.isNotEmpty) {
       final first = activeCalls[0];
@@ -913,8 +960,13 @@ Future<void> _initDeferred(LocalizationService localizationService) async {
   /// Detect a notification launch FIRST (cheap platform-channel call) so we can
   /// decide whether to defer the heavy background batch. Sets the flag the
   /// splash screen reads AND `AppNotificationHandler.pendingDeepLink`.
+  /// Publish the in-flight future so SplashScreen can await it instead of
+  /// racing it — its 200ms timer used to be able to fire before this check
+  /// finished and misroute a notification launch to home.
   /// See docs/backend/notification_fast_open_design.md (Phase 3).
-  await AppNotificationHandler.checkNotificationLaunch();
+  final launchCheck = AppNotificationHandler.checkNotificationLaunch();
+  AppNotificationHandler.notificationLaunchCheckFuture = launchCheck;
+  await launchCheck;
 
   /// When the app is opened by tapping a notification, the target screen
   /// (chat / post / ride …) should render without competing against a full
@@ -929,7 +981,11 @@ Future<void> _initDeferred(LocalizationService localizationService) async {
     /// Kick off the location fetch as early as possible on cold start so
     /// lat/lng are populated before the default Discover tab fires its
     /// location-based APIs. Fire-and-forget — must not block the first frame.
-    unawaited(LocationService.fetchLocation());
+    /// The Android 13+ notification permission request is CHAINED after it:
+    /// firing both at once makes the two system dialogs race (Android shows
+    /// one and silently drops the other).
+    unawaited(LocationService.fetchLocation().whenComplete(
+        () => unawaited(_requestNotificationPermissionIfNeeded())));
 
     /// Initialise the Google AdMob SDK + preload the first
     /// interstitial. Fire-and-forget — ads must never block startup; the
@@ -1018,11 +1074,31 @@ Future<void> _initDeferred(LocalizationService localizationService) async {
   }
 }
 
+/// Android 13+ (API 33) requires runtime POST_NOTIFICATIONS consent, but the
+/// app never requested it at startup — pushes (including incoming-call
+/// alerts) stayed dead until the user happened to visit a screen that asked.
+/// Requested once per launch, AFTER the location flow completes, so the two
+/// system dialogs never race. iOS consent is handled in
+/// firebaseNotificationSetup() via FirebaseMessaging.requestPermission.
+/// A permanently-denied state is left alone — no settings nag on boot.
+Future<void> _requestNotificationPermissionIfNeeded() async {
+  if (!Platform.isAndroid) return;
+  try {
+    final status = await Permission.notification.status;
+    if (status.isDenied) {
+      await Permission.notification.request();
+    }
+  } catch (e) {
+    logs('notification permission request failed: $e');
+  }
+}
+
 /// Heavy, first-frame-irrelevant startup work. On a normal launch this runs
 /// inline inside [_initDeferred]; on a notification open it is postponed via a
 /// post-frame callback so the deep-link target renders first.
 Future<void> _initBackgroundBatch() async {
-  unawaited(LocationService.fetchLocation());
+  unawaited(LocationService.fetchLocation().whenComplete(
+      () => unawaited(_requestNotificationPermissionIfNeeded())));
   unawaited(InterstitialAdManager.instance.initialize());
   await Future.wait<void>([
     getDeviceInfo(),

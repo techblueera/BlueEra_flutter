@@ -603,6 +603,26 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
   final callController = getOrPut(() => CallController());
 
+  /// The active tab, built exactly ONCE and reused for the whole lifetime of
+  /// this screen. Its own [Obx] rebuilds the inner tab subtree only when
+  /// [BottomBarController.currentIndex] changes (a real tab switch). Because it
+  /// is a stable widget instance, nothing else — call/live status ticks, the
+  /// hide-on-scroll toggle, the keyboard opening — rebuilds the page; those
+  /// only reposition or wrap this same element.
+  late final Widget _tabContent = Obx(() {
+    final index = bottomBarController.currentIndex.value;
+    // Single app-wide hide-on-scroll wrapper so EVERY tab and every "Me"
+    // sub-screen (individual + business) gets the same behaviour — including
+    // the ones that don't wrap themselves (SelfEmployee, Professionals, Food,
+    // Grocery, Hospital, Others, Product, Manufacturer, Vehicle, …). Keyed per
+    // index so each tab keeps its own scroll accumulator; tab switches reset
+    // visibility in BottomBarController.onChangeIndex.
+    return BottomNavHideOnScroll(
+      key: ValueKey('navHideOnScroll_$index'),
+      child: _getScreen(index),
+    );
+  });
+
   @override
   Widget build(BuildContext context) {
     // Capture keyboard state at the top of build, before the Scaffold's
@@ -619,7 +639,10 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
           builder: (context, isVisible, _) {
             return Stack(
               children: [
-                // Your dynamic screen based on index
+                // Offset wrapper — reacts to call / rider-live status only and
+                // re-positions the stable [_tabContent] element without
+                // rebuilding the page. A call heartbeat / rider-live refresh no
+                // longer re-runs _getScreen → resolveIndividualScreen.
                 Obx(() {
                   final hasActiveCall = callController.callStatus.value == CallStatus.connected;
                   final isRiderLive = viewPersonalDetailsController.shopStatusOpenClose.value;
@@ -631,20 +654,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
                   return Positioned.fill(
                     top: topOffset,
-                    // Single app-wide hide-on-scroll wrapper so EVERY tab and
-                    // every "Me" sub-screen (individual + business) gets the
-                    // same behaviour — including the ones that don't wrap
-                    // themselves (SelfEmployee, Professionals, Food, Grocery,
-                    // Hospital, Others, Product, Manufacturer, Vehicle, …).
-                    // Keyed per index so each tab keeps its own scroll
-                    // accumulator; tab switches reset visibility in
-                    // BottomBarController.onChangeIndex.
-                    child: BottomNavHideOnScroll(
-                      key: ValueKey(
-                          'navHideOnScroll_${bottomBarController.currentIndex.value}'),
-                      child: _getScreen(
-                          bottomBarController.currentIndex.value, isVisible),
-                    ),
+                    child: _tabContent,
                   );
                 }),
 
@@ -713,7 +723,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     );
   }
 
-  Widget _getScreen(int index, bool isVisible) {
+  Widget _getScreen(int index) {
     switch (index) {
       case 0:
         return meScreens();
@@ -743,9 +753,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
   Widget meScreens() {
     if (isGuestUser()) return GuestDashBoardScreen();
-    // Colour is applied globally via the theme; the banner is painted
-    // app-wide in `GetMaterialApp.builder` (shared `AppHomeBackground`
-    // widget) — both driven by [AppBackgroundController]. No wrapper needed.
     if (isBusinessUser()) return resolveBusinessScreen();
     if (isIndividualUser()) return resolveIndividualScreen();
 

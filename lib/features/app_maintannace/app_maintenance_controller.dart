@@ -1,4 +1,6 @@
 // lib/controller/app_controller.dart
+import 'dart:async';
+
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:flutter/foundation.dart';
@@ -48,7 +50,13 @@ class AppMaintenanceController extends GetxController {
     try {
       isLoading.value = true;
 
-      final response = await AuthRepo().getAppMaintenanceRepo();
+      // This check gates the very first frame (MyApp shows a loader until
+      // isLoading flips), so it must never ride out the full 60s Dio
+      // timeout on a slow/unreachable backend. Bound it hard: past 5s we
+      // fail-open via the catch below and let the app boot.
+      final response = await AuthRepo()
+          .getAppMaintenanceRepo()
+          .timeout(const Duration(seconds: 5));
       final data = response.response?.data;
 
       if (data is Map && data['isInMaintainance'] == true) {

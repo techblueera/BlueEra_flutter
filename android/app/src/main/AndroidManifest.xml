@@ -19,12 +19,21 @@
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <!-- Deprecated on API 33+ where READ_MEDIA_IMAGES/VIDEO (above) apply;
+         capping it avoids a needless Play-policy sensitive permission. -->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
     <!-- Background location (IMPORTANT) -->
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
-    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
-    <uses-permission android:name="android.permission.BLUETOOTH"/>
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+    <!-- Legacy Bluetooth permissions: replaced by BLUETOOTH_CONNECT on
+         API 31+, so cap them there. -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH"
+        android:maxSdkVersion="30" />
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADMIN"
+        android:maxSdkVersion="30" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
     <!-- Required by AudioSwitch (flutter_webrtc) to route call audio to
          speaker / earpiece / Bluetooth and detect device changes. -->
@@ -108,6 +117,12 @@
             <meta-data
                 android:name="flutter_deeplinking_enabled"
                 android:value="false" />
+            <!-- Switch off the LaunchTheme (static splash bitmap) the moment
+                 Flutter draws its first frame. Without this the launch window
+                 background lingers behind the Flutter UI. -->
+            <meta-data
+                android:name="io.flutter.embedding.android.NormalTheme"
+                android:resource="@style/NormalTheme" />
 
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />

@@ -135,8 +135,34 @@ class LocationService extends GetxService {
 
   }
 
+  /// In-flight [fetchLocation] call, used to coalesce concurrent callers.
+  /// Cold start fires a fetch from main()'s deferred init while the home
+  /// screen (and others) may fire their own — two overlapping runs mean two
+  /// `Permission.location.request()` calls racing (permission_handler throws
+  /// "A request for permissions is already running") plus duplicate GPS
+  /// fixes. All concurrent callers now share one run.
+  static Future<Map<String, dynamic>?>? _inFlightFetch;
+
   /// 🌍 Fetches current location and address
   static Future<Map<String, dynamic>?> fetchLocation({
+    bool openSettingsOnDeny = false,
+  }) {
+    // Only the passive path coalesces — an explicit openSettingsOnDeny call
+    // is a user-driven retry and must run its own interactive flow.
+    if (!openSettingsOnDeny) {
+      final existing = _inFlightFetch;
+      if (existing != null) return existing;
+      final run = _fetchLocationImpl(openSettingsOnDeny: false);
+      _inFlightFetch = run;
+      run.whenComplete(() {
+        if (identical(_inFlightFetch, run)) _inFlightFetch = null;
+      });
+      return run;
+    }
+    return _fetchLocationImpl(openSettingsOnDeny: true);
+  }
+
+  static Future<Map<String, dynamic>?> _fetchLocationImpl({
     bool openSettingsOnDeny = false,
   }) async {
     try {

@@ -83,7 +83,14 @@ android {
         release {
             shrinkResources true
             minifyEnabled true
-            signingConfig signingConfigs.release
+            // Fall back to the debug key when key.properties (release
+            // keystore) is not present on this machine — yields an
+            // installable release-mode build for device testing. NOT
+            // uploadable to the Play Store; store uploads need the real
+            // keystore + key.properties.
+            signingConfig keystorePropertiesFile.exists()
+                    ? signingConfigs.release
+                    : signingConfigs.debug
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }

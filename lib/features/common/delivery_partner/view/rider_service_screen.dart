@@ -1,7 +1,6 @@
 ﻿import 'dart:developer';
 import 'dart:io';
 import 'dart:ui';
-
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -255,25 +254,6 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     );
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // TABS â€” solid white card with an animated underline that slides
-  // beneath the selected tab. The first tab label flips between
-  // "Order" and "Document" depending on verification status, mirroring
-  // the original rider screen's behaviour.
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-  // Order / Document tab â€” single source of truth: verification
-  // status. Unapproved riders see [RiderProfileStatusScreen] which
-  // walks them through KYC / pending-review / rejected on its own
-  // surface. Approved riders see a two-pill sub-tab:
-  //   â€¢ Orders â€” the delivery-partner orders list.
-  //   â€¢ Chat   â€” incoming order inquiries (formerly its own
-  //     top-level tab, now relocated here so the top strip stays
-  //     compact while inquiries remain one tap from the orders).
-  //
-  // Both bodies run in `isInParentScroll: true` so their inner
-  // Scaffold/Expanded chrome and ListViews collapse into shrink-wrap
-  // mode â€” the parent CustomScrollView/Column owns the vertical
   // scroll without needing a bounded height.
   List<Widget> _buildOrderTab() {
     return [
@@ -561,8 +541,14 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
             }
             return _buildGoLiveNotice();
           }),
-          _buildServicePreferenceCard(),
-          SizedBox(height: SizeConfig.size12),
+          // Service-preference card only makes sense when the rider actually
+          // has a CHOICE (bike riders → Passenger/Goods/Both). For single-
+          // preference professions (auto/car → Passenger, goods → Goods) the
+          // option is fixed, so the whole card is hidden.
+          if (_allowedPreferences.length > 1) ...[
+            _buildServicePreferenceCard(),
+            SizedBox(height: SizeConfig.size12),
+          ],
           _buildPickupDropCard(),
         ],
       ),
@@ -648,30 +634,21 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
             color: AppColors.secondaryTextColor,
           ),
           SizedBox(height: SizeConfig.size12),
-          // Single-line segmented selector — the three service options sit
-          // side-by-side across one row instead of stacked radio rows.
+          // Segmented selector — the options offered depend on the rider's
+          // profession (see [_allowedPreferences]): bike riders get
+          // Passenger / Goods / Both; auto & car taxis get Passenger only;
+          // goods taxis get Goods only.
           Row(
             children: [
-              Expanded(
-                child: _buildPreferenceSegment(
-                  label: RiderServicePreference.passenger.label,
-                  value: RiderServicePreference.passenger,
+              for (int i = 0; i < _allowedPreferences.length; i++) ...[
+                if (i > 0) SizedBox(width: SizeConfig.size8),
+                Expanded(
+                  child: _buildPreferenceSegment(
+                    label: _allowedPreferences[i].label,
+                    value: _allowedPreferences[i],
+                  ),
                 ),
-              ),
-              SizedBox(width: SizeConfig.size8),
-              Expanded(
-                child: _buildPreferenceSegment(
-                  label: RiderServicePreference.goods.label,
-                  value: RiderServicePreference.goods,
-                ),
-              ),
-              SizedBox(width: SizeConfig.size8),
-              Expanded(
-                child: _buildPreferenceSegment(
-                  label: RiderServicePreference.both.label,
-                  value: RiderServicePreference.both,
-                ),
-              ),
+              ],
             ],
           ),
           SizedBox(height: SizeConfig.size16),
@@ -703,10 +680,34 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     );
   }
 
-  // Single selectable segment inside the Service Preference card. Three of
-  // these sit side-by-side in one row (Passenger / Goods / Both). The
-  // selected segment fills with the primary tint; when the selection still
-  // matches the committed preference it shows a leading check-mark.
+  /// Service-preference options offered for the signed-in rider's profession:
+  ///   • BIKE_RIDER      → Passenger / Goods / Both
+  ///   • AUTO_TAXI       → Passenger only
+  ///   • CAR_TAXI_DRIVER → Passenger only
+  ///   • GOODS_TAXI      → Goods only
+  /// Any other rider profession falls back to the full set.
+  List<RiderServicePreference> get _allowedPreferences {
+    switch (userProfessionGlobal) {
+      case GOODS_TAXI:
+        return const [RiderServicePreference.goods];
+      case AUTO_TAXI:
+      case CAR_TAXI_DRIVER:
+        return const [RiderServicePreference.passenger];
+      default:
+        // BIKE_RIDER (and any other rider profession) get the full choice.
+        return const [
+          RiderServicePreference.passenger,
+          RiderServicePreference.goods,
+          RiderServicePreference.both,
+        ];
+    }
+  }
+
+  // Single selectable segment inside the Service Preference card. Up to three
+  // of these sit side-by-side in one row (Passenger / Goods / Both), filtered
+  // by the rider's profession. The selected segment fills with the primary
+  // tint; when the selection still matches the committed preference it shows a
+  // leading check-mark.
   Widget _buildPreferenceSegment({
     required String label,
     required RiderServicePreference value,

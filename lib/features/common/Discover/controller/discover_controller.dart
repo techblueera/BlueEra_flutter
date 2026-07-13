@@ -191,6 +191,14 @@ class DiscoverController extends GetxController {
   Rxn<Map<String, dynamic>>();
   RxString fareCallAcceptedRiderId = ''.obs;
   RxString fareCallPickupOtp = ''.obs;
+
+  /// Which orderId [fareCallPickupOtp]/[fareCallDeliveryOtp] belong to.
+  /// OTPs from one order must NEVER display for another — a stale pickup OTP
+  /// read out to the rider makes the ride-start call fail with
+  /// INVALID_PICKUP_OTP. Every setter of the OTP Rx values records the owning
+  /// orderId here; [hydrateFareCallDeliveryOtp] and the socket handlers use it
+  /// to drop stale values instead of trusting whatever is in memory.
+  String fareCallOtpOrderId = '';
   // Delivery (drop) OTP — held by the customer and read out to the rider at the
   // drop. Goods/multi-shop orders surface this on the customer tracking screen
   // instead of the pickup OTP (see RIDER_FRONTEND_INTEGRATION_GUIDE §8).
@@ -223,6 +231,10 @@ class DiscoverController extends GetxController {
   /// different room, silenced notifications). Without this, the customer never
   /// sees the delivery OTP, the Share-Ride button, or the destination route.
   Timer? _rideStartedPollTimer;
+
+  /// The orderId the active [_rideStartedPollTimer] was started for. Lets a
+  /// rebook replace the old order's poll instead of being blocked by it.
+  String _rideStartedPollOrderId = '';
 
   Rx<RiderUser> selectedRider = RiderUser().obs;
   RxList<RiderUser> selectedRiders = <RiderUser>[].obs;
@@ -1545,6 +1557,7 @@ class DiscoverController extends GetxController {
             (data['orderId'] ?? data['_id'] ?? '').toString();
         fareCallPickupOtp.value = (data['pickupOTP'] ?? '').toString();
         fareCallDeliveryOtp.value = (data['deliveryOTP'] ?? '').toString();
+        fareCallOtpOrderId = fareCallOrderId.value;
       }
       isFareCallInProgress.value = true;
       fareCallTotalRiders.value = selectedRiders.length;
@@ -1712,6 +1725,7 @@ class DiscoverController extends GetxController {
         // can see it even if ride:queue:accepted socket event is missed.
         fareCallPickupOtp.value = (data['pickupOTP'] ?? '').toString();
         fareCallDeliveryOtp.value = (data['deliveryOTP'] ?? '').toString();
+        fareCallOtpOrderId = fareCallOrderId.value;
       }
       isFareCallInProgress.value = true;
       fareCallTotalRiders.value = selectedRiders.length;
@@ -1722,6 +1736,24 @@ class DiscoverController extends GetxController {
       commonSnackBar(message: response.message ?? "Unable to Book a Rider");
       return false;
     }
+  }
+
+  /// True when a fare-call socket event carries an orderId that does NOT
+  /// match the active fare-call order — i.e. a delayed event from a previous
+  /// (cancelled / completed) order arriving after a rebook. Events without an
+  /// orderId, or with no active order to compare against, are let through so
+  /// older backends keep working.
+  bool _isStaleFareCallEvent(dynamic data) {
+    if (data is! Map) return false;
+    final evOrderId = (data['orderId'] ?? '').toString();
+    final currentOrderId = fareCallOrderId.value;
+    if (evOrderId.isEmpty || currentOrderId.isEmpty) return false;
+    final stale = evOrderId != currentOrderId;
+    if (stale) {
+      print('[FARE_CALL_QUEUE] ⚠️ dropping stale event for order $evOrderId '
+          '(active order is $currentOrderId)');
+    }
+    return stale;
   }
 
   /// Setup socket listeners for fare-call queue progress
@@ -1778,6 +1810,12 @@ class DiscoverController extends GetxController {
 
     socket.listenEvent('ride:queue:accepted', (data) {
       print('[FARE_CALL_QUEUE] ride:queue:accepted → $data');
+      // Stale-order guard: a delayed accepted event from a PREVIOUS order
+      // (cancelled mid-queue, then rebooked) must not touch the current
+      // ride's state — most critically the OTPs. Overwriting the new order's
+      // pickup OTP with the old order's made the customer read out a code the
+      // backend rejects (INVALID_PICKUP_OTP on the rider's ride-start call).
+      if (_isStaleFareCallEvent(data)) return;
       // IMPORTANT: Set riderInfo BEFORE setting isFareCallInProgress=false.
       // The exhausted worker triggers on isFareCallInProgress change and checks
       // fareCallAcceptedRiderInfo — if riderInfo is still null, it pops the screen.
@@ -1793,6 +1831,18 @@ class DiscoverController extends GetxController {
       if (evPickupOtp.isNotEmpty) fareCallPickupOtp.value = evPickupOtp;
       final evDeliveryOtp = (data['deliveryOTP'] ?? '').toString();
       if (evDeliveryOtp.isNotEmpty) fareCallDeliveryOtp.value = evDeliveryOtp;
+      if (evPickupOtp.isNotEmpty || evDeliveryOtp.isNotEmpty) {
+        fareCallOtpOrderId = fareCallOrderId.value;
+      }
+      // Re-confirm the OTPs against the server the moment a rider is
+      // assigned — this is right before the customer reads the ride-start
+      // OTP aloud, so whatever is on screen MUST match the DB value the
+      // rider's start call verifies against.
+      final evOrderId =
+          (data['orderId'] ?? fareCallOrderId.value).toString();
+      if (evOrderId.isNotEmpty) {
+        unawaited(hydrateFareCallDeliveryOtp(evOrderId));
+      }
       isFareCallInProgress.value = false;
     });
 
@@ -1805,6 +1855,10 @@ class DiscoverController extends GetxController {
 
     socket.listenEvent('ride:started', (data) {
       print('[FARE_CALL_QUEUE] ride:started → $data');
+      // Stale-order guard: a delayed started event for a previous order must
+      // not flip the CURRENT ride to "started" (which hides the pickup OTP
+      // card before the rider ever verified it).
+      if (_isStaleFareCallEvent(data)) return;
       isFareCallRideStarted.value = true;
       fareCallRideStartedData.value =
       data != null ? Map<String, dynamic>.from(data) : null;
@@ -1812,6 +1866,8 @@ class DiscoverController extends GetxController {
 
     socket.listenEvent('ride:completed', (data) {
       print('[FARE_CALL_QUEUE] ✅ ride:completed RECEIVED from backend → $data');
+      // Stale-order guard — see ride:started above.
+      if (_isStaleFareCallEvent(data)) return;
       isFareCallRideCompleted.value = true;
       fareCallRideCompletedData.value =
       data != null ? Map<String, dynamic>.from(data) : null;
@@ -1838,7 +1894,15 @@ class DiscoverController extends GetxController {
   void startRideStartedFallbackPoll(String orderId) {
     if (orderId.isEmpty) return;
     if (isFareCallRideCompleted.value) return; // nothing left to detect
-    if (_rideStartedPollTimer?.isActive ?? false) return;
+    // Same order already being polled → no-op. A DIFFERENT order means the
+    // customer rebooked: the old poll must die, or it keeps applying the OLD
+    // order's status and delivery OTP to the new ride's state (the customer
+    // then reads out a stale delivery OTP the backend rejects).
+    if (_rideStartedPollTimer?.isActive ?? false) {
+      if (_rideStartedPollOrderId == orderId) return;
+      stopRideStartedFallbackPoll();
+    }
+    _rideStartedPollOrderId = orderId;
 
     // Order status state machine (RIDER_FRONTEND_INTEGRATION_GUIDE §"status"):
     // pending → payment-pending → confirmed → in-progress → picked-up → completed
@@ -1853,6 +1917,13 @@ class DiscoverController extends GetxController {
         stopRideStartedFallbackPoll();
         return;
       }
+      // The active order changed since this poll started (rebook) — this
+      // poll's results belong to the old order and must not touch state.
+      if (fareCallOrderId.value.isNotEmpty &&
+          fareCallOrderId.value != orderId) {
+        stopRideStartedFallbackPoll();
+        return;
+      }
       try {
         final res =
             await ChatViewRepo().checkTrackOrderStatusSilentApi(orderId);
@@ -1864,8 +1935,15 @@ class DiscoverController extends GetxController {
             (data['status'] ?? '').toString().toLowerCase().replaceAll('_', '-');
 
         // Capture the order category if not already known (killed-state restore
-        // enters tracking without going through order creation).
-        final polledOrderFor = (data['orderFor'] ?? '').toString();
+        // enters tracking without going through order creation). orderFor sits
+        // inside `metadata` on this endpoint — the old top-level read was
+        // always empty, so passenger-ride detection never worked via the poll.
+        final polledMeta = data['metadata'];
+        final polledOrderFor =
+            ((polledMeta is Map ? polledMeta['orderFor'] : null) ??
+                    data['orderFor'] ??
+                    '')
+                .toString();
         if (polledOrderFor.isNotEmpty && fareCallOrderFor.value.isEmpty) {
           fareCallOrderFor.value = polledOrderFor;
         }
@@ -1880,7 +1958,10 @@ class DiscoverController extends GetxController {
             // Rehydrate the customer's delivery OTP if the status payload
             // carries it, so the OTP card shows without a separate fetch.
             final deliveryOtp = (data['deliveryOTP'] ?? '').toString();
-            if (deliveryOtp.isNotEmpty) fareCallDeliveryOtp.value = deliveryOtp;
+            if (deliveryOtp.isNotEmpty) {
+              fareCallDeliveryOtp.value = deliveryOtp;
+              fareCallOtpOrderId = orderId;
+            }
             print('[FARE_CALL_QUEUE] ride-started detected via status poll '
                 '(status=$status) → isFareCallRideStarted=true');
           }
@@ -1912,6 +1993,7 @@ class DiscoverController extends GetxController {
   void stopRideStartedFallbackPoll() {
     _rideStartedPollTimer?.cancel();
     _rideStartedPollTimer = null;
+    _rideStartedPollOrderId = '';
   }
 
   /// Cancel fare-call queue
@@ -1927,31 +2009,48 @@ class DiscoverController extends GetxController {
     }
   }
 
-  /// Re-fetch the customer's delivery OTP from the order so the tracking map
-  /// can show it again after the in-memory value is lost (app restart, or
-  /// leaving and re-entering the map). The backend returns deliveryOTP only to
-  /// the order owner. No-op if we already have it.
+  /// Re-fetch the customer's OTPs from the order status endpoint — the SAME
+  /// source of truth the rider's start/complete calls verify against. Always
+  /// fetches and overwrites the in-memory values with the server's; memory is
+  /// only ever an instant-display cache, never authoritative. This closes
+  /// every "customer read out an OTP the backend rejects" staleness class in
+  /// one move (stale Rx from a previous ride, missed socket events, replayed
+  /// state after restore — all of it).
   Future<void> hydrateFareCallDeliveryOtp(String orderId) async {
-    // Rehydrate BOTH customer OTPs: pickup (ride-start, passenger rides only —
-    // backend returns it only for ride jobs) and delivery (completion), plus
-    // the order category so we know whether a delivery OTP applies at all.
-    if (fareCallDeliveryOtp.value.isNotEmpty &&
-        fareCallPickupOtp.value.isNotEmpty &&
-        fareCallOrderFor.value.isNotEmpty) return;
     if (orderId.isEmpty) return;
+
+    if (fareCallOtpOrderId != orderId) {
+      // Never display another order's OTPs while the fetch is in flight.
+      fareCallPickupOtp.value = '';
+      fareCallDeliveryOtp.value = '';
+      fareCallOrderFor.value = '';
+    }
     try {
       final res = await ChatViewRepo().checkTrackOrderStatusSilentApi(orderId);
       if (res.isSuccess) {
         final data = res.response?.data;
+        // Server values OVERWRITE memory (not fill-if-empty): the endpoint
+        // returns the exact OTPs the rider will be verified against.
         final otp =
             (data is Map ? data['deliveryOTP'] : null)?.toString() ?? '';
         if (otp.isNotEmpty) fareCallDeliveryOtp.value = otp;
         final pickupOtp =
             (data is Map ? data['pickupOTP'] : null)?.toString() ?? '';
         if (pickupOtp.isNotEmpty) fareCallPickupOtp.value = pickupOtp;
-        final orderFor =
-            (data is Map ? data['orderFor'] : null)?.toString() ?? '';
-        if (orderFor.isNotEmpty && fareCallOrderFor.value.isEmpty) {
+        if (otp.isNotEmpty || pickupOtp.isNotEmpty) {
+          fareCallOtpOrderId = orderId;
+        }
+        print('[FARE_CALL_OTP] hydrated from server for $orderId → '
+            'pickup=${pickupOtp.isNotEmpty ? pickupOtp : '(not returned)'}, '
+            'delivery=${otp.isNotEmpty ? otp : '(not returned)'}');
+        // orderFor lives inside `metadata` on this endpoint (top-level read
+        // always came back empty — passenger-ride detection never hydrated).
+        final metadata = (data is Map ? data['metadata'] : null);
+        final orderFor = ((metadata is Map ? metadata['orderFor'] : null) ??
+                (data is Map ? data['orderFor'] : null))
+            ?.toString() ??
+            '';
+        if (orderFor.isNotEmpty) {
           fareCallOrderFor.value = orderFor;
         }
       }
@@ -1971,6 +2070,7 @@ class DiscoverController extends GetxController {
     fareCallAcceptedRiderId.value = '';
     fareCallPickupOtp.value = '';
     fareCallDeliveryOtp.value = '';
+    fareCallOtpOrderId = '';
     fareCallOrderFor.value = '';
     isFareCallRideStarted.value = false;
     fareCallRideStartedData.value = null;
