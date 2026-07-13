@@ -749,46 +749,62 @@ class _RiderPickupNavigationScreenState
                 size: 20,
               ),
               const SizedBox(width: 8),
-              Text(
-                _otpVerified
-                    ? 'OTP Verified'
-                    : 'Enter 4-digit OTP from customer',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  fontFamily: 'OpenSans',
-                  color: _otpVerified
-                      ? const Color(0xFF00C853)
-                      : _otpError
-                          ? const Color(0xFFEA4335)
-                          : const Color(0xFF1A1A2E),
+              // Flexible so the label ellipsizes instead of overflowing when
+              // this section is rendered in the narrow PIP (mini call) view.
+              Flexible(
+                child: Text(
+                  _otpVerified
+                      ? 'OTP Verified'
+                      : 'Enter 4-digit OTP from customer',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    fontFamily: 'OpenSans',
+                    color: _otpVerified
+                        ? const Color(0xFF00C853)
+                        : _otpError
+                            ? const Color(0xFFEA4335)
+                            : const Color(0xFF1A1A2E),
+                  ),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 14),
-          // OTP input boxes
+          // OTP input boxes — the 4 fixed-width boxes total ~272px, so wrap in
+          // a scale-down FittedBox so they shrink to fit the narrow PIP view
+          // (no-op at full width).
           if (!_otpVerified)
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(4, (index) => _buildOtpBox(index)),
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(4, (index) => _buildOtpBox(index)),
+              ),
             ),
           if (_otpVerified)
             Container(
               padding: const EdgeInsets.symmetric(vertical: 12),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   const Icon(Icons.check_circle_rounded,
                       color: Color(0xFF00C853), size: 32),
                   const SizedBox(width: 10),
-                  Text(
-                    'OTP ${_otpControllers.map((c) => c.text).join()} verified',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF00C853),
-                      fontFamily: 'OpenSans',
+                  Flexible(
+                    child: Text(
+                      'OTP ${_otpControllers.map((c) => c.text).join()} verified',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF00C853),
+                        fontFamily: 'OpenSans',
+                      ),
                     ),
                   ),
                 ],

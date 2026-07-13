@@ -500,6 +500,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     );
   }
 
+  // Icon chip footprint: EdgeInsets.all(9)*2 + 30px icon.
+  static const double _kTabChipSize = 48.0;
+
   Widget _quickAccessTabs() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -515,26 +518,43 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             },
             child: Column(
               children: [
-                Container(
+                // Light-blue tile when unselected → deep-blue gradient when
+                // selected. AnimatedContainer cross-fades the two fills on tap;
+                // the icon flips to white so it stays legible on the dark
+                // active tile.
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 260),
+                  curve: Curves.easeOut,
+                  width: _kTabChipSize,
+                  height: _kTabChipSize,
                   padding: const EdgeInsets.all(9),
                   decoration: BoxDecoration(
-                    color: AppColors.white,
+                    // Symmetric matched pair — same diagonal direction and a
+                    // clear light→deep spread in both states, just shifted up
+                    // the blue scale when selected.
+                    gradient: isActive
+                        ? const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            // Bright blue → deep blue: a visible gradient, not
+                            // one flat blue.
+                            colors: [Color(0xFF33A6FF), Color(0xFF004E96)],
+                          )
+                        : const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            // Light-blue gradient — clearly blue but stays soft.
+                            colors: [Color(0xFFDCEEFF), Color(0xFFBFDCFA)],
+                          ),
                     borderRadius: BorderRadius.circular(14),
                     border: Border.all(
                       color: isActive
                           ? AppColors.primaryColor
-                          : const Color(0xFFE1E8F2),
+                          : const Color(0xFFCFE3FA),
                       width: isActive ? 1.6 : 1,
                     ),
-                    boxShadow: isActive
-                        ? const [
-                            BoxShadow(
-                              color: Color(0x1A0086FF),
-                              blurRadius: 8,
-                              offset: Offset(0, 2),
-                            ),
-                          ]
-                        : null,
+                    boxShadow:
+                        isActive ? _kTabChipActiveShadow : _kTabChipShadow,
                   ),
                   child: LocalAssets(
                     imagePath: item['icon']!,
@@ -547,10 +567,12 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                 CustomText(
                   item['title']!,
                   fontSize: SizeConfig.small11,
-                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
+                  fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                  // Label follows the same light→dark blue theme as the tile:
+                  // deep blue + bold when selected, brand blue when not.
                   color: isActive
-                      ? AppColors.primaryColor
-                      : AppColors.mainTextColor,
+                      ? AppColors.blue5CAF
+                      : AppColors.primaryColor,
                   maxLines: 2,
                   textAlign: TextAlign.center,
                   overflow: TextOverflow.ellipsis,
@@ -567,6 +589,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     return Row(
       children: [
         _circleIconButton(
+          boxShadow: _kTopViewShadow,
           child: LocalAssets(
             imagePath: AppIconAssets.riderIconColorful,
             width: 24,
@@ -588,6 +611,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               decoration: BoxDecoration(
                 color: AppColors.white,
                 borderRadius: BorderRadius.circular(28),
+                boxShadow: _kTopViewShadow,
               ),
               child: Row(
                 children: [
@@ -806,13 +830,46 @@ Widget titleWidget(String title) {
       fontWeight: FontWeight.w600);
 }
 
-/// Soft drop shadow for the floating white pills in the Discover header
-/// (location bar + wishlist button), so they read as elevated over the
-/// header background.
+/// Drop shadow for the floating white pills in the Discover header (location
+/// bar, wishlist button, rider button, search bar), so they read as clearly
+/// elevated over the frosted header. Two layers — a soft ambient spread plus a
+/// tighter contact shadow — so the lift is visible even against the light glass.
 const List<BoxShadow> _kTopViewShadow = [
   BoxShadow(
+    color: Color(0x24101828),
+    blurRadius: 18,
+    offset: Offset(0, 8),
+  ),
+  BoxShadow(
     color: Color(0x14101828),
-    blurRadius: 16,
+    blurRadius: 4,
+    offset: Offset(0, 1),
+  ),
+];
+
+/// Resting shadow every quick-access tab tile floats on, so the row reads as a
+/// set of lifted chips rather than flat outlined boxes. Two layers — a soft
+/// ambient spread plus a tighter contact shadow — so even the unselected tiles
+/// clearly lift off the frosted header.
+const List<BoxShadow> _kTabChipShadow = [
+  BoxShadow(
+    color: Color(0x1F101828),
+    blurRadius: 12,
+    offset: Offset(0, 5),
+  ),
+  BoxShadow(
+    color: Color(0x14101828),
+    blurRadius: 3,
+    offset: Offset(0, 1),
+  ),
+];
+
+/// Brand-blue glow for the sliding selection highlight — lifts the active tab
+/// and tints its shadow blue so the highlight reads as "lit up" as it slides.
+const List<BoxShadow> _kTabChipActiveShadow = [
+  BoxShadow(
+    color: Color(0x2E0086FF),
+    blurRadius: 14,
     offset: Offset(0, 6),
   ),
 ];

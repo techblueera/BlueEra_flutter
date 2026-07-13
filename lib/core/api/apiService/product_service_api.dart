@@ -42,6 +42,11 @@ mixin ProductServiceApi {
   final String productBusinessProfile = "product-service/api/business-profile";
   final String productFilter = 'product-service/api/product/sort/filter';
   final String allProducts = "product-service/api/inventory/all-business-products";
+
+  /// Public, category-filtered global product feed (home-made-product discover).
+  /// `GET product-service/api/inventory/public/global-grocery-products`.
+  final String globalProducts =
+      "product-service/api/inventory/public/global-grocery-products";
   final String addProductVariant = 'product-service/api/inventory';
 
   /// Add product to inventory. `POST product-service/api/inventory`.
