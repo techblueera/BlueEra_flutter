@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -9,7 +10,6 @@ import 'package:BlueEra/features/business/visiting_card/view/widget/business_loc
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/features/common/Discover/controller/hmp_cart_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/hmp_store_details_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/hmp_cart_screen.dart';
@@ -116,7 +116,9 @@ class _HmpStoreDetailsDiscoverScreenV2State
         _store = EarnProfileModel.fromJson(
             Map<String, dynamic>.from(body['data'] as Map));
       }
-    } catch (_) {/* swallow — store-only sections simply show the stub / hide */}
+    } catch (_) {
+      /* swallow — store-only sections simply show the stub / hide */
+    }
     if (mounted) setState(() => _loadingStore = false);
   }
 
@@ -187,7 +189,8 @@ class _HmpStoreDetailsDiscoverScreenV2State
   // ── Hero cover image with back / save / share top bar ────────────────────
   Widget _buildHero() {
     final statusBar = MediaQuery.of(context).padding.top;
-    final cover = store.galleryImages.isNotEmpty ? store.galleryImages.first : '';
+    final cover =
+        store.galleryImages.isNotEmpty ? store.galleryImages.first : '';
 
     return SizedBox(
       height: 210 + statusBar,
@@ -267,8 +270,8 @@ class _HmpStoreDetailsDiscoverScreenV2State
   Widget _buildIdentity() {
     final lat = store.latitude ?? 0.0;
     final lng = store.longitude ?? 0.0;
-    final km = calculateDistanceKm(
-        LocationService.lat, LocationService.lng, lat, lng);
+    final km =
+        calculateDistanceKm(LocationService.lat, LocationService.lng, lat, lng);
     final hasLoc = !(lat == 0.0 && lng == 0.0);
 
     return Stack(
@@ -342,11 +345,11 @@ class _HmpStoreDetailsDiscoverScreenV2State
         ),
 
         // Chat — top-right, aligned with the logo.
-        Positioned(
-          right: 16,
-          top: 6,
-          child: _chatPill(),
-        ),
+        // Positioned(
+        //   right: 16,
+        //   top: 6,
+        //   child: _chatPill(),
+        // ),
       ],
     );
   }
@@ -470,8 +473,7 @@ class _HmpStoreDetailsDiscoverScreenV2State
     }
     final bId = store.id?.trim();
     if (bId != null && bId.isNotEmpty) {
-      ChatClickTracker.track(
-          userId: bId, source: ChatClickSource.searchResult);
+      ChatClickTracker.track(userId: bId, source: ChatClickSource.searchResult);
     }
     final chatViewController = getOrPut(() => ChatViewController());
     chatViewController.checkChatConnectionAndOpenChat(
@@ -497,13 +499,13 @@ class _HmpStoreDetailsDiscoverScreenV2State
         child: Row(
           children: [
             Expanded(
-              child: _featureCol(Icons.delivery_dining_rounded,
-                  'Home Delivery', dark, cellBg),
+              child: _featureCol(
+                  Icons.delivery_dining_rounded, 'Home Delivery', dark, cellBg),
             ),
             _vDivider(),
             Expanded(
-              child: _featureCol(Icons.currency_rupee_rounded,
-                  'Secure Payment', dark, cellBg),
+              child: _featureCol(
+                  Icons.currency_rupee_rounded, 'Secure Payment', dark, cellBg),
             ),
             _vDivider(),
             Expanded(
@@ -616,96 +618,96 @@ class _HmpStoreDetailsDiscoverScreenV2State
     return GestureDetector(
       onTap: () => ProductInventoryBottomSheet.show(context, product: item),
       child: Container(
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.greyE5),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            children: [
-              SizedBox(
-                height: 94,
-                width: double.infinity,
-                child: imageUrl != null && imageUrl.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: imageUrl,
-                        fit: BoxFit.cover,
-                        placeholder: (_, __) =>
-                            Container(color: Colors.grey.shade200),
-                        errorWidget: (_, __, ___) => _cardImageFallback(),
-                      )
-                    : _cardImageFallback(),
-              ),
-              Positioned(
-                right: 8,
-                top: 8,
-                child: Obx(() => _addControl(item)),
-              ),
-              Positioned(
-                left: 8,
-                top: 8,
-                child: ProductPreviewEyeButton(
-                  onTap: () =>
-                      ProductInventoryBottomSheet.show(context, product: item),
-                  size: 26,
-                ),
-              ),
-            ],
-          ),
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.greyE5),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
               children: [
-                CustomText(
-                  name,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.mainTextColor,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                SizedBox(
+                  height: 94,
+                  width: double.infinity,
+                  child: imageUrl != null && imageUrl.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: imageUrl,
+                          fit: BoxFit.cover,
+                          placeholder: (_, __) =>
+                              Container(color: Colors.grey.shade200),
+                          errorWidget: (_, __, ___) => _cardImageFallback(),
+                        )
+                      : _cardImageFallback(),
                 ),
-                const SizedBox(height: 8),
-                Wrap(
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  spacing: 6,
-                  runSpacing: 2,
-                  children: [
-                    CustomText(
-                      '${AppConstants.rupeeSymbol}${sp.toStringAsFixed(0)}',
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.mainTextColor,
-                    ),
-                    if (mrp > sp && mrp > 0)
-                      CustomText(
-                        '${AppConstants.rupeeSymbol}${mrp.toStringAsFixed(0)}',
-                        fontSize: 11,
-                        color: AppColors.secondaryTextColor,
-                        decoration: TextDecoration.lineThrough,
-                        decorationColor: AppColors.secondaryTextColor,
-                      ),
-                    if (discount.isNotEmpty)
-                      CustomText(
-                        discount,
-                        fontSize: 10.5,
-                        fontWeight: FontWeight.w700,
-                        color: const Color(0xFF1E7D34),
-                      ),
-                  ],
+                Positioned(
+                  right: 8,
+                  top: 8,
+                  child: Obx(() => _addControl(item)),
+                ),
+                Positioned(
+                  left: 8,
+                  top: 8,
+                  child: ProductPreviewEyeButton(
+                    onTap: () => ProductInventoryBottomSheet.show(context,
+                        product: item),
+                    size: 26,
+                  ),
                 ),
               ],
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CustomText(
+                    name,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.mainTextColor,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 6,
+                    runSpacing: 2,
+                    children: [
+                      CustomText(
+                        '${AppConstants.rupeeSymbol}${sp.toStringAsFixed(0)}',
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.mainTextColor,
+                      ),
+                      if (mrp > sp && mrp > 0)
+                        CustomText(
+                          '${AppConstants.rupeeSymbol}${mrp.toStringAsFixed(0)}',
+                          fontSize: 11,
+                          color: AppColors.secondaryTextColor,
+                          decoration: TextDecoration.lineThrough,
+                          decorationColor: AppColors.secondaryTextColor,
+                        ),
+                      if (discount.isNotEmpty)
+                        CustomText(
+                          discount,
+                          fontSize: 10.5,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF1E7D34),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
-    ),
     );
   }
 
@@ -770,8 +772,10 @@ class _HmpStoreDetailsDiscoverScreenV2State
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _stepBtn(qty == 1 ? Icons.delete_outline_rounded : Icons.remove,
-              qty == 1 ? AppColors.red : _primary, () => cartController.remove(item)),
+          _stepBtn(
+              qty == 1 ? Icons.delete_outline_rounded : Icons.remove,
+              qty == 1 ? AppColors.red : _primary,
+              () => cartController.remove(item)),
           Container(
             constraints: const BoxConstraints(minWidth: 18),
             alignment: Alignment.center,
@@ -802,17 +806,15 @@ class _HmpStoreDetailsDiscoverScreenV2State
   // NOTE: placeholder content — no testimonials data on the model yet.
   static const List<({String text, String name, String role})> _testimonials = [
     (
-      text:
-          'Qorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc '
-              'vulputate libero et velit interdum, ac aliquet odio mattis. '
-              'Class aptent taciti sociosqu ad litora torquent.',
+      text: 'Qorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc '
+          'vulputate libero et velit interdum, ac aliquet odio mattis. '
+          'Class aptent taciti sociosqu ad litora torquent.',
       name: 'Dr. Ramesh Gupta',
       role: 'Managing Director',
     ),
     (
-      text:
-          'Beautifully crafted and great quality every single time. Buying '
-              'home-made products here has been a wonderful experience.',
+      text: 'Beautifully crafted and great quality every single time. Buying '
+          'home-made products here has been a wonderful experience.',
       name: 'Anita Sharma',
       role: 'Verified Buyer',
     ),
