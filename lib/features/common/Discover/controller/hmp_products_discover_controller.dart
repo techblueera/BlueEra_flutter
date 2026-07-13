@@ -35,7 +35,7 @@ class HmpProductsDiscoverController extends GetxController {
   final RxBool isProductsLoadingMore = false.obs;
   int _page = 1;
   bool _hasMore = true;
-  final int _limit = 20;
+  final int _limit = 10;
 
   @override
   void onInit() {
@@ -105,7 +105,8 @@ class HmpProductsDiscoverController extends GetxController {
         ApiKeys.page: _page,
         ApiKeys.limit: _limit,
       };
-      final res = await _productRepo.fetchProductsRepo(queryParams: queryParams);
+      final res =
+          await _productRepo.fetchGlobalProductsRepo(queryParams: queryParams);
       if (res.isSuccess) {
         final model = GetProductModel.fromJson(res.response?.data);
         final newItems = model.data;

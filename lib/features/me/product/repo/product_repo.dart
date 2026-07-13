@@ -30,6 +30,19 @@ class ProductRepo extends BaseService {
     return response;
   }
 
+  /// Public, category-filtered global product feed for the home-made-product
+  /// discover screen. `GET product-service/api/inventory/public/global-grocery-products`.
+  Future<ResponseModel> fetchGlobalProductsRepo({required Map<String, dynamic> queryParams}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      globalProducts,
+      params: queryParams,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   /// Update a single inventory record (one variant) — PUT price/mrp etc.
   /// `PUT product-service/api/inventory/{id}`, where `id` is the variant's
   /// own inventory id.
