@@ -41,6 +41,13 @@ class ShortsController extends GetxController{
   bool trendingVideoFeedHasMore = true;
   RxBool trendingVideoFeedIsLoadingMore = false.obs;
 
+  /// Shuffle seed for the random-order reels feed (`/videos/hot/short`). Null on
+  /// the first page of a session (server mints one and returns it in
+  /// `pagination.seed`); replayed on every later page so pagination walks a
+  /// stable random order with zero repeats. Reset to null on refresh so the
+  /// server re-shuffles with a brand-new seed.
+  String? trendingVideoFeedSeed;
+
   RxList<ShortFeedItem> personalizedVideoFeedPosts = <ShortFeedItem>[].obs;
   int personalizedVideoFeedCurrentPage = 1;
   RxBool isFirstLoadNearBy= true.obs;
@@ -90,7 +97,10 @@ class ShortsController extends GetxController{
       trendingVideoFeedCurrentPage = 1;
       trendingVideoFeedHasMore = true;
       trendingVideoFeedIsLoadingMore.value = false;
-      
+      // Drop the seed so page 1 goes out without one → the server mints a fresh
+      // seed and re-shuffles the feed (pull-to-refresh = new random order).
+      trendingVideoFeedSeed = null;
+
       // Try to get cached shorts first
       if (trendingVideoFeedCurrentPage == 1) {
         final cachedShorts = await HomeCacheService().getCachedShorts();
@@ -98,7 +108,7 @@ class ShortsController extends GetxController{
           print('📱 Showing cached shorts: ${cachedShorts.length} items');
           trendingVideoFeedPosts.value = cachedShorts;
           isFirstLoadTrending.value = false;
-          
+
           // Fetch fresh data in background
           _fetchShortsInBackground(queryParams: {
             ApiKeys.page: trendingVideoFeedCurrentPage.toString(),
@@ -120,13 +130,17 @@ class ShortsController extends GetxController{
       final bool isHot = query.isEmpty;
       if (isHot) {
         // Reels come from the trending "hot" endpoint: GET /videos/hot/short.
-        // It accepts only page + limit (type is in the path) and returns a
-        // flat Video[] — parsed via VideoResponse.fromHotJson below.
+        // It accepts page + limit (type is in the path) plus an optional
+        // shuffle `seed` and returns a flat Video[] — parsed via
+        // VideoResponse.fromHotJson below. Omit the seed on page 1 (server
+        // mints one) and replay it on later pages for a stable random order.
         response = await FeedRepo().getHotVideos(
           type: 'short',
           queryParams: {
             ApiKeys.page: trendingVideoFeedCurrentPage.toString(),
             ApiKeys.limit: limit,
+            if (trendingVideoFeedSeed != null)
+              ApiKeys.seed: trendingVideoFeedSeed,
           },
         );
       } else {
@@ -147,9 +161,18 @@ class ShortsController extends GetxController{
 
         final videos = videoFeedModelResponse.data?.videos ?? [];
 
+        // Capture (or refresh) the shuffle seed so the next page replays the
+        // same random order. Only the hot feed returns one.
+        if (isHot) {
+          final seed = videoFeedModelResponse.pagination?.seed;
+          if (seed != null && seed.isNotEmpty) {
+            trendingVideoFeedSeed = seed;
+          }
+        }
+
           if(trendingVideoFeedCurrentPage == 1){
             trendingVideoFeedPosts.value = videos;
-            
+
             // Cache shorts
             if (videos.isNotEmpty) {
               await HomeCacheService().cacheShorts(videos);
@@ -191,11 +214,26 @@ class ShortsController extends GetxController{
       if (response.isSuccess) {
         final videoFeedModelResponse = VideoResponse.fromHotJson(response.response?.data);
         final videos = videoFeedModelResponse.data?.videos ?? [];
-        
+
+        // Capture the fresh page-1 seed and advance pagination so the next
+        // scroll continues page 2+ of THIS shuffled session (instead of
+        // re-fetching page 1 and showing duplicates).
+        final pagination = videoFeedModelResponse.pagination;
+        final seed = pagination?.seed;
+        if (seed != null && seed.isNotEmpty) {
+          trendingVideoFeedSeed = seed;
+        }
+        if (pagination?.hasMore ?? false) {
+          trendingVideoFeedCurrentPage = 2;
+          trendingVideoFeedHasMore = true;
+        } else {
+          trendingVideoFeedHasMore = false;
+        }
+
         if (videos.isNotEmpty) {
           // Cache shorts
           await HomeCacheService().cacheShorts(videos);
-          
+
           // Update the UI with fresh data
           trendingVideoFeedPosts.value = videos;
         }

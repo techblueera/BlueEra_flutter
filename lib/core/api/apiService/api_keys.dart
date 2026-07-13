@@ -99,6 +99,7 @@ class ApiKeys {
   static const is_payment = 'is_payment';
   static const payment_status = 'payment_status';
   static const page = 'page';
+  static const seed = 'seed';
   static const per_page_message = 'per_page_message';
   static const videoPath = 'videoPath';
   static const audioUrl = 'audio_url';

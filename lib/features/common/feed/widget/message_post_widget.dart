@@ -377,6 +377,12 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
                                 imageUrls: _post.media ?? [],
                                 subTitle: _post.subTitle ?? "",
                                 postData: _post,
+                                // Only the home/search feed opens the full-screen
+                                // reels-style image feed; reposts & other screens
+                                // keep the plain viewer so their flows don't change.
+                                openImageFeedOnTap:
+                                    widget.postType == PostType.all &&
+                                        widget.isRepost != true,
                               ),
                             ),
                         ],
