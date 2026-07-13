@@ -5,27 +5,19 @@ import 'package:flutter/foundation.dart';
 
 /// Central config for the app's ads — served by **Google AdMob**.
 ///
+///  • RELEASE / store builds → always show LIVE AdMob ads (real money).
 ///  • DEBUG / profile builds → [showAdsInDebug]
 ///        true  = show AdMob TEST ads
 ///        false = show NO ads (slots collapse, interstitials no-op)
-///  • RELEASE / store builds → [useLiveAdsInRelease]
-///        true  = show LIVE AdMob ads (real money)
-///        false = show AdMob TEST ads (verify delivery on a signed build)
 ///
 /// `kReleaseMode` is true only for release/store builds, so debug & profile fall
-/// under the debug knob. DEBUG always uses TEST ads; only RELEASE can serve LIVE
-/// ads, and only when [useLiveAdsInRelease] is true.
+/// under the debug knob.
 class AdConfig {
   AdConfig._();
 
-  /// RELEASE knob: LIVE AdMob ads when `true`, AdMob TEST ads when `false`.
-  /// Set `false` to verify ad delivery on a signed release build without
-  /// serving real ads (keeps the AdMob account safe from invalid-traffic /
-  /// policy strikes during release testing).
-  static const bool useLiveAdsInRelease = true;
-
   /// DEBUG knob: show AdMob TEST ads when `true`, no ads at all when `false`.
   /// On so AdMob test ads render while debugging on-device.
+  /// (Release always serves LIVE ads regardless of this flag.)
   static const bool showAdsInDebug = true;
 
   /// Whether ads should load/show at all for the current build.
@@ -40,20 +32,9 @@ class AdConfig {
   // constants below (they're public and identical for everyone).
   // Publisher: ca-app-pub-8886065788013100.
 
-  /// Override: request LIVE AdMob units on EVERY build (even debug). Flip to
-  /// `true` to see real ads without making a release build.
-  ///
-  /// ⚠️ Policy note: don't tap your own live ads (invalid-traffic strikes). If
-  /// you just want to confirm delivery, register your device as an AdMob test
-  /// device instead. Also: brand-new units often return Google "No fill (3)"
-  /// for the first hours/days until the app is fully active — a blank slot then
-  /// is expected, not a bug.
-  static const bool forceLiveAds = false;
-
-  /// TEST-ad mode for AdMob — TEST ads whenever NOT a release build, OR release
-  /// with [useLiveAdsInRelease] off. [forceLiveAds] overrides both to live.
-  static const bool admobTestMode =
-      forceLiveAds ? false : (!kReleaseMode || !useLiveAdsInRelease);
+  /// TEST-ad mode for AdMob — TEST ads on any non-release build, LIVE ads on
+  /// release. (Release always serves live units.)
+  static const bool admobTestMode = !kReleaseMode;
 
   /// AdMob App ID (also hardcoded in AndroidManifest / Info.plist, per
   /// platform — the native SDK reads it from there, this is for Dart use).

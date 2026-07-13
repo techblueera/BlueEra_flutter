@@ -32,7 +32,7 @@ class AdMobInterstitialManager {
       try {
         await MobileAds.instance.initialize();
         // Register any test devices so Ad Inspector can launch on them.
-        AdDebug.applyTestDevices();
+        // AdDebug.applyTestDevices();
       } catch (e) {
         print('[ADMOB_INTERSTITIAL] init failed: $e');
       }
