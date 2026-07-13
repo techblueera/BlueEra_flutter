@@ -57,7 +57,8 @@ class VehicleShowroomOverview extends StatefulWidget {
   const VehicleShowroomOverview({super.key, required this.controller});
 
   @override
-  State<VehicleShowroomOverview> createState() => _VehicleShowroomOverviewState();
+  State<VehicleShowroomOverview> createState() =>
+      _VehicleShowroomOverviewState();
 }
 
 class _VehicleShowroomOverviewState extends State<VehicleShowroomOverview> {
@@ -110,7 +111,8 @@ class _VehicleShowroomOverviewState extends State<VehicleShowroomOverview> {
     // Outer padding removed — each section now owns its own
     // `Padding(horizontal: SizeConfig.size8)` so the card layout matches
     // the rest of the v2 dashboards (Other / Hospital / School).
-    final businessController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+    final businessController =
+        getOrPut(() => ViewBusinessDetailsController(), permanent: true);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -123,12 +125,12 @@ class _VehicleShowroomOverviewState extends State<VehicleShowroomOverview> {
         VehicleBannerWidget(controller: _otherProfileCtrl),
         SizedBox(height: SizeConfig.size10),
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
           child: _buildBikes(),
         ),
         SizedBox(height: SizeConfig.size10),
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
           child: _buildFacilities(),
         ),
         SizedBox(height: SizeConfig.size10),
@@ -138,13 +140,13 @@ class _VehicleShowroomOverviewState extends State<VehicleShowroomOverview> {
         // ),
         // SizedBox(height: SizeConfig.size10),
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
           child: _buildGallery(),
         ),
         SizedBox(height: SizeConfig.size10),
         // _buildTestimonials() left disabled (was already commented out).
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
           child: CommonCardWidget(
             padding: 10,
             cardMargin: 0,
@@ -156,21 +158,25 @@ class _VehicleShowroomOverviewState extends State<VehicleShowroomOverview> {
                   _SectionHeader(
                     title: AppStrings.contactUs.tr,
                     actionLabel: AppStrings.otherAddEdit.tr,
-                    onAction: () => VehicleOwnerActions.addContact(context, _ctrl),
+                    onAction: () =>
+                        VehicleOwnerActions.addContact(context, _ctrl),
                   ),
                   const SizedBox(height: 10),
                   if (contacts.isNotEmpty)
                     _ContactUs(
                       contact: _primaryContact()!,
-                      onEdit: () => VehicleOwnerActions.editContact(context, _ctrl, _primaryContact()!),
-                      onAddMore: () => VehicleOwnerActions.addContact(context, _ctrl),
+                      onEdit: () => VehicleOwnerActions.editContact(
+                          context, _ctrl, _primaryContact()!),
+                      onAddMore: () =>
+                          VehicleOwnerActions.addContact(context, _ctrl),
                     )
                   else
                     EmptySectionPlaceholder(
                       imageAsset: 'assets/images/other_gallery.png',
                       ctaLabel: AppStrings.contactUs.tr,
                       ctaIcon: Icons.contact_phone_outlined,
-                      onTap: () => VehicleOwnerActions.addContact(context, _ctrl),
+                      onTap: () =>
+                          VehicleOwnerActions.addContact(context, _ctrl),
                     ),
                 ],
               );
@@ -179,21 +185,26 @@ class _VehicleShowroomOverviewState extends State<VehicleShowroomOverview> {
         ),
         SizedBox(height: SizeConfig.size10),
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
           child: WebsiteOverviewCard(
-            websiteUrl: businessController.businessProfileDetails.value?.data?.websiteUrl,
-            onSave: (url) => businessController.updateBusinessProfileDetails({ApiKeys.websiteUrl: url}),
+            websiteUrl: businessController
+                .businessProfileDetails.value?.data?.websiteUrl,
+            onSave: (url) => businessController
+                .updateBusinessProfileDetails({ApiKeys.websiteUrl: url}),
           ),
         ),
 
         SizedBox(height: SizeConfig.size10),
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
           child: _buildMap(),
         ),
-        SizedBox(height: SizeConfig.size10),
-        const BusinessShareBanner(),
-        SizedBox(height: SizeConfig.size10),
+        // SizedBox(height: SizeConfig.size10),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+          child: const BusinessShareBanner(),
+        ),
+        // SizedBox(height: SizeConfig.size10),
 
         // ── QR Code (mirrors the school / hospital QR card) ──
         _buildQrCode(),
@@ -210,7 +221,7 @@ class _VehicleShowroomOverviewState extends State<VehicleShowroomOverview> {
       final details = _businessCtrl.businessProfileDetails.value?.data;
       if (details == null) return const SizedBox.shrink();
       return Padding(
-        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
         child: BusinessQrCodeWidget(
           data: details,
           // Encode the business/showroom deep link
@@ -222,13 +233,15 @@ class _VehicleShowroomOverviewState extends State<VehicleShowroomOverview> {
       );
     });
   }
+
   // ─── Shared chrome ─────────────────────────────────────────────────
   BoxDecoration get _cardDecoration => BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFEDEFF4)),
         boxShadow: const [
-          BoxShadow(color: Color(0x12001120), blurRadius: 14, offset: Offset(0, 4)),
+          BoxShadow(
+              color: Color(0x12001120), blurRadius: 14, offset: Offset(0, 4)),
         ],
       );
 
@@ -241,12 +254,16 @@ class _VehicleShowroomOverviewState extends State<VehicleShowroomOverview> {
       final name = (user?.name ?? '').trim();
       final avatar = user?.profileImage ?? '';
       final joined = _formatJoined(user?.createdAt ?? '');
-      final category =
-          businessCategoryGlobal.trim().isNotEmpty ? businessCategoryGlobal.trim() : AppStrings.automotive.tr;
+      final category = businessCategoryGlobal.trim().isNotEmpty
+          ? businessCategoryGlobal.trim()
+          : AppStrings.automotive.tr;
 
-      final rated = _ctrl.receivedTestimonials.where((t) => t.rating != null).toList();
+      final rated =
+          _ctrl.receivedTestimonials.where((t) => t.rating != null).toList();
       final hasRating = rated.isNotEmpty;
-      final avg = hasRating ? rated.map((t) => t.rating!).reduce((a, b) => a + b) / rated.length : 0.0;
+      final avg = hasRating
+          ? rated.map((t) => t.rating!).reduce((a, b) => a + b) / rated.length
+          : 0.0;
 
       return Column(
         children: [
@@ -258,7 +275,10 @@ class _VehicleShowroomOverviewState extends State<VehicleShowroomOverview> {
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: const Color(0xFFE3E9F2)),
                 boxShadow: const [
-                  BoxShadow(color: Color(0x0F001120), blurRadius: 8, offset: Offset(0, 2)),
+                  BoxShadow(
+                      color: Color(0x0F001120),
+                      blurRadius: 8,
+                      offset: Offset(0, 2)),
                 ],
               ),
               child: CustomText(
@@ -285,7 +305,9 @@ class _VehicleShowroomOverviewState extends State<VehicleShowroomOverview> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           CustomText(
-                            name.isEmpty ? AppStrings.vehicleServiceProvider.tr : _capitalize(name),
+                            name.isEmpty
+                                ? AppStrings.vehicleServiceProvider.tr
+                                : _capitalize(name),
                             fontSize: 18,
                             fontWeight: FontWeight.w800,
                             color: AppColors.mainTextColor,
@@ -311,7 +333,8 @@ class _VehicleShowroomOverviewState extends State<VehicleShowroomOverview> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.star_rounded, size: 18, color: Color(0xFFF5A623)),
+                      const Icon(Icons.star_rounded,
+                          size: 18, color: Color(0xFFF5A623)),
                       const SizedBox(width: 4),
                       CustomText(
                         avg.toStringAsFixed(1),
@@ -355,7 +378,8 @@ class _VehicleShowroomOverviewState extends State<VehicleShowroomOverview> {
             ),
             child: Text(
               name.trim().isNotEmpty ? name.trim()[0].toUpperCase() : '?',
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: _blue),
+              style: const TextStyle(
+                  fontSize: 20, fontWeight: FontWeight.w800, color: _blue),
             ),
           );
     // Verified check badge, bottom-left, mirroring the reference.
@@ -368,7 +392,8 @@ class _VehicleShowroomOverviewState extends State<VehicleShowroomOverview> {
           bottom: -2,
           child: Container(
             padding: const EdgeInsets.all(2),
-            decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
+            decoration: const BoxDecoration(
+                color: Colors.white, shape: BoxShape.circle),
             child: const Icon(Icons.verified_rounded, size: 16, color: _blue),
           ),
         ),
@@ -420,7 +445,8 @@ class _VehicleShowroomOverviewState extends State<VehicleShowroomOverview> {
                     width: 260,
                     child: _BikeCard(
                       vehicle: v,
-                      onEdit: () => VehicleOwnerActions.editVehicle(context, _ctrl, v),
+                      onEdit: () =>
+                          VehicleOwnerActions.editVehicle(context, _ctrl, v),
                     ),
                   );
                 },
@@ -479,7 +505,8 @@ class _VehicleShowroomOverviewState extends State<VehicleShowroomOverview> {
       title: AppStrings.addFacilityTitle.tr,
       hintText: AppStrings.facilityNameHint.tr,
       confirmLabel: AppStrings.add.tr,
-      validator: (v) => (v == null || v.trim().isEmpty) ? AppStrings.fieldRequired.tr : null,
+      validator: (v) =>
+          (v == null || v.trim().isEmpty) ? AppStrings.fieldRequired.tr : null,
     );
     if (name == null || name.isEmpty) return;
     await _ctrl.addFacility(VehicleFacility(name: name));
@@ -512,7 +539,9 @@ class _VehicleShowroomOverviewState extends State<VehicleShowroomOverview> {
           const SizedBox(height: 10),
           Obx(() {
             final photos = _ctrl.myLivePhotos;
-            return photos.isEmpty ? _buildLivePhotosEmpty() : _buildLivePhotosCollage(photos);
+            return photos.isEmpty
+                ? _buildLivePhotosEmpty()
+                : _buildLivePhotosCollage(photos);
           }),
         ],
       ),
@@ -748,12 +777,17 @@ class _VehicleShowroomOverviewState extends State<VehicleShowroomOverview> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _blue,
                       elevation: 0,
-                      padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 10),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 22, vertical: 10),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10)),
                     ),
                     child: Text(
                       AppStrings.uploadPhoto.tr,
-                      style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
+                      style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white),
                     ),
                   ),
                 ],
@@ -765,7 +799,8 @@ class _VehicleShowroomOverviewState extends State<VehicleShowroomOverview> {
     );
   }
 
-  Future<void> _onAddGalleryPhoto() => VehicleOwnerActions.addGalleryPhoto(_ctrl);
+  Future<void> _onAddGalleryPhoto() =>
+      VehicleOwnerActions.addGalleryPhoto(_ctrl);
 
   Future<void> _confirmDeleteGalleryItem(VehicleGalleryItem g) =>
       VehicleOwnerActions.confirmDeleteGalleryItem(context, _ctrl, g);
@@ -791,7 +826,9 @@ class _VehicleShowroomOverviewState extends State<VehicleShowroomOverview> {
           ),
           SizedBox(height: SizeConfig.size14),
           Obx(() {
-            final list = _ctrl.receivedTestimonials.where((t) => t.isVisible ?? true).toList();
+            final list = _ctrl.receivedTestimonials
+                .where((t) => t.isVisible ?? true)
+                .toList();
             if (list.isEmpty) {
               return Container(
                 width: double.infinity,
@@ -890,10 +927,13 @@ class _VehicleShowroomOverviewState extends State<VehicleShowroomOverview> {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                              color: _blue.withValues(alpha: 0.4), blurRadius: 8, offset: const Offset(0, 3)),
+                              color: _blue.withValues(alpha: 0.4),
+                              blurRadius: 8,
+                              offset: const Offset(0, 3)),
                         ],
                       ),
-                      child: const Icon(Icons.navigation_rounded, size: 20, color: Colors.white),
+                      child: const Icon(Icons.navigation_rounded,
+                          size: 20, color: Colors.white),
                     ),
                   ),
                 ),
@@ -921,14 +961,16 @@ class _VehicleShowroomOverviewState extends State<VehicleShowroomOverview> {
 
   Future<File?> _pickImage() async {
     try {
-      final picked = await _picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+      final picked = await _picker.pickImage(
+          source: ImageSource.gallery, imageQuality: 85);
       return picked == null ? null : File(picked.path);
     } catch (_) {
       return null;
     }
   }
 
-  Future<bool> _confirm({required String title, required String message}) async {
+  Future<bool> _confirm(
+      {required String title, required String message}) async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -941,7 +983,8 @@ class _VehicleShowroomOverviewState extends State<VehicleShowroomOverview> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text(AppStrings.remove.tr, style: const TextStyle(color: Colors.red)),
+            child: Text(AppStrings.remove.tr,
+                style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -949,7 +992,8 @@ class _VehicleShowroomOverviewState extends State<VehicleShowroomOverview> {
     return ok ?? false;
   }
 
-  String _capitalize(String t) => t.isEmpty ? t : t[0].toUpperCase() + t.substring(1);
+  String _capitalize(String t) =>
+      t.isEmpty ? t : t[0].toUpperCase() + t.substring(1);
 
   String _formatJoined(String dateStr) {
     if (dateStr.isEmpty) return '';
@@ -964,7 +1008,8 @@ class _VehicleShowroomOverviewState extends State<VehicleShowroomOverview> {
     var finalUrl = url.trim();
     if (!finalUrl.startsWith('http')) finalUrl = 'https://$finalUrl';
     try {
-      await launchUrl(Uri.parse(finalUrl), mode: LaunchMode.externalApplication);
+      await launchUrl(Uri.parse(finalUrl),
+          mode: LaunchMode.externalApplication);
     } catch (_) {}
   }
 }
@@ -992,7 +1037,8 @@ class _BikeCard extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: const Color(0xFFEDEFF4)),
           boxShadow: const [
-            BoxShadow(color: Color(0x12001120), blurRadius: 12, offset: Offset(0, 4)),
+            BoxShadow(
+                color: Color(0x12001120), blurRadius: 12, offset: Offset(0, 4)),
           ],
         ),
         clipBehavior: Clip.antiAlias,
@@ -1015,7 +1061,8 @@ class _BikeCard extends StatelessWidget {
                       color: Colors.white.withValues(alpha: 0.92),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.edit_outlined, size: 15, color: _blue),
+                    child:
+                        const Icon(Icons.edit_outlined, size: 15, color: _blue),
                   ),
                 ),
               ],
@@ -1049,11 +1096,12 @@ class _BikeCard extends StatelessWidget {
                     Row(
                       children: [
                         if (vehicle.fuelType != null)
-                          _spec(Icons.local_gas_station_outlined, _humanFuel(vehicle.fuelType!)),
+                          _spec(Icons.local_gas_station_outlined,
+                              _humanFuel(vehicle.fuelType!)),
                         if (vehicle.engineCapacityCc != null) ...[
                           const SizedBox(width: 6),
-                          _spec(
-                              Icons.settings_outlined, '${vehicle.engineCapacityCc} ${AppStrings.ccUnit.tr}'),
+                          _spec(Icons.settings_outlined,
+                              '${vehicle.engineCapacityCc} ${AppStrings.ccUnit.tr}'),
                         ],
                       ],
                     ),
@@ -1200,7 +1248,8 @@ class _FacilityChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.check_circle_outline_rounded, size: 16, color: Color(0xFF1E88FF)),
+          const Icon(Icons.check_circle_outline_rounded,
+              size: 16, color: Color(0xFF1E88FF)),
           const SizedBox(width: 6),
           CustomText(
             facility.name,
@@ -1214,7 +1263,8 @@ class _FacilityChip extends StatelessWidget {
             customBorder: const CircleBorder(),
             child: const Padding(
               padding: EdgeInsets.all(2),
-              child: Icon(Icons.close_rounded, size: 14, color: Colors.redAccent),
+              child:
+                  Icon(Icons.close_rounded, size: 14, color: Colors.redAccent),
             ),
           ),
         ],
@@ -1250,7 +1300,8 @@ class _LivePhotoPlaceholder extends StatelessWidget {
                     color: Colors.black.withValues(alpha: 0.35),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.photo_camera_rounded, size: 20, color: Colors.white),
+                  child: const Icon(Icons.photo_camera_rounded,
+                      size: 20, color: Colors.white),
                 ),
               ),
               Positioned(
@@ -1327,7 +1378,8 @@ class _LivePhotoTile extends StatelessWidget {
                   color: Colors.black.withValues(alpha: 0.55),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.close_rounded, size: 14, color: Colors.white),
+                child: const Icon(Icons.close_rounded,
+                    size: 14, color: Colors.white),
               ),
             ),
           ),
@@ -1347,7 +1399,9 @@ class _GalleryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final url = (item.thumbnailUrl?.isNotEmpty ?? false) ? item.thumbnailUrl! : item.mediaUrl;
+    final url = (item.thumbnailUrl?.isNotEmpty ?? false)
+        ? item.thumbnailUrl!
+        : item.mediaUrl;
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: Stack(
@@ -1366,7 +1420,8 @@ class _GalleryTile extends StatelessWidget {
                   color: Colors.black.withValues(alpha: 0.55),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(Icons.close_rounded, size: 13, color: Colors.white),
+                child: const Icon(Icons.close_rounded,
+                    size: 13, color: Colors.white),
               ),
             ),
           ),
@@ -1396,13 +1451,15 @@ class _TestimonialCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(14),
         boxShadow: const [
-          BoxShadow(color: Color(0x0F001120), blurRadius: 10, offset: Offset(0, 3)),
+          BoxShadow(
+              color: Color(0x0F001120), blurRadius: 10, offset: Offset(0, 3)),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.format_quote_rounded, size: 28, color: Color(0xFF1E88FF)),
+          const Icon(Icons.format_quote_rounded,
+              size: 28, color: Color(0xFF1E88FF)),
           SizedBox(height: SizeConfig.size6),
           Text(
             testimonial.description.trim().isNotEmpty
@@ -1447,7 +1504,8 @@ class _TestimonialCard extends StatelessWidget {
               GestureDetector(
                 onTap: onReply,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
                   decoration: BoxDecoration(
                     color: const Color(0xFFEDF1F6),
                     borderRadius: BorderRadius.circular(10),
@@ -1567,7 +1625,8 @@ class _ContactUs extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.business_outlined, size: 16, color: AppColors.secondaryTextColor),
+                  const Icon(Icons.business_outlined,
+                      size: 16, color: AppColors.secondaryTextColor),
                   const SizedBox(width: 6),
                   Expanded(
                     child: CustomText(
@@ -1580,7 +1639,8 @@ class _ContactUs extends StatelessWidget {
                   GestureDetector(
                     onTap: onEdit,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         border: Border.all(color: AppColors.primaryColor),
                         borderRadius: BorderRadius.circular(6),
@@ -1588,9 +1648,11 @@ class _ContactUs extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: const [
-                          Icon(Icons.edit_outlined, size: 14, color: AppColors.primaryColor),
+                          Icon(Icons.edit_outlined,
+                              size: 14, color: AppColors.primaryColor),
                           SizedBox(width: 4),
-                          CustomText(AppStrings.edit, fontSize: 12, color: AppColors.primaryColor),
+                          CustomText(AppStrings.edit,
+                              fontSize: 12, color: AppColors.primaryColor),
                         ],
                       ),
                     ),
@@ -1599,8 +1661,12 @@ class _ContactUs extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               if (website != null && website.isNotEmpty)
-                _row(AppIconAssets.website_click, website, AppColors.primaryColor, isLink: true),
-              if (phone.isNotEmpty) _row(AppIconAssets.phone_outline, phone, AppColors.mainTextColor),
+                _row(AppIconAssets.website_click, website,
+                    AppColors.primaryColor,
+                    isLink: true),
+              if (phone.isNotEmpty)
+                _row(AppIconAssets.phone_outline, phone,
+                    AppColors.mainTextColor),
               if (email != null && email.isNotEmpty)
                 _row(AppIconAssets.email, email, AppColors.mainTextColor),
             ],
@@ -1615,7 +1681,8 @@ class _ContactUs extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.primaryColor.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.3)),
+              border: Border.all(
+                  color: AppColors.primaryColor.withValues(alpha: 0.3)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -1623,7 +1690,9 @@ class _ContactUs extends StatelessWidget {
                 Icon(Icons.add, size: 16, color: AppColors.primaryColor),
                 SizedBox(width: 6),
                 CustomText(AppStrings.addMore,
-                    fontSize: 13, color: AppColors.primaryColor, fontWeight: FontWeight.w600),
+                    fontSize: 13,
+                    color: AppColors.primaryColor,
+                    fontWeight: FontWeight.w600),
               ],
             ),
           ),
@@ -1632,7 +1701,8 @@ class _ContactUs extends StatelessWidget {
     );
   }
 
-  Widget _row(String icon, String text, Color textColor, {bool isLink = false}) {
+  Widget _row(String icon, String text, Color textColor,
+      {bool isLink = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
