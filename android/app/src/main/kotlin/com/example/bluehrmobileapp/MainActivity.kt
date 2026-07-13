@@ -1,5 +1,6 @@
 package ai.bluecs.app
 
+import android.app.ActivityManager
 import android.app.PendingIntent
 import android.app.PictureInPictureParams
 import android.app.RemoteAction
@@ -193,14 +194,36 @@ class MainActivity: FlutterActivity() {
                         result.success(null)
                     }
                     "bringCallActivityToFront" -> {
-                        val intent = Intent(this@MainActivity, CallActivity::class.java).apply {
-                            addFlags(
-                                Intent.FLAG_ACTIVITY_REORDER_TO_FRONT or
-                                Intent.FLAG_ACTIVITY_SINGLE_TOP
-                            )
+                        // CallActivity runs in its OWN task (launched with
+                        // FLAG_ACTIVITY_NEW_TASK | MULTIPLE_TASK + a distinct
+                        // taskAffinity), so a REORDER_TO_FRONT intent from
+                        // MainActivity's task can't reach it — Android would
+                        // instead spawn a fresh, param-less CallActivity that
+                        // tries to initiate a brand-new call (400) and bounces
+                        // straight back. Locate the existing call task via
+                        // ActivityManager and raise it in place instead.
+                        var brought = false
+                        try {
+                            val am = getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+                            val callClass = CallActivity::class.java.name
+                            for (task in am.appTasks) {
+                                val info = task.taskInfo
+                                val base = info.baseIntent.component?.className
+                                val top = try { info.topActivity?.className } catch (e: Exception) { null }
+                                if (base == callClass || top == callClass) {
+                                    task.moveToFront()
+                                    brought = true
+                                    break
+                                }
+                            }
+                        } catch (e: Exception) {
+                            brought = false
                         }
-                        startActivity(intent)
-                        result.success(true)
+                        // Return whether an existing call task was actually
+                        // raised. On false, the Dart caller falls back to the
+                        // in-app call room (used by main-engine fare calls,
+                        // which have no separate CallActivity task).
+                        result.success(brought)
                     }
                     else -> result.notImplemented()
                 }

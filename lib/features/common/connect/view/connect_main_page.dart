@@ -59,6 +59,7 @@ import '../../../chat/view/widget/chat_flag_bottom_sheet.dart';
 import '../../../personal/personal_profile/controller/languge_list_controller.dart';
 import 'inquiry_ride_order_selection_screen.dart';
 import '../widget/customer_ongoing_ride_card.dart';
+import '../widget/ongoing_call_banner.dart';
 import '../../../../core/services/ongoing_ride_store.dart';
 import '../../../chat/auth/repo/chat_view_repo.dart';
 import '../../../chat/view/call_screen/rider_call/ride_navigation_overlay_controller.dart';
@@ -752,6 +753,7 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
                       // nothing when there is no ongoing ride).
                       Column(
                         children: [
+                          const OngoingCallBanner(),
                           const CustomerOngoingRideCard(),
                           Expanded(
                             child: PersonalChatsList(isForwardUI: false),
@@ -779,6 +781,7 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
                       // nothing when there is no ongoing ride.
                       Column(
                         children: [
+                          const OngoingCallBanner(),
                           const CustomerOngoingRideCard(),
                           Expanded(
                             child: BusinessChatsList(

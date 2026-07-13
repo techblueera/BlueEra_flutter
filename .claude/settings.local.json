@@ -64,7 +64,9 @@
       "Bash(adb start-server *)",
       "Bash(nohup flutter emulators --launch Pixel_8_Pro)",
       "Read(//c/Users/Administrator/AppData/Local/Pub/Cache/hosted/pub.dev/android_play_install_referrer-0.4.0/android/**)",
-      "Read(//c/Users/Administrator/AppData/Local/Pub/Cache/hosted/pub.dev/android_play_install_referrer-0.4.0/lib/**)"
+      "Read(//c/Users/Administrator/AppData/Local/Pub/Cache/hosted/pub.dev/android_play_install_referrer-0.4.0/lib/**)",
+      "Bash(./gradlew :app:compileDebugKotlin)",
+      "Bash(echo \"---EXIT=$?---\")"
     ]
   }
 }
