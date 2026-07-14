@@ -763,6 +763,12 @@ class CallController extends GetxController {
       print('[CALL_DEBUG] acceptCall → SKIPPED (already ${callStatus.value})');
       return false;
     }
+    // Re-bind call socket listeners in case ChatViewController.disposeSocket()
+    // wiped them since the last app resume — without this the accepter never
+    // hears call:offer / call:answer / call:ice-candidate and the call sits on
+    // "Connecting" until the 30s timeout. Idempotent.
+    ensureCallSocketListeners();
+
     // Immediately transition to accepting so call:answered-elsewhere
     // won't reset our state while we're in the middle of accepting
     final savedCallId = (callIdParams == null||callIdParams.isEmpty) ? callId.value : callIdParams;
@@ -1343,7 +1349,10 @@ class CallController extends GetxController {
       if (metadata is Map && metadata['orderType'] == 'fare-call') {
         print('[FARE_CALL] _handleCallAccepted → idle + fare-call metadata, bootstrapping call state');
         final acceptedCallId = (data['call_id'] ?? '').toString();
-        final acceptedRoomId = (data['room_Id'] ?? '').toString();
+        // Backend sends snake_case `room_id`; keep the old `room_Id` read as a
+        // fallback (this branch previously never fired because of that typo).
+        final acceptedRoomId =
+            (data['room_id'] ?? data['room_Id'] ?? '').toString();
         final acceptedBy = (data['accepted_by'] ?? '').toString();
         if (acceptedCallId.isNotEmpty && acceptedRoomId.isNotEmpty && acceptedBy.isNotEmpty) {
           // Also set fareCallCurrentRiderId on DiscoverController so the
@@ -1829,6 +1838,22 @@ class CallController extends GetxController {
       _pendingOffer = data['sdp'];
       print('[CALL_DEBUG] _handleRemoteOffer → stored as pendingOffer (still ${callStatus.value})');
       return;
+    }
+
+    // Fare-call customer still `outgoing`: the rider's offer arriving IS the
+    // acceptance — the rider only offers after its /call/accept succeeded.
+    // Normally call:accepted flips us to connecting first, but that event can
+    // be missed (listener re-bind race, event ordering). Dropping the offer
+    // here deadlocked the call: rider retried 3×, customer ignored all of
+    // them, ring timer expired at 30s. Treat it as the accept instead.
+    if (isFareCall.value && callStatus.value == CallStatus.outgoing) {
+      print('[FARE_CALL] _handleRemoteOffer → offer while outgoing: treating as implicit call:accepted');
+      _ringTimer?.cancel();
+      stopOutgoingRingback();
+      callStatus.value = CallStatus.connecting;
+      // Fall through to normal offer processing below (sets remote
+      // description and answers). _handleCallAccepted arriving later is a
+      // no-op — its `!= outgoing` guard skips it.
     }
 
     // Only process if we're in connecting/connected state
@@ -3093,6 +3118,14 @@ class CallController extends GetxController {
     required List<dynamic> iceServers,
   }) async {
     print('[FARE_CALL] joinFareCallAsCustomer → callId=$fareCallId, roomId=$fareRoomId, riderId=$riderId');
+
+    // Call socket listeners can be wiped mid-session by
+    // ChatViewController.disposeSocket() (chat screen teardown) and are only
+    // re-bound on app RESUME (AppLifecycleHandler). If that happened since the
+    // last resume, this call's `call:accepted` / `call:offer` events would be
+    // silently ignored — the customer joins the room, never reacts, and the
+    // ring timer expires. Re-bind now; idempotent.
+    ensureCallSocketListeners();
 
     // Same room, already set up — skip
     if (roomId.value == fareRoomId && callStatus.value != CallStatus.idle) {
