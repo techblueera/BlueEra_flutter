@@ -493,7 +493,9 @@ Future<void> showIncomingCallLocalNotification({
 
   final isVideo = callType == 'video_call';
   final details = AndroidNotificationDetails(
-    'incoming_calls_ringtone',
+    // v2 — see the channel bootstrap in init(): the old id may be locked
+    // silent on devices where it was first created without the ringtone.
+    'incoming_calls_ringtone_v2',
     'Incoming Calls',
     channelDescription: 'Incoming voice and video call alerts',
     importance: Importance.max,
@@ -874,6 +876,43 @@ class AppNotificationHandler {
     await androidPlugin?.createNotificationChannel(announcementsChannel);
     await androidPlugin?.createNotificationChannel(channelsChannel);
     await androidPlugin?.createNotificationChannel(ongoingCallChannel);
+
+    // ── Ringtone channels (v2) ────────────────────────────────────────────
+    // Android RESURRECTS a deleted channel's previous settings when the same
+    // id is recreated, so a channel that was ever created without the custom
+    // ringtone can never be fixed in place — the id must change. Pre-create
+    // the v2 channels here with the full ringtone config so the very first
+    // notification on them already rings, and drop the stale legacy ids so
+    // the user's channel list doesn't show silent duplicates.
+    const AndroidNotificationChannel incomingCallsRingtoneV2 =
+        AndroidNotificationChannel(
+      'incoming_calls_ringtone_v2',
+      'Incoming Calls',
+      description: 'Incoming voice and video call alerts',
+      importance: Importance.max,
+      playSound: true,
+      sound: RawResourceAndroidNotificationSound('hangouts_call'),
+      audioAttributesUsage: AudioAttributesUsage.notificationRingtone,
+    );
+    const AndroidNotificationChannel fareRideRingtoneV2 =
+        AndroidNotificationChannel(
+      'fare_ride_incoming_ringtone_v2',
+      'Ride Requests',
+      description: 'Incoming ride request alerts',
+      importance: Importance.max,
+      playSound: true,
+      sound: RawResourceAndroidNotificationSound('hangouts_call'),
+      audioAttributesUsage: AudioAttributesUsage.notificationRingtone,
+    );
+    await androidPlugin?.createNotificationChannel(incomingCallsRingtoneV2);
+    await androidPlugin?.createNotificationChannel(fareRideRingtoneV2);
+    for (final legacyId in [
+      'incoming_calls_ringtone',
+      'fare_ride_incoming_ringtone',
+      'fare_ride_incoming',
+    ]) {
+      await androidPlugin?.deleteNotificationChannel(legacyId);
+    }
 
     ///IOS Setup
     DarwinInitializationSettings initializationSettings =

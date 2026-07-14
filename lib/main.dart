@@ -337,7 +337,12 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         notifBody,
         NotificationDetails(
           android: AndroidNotificationDetails(
-            'fare_ride_incoming_ringtone',
+            // v2 — a deleted/recreated channel id keeps its OLD settings on
+            // Android, so devices whose previous channel lacked the ringtone
+            // can only be fixed by a fresh id (pre-created with sound in
+            // AppNotificationHandler.init; also auto-created here with the
+            // same config for the killed-state FCM isolate).
+            'fare_ride_incoming_ringtone_v2',
             'Ride Requests',
             channelDescription: 'Incoming ride request alerts',
             importance: Importance.max,

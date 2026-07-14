@@ -175,7 +175,35 @@ class CallController extends GetxController {
   final AudioPlayer _outgoingRingbackPlayer = AudioPlayer();
 
   /// Start the incoming-call ringtone (loops until stopped).
-  void startRingtone() {
+  // Route the in-app ringtone to the RINGTONE stream. audioplayers defaults
+  // to the MEDIA stream, so with media volume at zero the incoming-call ring
+  // was silent even though the phone's ringer volume was up.
+  bool _ringtoneContextSet = false;
+
+  Future<void> _ensureRingtoneAudioContext() async {
+    if (_ringtoneContextSet) return;
+    _ringtoneContextSet = true;
+    try {
+      await _ringtonePlayer.setAudioContext(AudioContext(
+        android: AudioContextAndroid(
+          contentType: AndroidContentType.sonification,
+          usageType: AndroidUsageType.notificationRingtone,
+          audioFocus: AndroidAudioFocus.gainTransient,
+          stayAwake: true,
+        ),
+        iOS: AudioContextIOS(
+          category: AVAudioSessionCategory.playback,
+          options: const {AVAudioSessionOptions.mixWithOthers},
+        ),
+      ));
+    } catch (e) {
+      // Non-fatal — worst case the ring plays on the media stream as before.
+      print('[CALL_DEBUG] ringtone AudioContext setup failed: $e');
+    }
+  }
+
+  void startRingtone() async {
+    await _ensureRingtoneAudioContext();
     _ringtonePlayer.setReleaseMode(ReleaseMode.loop);
     _ringtonePlayer.play(AssetSource('sound/hangouts_call.mp3'));
   }
