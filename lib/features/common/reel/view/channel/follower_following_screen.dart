@@ -2,6 +2,7 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import 'package:BlueEra/features/common/reel/controller/follower_controller.dart';
@@ -221,7 +222,10 @@ class _FollowersFollowingPageState extends State<FollowersFollowingPage>
                 ],
               ),
             ),
-            GestureDetector(
+            // Hide the follow/unfollow button when the entry is the logged-in
+            // user themselves — you can't follow/unfollow your own account.
+            if ((user?.id ?? "") != userId)
+              GestureDetector(
               onTap: () async {
                 if (isGuestUser()) {
                   createProfileScreen();
@@ -317,8 +321,10 @@ class _FollowersFollowingPageState extends State<FollowersFollowingPage>
     );
   }
 
+  // Whether the logged-in user currently follows this entry. Drives the
+  // Follow/Unfollow button state — based solely on isFollowing, NOT on the
+  // account type (a business you don't follow must still show "Follow").
   bool isValidation(FollowingFollower? user) {
-    return ((user?.isFollowing ?? false) ||
-        (user?.accountType?.toUpperCase() == AppConstants.business));
+    return user?.isFollowing ?? false;
   }
 }

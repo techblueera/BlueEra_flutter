@@ -36,10 +36,15 @@ class _BusinessProfileHeaderState extends State<BusinessProfileHeader> {
 
   @override
   void initState() {
-    // TODO: implement initState
-    controllerVisit.followerCount.value =
-        widget.businessProfileDetails.total_followers ?? 0;
     super.initState();
+    // Defer mutating the reactive value until after the current build frame.
+    // Setting an .obs value during initState triggers dependent Obx widgets to
+    // rebuild while the framework is still building, throwing
+    // "setState() or markNeedsBuild() called during build".
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controllerVisit.followerCount.value =
+          widget.businessProfileDetails.total_followers ?? 0;
+    });
   }
 
   bool isBusinessOpen(String open, String close) {

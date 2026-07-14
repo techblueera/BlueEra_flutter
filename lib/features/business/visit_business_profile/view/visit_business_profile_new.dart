@@ -51,7 +51,11 @@ class VisitBusinessProfileNew extends StatefulWidget {
 
 class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+  // Created lazily once the business data loads, because the number of tabs
+  // depends on the business type (Overview + Posts + optional
+  // Products/Service/Foods). A fixed length would mismatch TabBarView's
+  // children count and throw.
+  TabController? _tabController;
   final controller = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
   final controllerVisit = Get.put(VisitProfileController());
   final chatViewController = Get.isRegistered<ChatViewController>()
@@ -68,18 +72,26 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
   void initState() {
     super.initState();
     setFilters();
-    _tabController = TabController(length: 4, vsync: this);
-    _tabController.addListener(() {
-      setState(() {}); // Ensure your VisitPersonalProfileTabs updates
-    });
     visitProfileController = Get.put(VisitProfileController());
     controller.loadInitData(visitBusinessId: widget.businessId);
     // controller.getAllProductsApi({ApiKeys.limit: 0});
   }
 
+  // Ensure the TabController exists and matches the current number of tabs.
+  // Recreates it when the tab count changes so the controller's length always
+  // equals the TabBarView children count.
+  void _ensureTabController(int length) {
+    if (_tabController != null && _tabController!.length == length) return;
+    _tabController?.dispose();
+    _tabController = TabController(length: length, vsync: this);
+    _tabController!.addListener(() {
+      if (mounted) setState(() {}); // Ensure VisitPersonalProfileTabs updates
+    });
+  }
+
   @override
   void dispose() {
-    _tabController.dispose();
+    _tabController?.dispose();
     super.dispose();
   }
 
@@ -152,6 +164,10 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                   TabItem(id: 'Foods', title: AppStrings.food.tr),
               ];
 
+              // Keep the controller length in sync with the tab count before
+              // the TabBarView/tabs use it.
+              _ensureTabController(postTabs.length);
+
               return DefaultTabController(
                 length: postTabs.length,
                 child: NestedScrollView(
@@ -180,13 +196,13 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                             }
                           },
                           tabs: postTabs.map((e) => e.title).toList(),
-                          tabController: _tabController,
+                          tabController: _tabController!,
                         ),
                       ),
                     ),
                   ],
                   body: TabBarView(
-                    controller: _tabController,
+                    controller: _tabController!,
                     children: [
                       // overview tab
                       SingleChildScrollView(
