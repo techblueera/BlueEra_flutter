@@ -2563,7 +2563,10 @@ class AppNotificationHandler {
         );
         // Let the Connect tab + its chat list settle before opening the chat.
         await Future.delayed(const Duration(milliseconds: 350));
-        _openBlueEraChat(data);
+        // Awaited: on a cold start _openBlueEraChat polls for the chat list to
+        // load, so keep the socket-dispose guard held until it has actually
+        // opened the broadcast thread (or exhausted its retries).
+        await _openBlueEraChat(data);
         // The outgoing host's dispose() has run by now (it fires during the
         // transition above), so it's safe to drop the guard for the next
         // legitimate backgrounding-driven teardown.
@@ -2920,12 +2923,41 @@ class AppNotificationHandler {
   ///   2. The BlueEra account id carried on the push (`senderId`), via the same
   ///      `checkChatConnectionAndOpenChat` the list-row tap ultimately runs.
   ///   3. Fallback to the read-only notifications screen when neither exists.
-  static void _openBlueEraChat(Map<String, dynamic> data) {
+  static Future<void> _openBlueEraChat(Map<String, dynamic> data) async {
+    // Fast path: the BlueEra row is already in the loaded chat list (app was
+    // warm / list cached). Open it straight away.
     if (_openBlueEraChatFromList()) return;
 
+    // Cold start (killed-state tap): the personal chat list is fetched over the
+    // socket only after the handshake completes, so the BlueEra row is not yet
+    // present — this is why the broadcast chat previously failed to open and
+    // the tap fell through to a plain personal chat / the read-only screen.
+    // Make sure the socket is connecting (which requests the list) and poll for
+    // the row to appear before giving up. Opening it via the chat-list row is
+    // the only path that carries the conversationId + the literal "Admin" type
+    // that makes PersonalChatScreen render the broadcast thread with history.
+    final chatViewController = getOrPut(() => ChatViewController());
+    chatViewController.connectSocket();
+
+    const maxAttempts = 24; // ~6s total (24 × 250ms) to cover a slow handshake.
+    for (int attempt = 0; attempt < maxAttempts; attempt++) {
+      await Future.delayed(const Duration(milliseconds: 250));
+      if (_openBlueEraChatFromList()) return;
+    }
+
+    // The row still hasn't loaded after waiting. Fall back to the BlueEra
+    // account id carried on the push, opening it explicitly as an Admin
+    // (broadcast) thread so it still renders with BroadcastMessageCard rather
+    // than as a plain personal chat.
     final senderId = (data['senderId'] ?? data['sender_id'] ?? '').toString();
     if (senderId.isNotEmpty) {
-      _openChatWithUser(senderId);
+      final conversationId =
+          (data['conversationId'] ?? data['conversation_id'] ?? '').toString();
+      chatViewController.openChatFromChatList(
+        userId: senderId,
+        conversationId: conversationId,
+        type: AppStrings.Admin,
+      );
       return;
     }
 
