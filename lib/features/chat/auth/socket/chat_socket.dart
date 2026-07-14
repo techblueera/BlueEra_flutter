@@ -40,6 +40,15 @@ class ChatSocketService {
   /// otherwise be lost, leaving the thread empty until the user reopens it.
   void Function()? onConnected;
 
+  /// Re-binds CallController's call/webrtc listeners after a fresh socket is
+  /// built. disposeSocket() (ChatViewController teardown) wipes
+  /// `_registeredListeners`, so the replay in onConnect has nothing to replay
+  /// for call events — and CallController otherwise only re-registers on app
+  /// RESUME. Without this hook an incoming call (`call:incoming`) after a
+  /// mid-session socket rebuild is silently ignored: the rider's phone never
+  /// rings. Set once by CallController.onInit; survives controller lifetime.
+  void Function()? onCallListenersRebind;
+
   // ─── Connect ───────────────────────────────────────────────────────────────
 
   Future<void> connectToSocket() async {
@@ -111,6 +120,13 @@ class ChatSocketService {
           _registeredListeners.add(entry);
         }
         _pendingListeners.clear();
+
+        // Call listeners may have been wiped by disposeSocket() — the replay
+        // above can't restore what was cleared. Re-bind them so incoming
+        // calls ring again immediately, not only after the next app resume.
+        try {
+          onCallListenersRebind?.call();
+        } catch (_) {}
 
         _socket!.emit(ChatEmitEvents.screenRoom, {ApiKeys.conversation_id: "online"});
         _socket!.emit(ChatEmitEvents.isOnlineFromChatList, {});

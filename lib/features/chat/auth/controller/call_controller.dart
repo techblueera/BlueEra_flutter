@@ -321,6 +321,12 @@ class CallController extends GetxController {
     super.onInit();
     _socket = ChatSocketService();
     _setupCallSocketListeners();
+    // Re-bind call listeners on every socket (re)connect. disposeSocket()
+    // (chat screen teardown) wipes the socket service's stored listeners, and
+    // until now they were only restored on app RESUME — any incoming call in
+    // between was silently ignored (no ring). The hook fires inside
+    // onConnect, after the stored-listener replay.
+    _socket.onCallListenersRebind = ensureCallSocketListeners;
     _setupCallKitListeners();
     _setupVolumeKeyChannel();
     // Clear any stale ongoing-call record left behind by a previous session
