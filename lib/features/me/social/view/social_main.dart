@@ -63,14 +63,34 @@ class _SocialMainScreenState extends State<SocialMainScreen>
       length: 4,
       vsync: this,
     );
+    // Re-read the counts when the user settles on a new tab. Creating/deleting
+    // a post (and follow/unfollow) clears userCountsCache, so this cache-first
+    // call repopulates the stats row from the network when it was invalidated
+    // and is a cheap no-op otherwise.
+    _tabController?.addListener(_onTabSettled);
     _viewCtrl.UserFollowersAndPostsCount(userId);
     if (!Get.isRegistered<FeedController>()) {
       Get.put(FeedController());
     }
   }
 
+  void _onTabSettled() {
+    if (_tabController?.indexIsChanging ?? false) return;
+    _viewCtrl.UserFollowersAndPostsCount(userId);
+  }
+
+  // Opens the followers/following list and refreshes the counts on return.
+  // Following/unfollowing inside the list changes our own following count and
+  // invalidates userCountsCache, so force a refresh to reflect the new numbers
+  // here (and rewrite the local cache).
+  Future<void> _openFollowList(int tabIndex) async {
+    await Get.to(() => FollowersFollowingPage(tabIndex: tabIndex, userID: userId));
+    await _viewCtrl.UserFollowersAndPostsCount(userId, forceRefresh: true);
+  }
+
   @override
   void dispose() {
+    _tabController?.removeListener(_onTabSettled);
     _tabController?.dispose();
     super.dispose();
   }
@@ -187,21 +207,19 @@ class _SocialMainScreenState extends State<SocialMainScreen>
           ),
           child: Row(
             children: [
-              Expanded(child: _statItem("Posts", "$posts")),
+              Expanded(child: _statItem(AppStrings.posts.tr, "$posts")),
               _statDivider(),
               Expanded(
                 child: GestureDetector(
-                  onTap: () => Get.to(() => FollowersFollowingPage(
-                      tabIndex: 1, userID: userId)),
-                  child: _statItem("Followers", _formatCount(followers)),
+                  onTap: () => _openFollowList(1),
+                  child: _statItem(AppStrings.followers.tr, _formatCount(followers)),
                 ),
               ),
               _statDivider(),
               Expanded(
                 child: GestureDetector(
-                  onTap: () => Get.to(() => FollowersFollowingPage(
-                      tabIndex: 0, userID: userId)),
-                  child: _statItem("Following", _formatCount(following)),
+                  onTap: () => _openFollowList(0),
+                  child: _statItem(AppStrings.following.tr, _formatCount(following)),
                 ),
               ),
             ],

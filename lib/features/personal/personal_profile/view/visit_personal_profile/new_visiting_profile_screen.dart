@@ -71,6 +71,24 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
     super.dispose();
   }
 
+  // Opens the followers/following list and refreshes this profile on return.
+  // The list screen shares the same singleton VisitProfileController and its
+  // follow/unfollow actions mutate isFollow/followerCount, so we re-fetch the
+  // visited user to reflect the latest follow state and counts here.
+  Future<void> _openFollowList(int tabIndex) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => FollowersFollowingPage(
+          tabIndex: tabIndex,
+          userID: widget.authorId,
+        ),
+      ),
+    );
+    if (!mounted) return;
+    visitController.fetchUserById(userId: widget.authorId);
+  }
+
   void _onBack() {
     if (widget.isScreenName == AppConstants.deepLinkScreen) {
       Get.offAllNamed(
@@ -398,15 +416,7 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
                   ),
                   const SizedBox(width: 20),
                   GestureDetector(
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => FollowersFollowingPage(
-                          tabIndex: 0,
-                          userID: user?.id ?? "",
-                        ),
-                      ),
-                    ),
+                    onTap: () => _openFollowList(0),
                     child: _statItem(
                       count: visitController.userData.value?.followingCount
                               ?.toString() ??
@@ -416,15 +426,7 @@ class _NewVisitProfileScreenState extends State<NewVisitProfileScreen>
                   ),
                   const SizedBox(width: 20),
                   Obx(() => GestureDetector(
-                        onTap: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => FollowersFollowingPage(
-                              tabIndex: 1,
-                              userID: user?.id ?? "",
-                            ),
-                          ),
-                        ),
+                        onTap: () => _openFollowList(1),
                         child: _statItem(
                           count:
                               visitController.followerCount.value.toString(),
