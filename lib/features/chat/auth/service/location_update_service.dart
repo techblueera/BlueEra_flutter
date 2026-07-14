@@ -47,6 +47,33 @@ class LiveLocationService {
     SocketKeepAliveService.setRiderLiveHold(false);
   }
 
+  /// Publish a single live-location ping to the map-service provider
+  /// endpoint that feeds the customer's live-tracking SSE
+  /// (`/provider/live-stream/$riderId`).
+  ///
+  /// The ride screens (pickup navigation / passenger destination) stream the
+  /// rider's GPS locally for their own map but are not tied to the discovery
+  /// "go live" 30s timer above, so during an active ride nothing was pushed to
+  /// the server and the customer's map stayed frozen. Those screens call this
+  /// per (throttled) GPS tick so the customer's SSE receives fresh coordinates.
+  ///
+  /// Returns `true` when the server accepted the ping. [RideLocationPublisher]
+  /// relies on this so it can resend the last coordinate on failure.
+  Future<bool> publishLocation(double lat, double lng) async {
+    if (userId.isEmpty) return false;
+    try {
+      final response = await MakeOrderRepo().updateLiveLocationRep({
+        ApiKeys.userId: userId,
+        ApiKeys.lat: lat,
+        ApiKeys.lng: lng,
+      });
+      return response.isSuccess;
+    } catch (_) {
+      // Best-effort — a dropped ping is corrected by the next heartbeat/tick.
+      return false;
+    }
+  }
+
   Future<void> _updateLocation() async {
     // Belt-and-braces: if userId was cleared between ticks (logout
     // racing the periodic callback), bail and stop so the timer

@@ -595,3 +595,7 @@ Future<void> requestRefund(String depositId) async {
 - Webhook is authoritative; `/verify-payment` is your instant-feedback path. Never
   mark a deposit "paid" purely on the client — always confirm via verify-payment
   (or re-fetch `current`).
+
+> **Rider "first ride free" deposit waiver** (the `freeRideUsed` flag on the
+> rider onboarding-status response) is documented in
+> `RIDER_AUTO_GOLIVE_AND_FREE_FIRST_RIDE_GUIDE.md` (Part 2).

@@ -14,6 +14,7 @@ import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../../common/delivery_partner/controller/delivery_partner_orders_controller.dart';
+import '../../../auth/service/ride_location_publisher.dart';
 import '../../../auth/controller/call_controller.dart';
 import '../../../auth/model/rider_orders_details_model.dart';
 import 'ride_navigation_overlay_controller.dart';
@@ -94,6 +95,11 @@ class _RiderPickupNavigationScreenState
     WidgetsBinding.instance.addObserver(this);
     _setupMarkers();
     _fetchRoute();
+    // Publish the rider's live position to the customer's tracking stream while
+    // heading to pickup (heartbeat + retry handled by the publisher).
+    RideLocationPublisher().start();
+    RideLocationPublisher()
+        .updatePosition(_riderLatLng.latitude, _riderLatLng.longitude);
     _startLocationTracking();
     // Hide floating overlay after first frame to avoid setState during build
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -117,6 +123,7 @@ class _RiderPickupNavigationScreenState
     if (Platform.isAndroid) {
       PipService.updatePipStatus(false);
     }
+    RideLocationPublisher().stop();
     _locationSubscription?.cancel();
     _mapController?.dispose();
     for (final c in _otpControllers) {
@@ -181,6 +188,10 @@ class _RiderPickupNavigationScreenState
           ),
         );
       });
+      // Push the position to the map-service so the customer's live-tracking
+      // map follows the rider on the way to pickup. Throttling/heartbeat/retry
+      // live in the publisher.
+      RideLocationPublisher().updatePosition(newPos.latitude, newPos.longitude);
       // Gently follow the rider.
       _mapController?.animateCamera(CameraUpdate.newLatLng(newPos));
     });

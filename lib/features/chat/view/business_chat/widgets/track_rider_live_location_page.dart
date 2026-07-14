@@ -10,7 +10,7 @@ import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../../../environment_config.dart';
-import '../../../auth/controller/live_trach_rider_controller.dart';
+import '../../../../common/Discover/controller/rider_location_poll_controller.dart';
 import '../../call_screen/rider_call/ride_navigation_overlay_controller.dart';
 
 class TrackRiderLiveLocationPage extends StatefulWidget {
@@ -33,16 +33,29 @@ class TrackRiderLiveLocationPage extends StatefulWidget {
 
 class _TrackRiderLiveLocationPageState
     extends State<TrackRiderLiveLocationPage> {
-  final orderController = Get.put(LiveTrachRiderController());
+  final orderController = Get.put(RiderLocationPollController());
 
   @override
   void initState() {
-    orderController.fetchStream(widget.riderId);
-    // Listen for ride completion — when rider location stream ends or
-    // coordinates stop updating, the stream's onDone will fire.
-    // Additionally, watch for the stream closing which indicates ride completion.
+    // Poll the rider's live location on the order (10s). Keyed on orderId; the
+    // launcher/overlay now forward it. Falls back to empty (no poll) if absent.
+    orderController.startPolling(widget.orderId ?? '');
+    // rideCompleted flips when the poll returns rideActive:false.
     _listenForCompletion();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    // Stop the 10s poll and release the controller (the old SSE version leaked
+    // it — the timer would otherwise keep hitting the server after this page
+    // is gone). Minimise-to-overlay shows last-known position; re-opening
+    // restarts the poll.
+    orderController.stopPolling();
+    if (Get.isRegistered<RiderLocationPollController>()) {
+      Get.delete<RiderLocationPollController>();
+    }
+    super.dispose();
   }
 
   void _listenForCompletion() {
@@ -145,7 +158,7 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
   Marker? endMarker;
   Set<Polyline> _polylines = {};
   Circle? liveLocationCircle;
-  final riderController = Get.find<LiveTrachRiderController>();
+  final riderController = Get.find<RiderLocationPollController>();
 
   StreamSubscription<Position>? positionStream;
   LatLng? currentPosition;
@@ -379,9 +392,13 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
     );
   }
   double _calculateTotalDistance() {
-    double total = 0;
+    // Prefer the server's authoritative drop distance from the poll; fall back
+    // to a local straight-line calc until it arrives (both are haversine).
+    final serverKm = riderController.distanceToDropKm.value;
+    if (serverKm != null) return serverKm;
+
     // Calculate distance from rider to end point using Geolocator math
-    total = Geolocator.distanceBetween(
+    final total = Geolocator.distanceBetween(
       riderController.liveLat.value,
       riderController.liveLng.value,
       widget.endLat,

@@ -41,7 +41,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../chat/auth/controller/call_controller.dart';
 import '../../../chat/auth/repo/make_order_repo.dart';
 import '../../../chat/auth/socket/chat_socket.dart';
-import '../../../chat/auth/controller/live_trach_rider_controller.dart';
+import 'rider_location_poll_controller.dart';
 import '../../../chat/view/call_screen/rider_call/ride_navigation_overlay_controller.dart';
 
 enum CategoryFilter {
@@ -2078,9 +2078,9 @@ class DiscoverController extends GetxController {
     fareCallRideCompletedData.value = null;
     stopRideStartedFallbackPoll();
 
-    // Clean up live tracking controller if registered
-    if (Get.isRegistered<LiveTrachRiderController>()) {
-      Get.delete<LiveTrachRiderController>();
+    // Clean up live tracking (location poll) controller if registered
+    if (Get.isRegistered<RiderLocationPollController>()) {
+      Get.delete<RiderLocationPollController>();
     }
 
     // Clean up ride overlay if registered

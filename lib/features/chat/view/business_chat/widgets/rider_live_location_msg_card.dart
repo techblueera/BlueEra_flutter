@@ -204,6 +204,10 @@ class _RiderLiveLocationMsgCardState extends State<RiderLiveLocationMsgCard> {
                               if (value) {
                                 Get.to(() => TrackRiderLiveLocationPage(
                                       riderId: rider?.userId ?? '',
+                                      // orderId drives the 10s location poll on
+                                      // the tracking page (keyed on the order).
+                                      orderId:
+                                          "${widget.message.metadata?.order?.id}",
                                       dropLat: widget
                                               .message
                                               .metadata

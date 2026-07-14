@@ -28,6 +28,7 @@ import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_h
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_orders_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/model/rider_onboarding_status.dart';
+import 'package:BlueEra/features/common/delivery_partner/service/rider_auto_golive_scheduler.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/delivery_partner_orders/delivery_partner_orders.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_profile_status_screen.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
@@ -130,6 +131,10 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     _tabController = TabController(length: 5, vsync: this);
     registerMeTabBackHandler(_tabController);
     _checkRiderStatus();
+    // Resume the best-effort daily auto go-live scheduler if the rider opted in
+    // on a previous session (10:00–12:00 auto open/close while the app is open;
+    // backend cron is authoritative — see the scheduler doc).
+    RiderAutoGoLiveScheduler().ensureStartedIfEnabled();
     // Pre-select the rider's saved service preference as soon as the
     // onboarding status loads (and hydrate immediately if it's already there).
     _hydratePreference(controller.riderOnboardingStatusData.value);
@@ -2087,6 +2092,9 @@ Future<void> handleGoLiveTap() async {
   // Already online → allow toggling offline without re-checking.
   if (_viewCtrl.shopStatusOpenClose.value) {
     _viewCtrl.toggleShopStatus();
+    // If they manually go offline inside the auto window, don't let the
+    // scheduler re-open them for the rest of today.
+    RiderAutoGoLiveScheduler().noteManualOffDuringWindow();
     return;
   }
 
@@ -2103,13 +2111,22 @@ Future<void> handleGoLiveTap() async {
   // After document verification, the security deposit must be paid before
   // going online. This gate applies only to bike riders / cab drivers (the
   // professions that pay a deposit); other roles skip it.
+  //
+  // FIRST RIDE FREE: the deposit is WAIVED until the rider completes their
+  // first ride (backend `freeRideUsed == false`). Once that free ride is used,
+  // the deposit is enforced on every subsequent go-live. Absent flag → not
+  // free → deposit enforced (safe default).
   final isRiderRole = userProfessionGlobal == BIKE_RIDER ||
       userProfessionGlobal == CAR_TAXI_DRIVER;
+  final depositBlocked = isRiderRole &&
+      !riderCtrl.isSecurityDepositPaid &&
+      !riderCtrl.isFirstRideFree;
   log('GoLive deposit gate → profession=$userProfessionGlobal'
       ' isRiderRole=$isRiderRole'
       ' isSecurityDepositPaid=${riderCtrl.isSecurityDepositPaid}'
-      ' blocked=${isRiderRole && !riderCtrl.isSecurityDepositPaid}');
-  if (isRiderRole && !riderCtrl.isSecurityDepositPaid) {
+      ' isFirstRideFree=${riderCtrl.isFirstRideFree}'
+      ' blocked=$depositBlocked');
+  if (depositBlocked) {
     commonSnackBar(
         message:
             'Your payment is incomplete. Please complete the payment process to go live.');
@@ -2127,11 +2144,15 @@ Future<void> handleGoLiveTap() async {
   // permission screen forever on Android 13+/16.
   if (await GoLivePermissionService.areRequiredGranted()) {
     _viewCtrl.toggleShopStatus();
+    // First successful manual go-live opts the rider into the daily 10–12
+    // auto window from tomorrow on.
+    RiderAutoGoLiveScheduler().enableAfterManualGoLive();
     return;
   }
   final granted = await Get.to(() => const GoLivePermissionScreen());
   if (granted == true) {
     _viewCtrl.toggleShopStatus();
+    RiderAutoGoLiveScheduler().enableAfterManualGoLive();
   }
 }
 
