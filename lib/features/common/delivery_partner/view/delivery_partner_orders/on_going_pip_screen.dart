@@ -1,9 +1,10 @@
 
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
+import 'package:get/get.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/getx_utils.dart';
+import '../../../../../core/routes/route_helper.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../../chat/auth/model/rider_orders_details_model.dart';
 import '../../../../chat/view/call_screen/rider_call/rider_pickup_navigation_screen.dart';
@@ -82,6 +83,19 @@ void enablePip()async{
 
   /// Navigate to the appropriate screen based on OTP verification status
   void _navigateToFareCallOrder(RiderOrdersDetailsModel order) {
+    // Same order-type gate the call-accept flow uses (there via the fare-call
+    // payload's jobType/orderFor; here via the model's own jobInfo). Goods/shop
+    // orders (grocery / food / medical) are handled entirely by the in-list
+    // order card — per-shop pickup OTP + customer delivery OTP — and have no
+    // passenger pickup/OTP/map leg. So route the rider to the orders dashboard
+    // where the card takes over instead of the passenger navigation screens.
+    // Only passenger rides & parcels use RiderPickupNavigationScreen /
+    // PassengerDestinationScreen.
+    if (order.jobInfo?.isGoods ?? false) {
+      Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
+      return;
+    }
+
     final pickupLat = order.pickupLocation?.location?.coordinates != null &&
             order.pickupLocation!.location!.coordinates!.length >= 2
         ? order.pickupLocation!.location!.coordinates![1].toDouble()
