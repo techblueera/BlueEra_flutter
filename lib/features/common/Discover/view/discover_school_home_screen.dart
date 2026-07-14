@@ -34,7 +34,8 @@ class DiscoverSchoolHomeScreen extends StatefulWidget {
   const DiscoverSchoolHomeScreen({super.key});
 
   @override
-  State<DiscoverSchoolHomeScreen> createState() => _DiscoverSchoolHomeScreenState();
+  State<DiscoverSchoolHomeScreen> createState() =>
+      _DiscoverSchoolHomeScreenState();
 }
 
 class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
@@ -87,19 +88,23 @@ class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
                     /// HEADER with rating, type, establishment
                     _SchoolHeader(controller: schoolAboutUsController),
 
-                    SizedBox(height: SizeConfig.paddingXS),
+                    SizedBox(height: SizeConfig.size10),
 
                     /// DIRECTOR / PRINCIPAL MESSAGE
                     DirectorCard(
                       schoolAboutUsController: schoolAboutUsController,
                     ),
 
-                    SizedBox(height: SizeConfig.paddingXS),
+                    // SizedBox(height: SizeConfig.size10),
 
                     /// MANAGEMENT
                     _ManagementSection(data: data),
 
-                    SizedBox(height: SizeConfig.paddingXS),
+                    // No extra SizedBox here: both sections wrap in
+                    // `CommonCardWidget`, which already applies a default
+                    // 10px margin on every side. The former spacer stacked
+                    // on top of those two margins, producing a ~30px gap
+                    // between the cards instead of the intended ~10px.
 
                     /// COURSES
                     _CoursesSection(data: data),
@@ -109,34 +114,38 @@ class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
                     /// CAMPUS GALLERY (social-style grid)
                     _GallerySection(data: data),
 
-                    SizedBox(height: SizeConfig.paddingXS),
+                    SizedBox(height: SizeConfig.size10),
 
                     /// QUICK LINKS (Job Vacancy, Academics, Student Corner, Notices)
                     _QuickLinksSection(),
 
-                    SizedBox(height: SizeConfig.paddingXS),
+                    SizedBox(height: SizeConfig.size10),
 
                     /// REVIEWS (placeholder)
                     _ReviewsSection(),
 
-                    SizedBox(height: SizeConfig.paddingXS),
+                    SizedBox(height: SizeConfig.size10),
 
                     /// CONTACT US (clickable phone, email, website)
                     _ContactUsSection(data: data),
 
-                    SizedBox(height: SizeConfig.paddingXS),
+                    SizedBox(height: SizeConfig.size10),
 
                     /// WEBSITE PREVIEW
-                    WebsitePreviewCard(
-                      url: data?.contacts?.firstOrNull?.branch?.website ?? '',
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      child: WebsitePreviewCard(
+                        url: data?.contacts?.firstOrNull?.branch?.website ?? '',
+                      ),
                     ),
 
-                    SizedBox(height: SizeConfig.paddingXS),
+                    SizedBox(height: SizeConfig.size10),
 
                     /// LOCATION MAP
                     _LocationSection(data: data),
 
-                    SizedBox(height: kBottomNavigationBarHeight + SizeConfig.size50),
+                    SizedBox(
+                        height: kBottomNavigationBarHeight + SizeConfig.size50),
                   ],
                 ),
               ),
@@ -234,7 +243,9 @@ class _SchoolHeader extends StatelessWidget {
     final address = data?.location?.name?.trim() ?? '';
     // Show the real rating from the API when it exists; otherwise mark as New.
     final rating = data?.avgRating;
-    final ratingLabel = (rating != null && rating > 0) ? rating.toStringAsFixed(1) : AppStrings.newLabel.tr;
+    final ratingLabel = (rating != null && rating > 0)
+        ? rating.toStringAsFixed(1)
+        : AppStrings.newLabel.tr;
 
     return CommonCardWidget(
       cardMargin: 0,
@@ -264,7 +275,8 @@ class _SchoolHeader extends StatelessWidget {
                         ? CachedNetworkImage(
                             imageUrl: bannerUrl,
                             fit: BoxFit.cover,
-                            errorWidget: (_, __, ___) => const SizedBox.shrink(),
+                            errorWidget: (_, __, ___) =>
+                                const SizedBox.shrink(),
                           )
                         : null,
                   ),
@@ -280,7 +292,9 @@ class _SchoolHeader extends StatelessWidget {
                       color: Colors.white,
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 3),
-                      boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 8)],
+                      boxShadow: const [
+                        BoxShadow(color: Colors.black12, blurRadius: 8)
+                      ],
                     ),
                     child: ClipOval(
                       child: logoUrl.isNotEmpty
@@ -324,7 +338,9 @@ class _SchoolHeader extends StatelessWidget {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.location_on, size: SizeConfig.size14, color: AppColors.primaryColor),
+                      Icon(Icons.location_on,
+                          size: SizeConfig.size14,
+                          color: AppColors.primaryColor),
                       SizedBox(width: SizeConfig.size4),
                       Expanded(
                         child: CustomText(
@@ -631,8 +647,8 @@ class _ContactUsSection extends StatelessWidget {
           fontWeight: FontWeight.w600,
           fontSize: SizeConfig.size14,
         ),
-        childrenPadding:
-            EdgeInsets.symmetric(horizontal: SizeConfig.paddingS, vertical: SizeConfig.paddingXS),
+        childrenPadding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.paddingS, vertical: SizeConfig.paddingXS),
         children: [
           // Website
           if ((contact.branch?.website ?? '').isNotEmpty)
@@ -665,7 +681,8 @@ class _ContactUsSection extends StatelessWidget {
                   ),
                 Padding(
                   padding: EdgeInsets.symmetric(vertical: SizeConfig.paddingXS),
-                  child: Divider(height: 1, thickness: 0.5, color: Colors.grey.shade300),
+                  child: Divider(
+                      height: 1, thickness: 0.5, color: Colors.grey.shade300),
                 ),
               ],
             );
@@ -675,7 +692,8 @@ class _ContactUsSection extends StatelessWidget {
     );
   }
 
-  Widget _contactRow(String icon, String text, {bool isLink = false, VoidCallback? onTap}) {
+  Widget _contactRow(String icon, String text,
+      {bool isLink = false, VoidCallback? onTap}) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: SizeConfig.size4),
       child: InkWell(
@@ -684,7 +702,8 @@ class _ContactUsSection extends StatelessWidget {
           children: [
             LocalAssets(
               imagePath: icon,
-              imgColor: isLink ? AppColors.primaryColor : AppColors.mainTextColor,
+              imgColor:
+                  isLink ? AppColors.primaryColor : AppColors.mainTextColor,
               height: 20,
               width: 20,
             ),
@@ -693,8 +712,11 @@ class _ContactUsSection extends StatelessWidget {
               child: CustomText(
                 text,
                 fontSize: SizeConfig.size13,
-                color: isLink ? AppColors.primaryColor : AppColors.secondaryTextColor,
-                decoration: isLink ? TextDecoration.underline : TextDecoration.none,
+                color: isLink
+                    ? AppColors.primaryColor
+                    : AppColors.secondaryTextColor,
+                decoration:
+                    isLink ? TextDecoration.underline : TextDecoration.none,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -730,7 +752,10 @@ class _LocationSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final coords = data?.location?.coordinates;
-    if (coords == null || coords.length < 2 || coords[0] == 0.0 || coords[1] == 0.0) {
+    if (coords == null ||
+        coords.length < 2 ||
+        coords[0] == 0.0 ||
+        coords[1] == 0.0) {
       return const SizedBox.shrink();
     }
 
