@@ -79,9 +79,17 @@ class _NotificationScreenState extends State<NotificationScreen> {
           (data['data'] as List).map((e) => NotificationDataList.fromJson(e)),
         );
 
+        // Chat text/broadcast messages are intentionally excluded from this
+        // list — they belong to the Chat section and open the respective
+        // person's chat there. Call notifications (incoming/missed/cancelled)
+        // still surface here even though they share the "chat" type.
+        final List<NotificationDataList> visibleData = fetchedData
+            .where((n) => !_isChatMessageNotification(n))
+            .toList();
+
         setState(() {
-          allNotifications = fetchedData;
-          filteredNotifications = fetchedData;
+          allNotifications = visibleData;
+          filteredNotifications = visibleData;
         });
       } else {
         print("API failed with status: ${response.statusCode}");
@@ -481,6 +489,13 @@ class _NotificationScreenState extends State<NotificationScreen> {
   bool _isCallNotification(NotificationDataList data) {
     const callTypes = {"incoming_call", "missed_call", "call_cancelled"};
     return callTypes.contains(data.type);
+  }
+
+  // A chat message notification (personal / group / broadcast) that should be
+  // hidden from this list. Calls share the "chat" notification_type but are
+  // not messages, so they are excluded from the hide rule.
+  bool _isChatMessageNotification(NotificationDataList data) {
+    return data.notification_type == "chat" && !_isCallNotification(data);
   }
 
   void redirectToChat(NotificationDataList data) {
