@@ -645,11 +645,18 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
             Icon(Icons.storefront_outlined,
                 size: SizeConfig.size14, color: AppColors.primaryColor),
             SizedBox(width: SizeConfig.size6),
-            CustomText(
-              'Arrived at shop',
-              fontSize: SizeConfig.small,
-              fontWeight: FontWeight.w600,
-              color: AppColors.primaryColor,
+            // Flexible + ellipsis so the label shrinks instead of overflowing
+            // when the shop-stop column is narrow (e.g. a long shop name pushes
+            // the action icons and squeezes this row).
+            Flexible(
+              child: CustomText(
+                'Arrived at shop',
+                fontSize: SizeConfig.small,
+                fontWeight: FontWeight.w600,
+                color: AppColors.primaryColor,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),

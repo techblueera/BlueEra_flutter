@@ -175,7 +175,46 @@ class CallController extends GetxController {
   final AudioPlayer _outgoingRingbackPlayer = AudioPlayer();
 
   /// Start the incoming-call ringtone (loops until stopped).
-  void startRingtone() {
+  // Route the in-app ringtone to the RINGTONE stream. audioplayers defaults
+  // to the MEDIA stream, so with media volume at zero the incoming-call ring
+  // was silent even though the phone's ringer volume was up.
+  bool _ringtoneContextSet = false;
+
+  Future<void> _ensureRingtoneAudioContext() async {
+    if (_ringtoneContextSet) return;
+    _ringtoneContextSet = true;
+    try {
+      await _ringtonePlayer.setAudioContext(AudioContext(
+        android: AudioContextAndroid(
+          contentType: AndroidContentType.sonification,
+          usageType: AndroidUsageType.notificationRingtone,
+          audioFocus: AndroidAudioFocus.gainTransient,
+          stayAwake: true,
+        ),
+        iOS: AudioContextIOS(
+          category: AVAudioSessionCategory.playback,
+          options: const {AVAudioSessionOptions.mixWithOthers},
+        ),
+      ));
+    } catch (e) {
+      // Non-fatal — worst case the ring plays on the media stream as before.
+      print('[CALL_DEBUG] ringtone AudioContext setup failed: $e');
+    }
+  }
+
+  void startRingtone() async {
+    // Native ringer first (Android): plays on the RING stream so it follows
+    // the phone's ringer volume and silent/vibrate modes, loops, and VIBRATES
+    // — none of which the audioplayers path did (it rode the MEDIA stream:
+    // silent whenever media volume was down, and never vibrated).
+    try {
+      await DefaultRingtone.play();
+      return;
+    } catch (e) {
+      // iOS / engines without the channel — fall back to the in-app player.
+      print('[CALL_DEBUG] native ringtone unavailable, falling back: $e');
+    }
+    await _ensureRingtoneAudioContext();
     _ringtonePlayer.setReleaseMode(ReleaseMode.loop);
     _ringtonePlayer.play(AssetSource('sound/hangouts_call.mp3'));
   }
@@ -321,6 +360,12 @@ class CallController extends GetxController {
     super.onInit();
     _socket = ChatSocketService();
     _setupCallSocketListeners();
+    // Re-bind call listeners on every socket (re)connect. disposeSocket()
+    // (chat screen teardown) wipes the socket service's stored listeners, and
+    // until now they were only restored on app RESUME — any incoming call in
+    // between was silently ignored (no ring). The hook fires inside
+    // onConnect, after the stored-listener replay.
+    _socket.onCallListenersRebind = ensureCallSocketListeners;
     _setupCallKitListeners();
     _setupVolumeKeyChannel();
     // Clear any stale ongoing-call record left behind by a previous session
@@ -763,6 +808,12 @@ class CallController extends GetxController {
       print('[CALL_DEBUG] acceptCall → SKIPPED (already ${callStatus.value})');
       return false;
     }
+    // Re-bind call socket listeners in case ChatViewController.disposeSocket()
+    // wiped them since the last app resume — without this the accepter never
+    // hears call:offer / call:answer / call:ice-candidate and the call sits on
+    // "Connecting" until the 30s timeout. Idempotent.
+    ensureCallSocketListeners();
+
     // Immediately transition to accepting so call:answered-elsewhere
     // won't reset our state while we're in the middle of accepting
     final savedCallId = (callIdParams == null||callIdParams.isEmpty) ? callId.value : callIdParams;
@@ -1343,7 +1394,10 @@ class CallController extends GetxController {
       if (metadata is Map && metadata['orderType'] == 'fare-call') {
         print('[FARE_CALL] _handleCallAccepted → idle + fare-call metadata, bootstrapping call state');
         final acceptedCallId = (data['call_id'] ?? '').toString();
-        final acceptedRoomId = (data['room_Id'] ?? '').toString();
+        // Backend sends snake_case `room_id`; keep the old `room_Id` read as a
+        // fallback (this branch previously never fired because of that typo).
+        final acceptedRoomId =
+            (data['room_id'] ?? data['room_Id'] ?? '').toString();
         final acceptedBy = (data['accepted_by'] ?? '').toString();
         if (acceptedCallId.isNotEmpty && acceptedRoomId.isNotEmpty && acceptedBy.isNotEmpty) {
           // Also set fareCallCurrentRiderId on DiscoverController so the
@@ -1829,6 +1883,22 @@ class CallController extends GetxController {
       _pendingOffer = data['sdp'];
       print('[CALL_DEBUG] _handleRemoteOffer → stored as pendingOffer (still ${callStatus.value})');
       return;
+    }
+
+    // Fare-call customer still `outgoing`: the rider's offer arriving IS the
+    // acceptance — the rider only offers after its /call/accept succeeded.
+    // Normally call:accepted flips us to connecting first, but that event can
+    // be missed (listener re-bind race, event ordering). Dropping the offer
+    // here deadlocked the call: rider retried 3×, customer ignored all of
+    // them, ring timer expired at 30s. Treat it as the accept instead.
+    if (isFareCall.value && callStatus.value == CallStatus.outgoing) {
+      print('[FARE_CALL] _handleRemoteOffer → offer while outgoing: treating as implicit call:accepted');
+      _ringTimer?.cancel();
+      stopOutgoingRingback();
+      callStatus.value = CallStatus.connecting;
+      // Fall through to normal offer processing below (sets remote
+      // description and answers). _handleCallAccepted arriving later is a
+      // no-op — its `!= outgoing` guard skips it.
     }
 
     // Only process if we're in connecting/connected state
@@ -3093,6 +3163,14 @@ class CallController extends GetxController {
     required List<dynamic> iceServers,
   }) async {
     print('[FARE_CALL] joinFareCallAsCustomer → callId=$fareCallId, roomId=$fareRoomId, riderId=$riderId');
+
+    // Call socket listeners can be wiped mid-session by
+    // ChatViewController.disposeSocket() (chat screen teardown) and are only
+    // re-bound on app RESUME (AppLifecycleHandler). If that happened since the
+    // last resume, this call's `call:accepted` / `call:offer` events would be
+    // silently ignored — the customer joins the room, never reacts, and the
+    // ring timer expires. Re-bind now; idempotent.
+    ensureCallSocketListeners();
 
     // Same room, already set up — skip
     if (roomId.value == fareRoomId && callStatus.value != CallStatus.idle) {

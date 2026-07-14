@@ -29,6 +29,15 @@ class AppLifecycleHandler extends WidgetsBindingObserver {
       // Reconnect chat socket if it was disconnected (e.g. after returning from CallActivity)
       _reconnectChatSocketIfNeeded();
 
+      // Consume a pending Accept/Decline from the native call notification.
+      // CallActionReceiver stashes the action and launches the app; when the
+      // app was merely BACKGROUNDED (not killed) main() never re-runs, so the
+      // cold-start consumer never fires — the app just opened on top of a
+      // still-ringing call and nothing happened. Consuming here also prevents
+      // the stale action from replaying on the NEXT cold start and hitting a
+      // long-dead call ("call no longer available").
+      _consumePendingNativeCallAction();
+
       // Re-sync FCM token on resume — Google may rotate the token while the
       // app is backgrounded, and onTokenRefresh doesn't fire on a cold
       // foreground. Without this the backend keeps routing pushes to a dead
@@ -50,6 +59,48 @@ class AppLifecycleHandler extends WidgetsBindingObserver {
         log("Permission granted after returning from settings.");
         await LocationService.fetchLocation();
       }
+    }
+  }
+
+  /// Warm-resume twin of main()'s cold-start pending-action consumer: run the
+  /// Accept/Decline the user tapped on the native call notification while the
+  /// app was backgrounded-but-alive.
+  Future<void> _consumePendingNativeCallAction() async {
+    try {
+      final nativeAction = await readAndClearPendingNativeCallAction();
+      if (nativeAction == null) return;
+
+      final action = (nativeAction['action'] ?? '').toString();
+      final callId = (nativeAction['callId'] ?? '').toString();
+      final roomId = (nativeAction['roomId'] ?? '').toString();
+      final isVideo = (nativeAction['callType'] ?? '') == 'video_call';
+      if (callId.isEmpty) return;
+
+      final pending = await readAndClearPendingIncomingCallExtras();
+      final callController = Get.isRegistered<CallController>()
+          ? Get.find<CallController>()
+          : Get.put(CallController(), permanent: true);
+
+      if (action == 'accept') {
+        log('[RESUME_CALL] native notification accept → callId=$callId');
+        // Seed caller name/image/context from the stashed extras when the
+        // controller has no live state for this call (e.g. listeners were
+        // down when call:incoming fired) — without this the call screen
+        // shows "Unknown".
+        if (pending != null && callController.callId.value != callId) {
+          callController.initStateFromCallKitExtra(pending);
+        }
+        await callController.acceptCall(
+          callIdParams: callId,
+          roomIdParams: roomId,
+          isVideoCall: isVideo,
+        );
+      } else if (action == 'decline') {
+        log('[RESUME_CALL] native notification decline → callId=$callId');
+        callController.declineCall();
+      }
+    } catch (e) {
+      log('[RESUME_CALL] pending native action consume error: $e');
     }
   }
 

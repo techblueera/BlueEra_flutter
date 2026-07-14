@@ -23,9 +23,13 @@ import androidx.annotation.NonNull
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import android.media.AudioAttributes
+import android.media.AudioManager
 import android.media.Ringtone
 import android.media.RingtoneManager
 import android.net.Uri
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.view.WindowManager
 import java.net.URL
 import kotlinx.coroutines.CoroutineScope
@@ -328,20 +332,13 @@ class MainActivity: FlutterActivity() {
     }
 
     // ------------------------------
-    // PLAY DEFAULT SYSTEM RINGTONE
+    // PLAY / STOP INCOMING-CALL RINGTONE — delegates to the process-wide
+    // CallRinger singleton so a ring started here can be stopped from the
+    // CallActivity engine or CallActionReceiver (and vice versa).
     // ------------------------------
-    private fun playDefaultRingtone() {
-        val uri: Uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
-        ringtone = RingtoneManager.getRingtone(applicationContext, uri)
-        ringtone?.play()
-    }
+    private fun playDefaultRingtone() = CallRinger.play(applicationContext)
 
-    // ------------------------------
-    // STOP RINGTONE
-    // ------------------------------
-    private fun stopDefaultRingtone() {
-        ringtone?.stop()
-    }
+    private fun stopDefaultRingtone() = CallRinger.stop(applicationContext)
 
     // ------------------------------
     // CREATE CHAT SHORTCUT

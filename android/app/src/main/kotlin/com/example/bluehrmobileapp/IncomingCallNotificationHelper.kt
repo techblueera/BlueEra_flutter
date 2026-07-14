@@ -18,8 +18,15 @@ import androidx.core.app.NotificationCompat
  */
 object IncomingCallNotificationHelper {
 
-    private const val CHANNEL_ID = "incoming_calls_custom"
+    // v2: fresh channel id. Android RESURRECTS a deleted channel's previous
+    // settings when the same id is recreated — the old delete/recreate trick
+    // never actually applied the ringtone on devices whose channel was first
+    // created without it. A new id is the only way to guarantee the sound.
+    private const val CHANNEL_ID = "incoming_calls_custom_v2"
     private const val CHANNEL_NAME = "Incoming Calls"
+    // Stale channel ids from earlier builds — removed once at startup so the
+    // user's channel list doesn't show dead duplicates.
+    private val LEGACY_CHANNEL_IDS = arrayOf("incoming_calls_custom")
 
     fun show(context: Context, args: Map<String, Any?>) {
         val callId = args["callId"]?.toString() ?: ""
@@ -117,10 +124,12 @@ object IncomingCallNotificationHelper {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-            // Delete old channel so the updated sound takes effect.
-            // Android caches channel settings after creation — the only way
-            // to change the sound is to delete and recreate.
-            manager.deleteNotificationChannel(CHANNEL_ID)
+            // Drop stale channels from earlier builds. Never delete/recreate
+            // the CURRENT id — recreation resurrects the previous settings,
+            // so it cannot be used to change the sound.
+            for (legacyId in LEGACY_CHANNEL_IDS) {
+                manager.deleteNotificationChannel(legacyId)
+            }
 
             val soundUri = Uri.parse("android.resource://${context.packageName}/${R.raw.hangouts_call}")
             val audioAttr = AudioAttributes.Builder()

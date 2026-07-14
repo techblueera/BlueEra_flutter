@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -373,6 +374,27 @@ class _CallActivityRoomScreenState extends State<CallActivityRoomScreen>
     _riderFareCallSnapshotTaken = false; // one-shot
 
     final ride = _riderFareCallRideDetails;
+
+    // Goods/shop pickups (grocery / food / medical / generic goods) are handled
+    // entirely by the in-list order card (MultiShopOrderCard / OrderCard) — the
+    // rider reads out each shop's pickup OTP and enters the customer delivery
+    // OTP there. They have no passenger pickup/OTP/PiP leg, so skip the pickup
+    // navigation screen and drop the rider onto the orders dashboard where the
+    // card takes over. Only passenger rides & parcels use the pickup screen.
+    final rawJobType = (ride?['jobType'] ?? '').toString().toLowerCase();
+    final rawOrderFor = (ride?['orderFor'] ?? '').toString().toLowerCase();
+    final isGoodsOrder = rawJobType.isNotEmpty
+        ? rawJobType == 'goods'
+        : const {'grocery', 'food', 'medical', 'goods', 'product'}
+            .contains(rawOrderFor);
+    if (isGoodsOrder) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        Get.offNamed(RouteHelper.getRiderServiceScreenRoute());
+      });
+      return;
+    }
+
     final pickup = ride?['pickup'] is Map ? ride!['pickup'] as Map : const {};
     final drop = ride?['drop'] is Map ? ride!['drop'] as Map : const {};
     final orderId = _riderFareCallOrderMongoId.isNotEmpty
