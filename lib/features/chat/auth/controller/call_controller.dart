@@ -203,6 +203,17 @@ class CallController extends GetxController {
   }
 
   void startRingtone() async {
+    // Native ringer first (Android): plays on the RING stream so it follows
+    // the phone's ringer volume and silent/vibrate modes, loops, and VIBRATES
+    // — none of which the audioplayers path did (it rode the MEDIA stream:
+    // silent whenever media volume was down, and never vibrated).
+    try {
+      await DefaultRingtone.play();
+      return;
+    } catch (e) {
+      // iOS / engines without the channel — fall back to the in-app player.
+      print('[CALL_DEBUG] native ringtone unavailable, falling back: $e');
+    }
     await _ensureRingtoneAudioContext();
     _ringtonePlayer.setReleaseMode(ReleaseMode.loop);
     _ringtonePlayer.play(AssetSource('sound/hangouts_call.mp3'));

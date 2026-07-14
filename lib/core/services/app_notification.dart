@@ -398,6 +398,19 @@ Future<Map<String, dynamic>?> readAndClearPendingIncomingCallExtras() async {
   }
 }
 
+/// Non-destructive read of the stashed extras — used to detect that a
+/// notification for a call is already showing without consuming the stash.
+Future<Map<String, dynamic>?> peekPendingIncomingCallExtras() async {
+  try {
+    const storage = FlutterSecureStorage();
+    final raw = await storage.read(key: _kPendingIncomingCallExtrasKey);
+    if (raw == null || raw.isEmpty) return null;
+    return Map<String, dynamic>.from(jsonDecode(raw));
+  } catch (_) {
+    return null;
+  }
+}
+
 /// Returns the callId the user tapped Accept on, or null/empty if no Accept
 /// tap is pending. Always clears the flag after reading.
 Future<String?> readAndClearPendingIncomingCallAccept() async {
@@ -444,6 +457,19 @@ Future<void> showIncomingCallLocalNotification({
 }) async {
   if (!Platform.isAndroid) return;
   if (callId.isEmpty || roomId.isEmpty) return;
+
+  // The same call can be surfaced by BOTH the FCM path (rich payload with the
+  // sender's name) and the socket call:incoming path (often nameless) — the
+  // second show replaces the first notification, which is why the caller name
+  // appeared and then vanished. Never overwrite an already-shown notification
+  // for this call with a nameless one.
+  if (callerName.isEmpty || callerName == 'Unknown' || callerName == 'Incoming Call') {
+    final existing = await peekPendingIncomingCallExtras();
+    if (existing != null &&
+        (existing['callId'] ?? '').toString() == callId) {
+      return;
+    }
+  }
 
   // Stash the extras so a tap on "Accept" — which may launch the app from
   // killed state — can recover the call context and trigger acceptCall.
