@@ -384,8 +384,15 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
         children: [
           ServiceHomeTitleWidget(title: AppStrings.managementLabel),
           SizedBox(height: SizeConfig.size12),
-          ...members.map((m) => Container(
-                margin: const EdgeInsets.only(bottom: 10),
+          // Skip the bottom margin on the LAST card. Applying it to every
+          // row (including the last) stacks on top of the `CommonCardWidget`'s
+          // own 10px bottom padding, leaving ~20px of dead space inside
+          // the card that pushed the seam to the next section to ~36px.
+          ...members.asMap().entries.map((entry) {
+            final isLast = entry.key == members.length - 1;
+            final m = entry.value;
+            return Container(
+                margin: EdgeInsets.only(bottom: isLast ? 0 : 10),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.grey[200]!),
@@ -451,7 +458,8 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
                     ),
                   ],
                 ),
-              )),
+              );
+          }),
         ],
       ),
     );
@@ -572,12 +580,9 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
           ServiceHomeTitleWidget(title: AppStrings.gallery),
           SizedBox(height: SizeConfig.size12),
           if (allImages.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16.0),
-              child: EmptyStateWidget(
-                message: AppStrings.noPhotosAvailableMsg.tr,
-                imageSize: 60,
-              ),
+            EmptyStateWidget(
+              message: AppStrings.noPhotosAvailableMsg.tr,
+              imageSize: 60,
             )
           else
             SizedBox(
@@ -623,26 +628,34 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
           ServiceHomeTitleWidget(title: AppStrings.contactUs),
           SizedBox(height: SizeConfig.size12),
           if (contacts.isEmpty)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16.0),
-              child: EmptyStateWidget(
-                message: AppStrings.noContactDetailsMsg.tr,
-                imageSize: 60,
-              ),
+            EmptyStateWidget(
+              message: AppStrings.noContactDetailsMsg.tr,
+              imageSize: 60,
             )
           else
-            ...contacts.map((c) => _contactBranchCard(c, data)),
+            // Skip the bottom margin on the last branch — same fix as
+            // Management above: the trailing 10 stacked with the card's
+            // own bottom padding, leaving dead space inside the card.
+            ...contacts.asMap().entries.map((entry) => _contactBranchCard(
+                  entry.value,
+                  data,
+                  isLast: entry.key == contacts.length - 1,
+                )),
         ],
       ),
     );
   }
 
-  Widget _contactBranchCard(FinanceContactUs contact, FinanceBusinessItem data) {
+  Widget _contactBranchCard(
+    FinanceContactUs contact,
+    FinanceBusinessItem data, {
+    bool isLast = false,
+  }) {
     final branch = contact.branch;
     final firstDept = (contact.departments?.isNotEmpty ?? false) ? contact.departments!.first : null;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: EdgeInsets.only(bottom: isLast ? 0 : 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey[200]!),
