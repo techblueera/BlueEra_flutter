@@ -34,10 +34,8 @@ import 'package:BlueEra/features/common/auth/model/username_res_model.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/auth/views/screens/complete_guest_profile_screen.dart';
 import 'package:BlueEra/features/common/auth/views/screens/create_account_type_v2_screen.dart';
-import 'package:BlueEra/features/common/Discover/view/go_live_permission_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/view/bottom_navigation_bar_screen.dart';
 import 'package:BlueEra/features/common/feed/models/block_user_response.dart';
-import 'package:BlueEra/permissionCentralize/go_live_permission_service.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_service_controller.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_service_ai_controller.dart';
@@ -157,16 +155,15 @@ class AuthController extends GetxController {
     otpVerificationResponse.value = ApiResponse.loading('loading');
     String? token;
     try {
-      // Always force-refresh on login so the backend gets the latest FCM
-      // token bound to this user. Relying on the cached value caused the
-      // previous user's stale token to be re-sent after a 401 auto-logout
-      // when the cleanup path hadn't successfully rotated it.
-      token = await AppNotificationHandler.refreshFcmToken();
-      if (token == null || token.isEmpty) {
-        // Refresh failed (GMS unavailable, APNs not ready, etc.) — fall
-        // back to whatever is in cache so verifyOTP still sends something.
-        token = await SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.notificationDeviceToken);
-      }
+      // Send the CACHED FCM token with the verify request — do NOT force a
+      // refresh here. `refreshFcmToken()` does deleteToken()+getToken() with
+      // exponential backoff (up to ~60s worst case, and typically several
+      // seconds on a real device); putting it on the critical path was the
+      // main reason OTP verification took 10-20s. The device token is only a
+      // request parameter, and the backend is (re)bound to a freshly-rotated
+      // token right after login via the background `refreshAndSyncFcmToken()`
+      // call below — so we don't need a fresh one to complete the verify.
+      token = await SharedPreferenceUtils.getSecureValue(SharedPreferenceUtils.notificationDeviceToken);
       print("TOKEN = $token");
 
       Map<String, dynamic> requestData = {
@@ -204,13 +201,30 @@ class AuthController extends GetxController {
               await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.authToken, data.token);
               await SharedPreferenceUtils.setSecureValue(
                   SharedPreferenceUtils.userLoginMobile, data.data?.contactNo);
-              await getMobileNo();
-              await getUserLoginBusinessId();
-              await getUserLoginAccountType();
-              await getUserAuthToken();
+              // Populate the in-memory globals directly from `data` instead of
+              // re-reading each key back out of secure storage via getMobileNo()
+              // / getUserLoginBusinessId() / getUserLoginAccountType() /
+              // getUserAuthToken(). Those read-backs returned the exact values
+              // we just wrote above, so they were 4 redundant platform
+              // round-trips on the critical path. (Writes stay sequential —
+              // flutter_secure_storage + Android EncryptedSharedPreferences is
+              // not safe under concurrent access, and this is the auth-token
+              // path.) Mirrors the guards in those helpers: businessId only
+              // adopts a non-empty value; accountType/mobile fall back to "".
+              if ((data.data?.business ?? '').trim().isNotEmpty) {
+                businessId = data.data!.business!;
+              }
+              authTokenGlobal = data.token;
+              accountTypeGlobal = AppConstants.business;
+              userMobileGlobal = data.data?.contactNo ?? "";
               // Auth is now available — flush any FCM token that was queued
               // during the pre-login window so the backend gets the live
-              // device token immediately.
+              // device token immediately. flushPendingTokenSync() sends the
+              // token that logout already rotated (and, if the cache is dead,
+              // getFcmToken()'s getToken() auto-mints a fresh one) — so NO
+              // extra deleteToken()+getToken() refresh is needed here. Doing a
+              // full refresh on every login was redundant churn (it re-synced
+              // the token 2-3× and janked the home-screen build).
               unawaited(AppNotificationHandler.flushPendingTokenSync());
               // iOS: also (re)register the VoIP/PushKit token now that we're
               // authenticated. The one-shot launch sync bailed while logged
@@ -224,17 +238,16 @@ class AuthController extends GetxController {
               // connect while logged out; this is the first authenticated
               // connect, on which buffered call-event listeners replay.
               unawaited(ChatSocketService().connectToSocket());
-              // First-time login has no cached business profile yet, so
-              // `businessTypeGlobal` is still empty and `resolveBusinessScreen`
-              // would briefly route to `_UnknownBusinessFallback` while
-              // BottomNavigationBarScreen's post-frame init catches up.
-              // Awaiting the fetch here keeps the user on the OTP screen
-              // (under its dim overlay) until the prefs are populated;
-              // _handlePostFrameInitialization then no-ops because the
-              // response is already COMPLETE. Subsequent logins hit the
-              // BusinessProfileCache instantly so this stays cheap.
-              final viewProfileController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
-              await viewProfileController.viewBusinessProfile();
+              // Navigate-first: do NOT block the OTP screen on the
+              // business-profile fetch (that added a full network round-trip
+              // to perceived login time). BottomNavigationBarScreen's
+              // post-frame init (_handlePostFrameInitialization) fires the
+              // fetch, and the business Me tab shows a lightweight loader
+              // (_MeTabLoading) until `businessTypeGlobal` lands, then swaps to
+              // the real shop screen via the reactive `isBusinessProfileReady`
+              // signal. We still register the controller here so it's the same
+              // permanent instance the home screen fetches into.
+              getOrPut(() => ViewBusinessDetailsController(), permanent: true);
               navigatedAway = true;
               Get.offNamedUntil(
                 RouteHelper.getBottomNavigationBarScreenRoute(),
@@ -247,58 +260,52 @@ class AuthController extends GetxController {
             } else if (data.data?.accountType?.toUpperCase() == AppConstants.individual) {
               await SharedPreferenceUtils.setSecureValue(
                   SharedPreferenceUtils.userLoginMobile, data.data?.contactNo);
-              await getMobileNo();
-
               await SharedPreferenceUtils.setSecureValue(
                   SharedPreferenceUtils.accountType, AppConstants.individual);
-              await getUserLoginAccountType();
-
               await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.authToken, data.token);
-
-              await getUserAuthToken();
+              // Set the globals directly from `data` instead of re-reading the
+              // three keys we just wrote (getMobileNo/getUserLoginAccountType/
+              // getUserAuthToken) — those were redundant secure-storage
+              // round-trips. Writes stay sequential (see business branch note).
+              userMobileGlobal = data.data?.contactNo ?? "";
+              accountTypeGlobal = AppConstants.individual;
+              authTokenGlobal = data.token;
               // Auth is now available — flush any FCM token queued during the
-              // pre-login window (see business branch above).
+              // pre-login window (see business branch above). No extra FCM
+              // refresh here — flushPendingTokenSync already sends a live token.
               unawaited(AppNotificationHandler.flushPendingTokenSync());
               // iOS: (re)register the VoIP/PushKit token now we're authed —
               // see business branch above.
               unawaited(AppNotificationHandler.syncVoipToken(force: true));
               // First authenticated connect — see business branch above.
               unawaited(ChatSocketService().connectToSocket());
-              // Same first-time rationale as the business branch:
-              // `userProfileTypeGlobal` is still empty until the personal
-              // profile lands, and resolveIndividualScreen would briefly
-              // show the fallback. Awaiting here keeps the user on the
-              // OTP screen's dim overlay until the prefs are populated.
-              // PersonalProfileCache makes this near-instant on subsequent
-              // logins.
-              final personalController = Get.put(ViewPersonalDetailsController(), permanent: true);
-              await personalController.viewPersonalProfile(forceRefresh: true);
-
-              // Riders must be reachable for live dispatch. On login, if the
-              // required go-live device permissions aren't granted yet, walk
-              // them through the permission gate → set-availability screen
-              // (which persists their hours), then land on home.
-              // NB: gate on areRequiredGranted (background location + overlay),
-              // NOT areAllGranted — battery optimization can't be reliably
-              // satisfied on Android 13+/16, so including it would force every
-              // rider into the permission screen on every login. Same reasoning
-              // as the go-live handlers.
-              final isRider = userProfessionGlobal == BIKE_RIDER ||
-                  userProfessionGlobal == CAR_TAXI_DRIVER;
-              if (isRider &&
-                  !await GoLivePermissionService.areRequiredGranted()) {
-                await Get.to(() => const GoLivePermissionScreen());
-                // final granted = await Get.to(() => const GoLivePermissionScreen());
-                // if (granted == true) {
-                //   await Get.to(() => const GroceryShopAvailabilityScreen());
-                // }
-              }
+              // Navigate-first (same as the business branch): don't block the
+              // OTP screen on the personal-profile fetch. BottomNavigationBar's
+              // post-frame init fetches it, resolveIndividualScreen shows a
+              // loader until `userProfileTypeGlobal` lands, then swaps to the
+              // real screen. We still register the controller so the home
+              // fetches into the same permanent instance.
+              //
+              // The rider go-live permission gate used to be awaited here (it
+              // needs `userProfessionGlobal`, which only lands with the profile
+              // fetch). It now runs AFTER that background fetch settles, driven
+              // by runRiderGoLiveGate below — so riders still get the permission
+              // walkthrough on login, just once the home shell is already up
+              // instead of while staring at the OTP screen. Gating on
+              // areRequiredGranted (background location + overlay), NOT
+              // areAllGranted — battery optimization can't be reliably granted
+              // on Android 13+/16, so it would force every rider through the
+              // screen on every login. runRiderGoLiveGate keeps it login-only.
+              Get.put(ViewPersonalDetailsController(), permanent: true);
 
               navigatedAway = true;
               Get.offNamedUntil(
                 RouteHelper.getBottomNavigationBarScreenRoute(),
                 (route) => false,
-                arguments: {ApiKeys.initialIndex: 1},
+                arguments: {
+                  ApiKeys.initialIndex: 1,
+                  'runRiderGoLiveGate': true,
+                },
               );
             }
 
@@ -399,8 +406,13 @@ class AuthController extends GetxController {
 
       await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.accountType, AppConstants.individual);
       await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.authToken, upgraded.token);
-      await getUserLoginAccountType();
-      await getUserAuthToken();
+      // Set the globals directly from `upgraded` instead of re-reading the two
+      // keys we just wrote (getUserLoginAccountType/getUserAuthToken) — those
+      // were redundant secure-storage round-trips. Writes stay sequential
+      // (flutter_secure_storage + EncryptedSharedPreferences is unsafe under
+      // concurrent access, and this is the auth-token path).
+      accountTypeGlobal = AppConstants.individual;
+      authTokenGlobal = upgraded.token;
       // Guest → individual upgrade: token just landed, open the chat
       // socket so call/chat events flow without an app restart. Fire
       // and forget — UI must not block on socket handshake.
@@ -525,9 +537,16 @@ class AuthController extends GetxController {
               SharedPreferenceUtils.userBusinessId, upgraded.businessId);
           await SharedPreferenceUtils.setSecureValue(SharedPreferenceUtils.authToken, upgraded.token);
 
-          await getUserLoginBusinessId();
-          await getUserAuthToken();
-          await getUserLoginAccountType();
+          // Set the globals directly from `upgraded` instead of re-reading the
+          // three keys we just wrote (getUserLoginBusinessId/getUserAuthToken/
+          // getUserLoginAccountType) — those were redundant secure-storage
+          // round-trips. Writes stay sequential (see the note in addIndividualUser).
+          // Mirrors the businessId guard: only adopt a non-empty value.
+          if ((upgraded.businessId ?? '').trim().isNotEmpty) {
+            businessId = upgraded.businessId!;
+          }
+          authTokenGlobal = upgraded.token;
+          accountTypeGlobal = AppConstants.business;
 
           // Guest → business upgrade: token just landed, open the chat
           // socket so call/chat events flow without an app restart. Fire

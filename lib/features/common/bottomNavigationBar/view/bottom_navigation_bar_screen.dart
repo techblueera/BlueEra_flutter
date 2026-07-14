@@ -55,6 +55,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:get/get.dart';
 import 'package:share_handler/share_handler.dart';
+import 'package:BlueEra/features/common/Discover/view/go_live_permission_screen.dart';
+import 'package:BlueEra/permissionCentralize/go_live_permission_service.dart';
 
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/routes/route_helper.dart';
@@ -77,11 +79,17 @@ class BottomNavigationBarScreen extends StatefulWidget {
   /// See docs/backend/notification_fast_open_design.md (Phase 2).
   final bool deferHeavyInit;
 
+  /// When `true` (set only on a fresh individual login — see verifyOTP), the
+  /// rider go-live permission gate runs once the personal-profile fetch
+  /// settles. Kept login-only so it doesn't re-prompt on every app-open.
+  final bool runRiderGoLiveGate;
+
   const BottomNavigationBarScreen(
       {super.key,
       this.initialIndex = 1,
       this.sharedMedia,
-      this.deferHeavyInit = false});
+      this.deferHeavyInit = false,
+      this.runRiderGoLiveGate = false});
 
   @override
   State<BottomNavigationBarScreen> createState() => _BottomNavigationBarScreenState();
@@ -517,7 +525,13 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       // check), unless it's already loaded.
       if (boot &&
           businessCtrl.viewBusinessResponse.status != Status.COMPLETE) {
-        businessCtrl.viewBusinessProfile();
+        // whenComplete guarantees the navigate-first Me-tab loader clears once
+        // the fetch settles: success flips isBusinessProfileReady via
+        // _applyBusinessProfileData, and this also covers failure/timeout so
+        // the loader can't get stuck (it then falls through to the normal
+        // fallback instead of spinning forever).
+        businessCtrl.viewBusinessProfile().whenComplete(
+            () => businessCtrl.isBusinessProfileReady.value = true);
       }
     } else {
       // Riders (bike rider / car-taxi driver) and gig workers always land on
@@ -525,7 +539,7 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       // has been created yet — so their dashboard / onboarding is front and
       // centre. Every other individual type uses the requested initial tab
       // (Discover by default).
-      final isRider = userProfessionGlobal == BIKE_RIDER || userProfessionGlobal == CAR_TAXI_DRIVER;
+      final isRider = isRiderProfession(userProfessionGlobal);
       final isGigWorker = userProfileTypeGlobal == GIG_WORKER;
       if (isRider || isGigWorker) {
         bottomBarController.currentIndex.value = 0;
@@ -542,9 +556,47 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
         // method is cache-first and would otherwise skip the network on
         // cached launches) — needed for fresh securityDeposit / go-live gate.
         // It still shows the cached profile first, then updates from the API.
-        viewPersonalDetailsController.viewPersonalProfile(forceRefresh: true);
+        final fetch = viewPersonalDetailsController
+            .viewPersonalProfile(forceRefresh: true);
+        // whenComplete fires when the fetch settles (success, non-success
+        // response, or early return all complete the future) — so the
+        // navigate-first Me-tab loader always clears, and on a fresh individual
+        // login the rider go-live gate runs once userProfessionGlobal is known.
+        fetch.whenComplete(() {
+          viewPersonalDetailsController.isPersonalProfileReady.value = true;
+          if (widget.runRiderGoLiveGate) _maybeRunRiderGoLiveGate();
+        });
+      } else {
+        // Already loaded (globals known) — mark ready and, on a fresh login,
+        // run the rider gate directly.
+        viewPersonalDetailsController.isPersonalProfileReady.value = true;
+        if (widget.runRiderGoLiveGate) _maybeRunRiderGoLiveGate();
       }
     }
+  }
+
+  /// Rider go-live permission gate — runs after the personal-profile fetch on
+  /// a fresh individual login (see [BottomNavigationBarScreen.runRiderGoLiveGate]).
+  ///
+  /// We pass runRiderGoLiveGate=true for EVERY individual login because the
+  /// profile type isn't known yet at verifyOTP time. Of the four individual
+  /// profile types (SOCIAL_PROFILE / GIG_WORKER / SELF_EMPLOYED / PROFESSIONAL),
+  /// this only does anything for GIG_WORKER riders — the `isRider` guard below
+  /// makes it a no-op for the other three, so passing the flag unconditionally
+  /// is safe. (Riders are the BIKE_RIDER / CAR_TAXI_DRIVER professions, which
+  /// live under the GIG_WORKER profile type.)
+  ///
+  /// Riders must be reachable for live dispatch, so if the required permissions
+  /// (background location + overlay) aren't granted we push the permission
+  /// screen on top of the home shell. Gates on areRequiredGranted (NOT
+  /// areAllGranted) — battery optimization can't be reliably granted on
+  /// Android 13+/16. Covers all five rider professions via [isRiderProfession]
+  /// (BIKE_RIDER, AUTO_TAXI, CAR_TAXI, CAR_TAXI_DRIVER, GOODS_TAXI).
+  Future<void> _maybeRunRiderGoLiveGate() async {
+    if (!isRiderProfession(userProfessionGlobal)) return;
+    if (await GoLivePermissionService.areRequiredGranted()) return;
+    if (!mounted) return;
+    await Get.to(() => const GoLivePermissionScreen());
   }
 
   /// Fetches the signed-in user's own profile (business or personal) unless it
@@ -761,6 +813,23 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   Widget resolveBusinessScreen() {
+    final businessCtrl =
+        getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+    return Obx(() {
+      // Subscribe to profile-load completion so a navigate-first login swaps
+      // this loader for the real shop screen once businessTypeGlobal lands.
+      // On a normal (cached) app-open the login globals are already populated
+      // at boot, so businessTypeGlobal is non-empty and we render immediately
+      // — the loader only ever shows in the brief post-login fetch window.
+      final ready = businessCtrl.isBusinessProfileReady.value;
+      if (businessTypeGlobal.isEmpty && !ready) {
+        return const _MeTabLoading();
+      }
+      return _buildBusinessScreen();
+    });
+  }
+
+  Widget _buildBusinessScreen() {
     logs("businessTypeGlobal=== ${businessTypeGlobal}");
     logs("businessCategoryGlobal=== ${businessCategoryGlobal}");
     // 1. First, check if it is a Food business
@@ -866,6 +935,24 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 
   Widget resolveIndividualScreen() {
+    return Obx(() {
+      // Subscribe to the personal-profile load so a navigate-first login swaps
+      // this loader for the real screen once userProfileTypeGlobal lands. On a
+      // cached app-open the global is already set at boot, so we render
+      // immediately — the loader only shows in the brief post-login window.
+      // Uses the whenComplete-driven `isPersonalProfileReady` flag (NOT the
+      // response status): viewPersonalProfile leaves its status un-set on a
+      // non-success response / logged-out early return, which would otherwise
+      // strand this loader forever.
+      final ready = viewPersonalDetailsController.isPersonalProfileReady.value;
+      if (userProfileTypeGlobal.isEmpty && !ready) {
+        return const _MeTabLoading();
+      }
+      return _buildIndividualScreen();
+    });
+  }
+
+  Widget _buildIndividualScreen() {
     final String currentType = userProfileTypeGlobal;
     debugPrint("User Profile Type: $currentType");
     debugPrint("User Profession: $userProfessionGlobal");
@@ -890,6 +977,43 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       default:
         return const _UnknownProfileFallback();
     }
+  }
+}
+
+/// Lightweight loader shown on the "Me" tab (business AND individual) during
+/// the brief post-login window where we navigated to the home screen first and
+/// the own-profile fetch (which populates businessTypeGlobal /
+/// userProfileTypeGlobal) is still in flight. Swaps to the real screen the
+/// moment `isBusinessProfileReady` / `isPersonalProfileReady` flips true.
+class _MeTabLoading extends StatelessWidget {
+  const _MeTabLoading();
+
+  @override
+  Widget build(BuildContext context) {
+    // This loader lives in the tab *body* only — the bottom nav bar is a
+    // sibling Positioned in the parent Stack, so the tabs stay visible and
+    // tappable while this shows (the user can jump to Discover/Chat mid-load).
+    // Uses the app's branded staggered-dots loader (same as AppLoader) + a
+    // short message so the brief post-login fetch reads as an intentional
+    // "loading" state, not a blank/broken screen.
+    return SafeArea(
+      child: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            staggeredDotsWaveLoading(color: AppColors.primaryColor),
+            SizedBox(height: SizeConfig.size10),
+            CustomText(
+              AppStrings.pleaseWaitProcessing.tr,
+              fontSize: SizeConfig.small,
+              color: AppColors.secondaryTextColor,
+              fontWeight: FontWeight.w500,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

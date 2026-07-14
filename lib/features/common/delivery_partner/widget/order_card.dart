@@ -39,7 +39,8 @@ class OrderCard extends StatefulWidget {
   const OrderCard({
     super.key,
     required this.selectedPickUp,
-    required this.order, this.isPipModeOn=false,
+    required this.order,
+    this.isPipModeOn = false,
   });
 
   @override
