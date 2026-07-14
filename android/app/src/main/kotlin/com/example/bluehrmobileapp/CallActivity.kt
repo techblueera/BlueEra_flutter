@@ -224,57 +224,12 @@ class CallActivity : FlutterActivity() {
         return super.dispatchKeyEvent(event)
     }
 
-    // Same ring semantics as MainActivity: RING stream, loop, vibration,
-    // honoring the ringer mode (silent → nothing, vibrate → vibration only).
-    private fun playDefaultRingtone() {
-        val audioManager =
-            applicationContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        val ringerMode = audioManager.ringerMode
+    // Delegates to the process-wide CallRinger singleton — a ring started in
+    // the MainActivity engine must be stoppable from this engine and vice
+    // versa (the old per-activity Ringtone field kept ringing after accept).
+    private fun playDefaultRingtone() = CallRinger.play(applicationContext)
 
-        if (ringerMode != AudioManager.RINGER_MODE_SILENT) {
-            try {
-                val vibrator =
-                    applicationContext.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-                if (vibrator.hasVibrator()) {
-                    val pattern = longArrayOf(0, 1000, 500, 1000, 500)
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                        vibrator.vibrate(VibrationEffect.createWaveform(pattern, 1))
-                    } else {
-                        @Suppress("DEPRECATION")
-                        vibrator.vibrate(pattern, 1)
-                    }
-                }
-            } catch (_: Exception) {}
-        }
-        if (ringerMode != AudioManager.RINGER_MODE_NORMAL) return
-
-        val uri: Uri = try {
-            Uri.parse("android.resource://${applicationContext.packageName}/${R.raw.hangouts_call}")
-        } catch (_: Exception) {
-            RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
-        }
-        ringtone?.stop()
-        ringtone = RingtoneManager.getRingtone(applicationContext, uri)?.apply {
-            audioAttributes = AudioAttributes.Builder()
-                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
-                .build()
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                isLooping = true
-            }
-        }
-        ringtone?.play()
-    }
-
-    private fun stopDefaultRingtone() {
-        ringtone?.stop()
-        ringtone = null
-        try {
-            val vibrator =
-                applicationContext.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-            vibrator.cancel()
-        } catch (_: Exception) {}
-    }
+    private fun stopDefaultRingtone() = CallRinger.stop(applicationContext)
 
     /// Auto enter PiP when user presses Home
     override fun onUserLeaveHint() {

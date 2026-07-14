@@ -42,8 +42,11 @@ class CallActionReceiver : BroadcastReceiver() {
         val callType = intent.getStringExtra(EXTRA_CALL_TYPE) ?: ""
         val notifId = intent.getIntExtra(EXTRA_NOTIF_ID, 0)
 
-        // Dismiss the notification
+        // Dismiss the notification and kill the in-app ringer IMMEDIATELY —
+        // before any Dart runs. The ring may have been started by either
+        // Flutter engine; CallRinger is process-wide so this always lands.
         NotificationManagerCompat.from(context).cancel(notifId)
+        CallRinger.stop(context)
 
         when (intent.action) {
             ACTION_ACCEPT -> {

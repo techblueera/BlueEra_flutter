@@ -332,73 +332,13 @@ class MainActivity: FlutterActivity() {
     }
 
     // ------------------------------
-    // PLAY INCOMING-CALL RINGTONE (RING stream + vibration)
+    // PLAY / STOP INCOMING-CALL RINGTONE — delegates to the process-wide
+    // CallRinger singleton so a ring started here can be stopped from the
+    // CallActivity engine or CallActionReceiver (and vice versa).
     // ------------------------------
-    // Plays the app ringtone on the RINGTONE audio stream so it follows the
-    // phone's ringer volume (the in-Dart audioplayers path rode the MEDIA
-    // stream, which is silent whenever media volume is down), loops until
-    // stopped, and vibrates alongside. Honors the ringer mode: silent → no
-    // sound/vibration, vibrate → vibration only, normal → both.
-    private fun playDefaultRingtone() {
-        val audioManager =
-            applicationContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
-        val ringerMode = audioManager.ringerMode
+    private fun playDefaultRingtone() = CallRinger.play(applicationContext)
 
-        if (ringerMode != AudioManager.RINGER_MODE_SILENT) {
-            startCallVibration()
-        }
-        if (ringerMode != AudioManager.RINGER_MODE_NORMAL) {
-            return // silent or vibrate-only — no sound
-        }
-
-        // App ringtone from res/raw; fall back to the system default.
-        val uri: Uri = try {
-            Uri.parse("android.resource://${applicationContext.packageName}/${R.raw.hangouts_call}")
-        } catch (_: Exception) {
-            RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
-        }
-        ringtone?.stop()
-        ringtone = RingtoneManager.getRingtone(applicationContext, uri)?.apply {
-            audioAttributes = AudioAttributes.Builder()
-                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
-                .build()
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                isLooping = true
-            }
-        }
-        ringtone?.play()
-    }
-
-    private fun startCallVibration() {
-        try {
-            val vibrator =
-                applicationContext.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-            if (!vibrator.hasVibrator()) return
-            val pattern = longArrayOf(0, 1000, 500, 1000, 500)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                vibrator.vibrate(VibrationEffect.createWaveform(pattern, 1))
-            } else {
-                @Suppress("DEPRECATION")
-                vibrator.vibrate(pattern, 1)
-            }
-        } catch (_: Exception) {
-            // Vibration is best-effort; never break the ring for it.
-        }
-    }
-
-    // ------------------------------
-    // STOP RINGTONE + VIBRATION
-    // ------------------------------
-    private fun stopDefaultRingtone() {
-        ringtone?.stop()
-        ringtone = null
-        try {
-            val vibrator =
-                applicationContext.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-            vibrator.cancel()
-        } catch (_: Exception) {}
-    }
+    private fun stopDefaultRingtone() = CallRinger.stop(applicationContext)
 
     // ------------------------------
     // CREATE CHAT SHORTCUT
