@@ -23,9 +23,13 @@ import androidx.annotation.NonNull
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import android.media.AudioAttributes
+import android.media.AudioManager
 import android.media.Ringtone
 import android.media.RingtoneManager
 import android.net.Uri
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.view.WindowManager
 import java.net.URL
 import kotlinx.coroutines.CoroutineScope
@@ -328,19 +332,72 @@ class MainActivity: FlutterActivity() {
     }
 
     // ------------------------------
-    // PLAY DEFAULT SYSTEM RINGTONE
+    // PLAY INCOMING-CALL RINGTONE (RING stream + vibration)
     // ------------------------------
+    // Plays the app ringtone on the RINGTONE audio stream so it follows the
+    // phone's ringer volume (the in-Dart audioplayers path rode the MEDIA
+    // stream, which is silent whenever media volume is down), loops until
+    // stopped, and vibrates alongside. Honors the ringer mode: silent → no
+    // sound/vibration, vibrate → vibration only, normal → both.
     private fun playDefaultRingtone() {
-        val uri: Uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
-        ringtone = RingtoneManager.getRingtone(applicationContext, uri)
+        val audioManager =
+            applicationContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        val ringerMode = audioManager.ringerMode
+
+        if (ringerMode != AudioManager.RINGER_MODE_SILENT) {
+            startCallVibration()
+        }
+        if (ringerMode != AudioManager.RINGER_MODE_NORMAL) {
+            return // silent or vibrate-only — no sound
+        }
+
+        // App ringtone from res/raw; fall back to the system default.
+        val uri: Uri = try {
+            Uri.parse("android.resource://${applicationContext.packageName}/${R.raw.hangouts_call}")
+        } catch (_: Exception) {
+            RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
+        }
+        ringtone?.stop()
+        ringtone = RingtoneManager.getRingtone(applicationContext, uri)?.apply {
+            audioAttributes = AudioAttributes.Builder()
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
+                .build()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                isLooping = true
+            }
+        }
         ringtone?.play()
     }
 
+    private fun startCallVibration() {
+        try {
+            val vibrator =
+                applicationContext.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+            if (!vibrator.hasVibrator()) return
+            val pattern = longArrayOf(0, 1000, 500, 1000, 500)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                vibrator.vibrate(VibrationEffect.createWaveform(pattern, 1))
+            } else {
+                @Suppress("DEPRECATION")
+                vibrator.vibrate(pattern, 1)
+            }
+        } catch (_: Exception) {
+            // Vibration is best-effort; never break the ring for it.
+        }
+    }
+
     // ------------------------------
-    // STOP RINGTONE
+    // STOP RINGTONE + VIBRATION
     // ------------------------------
     private fun stopDefaultRingtone() {
         ringtone?.stop()
+        ringtone = null
+        try {
+            val vibrator =
+                applicationContext.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+            vibrator.cancel()
+        } catch (_: Exception) {}
     }
 
     // ------------------------------

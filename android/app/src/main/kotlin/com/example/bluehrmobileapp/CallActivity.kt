@@ -9,10 +9,14 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.res.Configuration
 import android.graphics.drawable.Icon
+import android.media.AudioAttributes
+import android.media.AudioManager
 import android.media.Ringtone
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.util.Rational
 import android.view.KeyEvent
 import android.view.WindowManager
@@ -220,14 +224,56 @@ class CallActivity : FlutterActivity() {
         return super.dispatchKeyEvent(event)
     }
 
+    // Same ring semantics as MainActivity: RING stream, loop, vibration,
+    // honoring the ringer mode (silent → nothing, vibrate → vibration only).
     private fun playDefaultRingtone() {
-        val uri: Uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
-        ringtone = RingtoneManager.getRingtone(applicationContext, uri)
+        val audioManager =
+            applicationContext.getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        val ringerMode = audioManager.ringerMode
+
+        if (ringerMode != AudioManager.RINGER_MODE_SILENT) {
+            try {
+                val vibrator =
+                    applicationContext.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+                if (vibrator.hasVibrator()) {
+                    val pattern = longArrayOf(0, 1000, 500, 1000, 500)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        vibrator.vibrate(VibrationEffect.createWaveform(pattern, 1))
+                    } else {
+                        @Suppress("DEPRECATION")
+                        vibrator.vibrate(pattern, 1)
+                    }
+                }
+            } catch (_: Exception) {}
+        }
+        if (ringerMode != AudioManager.RINGER_MODE_NORMAL) return
+
+        val uri: Uri = try {
+            Uri.parse("android.resource://${applicationContext.packageName}/${R.raw.hangouts_call}")
+        } catch (_: Exception) {
+            RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
+        }
+        ringtone?.stop()
+        ringtone = RingtoneManager.getRingtone(applicationContext, uri)?.apply {
+            audioAttributes = AudioAttributes.Builder()
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
+                .build()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                isLooping = true
+            }
+        }
         ringtone?.play()
     }
 
     private fun stopDefaultRingtone() {
         ringtone?.stop()
+        ringtone = null
+        try {
+            val vibrator =
+                applicationContext.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+            vibrator.cancel()
+        } catch (_: Exception) {}
     }
 
     /// Auto enter PiP when user presses Home
