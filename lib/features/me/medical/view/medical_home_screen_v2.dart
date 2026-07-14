@@ -173,8 +173,12 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
   // BUILD
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   /// Lazy-loads the products catalog only when the Products tab is opened.
+  /// Products sits at index 2 (Inquiry, Overview, Products, Posts, Stats) —
+  /// the previous `== 3` compared against Posts, so the fetch never fired
+  /// on the Products tab and the Obx stayed stuck on its initial loader.
   void _handleTabChange() {
-    if (_tabController.index == 3) {
+    if (_tabController.indexIsChanging) return;
+    if (_tabController.index == 2) {
       _ensureProductsLoaded();
     }
   }
@@ -200,6 +204,8 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
 
   @override
   Widget build(BuildContext context) {
+    final topInset = MediaQuery.of(context).padding.top;
+    final topBarHeight = topInset + 56;
     return Scaffold(
       backgroundColor: const Color(0xFFEAF2FB),
       body: SafeArea(
@@ -211,18 +217,19 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
                   HomeTabScaffold(
                     controller: _tabController,
                     tabLabels: _tabs,
+                    topBarHeight: topBarHeight,
                     topBar: Column(
-                      mainAxisSize: MainAxisSize.min,
+                      // mainAxisSize: MainAxisSize.min,
                       children: [
                         _buildTopBar(),
-                        _buildProfileRow(_data?.businessProfile),
+                        // _buildProfileRow(_data?.businessProfile),
                       ],
                     ),
                     // Top bar (status inset + ~56) + the profile row (~74).
                     // Sized with headroom so the profile row's two text lines
                     // don't overflow the fixed header height (was +120 → 6px
                     // overflow).
-                    topBarHeight: MediaQuery.of(context).padding.top + 132,
+                    // topBarHeight: MediaQuery.of(context).padding.top + 132,
                     tabViews: [
                       _tabScroll([
                         MedicalInquiryTabV2(
@@ -264,8 +271,8 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
   List<Widget> _buildOverviewSlivers() {
     return [
       _buildBannerSection(_data?.businessProfile),
-      SizedBox(height: SizeConfig.size8),
-      _buildCreateOffersButton(),
+      // SizedBox(height: SizeConfig.size8),
+      // _buildCreateOffersButton(),
       SizedBox(height: SizeConfig.size12),
       // if ((_data?.inventorySummary?.popularProducts ?? []).isNotEmpty) ...[
       // _buildBikesSection(_data!.inventorySummary!.popularProducts!),
@@ -315,6 +322,9 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
 
   List<Widget> _buildProductsTab() {
     return [
+      // Breathing room under the pinned tab bar so the title row isn't
+      // stuck against the tabs — matches the visual rhythm of Overview.
+      SizedBox(height: SizeConfig.size16),
       Padding(
         padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
         child: Row(

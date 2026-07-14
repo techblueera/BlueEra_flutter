@@ -60,9 +60,9 @@ class _AutomotiveOtherServicesScreenState
   // Vehicle-themed banners — same set as the vehicle listing screen so the
   // whole automotive section reads as one flow.
   final List<String> _bannerImages = const [
-    'https://img.freepik.com/free-photo/red-car-with-trunk-that-says-toyota-it_1340-39044.jpg?w=1380',
-    'https://img.freepik.com/free-photo/black-suv-car-front-view_114579-4153.jpg?w=1380',
-    'https://img.freepik.com/free-photo/big-truck-road_181624-37941.jpg?w=1380',
+    'https://img.magnific.com/free-vector/seller-talking-customer-about-car-dealer-future-vehicle-owner-rental-center-service_575670-280.jpg?semt=ais_hybrid&w=740&q=80',
+    'https://img.magnific.com/free-photo/benchman-fixing-engine-car_114579-2807.jpg',
+    'https://img.magnific.com/free-photo/hands-female-mechanic-using-laptop_1170-1248.jpg',
   ];
 
   @override
@@ -131,8 +131,7 @@ class _AutomotiveOtherServicesScreenState
                     .toList(),
                 selectedId: _categories[_selectedIndex.value].wire,
                 onCategoryTap: (item) {
-                  final idx =
-                      _categories.indexWhere((c) => c.wire == item.id);
+                  final idx = _categories.indexWhere((c) => c.wire == item.id);
                   if (idx >= 0) _onCategoryTap(idx);
                   setState(() {});
                 },
@@ -199,7 +198,17 @@ class _AutomotiveOtherServicesScreenState
                 final item = controller.profiles[index];
                 return Padding(
                   padding: EdgeInsets.only(bottom: dynamicSize(12)),
-                  child: ServiceBusinessCard(item: item),
+                  child: ServiceBusinessCard(
+                    item: item,
+                    // Businesses in this section rarely upload a cover
+                    // photo, so an empty grey box looked broken. Fall back
+                    // to a vehicle-themed banner image instead — same set
+                    // the top carousel uses, keyed by the selected tab so
+                    // Vehicle Service / Support / Transport each get a
+                    // themed placeholder.
+                    fallbackHeroImageUrl: _bannerImages[
+                        _selectedIndex.value % _bannerImages.length],
+                  ),
                 );
               },
             ),

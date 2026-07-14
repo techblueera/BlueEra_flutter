@@ -44,19 +44,23 @@ class OthersServiceDetailScreen extends StatefulWidget {
   });
 
   @override
-  State<OthersServiceDetailScreen> createState() => _OthersServiceDetailScreenState();
+  State<OthersServiceDetailScreen> createState() =>
+      _OthersServiceDetailScreenState();
 }
 
 class _OthersServiceDetailScreenState extends State<OthersServiceDetailScreen> {
-  final InventoryController controller = getOrPut<InventoryController>(() => InventoryController());
+  final InventoryController controller =
+      getOrPut<InventoryController>(() => InventoryController());
   final ViewBusinessDetailsController viewBusinessDetailsController =
       Get.find<ViewBusinessDetailsController>();
-  final StoreController storeController = getOrPut<StoreController>(() => StoreController());
+  final StoreController storeController =
+      getOrPut<StoreController>(() => StoreController());
   // Session cart — registered by the products entry point. `getOrPut`
   // here returns the same instance the cart bar on the entry point is
   // watching, so add/remove on this screen flows through.
   final ProductSelfPickupController cartController =
-      getOrPut<ProductSelfPickupController>(() => ProductSelfPickupController());
+      getOrPut<ProductSelfPickupController>(
+          () => ProductSelfPickupController());
 
   @override
   void initState() {
@@ -64,7 +68,8 @@ class _OthersServiceDetailScreenState extends State<OthersServiceDetailScreen> {
     // Load the visiting business profile + inventory in parallel, and
     // track the store-detail view (same pattern as the grocery visit
     // screen).
-    viewBusinessDetailsController.viewBusinessProfileByIdIfNeeded(widget.visitUserId);
+    viewBusinessDetailsController
+        .viewBusinessProfileByIdIfNeeded(widget.visitUserId);
     controller.fetchAllProductDataIfNeeded(visitUserId: widget.visitUserId);
     ProfileClickTracker.track(
       userId: widget.visitUserId,
@@ -83,7 +88,8 @@ class _OthersServiceDetailScreenState extends State<OthersServiceDetailScreen> {
   void _onToggleTopSellingCart(dynamic product) {
     final id = _firstVariantId(product);
     if (id == null) return;
-    final bDetails = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
+    final bDetails =
+        viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
     if (cartController.isVariantInCart(id)) {
       cartController.removeFromCart(product);
     } else {
@@ -132,7 +138,8 @@ class _OthersServiceDetailScreenState extends State<OthersServiceDetailScreen> {
         // Subscribe to profile refreshes so the bar appears as soon as
         // the details load.
         viewBusinessDetailsController.profileVersion.value;
-        final details = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
+        final details =
+            viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
         // Hide until the profile is loaded; also hide for the owner
         // viewing their own listing (matches the finance-detail pattern).
         if (details == null || details.userId == userId) {
@@ -178,8 +185,10 @@ class _OthersServiceDetailScreenState extends State<OthersServiceDetailScreen> {
         children: [
           RefreshIndicator(
             onRefresh: () async {
-              viewBusinessDetailsController.viewBusinessProfileById(widget.visitUserId);
-              await controller.fetchAllProductData(visitUserId: widget.visitUserId);
+              viewBusinessDetailsController
+                  .viewBusinessProfileById(widget.visitUserId);
+              await controller.fetchAllProductData(
+                  visitUserId: widget.visitUserId);
             },
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -198,21 +207,25 @@ class _OthersServiceDetailScreenState extends State<OthersServiceDetailScreen> {
                     if (viewBusinessDetailsController.isProfileLoading.value) {
                       return buildBusinessHeaderSkeleton();
                     }
-                    final details = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
+                    final details = viewBusinessDetailsController
+                        .visitedBusinessProfileDetails?.data;
                     return Column(
                       children: [
                         VisitBusinessCommonHeader(
                           details: details,
-                          onRated: () => viewBusinessDetailsController.viewBusinessProfileById(
+                          onRated: () => viewBusinessDetailsController
+                              .viewBusinessProfileById(
                             widget.visitUserId,
                             silent: true,
                           ),
-                          onFollowChanged: () => viewBusinessDetailsController.viewBusinessProfileById(
+                          onFollowChanged: () => viewBusinessDetailsController
+                              .viewBusinessProfileById(
                             widget.visitUserId,
                             silent: true,
-                          ),shareLink: serviceDeepLinkBusiness(
-                          id: details?.userId,
-                        ),
+                          ),
+                          shareLink: serviceDeepLinkBusiness(
+                            id: details?.userId,
+                          ),
                         ),
                         const SizedBox(height: 10),
                         VisitBusinessStatsCard(details: details),
@@ -244,8 +257,10 @@ class _OthersServiceDetailScreenState extends State<OthersServiceDetailScreen> {
                     if (viewBusinessDetailsController.isProfileLoading.value) {
                       return const SizedBox.shrink();
                     }
-                    final details = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
-                    if (details?.livePhotos != null && details!.livePhotos!.any((p) => p.trim().isNotEmpty)) {
+                    final details = viewBusinessDetailsController
+                        .visitedBusinessProfileDetails?.data;
+                    if (details?.livePhotos != null &&
+                        details!.livePhotos!.any((p) => p.trim().isNotEmpty)) {
                       return Padding(
                         padding: EdgeInsets.only(top: SizeConfig.paddingM),
                         child: CustomFormCard(
@@ -260,9 +275,13 @@ class _OthersServiceDetailScreenState extends State<OthersServiceDetailScreen> {
                               ),
                               const SizedBox(height: 10),
                               StoreLivePhotoWidget(
-                                livePhotos: details.livePhotos!.where((p) => p.trim().isNotEmpty).toList(),
+                                livePhotos: details.livePhotos!
+                                    .where((p) => p.trim().isNotEmpty)
+                                    .toList(),
                                 natureOfBusiness:
-                                    details.subCategoryDetails?.name ?? details.natureOfBusiness ?? 'OTHER',
+                                    details.subCategoryDetails?.name ??
+                                        details.natureOfBusiness ??
+                                        'OTHER',
                                 onViewFullScreen: ({
                                   required int index,
                                   required List<String> storeImage,
@@ -286,13 +305,14 @@ class _OthersServiceDetailScreenState extends State<OthersServiceDetailScreen> {
                     }
                     return const SizedBox.shrink();
                   }),
-
+                  SizedBox(height: SizeConfig.size10),
                   // ─── 5. Contact & Map ───
                   Obx(() {
                     if (viewBusinessDetailsController.isProfileLoading.value) {
                       return const SizedBox.shrink();
                     }
-                    final details = viewBusinessDetailsController.visitedBusinessProfileDetails?.data;
+                    final details = viewBusinessDetailsController
+                        .visitedBusinessProfileDetails?.data;
                     return BusinessContactMapCard(
                       businessProfileDetails: details,
                       showEditButton: false,
@@ -366,7 +386,8 @@ class _OthersServiceDetailScreenState extends State<OthersServiceDetailScreen> {
             child: Builder(builder: (context) {
               // Preview only — cap to first 20 items; "View All" opens
               // the paginated grid.
-              final previewCount = controller.allProducts.length > InventoryController.ownProductsPreviewLimit
+              final previewCount = controller.allProducts.length >
+                      InventoryController.ownProductsPreviewLimit
                   ? InventoryController.ownProductsPreviewLimit
                   : controller.allProducts.length;
               return ListView.builder(
@@ -376,7 +397,8 @@ class _OthersServiceDetailScreenState extends State<OthersServiceDetailScreen> {
                   final product = controller.allProducts[index];
 
                   return GestureDetector(
-                    onTap: () => ProductInventoryBottomSheet.show(context, product: product),
+                    onTap: () => ProductInventoryBottomSheet.show(context,
+                        product: product),
                     child: Container(
                       width: SizeConfig.size160,
                       margin: const EdgeInsets.only(right: 8.0),
@@ -391,21 +413,30 @@ class _OthersServiceDetailScreenState extends State<OthersServiceDetailScreen> {
                           Expanded(
                             child: ProductTopSellingImage(
                               product: product,
-                              onPreviewTap: () => ProductInventoryBottomSheet.show(context, product: product),
+                              onPreviewTap: () =>
+                                  ProductInventoryBottomSheet.show(context,
+                                      product: product),
                               cartOverlay: Obx(() {
-                                final cart = cartController.selectedProductVariants;
+                                final cart =
+                                    cartController.selectedProductVariants;
                                 // ignore: unused_local_variable
                                 final _ = cart.length;
                                 final id = _firstVariantId(product);
-                                final added = cartController.isVariantInCart(id);
+                                final added =
+                                    cartController.isVariantInCart(id);
                                 return IconButton(
                                   padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
-                                  onPressed: id == null ? null : () => _onToggleTopSellingCart(product),
+                                  constraints: const BoxConstraints(
+                                      minWidth: 28, minHeight: 28),
+                                  onPressed: id == null
+                                      ? null
+                                      : () => _onToggleTopSellingCart(product),
                                   icon: Container(
                                     padding: const EdgeInsets.all(4),
                                     decoration: BoxDecoration(
-                                      color: added ? AppColors.greenShade : AppColors.blackMite,
+                                      color: added
+                                          ? AppColors.greenShade
+                                          : AppColors.blackMite,
                                       borderRadius: BorderRadius.circular(20),
                                     ),
                                     child: Icon(

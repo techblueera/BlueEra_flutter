@@ -25,7 +25,17 @@ import '../view/others_service_detail_screen.dart';
 class ServiceBusinessCard extends StatelessWidget {
   final OtherServiceBusinessItem item;
 
-  const ServiceBusinessCard({super.key, required this.item});
+  /// Category-themed placeholder shown on the hero when the business has
+  /// no cover / gallery / management image. Callers on category-specific
+  /// screens (e.g. Automotive) pass a themed image so the card doesn't
+  /// fall back to a bare grey box. `null` keeps the old grey-box behaviour.
+  final String? fallbackHeroImageUrl;
+
+  const ServiceBusinessCard({
+    super.key,
+    required this.item,
+    this.fallbackHeroImageUrl,
+  });
 
   static const String _na = 'N/A';
 
@@ -38,9 +48,11 @@ class ServiceBusinessCard extends StatelessWidget {
     final fromGallery =
         item.gallery.expand((g) => g.imageUrls).firstWhere((u) => u.trim().isNotEmpty, orElse: () => '');
     if (fromGallery.isNotEmpty) return fromGallery;
-    return item.management
+    final fromManagement = item.management
         .map((m) => m.imageUrl ?? '')
         .firstWhere((u) => u.trim().isNotEmpty, orElse: () => '');
+    if (fromManagement.isNotEmpty) return fromManagement;
+    return fallbackHeroImageUrl?.trim() ?? '';
   }
 
   String get _avatarUrl {
