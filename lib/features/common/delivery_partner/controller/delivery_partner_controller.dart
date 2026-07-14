@@ -420,6 +420,15 @@ class DeliveryPartnerController extends GetxController {
   bool get isSecurityDepositPaid =>
       riderOnboardingStatusData.value?.securityDepositPaid == true;
 
+  /// The rider's FIRST ride is free — the security-deposit gate is waived until
+  /// they complete it. Backend sends `freeRideUsed:false` while the free ride is
+  /// still available and flips it to true afterwards. Absent (`null`, old
+  /// backend) → treated as NOT free, so the deposit stays enforced — a safe
+  /// default that never hands out free go-live to everyone by accident.
+  /// See docs/backend/SECURITY_DEPOSIT_FRONTEND_INTEGRATION.md.
+  bool get isFirstRideFree =>
+      riderOnboardingStatusData.value?.freeRideUsed == false;
+
   RiderVerificationState get riderVerificationState {
     final status = riderVerificationStatus?.toLowerCase();
     switch (status) {
@@ -1430,11 +1439,15 @@ class DeliveryPartnerController extends GetxController {
   // "miniTruckGoods",
   // "largeTruckGoods"
 
-  Future<void> fetchVehicleDataEnum() async {
+  /// Fetches the vehicle enums. [type] = the rider's profession; when supplied
+  /// the backend returns only the options valid for that profession (the app no
+  /// longer filters locally). Omit [type] for the full catalog (rental flow).
+  Future<void> fetchVehicleDataEnum({String? type}) async {
     try {
       isVehicleDataEnumLoading.value = true;
 
-      final response = await DeliveryPartnerRepo().fetchVehicleDataEnumRepo();
+      final response =
+          await DeliveryPartnerRepo().fetchVehicleDataEnumRepo(type: type);
 
       if (response.isSuccess) {
         vehicleDataResponse.value = ApiResponse.complete(response);
@@ -1454,93 +1467,23 @@ class DeliveryPartnerController extends GetxController {
     }
   }
 
-  // ── Per-profession vehicle-enum filtering ─────────────────────────────
-  // Single source of truth: for each rider profession, the backend `slug_id`s
-  // allowed in the Vehicle Type / Vehicle Use / Registration dropdowns. A
-  // profession that isn't listed (or an empty list) means "no restriction —
-  // show the full backend list".
-  //
-  // These are business rules mapped against the /vehicle-enums response — edit
-  // ONLY here to change what a profession may pick.
-  static const Map<String, _VehicleEnumFilter> _vehicleEnumFilters = {
-    BIKE_RIDER: _VehicleEnumFilter(
-      vehicleTypes: ['twoWheelerRider'],
-      vehicleUsesTypes: ['passenger', 'delivery', 'passenger&delivery'],
-      registrationTypes: ['Personal', 'Commercial'],
-    ),
-    AUTO_TAXI: _VehicleEnumFilter(
-      vehicleTypes: ['autoTempo', 'eRickshaw'],
-      vehicleUsesTypes: ['passenger'],
-      registrationTypes: ['Commercial'],
-    ),
-    CAR_TAXI_DRIVER: _VehicleEnumFilter(
-      vehicleTypes: ['carMini', 'carSedan', 'suvCar', 'miniBus'],
-      vehicleUsesTypes: ['passenger'],
-      registrationTypes: ['Commercial'],
-    ),
-    GOODS_TAXI: _VehicleEnumFilter(
-      vehicleTypes: ['pickupGoods', 'miniTruckGoods', 'largeTruckGoods', 'Goods(3 wheeler)', 'Goods(4 wheeler)'],
-      vehicleUsesTypes: ['goodsTransport'],
-      registrationTypes: ['commercialGoods'],
-    ),
-  };
-
-  /// Keeps only the [items] whose `slugId` is in [allowed], preserving the
-  /// backend order. Empty [allowed] → no restriction (returns [items]). We
-  /// match on `slugId` (the stable key, e.g. 'twoWheelerRider'); `slugValue`
-  /// is only the display label.
-  List<VehicleEnumItem> _filterBySlugIds(
-      List<VehicleEnumItem> items, List<String> allowed) {
-    if (allowed.isEmpty) return items;
-    return items.where((v) => allowed.contains(v.slugId)).toList();
-  }
-
-  /// Vehicle-type options allowed for [userRole].
-  List<VehicleEnumItem> getFilteredVehicles(
-      String userRole, List<VehicleEnumItem> allVehicles) {
-    debugPrint('[getFilteredVehicles] userRole=$userRole');
-    final filter = _vehicleEnumFilters[userRole];
-    if (filter == null) return allVehicles;
-    return _filterBySlugIds(allVehicles, filter.vehicleTypes);
-  }
-
-  /// Vehicle-use-type options allowed for [userRole] (Passenger / Delivery / …).
-  List<VehicleEnumItem> getFilteredVehicleUseTypes(
-      String userRole, List<VehicleEnumItem> allUseTypes) {
-    final filter = _vehicleEnumFilters[userRole];
-    if (filter == null) return allUseTypes;
-    return _filterBySlugIds(allUseTypes, filter.vehicleUsesTypes);
-  }
-
-  /// Registration-type options allowed for [userRole] (Personal / Commercial / …).
-  List<VehicleEnumItem> getFilteredRegistrationTypes(
-      String userRole, List<VehicleEnumItem> allRegTypes) {
-    final filter = _vehicleEnumFilters[userRole];
-    if (filter == null) return allRegTypes;
-    return _filterBySlugIds(allRegTypes, filter.registrationTypes);
-  }
-
-  /// Pre-selects any of the three filtered dropdowns that collapse to a single
-  /// option for the signed-in rider's profession (nothing left to choose).
-  /// Only fills a slot that's still empty, so it never clobbers a value
-  /// hydrated from an existing vehicle.
+  /// Pre-selects any of the three dropdowns that collapse to a single option
+  /// for the signed-in rider's profession (nothing left to choose). The lists
+  /// are now filtered server-side by the `?type=` query param, so this works
+  /// purely off list length. Only fills a slot that's still empty, so it never
+  /// clobbers a value hydrated from an existing vehicle.
   void _autoSelectSingleVehicleOptions() {
-    final role = userProfessionGlobal;
-
-    final types =
-        getFilteredVehicles(role, vehicleEnumResponse?.vehicleType ?? []);
+    final types = vehicleEnumResponse?.vehicleType ?? [];
     if (types.length == 1 && selectedVehicleType.value == null) {
       selectedVehicleType.value = types.first;
     }
 
-    final uses = getFilteredVehicleUseTypes(
-        role, vehicleEnumResponse?.vehicleUsesType ?? []);
+    final uses = vehicleEnumResponse?.vehicleUsesType ?? [];
     if (uses.length == 1 && selectedVehicleUseType.value == null) {
       selectedVehicleUseType.value = uses.first;
     }
 
-    final regs = getFilteredRegistrationTypes(
-        role, vehicleEnumResponse?.registrationType ?? []);
+    final regs = vehicleEnumResponse?.registrationType ?? [];
     if (regs.length == 1 && selectedVehicleRegistrationType.value == null) {
       selectedVehicleRegistrationType.value = regs.first;
     }
@@ -1704,19 +1647,4 @@ class DeliveryPartnerController extends GetxController {
       pendingRequestUserIds.remove(targetUserId);
     }
   }
-}
-
-/// Immutable per-profession allow-list for the onboarding vehicle enums —
-/// which `slug_id`s a rider profession may pick in each of the three
-/// dropdowns. Backs [DeliverPartnerController]'s vehicle-enum filtering.
-class _VehicleEnumFilter {
-  final List<String> vehicleTypes;
-  final List<String> vehicleUsesTypes;
-  final List<String> registrationTypes;
-
-  const _VehicleEnumFilter({
-    required this.vehicleTypes,
-    required this.vehicleUsesTypes,
-    required this.registrationTypes,
-  });
 }

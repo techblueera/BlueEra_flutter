@@ -855,8 +855,8 @@ class _ProfileMenuDrawerState extends State<ProfileMenuDrawer> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const CustomText(
-                  'v 1.0.1',
+                CustomText(
+                  'v ${appVersion ?? ''}',
                   fontSize: 10,
                   color: AppColors.secondaryTextColor,
                   fontWeight: FontWeight.w500,

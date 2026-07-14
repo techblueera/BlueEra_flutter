@@ -9,6 +9,7 @@ import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../../common/delivery_partner/controller/delivery_partner_orders_controller.dart';
+import '../../../auth/service/ride_location_publisher.dart';
 import 'ride_navigation_overlay_controller.dart';
 
 /// Rider-side destination screen shown once the order is `picked-up`
@@ -101,11 +102,21 @@ class _PassengerDestinationScreenState
     _setupStaticMarkers();
     _updateRiderMarker(heading: 0);
     _fetchRoute(_currentRiderPosition!);
+    // Publish the rider's live position to the customer's tracking stream for
+    // the duration of the ride (heartbeat + retry handled by the publisher).
+    RideLocationPublisher().start();
+    // Seed the first ping from the last known fix so the customer's map isn't
+    // blank until the first GPS tick arrives.
+    final seed = _currentRiderPosition;
+    if (seed != null) {
+      RideLocationPublisher().updatePosition(seed.latitude, seed.longitude);
+    }
     _startLocationTracking();
   }
 
   @override
   void dispose() {
+    RideLocationPublisher().stop();
     _mapController?.dispose();
     _locationSubscription?.cancel();
     super.dispose();
@@ -207,6 +218,9 @@ class _PassengerDestinationScreenState
         _updateRiderMarker(heading: position.heading);
         _recomputeRemaining();
       });
+      // Push the position to the map-service so the customer's live-tracking
+      // map follows the rider. Throttling/heartbeat/retry live in the publisher.
+      RideLocationPublisher().updatePosition(newPos.latitude, newPos.longitude);
       // Keep the camera gently following the rider.
       _mapController?.animateCamera(CameraUpdate.newLatLng(newPos));
       // Refresh the drawn route once the rider has moved ~150 m from the

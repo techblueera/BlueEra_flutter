@@ -33,7 +33,9 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
   @override
   initState(){
     super.initState();
-    controller.fetchVehicleDataEnum();
+    // Pass the profession so the backend returns only the valid options — no
+    // local filtering. See docs/backend/VEHICLE_ENUMS_BY_PROFESSION_GUIDE.md.
+    controller.fetchVehicleDataEnum(type: userProfessionGlobal);
   }
 
   @override
@@ -63,10 +65,8 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
                     ),
                     SizedBox(height: SizeConfig.size8),
                     CommonDropdownDialog<VehicleEnumItem>(
-                      items: controller.getFilteredVehicles(
-                          userProfessionGlobal,
-                          controller.vehicleEnumResponse?.vehicleType ?? []
-                      ),
+                      items:
+                          controller.vehicleEnumResponse?.vehicleType ?? [],
                       title: AppStrings.vehicleType.tr,
                       selectedValue: controller.selectedVehicleType.value,
                       hintText: AppStrings.egTwoThreeWheeler.tr,

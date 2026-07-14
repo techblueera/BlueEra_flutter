@@ -404,4 +404,16 @@ class ChatViewRepo extends BaseService {
     return response;
   }
 
+  /// Customer-side 10s poll for the rider's live position on an active order.
+  /// Silent (no progress dialog) — it fires every 10s. See
+  /// docs/backend/RIDER_LOCATION_POLLING_GUIDE.md.
+  Future<ResponseModel> getRiderLiveLocationApi(String orderId) async {
+    final response = await ApiBaseHelper().getHTTP(
+        riderLiveLocationForOrder(orderId),
+        showProgress: false,
+        onError: (error) {},
+        onSuccess: (data) {});
+    return response;
+  }
+
 }

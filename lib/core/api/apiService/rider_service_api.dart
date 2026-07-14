@@ -9,6 +9,13 @@ mixin RiderServiceApi {
   String checkTrackOrderStatus(String orderId) =>
       'rider-service/fare/orders/${orderId}/status';
 
+  /// Customer-side live rider position for an active order, polled ~every 10s.
+  /// Keyed on orderId (resolves assignedRider server-side, returns order status
+  /// + distances). Replaces the map-provider SSE on the tracking screens.
+  /// See docs/backend/RIDER_LOCATION_POLLING_GUIDE.md.
+  String riderLiveLocationForOrder(String orderId) =>
+      'rider-service/fare/orders/$orderId/rider-location';
+
   String getNearByRiderApi = "rider-service/riders/nearby";
 
   final String ridersOnboardingPersonalInformation =

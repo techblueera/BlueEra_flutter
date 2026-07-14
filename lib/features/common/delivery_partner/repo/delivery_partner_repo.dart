@@ -159,10 +159,14 @@ class DeliveryPartnerRepo extends BaseService {
     return response;
   }
 
-  /// Fetch Vehicle Enum
-  Future<ResponseModel> fetchVehicleDataEnumRepo() async {
+  /// Fetch Vehicle Enum. When [type] (the rider's profession) is provided, the
+  /// backend returns only the options valid for that profession — the app no
+  /// longer filters locally. Omitting [type] returns the full catalog (used by
+  /// the rental flow). See docs/backend/VEHICLE_ENUMS_BY_PROFESSION_GUIDE.md.
+  Future<ResponseModel> fetchVehicleDataEnumRepo({String? type}) async {
     var response = await ApiBaseHelper().getHTTP(
       vehicleEnums,
+      params: (type != null && type.isNotEmpty) ? {'type': type} : null,
       showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},

@@ -23,7 +23,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../chat/auth/controller/call_controller.dart';
 import '../../../../chat/view/forward_screen/chat_forward_screen.dart';
 import '../../../../chat/auth/controller/chat_view_controller.dart';
-import '../../../../chat/auth/controller/live_trach_rider_controller.dart';
+import '../../controller/rider_location_poll_controller.dart';
 import '../../../../chat/view/call_screen/rider_call/ride_navigation_overlay_controller.dart';
 import '../../../bottomNavigationBar/controller/bottom_bar_controller.dart';
 import '../../controller/discover_controller.dart';
@@ -77,7 +77,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
   final Set<Marker> _markers = {};
   final Set<Polyline> _polylines = {};
   List<LatLng> _routeCoords = [];
-  LiveTrachRiderController? _liveTrackController;
+  RiderLocationPollController? _liveTrackController;
   Worker? _riderLatWorker;
   Worker? _riderLngWorker;
   Worker? _rideStartedWorker;
@@ -210,14 +210,15 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
         PipService.updatePipStatus(true);
       }
 
-      final riderId = discoverController.fareCallAcceptedRiderId.value;
-      if (riderId.isNotEmpty) {
-        _liveTrackController = Get.put(LiveTrachRiderController());
-        _liveTrackController!.fetchStream(riderId);
+      // Poll the rider's live location on the order (10s) — replaces the SSE
+      // stream. Keyed on orderId (backend resolves the assigned rider).
+      if (widget.orderId.isNotEmpty) {
+        _liveTrackController = Get.put(RiderLocationPollController());
+        _liveTrackController!.startPolling(widget.orderId);
         _riderLatWorker = ever(_liveTrackController!.liveLat, (_) => _updateRiderOnMap());
         _riderLngWorker = ever(_liveTrackController!.liveLng, (_) => _updateRiderOnMap());
 
-        // Listen for completion from live tracking stream
+        // Ride completion arrives as rideActive:false on the poll.
         ever(_liveTrackController!.rideCompleted, (completed) {
           if (completed && mounted && !_rideCompleted.value) {
             _handleRideCompleted();
@@ -250,16 +251,16 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
       PipService.updatePipStatus(true);
     }
 
-    // Start tracking rider's live location
-    final riderId = discoverController.fareCallAcceptedRiderId.value;
-    if (riderId.isNotEmpty) {
-      _liveTrackController = Get.put(LiveTrachRiderController());
-      _liveTrackController!.fetchStream(riderId);
+    // Start tracking rider's live location via the 10s order poll.
+    if (widget.orderId.isNotEmpty) {
+      _liveTrackController = Get.put(RiderLocationPollController());
+      _liveTrackController!.startPolling(widget.orderId);
 
       _riderLatWorker = ever(_liveTrackController!.liveLat, (_) => _updateRiderOnMap());
       _riderLngWorker = ever(_liveTrackController!.liveLng, (_) => _updateRiderOnMap());
 
-      // Listen for ride completion from live tracking stream (fallback for socket)
+      // Ride completion arrives as rideActive:false on the poll (also covered
+      // by the socket/FCM signal).
       ever(_liveTrackController!.rideCompleted, (completed) {
         if (completed && mounted && !_rideCompleted.value) {
           _handleRideCompleted();
@@ -285,7 +286,7 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
     if (_rideCompleted.value) return; // Prevent duplicate handling
 
 
-    _liveTrackController?.dispose();
+    _liveTrackController?.stopPolling();
     _riderLatWorker?.dispose();
     _riderLngWorker?.dispose();
 
@@ -468,6 +469,12 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
 
   double _calculateRiderDistance() {
     if (_liveTrackController == null) return 0.0;
+    // Prefer the server's authoritative pickup distance from the poll (computed
+    // against the order's real pickup coords). Fall back to a local straight-
+    // line calc until it arrives — both are haversine, so the same math.
+    final serverKm = _liveTrackController!.distanceToPickupKm.value;
+    if (serverKm != null) return serverKm;
+
     final riderLat = _liveTrackController!.liveLat.value;
     final riderLng = _liveTrackController!.liveLng.value;
     final pickupLat = discoverController.selectedFromLat?.value ?? 0.0;
@@ -514,8 +521,8 @@ class _FareCallQueueScreenState extends State<FareCallQueueScreen>
     discoverController.stopRideStartedFallbackPoll();
 
     _mapController?.dispose();
-    if (_liveTrackController != null && Get.isRegistered<LiveTrachRiderController>()) {
-      Get.delete<LiveTrachRiderController>();
+    if (_liveTrackController != null && Get.isRegistered<RiderLocationPollController>()) {
+      Get.delete<RiderLocationPollController>();
     }
     super.dispose();
   }
