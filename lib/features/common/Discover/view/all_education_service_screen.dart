@@ -32,10 +32,13 @@ class AllEducationServiceScreen extends StatefulWidget {
   final OnboardingCategoryModel? selectedProfessionConsultantData;
 
   const AllEducationServiceScreen(
-      {super.key, required this.professionalConsultantCategories, this.selectedProfessionConsultantData});
+      {super.key,
+      required this.professionalConsultantCategories,
+      this.selectedProfessionConsultantData});
 
   @override
-  State<AllEducationServiceScreen> createState() => _AllEducationServiceScreenState();
+  State<AllEducationServiceScreen> createState() =>
+      _AllEducationServiceScreenState();
 }
 
 class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
@@ -58,11 +61,13 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
   initState() {
     super.initState();
     _professionalConsultantCategories = widget.professionalConsultantCategories;
-    controller_.selectedEducationServiceData.value = widget.selectedProfessionConsultantData;
+    controller_.selectedEducationServiceData.value =
+        widget.selectedProfessionConsultantData;
     controller_.fetchEducationServiceServices();
 
     scrollController.addListener(() {
-      if (scrollController.position.pixels == scrollController.position.maxScrollExtent) {
+      if (scrollController.position.pixels ==
+          scrollController.position.maxScrollExtent) {
         controller_.fetchEducationServiceServices(isLoadMore: true);
       }
     });
@@ -72,7 +77,10 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
   Widget build(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
     final stickyCategories = [
-      StickyCategory(id: 'ALL_OPTION', name: AppStrings.all.tr, imageUrl: AppImageAssets.all),
+      StickyCategory(
+          id: 'ALL_OPTION',
+          name: AppStrings.all.tr,
+          imageUrl: AppImageAssets.all),
       ..._professionalConsultantCategories.map((c) => StickyCategory(
             id: c.slugId,
             name: c.name,
@@ -111,13 +119,18 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
                   delegate: StickyCategoryHeaderDelegate(
                     topPadding: statusBarHeight,
                     categories: stickyCategories,
-                    selectedId: controller_.selectedEducationServiceData.value?.slugId ?? 'ALL_OPTION',
+                    selectedId: controller_
+                            .selectedEducationServiceData.value?.slugId ??
+                        'ALL_OPTION',
                     onCategoryTap: (item) {
-                      final index = stickyCategories.indexWhere((c) => c.id == item.id);
+                      final index =
+                          stickyCategories.indexWhere((c) => c.id == item.id);
                       controller_.selectedTabIndex.value = index;
-                      controller_.selectedEducationServiceData.value = item.id == 'ALL_OPTION'
-                          ? null
-                          : _professionalConsultantCategories.firstWhere((c) => c.slugId == item.id);
+                      controller_.selectedEducationServiceData.value =
+                          item.id == 'ALL_OPTION'
+                              ? null
+                              : _professionalConsultantCategories
+                                  .firstWhere((c) => c.slugId == item.id);
                       controller_.fetchEducationServiceServices();
                       setState(() {});
                     },
@@ -167,7 +180,8 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
 
   Widget _buildListSliver() {
     return Obx(() {
-      if (controller_.isEducationServiceLoading.value && controller_.schoolDetailsDataDataList.isEmpty) {
+      if (controller_.isEducationServiceLoading.value &&
+          controller_.schoolDetailsDataDataList.isEmpty) {
         return const SliverFillRemaining(
           hasScrollBody: false,
           child: Center(child: CircularProgressIndicator()),
@@ -237,25 +251,34 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
       coverImages.add(service.logo!);
     }
 
-    final String name = (service.name?.isNotEmpty ?? false) ? service.name! : na;
-    final String address = (service.location?.name?.isNotEmpty ?? false) ? service.location!.name! : na;
+    final String name =
+        (service.name?.isNotEmpty ?? false) ? service.name! : na;
+    final String address = (service.location?.name?.isNotEmpty ?? false)
+        ? service.location!.name!
+        : na;
     final String distance = _distanceFromUser(service);
-    final String classRange = (service.classRange?.isNotEmpty ?? false) ? service.classRange! : na;
-    final String ratio =
-        (service.studentTeacherRatio?.isNotEmpty ?? false) ? service.studentTeacherRatio! : na;
-    final String medium =
-        (service.mediumOfInstruction?.isNotEmpty ?? false) ? service.mediumOfInstruction!.join(', ') : na;
+    final String classRange =
+        (service.classRange?.isNotEmpty ?? false) ? service.classRange! : na;
+    final String ratio = (service.studentTeacherRatio?.isNotEmpty ?? false)
+        ? service.studentTeacherRatio!
+        : na;
+    final String medium = (service.mediumOfInstruction?.isNotEmpty ?? false)
+        ? service.mediumOfInstruction!.join(', ')
+        : na;
     final String feeLabel = _buildFeeLabel(service);
     final String feeRange = _buildFeeRange(service);
     final double? ratingValue = service.avgRating;
-    final String rating = (ratingValue != null && ratingValue > 0) ? ratingValue.toStringAsFixed(1) : na;
+    final String rating = (ratingValue != null && ratingValue > 0)
+        ? ratingValue.toStringAsFixed(1)
+        : na;
 
     return InkWell(
       onTap: () {
         // Seed the lighter list item so the header renders instantly; the
         // school home screen then loads the full record from
         // `education-service/schools/{id}` itself (in its initState).
-        final schoolAboutUsController = getOrPut(() => SchoolAboutUsController());
+        final schoolAboutUsController =
+            getOrPut(() => SchoolAboutUsController());
         schoolAboutUsController.schoolDetailsData?.value = service;
         Get.to(DiscoverSchoolHomeScreen());
       },
@@ -284,13 +307,11 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
                   SizedBox(height: SizeConfig.size12),
                   _buildStatsRow(
                     classRange: classRange,
-                    ratio: ratio,
-                    medium: medium,
+                    ratio: "${ratio} Ratio",
+                    medium: "${medium} Medium",
                   ),
                   SizedBox(height: SizeConfig.size12),
                   _buildFeeRow(label: feeLabel, value: feeRange),
-                  SizedBox(height: SizeConfig.size12),
-                  _buildActionsRow(service),
                 ],
               ),
             ),
@@ -301,7 +322,9 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
   }
 
   Future<void> _shareSchool(SchoolDetailsData service) async {
-    final name = (service.name?.trim().isNotEmpty ?? false) ? service.name!.trim() : 'this school';
+    final name = (service.name?.trim().isNotEmpty ?? false)
+        ? service.name!.trim()
+        : 'this school';
     // final address = service.location?.name?.trim() ?? '';
     // final classRange = service.classRange?.trim() ?? '';
     // final mediums = service.mediumOfInstruction?.where((s) => s.trim().isNotEmpty).toList() ?? const [];
@@ -337,7 +360,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
   }
 
   String _buildFeeLabel(SchoolDetailsData service) {
-    if (service.fees != null) return 'Annual fee';
+    if (service.fees != null) return 'Annual fee · varies by class';
     final courses = service.courses;
     if (courses == null || courses.isEmpty) return 'Annual fee';
     return 'Annual fee · varies by class';
@@ -347,7 +370,11 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
     if (service.fees != null) return '${_formatFee(service.fees!)}/Year';
     final courses = service.courses;
     if (courses == null || courses.isEmpty) return 'N/A';
-    final yearly = courses.map((c) => c.courseFees?.yearly).whereType<int>().toList()..sort();
+    final yearly = courses
+        .map((c) => c.courseFees?.yearly)
+        .whereType<int>()
+        .toList()
+      ..sort();
     if (yearly.isEmpty) return 'N/A';
     final min = yearly.first;
     final max = yearly.last;
@@ -383,7 +410,9 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
         (a) => (a.day ?? '').toLowerCase() == order[i].toLowerCase(),
         orElse: () => Availability(),
       );
-      if (slot.isOpen == true && (slot.openTime ?? '').isNotEmpty && (slot.closeTime ?? '').isNotEmpty) {
+      if (slot.isOpen == true &&
+          (slot.openTime ?? '').isNotEmpty &&
+          (slot.closeTime ?? '').isNotEmpty) {
         openSlots.add(MapEntry(i, slot));
       }
     }
@@ -407,7 +436,8 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
 
     final firstOpen = openSlots.first.value.openTime!;
     final firstClose = openSlots.first.value.closeTime!;
-    final allSame = openSlots.every((e) => e.value.openTime == firstOpen && e.value.closeTime == firstClose);
+    final allSame = openSlots.every((e) =>
+        e.value.openTime == firstOpen && e.value.closeTime == firstClose);
 
     if (allSame) return '$dayRange | $firstOpen - $firstClose';
     return '$dayRange | varies';
@@ -416,7 +446,8 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
   String _formatFee(int value) {
     if (value >= 100000) {
       final lakhs = value / 100000;
-      final txt = lakhs % 1 == 0 ? lakhs.toStringAsFixed(0) : lakhs.toStringAsFixed(1);
+      final txt =
+          lakhs % 1 == 0 ? lakhs.toStringAsFixed(0) : lakhs.toStringAsFixed(1);
       return '₹${txt}L';
     }
     if (value >= 1000) {
@@ -483,7 +514,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppColors.black.withValues(alpha: 0.55),
+                  color: AppColors.black25,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
@@ -504,14 +535,13 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
             Positioned(
               top: 10,
               right: 10,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+              child: Column(
                 children: [
                   GestureDetector(
                     onTap: () => _shareSchool(service),
                     child: _circleIcon(AppIconAssets.share_bold),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(height: 8),
                   _circleIcon(AppIconAssets.star),
                 ],
               ),
@@ -523,23 +553,25 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 220),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                     decoration: BoxDecoration(
-                      color: AppColors.white.withValues(alpha: 0.95),
+                      color: Color(0xffF2FFF2),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: AppColors.greenShade, width: 1),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.access_time, size: 12, color: AppColors.greenShade),
+                        const Icon(Icons.access_time,
+                            size: 12, color: AppColors.greenShade),
                         const SizedBox(width: 4),
                         Flexible(
                           child: CustomText(
                             window,
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.primaryColor,
+                            color: AppColors.greenShade,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -557,17 +589,17 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
 
   Widget _circleIcon(String icon) {
     return Container(
-      width: 32,
-      height: 32,
+      width: 30,
+      height: 30,
       decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.9),
+        color: AppColors.black25,
         shape: BoxShape.circle,
       ),
       child: Padding(
         padding: const EdgeInsets.all(6),
         child: LocalAssets(
           imagePath: icon,
-          imgColor: AppColors.black,
+          imgColor: AppColors.white,
         ),
       ),
     );
@@ -604,7 +636,8 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
               SizedBox(height: SizeConfig.size2),
               Row(
                 children: [
-                  Icon(Icons.location_on, size: 14, color: AppColors.primaryColor),
+                  Icon(Icons.location_on,
+                      size: 14, color: AppColors.primaryColor),
                   const SizedBox(width: 4),
                   Expanded(
                     child: CustomText(
@@ -643,13 +676,13 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
   Widget _statCell(String icon, String label) {
     return Container(
       padding: EdgeInsets.symmetric(
-        horizontal: SizeConfig.size8,
-        vertical: SizeConfig.size12,
+        horizontal: SizeConfig.size6,
+        vertical: SizeConfig.size6,
       ),
       decoration: BoxDecoration(
         color: AppColors.geryFC,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.greyE5, width: 1),
+        border: Border.all(color: AppColors.greyE5, width: 0.5),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -658,9 +691,9 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
           const SizedBox(height: 6),
           CustomText(
             label,
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            color: AppColors.mainTextColor,
+            fontSize: SizeConfig.small,
+            fontWeight: FontWeight.w500,
+            color: AppColors.secondaryTextColor,
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -679,7 +712,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
       decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.greyE5, width: 1)),
+          border: Border.all(color: Color(0xffDDE2EE), width: 0.5)),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
@@ -689,7 +722,8 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
               children: [
                 CustomText(
                   label,
-                  fontSize: 11,
+                  fontSize: SizeConfig.small,
+                  fontWeight: FontWeight.w400,
                   color: AppColors.secondaryTextColor,
                 ),
                 const SizedBox(height: 2),
@@ -705,18 +739,26 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
             decoration: BoxDecoration(
-              color: AppColors.skyBlueFF,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: CustomText(
-              'View In Details',
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
               color: AppColors.primaryColor,
+              borderRadius: BorderRadius.circular(10),
             ),
-          ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CustomText(
+                  "Inquiry Now",
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.white,
+                ),
+                const SizedBox(width: 6),
+                const Icon(Icons.arrow_forward,
+                    size: 16, color: AppColors.white),
+              ],
+            ),
+          )
         ],
       ),
     );
@@ -770,7 +812,8 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
                   color: AppColors.white,
                 ),
                 const SizedBox(width: 6),
-                const Icon(Icons.arrow_forward, size: 16, color: AppColors.white),
+                const Icon(Icons.arrow_forward,
+                    size: 16, color: AppColors.white),
               ],
             ),
           ),
@@ -888,7 +931,8 @@ class _NoSchoolsFound extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.refresh, color: AppColors.white, size: SizeConfig.size18),
+                  Icon(Icons.refresh,
+                      color: AppColors.white, size: SizeConfig.size18),
                   SizedBox(width: SizeConfig.size6),
                   CustomText(
                     AppStrings.retry.tr,

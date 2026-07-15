@@ -49,7 +49,8 @@ class _HospitalListScreenState extends State<HospitalListScreen> {
     // sticky-category header and the list scrolling as one smooth motion.
     return NotificationListener<ScrollNotification>(
       onNotification: (n) {
-        if (n is ScrollUpdateNotification && n.metrics.pixels >= n.metrics.maxScrollExtent - 100) {
+        if (n is ScrollUpdateNotification &&
+            n.metrics.pixels >= n.metrics.maxScrollExtent - 100) {
           controller.fetchMore(widget.serviceType);
         }
         return false;
@@ -70,7 +71,8 @@ class _HospitalListScreenState extends State<HospitalListScreen> {
               ),
             );
           }
-          if (controller.error.value.isNotEmpty && controller.profiles.isEmpty) {
+          if (controller.error.value.isNotEmpty &&
+              controller.profiles.isEmpty) {
             return Center(
               child: CustomText(
                 "Failed to load data",
@@ -98,7 +100,8 @@ class _HospitalListScreenState extends State<HospitalListScreen> {
                 final rows = buildNativeAdRows(controller.profiles.length);
                 return ListView.builder(
                   padding: EdgeInsets.symmetric(vertical: SizeConfig.size8),
-                  itemCount: rows.length + (controller.isLoadingMore.value ? 1 : 0),
+                  itemCount:
+                      rows.length + (controller.isLoadingMore.value ? 1 : 0),
                   itemBuilder: (context, index) {
                     if (index == rows.length) {
                       // Load-more footer: wrap a single body in one shimmer.
@@ -133,7 +136,8 @@ class _HospitalCard extends StatelessWidget {
 
   bool _isEmpty(String? s) => s == null || s.trim().isEmpty;
 
-  String _valueOr(String? s, {String fallback = "Not available"}) => _isEmpty(s) ? fallback : s!.trim();
+  String _valueOr(String? s, {String fallback = "Not available"}) =>
+      _isEmpty(s) ? fallback : s!.trim();
 
   List<String> _collectGalleryPhotos() {
     final photos = <String>[];
@@ -159,8 +163,10 @@ class _HospitalCard extends StatelessWidget {
     return null;
   }
 
-  List<String> _departmentNames() =>
-      (item.departments ?? []).map((d) => d.name ?? '').where((s) => s.trim().isNotEmpty).toList();
+  List<String> _departmentNames() => (item.departments ?? [])
+      .map((d) => d.name ?? '')
+      .where((s) => s.trim().isNotEmpty)
+      .toList();
 
   List<String> _buildFacilities() {
     // The `business/filter` listing supplies facility names directly. Prefer
@@ -218,7 +224,8 @@ class _HospitalCard extends StatelessWidget {
   void _openDetail() {
     try {
       final controller = Get.find<HospitalServiceAiController>();
-      controller.hospitalDataResModel?.value = HospitalFullDetailsResModel(success: true, data: item);
+      controller.hospitalDataResModel?.value =
+          HospitalFullDetailsResModel(success: true, data: item);
       Get.to(() => DiscoverHospitalHomeScreen());
     } on Exception catch (e) {
       logs("ERROR $e");
@@ -272,7 +279,9 @@ class _HospitalCard extends StatelessWidget {
 
   void _openImageViewer(BuildContext context) {
     final gallery = _collectGalleryPhotos();
-    final images = gallery.isNotEmpty ? gallery : [if (_coverImage() != null) _coverImage()!];
+    final images = gallery.isNotEmpty
+        ? gallery
+        : [if (_coverImage() != null) _coverImage()!];
     if (images.isEmpty) return;
     navigatePushTo(
       context,
@@ -288,7 +297,8 @@ class _HospitalCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
+      padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: _openDetail,
@@ -296,6 +306,7 @@ class _HospitalCard extends StatelessWidget {
           cardMargin: 0,
           padding: 0,
           borderRadius: 16,
+          shadowColor: AppColors.shadowColor.withValues(alpha: 0.10),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -330,7 +341,7 @@ class _HospitalCard extends StatelessWidget {
             topRight: Radius.circular(16),
           ),
           child: SizedBox(
-            height: 150,
+            height: 200,
             width: double.infinity,
             child: cover == null
                 ? Container(
@@ -393,7 +404,7 @@ class _HospitalCard extends StatelessWidget {
                 CustomText(
                   '4.8',
                   fontSize: SizeConfig.small,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w400,
                   color: Colors.white,
                 ),
               ],
@@ -408,7 +419,8 @@ class _HospitalCard extends StatelessWidget {
             children: [
               _circleAction(AppIconAssets.share_bold, _share),
               const SizedBox(height: 8),
-              _circleAction(AppIconAssets.directionIcon, () => _openMapBottomSheet(context)),
+              _circleAction(
+                  AppIconAssets.star_rounded, () => (Text("Coming Soon"))),
             ],
           ),
         ),
@@ -418,7 +430,7 @@ class _HospitalCard extends StatelessWidget {
 
   Widget _circleAction(String icon, VoidCallback onTap) {
     return Material(
-      color: Colors.white,
+      color: AppColors.black25,
       shape: const CircleBorder(),
       elevation: 2,
       shadowColor: AppColors.black25,
@@ -426,10 +438,12 @@ class _HospitalCard extends StatelessWidget {
         customBorder: const CircleBorder(),
         onTap: onTap,
         child: Padding(
-          padding: const EdgeInsets.all(7),
+          padding: const EdgeInsets.all(4.0),
           child: LocalAssets(
             imagePath: icon,
-            imgColor: AppColors.black,
+            height: 20,
+            width: 20,
+            imgColor: AppColors.white,
           ),
         ),
       ),
@@ -456,18 +470,18 @@ class _HospitalCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _logo(),
-            const SizedBox(width: 12),
+            const SizedBox(width: 10),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.only(top: 2),
+                padding: const EdgeInsets.only(top: 6),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     CustomText(
                       _valueOr(item.name, fallback: "Unknown Hospital"),
-                      fontSize: SizeConfig.medium,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.mainTextColor,
+                      fontSize: SizeConfig.large18,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.black22,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -489,7 +503,7 @@ class _HospitalCard extends StatelessWidget {
                               distance,
                               fontSize: SizeConfig.small,
                               color: AppColors.primaryColor,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w400,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -497,17 +511,19 @@ class _HospitalCard extends StatelessWidget {
                               CustomText(
                                 '  |  ',
                                 fontSize: SizeConfig.small,
-                                color: AppColors.secondaryTextColor,
+                                color: Color(0xff66727E),
                                 fontWeight: FontWeight.w500,
                               ),
                           ],
                           Expanded(
                             child: CustomText(
                               _isEmpty(address)
-                                  ? (distance == null ? 'Address not available' : '')
+                                  ? (distance == null
+                                      ? 'Address not available'
+                                      : '')
                                   : address!.trim(),
                               fontSize: SizeConfig.small,
-                              color: AppColors.secondaryTextColor,
+                              color: Color(0xff66727E),
                               fontWeight: FontWeight.w500,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -524,34 +540,53 @@ class _HospitalCard extends StatelessWidget {
         ),
         const SizedBox(height: 14),
         // Departments summary.
-        _serviceRow(
-          icon: "assets/svg/department.svg",
-          title: 'Departments',
-          items: deptNames,
-          count: deptCount,
-          emptyLabel: 'No departments listed',
+        Container(
+          padding: EdgeInsets.all(0),
+          decoration: BoxDecoration(
+            border: Border.all(
+              width: 0.5,
+              color: AppColors.greyE6,
+            ),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: _serviceRow(
+                    icon: "assets/svg/department.svg",
+                    title: 'Departments',
+                    items: deptNames,
+                    count: deptCount,
+                    emptyLabel: 'No departments listed',
+                    color: AppColors.primaryColor.withValues(alpha: 0.10)),
+              ),
+              Divider(
+                height: 0.5,
+                thickness: 0.5,
+                color: AppColors.greyE6,
+              ),
+              // Facilities summary.
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: _serviceRow(
+                    icon: "assets/svg/hands_brain.svg",
+                    title: 'Facilities',
+                    items: facilities,
+                    count: facilityCount,
+                    emptyLabel: 'No facilities listed',
+                    color: AppColors.green0B.withValues(alpha: 0.10)),
+              ),
+            ],
+          ),
         ),
-        const Padding(
-          padding: EdgeInsets.symmetric(vertical: 10),
-          child: Divider(height: 1, thickness: 1, color: AppColors.greyE6),
-        ),
-        // Facilities summary.
-        _serviceRow(
-          icon: "assets/svg/hands_brain.svg",
-          title: 'Facilities',
-          items: facilities,
-          count: facilityCount,
-          emptyLabel: 'No facilities listed',
-        ),
+
         const SizedBox(height: 16),
         // Chat + Book Now actions.
         Row(
           children: [
-            // Expanded(
-            //   flex: 1,
-            //   child: _chatButton(),
-            // ),
-            // const SizedBox(width: 12),
+            Expanded(flex: 1, child: _chatButton(context)),
+            const SizedBox(width: 10),
             Expanded(
               flex: 2,
               child: _bookNowButton(),
@@ -566,19 +601,11 @@ class _HospitalCard extends StatelessWidget {
   Widget _logo() {
     final hasLogo = !_isEmpty(item.logoUrl);
     return Container(
-      width: 62,
-      height: 62,
+      width: 55,
+      height: 55,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         color: Colors.white,
-        border: Border.all(color: Colors.white, width: 3),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black25,
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       child: ClipOval(
         child: hasLogo
@@ -601,23 +628,42 @@ class _HospitalCard extends StatelessWidget {
 
   /// One summary row: a rounded icon tile on the left, then `Title • N` with a
   /// single-line, comma-joined preview of the [items] beneath it, and an
-  /// `N More` link on the right. [count] is the server's total; anything beyond
-  /// the preview collapses into the link, which opens the detail screen.
+  /// `N More` link on the right. Summary always renders on first frame — the
+  /// `More` badge is opt-in and its visibility is decided by a lightweight
+  /// `LayoutBuilder` overflow check that runs *after* the summary is already
+  /// laid out, so a stale first-frame measurement can never hide the items.
   Widget _serviceRow({
     required String icon,
     required String title,
     required List<String> items,
     required int count,
     required String emptyLabel,
+    required Color color,
   }) {
     final accent = AppColors.primaryColor;
-    const preview = 4;
-    final shown = items.length < preview ? items.length : preview;
-    // Anchor on the larger of the server count / names length so the link
-    // never under-reports the remaining items.
+    final facilityAccent = const Color(0xff00B87A1A);
+    // Anchor on the larger of the server count / names length so the badge
+    // never under-reports. Guards against server sending count=0 while items
+    // are present (which would otherwise hide the badge entirely).
     final total = count > items.length ? count : items.length;
-    final hidden = total - shown;
     final summary = items.isEmpty ? emptyLabel : items.join(', ');
+    final serverHasMore = count > items.length;
+    const preview = 4;
+    // Fall-back count for the "More" link when the summary overflows: server
+    // extras + everything past the preview cap. Never negative.
+    final previewHidden =
+        (items.length > preview ? items.length - preview : 0) +
+            (serverHasMore ? count - items.length : 0);
+
+    final summaryText = CustomText(
+      summary,
+      fontSize: SizeConfig.extraSmall,
+      color: items.isEmpty ? AppColors.grey9B : const Color(0xff66727E),
+      fontWeight: FontWeight.w600,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -626,11 +672,13 @@ class _HospitalCard extends StatelessWidget {
           height: 38,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: accent.withValues(alpha: 0.10),
+            color: color,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: LocalAssets(imagePath: icon),
-          // child: Icon(icon, size: 20, color: accent),
+          child: LocalAssets(
+            imagePath: icon,
+            height: 20,
+          ),
         ),
         const SizedBox(width: 10),
         Expanded(
@@ -641,68 +689,101 @@ class _HospitalCard extends StatelessWidget {
                 children: [
                   CustomText(
                     title,
-                    fontSize: SizeConfig.small,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.mainTextColor,
-                  ),
-                  const SizedBox(width: 5),
-                  CustomText(
-                    '• $count',
-                    fontSize: SizeConfig.small,
+                    fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: AppColors.secondaryTextColor,
+                    color: AppColors.black22,
                   ),
+                  if (total > 0) ...[
+                    const SizedBox(width: 5),
+                    CustomText(
+                      '• $total',
+                      fontSize: SizeConfig.small,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.black22,
+                    ),
+                  ],
                 ],
               ),
               const SizedBox(height: 3),
-              CustomText(
-                summary,
-                fontSize: SizeConfig.small,
-                color: items.isEmpty ? AppColors.grey9B : AppColors.secondaryTextColor,
-                fontWeight: FontWeight.w400,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              // Summary sits in Expanded so the row always paints even before
+              // LayoutBuilder resolves. LayoutBuilder only decides whether the
+              // "More" badge slot on the right is populated — items are never
+              // hidden waiting on a measurement.
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  if (constraints.maxWidth <= 0 ||
+                      !constraints.maxWidth.isFinite) {
+                    return summaryText;
+                  }
+
+                  final summaryStyle = TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: items.isEmpty
+                        ? AppColors.grey9B
+                        : const Color(0xff66727E),
+                  );
+                  final fullPainter = TextPainter(
+                    text: TextSpan(text: summary, style: summaryStyle),
+                    maxLines: 1,
+                    textDirection: TextDirection.ltr,
+                  )..layout(maxWidth: constraints.maxWidth);
+                  final overflows = fullPainter.didExceedMaxLines;
+
+                  if (!overflows && !serverHasMore) return summaryText;
+                  if (previewHidden <= 0 && !overflows) return summaryText;
+
+                  final badgeCount =
+                      previewHidden > 0 ? previewHidden : items.length;
+                  return Row(
+                    children: [
+                      Expanded(child: summaryText),
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: _openDetail,
+                        child: CustomText(
+                          '$badgeCount More',
+                          fontSize: SizeConfig.small,
+                          fontWeight: FontWeight.w600,
+                          color: accent,
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
             ],
           ),
         ),
-        if (hidden > 0) ...[
-          const SizedBox(width: 8),
-          GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: _openDetail,
-            child: CustomText(
-              '$hidden More',
-              fontSize: SizeConfig.small,
-              fontWeight: FontWeight.w600,
-              color: accent,
-            ),
-          ),
-        ],
       ],
     );
   }
 
-  Widget _chatButton() {
+  Widget _chatButton(BuildContext context) {
     return Material(
       color: Colors.white,
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: _openChat,
+        onTap: () {
+          _openMapBottomSheet(context);
+        },
         child: Container(
-          height: 44,
+          height: 40,
           decoration: BoxDecoration(
-            color: AppColors.skyBlueFF,
-            borderRadius: BorderRadius.circular(10),
-          ),
+              color: Color(0xffF2F9FF),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Color(0xffCFE8FF))),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              LocalAssets(imagePath: AppIconAssets.chat, imgColor: AppColors.primaryColor),
+              LocalAssets(
+                  imagePath: AppIconAssets.directionIcon,
+                  imgColor: AppColors.primaryColor),
               const SizedBox(width: 6),
               CustomText(
-                AppStrings.chat,
+                AppStrings.directions,
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 color: AppColors.primaryColor,
@@ -718,35 +799,36 @@ class _HospitalCard extends StatelessWidget {
     final accent = AppColors.primaryColor;
     return Material(
       color: Colors.transparent,
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(10),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(10),
         onTap: _openDetail,
         child: Container(
-          height: 46,
+          height: 40,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             color: accent,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: accent.withValues(alpha: 0.30),
-                blurRadius: 8,
-                offset: const Offset(0, 3),
-              ),
-            ],
+            borderRadius: BorderRadius.circular(10),
+            // boxShadow: [
+            //   BoxShadow(
+            //     color: accent.withValues(alpha: 0.30),
+            //     blurRadius: 8,
+            //     offset: const Offset(0, 3),
+            //   ),
+            // ],
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               CustomText(
                 AppStrings.inquiry,
-                fontSize: SizeConfig.medium,
-                fontWeight: FontWeight.w700,
+                fontSize: SizeConfig.large,
+                fontWeight: FontWeight.w500,
                 color: Colors.white,
               ),
               const SizedBox(width: 8),
-              const Icon(Icons.arrow_forward_rounded, size: 18, color: Colors.white),
+              const Icon(Icons.arrow_forward_rounded,
+                  size: 18, color: Colors.white),
             ],
           ),
         ),
@@ -765,7 +847,8 @@ class _HospitalCardSkeletonBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
+      padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size10, vertical: SizeConfig.size6),
       child: CommonCardWidget(
         cardMargin: 0,
         padding: 0,
@@ -795,7 +878,8 @@ class _HospitalCardSkeletonBody extends StatelessWidget {
                               children: [
                                 shimmerContainer(height: SizeConfig.size16),
                                 SizedBox(height: SizeConfig.size8),
-                                shimmerContainer(height: SizeConfig.size12, width: 180),
+                                shimmerContainer(
+                                    height: SizeConfig.size12, width: 180),
                               ],
                             ),
                           ),
@@ -813,9 +897,13 @@ class _HospitalCardSkeletonBody extends StatelessWidget {
                     SizedBox(height: SizeConfig.size16),
                     Row(
                       children: [
-                        Expanded(flex: 1, child: shimmerContainer(height: 46, radius: 12)),
+                        Expanded(
+                            flex: 1,
+                            child: shimmerContainer(height: 46, radius: 12)),
                         const SizedBox(width: 12),
-                        Expanded(flex: 2, child: shimmerContainer(height: 46, radius: 12)),
+                        Expanded(
+                            flex: 2,
+                            child: shimmerContainer(height: 46, radius: 12)),
                       ],
                     ),
                   ],
