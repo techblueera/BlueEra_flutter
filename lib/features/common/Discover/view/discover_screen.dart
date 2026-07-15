@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -29,7 +30,7 @@ import 'package:BlueEra/features/common/Discover/view/widget/shopping_card_widge
 import 'package:BlueEra/features/common/Discover/view/widget/transport_service_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/hmf_category_discover_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/v2/home_service_discover_screen_v2.dart';
-import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
+import 'package:BlueEra/features/business/widgets/profile_share_banner.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/qr_code/view/emergency_qr_screen.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
@@ -176,71 +177,55 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     _maybeShowSharePromo();
   }
 
-  /// Pops the share-profile promo dialog once per app launch (first Discover
-  /// mount). Deferred to after the first frame so a valid context/overlay
-  /// exists. Renders the same [BusinessShareBanner] the me-screens use,
-  /// configured for the signed-in account type.
-  void _maybeShowSharePromo() {
+  /// Pops the share-profile promo dialog at most once per calendar day
+  /// (persisted across launches), the first time Discover mounts that day.
+  /// Deferred to after the first frame so a valid context/overlay exists.
+  /// Renders the same [ProfileShareBanner] the me-screens use, configured
+  /// for the signed-in account type.
+  Future<void> _maybeShowSharePromo() async {
     if (_sharePromoShown) return;
+    final todayKey = _todayKey();
+    final lastShown = await SharedPreferenceUtils.getSecureValue(
+        SharedPreferenceUtils.sharePromoLastShownKey);
+    // Already shown today → skip, and don't re-check for the rest of this
+    // process.
+    if (lastShown == todayKey) {
+      _sharePromoShown = true;
+      return;
+    }
     _sharePromoShown = true;
+    await SharedPreferenceUtils.setSecureValue(
+        SharedPreferenceUtils.sharePromoLastShownKey, todayKey);
+    if (!mounted) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _showSharePromoDialog();
     });
   }
 
+  /// Local `yyyy-MM-dd` key used to bucket the promo to one show per day.
+  String _todayKey() {
+    final now = DateTime.now();
+    final m = now.month.toString().padLeft(2, '0');
+    final d = now.day.toString().padLeft(2, '0');
+    return '${now.year}-$m-$d';
+  }
+
   Future<void> _showSharePromoDialog() async {
     await showDialog<void>(
       context: context,
       barrierDismissible: true,
-      builder: (ctx) => Dialog(
+      builder: (_) => Dialog(
         backgroundColor: AppColors.white,
-        insetPadding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size16,
-          vertical: SizeConfig.size24,
-        ),
+        insetPadding: const EdgeInsets.all(10),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(10),
         ),
+        // No extra Padding wrapper — the banner's card supplies its own
+        // ~10px inset in dialog mode. Header row removed; the banner
+        // carries its own close button (right of the referral code).
         child: SingleChildScrollView(
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(
-              SizeConfig.size14,
-              SizeConfig.size12,
-              SizeConfig.size14,
-              SizeConfig.size14,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: CustomText(
-                        isBusinessUser()
-                            ? 'Promote your business'
-                            : 'Share your profile',
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.mainTextColor,
-                      ),
-                    ),
-                    InkWell(
-                      onTap: () => Navigator.of(ctx).pop(),
-                      borderRadius: BorderRadius.circular(20),
-                      child: const Padding(
-                        padding: EdgeInsets.all(4),
-                        child: Icon(Icons.close,
-                            size: 20, color: AppColors.secondaryTextColor),
-                      ),
-                    ),
-                  ],
-                ),
-                _sharePromoBanner(),
-              ],
-            ),
-          ),
+          child: _sharePromoBanner(),
         ),
       ),
     );
@@ -251,19 +236,21 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   /// photo / designation from the personal profile (same as the me-screens).
   Widget _sharePromoBanner() {
     if (isBusinessUser()) {
-      return const BusinessShareBanner();
+      return const ProfileShareBanner(showCloseButton: true);
     }
     final viewCtrl = getOrPut(() => ViewPersonalDetailsController());
     return Obx(() {
       final user = viewCtrl.personalProfileDetails.value.user;
       final name = (user?.name ?? '').trim();
-      return BusinessShareBanner(
+      return ProfileShareBanner(
         // Always non-empty so the widget takes its override (individual) path
         // instead of falling back to the business profile.
         overrideName: name.isNotEmpty ? _capitalizeFirst(name) : 'My Profile',
         overridePhoto: user?.profileImage,
         overrideSubCategory: user?.designation ?? '',
         accountType: AppConstants.individual,
+        // Dialog usage — surface the banner's own close button.
+        showCloseButton: true,
       );
     });
   }

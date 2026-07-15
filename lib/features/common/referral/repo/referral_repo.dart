@@ -18,8 +18,6 @@ class ReferralRepoNew extends BaseService {
   // Live endpoints (proxied to UserRepo)
   // ---------------------------------------------------------------------------
 
-  Future<ResponseModel> getBdmDetails() => _userRepo.getBdmDetailsRepo();
-
   Future<ResponseModel> getWalletReferralStats() =>
       _userRepo.getWalletReferralStatsRepo();
 
@@ -36,16 +34,18 @@ class ReferralRepoNew extends BaseService {
   Future<ResponseModel> getReferralSuggestions() =>
       _userRepo.referralSuggestionsRepo();
 
-  /// Single-step registration: the UI only collects a referral code.
-  /// We still POST to `/bdm/register/step2` because that endpoint is the
-  /// status "finish line" — the backend flips status to COMPLETED on
-  /// success even without `documents.bankDetails`.
-  Future<ResponseModel> registerStepTwo({String? referralCode}) {
-    final params = <String, dynamic>{
-      if (referralCode != null && referralCode.isNotEmpty)
-        'referralCode': referralCode,
-    };
-    return _userRepo.bdmRegisterStepTwoRepo(params);
+  /// `PUT wallet-service/wallet/referral` — updates the signed-in user's
+  /// referral code. Body: `{ "referralCode": "<code>" }`. The backend
+  /// only accepts this while the profile's `referralCodeEditable` flag
+  /// is true.
+  Future<ResponseModel> updateReferralCode(String referralCode) {
+    return ApiBaseHelper().putHTTP(
+      walletReferralUpdate,
+      params: {'referralCode': referralCode},
+      showProgress: false,
+      onError: (_) {},
+      onSuccess: (_) {},
+    );
   }
 
   /// `GET /earn-service/overview?page=&limit=` — referral overview posts

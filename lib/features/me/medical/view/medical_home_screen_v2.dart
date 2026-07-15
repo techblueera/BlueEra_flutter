@@ -56,7 +56,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 
-import '../../../business/widgets/business_share_banner.dart';
+import '../../../business/widgets/profile_share_banner.dart';
 
 /// Medical Home screen (v2) â€” redesigned to match IMG-3 reference.
 class MedicalHomeScreenV2 extends StatefulWidget {
@@ -297,7 +297,7 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
           )),
       Padding(
         padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-        child: const BusinessShareBanner(),
+        child: const ProfileShareBanner(),
       ),
       // ── QR Code (mirrors the hospital overview QR card) ──
       Obx(() {

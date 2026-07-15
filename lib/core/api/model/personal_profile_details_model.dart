@@ -17,6 +17,7 @@ class PersonalProfileDetailsModel {
     this.isRiderServiceUser,
     this.isEarnServiceUser,
     this.securityDeposit,
+    this.freeServiceUsed,
     this.earnProfileType = const <String>[],
   });
 
@@ -36,6 +37,16 @@ class PersonalProfileDetailsModel {
     securityDeposit = sd is Map
         ? SecurityDepositStatus.fromJson(Map<String, dynamic>.from(sd))
         : null;
+    // First service free: the security-deposit gate is WAIVED until the
+    // provider completes their first paid service/booking. Backend sends
+    // `freeServiceUsed:false` while the free go-live is still available and
+    // flips it to true afterwards. `freeRideUsed` is accepted as an alias for
+    // cross-service consistency with the rider flag. Absent (old backend) →
+    // null → treated as "not free" so the deposit stays enforced (safe default,
+    // mirrors the rider `freeRideUsed` semantics). See
+    // docs/backend/SELF_WORK_FIRST_SERVICE_FREE_GUIDE.md.
+    freeServiceUsed =
+        json['freeServiceUsed'] as bool? ?? json['freeRideUsed'] as bool?;
   }
 
   /// Tolerates the API returning a list, a single string (legacy), or null.
@@ -54,12 +65,23 @@ class PersonalProfileDetailsModel {
   bool? isRiderServiceUser;
   bool? isEarnServiceUser;
   SecurityDepositStatus? securityDeposit;
+  // First-service-free flag. `false` → the free first go-live is still
+  // available (skip the deposit gate); `true`/null → not available (enforce the
+  // deposit). See [isFirstServiceFree].
+  bool? freeServiceUsed;
   List<String> earnProfileType;
 
   /// Go-live decision for the individual/self-employed provider: allowed when
   /// there's no deposit info or the deposit is paid / not required; blocked
   /// ONLY when the backend explicitly reports `required && !paid`.
   bool get canGoLive => securityDeposit?.canGoLive ?? true;
+
+  /// The provider's FIRST service go-live is free — the security-deposit gate is
+  /// waived until they use it. `freeServiceUsed == false` → still free. Absent
+  /// (`null`, old backend) → treated as NOT free, so the deposit stays enforced
+  /// — a safe default that never hands out free go-live by accident. Mirrors the
+  /// rider `DeliveryPartnerController.isFirstRideFree` semantics.
+  bool get isFirstServiceFree => freeServiceUsed == false;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -71,7 +93,10 @@ class PersonalProfileDetailsModel {
     map['isProfileCreated'] = isProfileCreated;
     map['isRiderServiceUser'] = isRiderServiceUser;
     map['isEarnServiceUser'] = isEarnServiceUser;
-    // securityDeposit is read-only from the server — not serialized back.
+    // securityDeposit + freeServiceUsed are read-only, server-computed go-live
+    // signals — not serialized back. On a cache replay they're absent, which is
+    // safe: canGoLive fail-opens (true) so go-live isn't blocked from cache, and
+    // the fresh read re-populates both.
     map['earnProfileTypes'] = earnProfileType;
     return map;
   }
@@ -108,6 +133,7 @@ class User {
     this.userLocation,
     this.referral_points,
     this.referral_code,
+    this.referralCodeEditable,
     this.profileType,
     this.schoolOrCollegeName,
     this.pincode,
@@ -141,6 +167,7 @@ class User {
     introVideo = json['introVideo'];
     referral_code = json['referral_code'];
     referral_points = json['referral_points'].toString();
+    referralCodeEditable = json['referralCodeEditable'];
     objective = json['objective'];
     skills = json['skills'] != null ? json['skills'].cast<String>() : [];
     art = json['art'] != null ? new Art.fromJson(json['art']) : null;
@@ -160,6 +187,11 @@ class User {
   String? designation;
   String? referral_points;
   String? referral_code;
+
+  /// When true the user is allowed to change their referral code once
+  /// (drives the "Update Referral Code" affordance on the referral
+  /// dashboard). Sourced from `GET user-service/user/get`.
+  bool? referralCodeEditable;
   String? sector;
   String? profileImage;
   String? coverPicture;
@@ -194,6 +226,7 @@ class User {
     map['designation'] = designation;
     map['referral_code'] = referral_code;
     map['referral_points'] = referral_points;
+    map['referralCodeEditable'] = referralCodeEditable;
     map['sector'] = sector;
     map['profile_image'] = profileImage;
     map['coverPicture'] = coverPicture;

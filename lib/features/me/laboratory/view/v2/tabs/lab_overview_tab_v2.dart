@@ -8,7 +8,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
-import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
+import 'package:BlueEra/features/business/widgets/profile_share_banner.dart';
 import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/widgets/empty_section_placeholder.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_full_details_controller.dart';
@@ -146,7 +146,7 @@ class LabOverviewTabV2 extends StatelessWidget {
 
           Padding(
             padding: EdgeInsets.only(right: SizeConfig.size12, left: SizeConfig.size25),
-            child: const BusinessShareBanner(),
+            child: const ProfileShareBanner(),
           ),
           // SizedBox(height: SizeConfig.size10),
 

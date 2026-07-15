@@ -17,7 +17,7 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
 import 'package:BlueEra/features/business/widgets/business_description_card.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
-import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
+import 'package:BlueEra/features/business/widgets/profile_share_banner.dart';
 import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
@@ -295,7 +295,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
       SizedBox(height: SizeConfig.size12),
       Padding(
         padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-        child: const BusinessShareBanner(),
+        child: const ProfileShareBanner(),
       ),
       SizedBox(height: SizeConfig.size16),
     ];

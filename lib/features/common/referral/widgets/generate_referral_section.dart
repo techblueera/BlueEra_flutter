@@ -24,14 +24,22 @@ import 'package:get/get.dart';
 ///
 /// [isEditable] gates the field and submit button so the card can also
 /// be rendered as a read-only preview (e.g. once the user is COMPLETED).
+///
+/// [isUpdate] switches the card into "Update Referral Code" mode: the
+/// submit button calls [ReferralController.updateReferralCode]
+/// (`PUT wallet/referral`) instead of the BDM registration step, the
+/// terms row is hidden, and the screen pops on success. Used by the
+/// referral dashboard's "Update Referral Code" flow.
 class GenerateReferralSection extends StatefulWidget {
   final ReferralController controller;
   final bool isEditable;
+  final bool isUpdate;
 
   const GenerateReferralSection({
     super.key,
     required this.controller,
     required this.isEditable,
+    this.isUpdate = false,
   });
 
   @override
@@ -127,26 +135,31 @@ class _GenerateReferralSectionState extends State<GenerateReferralSection> {
             if (widget.isEditable) _buildSuggestions(c),
             _buildTermsRow(c),
             SizedBox(height: SizeConfig.paddingXSL),
-            Obx(
-              () => Align(
+            Obx(() {
+              final loading =
+                  widget.isUpdate ? c.updateLoading.value : c.registerLoading.value;
+              final enabled = widget.isEditable && c.termsAccepted.value;
+              return Align(
                 alignment: Alignment.center,
                 child: CustomBtn(
                   height: 40,
                   radius: 8,
-                  isLoading: c.registerLoading.value,
-                  isValidate: widget.isEditable && c.termsAccepted.value,
-                  onTap: (widget.isEditable && c.termsAccepted.value)
+                  isLoading: loading,
+                  isValidate: enabled,
+                  onTap: enabled
                       ? () async {
                           if (_formKey.currentState!.validate()) {
                             c.referralFocusNode.unfocus();
-                            await c.submitRegistration();
+                            final ok = await c.updateReferralCode(
+                                c.referralCodeController.text);
+                            if (ok) Get.back();
                           }
                         }
                       : null,
-                  title: c.registerLoading.value ? null : 'Submit',
+                  title: loading ? null : (widget.isUpdate ? 'Update' : 'Submit'),
                 ),
-              ),
-            ),
+              );
+            }),
           ],
         ),
       ),

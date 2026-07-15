@@ -21,7 +21,7 @@ import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
+import 'package:BlueEra/features/business/widgets/profile_share_banner.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
@@ -282,13 +282,21 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
   /// Personal-profile deposit gate. Returns true when the professional may go
   /// live; otherwise shows why and routes to the deposit flow. Fail-open —
   /// blocks only when the backend reports `required && !paid`.
+  ///
+  /// FIRST SERVICE FREE: professionals are individuals, so the deposit is
+  /// waived until the free first go-live is used (`freeServiceUsed == false`).
+  /// Absent flag → not free → deposit enforced (safe default). Mirrors the
+  /// self-employed gate. See docs/backend/SELF_WORK_FIRST_SERVICE_FREE_GUIDE.md.
   bool _ensureCanGoLive() {
-    if (_viewCtrl.canGoLive) return true;
+    if (_viewCtrl.canGoLive || _viewCtrl.isFirstServiceFree) return true;
     commonSnackBar(
       message:
           'Your payment is incomplete. Please complete the security deposit to go live and receive service enquiries.',
     );
-    Get.to(() => const ContributionScreenV2());
+    // Refresh on return so a freshly-paid deposit + updated freeServiceUsed
+    // are picked up.
+    Get.to(() => const ContributionScreenV2())
+        ?.then((_) => _viewCtrl.viewPersonalProfile(forceRefresh: true));
     return false;
   }
 
@@ -1256,7 +1264,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
     });
   }
 
-  // Reuses the same [BusinessShareBanner] grocery v2 ships, but
+  // Reuses the same [ProfileShareBanner] grocery v2 ships, but
   // passes professional/individual overrides so the banner renders
   // with the user's name, profile photo and designation â€” the
   // banner falls back to the registered business profile only when
@@ -1272,7 +1280,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
             ? _personalCtrl.imagePath?.value
             : user?.profileImage;
         final subCategory = profData?.basicDetails?.professionalTitle ?? user?.designation ?? '';
-        return BusinessShareBanner(
+        return ProfileShareBanner(
           overrideName: name,
           overridePhoto: photo,
           overrideSubCategory: subCategory,

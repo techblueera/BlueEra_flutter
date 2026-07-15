@@ -235,6 +235,13 @@ class ViewPersonalDetailsController extends GetxController
   /// `required && !paid`. See docs/backend/SELF_WORK_GO_LIVE_FRONTEND_INTEGRATION.md.
   bool get canGoLive => personalProfileDetails.value.canGoLive;
 
+  /// First service free: the deposit gate is waived until the provider uses
+  /// their first free go-live (`freeServiceUsed == false`). Mirrors the rider
+  /// `isFirstRideFree`. Proxies the individual-profile flag. See
+  /// docs/backend/SELF_WORK_FIRST_SERVICE_FREE_GUIDE.md.
+  bool get isFirstServiceFree =>
+      personalProfileDetails.value.isFirstServiceFree;
+
   // ── Schedule-driven availability (auto open/close) ──────────────────
   // Individual analogue of the business availability flow — same UI (shared
   // shop-status sheet + weekly editor) but hitting the INDIVIDUAL endpoints.

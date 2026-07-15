@@ -7,7 +7,7 @@ import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/features/business/widgets/business_description_card.dart';
 import 'package:BlueEra/features/business/widgets/business_joined_profile_card.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
-import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
+import 'package:BlueEra/features/business/widgets/profile_share_banner.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/me/manufacturer/controller/manufacturer_inventory_controller.dart';
 import 'package:BlueEra/widgets/business_live_photo_bottom_sheet.dart';
@@ -90,7 +90,7 @@ class _ProductHomeScreenState extends State<ManufacturerProductHomeScreen> {
         _buildQrCodeSection(),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-          child: const BusinessShareBanner(),
+          child: const ProfileShareBanner(),
         ),
         SizedBox(height: SizeConfig.size16),
       ],

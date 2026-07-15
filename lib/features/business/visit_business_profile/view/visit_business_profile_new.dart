@@ -10,7 +10,7 @@ import 'package:BlueEra/features/business/auth/model/getAllProductDetailsModel.d
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/business_profile_header.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
-import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
+import 'package:BlueEra/features/business/widgets/profile_share_banner.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/food/view/standalone_food_screen.dart';
 import 'package:BlueEra/features/common/product_listing/view/standalone_service_screen.dart';
@@ -358,7 +358,7 @@ class VisitBusinessProfileNewState extends State<VisitBusinessProfileNew>
                               isGrid: false,
                               businessData: businessData,
                             ),
-                            const BusinessShareBanner(),
+                            const ProfileShareBanner(),
                           ],
                         ),
                       ),

@@ -12,7 +12,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
-import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
+import 'package:BlueEra/features/business/widgets/profile_share_banner.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/me/medical/model/medical_home_response_model.dart';
 import 'package:BlueEra/features/me/medical/controller/medical_gallery_controller.dart';
@@ -135,7 +135,7 @@ class _MedicalHomeScreenState extends State<MedicalHomeScreen> {
               _buildGallerySection(),
               SizedBox(height: SizeConfig.size10),
               _buildContactSection(profile),
-              const BusinessShareBanner(),
+              const ProfileShareBanner(),
               SizedBox(height: kBottomNavigationBarHeight + 30),
             ],
           ),

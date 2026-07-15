@@ -5,8 +5,10 @@ import 'package:BlueEra/features/common/referral/view/tabs/creator_tab.dart';
 import 'package:BlueEra/features/common/referral/view/tabs/overview_tab.dart';
 import 'package:BlueEra/features/common/referral/view/tabs/statics_tab.dart';
 import 'package:BlueEra/features/common/referral/view/tabs/tutorial_tab.dart';
+import 'package:BlueEra/features/common/referral/view/update_referral_page.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class ReferralDashboardPage extends StatefulWidget {
   final ReferralController controller;
@@ -50,6 +52,7 @@ class _ReferralDashboardPageState extends State<ReferralDashboardPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(height: SizeConfig.paddingXSL),
+        _buildUpdateCodeAction(),
         _buildPillTabBar(),
         Expanded(
           child: TabBarView(
@@ -64,6 +67,59 @@ class _ReferralDashboardPageState extends State<ReferralDashboardPage>
         ),
       ],
     );
+  }
+
+  /// "Update Referral Code" affordance — only rendered while the
+  /// profile's `referralCodeEditable` flag is true (backend allows a
+  /// single change). Opens [UpdateReferralPage], whose submit button
+  /// calls `PUT wallet/referral`.
+  Widget _buildUpdateCodeAction() {
+    return Obx(() {
+      if (!widget.controller.referralCodeEditable.value) {
+        return const SizedBox.shrink();
+      }
+      return Padding(
+        padding: EdgeInsets.fromLTRB(
+          SizeConfig.size10,
+          0,
+          SizeConfig.size10,
+          SizeConfig.paddingXSL,
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: () => Get.to(
+            () => UpdateReferralPage(controller: widget.controller),
+          ),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: AppColors.primaryColor.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: AppColors.primaryColor.withValues(alpha: 0.35),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.edit_outlined,
+                    size: 18, color: AppColors.primaryColor),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: CustomText(
+                    'Update Referral Code',
+                    fontSize: SizeConfig.medium,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primaryColor,
+                  ),
+                ),
+                Icon(Icons.chevron_right_rounded,
+                    size: 20, color: AppColors.primaryColor),
+              ],
+            ),
+          ),
+        ),
+      );
+    });
   }
 
   /// Pill-style tab strip matching the mockup — single rounded white

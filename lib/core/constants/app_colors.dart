@@ -160,4 +160,5 @@ class AppColors {
   static const green7A = Color(0xFF00B87A);
   static const geryFC = Color(0xFFF5F7FC);
   static const yellowCB = Color(0xFFE7E0CB);
+  static const blueAF = Color(0xFF015caf);
 }

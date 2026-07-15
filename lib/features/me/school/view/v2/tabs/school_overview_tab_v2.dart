@@ -6,7 +6,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
-import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
+import 'package:BlueEra/features/business/widgets/profile_share_banner.dart';
 import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/widgets/empty_section_placeholder.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
@@ -168,7 +168,7 @@ class SchoolOverviewTabV2 extends StatelessWidget {
               ),
             ),
 
-          const BusinessShareBanner(),
+          const ProfileShareBanner(),
           SizedBox(height: SizeConfig.size10),
 
           // ── QR Code (mirrors the hospital QR card) ──

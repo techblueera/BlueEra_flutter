@@ -32,7 +32,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../../../business/widgets/business_share_banner.dart';
+import '../../../../../business/widgets/profile_share_banner.dart';
 import '../../../../../business/widgets/website_overview_card.dart';
 import '../../../../hospital/view/v2/widgets/empty_section_placeholder.dart';
 
@@ -202,7 +202,7 @@ class _VehicleShowroomOverviewState extends State<VehicleShowroomOverview> {
         // SizedBox(height: SizeConfig.size10),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-          child: const BusinessShareBanner(),
+          child: const ProfileShareBanner(),
         ),
         // SizedBox(height: SizeConfig.size10),
 

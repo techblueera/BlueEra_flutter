@@ -19,7 +19,7 @@ import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
+import 'package:BlueEra/features/business/widgets/profile_share_banner.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/go_live_permission_screen.dart';
@@ -201,15 +201,25 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
     // `required && !paid` (canGoLive == false); a missing / paid / not-required
     // deposit always allows go-live. The backend also enforces this server-side
     // (402 on the go-live PUT). See docs/backend/SELF_WORK_GO_LIVE_FRONTEND_INTEGRATION.md.
-    if (!_viewCtrl.canGoLive) {
+    //
+    // FIRST SERVICE FREE: the deposit is WAIVED until the provider uses their
+    // first free go-live (backend `freeServiceUsed == false`). Once used, the
+    // deposit is enforced on every subsequent go-live. Absent flag → not free →
+    // deposit enforced (safe default). Mirrors the rider first-ride-free waiver.
+    // See docs/backend/SELF_WORK_FIRST_SERVICE_FREE_GUIDE.md.
+    final depositBlocked = !_viewCtrl.canGoLive && !_viewCtrl.isFirstServiceFree;
+    if (depositBlocked) {
       // Tell the provider why go-live is blocked, then route them to the
       // security-deposit flow to complete payment — go-live stays blocked
-      // until it's paid.
+      // until it's paid. On return, refresh the profile so a freshly-paid
+      // deposit (reconciled server-side by the Razorpay webhook, with no in-app
+      // trigger) and the updated `freeServiceUsed` are picked up.
       commonSnackBar(
         message:
             'Your payment is incomplete. Please complete the security deposit to go live and receive service enquiries.',
       );
-      Get.to(() => const ContributionScreenV2());
+      await Get.to(() => const ContributionScreenV2());
+      await _viewCtrl.viewPersonalProfile(forceRefresh: true);
       return;
     }
 
@@ -1232,7 +1242,7 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
   }
 
   // â”€â”€â”€ SHARE BANNER â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  // Reuses the same [BusinessShareBanner] grocery v2 ships, but
+  // Reuses the same [ProfileShareBanner] grocery v2 ships, but
   // passes individual-profile overrides so the banner renders with
   // the user's name, profile photo and designation. Account type is
   // forced to [AppConstants.individual] so the share deep link
@@ -1247,11 +1257,12 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
             ? _personalCtrl.imagePath?.value
             : user?.profileImage;
         final designation = user?.designation ?? '';
-        return BusinessShareBanner(
+        return ProfileShareBanner(
           overrideName: name,
           overridePhoto: photo,
           overrideSubCategory: designation,
           accountType: AppConstants.individual,
+          referralCode: user?.referral_code,
         );
       }),
     );
