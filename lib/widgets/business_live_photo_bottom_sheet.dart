@@ -355,11 +355,12 @@ class _LivePhotoSlot extends StatelessWidget {
     }
     final shouldAutoClose = filledSlots >= _maxPhotos;
 
-    // 3. Fire upload + refetch. saveBusinessImages internally calls
-    //    viewBusinessProfile, so businessProfileDetails (Rx) is
-    //    refreshed and every Obx rebuilds with the server URL — which
-    //    is what the delete endpoint needs.
-    _runUpload(imgStr);
+    // 3. Upload behind the shared "Uploading Photo" loader (same as the inline
+    //    profile widget), then close the sheet if this was the last slot.
+    //    saveBusinessImages internally calls viewBusinessProfile, so
+    //    businessProfileDetails (Rx) refreshes and every Obx rebuilds with the
+    //    server URL — which is what the delete endpoint needs.
+    await _runUpload(imgStr);
 
     if (shouldAutoClose && context.mounted) {
       Navigator.pop(context);
@@ -367,6 +368,7 @@ class _LivePhotoSlot extends StatelessWidget {
   }
 
   Future<void> _runUpload(String imgStr) async {
+    AppLoader.show(message: AppStrings.uploadingPhoto.tr);
     try {
       await controller.saveBusinessImages(imgStr, controller);
       // NOTE: do NOT remove localUploadingPhotos[index] here. The slot
@@ -375,6 +377,11 @@ class _LivePhotoSlot extends StatelessWidget {
       // placeholder and cause the flash the user saw. Local entry is
       // cleared on delete (where it becomes obsolete) or rolled back
       // on error below.
+      //
+      // The first-live-photo → GPS-capture notice is triggered centrally in
+      // ViewBusinessDetailsController.uploadLiveStoreImage (the single choke
+      // point for every upload), so it also fires from the inline profile
+      // widget and re-fires after photos are cleared back to zero.
     } catch (_) {
       controller.localUploadingPhotos.remove(index);
       Get.snackbar(
@@ -384,6 +391,8 @@ class _LivePhotoSlot extends StatelessWidget {
         backgroundColor: Colors.red.withValues(alpha: 0.9),
         colorText: Colors.white,
       );
+    } finally {
+      AppLoader.hide();
     }
   }
 

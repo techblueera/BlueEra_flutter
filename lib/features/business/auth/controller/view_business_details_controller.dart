@@ -9,6 +9,11 @@ import 'package:BlueEra/features/me/grocery/view/admin/shop_availability_screen.
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
 import 'package:BlueEra/widgets/shop_availability_host.dart';
 import 'package:BlueEra/widgets/shop_availability_sheet.dart';
+import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/controller/location_controller.dart';
+import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_bottom_sheet.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:flutter/material.dart';
 import 'package:BlueEra/core/services/business_profile_cache.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/utils/fetch_cache.dart';
@@ -27,7 +32,6 @@ import 'package:BlueEra/features/me/product/repo/product_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/profile_controller.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:dio/dio.dart' as dio;
-import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart' hide Response;
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/api/apiService/api_response.dart';
@@ -373,8 +377,11 @@ logs("BUSINESS ID=== ${businessId}");
   /// progress dialog.
   final RxBool isUpdateBusinessProfileLoading = false.obs;
 
-  Future<void> updateBusinessDetails(Map<String, dynamic> params,
-      {bool? showProgress}) async {
+  /// Updates the business account. Returns true on a successful save.
+  /// [silent] suppresses the success snackbar for callers that show their
+  /// own confirmation (e.g. the live-photo GPS capture toast).
+  Future<bool> updateBusinessDetails(Map<String, dynamic> params,
+      {bool? showProgress, bool silent = false}) async {
     try {
       isUpdateBusinessDetailsLoading.value = true;
       ResponseModel responseModel = await AuthRepo()
@@ -384,7 +391,9 @@ logs("BUSINESS ID=== ${businessId}");
       // ResponseModel responseModel =
       //     await BusinessProfileRepo().updateBusinessProfileDetails(params);
       if (responseModel.isSuccess) {
-        commonSnackBar(message: responseModel.response?.data['message']);
+        if (!silent) {
+          commonSnackBar(message: responseModel.response?.data['message']);
+        }
         viewBusinessResponse = ApiResponse.complete(responseModel);
         final upgraded = BusinessUserResponseModel.fromJson(
             responseModel.response?.data ?? {});
@@ -400,15 +409,86 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
 
         viewBusinessProfile();
         update();
+        return true;
       } else {
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
+        return false;
       }
     } catch (e) {
       viewBusinessResponse = ApiResponse.error('error');
+      return false;
     } finally {
       isUpdateBusinessDetailsLoading.value = false;
     }
+  }
+
+  /// Snapshot of `business_location` (lat/lon) captured just before a silent
+  /// live-photo GPS overwrite, so the confirmation toast's "Undo" can restore
+  /// it. Null when there's nothing to roll back.
+  double? _preLivePhotoLat;
+  double? _preLivePhotoLon;
+  bool _hasPreLivePhotoLocation = false;
+
+  /// Silently reads the on-site device GPS after the merchant adds their first
+  /// live photo and saves it as `business_location`. A live photo is shot at
+  /// the store, so this is the most accurate location signal we get. Returns
+  /// true when a fresh location was saved (the caller then shows the confirm /
+  /// undo toast). Never throws — GPS/permission/network failures just return
+  /// false so the photo flow is never interrupted. Only lat/lon is touched;
+  /// the textual address is left for the merchant to edit via the toast.
+  Future<bool> captureLocationFromLivePhoto() async {
+    try {
+      final locationController = Get.isRegistered<LocationController>()
+          ? Get.find<LocationController>()
+          : Get.put(LocationController());
+      // Bounded wait — a GPS fix / reverse-geocode can stall indefinitely
+      // (weak signal, pending permission dialog). On timeout we simply skip the
+      // silent location update rather than leave a dangling operation.
+      final locationData = await locationController
+          .checkPermissionAndSetData()
+          .timeout(const Duration(seconds: 20), onTimeout: () => null);
+      if (locationData == null) return false;
+
+      final lat = double.tryParse(locationData.lat);
+      final lng = double.tryParse(locationData.long);
+      if (lat == null || lng == null || lat == 0.0 || lng == 0.0) return false;
+
+      // Remember the previous location for Undo before overwriting.
+      final prevLoc = businessProfileDetails.value?.data?.businessLocation;
+      _preLivePhotoLat = prevLoc?.lat;
+      _preLivePhotoLon = prevLoc?.lon;
+      _hasPreLivePhotoLocation = true;
+
+      final params = {
+        ApiKeys.business_location: jsonEncode({
+          ApiKeys.lat: lat.toString(),
+          ApiKeys.lon: lng.toString(),
+        }),
+      };
+      return await updateBusinessDetails(params,
+          silent: true, showProgress: false);
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Restore the location captured before the last live-photo GPS overwrite
+  /// (the toast's "Undo"). No-op when there's nothing to restore.
+  Future<void> undoLivePhotoLocation() async {
+    if (!_hasPreLivePhotoLocation) return;
+    final lat = _preLivePhotoLat;
+    final lon = _preLivePhotoLon;
+    _hasPreLivePhotoLocation = false;
+    _preLivePhotoLat = null;
+    _preLivePhotoLon = null;
+    final params = {
+      ApiKeys.business_location: jsonEncode({
+        ApiKeys.lat: (lat ?? 0.0).toString(),
+        ApiKeys.lon: (lon ?? 0.0).toString(),
+      }),
+    };
+    await updateBusinessDetails(params, silent: true, showProgress: false);
   }
 
   Future<void> updateBusinessProfileDetails(
@@ -590,13 +670,38 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
     }
   }
 
+  /// Count of non-empty live photos currently on the profile (server truth).
+  int get _serverLivePhotoCount =>
+      businessProfileDetails.value?.data?.livePhotos
+          ?.where((p) => p.trim().isNotEmpty)
+          .length ??
+      0;
+
   Future<void> uploadLiveStoreImage(Map<String, dynamic> params) async {
     try {
+      // Snapshot the count BEFORE the upload. If it was 0 and this upload
+      // succeeds, this IS the first live photo — no need to wait on the
+      // refetch to know that.
+      final wasFirstPhoto = _serverLivePhotoCount == 0;
+
       ResponseModel responseModel =
           await BusinessProfileRepo().uploadLiveStoreImages(params);
       if (responseModel.isSuccess) {
         viewBusinessResponse = ApiResponse.complete(responseModel);
+        // Refresh the profile in the BACKGROUND (not awaited). The caller
+        // wraps this in an "Uploading Photo" loader, and the optimistic local
+        // preview already shows the photo — awaiting the full refetch here
+        // just kept that loader spinning after the photo had visibly landed.
         viewBusinessProfile();
+
+        // First live photo (0 → 1). Re-fires every time photos are cleared
+        // back to 0 and a fresh first photo is added — and works from BOTH the
+        // live-photo bottom sheet and the inline profile widget, since every
+        // upload funnels through here. Fire-and-forget so the slow GPS fix /
+        // reverse-geocode never blocks the loader.
+        if (wasFirstPhoto) {
+          _handleFirstLivePhotoAdded();
+        }
       } else {
         commonSnackBar(
             message: responseModel.message ?? AppStrings.somethingWentWrong);
@@ -604,6 +709,111 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
     } catch (e) {
       viewBusinessResponse = ApiResponse.error('error');
     }
+  }
+
+  /// After the merchant's first live photo, silently capture the on-site GPS
+  /// as the business location and, on success, show the confirm / undo notice.
+  Future<void> _handleFirstLivePhotoAdded() async {
+    final saved = await captureLocationFromLivePhoto();
+    if (saved) _showLiveLocationNotice();
+  }
+
+  /// Persistent, action-required notice shown after the silent live-photo GPS
+  /// save. Stays put (distinct alert-orange, no auto-dismiss / swipe) until the
+  /// merchant taps Undo (restore previous location) or Edit (open the full
+  /// location sheet to correct the address / pincode).
+  void _showLiveLocationNotice() {
+    // Use GetSnackBar directly (not Get.snackbar) so there's no forced empty
+    // title slot — that title/message gap was pushing the row above center.
+    // With only messageText, the content row centers vertically in the bar.
+    Get.showSnackbar(
+      GetSnackBar(
+        messageText: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Icon(Icons.location_on_rounded,
+                color: AppColors.primaryColor, size: 20),
+            const SizedBox(width: 8),
+            Expanded(
+              child: CustomText(
+                AppStrings.locationUpdatedFromLivePhoto.tr,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: AppColors.mainTextColor,
+              ),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                  minimumSize: const Size(0, 0),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+              onPressed: () {
+                Get.closeCurrentSnackbar();
+                undoLivePhotoLocation();
+              },
+              child: CustomText(
+                AppStrings.undo.tr,
+                color: AppColors.secondaryTextColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                  minimumSize: const Size(0, 0),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap),
+              onPressed: () {
+                Get.closeCurrentSnackbar();
+                _openLiveLocationEditor();
+              },
+              child: CustomText(
+                AppStrings.edit.tr,
+                color: AppColors.primaryColor,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        snackPosition: SnackPosition.BOTTOM,
+        snackStyle: SnackStyle.FLOATING,
+        // Light glassmorphism: a translucent white bar + `barBlur` frosts the
+        // content behind it, a hairline white border and a soft shadow lift it
+        // off the page. Dark text keeps it readable over the frosted glass.
+        backgroundColor: Colors.white.withValues(alpha: 0.55),
+        barBlur: 18,
+        borderRadius: 16,
+        borderColor: Colors.white.withValues(alpha: 0.5),
+        borderWidth: 1.2,
+        boxShadows: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
+          ),
+        ],
+        // Action-required: no auto-dismiss, no swipe-away — closed only by the
+        // Undo / Edit buttons above.
+        duration: null,
+        isDismissible: false,
+        margin: const EdgeInsets.all(12),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      ),
+    );
+  }
+
+  /// Open the full business-location sheet (prefilled with the current profile)
+  /// so the merchant can review / correct the auto-captured location.
+  void _openLiveLocationEditor() {
+    final ctx = Get.context;
+    if (ctx == null) return;
+    showModalBottomSheet(
+      context: ctx,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => BusinessLocationBottomSheet(
+        prevBusinessDetails: businessProfileDetails.value?.data,
+      ),
+    );
   }
 
   final visitingController = Get.put(VisitProfileController());

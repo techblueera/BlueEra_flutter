@@ -17,12 +17,19 @@ class AppLoader {
   static final RxString _message = ''.obs;
   static bool _isShowing = false;
 
+  /// Set when [hide] is called before the dialog route has finished mounting
+  /// (fast action between show/hide). The pending close is retried each frame
+  /// until the route exists, so the loader can never get "stuck" open.
+  static bool _hideRequested = false;
+  static int _hideAttempts = 0;
+
   static void show({String? message}) {
     if (_isShowing) {
       if (message != null) _message.value = message;
       return;
     }
     _isShowing = true;
+    _hideRequested = false;
 
     final dialogChild = (message == null || message.isEmpty)
         ? _buildPlain()
@@ -37,6 +44,7 @@ class AppLoader {
       barrierColor: Colors.black.withValues(alpha: 0.45),
     ).whenComplete(() {
       _isShowing = false;
+      _hideRequested = false;
     });
   }
 
@@ -47,8 +55,37 @@ class AppLoader {
 
   static void hide() {
     if (!_isShowing) return;
-    if (Get.isDialogOpen ?? false) Get.back();
-    _isShowing = false;
+    if (Get.isDialogOpen ?? false) {
+      Get.back();
+      _isShowing = false;
+      _hideRequested = false;
+    } else {
+      // Dialog route hasn't mounted yet — hide() raced ahead of show()'s push.
+      // Defer the close and retry on the next frame(s) so it dismisses
+      // smoothly instead of leaving the loader on screen.
+      _hideRequested = true;
+      _hideAttempts = 0;
+      _closeWhenReady();
+    }
+  }
+
+  static void _closeWhenReady() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_isShowing || !_hideRequested) {
+        _hideRequested = false;
+        return;
+      }
+      if (Get.isDialogOpen ?? false) {
+        Get.back();
+        _isShowing = false;
+        _hideRequested = false;
+      } else if (_hideAttempts++ < 20) {
+        _closeWhenReady();
+      } else {
+        // Give up gracefully rather than spin forever.
+        _hideRequested = false;
+      }
+    });
   }
 
   static Widget _buildPlain() {

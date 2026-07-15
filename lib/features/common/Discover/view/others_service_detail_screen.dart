@@ -305,7 +305,6 @@ class _OthersServiceDetailScreenState extends State<OthersServiceDetailScreen> {
                     }
                     return const SizedBox.shrink();
                   }),
-                  SizedBox(height: SizeConfig.size10),
                   // ─── 5. Contact & Map ───
                   Obx(() {
                     if (viewBusinessDetailsController.isProfileLoading.value) {

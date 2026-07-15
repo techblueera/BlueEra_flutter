@@ -977,6 +977,8 @@ class AppStrings {
   static const reportPost = "reportPost";
   static const blockUser = "blockUser";
   static const edit = "edit";
+  static const undo = "undo";
+  static const locationUpdatedFromLivePhoto = "locationUpdatedFromLivePhoto";
   static const addShortBioHint = "addShortBioHint";
   static const hide = "hide";
   static const share = "share";

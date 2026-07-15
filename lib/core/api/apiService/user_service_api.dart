@@ -20,10 +20,14 @@ mixin UserServiceApi {
   // ──────────────────────────────────────────────────────────────────────
   // 1. User account & profile
   // ──────────────────────────────────────────────────────────────────────
-  final String accountDeletionInit = 'user-service/user/account/deletion/init';
-  final String getUser = 'user-service/user/get?contact_no=$userMobileGlobal';
-  final String allUsers = 'user-service/user/getAllKindOfUser';
-  final String getUserByIdUrlForAddress = "user-service/user/getUserById";
+  final String accountDeletionInit =
+      'user-service/user/account/deletion/init';
+  final String getUser =
+      'user-service/user/get?contact_no=$userMobileGlobal';
+  final String allUsers =
+      'user-service/user/getAllKindOfUser';
+  final String getUserByIdUrlForAddress =
+      "user-service/user/getUserById";
   final String getUserProfileOverviewById =
       "user-service/user/getUserProfileOverview/";
   // Public share-card overview — backs the deep-link landing screen for
@@ -33,20 +37,25 @@ mixin UserServiceApi {
       'user-service/share/users/$userId/profile-overview';
   final String FollowersAndPostsCount =
       'user-service/user/getUserWithFollowersAndPostsCount';
-  final String checkUsername = "user-service/user/checkUsername";
+  final String checkUsername =
+      "user-service/user/checkUsername";
   // Look up a user by their 10-digit phone number — used when a phone number
   // tapped inside a chat message needs to be resolved to a BlueEra user.
-  String getUserByPhone(String phone) => 'user-service/user/by-phone/$phone';
-  final String createGuestAccount = "/user-service/user/create-guest-account";
+  String getUserByPhone(String phone) =>
+      'user-service/user/by-phone/$phone';
+  final String createGuestAccount =
+      "/user-service/user/create-guest-account";
   // Fetch an existing guest user's profile (name + image) so the
   // account-creation screens can pre-fill it during a guest → full upgrade.
-  String getGuestUser(String id) => "user-service/user/getGuestUser/$id";
+  String getGuestUser(String id) =>
+      "user-service/user/getGuestUser/$id";
   final String updateIndividualAccountUser =
       "user-service/user/updateIndividualAccountUser/";
   final String updateDeviceToken = "user-service/user/me/device-token";
   final String updateBusinessAccount =
       "user-service/user/updateBusinessAccount/";
-  final String deleteIntroVideo = 'user-service/user/introVideo';
+  final String deleteIntroVideo =
+      'user-service/user/introVideo';
   final String requestMobileUpdateOtp =
       'user-service/user/request-mobile-update-otp';
   final String verifyMobileUpdateOtp =
@@ -74,17 +83,20 @@ mixin UserServiceApi {
   // ──────────────────────────────────────────────────────────────────────
   // 2. Business profile
   // ──────────────────────────────────────────────────────────────────────
-  // final String viewBusinessProfile = '/user-service/business/6a265c5df09a0aaf6cabbb6c';
-  final String viewBusinessProfile = '/user-service/business/$businessId';
+  final String viewBusinessProfile =
+      '/user-service/business/$businessId';
   final String updateBusinessProfile =
       '/user-service/business/updateBusinessProfile';
-  final String bussinessProfileById = "/user-service/business";
-  final String businessIdViewForLocation = "user-service/business/user";
+  final String bussinessProfileById =
+      "/user-service/business";
+  final String businessIdViewForLocation =
+      "user-service/business/user";
   final String updateBusinessDescription =
       'user-service/business/updateBusinessDescription';
   final String updateGSTBusinessDetails =
       "user-service/business/updateGSTBusinessDetails";
-  final String businessLivePhotos = 'user-service/business/live-photosOne';
+  final String businessLivePhotos =
+      'user-service/business/live-photosOne';
   final String removeBusinessLivePhotos =
       'user-service/business/remove-live-image';
 

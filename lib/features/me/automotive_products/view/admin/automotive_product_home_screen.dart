@@ -67,7 +67,6 @@ class _AutomotiveProductHomeScreenState extends State<AutomotiveProductHomeScree
           padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
           child: const BusinessDescriptionCard(),
         ),
-        SizedBox(height: SizeConfig.size12),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
           child: Obx(() {

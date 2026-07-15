@@ -204,9 +204,6 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
     // once the user has scrolled past the original (in-flow) tabs.
     final topBarHeight = topInset + 56;
     return Scaffold(
-      // floatingActionButton: FloatingActionButton(onPressed: (){
-      //   Get.to(() => const GroceryShopAvailabilityScreen());
-      // }),
       body: SafeArea(
         top: false,
         child: Stack(
