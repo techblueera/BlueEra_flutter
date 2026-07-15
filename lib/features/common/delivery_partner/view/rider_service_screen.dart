@@ -19,7 +19,7 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/widgets/common_location_search_field.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
+import 'package:BlueEra/features/business/widgets/profile_share_banner.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/order_actions_carousel.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
@@ -2037,7 +2037,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
             ? _personalCtrl.imagePath?.value
             : user?.profileImage;
         final designation = user?.designation ?? '';
-        return BusinessShareBanner(
+        return ProfileShareBanner(
           overrideName: name,
           overridePhoto: photo,
           overrideSubCategory: designation,

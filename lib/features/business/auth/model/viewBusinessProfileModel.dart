@@ -66,6 +66,7 @@ class BusinessProfileDetails {
       this.businessNumber,
       this.is_following,
       this.referral_code,
+      this.referralCodeEditable,
       this.referral_points,
       this.category_other,
       this.pincode,
@@ -87,6 +88,7 @@ class BusinessProfileDetails {
     id = json['_id'] ?? json['id'];
     businessName = json['business_name'];
     referral_code = json['referral_code'];
+    referralCodeEditable = json['referralCodeEditable'];
     referral_points = json['referral_points'].toString();
     typeOfBusiness = json['type_of_business'];
     logo = json['logo'];
@@ -211,6 +213,11 @@ class BusinessProfileDetails {
   String? conversationId;
   String? typeOfBusiness;
   String? referral_code;
+
+  /// When true the user may change their referral code once — drives the
+  /// "Update Referral Code" affordance on the referral dashboard.
+  /// Sourced from `GET user-service/business/{id}`.
+  bool? referralCodeEditable;
   String? referral_points;
   String? logo;
   String? coverimage;
@@ -272,6 +279,7 @@ class BusinessProfileDetails {
     map['pincode'] = pincode;
     map['referral_points'] = referral_points;
     map['referral_code'] = referral_code;
+    map['referralCodeEditable'] = referralCodeEditable;
     map['username'] = username;
     map['category_other'] = category_other;
     map['business_name'] = businessName;

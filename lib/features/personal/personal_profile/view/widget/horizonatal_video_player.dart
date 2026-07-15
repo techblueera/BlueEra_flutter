@@ -135,6 +135,10 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
     WidgetsBinding.instance.removeObserver(this);
     _overviewWorker?.dispose();
     _disposeController();
+    // The controller listener can't clear the flag from dispose (mounted
+    // is already false), so release it explicitly — otherwise the
+    // testimonial grid would stay suppressed after leaving the screen.
+    _referralController.overviewVideoPlaying.value = false;
     _pageController.dispose();
     super.dispose();
   }
@@ -164,9 +168,7 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
       _controller!.setLooping(true);
       // Apply the current mute state before playback starts.
       await _controller!.setVolume(_isMuted ? 0.0 : 1.0);
-      _controller!.addListener(() {
-        if (mounted) setState(() {});
-      });
+      _controller!.addListener(_onControllerTick);
 
       if (widget.isAutoPlay) {
         _controller!.play();
@@ -175,6 +177,18 @@ class _HorizontalVideoPlayerState extends State<HorizontalVideoPlayer>
       if (mounted) setState(() {});
     } catch (e) {
       log('Video init failed: $e');
+    }
+  }
+
+  /// Rebuilds on controller updates and mirrors the play state to
+  /// [ReferralController.overviewVideoPlaying] so the testimonial grid can
+  /// pause its autoplay while this intro video is playing.
+  void _onControllerTick() {
+    if (!mounted) return;
+    setState(() {});
+    final playing = _controller?.value.isPlaying ?? false;
+    if (_referralController.overviewVideoPlaying.value != playing) {
+      _referralController.overviewVideoPlaying.value = playing;
     }
   }
 

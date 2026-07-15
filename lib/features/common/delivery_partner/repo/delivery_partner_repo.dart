@@ -89,6 +89,32 @@ class DeliveryPartnerRepo extends BaseService {
     return response;
   }
 
+  /// GET the rider's auto-go-live schedule (opt-in window + manual-off state).
+  Future<ResponseModel> getRiderAutoGoLiveRepo() async {
+    var response = await ApiBaseHelper().getHTTP(
+      ridersAutoGoLive,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  /// PUT an update to the rider's auto-go-live schedule.
+  /// [params] — e.g. {'enabled': true} | {'manualOffToday': true} |
+  /// {'windowStart': '10:00', 'windowEnd': '12:00'}.
+  Future<ResponseModel> updateRiderAutoGoLiveRepo(
+      {required Map<String, dynamic> params}) async {
+    var response = await ApiBaseHelper().putHTTP(
+      ridersAutoGoLive,
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   /// ridersOnboardingDeleteDocumentRepo
   /// [documentType] — aadhar | pan | dl | rc | vehicle-images | vehicle-information
   Future<ResponseModel> ridersOnboardingDeleteDocumentRepo(

@@ -7,7 +7,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
-import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
+import 'package:BlueEra/features/business/widgets/profile_share_banner.dart';
 import 'package:BlueEra/features/me/automotive_service/controller/business_profile_full_controller.dart';
 import 'package:BlueEra/features/me/automotive_service/view/management/management_screen.dart';
 import 'package:BlueEra/features/me/automotive_service/view/other_career_jobs/other_job_listing_screen.dart';
@@ -214,7 +214,7 @@ class OtherOverviewTabV2 extends StatelessWidget {
               ),
             ),
 
-          const BusinessShareBanner(),
+          const ProfileShareBanner(),
           SizedBox(height: SizeConfig.size10),
 
           // ── QR Code (mirrors the hospital QR card) ──

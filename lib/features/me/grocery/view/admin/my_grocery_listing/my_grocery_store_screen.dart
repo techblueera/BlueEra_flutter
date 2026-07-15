@@ -16,7 +16,7 @@
 // import 'package:BlueEra/features/me/grocery/view/all_top_selling_grocery_products_screen.dart';
 // import 'package:BlueEra/features/business/widgets/business_profile_header_view.dart';
 // import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
-// import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
+// import 'package:BlueEra/features/business/widgets/profile_share_banner.dart';
 // import 'package:BlueEra/features/business/widgets/business_stats.dart';
 // import 'package:BlueEra/widgets/common_business_live_photo.dart';
 // import 'package:BlueEra/widgets/business_live_photo_bottom_sheet.dart';
@@ -143,7 +143,7 @@
 //                   );
 //                 }),
 //
-//                 const BusinessShareBanner(),
+//                 const ProfileShareBanner(),
 //
 //                 SizedBox(
 //                   height: SizeConfig.size100,

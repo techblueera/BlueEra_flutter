@@ -33,6 +33,11 @@ mixin WalletServiceApi {
   final String bdmRegisterStepTwo = 'wallet-service/bdm/register/step2';
   final String getBdmStatus = 'wallet-service/bdm/status';
   final String walletReferralStats = 'wallet-service/wallet/referral-stats';
+
+  /// `PUT wallet-service/wallet/referral` — updates the signed-in user's
+  /// referral code (body: `{ "referralCode": "<code>" }`). Allowed only
+  /// while the profile's `referralCodeEditable` flag is true.
+  final String walletReferralUpdate = 'wallet-service/wallet/referral';
   final String walletReferralHistory =
       'wallet-service//wallet/referral-history';
   final String walletDirectReferralIncome =

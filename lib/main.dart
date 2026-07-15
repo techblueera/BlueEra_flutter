@@ -512,6 +512,22 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     // (no return here for missed_call — continue to renderer below)
   }
 
+  // Auto go-live (background / terminated): the cron opened this rider
+  // server-side. We're in the bg isolate — no UI engine, no GetX — so we can't
+  // flip the toggle here. Persist the OPEN intent so restoreProviderLiveState()
+  // re-asserts live (re-PATCH OPEN + restart the location pinger) on the next
+  // launch. Non-returning: falls through to render the "You're live!" banner so
+  // the tap opens the app. See docs/backend/AUTO_GOLIVE_FRONTEND_INTEGRATION.md.
+  if (operation == 'auto_golive_opened') {
+    try {
+      await SharedPreferenceUtils.setSecureValue(
+          SharedPreferenceUtils.serviceProviderStatus, 'OPEN');
+      logs('[RiderAutoGoLive] bg handler persisted serviceProviderStatus=OPEN');
+    } catch (e) {
+      logs('[RiderAutoGoLive] bg handler persist OPEN failed: $e');
+    }
+  }
+
   try {
     if (message.notification != null) {
       await AppNotificationHandler().playCustomSound(message);

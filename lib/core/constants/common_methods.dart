@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -187,66 +186,73 @@ String  serviceDeepLinkBusiness({String? id}) =>
 String shopDeepLink({String? id}) =>
     _withBdmReferral('https://beapp.in/app/business/shopping/${id ?? ""}');
 
-/// Returns the signed-in user's BDM referral code (when their BDM
-/// application status is `COMPLETED`), or `null`. Public companion
-/// to the auto-attach inside [_withBdmReferral] — call sites that
-/// need the raw code (e.g. the Play Store `referrer` param, an
-/// app-download share body) should read it through here so the
-/// "what counts as a valid referral code" rule lives in one place.
-String? currentBdmReferralCode() => _currentUserReferralCodeIfBdmCompleted();
+/// Returns the signed-in user's referral code, or `null` when it can't
+/// be resolved yet. Public companion to the auto-attach inside
+/// [_withBdmReferral] — call sites that need the raw code (e.g. the
+/// Play Store `referrer` param, an app-download share body) read it
+/// through here so the "what counts as a valid referral code" rule
+/// lives in one place. Name kept for call-site stability; it is no
+/// longer BDM-gated (see [_currentUserReferralCode]).
+String? currentBdmReferralCode() => _currentUserReferralCode();
 
-/// Appends `?referralCode=<code>` to [base] when the signed-in
-/// user is a verified BDM (status `COMPLETED`); returns [base]
-/// unchanged otherwise. All deeplink builders in this file route
-/// through here so the referral-attach rule lives in one place.
+/// Appends `?referralCode=<code>` to [base] with the signed-in user's
+/// referral code (every account now has one), returning [base]
+/// unchanged only when no code can be resolved. All deeplink builders
+/// in this file route through here so the referral-attach rule lives
+/// in one place.
 ///
 /// Assumes [base] has no existing query string — every current
 /// deeplink builder generates a path-only URL. If that ever
 /// changes, switch to detecting an existing `?` and using `&`.
 String _withBdmReferral(String base) {
-  final code = _currentUserReferralCodeIfBdmCompleted();
+  final code = _currentUserReferralCode();
   if (code == null || code.isEmpty) return base;
   return '$base?referralCode=${Uri.encodeQueryComponent(code)}';
 }
 
-/// Returns the signed-in user's referral code only when their BDM
-/// application status is `COMPLETED` (per [ReferralController]).
+/// Returns the signed-in user's referral code. Every account is issued a
+/// code at sign-up (surfaced on the profile record as `referral_code`),
+/// so this is **no longer gated on a BDM status** — any shared profile /
+/// deeplink carries the sharer's code.
 ///
 /// Lookup order:
-///   1. `ReferralControllerNew.myReferralCode` — the canonical source
-///      on the new flow (mirrors `/wallet-stats.referralCode`).
-///   2. Fallback to the business / personal profile controllers when
-///      the wallet-stats fetch hasn't landed yet but the profile data
-///      already carries a `referral_code`.
+///   1. [ReferralController.myReferralCode] — mirrors
+///      `/wallet-stats.referralCode` and reflects a just-applied update
+///      immediately.
+///   2. The business / personal profile controller's `referral_code`
+///      (present as soon as the profile loads, before /wallet-stats).
 ///
 /// Every lookup is guarded with `Get.isRegistered` + try/catch so URL
 /// generation can never throw if a controller hasn't been registered
 /// yet (e.g. share surfaces opened before the referral flow loads).
-String? _currentUserReferralCodeIfBdmCompleted() {
+String? _currentUserReferralCode() {
   try {
-    if (!Get.isRegistered<ReferralController>()) return null;
-    final referral = Get.find<ReferralController>();
-    // `bdmDetails` is a Rxn — reading `.value.status` directly would
-    // NPE the moment the API hasn't responded yet. The controller
-    // already provides an `isCompleted` getter that handles the null
-    // case, so use that.
-    if (!referral.isCompleted) return null;
-
-    // Prefer the new flow's canonical code (loaded from /wallet-stats).
-    final code = referral.myReferralCode;
-    if (code.isNotEmpty) return code;
-
-    // Fallback — profile controllers carry `referral_code` on the
-    // user/business record and tend to load earlier than /wallet-stats.
-    if (accountTypeGlobal == AppConstants.business) {
-      if (!Get.isRegistered<ViewBusinessDetailsController>()) return null;
-      return Get.find<ViewBusinessDetailsController>().businessProfileDetails.value?.data?.referral_code;
+    if (Get.isRegistered<ReferralController>()) {
+      final code = Get.find<ReferralController>().myReferralCode;
+      if (code.isNotEmpty) return code;
     }
-    if (!Get.isRegistered<ViewPersonalDetailsController>()) return null;
-    return Get.find<ViewPersonalDetailsController>().personalProfileDetails.value.user?.referral_code;
-  } catch (_) {
-    return null;
-  }
+
+    if (accountTypeGlobal == AppConstants.business) {
+      if (Get.isRegistered<ViewBusinessDetailsController>()) {
+        final code = Get.find<ViewBusinessDetailsController>()
+            .businessProfileDetails
+            .value
+            ?.data
+            ?.referral_code;
+        if (code != null && code.isNotEmpty) return code;
+      }
+    } else {
+      if (Get.isRegistered<ViewPersonalDetailsController>()) {
+        final code = Get.find<ViewPersonalDetailsController>()
+            .personalProfileDetails
+            .value
+            .user
+            ?.referral_code;
+        if (code != null && code.isNotEmpty) return code;
+      }
+    }
+  } catch (_) {}
+  return null;
 }
 
 /// Generate "5 days ago" or something similar

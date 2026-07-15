@@ -1,7 +1,9 @@
 import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/features/common/referral/model/referral_bdm_details_model.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/common/referral/model/referral_testimonial_model.dart';
 import 'package:BlueEra/features/common/referral/model/wallet_referral_history_model.dart';
 import 'package:BlueEra/features/common/referral/model/wallet_referral_stats_model.dart';
@@ -15,7 +17,6 @@ class ReferralController extends GetxController {
   final ReferralRepoNew _repo = ReferralRepoNew();
 
   // --- Async statuses ------------------------------------------------------
-  final Rx<ApiResponse> bdmDetailsResponse = ApiResponse.initial('Initial').obs;
   final Rx<ApiResponse> statsResponse = ApiResponse.initial('Initial').obs;
   final Rx<ApiResponse> historyResponse = ApiResponse.initial('Initial').obs;
   final Rx<ApiResponse> suggestionsResponse =
@@ -32,14 +33,27 @@ class ReferralController extends GetxController {
       ApiResponse.initial('Initial').obs;
   final RxBool registerLoading = false.obs;
   final RxBool creatingPost = false.obs;
+  final RxBool updateLoading = false.obs;
+
+  // True while the intro/overview video ([HorizontalVideoPlayer]) is
+  // actively playing. The testimonial autoplay grid watches this and
+  // suppresses its own muted preview playback so the two videos never
+  // run at once on the referral/update screen.
+  final RxBool overviewVideoPlaying = false.obs;
+
+  // Referral code + editability sourced from the signed-in profile
+  // (`referral_code` / `referralCodeEditable` on the personal or business
+  // GET-profile response). Every user gets a code at sign-up, so the
+  // referral screen shows the dashboard straight away; the code can be
+  // changed only while [referralCodeEditable] is true.
+  final RxString profileReferralCode = ''.obs;
+  final RxBool referralCodeEditable = false.obs;
 
   // Parsed wallet statics payload from `direct-referral-income` —
   // populates all four cards on the Statics tab.
   final Rxn<WalletStaticsModel> walletStatics = Rxn<WalletStaticsModel>();
 
   // --- State ---------------------------------------------------------------
-  final Rxn<ReferralBdmDetailsModel> bdmDetails =
-      Rxn<ReferralBdmDetailsModel>();
   final Rxn<WalletReferralStats> stats = Rxn<WalletReferralStats>();
   final RxList<WalletReferralHistoryItem> history =
       <WalletReferralHistoryItem>[].obs;
@@ -75,44 +89,27 @@ class ReferralController extends GetxController {
   ];
 
   // --- Computed ------------------------------------------------------------
-  String get status => bdmDetails.value?.status ?? 'NOT_STARTED';
-  bool get isCompleted => status == 'COMPLETED';
-  bool get isPending => status == 'PENDING';
-  bool get isNotStarted => status == 'NOT_STARTED';
-  String get myReferralCode => stats.value?.referralCode ?? '';
+
+  /// The code to display everywhere on the referral flow.
+  ///
+  /// Prefers the live wallet-stats code because it reflects a
+  /// `PUT wallet/referral` update immediately — the profile record can
+  /// still carry the old code until it's refetched, so reading the
+  /// profile first would show a stale code after an update + revisit.
+  /// Falls back to the profile code before stats have loaded. Both
+  /// reactive sources are read on every call so an enclosing [Obx]
+  /// rebuilds when either one lands/changes.
+  String get myReferralCode {
+    final statsCode = stats.value?.referralCode ?? '';
+    final profileCode = profileReferralCode.value;
+    return statsCode.isNotEmpty ? statsCode : profileCode;
+  }
 
   @override
   void onClose() {
     referralCodeController.dispose();
     referralFocusNode.dispose();
     super.onClose();
-  }
-
-  // ---------------------------------------------------------------------------
-  // BDM status + dependent fetches
-  // ---------------------------------------------------------------------------
-  Future<void> fetchBdmDetails() async {
-    bdmDetailsResponse.value = ApiResponse.loading('loading');
-    try {
-      final res = await _repo.getBdmDetails();
-      if (res.isSuccess) {
-        bdmDetails.value =
-            ReferralBdmDetailsModel.fromJson(res.response?.data ?? {});
-        bdmDetailsResponse.value = ApiResponse.complete(res.response?.data);
-
-        if (isCompleted) {
-          await Future.wait([
-            fetchStats(),
-            fetchTestimonials(),
-          ]);
-        }
-      } else {
-        bdmDetailsResponse.value =
-            ApiResponse.error(res.message ?? AppStrings.somethingWentWrong.tr);
-      }
-    } catch (e) {
-      bdmDetailsResponse.value = ApiResponse.error(e.toString());
-    }
   }
 
   // ---------------------------------------------------------------------------
@@ -234,36 +231,95 @@ class ReferralController extends GetxController {
   }
 
   // ---------------------------------------------------------------------------
-  // Submit registration (single-step: referral code only)
-  //
-  // Bank-details / Aadhar / PAN / address-proof are no longer collected
-  // during BDM onboarding — the user types a referral code, accepts the
-  // terms, and submits. On success we re-fetch /bdm/status; the backend
-  // flips it to COMPLETED and the dashboard renders.
+  // Referral code + editability (from the signed-in profile)
   // ---------------------------------------------------------------------------
-  Future<void> submitRegistration() async {
-    if (registerLoading.value) return;
-    final code = referralCodeController.text.trim();
-    if (code.isEmpty) {
-      commonSnackBar(message: 'Please enter a referral code to continue.');
-      return;
+
+  /// Reads `referral_code` / `referralCodeEditable` off whichever profile
+  /// controller matches the active account type. Safe to call repeatedly
+  /// (e.g. on screen open and after a pull-to-refresh) — it silently
+  /// no-ops when the profile controller isn't registered yet, leaving the
+  /// non-editable default in place.
+  void loadProfileReferralInfo() {
+    if (isBusinessUser()) {
+      try {
+        final data = Get.find<ViewBusinessDetailsController>()
+            .businessProfileDetails
+            .value
+            ?.data;
+        if (data != null) {
+          profileReferralCode.value = data.referral_code ?? '';
+          referralCodeEditable.value = data.referralCodeEditable ?? false;
+        }
+      } catch (_) {}
+    } else {
+      try {
+        final user = Get.find<ViewPersonalDetailsController>()
+            .personalProfileDetails
+            .value
+            .user;
+        if (user != null) {
+          profileReferralCode.value = user.referral_code ?? '';
+          referralCodeEditable.value = user.referralCodeEditable ?? false;
+        }
+      } catch (_) {}
     }
-    registerLoading.value = true;
+  }
+
+  /// Change the signed-in user's referral code
+  /// (`PUT wallet-service/wallet/referral`). On success the local code is
+  /// updated optimistically, editability is cleared (the backend allows a
+  /// single change), and dependent surfaces are refreshed. Returns true so
+  /// the caller can pop the update screen.
+  Future<bool> updateReferralCode(String code) async {
+    if (updateLoading.value) return false;
+    final trimmed = code.trim().toUpperCase();
+    if (trimmed.isEmpty) {
+      commonSnackBar(message: 'Please enter a referral code to continue.');
+      return false;
+    }
+    updateLoading.value = true;
     try {
-      final res = await _repo.registerStepTwo(referralCode: code);
+      final res = await _repo.updateReferralCode(trimmed);
       if (res.isSuccess) {
+        profileReferralCode.value = trimmed;
+        referralCodeEditable.value = false;
         commonSnackBar(
-            message: res.message ?? 'BDM registration completed successfully');
-        await fetchBdmDetails();
-      } else {
-        commonSnackBar(
-            message: res.message ?? AppStrings.somethingWentWrong.tr);
+            message: res.message ?? 'Referral code updated successfully');
+        // Wallet-stats reflects the new code right away and drives the
+        // display via [myReferralCode].
+        await fetchStats();
+        // Refresh the signed-in profile in the background so its
+        // referral_code / referralCodeEditable are current the next time
+        // the referral screen re-reads them (otherwise a stale cached
+        // profile would re-surface the old code / update button).
+        _refreshSignedInProfile();
+        return true;
       }
+      commonSnackBar(message: res.message ?? AppStrings.somethingWentWrong.tr);
+      return false;
     } catch (e) {
       commonSnackBar(message: e.toString());
+      return false;
     } finally {
-      registerLoading.value = false;
+      updateLoading.value = false;
     }
+  }
+
+  /// Refetches the signed-in profile so its `referral_code` /
+  /// `referralCodeEditable` reflect a just-applied update, then re-reads
+  /// them into [profileReferralCode] / [referralCodeEditable].
+  /// Best-effort — swallows errors and no-ops if the profile controller
+  /// isn't registered.
+  Future<void> _refreshSignedInProfile() async {
+    try {
+      if (isBusinessUser()) {
+        await Get.find<ViewBusinessDetailsController>().viewBusinessProfile();
+      } else {
+        await Get.find<ViewPersonalDetailsController>()
+            .viewPersonalProfile(forceRefresh: true);
+      }
+    } catch (_) {}
+    loadProfileReferralInfo();
   }
 
   // ---------------------------------------------------------------------------

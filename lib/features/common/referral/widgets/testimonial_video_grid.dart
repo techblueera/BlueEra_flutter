@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
 import 'package:BlueEra/features/common/referral/model/referral_testimonial_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -25,9 +27,24 @@ class TestimonialVideoGrid extends StatefulWidget {
 
 class _TestimonialVideoGridState extends State<TestimonialVideoGrid> {
   final _GridVideoPlaybackManager _playback = _GridVideoPlaybackManager();
+  final ReferralController _referral = getOrPut(() => ReferralController());
+  Worker? _suppressWorker;
+
+  @override
+  void initState() {
+    super.initState();
+    // Suppress the muted preview autoplay while the intro/overview video
+    // is playing so the two never run at the same time.
+    _playback.setSuppressed(_referral.overviewVideoPlaying.value);
+    _suppressWorker = ever<bool>(
+      _referral.overviewVideoPlaying,
+      (playing) => _playback.setSuppressed(playing),
+    );
+  }
 
   @override
   void dispose() {
+    _suppressWorker?.dispose();
     _playback.dispose();
     super.dispose();
   }
@@ -217,11 +234,26 @@ class _GridVideoPlaybackManager extends ChangeNotifier {
   final Map<String, int> _order = {};
 
   bool _disposed = false;
+  // While true, no tile autoplays — used to yield to the intro/overview
+  // video so both can't play at once.
+  bool _suppressed = false;
   Timer? _playDelayTimer;
   String? _playToken;
 
   static const double _visibilityThreshold = 0.6;
   static const Duration _playDelay = Duration(milliseconds: 150);
+
+  /// Pause (and hold) autoplay when [value] is true; resume evaluating the
+  /// most-visible tile when it flips back to false.
+  void setSuppressed(bool value) {
+    if (_disposed || _suppressed == value) return;
+    _suppressed = value;
+    if (_suppressed) {
+      _stop();
+    } else {
+      _evaluate();
+    }
+  }
 
   void reportVisibility(
       String id, String url, double fraction, int order) {
@@ -244,7 +276,7 @@ class _GridVideoPlaybackManager extends ChangeNotifier {
   }
 
   void _evaluate() {
-    if (_disposed) return;
+    if (_disposed || _suppressed) return;
     if (_visible.isEmpty) {
       _stop();
       return;

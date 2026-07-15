@@ -14,7 +14,7 @@
 // import 'package:BlueEra/features/business/widgets/business_description_card.dart';
 // import 'package:BlueEra/features/business/widgets/business_profile_header_view.dart';
 // import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
-// import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
+// import 'package:BlueEra/features/business/widgets/profile_share_banner.dart';
 // import 'package:BlueEra/features/business/widgets/business_stats.dart';
 // import 'package:BlueEra/features/me/food/controller/restaurant_controller.dart';
 // import 'package:BlueEra/features/me/food/model/food_home_res_model.dart';
@@ -215,7 +215,7 @@
 //                   },
 //                 );
 //               }),
-//               const BusinessShareBanner(),
+//               const ProfileShareBanner(),
 //
 //               const SizedBox(height: 4 * kBottomNavigationBarHeight),
 //

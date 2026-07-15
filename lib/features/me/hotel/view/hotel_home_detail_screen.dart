@@ -11,7 +11,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
-import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
+import 'package:BlueEra/features/business/widgets/profile_share_banner.dart';
 import 'package:BlueEra/features/me/hotel/controller/hotel_home_detail_controller.dart';
 import 'package:BlueEra/features/me/hotel/view/hotel_amenities_screen.dart';
 import 'package:BlueEra/features/me/hotel/view/hotel_contact_us/hotel_contact_us.dart';
@@ -519,7 +519,7 @@ class _HotelHomeDetailScreenState extends State<HotelHomeDetailScreen> {
                         padding: 0,
                         isTitleShow: true),
 
-                    const BusinessShareBanner(),
+                    const ProfileShareBanner(),
 
                     SizedBox(height: kBottomNavigationBarHeight + 30),
                   ],

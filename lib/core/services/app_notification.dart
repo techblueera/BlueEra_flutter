@@ -49,6 +49,7 @@ import '../../features/chat/view/ai_chat/view/ai_chat_screen.dart';
 import '../routes/route_helper.dart';
 import '../routes/route_constant.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_orders_controller.dart';
+import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 
 String notificationSound = 'sound/hangouts_call.mp3';
 String hello_delivery = 'sound/hello_delivery.mp3';
@@ -2335,6 +2336,24 @@ class AppNotificationHandler {
         }
       }
 
+      // Auto go-live: the backend cron opened this rider server-side, but
+      // location freshness needs the app (map-service auto-closes providers
+      // with a stale lastSeen after ~5 min). Flip the toggle + start the
+      // periodic location pinger so the rider is genuinely live through the
+      // window. Non-returning — falls through to render the "You're live!"
+      // banner. See docs/backend/AUTO_GOLIVE_FRONTEND_INTEGRATION.md.
+      if (operation == 'auto_golive_opened') {
+        try {
+          if (Get.isRegistered<ViewPersonalDetailsController>()) {
+            Get.find<ViewPersonalDetailsController>()
+                .getServiceProviderStatus();
+          }
+        } catch (e) {
+          debugPrint(
+              '[RiderAutoGoLive] foreground auto_golive_opened error: $e');
+        }
+      }
+
       // Play custom sound for foreground notifications
       playCustomSound(message);
 
@@ -2346,6 +2365,18 @@ class AppNotificationHandler {
 
     /// when app is in background and user tap on it.
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      // Tapping the auto-go-live banner (app was backgrounded but alive)
+      // re-asserts live state + restarts the location pinger, same as the
+      // foreground path. See AUTO_GOLIVE_FRONTEND_INTEGRATION.md.
+      final op = (message.data['operation'] ?? '').toString().toLowerCase();
+      if (op == 'auto_golive_opened') {
+        try {
+          if (Get.isRegistered<ViewPersonalDetailsController>()) {
+            Get.find<ViewPersonalDetailsController>()
+                .getServiceProviderStatus();
+          }
+        } catch (_) {}
+      }
       _onTapNotificationFromStatusBar(message.data);
     });
 

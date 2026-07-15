@@ -129,6 +129,11 @@ class SharedPreferenceUtils {
   /// from the unchanging install referrer on a later launch.
   static const installReferrerCheckedKey = 'install_referrer_checked';
 
+  /// `yyyy-MM-dd` of the last day the Discover share-profile promo dialog
+  /// was shown, so it pops at most once per calendar day (not on every
+  /// Discover mount).
+  static const sharePromoLastShownKey = 'share_promo_last_shown';
+
   /// Persist a referral code that arrived via deeplink before the user
   /// completed onboarding. No-op for empty / whitespace-only input so
   /// a malformed query param can't overwrite a previously-valid one.

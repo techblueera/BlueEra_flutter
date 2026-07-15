@@ -9,6 +9,7 @@ import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../../permissionCentralize/go_live_permission_service.dart';
 import '../../../personal/auth/controller/view_personal_details_controller.dart';
 import '../controller/delivery_partner_controller.dart';
+import '../repo/delivery_partner_repo.dart';
 
 /// Best-effort **client-side** daily auto go-live for riders.
 ///
@@ -49,6 +50,11 @@ class RiderAutoGoLiveScheduler {
   Timer? _timer;
   bool _started = false;
 
+  /// Guards the launch reconcile so the schedule GET runs at most once per app
+  /// session, not on every rider-screen mount that calls
+  /// [ensureStartedIfEnabled].
+  bool _reconciledThisSession = false;
+
   /// True while the CURRENT live session was opened by this scheduler — so we
   /// only auto-close what we auto-opened (in-memory; a restart mid-window loses
   /// it, and the backend cron is the authoritative closer — by design).
@@ -68,6 +74,10 @@ class RiderAutoGoLiveScheduler {
   /// call from any rider surface's initState (idempotent).
   Future<void> ensureStartedIfEnabled() async {
     if (_started) return;
+    // Reconcile the opt-in with the server before deciding — covers reinstall /
+    // second device where the local flag is missing but the server has the
+    // rider opted in (or vice-versa). Server `enabled` is authoritative.
+    await _reconcileEnabledFromServer();
     if (!await isEnabled()) return;
     _start();
   }
@@ -76,6 +86,10 @@ class RiderAutoGoLiveScheduler {
   /// the daily auto window from the next day on and starts the evaluator.
   Future<void> enableAfterManualGoLive() async {
     await SharedPreferenceUtils.setSecureValue(_enabledKey, 'true');
+    // Tell the backend cron the rider opted in. Fire-and-forget: until the PUT
+    // lands the cron simply doesn't know about the rider (behaves like today);
+    // the next launch's reconcile heals a missed sync.
+    _syncToServer({'enabled': true});
     _start();
   }
 
@@ -86,6 +100,9 @@ class RiderAutoGoLiveScheduler {
     _timer = null;
     _started = false;
     _autoOpenedThisSession = false;
+    // Allow the next session (e.g. after re-login) to reconcile with the
+    // server again.
+    _reconciledThisSession = false;
   }
 
   /// Record that the rider manually went offline during the window, so the
@@ -94,6 +111,42 @@ class RiderAutoGoLiveScheduler {
     if (!_inWindow(DateTime.now())) return;
     _autoOpenedThisSession = false;
     await SharedPreferenceUtils.setSecureValue(_manualOffKey, _todayKey());
+    // Mirror the opt-out to the server so the cron won't re-open the rider for
+    // the rest of today (IST). Fire-and-forget — the local flag already blocks
+    // this client; the PUT keeps the authoritative cron in sync.
+    _syncToServer({'manualOffToday': true});
+  }
+
+  /// PUT an auto-go-live change to the backend. Fire-and-forget: never blocks
+  /// the caller and never throws — the local flags are the source of truth for
+  /// THIS client, and the server sync is best-effort (retried on next launch).
+  Future<void> _syncToServer(Map<String, dynamic> params) async {
+    try {
+      await DeliveryPartnerRepo().updateRiderAutoGoLiveRepo(params: params);
+    } catch (e) {
+      log('[RiderAutoGoLive] server sync failed for $params: $e');
+    }
+  }
+
+  /// GET the server schedule and let its `enabled` win over the local flag.
+  /// Best-effort — on any failure we keep the local flag as-is. Runs at most
+  /// once per session (see [_reconciledThisSession]).
+  Future<void> _reconcileEnabledFromServer() async {
+    if (_reconciledThisSession) return;
+    _reconciledThisSession = true;
+    try {
+      final res = await DeliveryPartnerRepo().getRiderAutoGoLiveRepo();
+      if (!res.isSuccess) return;
+      final body = res.response?.data;
+      final schedule = (body is Map) ? body['data'] : null;
+      if (schedule is Map && schedule['enabled'] != null) {
+        final serverEnabled = schedule['enabled'] == true;
+        await SharedPreferenceUtils.setSecureValue(
+            _enabledKey, serverEnabled ? 'true' : 'false');
+      }
+    } catch (e) {
+      log('[RiderAutoGoLive] enabled reconcile failed: $e');
+    }
   }
 
   // ── internals ──────────────────────────────────────────────

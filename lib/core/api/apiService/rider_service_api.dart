@@ -34,6 +34,12 @@ mixin RiderServiceApi {
       "rider-service/riders/onboarding/vehicle-information"; // Onboarding rider (step 6)
   final String ridersOnboardingStatus =
       "rider-service/riders/onboarding/status"; // Fetch onboarding rider status
+
+  /// Rider's daily auto-go-live schedule (opt-in window).
+  /// GET → current { enabled, windowStart, windowEnd, timezone, manualOffDate }.
+  /// PUT → update { enabled } | { manualOffToday } | { windowStart, windowEnd }.
+  /// See docs/backend/AUTO_GOLIVE_FRONTEND_INTEGRATION.md.
+  final String ridersAutoGoLive = "rider-service/riders/auto-golive";
   // Delete a single uploaded onboarding document. [documentType] is one
   // of: aadhar | pan | dl | rc | vehicle-images | vehicle-information.
   // NOTE: assumed REST path — confirm with backend before relying on it.

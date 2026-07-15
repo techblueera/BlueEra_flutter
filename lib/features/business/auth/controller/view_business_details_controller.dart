@@ -221,12 +221,34 @@ class ViewBusinessDetailsController extends GetxController
     }
   }
 
+  /// Tracks an in-flight non-silent profile fetch so concurrent callers
+  /// can piggy-back on it instead of firing a duplicate request.
+  Future<void>? _inFlightProfileFetch;
+
   /// Fetches the current business profile.
   ///
   /// [silent] = true skips the cache-replay step (used after an update
   /// so the cover/avatar UI doesn't flash the stale cached version
   /// between "shimmer off" and the server confirming the new asset).
-  Future<void> viewBusinessProfile({bool silent = false}) async {
+  ///
+  /// Concurrent non-silent callers are coalesced: app startup triggers
+  /// this from more than one place (the bottom-nav init and the
+  /// joining-bonus pre-check), which used to fire two identical
+  /// `GET user-service/business/{id}` requests back-to-back. While a
+  /// non-silent fetch is in flight, later non-silent callers await the
+  /// same request. Silent post-update refreshes always run fresh so they
+  /// never return pre-update data.
+  Future<void> viewBusinessProfile({bool silent = false}) {
+    if (silent) return _fetchBusinessProfile(silent: true);
+    final existing = _inFlightProfileFetch;
+    if (existing != null) return existing;
+    final future = _fetchBusinessProfile(silent: false);
+    _inFlightProfileFetch =
+        future.whenComplete(() => _inFlightProfileFetch = null);
+    return _inFlightProfileFetch!;
+  }
+
+  Future<void> _fetchBusinessProfile({bool silent = false}) async {
     await getUserLoginBusinessId();
 logs("BUSINESS ID=== ${businessId}");
     // 1. Show cached business profile (if any) immediately so the UI

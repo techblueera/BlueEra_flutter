@@ -12,7 +12,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
+import 'package:BlueEra/features/business/widgets/profile_share_banner.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
@@ -1226,7 +1226,7 @@ class _CabAndTransportPartnerState extends State<CabAndTransportPartner>
                 ? _personalCtrl.imagePath?.value
                 : user?.profileImage;
         final designation = user?.designation ?? '';
-        return BusinessShareBanner(
+        return ProfileShareBanner(
           overrideName: name,
           overridePhoto: photo,
           overrideSubCategory: designation,

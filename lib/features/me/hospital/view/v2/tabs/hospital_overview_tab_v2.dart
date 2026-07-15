@@ -7,7 +7,7 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
-import 'package:BlueEra/features/business/widgets/business_share_banner.dart';
+import 'package:BlueEra/features/business/widgets/profile_share_banner.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hospital/view/gallery/hospital_home_gallery_widget.dart';
 import 'package:BlueEra/features/me/hospital/view/hospital_job_listing_screen.dart';
@@ -92,7 +92,7 @@ class HospitalOverviewTabV2 extends StatelessWidget {
                 isTitleShow: true,
               ),
             ),
-          const BusinessShareBanner(),
+          const ProfileShareBanner(),
           SizedBox(height: SizeConfig.size10),
 
           // ── QR Code (mirrors the food home screen QR card) ──
