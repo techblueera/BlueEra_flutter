@@ -1,10 +1,12 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/common/search/controller/global_search_controller.dart';
 import 'package:BlueEra/features/common/search/model/search_models.dart';
+import 'package:BlueEra/features/common/search/model/store_match_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 /// Flipkart-style product enquiry bottom sheet.
 ///
@@ -13,10 +15,12 @@ import 'package:flutter/material.dart';
 /// variants) followed by a "Sellers near me" list. Each seller can be ticked and
 /// the user fires a single "Send Inquiry" to every selected seller.
 ///
-/// Design-only for now: pricing/rating are seeded from the tapped
-/// [SearchResultItem] when present, while highlights, variants and the seller
-/// list are illustrative. Nothing is persisted or sent to the backend beyond a
-/// confirmation snackbar.
+/// The **Sellers near me** list is live: it calls the grocery Search-Order
+/// `search-by-product` API (see docs/backend/SEARCH_ORDER_FLUTTER_GUIDE.md) to
+/// list the real stores that stock this product near the user, cheapest first.
+/// Pricing/rating are seeded from the tapped [SearchResultItem]; highlights and
+/// variants remain illustrative. The inquiry action itself is design-only (no
+/// inquiry backend yet) — it confirms with a snackbar.
 void showProductInquiryBottomSheet(BuildContext context, SearchResultItem item) {
   showModalBottomSheet<void>(
     context: context,
@@ -42,19 +46,6 @@ class _VariantGroup {
   const _VariantGroup(this.title, this.options);
 }
 
-class _NearbySeller {
-  final String name;
-  final String designation; // subcategory / designation line
-  final String distance;
-  final String? dpUrl;
-  const _NearbySeller({
-    required this.name,
-    required this.designation,
-    required this.distance,
-    this.dpUrl,
-  });
-}
-
 class _ProductInquirySheet extends StatefulWidget {
   final SearchResultItem item;
 
@@ -68,8 +59,10 @@ class _ProductInquirySheetState extends State<_ProductInquirySheet> {
   // Selected option index per variant group.
   final Map<int, int> _selectedVariant = {};
 
-  // Which nearby sellers are ticked for the inquiry.
-  final Set<int> _selectedSellers = {};
+  // ── Live "Sellers near me" (search-by-product) ──────────────────────────
+  List<StoreMatch> _stores = const [];
+  bool _loadingStores = true;
+  bool _storesError = false;
 
   // ── Design-only sample data ─────────────────────────────────────────────
   static const List<_VariantGroup> _variantGroups = [
@@ -93,30 +86,38 @@ class _ProductInquirySheetState extends State<_ProductInquirySheet> {
     '1 year manufacturer warranty',
   ];
 
-  static const List<_NearbySeller> _sellers = [
-    _NearbySeller(
-      name: 'Sharma Electronics',
-      designation: 'Mobile & Accessories · Retailer',
-      distance: '1.2 km',
-    ),
-    _NearbySeller(
-      name: 'Gadget World',
-      designation: 'Consumer Electronics · Dealer',
-      distance: '2.8 km',
-    ),
-    _NearbySeller(
-      name: 'Apna Mobile Store',
-      designation: 'Smartphones · Authorised Reseller',
-      distance: '4.5 km',
-    ),
-  ];
-
   @override
   void initState() {
     super.initState();
     // Preselect the first option of every variant group, like a PDP would.
     for (var i = 0; i < _variantGroups.length; i++) {
       _selectedVariant[i] = 0;
+    }
+    _loadStores();
+  }
+
+  /// Fetch the real nearby stores that stock this product (search-by-product).
+  Future<void> _loadStores() async {
+    setState(() {
+      _loadingStores = true;
+      _storesError = false;
+    });
+    try {
+      final controller = Get.isRegistered<GlobalSearchController>()
+          ? Get.find<GlobalSearchController>()
+          : Get.put(GlobalSearchController());
+      final stores = await controller.fetchStoresForProduct(widget.item);
+      if (!mounted) return;
+      setState(() {
+        _stores = stores;
+        _loadingStores = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _storesError = true;
+        _loadingStores = false;
+      });
     }
   }
 
@@ -139,7 +140,9 @@ class _ProductInquirySheetState extends State<_ProductInquirySheet> {
           const Divider(height: 1, color: AppColors.greyE5),
           Flexible(
             child: ListView(
-              padding: EdgeInsets.only(bottom: SizeConfig.size16),
+              padding: EdgeInsets.only(
+                  bottom: SizeConfig.size16 +
+                      MediaQuery.of(context).padding.bottom),
               children: [
                 _productHero(green),
                 _sectionDivider(),
@@ -151,7 +154,6 @@ class _ProductInquirySheetState extends State<_ProductInquirySheet> {
               ],
             ),
           ),
-          _sendInquiryBar(),
         ],
       ),
     );
@@ -514,86 +516,173 @@ class _ProductInquirySheetState extends State<_ProductInquirySheet> {
               const Icon(Icons.storefront_outlined,
                   size: 20, color: AppColors.mainTextColor),
               const SizedBox(width: 6),
-              CustomText('Sellers near me',
-                  fontSize: SizeConfig.large18,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.mainTextColor),
+              Expanded(
+                child: CustomText(
+                    _stores.isNotEmpty
+                        ? 'Available at ${_stores.length} '
+                            'store${_stores.length == 1 ? '' : 's'} near you'
+                        : 'Sellers near me',
+                    fontSize: SizeConfig.large18,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.mainTextColor,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis),
+              ),
             ],
           ),
           const SizedBox(height: 4),
-          CustomText('Select sellers to send your inquiry',
+          CustomText('Tap a store to place your order',
               fontSize: SizeConfig.small, color: AppColors.secondaryTextColor),
           const SizedBox(height: 12),
-          for (var i = 0; i < _sellers.length; i++) _sellerCard(i, _sellers[i]),
+          _sellersBody(),
         ],
       ),
     );
   }
 
-  Widget _sellerCard(int index, _NearbySeller seller) {
-    final isSelected = _selectedSellers.contains(index);
+  Widget _sellersBody() {
+    if (_loadingStores) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 28),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (_storesError) {
+      return _sellersPlaceholder(
+        icon: Icons.cloud_off,
+        message: 'Could not load nearby stores.',
+        action: TextButton(
+          onPressed: _loadStores,
+          child: CustomText('Retry',
+              fontSize: SizeConfig.medium,
+              fontWeight: FontWeight.w700,
+              color: AppColors.blue5CAF),
+        ),
+      );
+    }
+    if (_stores.isEmpty) {
+      return _sellersPlaceholder(
+        icon: Icons.storefront_outlined,
+        message: 'Not available in stores near you yet.',
+      );
+    }
+    return Column(
+      children: [
+        for (var i = 0; i < _stores.length; i++) _sellerCard(i, _stores[i]),
+      ],
+    );
+  }
+
+  Widget _sellersPlaceholder(
+      {required IconData icon, required String message, Widget? action}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 12),
+      decoration: BoxDecoration(
+        color: AppColors.whiteF9,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.greyE5),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, size: 34, color: AppColors.secondaryTextColor),
+          const SizedBox(height: 8),
+          CustomText(message,
+              fontSize: SizeConfig.small,
+              color: AppColors.secondaryTextColor,
+              textAlign: TextAlign.center),
+          if (action != null) action,
+        ],
+      ),
+    );
+  }
+
+  Widget _sellerCard(int index, StoreMatch store) {
+    final name = (store.businessName != null &&
+            store.businessName!.trim().isNotEmpty)
+        ? store.businessName!.trim()
+        : 'Store';
     return GestureDetector(
-      onTap: () => setState(() {
-        if (isSelected) {
-          _selectedSellers.remove(index);
-        } else {
-          _selectedSellers.add(index);
-        }
-      }),
+      behavior: HitTestBehavior.opaque,
+      onTap: () => _orderFromStore(store),
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.blue5CAF.withValues(alpha: 0.05)
-              : AppColors.white,
-          border: Border.all(
-            color: isSelected ? AppColors.blue5CAF : AppColors.greyE5,
-            width: isSelected ? 1.4 : 1,
-          ),
+          color: AppColors.white,
+          border: Border.all(color: AppColors.greyE5),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
           children: [
-            _sellerDp(seller.dpUrl),
+            _sellerDp(store.businessLogo),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CustomText(seller.name,
+                  CustomText(name,
                       fontSize: SizeConfig.medium,
                       fontWeight: FontWeight.w700,
                       color: AppColors.mainTextColor,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis),
                   const SizedBox(height: 2),
-                  CustomText(seller.designation,
-                      fontSize: SizeConfig.small,
-                      color: AppColors.secondaryTextColor,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis),
+                  Row(
+                    children: [
+                      CustomText(
+                          'From ₹${SearchResponse.formatPrice(store.minSellingPrice)}',
+                          fontSize: SizeConfig.small,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.mainTextColor),
+                      if (store.totalStock > 0) ...[
+                        const SizedBox(width: 8),
+                        CustomText('In stock',
+                            fontSize: SizeConfig.small,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.green.shade700),
+                      ],
+                    ],
+                  ),
                   const SizedBox(height: 4),
                   Row(
                     children: [
                       const Icon(Icons.location_on_outlined,
                           size: 14, color: AppColors.blue5CAF),
                       const SizedBox(width: 2),
-                      CustomText('${seller.distance} away',
-                          fontSize: SizeConfig.small,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.blue5CAF),
+                      Flexible(
+                        child: CustomText(
+                            store.distanceKm != null
+                                ? '${store.distanceKm!.toStringAsFixed(1)} km away'
+                                : (store.locationLine ?? 'Nearby'),
+                            fontSize: SizeConfig.small,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.blue5CAF,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis),
+                      ),
                     ],
                   ),
                 ],
               ),
             ),
             const SizedBox(width: 8),
-            _checkbox(isSelected),
+            const Icon(Icons.chevron_right,
+                size: 22, color: AppColors.secondaryTextColor),
           ],
         ),
       ),
     );
+  }
+
+  /// Pick this store → start the real self-pickup order flow for it (drops the
+  /// store's inventory line into the cart and opens the cart screen).
+  void _orderFromStore(StoreMatch store) {
+    final controller = Get.isRegistered<GlobalSearchController>()
+        ? Get.find<GlobalSearchController>()
+        : Get.put(GlobalSearchController());
+    Navigator.of(context).maybePop();
+    controller.openProductOrder(widget.item, store: store);
   }
 
   Widget _sellerDp(String? url) {
@@ -617,73 +706,6 @@ class _ProductInquirySheetState extends State<_ProductInquirySheet> {
               errorWidget: (_, __, ___) => placeholder,
             )
           : placeholder,
-    );
-  }
-
-  Widget _checkbox(bool selected) {
-    return Container(
-      width: 22,
-      height: 22,
-      decoration: BoxDecoration(
-        color: selected ? AppColors.blue5CAF : AppColors.white,
-        border: Border.all(
-          color: selected ? AppColors.blue5CAF : AppColors.greyE5,
-          width: 1.6,
-        ),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      alignment: Alignment.center,
-      child: selected
-          ? const Icon(Icons.check, size: 15, color: AppColors.white)
-          : const SizedBox.shrink(),
-    );
-  }
-
-  // ── Send inquiry bar ─────────────────────────────────────────────────────
-  Widget _sendInquiryBar() {
-    final count = _selectedSellers.length;
-    final enabled = count > 0;
-    return SafeArea(
-      top: false,
-      child: Container(
-        padding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size16, vertical: SizeConfig.size12),
-        decoration: const BoxDecoration(
-          color: AppColors.white,
-          border: Border(top: BorderSide(color: AppColors.greyE5)),
-        ),
-        child: SizedBox(
-          height: 50,
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: enabled ? _onSendInquiry : null,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.blue5CAF,
-              disabledBackgroundColor: AppColors.greyE5,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            child: CustomText(
-              enabled ? 'Send Inquiry ($count)' : 'Send Inquiry',
-              fontSize: SizeConfig.large,
-              fontWeight: FontWeight.w700,
-              color: enabled ? AppColors.white : AppColors.secondaryTextColor,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _onSendInquiry() {
-    final names =
-        _selectedSellers.map((i) => _sellers[i].name).toList(growable: false);
-    Navigator.of(context).maybePop();
-    commonSnackBar(
-      message: 'Inquiry sent to ${names.length} seller'
-          '${names.length == 1 ? '' : 's'}: ${names.join(', ')}',
     );
   }
 

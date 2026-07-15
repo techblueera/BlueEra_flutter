@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/search/model/search_models.dart';
+import 'package:BlueEra/features/common/search/model/store_match_model.dart';
 import 'package:BlueEra/features/common/search/repo/search_repo.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
@@ -252,6 +254,40 @@ class GlobalSearchController extends GetxController {
     if (_committedQuery.isNotEmpty) _runSearch(reset: true);
   }
 
+  /// Fetch the nearby stores that stock a product (grocery Search-Order flow,
+  /// step 2 — `search-by-product`). Scopes to the user's current pincode/city
+  /// when known; the backend broadens gracefully when neither is sent. Returns
+  /// the parsed [StoreMatch] list (cheapest first). Throws on network failure so
+  /// the caller can show a retry state.
+  Future<List<StoreMatch>> fetchStoresForProduct(SearchResultItem item) async {
+    final productId = item.sourceId ?? '';
+    if (productId.isEmpty) return const [];
+
+    final addr = LocationService.userCurrentAddress.value;
+    final pincode = addr.postalCode.trim();
+    final city = addr.city.trim();
+
+    final res = await GroceryRepo().searchInventoryByProductRepo(params: {
+      'productId': productId,
+      // if (pincode.isNotEmpty) 'pincode': pincode,
+      if (pincode.isEmpty && city.isNotEmpty) 'cityName': city,
+      'inStock': false,
+      // 'inStock': true,
+      'sortBy': 'price_low_to_high',
+      'page': 1,
+      'limit': 20,
+    });
+
+    final raw = res.response?.data;
+    if (res.isSuccess && raw is Map) {
+      final list = (raw['data'] as List?) ?? const [];
+      return list
+          .map((e) => StoreMatch.fromJson(Map<String, dynamic>.from(e as Map)))
+          .toList();
+    }
+    throw (raw is Map ? raw['message'] : null) ?? 'Could not load stores';
+  }
+
   /// Open the existing self-pickup order flow for a product result.
   ///
   /// Mirrors the grocery share deep-link "Buy Now": fetch the full grocery
@@ -260,7 +296,12 @@ class GlobalSearchController extends GetxController {
   /// [GrocerySelfPickUpCartScreen] where the user reviews and places the real
   /// order (`placeBulkGroceryOrderApi`). Reuses the shipped flow end-to-end
   /// rather than a bespoke checkout.
-  Future<void> openProductOrder(SearchResultItem item) async {
+  ///
+  /// When [store] is given (the user picked a specific store from the
+  /// "Available at N stores" list — grocery Search-Order flow, step 3), the line
+  /// is grouped under that store and pinned to its inventory row, so the order
+  /// is placed against the chosen seller rather than the product's default one.
+  Future<void> openProductOrder(SearchResultItem item, {StoreMatch? store}) async {
     final productId = item.sourceId ?? '';
     if (productId.isEmpty) {
       commonSnackBar(message: 'Unable to open this product');
@@ -292,30 +333,45 @@ class GlobalSearchController extends GetxController {
         commonSnackBar(message: 'No purchasable option for this product');
         return;
       }
-      // First variant with pricing wins, else the first overall.
+
+      // When a store was picked, honour its inventory line: prefer the variant
+      // it stocks, and pin that store's inventoryId. Otherwise fall back to the
+      // first priced variant (else the first overall).
+      final storeLine = store?.firstOrderableLine;
       final variant = variants.firstWhere(
-        (v) => (v.pricing?.isNotEmpty ?? false),
-        orElse: () => variants.first,
+        (v) => storeLine != null && storeLine.productVariantId.isNotEmpty
+            ? v.sId == storeLine.productVariantId
+            : (v.pricing?.isNotEmpty ?? false),
+        orElse: () => variants.firstWhere(
+          (v) => (v.pricing?.isNotEmpty ?? false),
+          orElse: () => variants.first,
+        ),
       );
 
       final cart = getOrPut<GrocerySelfPickupConsumerController>(
           () => GrocerySelfPickupConsumerController());
+
+      final storeName = store?.businessName?.trim();
 
       // Avoid double-adding if the user re-opens the same product.
       if (cart.getQuantity(variant.sId) == 0) {
         cart.addToCart(
           variant,
           productId: product.sId,
-          inventoryId: variant.inventory?.inventoryId ?? variant.sId,
-          // Search carries no seller profile — group the item under a store
-          // card using the product's own context so the cart renders it (the
-          // order body itself keys off inventory + variant ids, not businessId).
-          businessId: item.businessId ?? product.sId,
-          businessName: (item.subtitle?.trim().isNotEmpty ?? false)
-              ? item.subtitle
-              : (product.brand ?? product.name),
-          businessLogo: item.imageUrl,
-          businessAddress: item.city,
+          inventoryId: storeLine?.inventoryId ??
+              variant.inventory?.inventoryId ??
+              variant.sId,
+          // Group the line under the chosen store when one was picked; otherwise
+          // fall back to the product's own context (the order body keys off
+          // inventory + variant ids, not businessId).
+          businessId: store?.businessId ?? item.businessId ?? product.sId,
+          businessName: (storeName?.isNotEmpty ?? false)
+              ? storeName
+              : (item.subtitle?.trim().isNotEmpty ?? false)
+                  ? item.subtitle
+                  : (product.brand ?? product.name),
+          businessLogo: store?.businessLogo ?? item.imageUrl,
+          businessAddress: store?.locationLine ?? item.city,
           productImage: (product.images?.isNotEmpty ?? false)
               ? product.images!.first.url
               : item.imageUrl,

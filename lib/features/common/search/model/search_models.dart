@@ -17,6 +17,16 @@ class SearchResultItem {
   final num? price;
   final String? currency;
   final String? city;
+
+  /// Postal code of a location-scoped offer. The backend attaches it to
+  /// grocery/health variants (a `city` + `pincode` pair marks the offer's
+  /// serviceable area); null for entities that aren't location-scoped.
+  final String? pincode;
+
+  /// Free-form tags. For `post` results these are the hashtags; empty for
+  /// entity types that don't carry them.
+  final List<String> tags;
+
   final double? score;
 
   /// Seller/business id, when the backend attaches one to the result (grocery
@@ -52,6 +62,8 @@ class SearchResultItem {
     this.price,
     this.currency,
     this.city,
+    this.pincode,
+    this.tags = const [],
     this.score,
     this.businessId,
     this.mrp,
@@ -79,6 +91,10 @@ class SearchResultItem {
         price: j['price'] as num?,
         currency: j['currency'] as String?,
         city: j['city'] as String?,
+        pincode: j['pincode']?.toString(),
+        tags: ((j['tags'] as List?) ?? const [])
+            .map((e) => e.toString())
+            .toList(),
         score: (j['_score'] as num?)?.toDouble(),
         businessId: (j['businessId'] ?? j['sellerId'] ?? j['ownerId'])
             as String?,

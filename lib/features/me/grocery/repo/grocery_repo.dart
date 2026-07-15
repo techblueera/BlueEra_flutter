@@ -131,6 +131,22 @@ class GroceryRepo extends BaseService {
     return response;
   }
 
+  /// SEARCH STORES THAT STOCK A PRODUCT (grocery Search-Order flow, step 2).
+  /// `POST grocery-service/api/inventory/public/search-by-product`. Returns
+  /// stores (grouped by business) that stock the given product/variant, filtered
+  /// by pincode/city. See docs/backend/SEARCH_ORDER_FLUTTER_GUIDE.md.
+  Future<ResponseModel> searchInventoryByProductRepo(
+      {Map<String, dynamic>? params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      searchInventoryByProduct,
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   /// FETCH A SINGLE GROCERY PRODUCT BY ID (public — grocery share deep link).
   /// `GET grocery-service/api/products/{productId}`.
   Future<ResponseModel> fetchGroceryProductByIdRepo(String productId) async {
