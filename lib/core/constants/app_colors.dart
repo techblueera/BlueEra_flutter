@@ -1,4 +1,4 @@
-  import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 
 class AppColors {
   static const white = Colors.white;
@@ -9,6 +9,7 @@ class AppColors {
   static const black23 = Color(0xFF232323);
   static const black25 = Color(0x40000000);
   static const blackD9 = Color(0xD9161F28);
+  static const black22 = Color(0xFF101922);
   static const blue3F = Color(0xFF23313F);
   static const blue35 = Color(0xFF1D2935);
   static const whiteEE = Color(0xFFEEEEEE);
@@ -143,16 +144,16 @@ class AppColors {
   static const green2C = Color(0xFF2C3F25);
   static const purpleFD = Color(0xFFF0E7FD);
   static const purpleFF = Color(0xFFE0E7FF);
-  static const kBlue   = Color(0xFF2563EB);
-  static const kBlueDark  = Color(0xFF1D4ED8);
+  static const kBlue = Color(0xFF2563EB);
+  static const kBlueDark = Color(0xFF1D4ED8);
   static const kBlueLight = Color(0xFFEFF6FF);
-  static const kGreen     = Color(0xFFD1FAE5);
+  static const kGreen = Color(0xFFD1FAE5);
   static const kGreenText = Color(0xFF059669);
-  static const kGrey      = Color(0xFF6B7280);
+  static const kGrey = Color(0xFF6B7280);
   static const kGreyLabel = Color(0xFF9CA3AF);
-  static const kBg        = Color(0xFFF1F5F9);
-  static const kCard      = Colors.white;
-  static const kRed       = Color(0xFFEF4444);
+  static const kBg = Color(0xFFF1F5F9);
+  static const kCard = Colors.white;
+  static const kRed = Color(0xFFEF4444);
   static const blue5CAF = Color(0xFF005CAF);
   static const blue5CFF = Color(0xFFEBF5FF);
   static const greenF3 = Color(0xFFE6FAF3);

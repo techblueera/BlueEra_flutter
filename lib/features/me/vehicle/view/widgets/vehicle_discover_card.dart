@@ -97,18 +97,18 @@ class VehicleDiscoverCard extends StatelessWidget {
                     children: [
                       CustomText(
                         vehicle.name,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.mainTextColor,
+                        fontSize: SizeConfig.large18,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.black22,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       if ((vehicle.description ?? '').trim().isNotEmpty) ...[
-                        SizedBox(height: SizeConfig.size6),
+                        SizedBox(height: SizeConfig.size4),
                         CustomText(
                           vehicle.description!.trim(),
-                          fontSize: 13.5,
-                          fontWeight: FontWeight.w500,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w400,
                           color: AppColors.secondaryTextColor,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -118,16 +118,12 @@ class VehicleDiscoverCard extends StatelessWidget {
                   ),
                 ),
                 if (_specs.isNotEmpty) ...[
-                  SizedBox(height: SizeConfig.size14),
+                  SizedBox(height: SizeConfig.size12),
                   _buildSpecRow(),
                 ],
-                if (_hasPriceRow) ...[
+                if (_hasPriceRow || _hasEmi) ...[
                   SizedBox(height: SizeConfig.size12),
-                  _buildPriceRow(),
-                ],
-                if (_hasEmi) ...[
-                  SizedBox(height: SizeConfig.size12),
-                  _buildEmiStrip(),
+                  _buildPriceEmiCard(),
                 ],
                 SizedBox(height: SizeConfig.size14),
                 _buildActions(),
@@ -155,7 +151,8 @@ class VehicleDiscoverCard extends StatelessWidget {
               top: 12,
               left: 12,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.55),
                   borderRadius: BorderRadius.circular(20),
@@ -163,7 +160,8 @@ class VehicleDiscoverCard extends StatelessWidget {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.verified_rounded, size: 14, color: Colors.white),
+                    const Icon(Icons.verified_rounded,
+                        size: 14, color: Colors.white),
                     const SizedBox(width: 4),
                     CustomText(
                       AppStrings.verified.tr,
@@ -176,8 +174,8 @@ class VehicleDiscoverCard extends StatelessWidget {
               ),
             ),
           Positioned(
-            top: 12,
-            right: 12,
+            top: 10,
+            right: 10,
             child: Column(
               children: [
                 // Owner-side "more" overflow — Edit / Delete live here so the
@@ -187,7 +185,7 @@ class VehicleDiscoverCard extends StatelessWidget {
                   const SizedBox(height: 10),
                 ],
                 _circleAction(AppIconAssets.share_bold, onShare),
-                const SizedBox(height: 10),
+                const SizedBox(height: 8),
                 _circleAction(
                   AppIconAssets.star_rounded,
                   onFavorite,
@@ -204,10 +202,10 @@ class VehicleDiscoverCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 38,
-        height: 38,
+        width: 32,
+        height: 32,
         decoration: BoxDecoration(
-          color: Colors.black.withValues(alpha: 0.45),
+          color: AppColors.black25,
           shape: BoxShape.circle,
         ),
         child: Padding(
@@ -217,7 +215,6 @@ class VehicleDiscoverCard extends StatelessWidget {
             imgColor: AppColors.white,
           ),
         ),
-        // child: Icon(icon, size: 19, color: Colors.white),
       ),
     );
   }
@@ -234,7 +231,8 @@ class VehicleDiscoverCard extends StatelessWidget {
       child: PopupMenuButton<_OwnerAction>(
         tooltip: AppStrings.more.tr,
         padding: EdgeInsets.zero,
-        icon: const Icon(Icons.more_vert_rounded, size: 19, color: Colors.white),
+        icon:
+            const Icon(Icons.more_vert_rounded, size: 19, color: Colors.white),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         onSelected: (action) {
           switch (action) {
@@ -266,7 +264,8 @@ class VehicleDiscoverCard extends StatelessWidget {
             value: _OwnerAction.delete,
             child: Row(
               children: [
-                Icon(Icons.delete_outline_rounded, size: 18, color: Colors.red.shade400),
+                Icon(Icons.delete_outline_rounded,
+                    size: 18, color: Colors.red.shade400),
                 SizedBox(width: SizeConfig.size10),
                 CustomText(
                   AppStrings.delete.tr,
@@ -326,35 +325,61 @@ class VehicleDiscoverCard extends StatelessWidget {
   }
 
   // ─── Price split ───────────────────────────────────────────────────
-  bool get _hasPriceRow => vehicle.exShowroomPrice != null || vehicle.onRoadPrice != null;
+  bool get _hasPriceRow =>
+      vehicle.exShowroomPrice != null || vehicle.onRoadPrice != null;
 
-  Widget _buildPriceRow() {
+  /// Prices + EMI rendered as a single card so the tinted price row and the
+  /// white EMI row read as one unit (matches the marketing reference). Both
+  /// halves are optional; the divider only appears when both are visible.
+  Widget _buildPriceEmiCard() {
+    final showPrices = _hasPriceRow;
+    final showEmi = _hasEmi;
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F7FA),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE8ECF2)),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      child: Row(
+      clipBehavior: Clip.antiAlias,
+      child: Column(
         children: [
-          Expanded(
-            child: _priceColumn(
-              AppStrings.exShowroomPrice.tr,
-              vehicle.exShowroomPrice ?? vehicle.price,
+          if (showPrices)
+            IntrinsicHeight(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      color: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 12),
+                      child: _priceColumn(
+                        AppStrings.exShowroomPrice.tr,
+                        vehicle.exShowroomPrice ?? vehicle.price,
+                      ),
+                    ),
+                  ),
+                  Container(width: 1, color: const Color(0xFFE2E7EE)),
+                  Expanded(
+                    child: Container(
+                      color: const Color(0xFFF5F7FA),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 14, vertical: 12),
+                      child: _priceColumn(
+                        AppStrings.onRoadPrice.tr,
+                        vehicle.onRoadPrice,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Container(
-            width: 1,
-            height: 34,
-            color: const Color(0xFFE2E7EE),
-            margin: const EdgeInsets.symmetric(horizontal: 12),
-          ),
-          Expanded(
-            child: _priceColumn(
-              AppStrings.onRoadPrice.tr,
-              vehicle.onRoadPrice,
+          if (showPrices && showEmi)
+            Container(height: 1, color: const Color(0xFFE8ECF2)),
+          if (showEmi)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              child: _buildEmiContent(),
             ),
-          ),
         ],
       ),
     );
@@ -387,44 +412,45 @@ class VehicleDiscoverCard extends StatelessWidget {
 
   // ─── EMI strip ─────────────────────────────────────────────────────
   bool get _hasEmi =>
-      (vehicle.emiAvailable ?? false) && (vehicle.downPayment != null || vehicle.monthlyEmi != null);
+      (vehicle.emiAvailable ?? false) &&
+      (vehicle.downPayment != null || vehicle.monthlyEmi != null);
 
-  Widget _buildEmiStrip() {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE8ECF2)),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      child: Row(
-        children: [
-          Icon(Icons.account_balance_wallet_outlined, size: 16, color: AppColors.mainTextColor),
-          const SizedBox(width: 6),
-          CustomText(
-            '${AppStrings.emiLabel2.tr} :',
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            color: AppColors.mainTextColor,
+  /// Just the inner content of the EMI row — wrapped by
+  /// [_buildPriceEmiCard] so the padding/border live on the parent card.
+  Widget _buildEmiContent() {
+    return Row(
+      children: [
+        Icon(Icons.account_balance_wallet_outlined,
+            size: 16, color: AppColors.mainTextColor),
+        const SizedBox(width: 6),
+        CustomText(
+          '${AppStrings.emiLabel2.tr} :',
+          fontSize: 13,
+          fontWeight: FontWeight.w700,
+          color: AppColors.mainTextColor,
+        ),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              if (vehicle.downPayment != null)
+                _emiPair(AppStrings.downPaymentLabel.tr,
+                    _price(vehicle.downPayment!)),
+              if (vehicle.downPayment != null && vehicle.monthlyEmi != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 6),
+                  child: CustomText('|',
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFFC4CBD4)),
+                ),
+              if (vehicle.monthlyEmi != null)
+                _emiPair(AppStrings.monthly.tr, _price(vehicle.monthlyEmi!)),
+            ],
           ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                if (vehicle.downPayment != null)
-                  _emiPair(AppStrings.downPaymentLabel.tr, _price(vehicle.downPayment!)),
-                if (vehicle.downPayment != null && vehicle.monthlyEmi != null)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 6),
-                    child: CustomText('|',
-                        fontSize: 13, fontWeight: FontWeight.w500, color: const Color(0xFFC4CBD4)),
-                  ),
-                if (vehicle.monthlyEmi != null) _emiPair(AppStrings.monthly.tr, _price(vehicle.monthlyEmi!)),
-              ],
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -457,16 +483,17 @@ class VehicleDiscoverCard extends StatelessWidget {
   Widget _buildActions() {
     return Row(
       children: [
-        // Expanded(
-        //   child: _chatButton(),
-        // ),
-        // const SizedBox(width: 12),
         Expanded(
-          flex: 2,
+          flex: 1,
+          child: _chatButton(),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          flex: 1,
           child: GestureDetector(
             onTap: onBook,
             child: Container(
-              height: 50,
+              height: 44,
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 color: _blue,
@@ -477,12 +504,13 @@ class VehicleDiscoverCard extends StatelessWidget {
                 children: [
                   CustomText(
                     AppStrings.inquiry.tr,
-                    fontSize: 15,
+                    fontSize: 14,
                     fontWeight: FontWeight.w700,
                     color: Colors.white,
                   ),
                   const SizedBox(width: 8),
-                  const Icon(Icons.arrow_forward_rounded, size: 18, color: Colors.white),
+                  const Icon(Icons.arrow_forward_rounded,
+                      size: 18, color: Colors.white),
                 ],
               ),
             ),
@@ -498,22 +526,29 @@ class VehicleDiscoverCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: _openChat,
+        onTap: () {
+          Text("Coming Soon");
+        },
         child: Container(
           height: 44,
           decoration: BoxDecoration(
-            color: AppColors.skyBlueFF,
-            borderRadius: BorderRadius.circular(10),
-          ),
+              color: Color(0xffF2F9FF),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Color(0xffCFE8FF))),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              LocalAssets(imagePath: AppIconAssets.chat, imgColor: AppColors.primaryColor),
-              const SizedBox(width: 6),
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: LocalAssets(
+                    imagePath: "assets/icons/showroom.png",
+                    imgColor: AppColors.primaryColor),
+              ),
+              // const SizedBox(width: 6),
               CustomText(
-                AppStrings.chat,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
+                "Showrooms",
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
                 color: AppColors.primaryColor,
               ),
             ],
@@ -547,7 +582,8 @@ class VehicleDiscoverCard extends StatelessWidget {
   }
 
   // ─── Helpers ───────────────────────────────────────────────────────
-  String? get _firstImage => vehicle.images.isNotEmpty ? vehicle.images.first : null;
+  String? get _firstImage =>
+      vehicle.images.isNotEmpty ? vehicle.images.first : null;
 
   String _price(double v) {
     final cur = (vehicle.currency ?? 'INR').toUpperCase();
@@ -579,7 +615,7 @@ class VehicleDiscoverCard extends StatelessWidget {
       case VehicleFuelType.petrol:
       case VehicleFuelType.diesel:
       case VehicleFuelType.cng:
-        return "assets/svg/engine.svg";
+        return f.name.capitalizeFirst.toString();
       case VehicleFuelType.electric:
         return AppStrings.fuelElectric.tr;
       case VehicleFuelType.hybrid:
@@ -603,22 +639,23 @@ class _SpecTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+      padding: EdgeInsets.symmetric(
+          vertical: SizeConfig.size6, horizontal: SizeConfig.size6),
       decoration: BoxDecoration(
-        color: const Color(0xFFF5F7FA),
-        borderRadius: BorderRadius.circular(12),
-      ),
+          color: const Color(0xFFF5F7FA),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.greyE5, width: 0.5)),
       child: Column(
         children: [
           LocalAssets(
             imagePath: spec.icon,
           ),
-          SizedBox(height: SizeConfig.size8),
+          SizedBox(height: SizeConfig.size6),
           CustomText(
             spec.label,
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: AppColors.mainTextColor,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: AppColors.secondaryTextColor,
             textAlign: TextAlign.center,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
