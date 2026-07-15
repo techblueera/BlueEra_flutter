@@ -346,7 +346,6 @@ class FeedController extends GetxController {
     }
 
     // ✅ Only show loader if last id is different
-    log('last fetched id-->  $_lastFetchedId');
     if (_lastFetchedId != id) {
       isLoading.value = true;
     }
@@ -514,7 +513,6 @@ class FeedController extends GetxController {
     }
 
     // ✅ Only show loader if last id is different
-    log('last fetched id-->  $_lastFetchedId');
     if (_lastFetchedId != id) {
       isLoading.value = true;
     }

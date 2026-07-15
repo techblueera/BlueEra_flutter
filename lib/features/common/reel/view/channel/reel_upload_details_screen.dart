@@ -454,7 +454,6 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                               setState(() {
                                 songData = result;
                               });
-                              log("songData--> $songData");
                             }
                           },
                           chips: songData?.name != null ? [songData?.name ?? ''] : [],
@@ -490,7 +489,6 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                         displayValue: (value) => value.name ?? '',
                         onChanged: (value) {
                           setState(() {
-                            log('value--> $value');
                             _commonCategory = value;
                           });
                         },

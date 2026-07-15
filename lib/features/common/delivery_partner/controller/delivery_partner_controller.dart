@@ -1545,7 +1545,6 @@ class DeliveryPartnerController extends GetxController {
           GetBlueeraPiolotModel.fromJson(data);
       arrRiders.value = getBlueeraPiolotModel.users ?? [];
 
-      log('arrRiders length-- ${arrRiders.length}');
       update();
     } catch (e, s) {
       nearByRidersResponse.value = ApiResponse.error('error');
