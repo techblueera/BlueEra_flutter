@@ -1157,14 +1157,21 @@ class _MyAppState extends State<MyApp> {
     SizeConfig.init(context);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
+      // Edge-to-edge is enforced on Android 15+ (target SDK 35+) and is the
+      // Flutter 3.29+ default on every version, so the system bars are always
+      // transparent with our content drawn behind them. Android 15 IGNORES an
+      // opaque `systemNavigationBarColor`, so we set it transparent here to
+      // reflect real behavior and keep the look consistent on older versions.
+      // `systemNavigationBarContrastEnforced: false` stops the OS from adding a
+      // translucent scrim; dark icons keep them legible over light content.
       value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.dark,
         // Android Black
         statusBarBrightness: Brightness.light,
         // iOS Black
-        systemNavigationBarColor: Colors.white,
-        // Bottom nav bar color
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarContrastEnforced: false,
         systemNavigationBarIconBrightness: Brightness.dark, // Bottom nav icons
       ),
       child: GetMaterialApp(

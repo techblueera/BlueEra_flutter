@@ -47,6 +47,10 @@ class MainActivity: FlutterActivity() {
     private val MEDIA_SCANNER_CHANNEL = "ai.bluecs.app/media_scanner"
     private val CALL_VOLUME_CHANNEL = "com.bluehr.call/volume"
 
+    // Target size for the downsampled chat-shortcut launcher icon (px). Adaptive
+    // launcher icons top out around 108dp; 256px covers xxxhdpi with headroom.
+    private val SHORTCUT_ICON_SIZE_PX = 256
+
     private var ringtone: Ringtone? = null
 
     private val CHANNEL = "com.vahcare.lab/pip"
@@ -367,7 +371,11 @@ class MainActivity: FlutterActivity() {
                             val connection = url.openConnection()
                             connection.connectTimeout = 5000
                             connection.readTimeout = 5000
-                            BitmapFactory.decodeStream(connection.getInputStream())
+                            // Read the bytes once, then downsample to the small
+                            // launcher-shortcut icon size instead of decoding the
+                            // full-resolution image into memory.
+                            val bytes = connection.getInputStream().use { it.readBytes() }
+                            decodeSampledBitmap(bytes, SHORTCUT_ICON_SIZE_PX, SHORTCUT_ICON_SIZE_PX)
                         }
                         if (bitmap != null) {
                             val circularBitmap = getCircularBitmap(bitmap)
@@ -406,6 +414,36 @@ class MainActivity: FlutterActivity() {
                 result.error("ERROR", e.message, null)
             }
         }
+    }
+
+    // Decode an image from bytes downsampled to roughly reqWidth x reqHeight,
+    // using inSampleSize so BitmapFactory never allocates the full-resolution
+    // bitmap. Bounds are read first with inJustDecodeBounds, so the byte array
+    // is decoded twice (cheap bounds pass, then the sampled pass).
+    private fun decodeSampledBitmap(data: ByteArray, reqWidth: Int, reqHeight: Int): Bitmap? {
+        val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeByteArray(data, 0, data.size, options)
+        options.inSampleSize = calculateInSampleSize(options, reqWidth, reqHeight)
+        options.inJustDecodeBounds = false
+        return BitmapFactory.decodeByteArray(data, 0, data.size, options)
+    }
+
+    private fun calculateInSampleSize(
+        options: BitmapFactory.Options,
+        reqWidth: Int,
+        reqHeight: Int
+    ): Int {
+        val height = options.outHeight
+        val width = options.outWidth
+        var inSampleSize = 1
+        if (height > reqHeight || width > reqWidth) {
+            val halfHeight = height / 2
+            val halfWidth = width / 2
+            while (halfHeight / inSampleSize >= reqHeight && halfWidth / inSampleSize >= reqWidth) {
+                inSampleSize *= 2
+            }
+        }
+        return inSampleSize
     }
 
     private fun getCircularBitmap(bitmap: Bitmap): Bitmap {
