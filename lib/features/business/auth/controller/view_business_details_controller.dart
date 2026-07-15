@@ -88,6 +88,16 @@ class ViewBusinessDetailsController extends GetxController
     implements ShopAvailabilityHost {
   ApiResponse viewBusinessResponse = ApiResponse.initial('Initial');
   ApiResponse viewBusinessResponseNew = ApiResponse.initial('Initial');
+
+  /// Reactive gate for the "Me" tab after a navigate-first login. Flips true
+  /// once [viewBusinessProfile] has populated the profile AND the login
+  /// globals (businessTypeGlobal / businessCategoryGlobal …) via
+  /// getUserLoginData(). The bottom-nav Me tab watches this to swap its
+  /// loading placeholder for the resolved business screen — needed because
+  /// resolveBusinessScreen() reads the non-reactive `businessTypeGlobal`, so
+  /// without a reactive signal it would render the fallback once and never
+  /// rebuild when the background fetch lands.
+  final RxBool isBusinessProfileReady = false.obs;
   Rx<ApiResponse> businessProductResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> businessServiceResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> businessFoodResponse = ApiResponse.initial('Initial').obs;
@@ -352,6 +362,9 @@ logs("BUSINESS ID=== ${businessId}");
           businessProfileDetails.value?.data?.typeOfBusiness ?? '',
     );
     await getUserLoginData();
+    // Globals (businessTypeGlobal etc.) are now populated — signal the Me tab
+    // (navigate-first login) that it can render the real business screen.
+    isBusinessProfileReady.value = true;
   }
 
   ///UPDATE BUSINESS IMAGES....

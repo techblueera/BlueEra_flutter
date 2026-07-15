@@ -837,11 +837,13 @@ class RouteHelper {
         int? initialIndex = args?[ApiKeys.initialIndex];
         SharedMedia? sharedMedia = args?['sharedMedia'] as SharedMedia?;
         final bool deferHeavyInit = args?['deferHeavyInit'] == true;
+        final bool runRiderGoLiveGate = args?['runRiderGoLiveGate'] == true;
         return MaterialPageRoute(
           builder: (_) => BottomNavigationBarScreen(
             initialIndex: initialIndex,
             sharedMedia: sharedMedia,
             deferHeavyInit: deferHeavyInit,
+            runRiderGoLiveGate: runRiderGoLiveGate,
           ),
           settings: RouteSettings(
               name: RouteHelper.getBottomNavigationBarScreenRoute()),

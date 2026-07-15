@@ -213,6 +213,14 @@ class ViewPersonalDetailsController extends GetxController
   Rx<ApiResponse> changeShopStatusResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> viewPersonalResponse = ApiResponse.initial('Initial').obs;
 
+  /// Reactive gate for the "Me" tab after a navigate-first login (mirror of
+  /// [ViewBusinessDetailsController.isBusinessProfileReady]). Flips true once
+  /// the personal-profile fetch has SETTLED — driven by a whenComplete in the
+  /// bottom-nav boot init, NOT by [viewPersonalResponse]'s status, because a
+  /// non-success response (or the logged-out early return) can leave that
+  /// status un-set and would otherwise strand the loader forever.
+  final RxBool isPersonalProfileReady = false.obs;
+
   /// Joining-bonus object embedded in the `user/get` response. Drives the
   /// app-open claim popup; null until the profile loads (or when absent).
   final Rxn<JoiningBounce> joiningBounce = Rxn<JoiningBounce>();
@@ -476,8 +484,12 @@ class ViewPersonalDetailsController extends GetxController
 
           /// The server lost this device's push token (null/empty). Restore
           /// a fresh FCM token and rebind it on the backend so notifications
-          /// keep working.
-          await _restoreDeviceTokenIfMissing(data);
+          /// keep working. Fire-and-forget: this is backend push-token
+          /// bookkeeping the UI never reads, and on a freshly-created account
+          /// (empty server token) it fans out to getToken() + a PATCH — two
+          /// serial round-trips that must NOT block login / signup navigation,
+          /// which awaits this method.
+          unawaited(_restoreDeviceTokenIfMissing(data));
         }
         viewPersonalResponse.value = ApiResponse.complete(responseModel);
       } else {

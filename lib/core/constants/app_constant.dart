@@ -750,6 +750,26 @@ const String TUTOR = "TUTOR";
 const String CONSULTANT = "CONSULTANT";
 const String OTHER = "OTHER";
 
+/// Canonical set of GIG_WORKER "rider" professions — live-dispatch drivers that
+/// need the go-live device permissions (background location + overlay) and land
+/// on their Me-tab dashboard on login. Single source of truth for rider checks;
+/// prefer [isRiderProfession] over ad-hoc `x == BIKE_RIDER || x == ...` chains
+/// (which are inconsistent across the app — some omit AUTO_TAXI/GOODS_TAXI/
+/// CAR_TAXI). Covers all five: bike, auto, car (both CAR_TAXI/CAR_TAXI_DRIVER),
+/// and goods.
+const Set<String> kRiderProfessions = {
+  BIKE_RIDER,
+  AUTO_TAXI,
+  CAR_TAXI,
+  CAR_TAXI_DRIVER,
+  GOODS_TAXI,
+};
+
+/// True when [profession] is one of the live-dispatch rider professions
+/// ([kRiderProfessions]).
+bool isRiderProfession(String? profession) =>
+    profession != null && kRiderProfessions.contains(profession);
+
 const String HOSPITAL = "HOSPITAL";
 const String PHARMACY = "PHARMACY";
 const String LABTEST = "LABTEST";
