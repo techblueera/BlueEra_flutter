@@ -185,9 +185,12 @@ class PropertyListingCard extends StatelessWidget {
                   // Owner is viewing their own listing — distance from
                   // their current location to the property isn't
                   // useful, so we collapse the row to just the address.
-                  if (!isOwner) ...[
+                  // For renters we only show the km chip when there is a
+                  // valid, non-zero distance; otherwise the row is just
+                  // the address.
+                  if (!isOwner && _distanceLabel() != null) ...[
                     CustomText(
-                      _distanceLabel(),
+                      _distanceLabel()!,
                       fontSize: 13,
                       color: AppColors.primaryColor,
                       fontWeight: FontWeight.w700,
@@ -219,17 +222,26 @@ class PropertyListingCard extends StatelessWidget {
     );
   }
 
-  String _distanceLabel() {
+  /// Returns the "X km away" chip text, or `null` when there is no
+  /// meaningful distance to show — missing/zero property coordinates or
+  /// a computed distance that rounds down to 0 km. Callers hide the km
+  /// chip (and its divider) entirely in that case and show just the
+  /// address.
+  String? _distanceLabel() {
     final lat = property.location?.latitude.toDouble() ?? 0.0;
     final lng = property.location?.longitude.toDouble() ?? 0.0;
-    if (lat == 0.0 || lng == 0.0) return AppStrings.kmAwayEmpty.tr;
+    if (lat == 0.0 || lng == 0.0) return null;
     final km = calculateDistanceKm(
       LocationService.lat,
       LocationService.lng,
       lat,
       lng,
     );
-    return AppStrings.kmAwayFmt.trParams({'km': km.toStringAsFixed(0)});
+    final kmText = km.toStringAsFixed(0);
+    // Guard against a distance that rounds down to "0 km" — treat it as
+    // "no distance to show" so the chip is hidden rather than reading 0.
+    if (km <= 0 || kmText == '0') return null;
+    return AppStrings.kmAwayFmt.trParams({'km': kmText});
   }
 
   // ─── STATS ROW ──────────────────────────────────────────────────

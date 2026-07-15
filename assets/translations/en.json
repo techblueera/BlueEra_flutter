@@ -6424,7 +6424,7 @@
   "propertyDeletedSuccessfully": "Property deleted successfully",
   "failedToDeleteProperty": "Failed to delete property",
   "kmAwayEmpty": "— KM Away",
-  "kmAwayFmt": "{km}KM Away",
+  "kmAwayFmt": "@km KM Away",
   "forSaleHousesApartmentsSubtitle": "For Sale: Houses & Apartments",
   "forRentHousesApartmentsSubtitle": "For Rent: Houses & Apartments",
   "forSaleNewProjectsSubtitle": "For Sale: New Projects & Properties",
