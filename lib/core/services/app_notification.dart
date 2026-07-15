@@ -78,7 +78,6 @@ void onForegroundNotificationResponse(NotificationResponse response) {
     if (response.payload == null) return;
     final data = json.decode(response.payload!) as Map<String, dynamic>;
     final actionId = response.actionId ?? '';
-    print("actionId==== ${actionId}");
     // Incoming call: Accept (Android local-notification path)
     if (actionId.startsWith('incoming_call_accept_')) {
       final callId = (data['callId'] ?? '').toString();
@@ -98,13 +97,10 @@ void onForegroundNotificationResponse(NotificationResponse response) {
     }
 
     // Incoming call: Decline
-    print(
-        "Get.isRegistered<CallController>()=== ${Get.isRegistered<CallController>()}");
     if (actionId.startsWith('incoming_call_decline_')) {
       final callId = (data['callId'] ?? '').toString();
       cancelIncomingCallLocalNotification(callId);
       if (Get.isRegistered<CallController>()) {
-        print("CALL END=====");
         Get.find<CallController>().declineCall();
       }
       return;
@@ -154,12 +150,8 @@ void onForegroundNotificationResponse(NotificationResponse response) {
 
 Future<void> _handleBackgroundNotificationResponse(
     NotificationResponse response) async {
-  print("NOTI 1 ");
-  print("NOTI 1 ${response}");
-  print("NOTI 2 ${response.payload == null}");
   if (response.payload == null) return;
   final data = json.decode(response.payload!) as Map<String, dynamic>;
-  logs("NOTIFICATION DATA 1 ${data}");
   final actionId = response.actionId ?? '';
 
   // Initialize a local plugin instance (background isolate may not have the static one)
@@ -745,7 +737,6 @@ class AppNotificationHandler {
     if (notificationAppLaunchDetails?.didNotificationLaunchApp ?? false) {
       final payLoad =
           notificationAppLaunchDetails!.notificationResponse?.payload;
-      print("Launch notification payload: $payLoad");
       if (payLoad != null && payLoad.isNotEmpty) {
         try {
           final data = jsonDecode(payLoad) as Map<String, dynamic>;
@@ -759,8 +750,6 @@ class AppNotificationHandler {
             final lastHandled = await SharedPreferenceUtils.getSecureValue(
                 _lastHandledLaunchNotificationIdKey);
             if (lastHandled == currentId) {
-              print(
-                  "[COLD_START] notification $currentId already handled — skipping re-open");
               if (notificationNavigationCompleter != null &&
                   !notificationNavigationCompleter!.isCompleted) {
                 notificationNavigationCompleter!.complete();
@@ -785,8 +774,6 @@ class AppNotificationHandler {
             // notification). If they tapped the BODY, those checks were
             // no-ops and CallController is still idle — open the in-app
             // IncomingCallScreen so the user can accept/decline.
-            print(
-                "[COLD_START_CALL] launch payload is incoming_call — opening IncomingCallScreen");
             // Wait for the home screen / navigator to settle before pushing
             // the call screen on top of it.
             await Future.delayed(const Duration(milliseconds: 600));
@@ -970,11 +957,8 @@ class AppNotificationHandler {
         badge: true,
         sound: true,
       );
-      print("===ios-notification-auth=== ${settings.authorizationStatus}");
       if (settings.authorizationStatus != AuthorizationStatus.authorized &&
           settings.authorizationStatus != AuthorizationStatus.provisional) {
-        print(
-            "===ios-notification=== user did not grant permission — skipping token fetch");
       } else {
         // Wait for APNs device token before asking FCM for a token.
         // APNs registration is async; calling getToken() before the APNs
@@ -1004,7 +988,6 @@ class AppNotificationHandler {
     // being wired up isn't dropped. Persist rotated FCM tokens so the backend
     // always has the current one.
     FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
-      print("===fcm-token-refresh=== $newToken");
       await SharedPreferenceUtils.setSecureValue(
           SharedPreferenceUtils.notificationDeviceToken, newToken);
       await _registerDeviceTokenWithBackend(newToken);
@@ -1080,13 +1063,10 @@ class AppNotificationHandler {
     }
 
     if (voipToken.isEmpty) {
-      print("===voip-token=== not available after ${timeout.inSeconds}s");
       return;
     }
-    print("===voip-token=== $voipToken");
 
     if (authTokenGlobal == null || authTokenGlobal!.isEmpty) {
-      print("===voip-token-sync=== skipped (no auth token)");
       return;
     }
 
@@ -1099,7 +1079,6 @@ class AppNotificationHandler {
         final cached =
             await SharedPreferenceUtils.getSecureValue(_voipCacheKey);
         if (cached is String && cached == voipToken) {
-          print("===voip-token-sync=== skipped (unchanged)");
           return;
         }
       } catch (_) {}
@@ -1113,13 +1092,11 @@ class AppNotificationHandler {
         onError: (e) {
           // Do NOT cache on error — leaving the cache untouched guarantees the
           // next launch / resume / login retries instead of assuming success.
-          print("===voip-token-sync=== error: $e");
         },
         onSuccess: (_) {
           // Cache ONLY on confirmed success so the unchanged-short-circuit
           // above can never suppress a delivery that never actually landed.
           SharedPreferenceUtils.setSecureValue(_voipCacheKey, voipToken);
-          print("===voip-token-sync=== ok");
         },
       );
     } catch (e) {
@@ -1137,7 +1114,6 @@ class AppNotificationHandler {
       // Not authenticated yet — queue the token so it can be flushed to the
       // backend the moment auth becomes available (see flushPendingTokenSync).
       _pendingTokenSync = token;
-      print("===fcm-token-sync=== queued (no auth yet)");
       return;
     }
     try {
@@ -1149,7 +1125,6 @@ class AppNotificationHandler {
           print("===fcm-token-sync=== error: $e");
         },
         onSuccess: (_) {
-          print("===fcm-token-sync=== ok");
         },
       );
     } catch (e) {
@@ -1192,7 +1167,6 @@ class AppNotificationHandler {
       if (apns != null && apns.isNotEmpty) break;
       await Future.delayed(interval);
     }
-    print("===ios-apns-token=== $apns");
     return apns;
   }
 
@@ -1225,7 +1199,6 @@ class AppNotificationHandler {
       if (Platform.isIOS) {
         final apns = await firebaseMessaging.getAPNSToken();
         if (apns == null || apns.isEmpty) {
-          print("=========fcm- skipped: APNS token not ready on iOS");
           return cached();
         }
       }
@@ -1239,7 +1212,6 @@ class AppNotificationHandler {
       if (previous != liveToken) {
         await SharedPreferenceUtils.setSecureValue(
             SharedPreferenceUtils.notificationDeviceToken, liveToken);
-        print("=========fcm-token=== updated (rotated): $liveToken");
       }
       return liveToken;
     } catch (e) {
@@ -1283,7 +1255,6 @@ class AppNotificationHandler {
     // getToken() will fail too. Keep the old token as fallback and let
     // onTokenRefresh sync a real new one once GMS recovers.
     if (!deleted) {
-      print("===fcm-refresh=== keeping old token (delete failed): $oldToken");
       return oldToken;
     }
 
@@ -1312,7 +1283,6 @@ class AppNotificationHandler {
     if (newToken != null && newToken.isNotEmpty) {
       await SharedPreferenceUtils.setSecureValue(
           SharedPreferenceUtils.notificationDeviceToken, newToken);
-      print("===fcm-refresh=== new token $newToken");
       return newToken;
     }
 
@@ -1321,8 +1291,6 @@ class AppNotificationHandler {
     // the next sync POSTs a dead token. Clear the cache so the next session
     // triggers a fresh fetch; onTokenRefresh will sync the real new token to
     // the backend once GMS comes back.
-    print(
-        "===fcm-refresh=== failed to obtain new token, dropping dead old token");
     await SharedPreferenceUtils.setSecureValue(
         SharedPreferenceUtils.notificationDeviceToken, '');
     return null;
@@ -1516,8 +1484,6 @@ class AppNotificationHandler {
   Future<void> showMsg(RemoteMessage message) async {
     final operation =
         (message.data['operation'] ?? '').toString().toLowerCase();
-    print("ORDER SCREEN NAME ${operation}");
-    print("ORDER SCREEN NAME message.data ${message.data}");
     // Handle fare-call incoming call — show IncomingRiderOrderScreen with ride details.
     // Regular calls are handled by socket `call:incoming` in CallController.
     if (operation == 'fare_ride_incoming_call') {
@@ -1574,7 +1540,7 @@ class AppNotificationHandler {
           payload = Map<String, dynamic>.from(rawPayload);
         }
       } catch (e) {
-        log('_showRiderOrderScreen: payload parse error: $e');
+        logs('_showRiderOrderScreen: payload parse error: $e');
       }
 
       Map? metadata = payload['metadata'];
@@ -1639,7 +1605,6 @@ class AppNotificationHandler {
       final customerName = data['senderName'] ?? data['title'] ?? 'Customer';
       final customerImage = data['senderProfileImage'] ?? '';
 
-      log('[RIDE_ORDER] orderId=$orderId, fare=$fare, pickup=$pickupAddress, drop=$dropAddress, customer=$customerName');
 
       // Ensure CallController exists and set fare-call state
       if (!Get.isRegistered<CallController>()) {
@@ -1656,8 +1621,6 @@ class AppNotificationHandler {
           ((ownerDetails is Map ? ownerDetails['userid'] : null) ?? '')
               .toString();
       final conversationId = data['conversationId'] ?? '';
-
-      log('[RIDE_ORDER] callId=$callId, roomId=$roomId, senderId=$senderId');
 
       // Set call connection state so acceptCall() can establish WebRTC
       callController.initStateFromCallKitExtra({
@@ -1728,8 +1691,8 @@ class AppNotificationHandler {
         Get.toNamed('/IncomingRiderOrderScreen');
       }
     } catch (e, stack) {
-      log('_showRiderOrderScreen ERROR: $e');
-      log('Stack: $stack');
+      logs('_showRiderOrderScreen ERROR: $e');
+      logs('Stack: $stack');
     }
   }
 
@@ -2093,7 +2056,6 @@ class AppNotificationHandler {
       final callId = (payload['call_id'] ?? '').toString();
       final roomId = (payload['room_id'] ?? '').toString();
       if (callId.isEmpty || roomId.isEmpty) {
-        log('[CALL_DEBUG] _handleIncomingCallPush → missing call_id/room_id, skipping');
         return;
       }
 
@@ -2138,7 +2100,6 @@ class AppNotificationHandler {
         final alreadyHandling = ctrl.callStatus.value != CallStatus.idle &&
             ctrl.callId.value == callId;
         if (alreadyHandling) {
-          log('[CALL_DEBUG] _handleIncomingCallPush → already handled by socket, skipping');
           return;
         }
 
@@ -2148,7 +2109,6 @@ class AppNotificationHandler {
         // push CallController state and navigate directly to the in-app
         // incoming screen — this is the same path the socket listener uses.
         if (Platform.isAndroid && ctrl.callStatus.value == CallStatus.idle) {
-          log('[CALL_DEBUG] _handleIncomingCallPush → foreground Android, navigating to IncomingCallScreen');
           ctrl.callId.value = callId;
           ctrl.roomId.value = roomId;
           ctrl.conversationId.value =
@@ -2211,7 +2171,7 @@ class AppNotificationHandler {
         },
       );
     } catch (e, st) {
-      log('[CALL_DEBUG] _handleIncomingCallPush → error: $e\n$st');
+      logs('[CALL_DEBUG] _handleIncomingCallPush → error: $e\n$st');
     }
   }
 
@@ -2220,20 +2180,16 @@ class AppNotificationHandler {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
       final operation =
           (message.data['operation'] ?? '').toString().toLowerCase();
-      log("jhsjhsbajhbdasjdhb  For ${message.data}");
 
       // Single-session: the account was signed in on another device, so this
-      // session was displaced server-side. Log out immediately (full teardown
+      // session was displaced server-side. logs out immediately (full teardown
       // + route to login) instead of waiting for the next request's 401 — but
       // ONLY if the displaced session is our own. SessionGuard filters out the
       // self-login echo (re-login on the same device displaces its own stale
-      // session), which would otherwise log the user out right after login.
+      // session), which would otherwise logs the user out right after login.
       if (operation == 'session_displaced' || operation == 'force_logout') {
         if (await SessionGuard.shouldForceLogout(message.data)) {
-          log('[SESSION] $operation push for our session → forcing logout');
           await AuthManager.handleLogout(null);
-        } else {
-          log('[SESSION] $operation push ignored (not our session / self-login echo)');
         }
         return;
       }
@@ -2253,7 +2209,6 @@ class AppNotificationHandler {
       // intentionally drop the FCM duplicate here on iOS only.
       if (operation == 'incoming_call') {
         if (Platform.isIOS) {
-          log('[CALL_DEBUG] onMessage incoming_call → iOS, skipping (VoIP PushKit already handled)');
           return;
         }
         _handleIncomingCallPush(message);
@@ -2306,8 +2261,6 @@ class AppNotificationHandler {
               dc.isFareCallRideStarted.value = true;
               dc.fareCallRideStartedData.value =
                   message.data.cast<String, dynamic>();
-              debugPrint(
-                  '[RIDE_DEBUG] foreground FCM ride_started → set isFareCallRideStarted=true');
             }
           }
         } catch (e) {
@@ -2325,8 +2278,6 @@ class AppNotificationHandler {
               dc.isFareCallRideCompleted.value = true;
               dc.fareCallRideCompletedData.value =
                   message.data.cast<String, dynamic>();
-              debugPrint(
-                  '[RIDE_DEBUG] foreground FCM ride_completed → set isFareCallRideCompleted=true');
             }
           }
         } catch (e) {
@@ -2437,11 +2388,6 @@ class AppNotificationHandler {
       await Future.delayed(const Duration(milliseconds: 200));
     }
 
-    logs("data==== ${data}");
-    logs("operation==== ${operation}");
-    // logs("operation==== ${data['payload']['post_id']}");
-    // logs("operation==== ${data['payload']['post_id'].runtimeType}");
-
     // Also capture broadcast/system notifications that were received in the
     // background and are now being tapped (these never pass through the
     // foreground `showFromData` funnel, so mirror them into the BlueEra thread
@@ -2474,13 +2420,11 @@ class AppNotificationHandler {
       // Single-session: tapped the "signed out on another device" notification
       // → run the full logout teardown and land on the login screen, but only
       // if the displaced session is ours (SessionGuard drops the self-login
-      // echo so a re-login on this same device does not log the user out).
+      // echo so a re-login on this same device does not logs the user out).
       case 'session_displaced':
       case 'force_logout':
         if (await SessionGuard.shouldForceLogout(data)) {
           AuthManager.handleLogout(null);
-        } else {
-          logs('[SESSION] tap $operation ignored (not our session / self-login echo)');
         }
         break;
 

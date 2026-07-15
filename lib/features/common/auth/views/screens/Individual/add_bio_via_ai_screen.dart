@@ -57,14 +57,7 @@ class _AddBioViaAiScreenState extends State<AddBioViaAiScreen> {
   @override
   void initState() {
     langController = Get.find<LanguageListController>();
-    log(
-        "PROFILE DATA → "
-            "Profession: ${widget.profession}, "
-            "Designation: ${widget.designation}, "
-            "Year: ${widget.selectedYear}, "
-            "Month: ${widget.selectedMonth}, "
-            "Day: ${widget.selectedDay}"
-    );
+
     // Apply a deeplink-captured referral code if one is waiting in
     // prefs (silent path — no dialog), otherwise fall through to the
     // manual promo-code dialog. AI bio generation runs last either
@@ -314,7 +307,6 @@ class _AddBioViaAiScreenState extends State<AddBioViaAiScreen> {
   }
 
   void validateForm() {
-    log('validate');
     isFormValid = bioController.text.trim().isNotEmpty;
     setState(() {});
   }

@@ -66,12 +66,6 @@ class _GstNumberScreenState extends State<GstNumberScreen> {
       authController.isValidate.value = false;
       authController.hasGstNumber.value = true;
     }
-    log("------------------ SELECTION DATA ------------------");
-    log("Business Type    : ${authController.selectedTypeOfBusiness}");
-    log("Category Name    : ${authController.selectedCategoryName}");
-    log("Category Slug Id  : ${authController.selectedCategorySlugId}");
-    log('sub category Name : ${authController.selectedSubCategoryData?.name}');
-    log('sub category Slug Id : ${authController.selectedSubCategoryData?.sId}');
   }
 
   @override

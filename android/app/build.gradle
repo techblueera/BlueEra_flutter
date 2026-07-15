@@ -91,7 +91,10 @@ android {
             signingConfig keystorePropertiesFile.exists()
                     ? signingConfigs.release
                     : signingConfigs.debug
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            // Use the OPTIMIZING default rules so R8 runs its optimization pass
+            // (proguard-android.txt disables it). App-specific keep rules live in
+            // proguard-rules.pro.
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
     packagingOptions {

@@ -168,7 +168,6 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       final callId = (payload['call_id'] ?? '').toString();
       final roomId = (payload['room_id'] ?? '').toString();
       if (callId.isEmpty || roomId.isEmpty) {
-        log('[CALL_DEBUG] bg handler → missing call_id/room_id, skipping');
         return;
       }
 
@@ -239,25 +238,9 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
           callType: callType,
           extra: extras,
         );
-        log('[CALL_DEBUG] bg handler → local notification shown for callId=$callId');
       }
-      /*else {
-        showFlutterCallNotification(
-          desiginations: designation,
-          callSessionId: callId,
-          callerName: isFareCall
-              ? (callerName.isNotEmpty ? callerName : 'Ride Request')
-              : callerName,
-          callerImage: profileImage.isNotEmpty
-              ? profileImage
-              : (callerImage.isNotEmpty ? callerImage : null),
-          callType: callType,
-          extra: extras,
-        );
-        log('[CALL_DEBUG] bg handler → CallKit shown for callId=$callId');
-      }*/
     } catch (e, st) {
-      log('[CALL_DEBUG] bg handler incoming_call error: $e\n$st');
+      logs('[CALL_DEBUG] bg handler incoming_call error: $e\n$st');
     }
     return; // Don't play sound or show notification for calls
   }
@@ -389,9 +372,8 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         ),
         payload: jsonEncode(data),
       );
-      log('[CALL_DEBUG] bg handler → fare_ride notification shown');
     } catch (e, st) {
-      log('[CALL_DEBUG] bg handler incoming_call error: $e\n$st');
+      logs('[CALL_DEBUG] bg handler incoming_call error: $e\n$st');
     }
     return; // Don't play sound or show notification for calls
   }
@@ -494,7 +476,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       final callId = (payload['call_id'] ?? data['callId'] ?? '').toString();
       if (callId.isNotEmpty) {
         await cancelIncomingCallLocalNotification(callId);
-        log('[CALL_DEBUG] bg handler → cancelled incoming notification for callId=$callId (operation=$operation)');
+        logs('[CALL_DEBUG] bg handler → cancelled incoming notification for callId=$callId (operation=$operation)');
       }
       // Also dismiss CallKit on iOS
       if (Platform.isIOS && callId.isNotEmpty) {
@@ -535,7 +517,6 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     // notification with our styling, actions, group key, etc.
     final hasNotificationField = message.notification != null;
     if (Platform.isIOS && hasNotificationField) {
-      log('[NOTIF] bg handler → iOS + notification field present, letting system banner be authoritative (skipping showFromData)');
       return;
     }
 
@@ -764,8 +745,6 @@ Future<void> main() async {
       pendingCallExtras = null;
 
       if (action == 'accept' && callId.isNotEmpty) {
-        debugPrint(
-            '[COLD_START_CALL] native notification accept → callId=$callId');
         final callController = getOrPut(() => CallController());
         if (pending != null) callController.initStateFromCallKitExtra(pending);
         CallController.setKilledStateAcceptHandled();
@@ -776,8 +755,6 @@ Future<void> main() async {
           isVideoCall: isVideo,
         );
       } else if (action == 'decline' && callId.isNotEmpty) {
-        debugPrint(
-            '[COLD_START_CALL] native notification decline → callId=$callId');
         final callController = getOrPut(() => CallController());
         if (pending != null) callController.initStateFromCallKitExtra(pending);
         callController.declineCall();
@@ -801,8 +778,6 @@ Future<void> main() async {
       if (raw != null && raw.isNotEmpty) {
         launchPayload = Map<String, dynamic>.from(jsonDecode(raw));
       }
-      debugPrint(
-          '[COLD_START_CALL] launch details → actionId=$launchActionId, hasPayload=${launchPayload != null}');
     } catch (e) {
       debugPrint('[COLD_START_CALL] launch details parse error: $e');
     }
@@ -834,8 +809,6 @@ Future<void> main() async {
       callController.initStateFromCallKitExtra(acceptExtras);
       CallController.setKilledStateAcceptHandled();
       CallController.markColdStartCall();
-      debugPrint(
-          '[COLD_START_CALL] local-notification accept → acceptCall(callId=$callId, roomId=$roomId, isVideo=$isVideo)');
       callController
           .acceptCall(
             callIdParams: callId,
@@ -846,9 +819,6 @@ Future<void> main() async {
               '[COLD_START_CALL] local-notif acceptCall returned: $ok'))
           .catchError((e, st) => debugPrint(
               '[COLD_START_CALL] local-notif acceptCall threw: $e\n$st'));
-    } else {
-      debugPrint(
-          '[COLD_START_CALL] local-notif: no Accept signal (acceptedCallId=$acceptedCallId, hasPending=${pending != null}, launchActionId=$launchActionId)');
     }
   } catch (e, st) {
     debugPrint('[COLD_START_CALL] local-notif pending check threw: $e\n$st');
@@ -856,22 +826,17 @@ Future<void> main() async {
 
   /// Check if app was launched by accepting an incoming call from killed state
   try {
-    debugPrint('[COLD_START_CALL] activeCalls result: $activeCalls');
     if (activeCalls is List && activeCalls.isNotEmpty) {
       final first = activeCalls[0];
       final extra = Map<String, dynamic>.from(first['extra'] as Map? ?? {});
       final operation = (extra['operation'] ?? '').toString();
       final accepted = first['accepted'] == true;
-      debugPrint(
-          '[COLD_START_CALL] first call → operation=$operation, accepted=$accepted, callId=${extra['callId']}, roomId=${extra['roomId']}');
       if (operation == 'incoming_call' && accepted) {
         final callController = getOrPut(() => CallController());
         callController.initStateFromCallKitExtra(extra);
         CallController.setKilledStateAcceptHandled();
         CallController.markColdStartCall();
         bool isVideoCalling = extra['callType'] == 'video_call';
-        debugPrint(
-            '[COLD_START_CALL] invoking acceptCall(callId=${extra['callId']}, roomId=${extra['roomId']}, isVideo=$isVideoCalling)');
         // Fire-and-forget is intentional — runApp must not block. Log the outcome
         // so we can see whether the API accept and CallActivity launch succeed.
         callController
@@ -1157,14 +1122,21 @@ class _MyAppState extends State<MyApp> {
     SizeConfig.init(context);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
+      // Edge-to-edge is enforced on Android 15+ (target SDK 35+) and is the
+      // Flutter 3.29+ default on every version, so the system bars are always
+      // transparent with our content drawn behind them. Android 15 IGNORES an
+      // opaque `systemNavigationBarColor`, so we set it transparent here to
+      // reflect real behavior and keep the look consistent on older versions.
+      // `systemNavigationBarContrastEnforced: false` stops the OS from adding a
+      // translucent scrim; dark icons keep them legible over light content.
       value: const SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
         statusBarIconBrightness: Brightness.dark,
         // Android Black
         statusBarBrightness: Brightness.light,
         // iOS Black
-        systemNavigationBarColor: Colors.white,
-        // Bottom nav bar color
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarContrastEnforced: false,
         systemNavigationBarIconBrightness: Brightness.dark, // Bottom nav icons
       ),
       child: GetMaterialApp(

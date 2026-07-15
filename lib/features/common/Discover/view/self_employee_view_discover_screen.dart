@@ -44,7 +44,6 @@ class _SelfEmployeeViewDiscoverScreenState extends State<SelfEmployeeViewDiscove
   void initState() {
     super.initState();
     _service = widget.service;
-    log("🔎 SelfEmployeeViewDiscover service data → ${_service?.toJson()}");
     if (_service == null && (widget.userId?.isNotEmpty ?? false)) {
       _fetch();
     }
@@ -54,7 +53,6 @@ class _SelfEmployeeViewDiscoverScreenState extends State<SelfEmployeeViewDiscove
     setState(() => _loading = true);
     final controller = getOrPut(() => DiscoverController());
     final result = await controller.getEarnServiceByUserId(widget.userId!);
-    log("🔎 SelfEmployeeViewDiscover fetched service data → ${result?.toJson()}");
     if (!mounted) return;
     setState(() {
       _service = result;

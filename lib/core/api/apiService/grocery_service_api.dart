@@ -47,6 +47,13 @@ mixin GroceryServiceApi {
       'grocery-service/api/inventory/business-products';
   final String publicGroceryBusinessProducts =
       'grocery-service/api/inventory/public/business-products';
+
+  /// Stores (grouped by business) that stock a given product/variant near a
+  /// pincode/city — powers the search "Available at N stores near you" list.
+  /// `POST grocery-service/api/inventory/public/search-by-product`.
+  /// See docs/backend/SEARCH_ORDER_FLUTTER_GUIDE.md (step 2).
+  final String searchInventoryByProduct =
+      'grocery-service/api/inventory/public/search-by-product';
   final String grocerySnapSearch = 'grocery-service/api/smart-cart/snap-search';
   final String grocerySnapSearchWithInventory =
       'grocery-service/api/ai-inventory/snap-search';

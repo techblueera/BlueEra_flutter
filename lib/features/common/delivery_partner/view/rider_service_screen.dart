@@ -2121,11 +2121,7 @@ Future<void> handleGoLiveTap() async {
   final depositBlocked = isRiderRole &&
       !riderCtrl.isSecurityDepositPaid &&
       !riderCtrl.isFirstRideFree;
-  log('GoLive deposit gate → profession=$userProfessionGlobal'
-      ' isRiderRole=$isRiderRole'
-      ' isSecurityDepositPaid=${riderCtrl.isSecurityDepositPaid}'
-      ' isFirstRideFree=${riderCtrl.isFirstRideFree}'
-      ' blocked=$depositBlocked');
+
   if (depositBlocked) {
     commonSnackBar(
         message:

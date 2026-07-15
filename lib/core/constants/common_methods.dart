@@ -9,6 +9,7 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/referral/controller/referral_controller.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' hide Key;
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
@@ -26,7 +27,7 @@ import 'app_colors.dart';
 
 ///SHOW APP LOGS
 logs(String logMsg) {
-  print(logMsg);
+  if (kDebugMode) print(logMsg);
 }
 
 ///UN FOCUS KEYBOARD
@@ -82,27 +83,39 @@ List<String> generateList(int startYear, int endYear) {
 }
 
 ///GENERATE POST DEEPLINK
-String postDeepLink({String? postId}) => _withBdmReferral('https://beapp.in/app/post/${postId ?? ""}');
+String postDeepLink({String? postId}) =>
+    _withBdmReferral('https://beapp.in/app/post/${postId ?? ""}');
 
 /// Generate deep link for a Video item
-String videoDeepLink({String? videoId}) => _withBdmReferral('https://beapp.in/app/video/${videoId ?? ""}');
+String videoDeepLink({String? videoId}) =>
+    _withBdmReferral('https://beapp.in/app/video/${videoId ?? ""}');
 
 /// Generate deep link for a Short/Reel item
-String shortDeepLink({String? shortId}) => _withBdmReferral('https://beapp.in/app/video/${shortId ?? ""}');
+String shortDeepLink({String? shortId}) =>
+    _withBdmReferral('https://beapp.in/app/video/${shortId ?? ""}');
 
 /// Generate deep link for a Job post item
-String jobDeepLink({String? jobId}) => _withBdmReferral('https://beapp.in/app/job/${jobId ?? ""}');
+String jobDeepLink({String? jobId}) =>
+    _withBdmReferral('https://beapp.in/app/job/${jobId ?? ""}');
 
 /// Generate deep link for a Profile.
-String profileDeepLink({String? userId}) => _withBdmReferral('https://beapp.in/app/profile/${userId ?? ""}');
-String schoolProfileDeepLink({String? userId}) => _withBdmReferral('https://beapp.in/app/business/education/${userId ?? ""}');
-String groceryProfileDeepLink({String? userId}) => _withBdmReferral('https://beapp.in/app/business/grocery/${userId ?? ""}');
-String foodProfileDeepLink({String? userId}) => _withBdmReferral('https://beapp.in/app/profile/food/${userId ?? ""}');
-String homeMadeFoodProfileDeepLink({String? userId}) => _withBdmReferral('https://beapp.in/app/business/homemade/food/${userId ?? ""}');
+String profileDeepLink({String? userId}) =>
+    _withBdmReferral('https://beapp.in/app/profile/${userId ?? ""}');
+
+String schoolProfileDeepLink({String? userId}) =>
+    _withBdmReferral('https://beapp.in/app/business/education/${userId ?? ""}');
+
+String groceryProfileDeepLink({String? userId}) =>
+    _withBdmReferral('https://beapp.in/app/business/grocery/${userId ?? ""}');
+
+String foodProfileDeepLink({String? userId}) =>
+    _withBdmReferral('https://beapp.in/app/profile/food/${userId ?? ""}');
+
+String homeMadeFoodProfileDeepLink({String? userId}) => _withBdmReferral(
+    'https://beapp.in/app/business/homemade/food/${userId ?? ""}');
 
 String businessProfileDeepLink({String? userId}) =>
     _withBdmReferral('https://beapp.in/app/business/${userId ?? ""}');
-
 
 /// Generate deep link for an Education (school) business profile. The extra
 /// `education` path segment routes the link to the Discover school home
@@ -128,7 +141,8 @@ String foodServiceDeepLink({String? foodServiceId}) =>
     _withBdmReferral('https://beapp.in/app/food/${foodServiceId ?? ""}');
 
 /// Generate deep link for a Food Dish item (offer/regular dish).
-String foodDishDeepLink({String? dishId}) => _withBdmReferral('https://beapp.in/app/food/${dishId ?? ""}');
+String foodDishDeepLink({String? dishId}) =>
+    _withBdmReferral('https://beapp.in/app/food/${dishId ?? ""}');
 
 /// Generate deep link for a Vehicle listing.
 String vehicleDeepLink({String? vehicleId}) =>
@@ -137,19 +151,17 @@ String vehicleDeepLink({String? vehicleId}) =>
 String medicalDeepLink({String? medicalProductId}) =>
     _withBdmReferral('https://beapp.in/app/medical/${medicalProductId ?? ""}');
 
-
-String medicalBusinessDeepLink({String? medicalBusinessId}) =>
-    _withBdmReferral('https://beapp.in/app/business/medical/${medicalBusinessId ?? ""}');
+String medicalBusinessDeepLink({String? medicalBusinessId}) => _withBdmReferral(
+    'https://beapp.in/app/business/medical/${medicalBusinessId ?? ""}');
 
 String automotiveDeepLink({String? automotiveId}) =>
     _withBdmReferral('https://beapp.in/app/automotive/${automotiveId ?? ""}');
 
-
 String hotelDeepLink({String? hotelId}) =>
     _withBdmReferral('https://beapp.in/app/business/hotel/${hotelId ?? ""}');
 
-String hospitalDeepLink({String? hospitalId}) =>
-    _withBdmReferral('https://beapp.in/app/business/hospital/${hospitalId ?? ""}');
+String hospitalDeepLink({String? hospitalId}) => _withBdmReferral(
+    'https://beapp.in/app/business/hospital/${hospitalId ?? ""}');
 
 /// Generate deep link for a Medical (pharmacy) business profile. The extra
 /// `medical` path segment routes the link to the pharmacy detail screen
@@ -157,16 +169,16 @@ String hospitalDeepLink({String? hospitalId}) =>
 /// share-preview, while still carrying the owner/business id. Distinct from
 /// [medicalDeepLink], which points at an individual medical *product*
 /// (`/app/medical/<productId>`).
-String medicalPharmacyDeepLink({String? businessId}) =>
-    _withBdmReferral('https://beapp.in/app/business/medical/${businessId ?? ""}');
+String medicalPharmacyDeepLink({String? businessId}) => _withBdmReferral(
+    'https://beapp.in/app/business/medical/${businessId ?? ""}');
 
 /// Generate deep link for a Financial (finance) business profile. The extra
 /// `financial` path segment routes the link to the finance detail screen
 /// ([FinanceDetailScreen]) instead of the generic business share-preview,
 /// while still carrying the owner/business id. Mirrors
 /// [medicalPharmacyDeepLink] / [hospitalDeepLink].
-String financialDeepLink({String? businessId}) =>
-    _withBdmReferral('https://beapp.in/app/business/financial/${businessId ?? ""}');
+String financialDeepLink({String? businessId}) => _withBdmReferral(
+    'https://beapp.in/app/business/financial/${businessId ?? ""}');
 
 /// Generate deep link for a Laboratory business profile. The extra `labs`
 /// path segment routes the link to the lab detail screen ([LabDetailScreen])
@@ -176,13 +188,11 @@ String financialDeepLink({String? businessId}) =>
 String labsDeepLink({String? businessId}) =>
     _withBdmReferral('https://beapp.in/app/business/labs/${businessId ?? ""}');
 
+String professionalsConsultantDeepLink({String? id}) => _withBdmReferral(
+    'https://beapp.in/app/professionals/consultant/${id ?? ""}');
 
-String professionalsConsultantDeepLink({String? id}) =>
-    _withBdmReferral('https://beapp.in/app/professionals/consultant/${id ?? ""}');
-
-String  serviceDeepLinkBusiness({String? id}) =>
+String serviceDeepLinkBusiness({String? id}) =>
     _withBdmReferral('https://beapp.in/app/business/services/${id ?? ""}');
-
 
 String shopDeepLink({String? id}) =>
     _withBdmReferral('https://beapp.in/app/business/shopping/${id ?? ""}');
@@ -240,10 +250,18 @@ String? _currentUserReferralCodeIfBdmCompleted() {
     // user/business record and tend to load earlier than /wallet-stats.
     if (accountTypeGlobal == AppConstants.business) {
       if (!Get.isRegistered<ViewBusinessDetailsController>()) return null;
-      return Get.find<ViewBusinessDetailsController>().businessProfileDetails.value?.data?.referral_code;
+      return Get.find<ViewBusinessDetailsController>()
+          .businessProfileDetails
+          .value
+          ?.data
+          ?.referral_code;
     }
     if (!Get.isRegistered<ViewPersonalDetailsController>()) return null;
-    return Get.find<ViewPersonalDetailsController>().personalProfileDetails.value.user?.referral_code;
+    return Get.find<ViewPersonalDetailsController>()
+        .personalProfileDetails
+        .value
+        .user
+        ?.referral_code;
   } catch (_) {
     return null;
   }
@@ -340,13 +358,16 @@ Map<String, String?> getFileInfo(File file) {
 
 bool isNetworkImage(dynamic image) =>
     image is String &&
-    (image.trim().toLowerCase().startsWith('http://') || image.trim().toLowerCase().startsWith('https://'));
+    (image.trim().toLowerCase().startsWith('http://') ||
+        image.trim().toLowerCase().startsWith('https://'));
 
-Widget staggeredDotsWaveLoading({Color color = AppColors.primaryColor, EdgeInsets? padding}) {
+Widget staggeredDotsWaveLoading(
+    {Color color = AppColors.primaryColor, EdgeInsets? padding}) {
   return Center(
       child: Padding(
           padding: padding ?? EdgeInsets.all(SizeConfig.size15),
-          child: LoadingAnimationWidget.staggeredDotsWave(size: SizeConfig.size40, color: color)));
+          child: LoadingAnimationWidget.staggeredDotsWave(
+              size: SizeConfig.size40, color: color)));
 }
 
 /// Save user preference (don't show again)

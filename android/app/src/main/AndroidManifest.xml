@@ -236,9 +236,11 @@
             android:windowSoftInputMode="adjustResize" />
 
         <!-- uCrop Activity -->
+        <!-- No android:screenOrientation: Android 16 ignores orientation/resizability
+             restrictions on large-screen devices (foldables, tablets). The crop UI
+             adapts to the current orientation instead of being locked to portrait. -->
         <activity
             android:name="com.yalantis.ucrop.UCropActivity"
-            android:screenOrientation="portrait"
             android:theme="@style/UCropTheme" />
 
         <!-- Flutter embedding -->

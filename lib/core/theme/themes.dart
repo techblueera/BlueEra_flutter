@@ -63,11 +63,15 @@ class AppThemes {
     fontFamily: AppConstants.OpenSans,
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.white,
+      // Edge-to-edge: bars stay transparent with content behind them. Android
+      // 15+ ignores an opaque `systemNavigationBarColor`, so keep it transparent
+      // (with contrast enforcement off) for consistent behavior across versions.
       systemOverlayStyle: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent, // Keeps the status bar clear
         statusBarIconBrightness: Brightness.dark, // Black icons for Android
         statusBarBrightness: Brightness.light,    // Black icons for iOS
-        systemNavigationBarColor: Colors.white,   // Bottom nav bar color
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarContrastEnforced: false,
         systemNavigationBarIconBrightness: Brightness.dark, // Bottom nav icons
      ),
     ),
