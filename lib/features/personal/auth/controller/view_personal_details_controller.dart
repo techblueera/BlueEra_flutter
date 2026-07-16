@@ -221,6 +221,13 @@ class ViewPersonalDetailsController extends GetxController
   /// status un-set and would otherwise strand the loader forever.
   final RxBool isPersonalProfileReady = false.obs;
 
+  /// True while a personal-profile network fetch is in flight. The "Me" tab
+  /// watches this so it can (a) show the loader when there's no data yet and a
+  /// fetch is running, and (b) REBUILD to the correct screen class when the
+  /// fetch completes — the type globals it switches on are non-reactive, so this
+  /// true→false flip is the rebuild trigger. Toggled in [viewPersonalProfile].
+  final RxBool isMeProfileFetching = false.obs;
+
   /// Joining-bonus object embedded in the `user/get` response. Drives the
   /// app-open claim popup; null until the profile loads (or when absent).
   final Rxn<JoiningBounce> joiningBounce = Rxn<JoiningBounce>();
@@ -232,13 +239,13 @@ class ViewPersonalDetailsController extends GetxController
   /// Security-deposit go-live gate for this individual/self-employed provider.
   /// Sourced from the individual profile's `securityDeposit` (mirrors the
   /// business profile gate). Fail-open: blocked ONLY when the backend reports
-  /// `required && !paid`. See docs/backend/SELF_WORK_GO_LIVE_FRONTEND_INTEGRATION.md.
+  /// `required && !paid`. See docs/backend/SELF_WORK_GO_LIVE_GUIDE.md.
   bool get canGoLive => personalProfileDetails.value.canGoLive;
 
   /// First service free: the deposit gate is waived until the provider uses
   /// their first free go-live (`freeServiceUsed == false`). Mirrors the rider
   /// `isFirstRideFree`. Proxies the individual-profile flag. See
-  /// docs/backend/SELF_WORK_FIRST_SERVICE_FREE_GUIDE.md.
+  /// docs/backend/SELF_WORK_GO_LIVE_GUIDE.md.
   bool get isFirstServiceFree =>
       personalProfileDetails.value.isFirstServiceFree;
 
@@ -437,6 +444,10 @@ class ViewPersonalDetailsController extends GetxController
     // would otherwise hit /user/get?contact_no= with an invalidated token.
     if (!isLoggedIn()) return;
 
+    // Mark the fetch in-flight so the "Me" tab can show its loader (when there's
+    // no data yet) and rebuild to the correct screen class on completion.
+    isMeProfileFetching.value = true;
+
     final personalController = Get.put(PersonalCreateProfileController());
 
     // 1. Hydrate from cache immediately so the UI isn't blank while
@@ -459,6 +470,7 @@ class ViewPersonalDetailsController extends GetxController
       // Everyone else stops here — no `/user/get` request.
       if (!forceRefresh) {
         viewPersonalResponse.value = ApiResponse.complete();
+        isMeProfileFetching.value = false;
         return;
       }
     }
@@ -508,6 +520,10 @@ class ViewPersonalDetailsController extends GetxController
     } catch (e, s) {
       log('stack trace -- $s');
       viewPersonalResponse.value = ApiResponse.error('error');
+    } finally {
+      // Cleared last — AFTER the globals + response were applied above — so the
+      // "Me" tab's rebuild (driven by this true→false flip) reads fresh data.
+      isMeProfileFetching.value = false;
     }
   }
 

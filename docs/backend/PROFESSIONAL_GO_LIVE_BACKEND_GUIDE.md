@@ -4,7 +4,7 @@
 **Applies to:** the **professionals / consultant** dashboard (`ProfessionalsMainScreen`).
 **Related:** [`BUSINESS_GO_LIVE_BACKEND_GUIDE.md`](./BUSINESS_GO_LIVE_BACKEND_GUIDE.md)
 (the business twin — same UX, different endpoints),
-[`SELF_WORK_GO_LIVE_FRONTEND_INTEGRATION.md`](./SELF_WORK_GO_LIVE_FRONTEND_INTEGRATION.md)
+[`SELF_WORK_GO_LIVE_GUIDE.md`](./SELF_WORK_GO_LIVE_GUIDE.md)
 (individual deposit gate), [`SECURITY_DEPOSIT_FRONTEND_INTEGRATION.md`](./SECURITY_DEPOSIT_FRONTEND_INTEGRATION.md)
 (deposit purchase).
 

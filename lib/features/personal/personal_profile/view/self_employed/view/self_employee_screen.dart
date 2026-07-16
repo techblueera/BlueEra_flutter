@@ -33,6 +33,7 @@ import 'package:BlueEra/features/contribution/view/contribution_screen_v2.dart';
 import 'package:BlueEra/features/common/visiting_card/view/all_personal_visiting_cards.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/controller/perosonal__create_profile_controller.dart';
+import 'package:BlueEra/features/personal/personal_profile/service/self_work_auto_golive_scheduler.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/controller/earn_profile_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/view/self_profession_service_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/edit_profile_bottom_sheet.dart';
@@ -106,6 +107,10 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
       vsync: this,
     );
     registerMeTabBackHandler(_tabController);
+    // Resume the best-effort daily auto go-live scheduler if the provider opted
+    // in on a previous session (08:00–22:00 auto open/close while the app is
+    // open — best-effort, foreground only).
+    SelfWorkAutoGoLiveScheduler().ensureStartedIfEnabled();
     // Hydrate the earn profile lazily when the Store tab is first opened.
     _tabController.addListener(_maybeHydrateEarnProfile);
     _viewCtrl.UserFollowersAndPostsCount(userId);
@@ -190,6 +195,9 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
     // Already online → allow toggling offline without re-checking.
     if (_viewCtrl.shopStatusOpenClose.value) {
       _viewCtrl.toggleShopStatus();
+      // If they manually go offline inside the auto window, don't let the
+      // scheduler re-open them for the rest of today.
+      SelfWorkAutoGoLiveScheduler().noteManualOffDuringWindow();
       return;
     }
 
@@ -200,13 +208,13 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
     // gate. Fail-open: block ONLY when the backend explicitly reports
     // `required && !paid` (canGoLive == false); a missing / paid / not-required
     // deposit always allows go-live. The backend also enforces this server-side
-    // (402 on the go-live PUT). See docs/backend/SELF_WORK_GO_LIVE_FRONTEND_INTEGRATION.md.
+    // (402 on the go-live PUT). See docs/backend/SELF_WORK_GO_LIVE_GUIDE.md.
     //
     // FIRST SERVICE FREE: the deposit is WAIVED until the provider uses their
     // first free go-live (backend `freeServiceUsed == false`). Once used, the
     // deposit is enforced on every subsequent go-live. Absent flag → not free →
     // deposit enforced (safe default). Mirrors the rider first-ride-free waiver.
-    // See docs/backend/SELF_WORK_FIRST_SERVICE_FREE_GUIDE.md.
+    // See docs/backend/SELF_WORK_GO_LIVE_GUIDE.md.
     final depositBlocked = !_viewCtrl.canGoLive && !_viewCtrl.isFirstServiceFree;
     if (depositBlocked) {
       // Tell the provider why go-live is blocked, then route them to the
@@ -228,11 +236,15 @@ class _SelfEmployeeScreenState extends State<SelfEmployeeScreen>
     // permission screen forever on Android 13+/16.
     if (await GoLivePermissionService.areRequiredGranted()) {
       _viewCtrl.toggleShopStatus();
+      // First successful manual go-live opts the provider into the daily
+      // 8 AM–10 PM auto window from tomorrow on.
+      SelfWorkAutoGoLiveScheduler().enableAfterManualGoLive();
       return;
     }
     final granted = await Get.to(() => const GoLivePermissionScreen());
     if (granted == true) {
       _viewCtrl.toggleShopStatus();
+      SelfWorkAutoGoLiveScheduler().enableAfterManualGoLive();
     }
   }
 

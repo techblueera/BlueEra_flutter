@@ -286,7 +286,7 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
   /// FIRST SERVICE FREE: professionals are individuals, so the deposit is
   /// waived until the free first go-live is used (`freeServiceUsed == false`).
   /// Absent flag → not free → deposit enforced (safe default). Mirrors the
-  /// self-employed gate. See docs/backend/SELF_WORK_FIRST_SERVICE_FREE_GUIDE.md.
+  /// self-employed gate. See docs/backend/SELF_WORK_GO_LIVE_GUIDE.md.
   bool _ensureCanGoLive() {
     if (_viewCtrl.canGoLive || _viewCtrl.isFirstServiceFree) return true;
     commonSnackBar(

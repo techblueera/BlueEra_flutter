@@ -132,7 +132,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
     registerMeTabBackHandler(_tabController);
     _checkRiderStatus();
     // Resume the best-effort daily auto go-live scheduler if the rider opted in
-    // on a previous session (10:00–12:00 auto open/close while the app is open;
+    // on a previous session (08:00–22:00 auto open/close while the app is open;
     // backend cron is authoritative — see the scheduler doc).
     RiderAutoGoLiveScheduler().ensureStartedIfEnabled();
     // Pre-select the rider's saved service preference as soon as the
@@ -2140,8 +2140,8 @@ Future<void> handleGoLiveTap() async {
   // permission screen forever on Android 13+/16.
   if (await GoLivePermissionService.areRequiredGranted()) {
     _viewCtrl.toggleShopStatus();
-    // First successful manual go-live opts the rider into the daily 10–12
-    // auto window from tomorrow on.
+    // First successful manual go-live opts the rider into the daily
+    // 8 AM–10 PM auto window from tomorrow on.
     RiderAutoGoLiveScheduler().enableAfterManualGoLive();
     return;
   }
