@@ -120,7 +120,11 @@ class _FeedCardState extends State<FeedCard> {
     FeedType? feedType = FeedType.fromValue(_post?.type?.toUpperCase());
     logs("widget.postFilteredType= ${widget.postFilteredType}");
     switch (feedType) {
-      case FeedType.messagePost || FeedType.photoPost:
+      // `image_post` is a photo-first post that shares message_post's exact
+      // schema (docs/backend/FRONTEND_FEED_INTEGRATION.md §4.2), so it renders
+      // through the same widget. Without it, every `type: "image_post"` item
+      // from /feed fell through to the default branch and rendered nothing.
+      case FeedType.messagePost || FeedType.photoPost || FeedType.imagePost:
         return widget.postFilteredType == PostType.otherChannelPosts
             ? ChannelFeedMessagePostWidget(
                 horizontalPadding: widget.horizontalPadding,

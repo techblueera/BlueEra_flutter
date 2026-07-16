@@ -8,7 +8,9 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/aadhaar_kyc/controller/aadhaar_kyc_controller.dart';
+import 'package:BlueEra/features/common/aadhaar_kyc/controller/aadhaar_manual_kyc_controller.dart';
 import 'package:BlueEra/features/common/aadhaar_kyc/view/aadhaar_kyc_view.dart';
+import 'package:BlueEra/features/common/aadhaar_kyc/view/aadhaar_manual_kyc_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/controller/my_documents_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/widget/cancel_cheque_document_widget.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/widget/common_document_bottom_sheet.dart';
@@ -225,7 +227,23 @@ class _AddDocumentScreenState extends State<AddDocumentScreen>  {
                                   CommonDocumentBottomSheet(
                                     title: AppStrings.aadharCard.tr,
                                     child: AadhaarKycView(
-                                        controller: kycController),
+                                      controller: kycController,
+                                      // OTP failed — fall back to verifying the
+                                      // card images with the AI verifier.
+                                      onVerifyManually: (enteredNumber) {
+                                        final manualController =
+                                            AadhaarManualKycController(
+                                          initialAadhaarNumber: enteredNumber,
+                                          onManualVerified: controller
+                                              .recordAadhaarManualVerified,
+                                        );
+                                        // Close the OKYC sheet before pushing
+                                        // the manual screen over it.
+                                        Get.back();
+                                        Get.to(() => AadhaarManualKycScreen(
+                                            controller: manualController));
+                                      },
+                                    ),
                                   ),
                                   isScrollControlled: true,
                                   backgroundColor: Colors.transparent,

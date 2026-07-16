@@ -97,6 +97,25 @@ class Post {
 
   bool get isReel => itemType == 'reel';
 
+  /// `live: true` on a video item marks a live stream (guide §4.4).
+  final bool? live;
+
+  /// Business payload — present only when [type] is `business`; null otherwise.
+  final FeedBusiness? business;
+
+  /// Product payload — present only when [type] is `product`; null otherwise.
+  final FeedProduct? product;
+
+  /// The `/feed` `type` discriminator, normalised to lower case.
+  /// See docs/backend/FRONTEND_FEED_INTEGRATION.md §3.
+  String get feedType => type?.toLowerCase().trim() ?? '';
+
+  /// True when this post's media is a video rather than an image. The guide
+  /// (§6.3) is explicit that this is decided per item on `media_types`, NOT on
+  /// `type` — a `message_post`/`image_post` can carry an mp4.
+  bool get hasVideoMedia =>
+      media_types?.any((t) => t.toLowerCase().startsWith('video/')) ?? false;
+
   Post({
     required this.id,
     this.message,
@@ -139,7 +158,24 @@ class Post {
     this.media_height,
     this.itemType,
     this.reel,
+    this.live,
+    this.business,
+    this.product,
   });
+
+  /// `location` is polymorphic across feed item types: a plain string on posts
+  /// ("Goa"), but an object on videos (`{name, lat, lng}`) and business items
+  /// (`{address, city_state_pincode, ...}`). Normalise to a display string so a
+  /// video/business item can't blow up a `String` cast. See guide §4.2/§4.4/§4.5.
+  static String? _parseLocation(dynamic raw) {
+    if (raw == null) return null;
+    if (raw is String) return raw.trim().isEmpty ? null : raw.trim();
+    if (raw is Map) {
+      final label = raw['name'] ?? raw['address'] ?? raw['city_state_pincode'];
+      return label?.toString();
+    }
+    return null;
+  }
 
   factory Post.fromJson(Map<String, dynamic> json) {
     // Mixed post/reel feed: a reel item is tagged item_type:"reel" and nests
@@ -159,8 +195,8 @@ class Post {
       itemType: json['item_type'],
       channelName: json['channelName'],
       is_reposted: json['is_reposted'],
-      message: json['message'],
-      // location: json['location'],
+      message: json['message'] ?? json['text'],
+      location: _parseLocation(json['location']),
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
       title: json['title'],
@@ -205,7 +241,18 @@ class Post {
       media_width: json['media_width'],
       channel: json['channel'] != null ? Channel.fromJson(json['channel']) : null,
       children_post: json['children_post'] != null ? Post.fromJson(json['children_post']) : null,
+      live: json['live'] as bool?,
 
+      // `business` / `product` items carry their payload flat on the item
+      // itself (there is no nested envelope), so hand the whole map to the
+      // sub-model and let the `type` discriminator decide which one to build.
+      // See docs/backend/FRONTEND_FEED_INTEGRATION.md §4.5 / §4.6.
+      business: json['type']?.toString().toLowerCase() == 'business'
+          ? FeedBusiness.fromJson(json)
+          : null,
+      product: json['type']?.toString().toLowerCase() == 'product'
+          ? FeedProduct.fromJson(json)
+          : null,
     );
   }
 
@@ -251,7 +298,12 @@ class Post {
       'media_height': media_height,
       'channel': channel?.toJson(),
       'children_post': children_post?.toJson(),
-
+      'live': live,
+      // Business/product payloads are flat on the item, so splat them back out
+      // at the top level — this keeps the shape symmetric with [fromJson] so a
+      // cached feed rehydrates these item types intact.
+      ...?business?.toJson(),
+      ...?product?.toJson(),
     };
   }
 
@@ -295,6 +347,9 @@ class Post {
     num? media_width,
     String? itemType,
     FeedReel? reel,
+    bool? live,
+    FeedBusiness? business,
+    FeedProduct? product,
   }) {
     return Post(
       id: id ?? this.id,
@@ -337,8 +392,229 @@ class Post {
       media_height: media_height ?? this.media_height,
       itemType: itemType ?? this.itemType,
       reel: reel ?? this.reel,
+      live: live ?? this.live,
+      business: business ?? this.business,
+      product: product ?? this.product,
     );
   }
+}
+
+/// A `type: "business"` feed item — the business / place card.
+/// See docs/backend/FRONTEND_FEED_INTEGRATION.md §4.5.
+///
+/// Only surfaces when the request carries `lat`/`long` (guide §6.1). Every
+/// field is nullable — render defensively.
+class FeedBusiness {
+  final String? name;
+  final String? logo;
+  final String? category;
+  final String? description;
+  final FeedBusinessLocation? location;
+  final double? avgRating;
+  final int? totalRatings;
+
+  const FeedBusiness({
+    this.name,
+    this.logo,
+    this.category,
+    this.description,
+    this.location,
+    this.avgRating,
+    this.totalRatings,
+  });
+
+  factory FeedBusiness.fromJson(Map<String, dynamic> json) {
+    return FeedBusiness(
+      name: json['name']?.toString(),
+      logo: json['logo']?.toString(),
+      category: json['category']?.toString(),
+      description: json['description']?.toString(),
+      location: json['location'] is Map
+          ? FeedBusinessLocation.fromJson(
+              (json['location'] as Map).cast<String, dynamic>())
+          : null,
+      avgRating: double.tryParse(json['avg_rating']?.toString() ?? ''),
+      totalRatings: int.tryParse(json['total_ratings']?.toString() ?? ''),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'logo': logo,
+        'category': category,
+        'description': description,
+        'location': location?.toJson(),
+        'avg_rating': avgRating,
+        'total_ratings': totalRatings,
+      };
+}
+
+/// The `location` object on a [FeedBusiness] (guide §4.5).
+class FeedBusinessLocation {
+  final String? address;
+  final String? cityStatePincode;
+  final double? lat;
+  final double? long;
+
+  const FeedBusinessLocation({
+    this.address,
+    this.cityStatePincode,
+    this.lat,
+    this.long,
+  });
+
+  factory FeedBusinessLocation.fromJson(Map<String, dynamic> json) {
+    return FeedBusinessLocation(
+      address: json['address']?.toString(),
+      cityStatePincode: json['city_state_pincode']?.toString(),
+      lat: double.tryParse(json['lat']?.toString() ?? ''),
+      long: double.tryParse(json['long']?.toString() ?? ''),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'address': address,
+        'city_state_pincode': cityStatePincode,
+        'lat': lat,
+        'long': long,
+      };
+
+  /// Single-line address for the card: street first, then city/state/pincode.
+  String get displayAddress =>
+      [address, cityStatePincode]
+          .where((e) => (e?.trim().isNotEmpty ?? false))
+          .join(', ');
+}
+
+/// A `type: "product"` feed item — the product / service card.
+/// See docs/backend/FRONTEND_FEED_INTEGRATION.md §4.6.
+///
+/// Deliberately parses only what the feed card renders; the long tail
+/// (`options`, `additional_details`, `features`, `tags`) belongs to the product
+/// detail screen and is left on the wire.
+class FeedProduct {
+  final String? name;
+  final num? price;
+  final String? currency;
+  final String? description;
+  final String? brand;
+  final List<String> images;
+  final List<String> videoUrls;
+  final FeedProductStore? store;
+  final double? rating;
+  final String? category;
+  final String? warranty;
+  final bool? isReturnable;
+  final int? returnPeriodDays;
+
+  /// "Product" | "Service" — drives the card's badge (guide §4.6).
+  final String? productType;
+
+  const FeedProduct({
+    this.name,
+    this.price,
+    this.currency,
+    this.description,
+    this.brand,
+    this.images = const [],
+    this.videoUrls = const [],
+    this.store,
+    this.rating,
+    this.category,
+    this.warranty,
+    this.isReturnable,
+    this.returnPeriodDays,
+    this.productType,
+  });
+
+  factory FeedProduct.fromJson(Map<String, dynamic> json) {
+    List<String> strings(dynamic raw) =>
+        (raw as List?)?.map((e) => e.toString()).toList() ?? const [];
+
+    return FeedProduct(
+      name: json['name']?.toString(),
+      price: num.tryParse(json['price']?.toString() ?? ''),
+      currency: json['currency']?.toString(),
+      description: json['description']?.toString(),
+      brand: json['brand']?.toString(),
+      images: strings(json['images']),
+      videoUrls: strings(json['video_urls']),
+      store: json['store'] is Map
+          ? FeedProductStore.fromJson(
+              (json['store'] as Map).cast<String, dynamic>())
+          : null,
+      rating: double.tryParse(json['rating']?.toString() ?? ''),
+      category: json['category']?.toString(),
+      warranty: json['warranty']?.toString(),
+      isReturnable: json['is_returnable'] as bool?,
+      returnPeriodDays: int.tryParse(json['return_period_days']?.toString() ?? ''),
+      productType: json['product_type']?.toString(),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'name': name,
+        'price': price,
+        'currency': currency,
+        'description': description,
+        'brand': brand,
+        'images': images,
+        'video_urls': videoUrls,
+        'store': store?.toJson(),
+        'rating': rating,
+        'category': category,
+        'warranty': warranty,
+        'is_returnable': isReturnable,
+        'return_period_days': returnPeriodDays,
+        'product_type': productType,
+      };
+
+  /// True for `product_type: "Service"` — services have no returns affordance,
+  /// so the card hides the returns chip.
+  bool get isService => productType?.toLowerCase() == 'service';
+
+  /// Symbol for the item's currency. The guide pins this to INR|USD|EUR (§4.6);
+  /// anything else falls back to the raw code so an unknown currency still
+  /// reads correctly rather than silently rendering as rupees.
+  String get currencySymbol {
+    switch (currency?.toUpperCase()) {
+      case 'INR':
+        return '₹';
+      case 'USD':
+        return '\$';
+      case 'EUR':
+        return '€';
+      default:
+        return currency?.isNotEmpty == true ? '$currency ' : '₹';
+    }
+  }
+
+  /// Price formatted for display, e.g. `₹2999`. Null when the item has no price.
+  String? get displayPrice {
+    if (price == null) return null;
+    final value = price!;
+    final whole = value % 1 == 0 ? value.toInt().toString() : value.toString();
+    return '$currencySymbol$whole';
+  }
+
+  String? get primaryImage => images.isNotEmpty ? images.first : null;
+}
+
+/// The `store` object on a [FeedProduct] (guide §4.6).
+class FeedProductStore {
+  final String? name;
+  final String? url;
+
+  const FeedProductStore({this.name, this.url});
+
+  factory FeedProductStore.fromJson(Map<String, dynamic> json) {
+    return FeedProductStore(
+      name: json['name']?.toString(),
+      url: json['url']?.toString(),
+    );
+  }
+
+  Map<String, dynamic> toJson() => {'name': name, 'url': url};
 }
 
 /// A short video injected into the mixed post/reel feed. Carried on a [Post]

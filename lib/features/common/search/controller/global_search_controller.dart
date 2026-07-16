@@ -267,12 +267,14 @@ class GlobalSearchController extends GetxController {
     final pincode = addr.postalCode.trim();
     final city = addr.city.trim();
 
+    // No `inStock` key on purpose. It's an optional server-side *filter*, so
+    // sending it at all narrows the result set — `true` drops stores the
+    // backend thinks are empty, `false` drops the rest. Omitting it returns
+    // every store that carries the product, which is what this sheet lists.
     final res = await GroceryRepo().searchInventoryByProductRepo(params: {
       'productId': productId,
       // if (pincode.isNotEmpty) 'pincode': pincode,
       if (pincode.isEmpty && city.isNotEmpty) 'cityName': city,
-      'inStock': false,
-      // 'inStock': true,
       'sortBy': 'price_low_to_high',
       'page': 1,
       'limit': 20,
@@ -288,6 +290,33 @@ class GlobalSearchController extends GetxController {
     throw (raw is Map ? raw['message'] : null) ?? 'Could not load stores';
   }
 
+  /// Fetch the full product behind a search result, for the fields the search
+  /// index doesn't carry — `description` above all, plus country of origin and
+  /// the veg flag (`GET grocery-service/api/products/{id}`).
+  ///
+  /// Returns null (never throws) when the id doesn't resolve — a non-grocery
+  /// product, or a failed call — so the detail sheet simply omits those
+  /// sections instead of showing an error for an enrichment.
+  Future<GroceryProductData?> fetchProductDetail(SearchResultItem item) async {
+    final productId = item.sourceId ?? '';
+    if (productId.isEmpty) return null;
+    try {
+      final res = await GroceryRepo().fetchGroceryProductByIdRepo(productId);
+      final raw = res.response?.data;
+      if (!res.isSuccess || raw is! Map) return null;
+
+      // Endpoint returns either the bare product or a `{ data: {...} }` envelope.
+      final m = Map<String, dynamic>.from(raw);
+      final payload =
+          m['data'] is Map ? Map<String, dynamic>.from(m['data'] as Map) : m;
+      final product = GroceryProductData.fromJson(payload);
+      // A success envelope with no product in it parses to an empty shell.
+      return product.sId == null ? null : product;
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Open the existing self-pickup order flow for a product result.
   ///
   /// Mirrors the grocery share deep-link "Buy Now": fetch the full grocery
@@ -301,7 +330,12 @@ class GlobalSearchController extends GetxController {
   /// "Available at N stores" list — grocery Search-Order flow, step 3), the line
   /// is grouped under that store and pinned to its inventory row, so the order
   /// is placed against the chosen seller rather than the product's default one.
-  Future<void> openProductOrder(SearchResultItem item, {StoreMatch? store}) async {
+  ///
+  /// [variantId] pins the pack the user picked in the detail sheet (e.g. the
+  /// 500 g tin rather than the 1 kg one); without it the store's first
+  /// orderable line is used.
+  Future<void> openProductOrder(SearchResultItem item,
+      {StoreMatch? store, String? variantId}) async {
     final productId = item.sourceId ?? '';
     if (productId.isEmpty) {
       commonSnackBar(message: 'Unable to open this product');
@@ -334,14 +368,15 @@ class GlobalSearchController extends GetxController {
         return;
       }
 
-      // When a store was picked, honour its inventory line: prefer the variant
-      // it stocks, and pin that store's inventoryId. Otherwise fall back to the
-      // first priced variant (else the first overall).
-      final storeLine = store?.firstOrderableLine;
+      // When a store was picked, honour its inventory line for the chosen pack
+      // and pin that store's inventoryId. Otherwise fall back to the first
+      // priced variant (else the first overall).
+      final storeLine = store?.orderLineFor(variantId);
+      final wantedVariantId = (storeLine?.productVariantId.isNotEmpty ?? false)
+          ? storeLine!.productVariantId
+          : (variantId ?? '');
       final variant = variants.firstWhere(
-        (v) => storeLine != null && storeLine.productVariantId.isNotEmpty
-            ? v.sId == storeLine.productVariantId
-            : (v.pricing?.isNotEmpty ?? false),
+        (v) => wantedVariantId.isNotEmpty && v.sId == wantedVariantId,
         orElse: () => variants.firstWhere(
           (v) => (v.pricing?.isNotEmpty ?? false),
           orElse: () => variants.first,

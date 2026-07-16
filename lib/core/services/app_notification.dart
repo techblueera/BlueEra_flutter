@@ -27,6 +27,7 @@ import 'package:BlueEra/features/chat/auth/repo/chat_view_repo.dart';
 import 'package:BlueEra/features/chat/auth/socket/chat_socket.dart';
 import 'package:BlueEra/features/chat/view/symbol_view/symbol_view_images.dart';
 import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
+import 'package:BlueEra/features/contribution/view/contribution_screen_v2.dart';
 import 'package:BlueEra/main.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -54,6 +55,27 @@ import 'package:BlueEra/features/personal/auth/controller/view_personal_details_
 String notificationSound = 'sound/hangouts_call.mp3';
 String hello_delivery = 'sound/hello_delivery.mp3';
 String chatNotificationSound = 'sound/messenger.mp3';
+String orderNotificationSound = 'sound/foodpanda_order_an.mp3';
+
+/// Pickup-order operations from be_chat_service (see docs/backend/chat_order.md).
+/// These get their own alert sound so a seller/customer can tell an incoming
+/// order apart from a normal chat message without looking at the screen.
+/// The `_order` variants go to the business/seller, `_ready` to the customer.
+/// Ride operations (`ride_order_*`) are deliberately NOT in this set — they
+/// keep the `hello_delivery` sound they have always used.
+const Set<String> _orderNotificationOperations = {
+  'food_pickup_order',
+  'food_pickup_order_ready',
+  'selfpickup_order',
+  'selfpickup_order_ready',
+  'grocery_order',
+  'product_pickup_order',
+  'product_pickup_order_ready',
+  'homemade_food_pickup_order',
+  'homemade_food_pickup_order_ready',
+  'tiffin_pickup_order',
+  'tiffin_pickup_order_ready',
+};
 
 /// Top-level handler for background notification actions (inline reply, mark as read, etc.)
 /// Must be a top-level or static function for flutter_local_notifications
@@ -2743,6 +2765,22 @@ class AppNotificationHandler {
         );
         break;
 
+      // Security-deposit / subscription lifecycle → the contribution screen,
+      // which shows the held deposit or the plan catalog. It is not registered
+      // in RouteHelper, so it is pushed directly like its other call sites
+      // (drawer, account settings, rider service).
+      case 'security_deposit_held':
+      case 'security_deposit_reminder':
+      case 'trial_started':
+      case 'subscription_activated':
+      case 'subscription_charged':
+      case 'subscription_payment_failed':
+      case 'subscription_cancelled':
+      case 'subscription_expired':
+      case 'recharge_activated':
+        Get.to(() => const ContributionScreenV2());
+        break;
+
       default:
         // Any future/unknown operation lands on the notification hub instead
         // of dead-ending.
@@ -3086,7 +3124,9 @@ class AppNotificationHandler {
     if (operation == 'incoming_call') return;
 
     try {
-      if (operation == 'sent_message' ||
+      if (_orderNotificationOperations.contains(operation)) {
+        playNotificationSound = orderNotificationSound;
+      } else if (operation == 'sent_message' ||
           operation == 'message_reminder' ||
           operation == 'tagged_in_message' ||
           operation == 'commented_on_message' ||
@@ -3094,11 +3134,7 @@ class AppNotificationHandler {
         playNotificationSound = chatNotificationSound;
       } else if (operation == 'ride_order_received' ||
           operation == 'ride_order_accepted' ||
-          operation == 'ride_order_created' ||
-          operation == 'selfpickup_order' ||
-          operation == 'selfpickup_order_ready' ||
-          operation == 'homemade_food_pickup_order' ||
-          operation == 'homemade_food_pickup_order_ready') {
+          operation == 'ride_order_created') {
         playNotificationSound = hello_delivery;
       } else {
         playNotificationSound = chatNotificationSound;

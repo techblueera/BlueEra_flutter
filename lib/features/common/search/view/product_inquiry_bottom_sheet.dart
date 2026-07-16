@@ -1,26 +1,40 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/search/controller/global_search_controller.dart';
 import 'package:BlueEra/features/common/search/model/search_models.dart';
 import 'package:BlueEra/features/common/search/model/store_match_model.dart';
+import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// Flipkart-style product enquiry bottom sheet.
+/// Product detail bottom sheet.
 ///
-/// Opened when a user taps a *product* result card in global search. It shows a
-/// rich product snapshot (photo, name, pricing, discount, highlights, selectable
-/// variants) followed by a "Sellers near me" list. Each seller can be ticked and
-/// the user fires a single "Send Inquiry" to every selected seller.
+/// Opened when a user taps a *product* result card in global search
+/// (`product`, `variant` or `grocery_product` — see `_productTypes` in
+/// global_search_screen.dart). Every element is driven by real API data and
+/// hides itself when the backend doesn't send that field, so the sheet renders
+/// honestly across the different result categories:
 ///
-/// The **Sellers near me** list is live: it calls the grocery Search-Order
-/// `search-by-product` API (see docs/backend/SEARCH_ORDER_FLUTTER_GUIDE.md) to
-/// list the real stores that stock this product near the user, cheapest first.
-/// Pricing/rating are seeded from the tapped [SearchResultItem]; highlights and
-/// variants remain illustrative. The inquiry action itself is design-only (no
-/// inquiry backend yet) — it confirms with a snackbar.
+/// - The **product snapshot** (photo, name, brand, category, price, rating)
+///   comes from the tapped [SearchResultItem] — i.e. the search-service
+///   `/search` response (docs/backend/FLUTTER_INTEGRATION_SEARCH.md), which
+///   sends only title/subtitle/imageUrl/brand/category/price/city/pincode.
+/// - The **pack sizes** (500 g / 1 kg …) and **per-pack pricing** come from the
+///   grocery Search-Order `search-by-product` response
+///   (docs/backend/SEARCH_ORDER_FLUTTER_GUIDE.md step 2), whose
+///   `inventories[].productVariant` carries the `quantity` + `unit` pair. Only
+///   grocery inventory has these, so the size selector appears for grocery
+///   products and stays hidden for the rest.
+/// - The **Sellers near me** list is that same call, cheapest first; tapping a
+///   store starts the real self-pickup order flow for the selected pack.
+///
+/// Stock is deliberately **not** a condition here: the inventory figures aren't
+/// dependable enough to gate on, so no availability is labelled, no pack is
+/// struck through, and every store stays orderable. `/track` and the shop's own
+/// updates are the source of truth for availability (guide §7), not this sheet.
 void showProductInquiryBottomSheet(BuildContext context, SearchResultItem item) {
   showModalBottomSheet<void>(
     context: context,
@@ -34,16 +48,40 @@ void showProductInquiryBottomSheet(BuildContext context, SearchResultItem item) 
   );
 }
 
-// ── Dummy variant / seller models (design-only stand-ins) ─────────────────
-class _Variant {
+/// A pack/size of the product, aggregated across every nearby store: cheapest
+/// price on offer and how many stores carry it.
+class _PackOption {
+  final String variantId;
   final String label;
-  const _Variant(this.label);
-}
 
-class _VariantGroup {
-  final String title;
-  final List<_Variant> options;
-  const _VariantGroup(this.title, this.options);
+  /// Cheapest price any nearby store charges for this pack.
+  num price;
+
+  /// Dearest price on offer — equal to [price] until a store undercuts another.
+  num maxPrice;
+
+  num? mrp;
+  int storeCount;
+  bool? isVegetarian;
+
+  _PackOption({
+    required this.variantId,
+    required this.label,
+    required this.price,
+    required this.maxPrice,
+    required this.storeCount,
+    this.mrp,
+    this.isVegetarian,
+  });
+
+  /// True when stores disagree on the price, so [price] is a "from" figure.
+  bool get hasPriceRange => maxPrice > price;
+
+  int? get discountPercent {
+    final m = mrp;
+    if (m == null || m <= price || m <= 0) return null;
+    return (((m - price) / m) * 100).round();
+  }
 }
 
 class _ProductInquirySheet extends StatefulWidget {
@@ -56,60 +94,58 @@ class _ProductInquirySheet extends StatefulWidget {
 }
 
 class _ProductInquirySheetState extends State<_ProductInquirySheet> {
-  // Selected option index per variant group.
-  final Map<int, int> _selectedVariant = {};
-
-  // ── Live "Sellers near me" (search-by-product) ──────────────────────────
+  // ── Live store/inventory data (search-by-product) ───────────────────────
   List<StoreMatch> _stores = const [];
+  List<_PackOption> _packs = const [];
+  String? _selectedVariantId;
   bool _loadingStores = true;
   bool _storesError = false;
 
-  // ── Design-only sample data ─────────────────────────────────────────────
-  static const List<_VariantGroup> _variantGroups = [
-    _VariantGroup('Color', [
-      _Variant('Midnight Black'),
-      _Variant('Ocean Blue'),
-      _Variant('Silver'),
-    ]),
-    _VariantGroup('Storage', [
-      _Variant('128 GB'),
-      _Variant('256 GB'),
-      _Variant('512 GB'),
-    ]),
-  ];
+  /// The full product, for the fields the search index omits (description,
+  /// country of origin, veg flag). Null until it lands, or when there is none.
+  GroceryProductData? _detail;
+  bool _descriptionExpanded = false;
 
-  static const List<String> _highlights = [
-    '6.7" Full HD+ AMOLED 120Hz display',
-    'Snapdragon 8 Gen 3 · 12 GB RAM',
-    '50 MP OIS triple camera setup',
-    '5000 mAh battery with 67W fast charging',
-    '1 year manufacturer warranty',
-  ];
+  Color get _green => Colors.green.shade700;
+
+  bool get _isGrocery => widget.item.entityType == 'grocery_product';
 
   @override
   void initState() {
     super.initState();
-    // Preselect the first option of every variant group, like a PDP would.
-    for (var i = 0; i < _variantGroups.length; i++) {
-      _selectedVariant[i] = 0;
-    }
+    // Independent calls — the stores list and the description each render as
+    // soon as they arrive rather than waiting on the other.
     _loadStores();
+    _loadDetail();
   }
 
-  /// Fetch the real nearby stores that stock this product (search-by-product).
+  Future<void> _loadDetail() async {
+    final detail = await _controller.fetchProductDetail(widget.item);
+    if (!mounted) return;
+    setState(() => _detail = detail);
+  }
+
+  GlobalSearchController get _controller =>
+      Get.isRegistered<GlobalSearchController>()
+          ? Get.find<GlobalSearchController>()
+          : Get.put(GlobalSearchController());
+
+  /// Fetch the nearby stores that stock this product, then derive the pack
+  /// options from their inventory rows.
   Future<void> _loadStores() async {
     setState(() {
       _loadingStores = true;
       _storesError = false;
     });
     try {
-      final controller = Get.isRegistered<GlobalSearchController>()
-          ? Get.find<GlobalSearchController>()
-          : Get.put(GlobalSearchController());
-      final stores = await controller.fetchStoresForProduct(widget.item);
+      final stores = await _controller.fetchStoresForProduct(widget.item);
       if (!mounted) return;
+      final packs = _aggregatePacks(stores);
       setState(() {
         _stores = stores;
+        _packs = packs;
+        // Packs are cheapest-first, so the first is the best-value default.
+        _selectedVariantId = packs.isEmpty ? null : packs.first.variantId;
         _loadingStores = false;
       });
     } catch (_) {
@@ -121,10 +157,108 @@ class _ProductInquirySheetState extends State<_ProductInquirySheet> {
     }
   }
 
+  /// Collapse every store's inventory rows into one entry per pack, keeping the
+  /// cheapest price on offer.
+  List<_PackOption> _aggregatePacks(List<StoreMatch> stores) {
+    final byVariant = <String, _PackOption>{};
+    for (final store in stores) {
+      for (final option in store.variantOptions) {
+        final label = option.packLabel;
+        if (option.variantId.isEmpty || label == null) continue;
+
+        final existing = byVariant[option.variantId];
+        if (existing == null) {
+          byVariant[option.variantId] = _PackOption(
+            variantId: option.variantId,
+            label: label,
+            price: option.sellingPrice,
+            maxPrice: option.sellingPrice,
+            mrp: option.mrp,
+            storeCount: 1,
+            isVegetarian: option.isVegetarian,
+          );
+          continue;
+        }
+        if (option.sellingPrice < existing.price) {
+          existing.price = option.sellingPrice;
+          existing.mrp = option.mrp;
+        }
+        if (option.sellingPrice > existing.maxPrice) {
+          existing.maxPrice = option.sellingPrice;
+        }
+        existing.storeCount++;
+        existing.isVegetarian ??= option.isVegetarian;
+      }
+    }
+    return byVariant.values.toList()
+      ..sort((a, b) => a.price.compareTo(b.price));
+  }
+
+  _PackOption? get _selectedPack {
+    final id = _selectedVariantId;
+    if (id == null) return null;
+    for (final p in _packs) {
+      if (p.variantId == id) return p;
+    }
+    return null;
+  }
+
+  // ── Derived product facts ───────────────────────────────────────────────
+
+  /// Price to headline: the selected pack's real price, else the search
+  /// result's own price, else the cheapest store's. Null when nothing priced
+  /// it — the row then hides rather than inventing a number.
+  num? get _displayPrice {
+    final pack = _selectedPack;
+    if (pack != null) return pack.price;
+    if (widget.item.price != null) return widget.item.price;
+    num? cheapest;
+    for (final s in _stores) {
+      if (s.minSellingPrice <= 0) continue;
+      if (cheapest == null || s.minSellingPrice < cheapest) {
+        cheapest = s.minSellingPrice;
+      }
+    }
+    return cheapest;
+  }
+
+  /// Struck-through MRP — only a genuine one above the price.
+  num? get _displayMrp {
+    final price = _displayPrice;
+    if (price == null) return null;
+    final mrp = _selectedPack?.mrp ?? widget.item.mrp;
+    return (mrp != null && mrp > price) ? mrp : null;
+  }
+
+  int? get _displayDiscount {
+    final pack = _selectedPack;
+    if (pack != null) return pack.discountPercent;
+    return widget.item.hasDiscount ? widget.item.discountPercent : null;
+  }
+
+  /// The headline price is a "from" figure whenever it's the cheapest of
+  /// several rather than *the* price: stores disagreeing on the selected pack,
+  /// or no pack pinned and the figure derived from the cheapest store.
+  bool get _priceIsFrom {
+    final pack = _selectedPack;
+    if (pack != null) return pack.hasPriceRange;
+    return widget.item.price == null && _stores.isNotEmpty;
+  }
+
+  List<StoreMatch> get _visibleStores {
+    final id = _selectedVariantId;
+    if (id == null || id.isEmpty) return _stores;
+    return _stores.where((s) => s.stocksVariant(id)).toList();
+  }
+
+  num _storePrice(StoreMatch store) =>
+      store.optionFor(_selectedVariantId)?.sellingPrice ?? store.minSellingPrice;
+
   @override
   Widget build(BuildContext context) {
-    final green = Colors.green.shade700;
     final maxHeight = MediaQuery.of(context).size.height * 0.92;
+    final specs = _specRows();
+    final description = _description;
 
     return Container(
       constraints: BoxConstraints(maxHeight: maxHeight),
@@ -144,11 +278,19 @@ class _ProductInquirySheetState extends State<_ProductInquirySheet> {
                   bottom: SizeConfig.size16 +
                       MediaQuery.of(context).padding.bottom),
               children: [
-                _productHero(green),
-                _sectionDivider(),
-                _variantsSection(),
-                _sectionDivider(),
-                _highlightsSection(),
+                _productHero(),
+                if (_packs.isNotEmpty) ...[
+                  _sectionDivider(),
+                  _packSection(),
+                ],
+                if (description != null) ...[
+                  _sectionDivider(),
+                  _descriptionSection(description),
+                ],
+                if (specs.isNotEmpty) ...[
+                  _sectionDivider(),
+                  _specsSection(specs),
+                ],
                 _sectionDivider(),
                 _sellersSection(),
               ],
@@ -179,7 +321,7 @@ class _ProductInquirySheetState extends State<_ProductInquirySheet> {
         children: [
           Expanded(
             child: CustomText(
-              'Product Details',
+              AppStrings.productDetails,
               fontSize: SizeConfig.large18,
               fontWeight: FontWeight.w700,
               color: AppColors.mainTextColor,
@@ -190,7 +332,8 @@ class _ProductInquirySheetState extends State<_ProductInquirySheet> {
             onTap: () => Navigator.of(context).maybePop(),
             child: const Padding(
               padding: EdgeInsets.all(6),
-              child: Icon(Icons.close, size: 22, color: AppColors.secondaryTextColor),
+              child:
+                  Icon(Icons.close, size: 22, color: AppColors.secondaryTextColor),
             ),
           ),
         ],
@@ -198,9 +341,13 @@ class _ProductInquirySheetState extends State<_ProductInquirySheet> {
     );
   }
 
-  // ── Product hero: photo, name, rating, pricing, discount ─────────────────
-  Widget _productHero(Color green) {
+  // ── Product hero: photo, name, brand, rating, pricing ────────────────────
+  Widget _productHero() {
     final item = widget.item;
+    // The pack's own flag is the more specific truth; the product's is the
+    // fallback. Null on both => not a food item, or simply not declared.
+    final isVeg = _selectedPack?.isVegetarian ?? _detail?.isVegetarian;
+
     return Padding(
       padding: EdgeInsets.fromLTRB(
           SizeConfig.size16, SizeConfig.size16, SizeConfig.size16, 0),
@@ -213,18 +360,32 @@ class _ProductInquirySheetState extends State<_ProductInquirySheet> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CustomText(
-                  item.title.isNotEmpty ? item.title : 'Product name',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.mainTextColor,
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (isVeg != null) ...[
+                      Padding(
+                        padding: const EdgeInsets.only(top: 3, right: 6),
+                        child: _vegMark(isVeg),
+                      ),
+                    ],
+                    Expanded(
+                      child: CustomText(
+                        item.title,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.mainTextColor,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
-                if (item.subtitle != null && item.subtitle!.trim().isNotEmpty) ...[
+                // `subtitle` is the brand/shop the search service attaches.
+                if ((item.subtitle?.trim().isNotEmpty ?? false)) ...[
                   const SizedBox(height: 2),
                   CustomText(
-                    'in ${item.subtitle!.trim()}',
+                    item.subtitle!.trim(),
                     fontSize: SizeConfig.small,
                     fontWeight: FontWeight.w600,
                     color: AppColors.secondaryTextColor,
@@ -232,12 +393,14 @@ class _ProductInquirySheetState extends State<_ProductInquirySheet> {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ],
-                const SizedBox(height: 8),
-                _ratingBadge(green),
-                const SizedBox(height: 10),
-                _priceRow(green),
-                const SizedBox(height: 4),
-                _bankOfferRow(),
+                if (item.rating != null) ...[
+                  const SizedBox(height: 8),
+                  _ratingBadge(item.rating!, item.ratingCount),
+                ],
+                if (_displayPrice != null) ...[
+                  const SizedBox(height: 10),
+                  _priceRow(),
+                ],
               ],
             ),
           ),
@@ -252,8 +415,12 @@ class _ProductInquirySheetState extends State<_ProductInquirySheet> {
       height: 140,
       color: AppColors.whiteF9,
       alignment: Alignment.center,
-      child: const Icon(Icons.shopping_bag_outlined,
-          color: AppColors.secondaryTextColor, size: 34),
+      child: Icon(
+          _isGrocery
+              ? Icons.local_grocery_store_outlined
+              : Icons.shopping_bag_outlined,
+          color: AppColors.secondaryTextColor,
+          size: 34),
     );
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
@@ -276,15 +443,34 @@ class _ProductInquirySheetState extends State<_ProductInquirySheet> {
     );
   }
 
-  Widget _ratingBadge(Color green) {
-    final item = widget.item;
-    final rating = item.rating ?? 4.4;
+  /// The FSSAI-style veg / non-veg mark, shown only when the variant declares
+  /// `isVegetarian`.
+  Widget _vegMark(bool isVeg) {
+    final color = isVeg ? _green : AppColors.red00;
+    return Container(
+      width: 14,
+      height: 14,
+      decoration: BoxDecoration(
+        border: Border.all(color: color, width: 1.4),
+        borderRadius: BorderRadius.circular(3),
+      ),
+      child: Center(
+        child: Container(
+          width: 6,
+          height: 6,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+      ),
+    );
+  }
+
+  Widget _ratingBadge(double rating, int? ratingCount) {
     return Row(
       children: [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
           decoration: BoxDecoration(
-            color: green,
+            color: _green,
             borderRadius: BorderRadius.circular(4),
           ),
           child: Row(
@@ -299,85 +485,51 @@ class _ProductInquirySheetState extends State<_ProductInquirySheet> {
             ],
           ),
         ),
-        const SizedBox(width: 6),
-        CustomText('(${item.ratingCount ?? 2318})',
-            fontSize: SizeConfig.small, color: AppColors.secondaryTextColor),
-        const SizedBox(width: 8),
-        Icon(Icons.verified, size: 16, color: AppColors.blue5CAF),
-        const SizedBox(width: 2),
-        CustomText('Assured',
-            fontSize: SizeConfig.small,
-            fontWeight: FontWeight.w700,
-            color: AppColors.blue5CAF),
+        if (ratingCount != null) ...[
+          const SizedBox(width: 6),
+          CustomText('($ratingCount)',
+              fontSize: SizeConfig.small, color: AppColors.secondaryTextColor),
+        ],
+        if (widget.item.assured) ...[
+          const SizedBox(width: 8),
+          const Icon(Icons.verified, size: 16, color: AppColors.blue5CAF),
+          const SizedBox(width: 2),
+          CustomText('Assured',
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w700,
+              color: AppColors.blue5CAF),
+        ],
       ],
     );
   }
 
-  Widget _priceRow(Color green) {
-    final item = widget.item;
-    final price = item.price != null
-        ? '₹${SearchResponse.formatPrice(item.price)}'
-        : '₹19,999';
+  Widget _priceRow() {
+    final price = _displayPrice!;
+    final mrp = _displayMrp;
+    final discount = _displayDiscount;
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        if (item.hasDiscount) ...[
-          Icon(Icons.arrow_downward, size: 14, color: green),
-          CustomText('${item.discountPercent}%',
+        if (discount != null && mrp != null) ...[
+          Icon(Icons.arrow_downward, size: 14, color: _green),
+          CustomText('$discount%',
               fontSize: SizeConfig.medium,
               fontWeight: FontWeight.w700,
-              color: green),
+              color: _green),
           const SizedBox(width: 6),
-          CustomText('₹${SearchResponse.formatPrice(item.mrp)}',
-              fontSize: SizeConfig.small,
-              color: AppColors.secondaryTextColor,
-              decoration: TextDecoration.lineThrough),
-          const SizedBox(width: 6),
-        ] else if (item.price == null) ...[
-          Icon(Icons.arrow_downward, size: 14, color: green),
-          CustomText('37%',
-              fontSize: SizeConfig.medium,
-              fontWeight: FontWeight.w700,
-              color: green),
-          const SizedBox(width: 6),
-          CustomText('₹31,999',
+          CustomText('₹${SearchResponse.formatPrice(mrp)}',
               fontSize: SizeConfig.small,
               color: AppColors.secondaryTextColor,
               decoration: TextDecoration.lineThrough),
           const SizedBox(width: 6),
         ],
-        CustomText(price,
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: AppColors.mainTextColor),
-      ],
-    );
-  }
-
-  Widget _bankOfferRow() {
-    final item = widget.item;
-    final offer = item.offerPrice != null
-        ? '₹${SearchResponse.formatPrice(item.offerPrice)} with Bank offer'
-        : '₹18,499 with Bank offer';
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-          decoration: BoxDecoration(
-            color: AppColors.blue5CAF,
-            borderRadius: BorderRadius.circular(3),
-          ),
-          child: CustomText('WOW!',
-              fontSize: SizeConfig.small,
-              fontWeight: FontWeight.w800,
-              color: AppColors.white),
-        ),
-        const SizedBox(width: 6),
         Flexible(
-          child: CustomText(offer,
-              fontSize: SizeConfig.small,
-              fontWeight: FontWeight.w600,
-              color: AppColors.blue5CAF,
+          child: CustomText(
+              '${_priceIsFrom ? 'From ' : ''}₹${SearchResponse.formatPrice(price)}',
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: AppColors.mainTextColor,
               maxLines: 1,
               overflow: TextOverflow.ellipsis),
         ),
@@ -385,58 +537,50 @@ class _ProductInquirySheetState extends State<_ProductInquirySheet> {
     );
   }
 
-  // ── Variants ─────────────────────────────────────────────────────────────
-  Widget _variantsSection() {
+  // ── Pack sizes (grocery `quantity` + `unit`) ─────────────────────────────
+  Widget _packSection() {
+    final selected = _selectedPack;
     return Padding(
       padding: EdgeInsets.symmetric(
           horizontal: SizeConfig.size16, vertical: SizeConfig.size12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          for (var g = 0; g < _variantGroups.length; g++) ...[
-            if (g > 0) const SizedBox(height: 14),
-            _variantGroupTitle(_variantGroups[g].title, g),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 10,
-              runSpacing: 10,
-              children: [
-                for (var o = 0; o < _variantGroups[g].options.length; o++)
-                  _variantChip(g, o, _variantGroups[g].options[o].label),
-              ],
-            ),
-          ],
+          Row(
+            children: [
+              CustomText(_isGrocery ? 'Pack size: ' : 'Variant: ',
+                  fontSize: SizeConfig.medium,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.mainTextColor),
+              if (selected != null)
+                Flexible(
+                  child: CustomText(selected.label,
+                      fontSize: SizeConfig.medium,
+                      fontWeight: FontWeight.w500,
+                      color: AppColors.secondaryTextColor,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis),
+                ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [for (final pack in _packs) _packChip(pack)],
+          ),
         ],
       ),
     );
   }
 
-  Widget _variantGroupTitle(String title, int groupIndex) {
-    final selected = _variantGroups[groupIndex].options[_selectedVariant[groupIndex]!];
-    return Row(
-      children: [
-        CustomText('$title: ',
-            fontSize: SizeConfig.medium,
-            fontWeight: FontWeight.w700,
-            color: AppColors.mainTextColor),
-        Flexible(
-          child: CustomText(selected.label,
-              fontSize: SizeConfig.medium,
-              fontWeight: FontWeight.w500,
-              color: AppColors.secondaryTextColor,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis),
-        ),
-      ],
-    );
-  }
+  Widget _packChip(_PackOption pack) {
+    final isSelected = _selectedVariantId == pack.variantId;
 
-  Widget _variantChip(int group, int option, String label) {
-    final isSelected = _selectedVariant[group] == option;
     return GestureDetector(
-      onTap: () => setState(() => _selectedVariant[group] = option),
+      onTap: () => setState(() => _selectedVariantId = pack.variantId),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
               ? AppColors.blue5CAF.withValues(alpha: 0.08)
@@ -447,53 +591,163 @@ class _ProductInquirySheetState extends State<_ProductInquirySheet> {
           ),
           borderRadius: BorderRadius.circular(8),
         ),
-        child: CustomText(
-          label,
-          fontSize: SizeConfig.small,
-          fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-          color: isSelected ? AppColors.blue5CAF : AppColors.mainTextColor,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CustomText(
+              pack.label,
+              fontSize: SizeConfig.small,
+              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              color: isSelected ? AppColors.blue5CAF : AppColors.mainTextColor,
+            ),
+            const SizedBox(height: 2),
+            CustomText(
+              '₹${SearchResponse.formatPrice(pack.price)}',
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w600,
+              color: AppColors.secondaryTextColor,
+            ),
+          ],
         ),
       ),
     );
   }
 
-  // ── Highlights ───────────────────────────────────────────────────────────
-  Widget _highlightsSection() {
+  // ── Description (from the product endpoint) ──────────────────────────────
+
+  /// The product blurb, or null when there is none to show. The search index
+  /// carries no description, so this only appears once the detail call lands.
+  String? get _description {
+    final text = _detail?.description?.trim();
+    return (text == null || text.isEmpty) ? null : text;
+  }
+
+  /// Long blurbs collapse behind a "Read more" so they can't push the sellers
+  /// list off the sheet.
+  static const int _descriptionClampChars = 220;
+
+  Widget _descriptionSection(String description) {
+    final isLong = description.length > _descriptionClampChars;
+    final collapsed = isLong && !_descriptionExpanded;
+
     return Padding(
       padding: EdgeInsets.symmetric(
           horizontal: SizeConfig.size16, vertical: SizeConfig.size12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CustomText('Highlights',
+          CustomText('Description',
+              fontSize: SizeConfig.large18,
+              fontWeight: FontWeight.w700,
+              color: AppColors.mainTextColor),
+          const SizedBox(height: 8),
+          CustomText(
+            description,
+            fontSize: SizeConfig.medium,
+            color: AppColors.mainTextColor,
+            height: 1.4,
+            maxLines: collapsed ? 4 : null,
+            overflow: collapsed ? TextOverflow.ellipsis : null,
+          ),
+          if (isLong)
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () =>
+                  setState(() => _descriptionExpanded = !_descriptionExpanded),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 6),
+                child: CustomText(collapsed ? 'Read more' : 'Read less',
+                    fontSize: SizeConfig.medium,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.blue5CAF),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  // ── Details (only the fields the API actually sent) ──────────────────────
+  List<MapEntry<String, String>> _specRows() {
+    final item = widget.item;
+    final rows = <MapEntry<String, String>>[];
+
+    void add(String label, String? value) {
+      final v = value?.trim();
+      if (v != null && v.isNotEmpty) rows.add(MapEntry(label, v));
+    }
+
+    add('Brand', item.brand ?? _detail?.brand);
+    add('Category', _displayCategory);
+    final pack = _selectedPack;
+    if (pack != null) add(_isGrocery ? 'Pack size' : 'Variant', pack.label);
+    add('Country of origin', _detail?.countryOfOrigin);
+    add('Available in', _availabilityLine());
+    add('Delivery by', item.deliveryBy);
+    add('Warranty', item.warranty);
+    return rows;
+  }
+
+  /// Category is a display name on most results, but some services index the
+  /// raw id instead — never surface a bare ObjectId as a product's category.
+  String? get _displayCategory {
+    final category = widget.item.category?.trim();
+    if (category == null || category.isEmpty) return null;
+    return _looksLikeObjectId(category) ? null : category;
+  }
+
+  bool _looksLikeObjectId(String value) {
+    if (value.length != 24) return false;
+    for (final c in value.codeUnits) {
+      final isDigit = c >= 0x30 && c <= 0x39;
+      final isHexLetter =
+          (c >= 0x61 && c <= 0x66) || (c >= 0x41 && c <= 0x46); // a-f / A-F
+      if (!isDigit && !isHexLetter) return false;
+    }
+    return true;
+  }
+
+  String? _availabilityLine() {
+    final city = widget.item.city?.trim() ?? '';
+    final pincode = widget.item.pincode?.trim() ?? '';
+    if (city.isNotEmpty && pincode.isNotEmpty) return '$city · $pincode';
+    if (city.isNotEmpty) return city;
+    if (pincode.isNotEmpty) return pincode;
+    return null;
+  }
+
+  Widget _specsSection(List<MapEntry<String, String>> rows) {
+    return Padding(
+      padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size16, vertical: SizeConfig.size12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CustomText('Details',
               fontSize: SizeConfig.large18,
               fontWeight: FontWeight.w700,
               color: AppColors.mainTextColor),
           const SizedBox(height: 10),
-          for (final h in _highlights)
+          for (final row in rows)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.only(top: 6, right: 8),
-                    child: Container(
-                      width: 5,
-                      height: 5,
-                      decoration: const BoxDecoration(
+                  SizedBox(
+                    width: 110,
+                    child: CustomText(row.key,
+                        fontSize: SizeConfig.medium,
                         color: AppColors.secondaryTextColor,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
+                        height: 1.35),
                   ),
                   Expanded(
-                    child: CustomText(
-                      h,
-                      fontSize: SizeConfig.medium,
-                      color: AppColors.mainTextColor,
-                      height: 1.35,
-                    ),
+                    child: CustomText(row.value,
+                        fontSize: SizeConfig.medium,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.mainTextColor,
+                        height: 1.35),
                   ),
                 ],
               ),
@@ -505,6 +759,7 @@ class _ProductInquirySheetState extends State<_ProductInquirySheet> {
 
   // ── Sellers near me ──────────────────────────────────────────────────────
   Widget _sellersSection() {
+    final count = _visibleStores.length;
     return Padding(
       padding: EdgeInsets.fromLTRB(
           SizeConfig.size16, SizeConfig.size12, SizeConfig.size16, 0),
@@ -518,9 +773,8 @@ class _ProductInquirySheetState extends State<_ProductInquirySheet> {
               const SizedBox(width: 6),
               Expanded(
                 child: CustomText(
-                    _stores.isNotEmpty
-                        ? 'Available at ${_stores.length} '
-                            'store${_stores.length == 1 ? '' : 's'} near you'
+                    count > 0
+                        ? 'Available at $count store${count == 1 ? '' : 's'} near you'
                         : 'Sellers near me',
                     fontSize: SizeConfig.large18,
                     fontWeight: FontWeight.w700,
@@ -531,8 +785,12 @@ class _ProductInquirySheetState extends State<_ProductInquirySheet> {
             ],
           ),
           const SizedBox(height: 4),
-          CustomText('Tap a store to place your order',
-              fontSize: SizeConfig.small, color: AppColors.secondaryTextColor),
+          CustomText(
+              _selectedPack != null
+                  ? 'Tap a store to order ${_selectedPack!.label}'
+                  : 'Tap a store to place your order',
+              fontSize: SizeConfig.small,
+              color: AppColors.secondaryTextColor),
           const SizedBox(height: 12),
           _sellersBody(),
         ],
@@ -560,17 +818,15 @@ class _ProductInquirySheetState extends State<_ProductInquirySheet> {
         ),
       );
     }
-    if (_stores.isEmpty) {
+    // Cheapest-first, exactly as the API sorted them.
+    final stores = _visibleStores;
+    if (stores.isEmpty) {
       return _sellersPlaceholder(
         icon: Icons.storefront_outlined,
         message: 'Not available in stores near you yet.',
       );
     }
-    return Column(
-      children: [
-        for (var i = 0; i < _stores.length; i++) _sellerCard(i, _stores[i]),
-      ],
-    );
+    return Column(children: [for (final store in stores) _sellerCard(store)]);
   }
 
   Widget _sellersPlaceholder(
@@ -597,11 +853,12 @@ class _ProductInquirySheetState extends State<_ProductInquirySheet> {
     );
   }
 
-  Widget _sellerCard(int index, StoreMatch store) {
-    final name = (store.businessName != null &&
-            store.businessName!.trim().isNotEmpty)
+  Widget _sellerCard(StoreMatch store) {
+    final name = (store.businessName?.trim().isNotEmpty ?? false)
         ? store.businessName!.trim()
         : 'Store';
+    final option = store.optionFor(_selectedVariantId);
+
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => _orderFromStore(store),
@@ -631,16 +888,21 @@ class _ProductInquirySheetState extends State<_ProductInquirySheet> {
                   Row(
                     children: [
                       CustomText(
-                          'From ₹${SearchResponse.formatPrice(store.minSellingPrice)}',
+                          '₹${SearchResponse.formatPrice(_storePrice(store))}',
                           fontSize: SizeConfig.small,
                           fontWeight: FontWeight.w700,
                           color: AppColors.mainTextColor),
-                      if (store.totalStock > 0) ...[
-                        const SizedBox(width: 8),
-                        CustomText('In stock',
-                            fontSize: SizeConfig.small,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.green.shade700),
+                      // The pack this price buys, when the store's inventory
+                      // named one.
+                      if (option?.packLabel != null) ...[
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: CustomText('/ ${option!.packLabel}',
+                              fontSize: SizeConfig.small,
+                              color: AppColors.secondaryTextColor,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis),
+                        ),
                       ],
                     ],
                   ),
@@ -675,14 +937,13 @@ class _ProductInquirySheetState extends State<_ProductInquirySheet> {
     );
   }
 
-  /// Pick this store → start the real self-pickup order flow for it (drops the
-  /// store's inventory line into the cart and opens the cart screen).
+  /// Pick this store → start the real self-pickup order flow for it, pinned to
+  /// the pack the user selected.
   void _orderFromStore(StoreMatch store) {
-    final controller = Get.isRegistered<GlobalSearchController>()
-        ? Get.find<GlobalSearchController>()
-        : Get.put(GlobalSearchController());
+    final controller = _controller;
     Navigator.of(context).maybePop();
-    controller.openProductOrder(widget.item, store: store);
+    controller.openProductOrder(widget.item,
+        store: store, variantId: _selectedVariantId);
   }
 
   Widget _sellerDp(String? url) {
@@ -710,6 +971,5 @@ class _ProductInquirySheetState extends State<_ProductInquirySheet> {
   }
 
   // ── Shared bits ──────────────────────────────────────────────────────────
-  Widget _sectionDivider() =>
-      Container(height: 8, color: AppColors.whiteF4);
+  Widget _sectionDivider() => Container(height: 8, color: AppColors.whiteF4);
 }
