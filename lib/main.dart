@@ -499,7 +499,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // flip the toggle here. Persist the OPEN intent so restoreProviderLiveState()
   // re-asserts live (re-PATCH OPEN + restart the location pinger) on the next
   // launch. Non-returning: falls through to render the "You're live!" banner so
-  // the tap opens the app. See docs/backend/AUTO_GOLIVE_FRONTEND_INTEGRATION.md.
+  // the tap opens the app. See docs/backend/RIDER_GO_LIVE_GUIDE.md.
   if (operation == 'auto_golive_opened') {
     try {
       await SharedPreferenceUtils.setSecureValue(

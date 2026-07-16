@@ -102,7 +102,7 @@ class DeliveryPartnerRepo extends BaseService {
 
   /// PUT an update to the rider's auto-go-live schedule.
   /// [params] — e.g. {'enabled': true} | {'manualOffToday': true} |
-  /// {'windowStart': '10:00', 'windowEnd': '12:00'}.
+  /// {'windowStart': '08:00', 'windowEnd': '22:00'}.
   Future<ResponseModel> updateRiderAutoGoLiveRepo(
       {required Map<String, dynamic> params}) async {
     var response = await ApiBaseHelper().putHTTP(

@@ -38,7 +38,7 @@ mixin RiderServiceApi {
   /// Rider's daily auto-go-live schedule (opt-in window).
   /// GET → current { enabled, windowStart, windowEnd, timezone, manualOffDate }.
   /// PUT → update { enabled } | { manualOffToday } | { windowStart, windowEnd }.
-  /// See docs/backend/AUTO_GOLIVE_FRONTEND_INTEGRATION.md.
+  /// See docs/backend/RIDER_GO_LIVE_GUIDE.md.
   final String ridersAutoGoLive = "rider-service/riders/auto-golive";
   // Delete a single uploaded onboarding document. [documentType] is one
   // of: aadhar | pan | dl | rc | vehicle-images | vehicle-information.

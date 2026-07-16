@@ -32,7 +32,7 @@ class PersonalProfileDetailsModel {
     isEarnServiceUser = json['isEarnServiceUser'];
     // Security-deposit go-live gate — a sibling field on the individual profile
     // (mirrors the business profile). Null / absent → treated as "allowed"
-    // (fail-open). See docs/backend/SELF_WORK_GO_LIVE_FRONTEND_INTEGRATION.md.
+    // (fail-open). See docs/backend/SELF_WORK_GO_LIVE_GUIDE.md.
     final sd = json['securityDeposit'];
     securityDeposit = sd is Map
         ? SecurityDepositStatus.fromJson(Map<String, dynamic>.from(sd))
@@ -44,7 +44,7 @@ class PersonalProfileDetailsModel {
     // cross-service consistency with the rider flag. Absent (old backend) →
     // null → treated as "not free" so the deposit stays enforced (safe default,
     // mirrors the rider `freeRideUsed` semantics). See
-    // docs/backend/SELF_WORK_FIRST_SERVICE_FREE_GUIDE.md.
+    // docs/backend/SELF_WORK_GO_LIVE_GUIDE.md.
     freeServiceUsed =
         json['freeServiceUsed'] as bool? ?? json['freeRideUsed'] as bool?;
   }

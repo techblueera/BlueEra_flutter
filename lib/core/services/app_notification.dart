@@ -2292,7 +2292,7 @@ class AppNotificationHandler {
       // with a stale lastSeen after ~5 min). Flip the toggle + start the
       // periodic location pinger so the rider is genuinely live through the
       // window. Non-returning — falls through to render the "You're live!"
-      // banner. See docs/backend/AUTO_GOLIVE_FRONTEND_INTEGRATION.md.
+      // banner. See docs/backend/RIDER_GO_LIVE_GUIDE.md.
       if (operation == 'auto_golive_opened') {
         try {
           if (Get.isRegistered<ViewPersonalDetailsController>()) {
@@ -2318,7 +2318,7 @@ class AppNotificationHandler {
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       // Tapping the auto-go-live banner (app was backgrounded but alive)
       // re-asserts live state + restarts the location pinger, same as the
-      // foreground path. See AUTO_GOLIVE_FRONTEND_INTEGRATION.md.
+      // foreground path. See RIDER_GO_LIVE_GUIDE.md.
       final op = (message.data['operation'] ?? '').toString().toLowerCase();
       if (op == 'auto_golive_opened') {
         try {

@@ -822,7 +822,15 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       // at boot, so businessTypeGlobal is non-empty and we render immediately
       // — the loader only ever shows in the brief post-login fetch window.
       final ready = businessCtrl.isBusinessProfileReady.value;
-      if (businessTypeGlobal.isEmpty && !ready) {
+      // ALSO subscribe to the in-flight flag: `businessTypeGlobal` is a
+      // non-reactive global, so without this the Obx would never rebuild when a
+      // LATER profile fetch changes the data — the true→false flip on completion
+      // is what re-runs _buildBusinessScreen() against the fresh globals.
+      final fetching = businessCtrl.isMeProfileFetching.value;
+      // Loader ONLY when there's no usable data yet (first load / account
+      // switch) and a fetch is still settling. With data present we keep the
+      // real screen on-screen even during a background refresh (no flashing).
+      if (businessTypeGlobal.isEmpty && (fetching || !ready)) {
         return const _MeTabLoading();
       }
       return _buildBusinessScreen();
@@ -945,7 +953,15 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       // non-success response / logged-out early return, which would otherwise
       // strand this loader forever.
       final ready = viewPersonalDetailsController.isPersonalProfileReady.value;
-      if (userProfileTypeGlobal.isEmpty && !ready) {
+      // ALSO subscribe to the in-flight flag: `userProfileTypeGlobal` is a
+      // non-reactive global, so without this the Obx would never rebuild when a
+      // LATER profile fetch changes the data — the true→false flip on completion
+      // is what re-runs _buildIndividualScreen() against the fresh globals.
+      final fetching = viewPersonalDetailsController.isMeProfileFetching.value;
+      // Loader ONLY when there's no usable data yet (first load / account
+      // switch) and a fetch is still settling. With data present we keep the
+      // real screen on-screen even during a background refresh (no flashing).
+      if (userProfileTypeGlobal.isEmpty && (fetching || !ready)) {
         return const _MeTabLoading();
       }
       return _buildIndividualScreen();

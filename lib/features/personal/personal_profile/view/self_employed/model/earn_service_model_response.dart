@@ -432,7 +432,7 @@ class SocialLinks {
 
 /// Security-deposit go-live status for a selfWork service. Mirrors the backend
 /// `securityDeposit` object 1:1 (see
-/// docs/backend/SELF_WORK_GO_LIVE_FRONTEND_INTEGRATION.md).
+/// docs/backend/SELF_WORK_GO_LIVE_GUIDE.md).
 ///
 /// Fail-open by construction: [paid] defaults to `true`, so a missing/partial
 /// object never traps a provider offline.

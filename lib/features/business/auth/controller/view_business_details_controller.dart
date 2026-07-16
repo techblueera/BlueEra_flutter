@@ -98,6 +98,13 @@ class ViewBusinessDetailsController extends GetxController
   /// without a reactive signal it would render the fallback once and never
   /// rebuild when the background fetch lands.
   final RxBool isBusinessProfileReady = false.obs;
+
+  /// True while a business-profile network fetch is in flight. The "Me" tab
+  /// watches this so it can (a) show the loader when there's no data yet and a
+  /// fetch is running, and (b) REBUILD to the correct screen class when the
+  /// fetch completes — `businessTypeGlobal` is non-reactive, so this true→false
+  /// flip is the rebuild trigger. Toggled in [_fetchBusinessProfile].
+  final RxBool isMeProfileFetching = false.obs;
   Rx<ApiResponse> businessProductResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> businessServiceResponse = ApiResponse.initial('Initial').obs;
   Rx<ApiResponse> businessFoodResponse = ApiResponse.initial('Initial').obs;
@@ -249,6 +256,10 @@ class ViewBusinessDetailsController extends GetxController
   }
 
   Future<void> _fetchBusinessProfile({bool silent = false}) async {
+    // Mark the fetch in-flight so the "Me" tab can show its loader (when there's
+    // no data yet) and rebuild to the correct screen class on completion.
+    isMeProfileFetching.value = true;
+    try {
     await getUserLoginBusinessId();
 logs("BUSINESS ID=== ${businessId}");
     // 1. Show cached business profile (if any) immediately so the UI
@@ -285,6 +296,11 @@ logs("BUSINESS ID=== ${businessId}");
       //   commonSnackBar(
       //       message: responseModel.message ?? AppStrings.somethingWentWrong);
       // }
+    }
+    } finally {
+      // Cleared last — AFTER the globals were applied above — so the "Me" tab's
+      // rebuild (driven by this true→false flip) reads fresh data.
+      isMeProfileFetching.value = false;
     }
   }
 
