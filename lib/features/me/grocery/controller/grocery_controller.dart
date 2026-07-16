@@ -249,10 +249,15 @@ class GroceryController extends GetxController {
                 sellingPrice: num.tryParse(sellingPrice),
               );
             }
+            // The edited `variant` is the SAME object held by both the product's
+            // variant list AND `selectedProductVariants` (toggleVariant stores
+            // the reference, not a copy), so the model is already updated. But
+            // the in-place mutation notifies nothing — refresh both reactive
+            // collections so the variant row's Obx rebuilds and shows the new
+            // MRP / selling price whether or not the variant is selected.
+            selectedProductVariants.refresh();
+            selectedGroceries.refresh();
             Get.back();
-            // variant.pricing?[0].mrp = int.tryParse(mrp);
-            // variant.pricing?[0].sellingPrice = int.tryParse(sellingPrice);
-            // refresh();
           },
         );
       },

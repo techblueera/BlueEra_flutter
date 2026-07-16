@@ -280,10 +280,10 @@ class _ProfessionConsultantDiscoverScreenState extends State<ProfessionConsultan
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(height: SizeConfig.size8),
-          // Segmented capsule — three equal-width filter segments
-          // (Nearest / Experienced / Price Low→High). Tapping just
-          // mutates `selectedFilter`; the Obx below re-sorts the
-          // loaded list client-side. No refetch needed.
+          // Compact sort chips (Nearest / Experienced / Price Low→High) — the
+          // shared [FilterCapsule], same control the self-profession Discover
+          // list uses. Tapping just mutates `selectedFilter`; the Obx below
+          // re-sorts the loaded list client-side. No refetch needed.
           Obx(() => FilterCapsule(
                 filters: controller.filters,
                 selected: controller.selectedFilter.value,

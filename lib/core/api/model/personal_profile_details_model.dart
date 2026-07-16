@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:BlueEra/core/api/model/marketing_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/earn_service_model_response.dart';
 
 PersonalProfileDetailsModel personalProfileDetailsModelFromJson(String str) =>
@@ -139,6 +140,7 @@ class User {
     this.pincode,
     this.address,
     this.createdAt,
+    this.marketingCard,
   });
 
   User.fromJson(dynamic json) {
@@ -177,6 +179,8 @@ class User {
     pincode = json['pincode'];
     address = json['address'];
     createdAt = json['created_at'];
+    // Backend nests the share poster INSIDE the user object (not top-level).
+    marketingCard = MarketingCard.fromRaw(json['marketing_card']);
   }
 
   String? id;
@@ -215,6 +219,7 @@ class User {
   num? pincode;
   String? address;
   String? createdAt;
+  MarketingCard? marketingCard;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};

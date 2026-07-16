@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -10,7 +11,20 @@ import 'package:BlueEra/features/common/Discover/view/widget/rounded_view_all_bt
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+
+/// Uniform store-card dimensions — shared by the card, its shimmer, and the
+/// carousel row height so every card is the same size and the row never leaves
+/// dead space below the cards.
+const double _kCardWidth = 185;
+const double _kCardHeight = 254;
+const double _kCardImageHeight = 105;
+
+/// Carousel row height = exactly the card height, so the space above the row
+/// (title gap) and below it (section padding) stay symmetric. The card's drop
+/// shadow is allowed to paint past the row via the list's `Clip.none`.
+const double _kRowHeight = _kCardHeight;
 
 /// Horizontally scrolling carousel of the user's recently-visited stores
 /// ("order again"). Backed by [RecentShopsController], which compiles the
@@ -52,9 +66,18 @@ class _RecentlyVisitedStoresSectionState
         return const SizedBox.shrink();
       }
 
+      // White rounded card matching the other Discover sections. It lives INSIDE
+      // the widget (not in the parent's wrapper) so an empty rail still collapses
+      // to SizedBox.shrink() above — no leftover white card or gap. The bottom
+      // margin gives the same inter-section spacing the wrapped cards get.
       return Container(
         width: double.infinity,
+        margin: EdgeInsets.only(bottom: SizeConfig.size12),
         padding: EdgeInsets.symmetric(vertical: SizeConfig.size16),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(10),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -75,13 +98,14 @@ class _RecentlyVisitedStoresSectionState
                 ],
               ),
             ),
-            SizedBox(height: SizeConfig.size16),
+            SizedBox(height: SizeConfig.size14),
             SizedBox(
-              height: 230,
+              height: _kRowHeight,
               child: loading
                   ? _loadingRow()
                   : ListView.separated(
                       scrollDirection: Axis.horizontal,
+                      clipBehavior: Clip.none,
                       padding:
                           EdgeInsets.symmetric(horizontal: SizeConfig.size16),
                       itemCount: shops.length,
@@ -102,6 +126,7 @@ class _RecentlyVisitedStoresSectionState
   Widget _loadingRow() {
     return ListView.separated(
       scrollDirection: Axis.horizontal,
+      clipBehavior: Clip.none,
       padding: EdgeInsets.symmetric(horizontal: SizeConfig.size16),
       itemCount: 3,
       separatorBuilder: (_, __) => SizedBox(width: SizeConfig.size12),
@@ -115,22 +140,27 @@ class _RecentlyVisitedStoresSectionState
   Widget _shimmerCard() {
     return buildLoadingShimmer(
       child: SizedBox(
-        width: 190,
+        width: _kCardWidth,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            shimmerContainer(height: 120, width: 190, radius: 14),
+            shimmerContainer(
+                height: _kCardImageHeight, width: _kCardWidth, radius: 16),
             const SizedBox(height: 10),
-            shimmerContainer(height: 14, width: 120, radius: 4),
-            const SizedBox(height: 8),
-            shimmerContainer(height: 10, width: 90, radius: 4),
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                Expanded(child: shimmerContainer(height: 26, radius: 6)),
-                const SizedBox(width: 6),
-                Expanded(child: shimmerContainer(height: 26, radius: 6)),
-              ],
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 11),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  shimmerContainer(height: 14, width: 120, radius: 4),
+                  const SizedBox(height: 7),
+                  shimmerContainer(height: 10, width: 80, radius: 4),
+                  const SizedBox(height: 12),
+                  shimmerContainer(height: 30, width: 118, radius: 9),
+                  const SizedBox(height: 6),
+                  shimmerContainer(height: 30, width: 132, radius: 9),
+                ],
+              ),
             ),
           ],
         ),
@@ -145,6 +175,35 @@ class _StoreCard extends StatelessWidget {
 
   const _StoreCard({required this.shop, required this.onTap});
 
+  /// Compact count: 10 → "10", 10000 → "10K", 250000 → "2.5L".
+  String _compact(int n) {
+    if (n >= 100000) {
+      return '${(n / 100000).toStringAsFixed(n % 100000 == 0 ? 0 : 1)}L';
+    }
+    if (n >= 1000) {
+      return '${(n / 1000).toStringAsFixed(n % 1000 == 0 ? 0 : 1)}K';
+    }
+    return '$n';
+  }
+
+  /// "X Km Away" computed from the shop coords + the user's current location;
+  /// falls back to the city/address line when either coordinate is unavailable.
+  String? _distanceOrLocation(BusinessSummary? biz, String location) {
+    final lat = biz?.lat;
+    final lon = biz?.lon;
+    final ulat = LocationService.lat;
+    final ulng = LocationService.lng;
+    if (lat != null &&
+        lon != null &&
+        !(lat == 0 && lon == 0) &&
+        !(ulat == 0 && ulng == 0)) {
+      final km = Geolocator.distanceBetween(ulat, ulng, lat, lon) / 1000;
+      final text = km < 10 ? km.toStringAsFixed(1) : km.toStringAsFixed(0);
+      return '$text Km Away';
+    }
+    return location.isNotEmpty ? location : null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final biz = shop.business;
@@ -152,29 +211,39 @@ class _StoreCard extends StatelessWidget {
     final location = (biz?.cityStatePincode?.isNotEmpty ?? false)
         ? biz!.cityStatePincode!
         : (biz?.address ?? '');
+    final subLine = _distanceOrLocation(biz, location);
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Container(
-        width: 190,
+        width: _kCardWidth,
+        height: _kCardHeight,
         decoration: BoxDecoration(
           color: AppColors.white,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: const Color(0xFFE8ECF4)),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFEDEFF4)),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x14101828),
+              blurRadius: 12,
+              offset: Offset(0, 4),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // ─── Cover image + rating pill + chat button ───
             Stack(
               children: [
                 ClipRRect(
                   borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(14)),
+                      const BorderRadius.vertical(top: Radius.circular(16)),
                   child: logo.isNotEmpty
                       ? CachedNetworkImage(
                           imageUrl: logo,
-                          height: 120,
+                          height: _kCardImageHeight,
                           width: double.infinity,
                           fit: BoxFit.cover,
                           placeholder: (_, __) => _imageFallback(),
@@ -187,22 +256,29 @@ class _StoreCard extends StatelessWidget {
                     top: 8,
                     left: 8,
                     child: Container(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 7, vertical: 3),
                       decoration: BoxDecoration(
                         color: AppColors.white,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0x1A101828),
+                            blurRadius: 6,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const Icon(Icons.star,
-                              color: Color(0xFFFFB300), size: 14),
+                              color: Color(0xFFFFB300), size: 13),
                           const SizedBox(width: 2),
                           CustomText(
                             biz!.avgRating!.toStringAsFixed(1),
                             fontSize: SizeConfig.small,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w800,
                             color: AppColors.mainTextColor,
                           ),
                         ],
@@ -213,74 +289,81 @@ class _StoreCard extends StatelessWidget {
                   top: 8,
                   right: 8,
                   child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: const BoxDecoration(
+                    padding: const EdgeInsets.all(7),
+                    decoration: BoxDecoration(
                       color: AppColors.white,
                       shape: BoxShape.circle,
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x1A101828),
+                          blurRadius: 6,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: LocalAssets(
                       imagePath: AppIconAssets.chat,
-                      height: 16,
-                      width: 16,
+                      height: 15,
+                      width: 15,
                       imgColor: AppColors.primaryColor,
                     ),
                   ),
                 ),
               ],
             ),
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CustomText(
-                    shop.displayName,
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.mainTextColor,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (location.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(Icons.location_on,
-                            size: 14, color: AppColors.primaryColor),
-                        const SizedBox(width: 2),
-                        Expanded(
-                          child: CustomText(
-                            location,
-                            fontSize: SizeConfig.small,
-                            color: AppColors.secondaryTextColor,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
+            // ─── Name → distance → dashed divider → stacked stat pills ───
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(11, 9, 11, 9),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CustomText(
+                      shop.displayName,
+                      fontSize: SizeConfig.medium,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.mainTextColor,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                  ],
-                  const SizedBox(height: 10),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _StatChip(
-                          icon: Icons.receipt_long_outlined,
-                          value: '${shop.orderCount}',
-                          label: 'Orders',
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: _StatChip(
-                          icon: Icons.inventory_2_outlined,
-                          value: '${shop.distinctProducts}',
-                          label: 'Products',
-                        ),
+                    if (subLine != null) ...[
+                      const SizedBox(height: 5),
+                      Row(
+                        children: [
+                          const Icon(Icons.location_on,
+                              size: 14, color: AppColors.primaryColor),
+                          const SizedBox(width: 2),
+                          Expanded(
+                            child: CustomText(
+                              subLine,
+                              fontSize: SizeConfig.small,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primaryColor,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
-                  ),
-                ],
+                    const SizedBox(height: 10),
+                    const _DashedDivider(),
+                    const SizedBox(height: 10),
+                    _StatRow(
+                      iconAsset: AppIconAssets.staggeredIcon,
+                      iconColor: const Color(0xFF9964F4),
+                      value: _compact(shop.orderCount),
+                      label: 'Orders',
+                    ),
+                    const SizedBox(height: 6),
+                    _StatRow(
+                      iconAsset: AppIconAssets.productCartIcon,
+                      iconColor: const Color(0xFF6179CD),
+                      value: _compact(shop.distinctProducts),
+                      label: 'Products',
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -290,54 +373,102 @@ class _StoreCard extends StatelessWidget {
   }
 
   Widget _imageFallback() => Container(
-        height: 120,
+        height: _kCardImageHeight,
         width: double.infinity,
         color: AppColors.lightBlue,
         alignment: Alignment.center,
         child: const Icon(Icons.storefront_outlined,
-            size: 36, color: AppColors.primaryColor),
+            size: 34, color: AppColors.primaryColor),
       );
 }
 
-class _StatChip extends StatelessWidget {
-  final IconData icon;
+/// One compact stat pill that HUGS its content (icon + value + label),
+/// left-aligned — a tinted rounded-square branded icon in a hairline-bordered
+/// rounded rectangle. Matches the reference's stacked "Category / Product" rows.
+class _StatRow extends StatelessWidget {
+  final String iconAsset;
+  final Color iconColor;
   final String value;
   final String label;
 
-  const _StatChip(
-      {required this.icon, required this.value, required this.label});
+  const _StatRow({
+    required this.iconAsset,
+    required this.iconColor,
+    required this.value,
+    required this.label,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
+      padding: const EdgeInsets.fromLTRB(6, 4, 10, 4),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: const Color(0xFFE8ECF4)),
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(9),
+        border: Border.all(color: const Color(0xFFEDEFF4)),
       ),
+      // Hugs its content — NOT full width.
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 13, color: AppColors.secondaryTextColor),
-          const SizedBox(width: 4),
+          Container(
+            width: 22,
+            height: 22,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: LocalAssets(
+              imagePath: iconAsset,
+              width: 13,
+              height: 13,
+              imgColor: iconColor,
+            ),
+          ),
+          const SizedBox(width: 7),
           CustomText(
             value,
             fontSize: SizeConfig.small,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w800,
             color: AppColors.mainTextColor,
           ),
-          const SizedBox(width: 3),
-          Flexible(
-            child: CustomText(
-              label,
-              fontSize: SizeConfig.small,
-              color: AppColors.secondaryTextColor,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
+          const SizedBox(width: 4),
+          CustomText(
+            label,
+            fontSize: SizeConfig.small,
+            fontWeight: FontWeight.w500,
+            color: AppColors.secondaryTextColor,
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Thin full-width dashed rule separating the identity block from the stats.
+class _DashedDivider extends StatelessWidget {
+  const _DashedDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        const dashWidth = 4.0;
+        const dashGap = 3.0;
+        final count = (constraints.maxWidth / (dashWidth + dashGap)).floor();
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: List.generate(
+            count,
+            (_) => Container(
+              width: dashWidth,
+              height: 1,
+              color: const Color(0xFFDDE2EC),
+            ),
+          ),
+        );
+      },
     );
   }
 }

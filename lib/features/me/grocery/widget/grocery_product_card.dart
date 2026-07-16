@@ -75,11 +75,20 @@ class GroceryProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final price = _groceryController.getPriceDetails(
-      groceryProducts.variants?.isNotEmpty == true
-          ? groceryProducts.variants![0].pricing
-          : null,
-    );
+    final firstVariant = (groceryProducts.variants?.isNotEmpty ?? false)
+        ? groceryProducts.variants![0]
+        : null;
+    // Show the MERCHANT'S INVENTORY price (variant.inventory.batches — what the
+    // store actually sells at), NOT the catalog variant price
+    // (variant.pricing). Fall back to the variant pricing only when the variant
+    // has no inventory batches yet. (Same rule as the top-selling card.)
+    final invBatches = firstVariant?.inventory?.batches;
+    final pricingSource = (invBatches != null && invBatches.isNotEmpty)
+        ? invBatches
+            .map((b) => Pricing(mrp: b.mrp, sellingPrice: b.sellingPrice))
+            .toList()
+        : firstVariant?.pricing;
+    final price = _groceryController.getPriceDetails(pricingSource);
     final productImageUrl = groceryProducts.images?.isNotEmpty == true
         ? groceryProducts.images![0].url
         : null;

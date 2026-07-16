@@ -18,7 +18,8 @@ class RecentShopsController extends GetxController {
   /// "still loading" from "loaded, but empty").
   final RxBool loaded = false.obs;
 
-  final FetchCache _cache = FetchCache();
+  // 24h freshness — Discover offers pull-to-refresh to force an update sooner.
+  final FetchCache _cache = FetchCache(ttl: const Duration(hours: 24));
 
   /// Which verticals to compile the "recently visited" rail from.
   static const List<GroceryVertical> _verticals = [

@@ -179,6 +179,12 @@ class AppImageAssets {
   static String fashionLifestyle = "${imgPath}fashion_lifestyle.png";
   static String artCrafts = "${imgPath}art_crafts.png";
   static String utilityProducts = "${imgPath}utility_products.png";
+
+  // Home Made Foods
+  static String tiffin = "${imgPath}tiffin.png";
+  static String namkeens = "${imgPath}namkeens.png";
+  static String pickels = "${imgPath}pickels.png";
+  static String sweets = "${imgPath}sweets.png";
 }
 
 class OnboardingIndividualAssets{

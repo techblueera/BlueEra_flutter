@@ -98,7 +98,7 @@ final List<CollapsibleGridModel> discoverHomeMadeFoodCategories = [
   CollapsibleGridModel(
     name: 'Tiffin',
     slugId: 'HOME_MADE_FOOD',
-    icon: AppImageAssets.homeMadeFoodDiscover,
+    icon: AppImageAssets.tiffin,
   ),
   CollapsibleGridModel(
     name: 'Bakery',
@@ -108,17 +108,17 @@ final List<CollapsibleGridModel> discoverHomeMadeFoodCategories = [
   CollapsibleGridModel(
     name: 'Sweets',
     slugId: 'HOME_MADE_FOOD',
-    icon: OnboardingBusinessAssets.sweetNamkeenShop,
+    icon: AppImageAssets.sweets,
   ),
   CollapsibleGridModel(
     name: 'Namkeen',
     slugId: 'HOME_MADE_FOOD',
-    icon: OnboardingBusinessAssets.sweetNamkeenShop,
+    icon: AppImageAssets.namkeens,
   ),
   CollapsibleGridModel(
     name: 'Pickles',
     slugId: 'HOME_MADE_FOOD',
-    icon: AppImageAssets.homeMadeFoodDiscover,
+    icon: AppImageAssets.pickels,
   ),
 ];
 
