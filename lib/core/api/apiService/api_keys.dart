@@ -381,6 +381,12 @@ class ApiKeys {
   static const addProductViaAiRequest = "addProductViaAiRequest";
   static const cursor = "cursor";
   static const content_types = "content_types";
+
+  /// The `/feed` endpoint spells longitude `long`, not `lon`/`lng`. Sending the
+  /// wrong spelling silently drops all `business` items from the response —
+  /// they are gated on lat/long being present. See
+  /// docs/backend/FRONTEND_FEED_INTEGRATION.md §1 and §6.1.
+  static const long = "long";
   static const controller = "controller";
   static const addProductViaAiController = "addProductViaAiController";
   static const product_details = "product_details";
@@ -630,6 +636,9 @@ class ApiKeys {
   static const argProductGroup = 'argProductGroup';
   static const medicalOtcChildren = 'medicalOtcItems';
   static const documentType = 'documentType';
+  // Multipart field names of the AI document-verification endpoint.
+  static const documentName = 'document_name';
+  static const documentNumber = 'document_number';
   static const value = 'value';
   static const success = 'success';
   static const argOrderId = 'argOrderId';

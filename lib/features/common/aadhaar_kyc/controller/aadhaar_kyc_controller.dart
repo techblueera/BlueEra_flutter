@@ -50,6 +50,14 @@ class AadhaarKycController extends GetxController {
   /// Mandatory consent — must be explicitly ticked (never pre-ticked).
   final RxBool consentGiven = false.obs;
 
+  /// Set once OTP verification has failed for any reason — the number was
+  /// rejected, the OTP was wrong or undelivered, the provider was down. Hosts
+  /// use it to offer the manual (image-based) fallback.
+  ///
+  /// Sticky for the rest of the flow: a user who has hit one OTP failure keeps
+  /// the escape hatch even if they go back and edit the number.
+  final RxBool otpFailed = false.obs;
+
   /// reference_id returned by generate-otp; sent back with the OTP on verify.
   String referenceId = '';
 
@@ -78,6 +86,7 @@ class AadhaarKycController extends GetxController {
     otpController.clear();
     referenceId = '';
     consentGiven.value = false;
+    otpFailed.value = false;
     isVerified.value = false;
     verifiedName.value = null;
     maskedNumber.value = null;
@@ -172,6 +181,7 @@ class AadhaarKycController extends GetxController {
       } else {
         // 200-with-success:false (e.g. "Invalid Aadhaar Card", "Please retry
         // after 30 seconds") or a real error status — surface the message.
+        otpFailed.value = true;
         final msg = (body is Map ? body['message']?.toString() : null) ??
             response.message ??
             AppStrings.somethingWentWrong;
@@ -179,6 +189,7 @@ class AadhaarKycController extends GetxController {
       }
     } catch (e, s) {
       debugPrint('❌ AadhaarKyc.generateOtp error: $e\n$s');
+      otpFailed.value = true;
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       isOtpSending.value = false;
@@ -235,6 +246,7 @@ class AadhaarKycController extends GetxController {
         stage.value = AadhaarStage.verified;
       } else {
         // "Invalid OTP" / "OTP expired" / "No pending OTP request found" etc.
+        otpFailed.value = true;
         final msg = (body is Map ? body['message']?.toString() : null) ??
             response.message ??
             AppStrings.somethingWentWrong;
@@ -242,6 +254,7 @@ class AadhaarKycController extends GetxController {
       }
     } catch (e, s) {
       debugPrint('❌ AadhaarKyc.verifyOtp error: $e\n$s');
+      otpFailed.value = true;
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       isOtpVerifying.value = false;

@@ -11,7 +11,10 @@ import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
+import 'package:BlueEra/features/common/feed/widget/feed_business_card.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
+import 'package:BlueEra/features/common/feed/widget/feed_product_card.dart';
+import 'package:BlueEra/features/common/feed/widget/feed_video_card.dart';
 import 'package:BlueEra/features/common/home/controller/home_screen_controller.dart';
 import 'package:BlueEra/features/common/home/view/widget/symbol_story_row.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
@@ -135,6 +138,51 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
     await feedController.getFeed(refresh: refreshFlag ?? false);
   }
 
+  /// Renders one `/feed` item, switching on its `type` discriminator.
+  ///
+  /// This is the renderer switch the feed contract mandates (see
+  /// docs/backend/FRONTEND_FEED_INTEGRATION.md §3): `/feed` returns a
+  /// heterogeneous list and the order/ratio is backend-controlled, so we render
+  /// strictly in the order received and never assume a layout pattern.
+  ///
+  /// Unknown types fall through to an empty box on purpose — the guide (§6.5)
+  /// warns new types can appear server-side and the client must skip them
+  /// gracefully rather than crash.
+  Widget _buildFeedItem(Post item, int index) {
+    switch (item.feedType) {
+      // Text / photo / poll posts all route through FeedCard, which already
+      // branches internally (including posts whose media is video — decided on
+      // `media_types`, not `type`, per guide §6.3).
+      case 'message_post':
+      case 'image_post':
+      case 'poll_post':
+        trackPostView(item.id);
+        // FeedCard owns its internal padding; no wrapping Padding here.
+        return FeedCard(
+          post: item,
+          index: index,
+          postFilteredType: PostType.all,
+          bottomPadding: 0,
+          horizontalPadding: 0, // Set to 0 to remove side gaps
+          isRepost: false,
+        );
+
+      case 'short_video':
+      case 'long_video':
+        trackPostView(item.id);
+        return FeedVideoCard(post: item);
+
+      case 'business':
+        return FeedBusinessCard(post: item);
+
+      case 'product':
+        return FeedProductCard(post: item);
+
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
   List<FeedBlock> _buildBlocks(List<Post> items) {
     final List<FeedBlock> blocks = [];
     // final Set<String> gridTypes = {'image_post', 'short_video'};
@@ -243,22 +291,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
             final block = blocks[index];
             final item = block.items.first;
 
-            final type = item.type?.toLowerCase();
-            if (type == "message_post" || type == "poll_post") {
-              trackPostView(item.id);
-
-              // 2. Removed the wrapping Padding widget entirely to eliminate extra space.
-              // Use FeedCard's internal padding properties instead.
-              return FeedCard(
-                post: item,
-                index: index,
-                postFilteredType: PostType.all,
-                bottomPadding: 0,
-                horizontalPadding: 0, // Set to 0 to remove side gaps
-                isRepost: false,
-              );
-            }
-            return const SizedBox.shrink();
+            return _buildFeedItem(item, index);
           },
           // separatorBuilder: (BuildContext context, int index) {
           //   // 3. Cleaned up the separator - removing the redundant return and container padding
@@ -419,10 +452,12 @@ ShortFeedItem getVideoData(Post video) {
           type: video.type,
           title: video.title,
           description: video.subTitle,
-          videoUrl: video.media?.firstOrNull,
+          // `/feed` video items carry their source in `video_url` (guide §4.4);
+          // fall back to `media` for post-shaped payloads that inline the file.
+          videoUrl: (video.videoUrl?.isNotEmpty ?? false)
+              ? video.videoUrl
+              : video.media?.firstOrNull,
           coverUrl: video.thumbnail,
-          // videoUrl: video.videoUrl,
-          // coverUrl: video.thumbnail,
           createdAt: video.createdAt.toString(),
           media_height: video.media_height,
           media_width: video.media_width,

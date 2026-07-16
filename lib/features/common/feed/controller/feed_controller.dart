@@ -11,6 +11,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/home_cache_service.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/services/keyed_json_cache.dart';
 import 'package:BlueEra/features/common/auth/repo/auth_repo.dart';
 import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
@@ -1132,12 +1133,19 @@ class FeedController extends GetxController {
       // rather than append to it (which would duplicate posts).
       final bool isFirstPage = timestamp.isEmpty;
 
-      ResponseModel responseModel = await HomeFeedRepo().homeFeedRepo(queryParam: {
+      ResponseModel responseModel =
+          await HomeFeedRepo().homeFeedRepo(queryParam: {
         ApiKeys.limit: limit,
         ApiKeys.refresh: refresh.toString(),
         if (cursor.value.isNotEmpty) ApiKeys.cursor: timestamp,
-        // if (LocationService.lat > 0) ApiKeys.lat: LocationService.lat,
-        // if (LocationService.lng > 0) ApiKeys.lon: LocationService.lng,
+        // `business` items are gated on geolocation — no lat/long, no business
+        // cards in the feed at all (guide §6.1). Both must be sent together and
+        // kept on every page of the same scroll (guide §5.3). Note the endpoint
+        // spells it `long`, not `lon`/`lng`.
+        if (LocationService.hasUsableLocation) ...{
+          ApiKeys.lat: LocationService.lat,
+          ApiKeys.long: LocationService.lng,
+        },
       });
       if (responseModel.isSuccess) {
         final homeFeedResponse = HomeFeedResponse.fromJson(responseModel.response?.data);
@@ -1156,9 +1164,7 @@ class FeedController extends GetxController {
             }
           }
           cursor.value = homeFeedResponse.metaData?.next_cursor ?? "";
-          if (homeFeedResponse.feed.length < limit) {
-            hasMoreData.value = false;
-          }
+          hasMoreData.value = _resolveHasMore(homeFeedResponse);
 
           feedResponse.value = ApiResponse.complete(homeFeedResponse);
 
@@ -1189,6 +1195,27 @@ class FeedController extends GetxController {
     } finally {
       isLoadingHome.value = false;
     }
+  }
+
+  /// Whether the Social feed has another page to load.
+  ///
+  /// `meta.has_more` is authoritative (guide §5): the backend interleaves
+  /// posts/videos/business/products, so a page can come back short of [limit]
+  /// and still have more behind it — the old `feed.length < limit` heuristic
+  /// truncates the feed in exactly that case.
+  ///
+  /// We still fall back to that heuristic if the server omits `has_more`, so
+  /// this stays correct against a backend that hasn't shipped the field yet.
+  bool _resolveHasMore(HomeFeedResponse response) {
+    // The cursor is opaque and must be echoed back verbatim (guide §5). With no
+    // cursor there is no way to ask for the next page — and requesting one
+    // anyway would silently refetch page 1 and duplicate the feed.
+    if (cursor.value.isEmpty) return false;
+
+    final hasMoreFlag = response.metaData?.has_more;
+    if (hasMoreFlag != null) return hasMoreFlag;
+
+    return response.feed.length >= limit;
   }
 
   /// How long a cached Social-tab feed stays usable offline before it's treated

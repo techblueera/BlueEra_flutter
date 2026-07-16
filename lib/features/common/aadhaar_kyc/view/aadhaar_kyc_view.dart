@@ -20,9 +20,20 @@ import 'package:pinput/pinput.dart';
 /// Pass an [AadhaarKycController] whose `onVerified` bridges the result into
 /// the host flow. See docs/backend/aadhaar-verification-ui-integration.md.
 class AadhaarKycView extends StatefulWidget {
-  const AadhaarKycView({super.key, required this.controller});
+  const AadhaarKycView({
+    super.key,
+    required this.controller,
+    this.onVerifyManually,
+  });
 
   final AadhaarKycController controller;
+
+  /// Opens the host's manual (image-based) verification fallback, receiving
+  /// whatever Aadhaar number is currently typed so it can be prefilled.
+  ///
+  /// A "Verify manually" link appears once OTP verification has failed. Leave
+  /// null on hosts with no manual fallback — the link is then never shown.
+  final void Function(String enteredAadhaarNumber)? onVerifyManually;
 
   @override
   State<AadhaarKycView> createState() => _AadhaarKycViewState();
@@ -129,9 +140,46 @@ class _AadhaarKycViewState extends State<AadhaarKycView> {
               isLoading: controller.isOtpSending.value,
             ),
           ),
+          _buildManualFallback(),
         ],
       ),
     );
+  }
+
+  /// Escape hatch to manual (image-based) verification, offered only once OTP
+  /// verification has actually failed — so the OTP path stays the default and
+  /// the fallback appears exactly when it's useful.
+  Widget _buildManualFallback() {
+    final onVerifyManually = widget.onVerifyManually;
+    if (onVerifyManually == null) return const SizedBox.shrink();
+
+    return Obx(() {
+      if (!controller.otpFailed.value) return const SizedBox.shrink();
+      return Column(
+        children: [
+          SizedBox(height: SizeConfig.paddingM),
+          Divider(color: AppColors.greyE5, height: 1),
+          SizedBox(height: SizeConfig.paddingM),
+          CustomText(
+            "Can't verify with OTP?",
+            fontSize: SizeConfig.small,
+            color: AppColors.coloGreyText,
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: SizeConfig.size6),
+          InkWell(
+            onTap: () => onVerifyManually(controller.aadharController.text),
+            child: CustomText(
+              'Verify by uploading Aadhaar card',
+              fontSize: SizeConfig.small,
+              color: AppColors.primaryColor,
+              fontWeight: FontWeight.bold,
+              decoration: TextDecoration.underline,
+            ),
+          ),
+        ],
+      );
+    });
   }
 
   // ── Stage 2: enter OTP ─────────────────────────────────────────────
@@ -231,6 +279,7 @@ class _AadhaarKycViewState extends State<AadhaarKycView> {
             fontWeight: FontWeight.w600,
           ),
         ),
+        _buildManualFallback(),
       ],
     );
   }

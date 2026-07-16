@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 import 'dart:ui' as ui;
 
@@ -25,7 +26,7 @@ import 'app_colors.dart';
 
 ///SHOW APP LOGS
 logs(String logMsg) {
-  print(logMsg);
+  log(logMsg);
 }
 
 ///UN FOCUS KEYBOARD

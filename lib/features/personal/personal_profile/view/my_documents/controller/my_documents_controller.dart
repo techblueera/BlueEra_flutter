@@ -9,7 +9,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/services/multipart_image_service.dart';
+import 'package:BlueEra/core/services/ai_document_verification_service.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/model/upload_document_response.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/my_documents/repo/my_document_repo.dart';
@@ -370,6 +370,59 @@ class MyDocumentsController extends GetxController {
     }
   }
 
+  /// Bridges a successful *manual* Aadhaar verification into the
+  /// document-service, wired as the `onManualVerified` callback of
+  /// [AadhaarManualKycController].
+  ///
+  /// Unlike the OKYC path, this one carries card images that the AI verifier
+  /// has already matched against [aadhaarNumber], so it records them alongside
+  /// the number exactly like any other document upload.
+  ///
+  /// Throws on failure — the manual screen keeps the user on the form rather
+  /// than showing a success state for something that wasn't saved.
+  Future<void> recordAadhaarManualVerified(
+    String aadhaarNumber,
+    File frontImage,
+    File backImage,
+  ) async {
+    try {
+      final urls = await Future.wait([
+        _uploadToS3(frontImage),
+        _uploadToS3(backImage),
+      ]);
+      final frontUrl = urls[0];
+      final backUrl = urls[1];
+
+      if (frontUrl == null || backUrl == null) {
+        commonSnackBar(
+            message: "Image upload failed. Please check your connection.");
+        throw Exception('Aadhaar image upload failed');
+      }
+
+      final params = {
+        ApiKeys.documentType: DocumentKeys.aadhar,
+        ApiKeys.files: {
+          ApiKeys.front: frontUrl,
+          ApiKeys.back: backUrl,
+        },
+        ApiKeys.value: jsonEncode({DocumentKeys.aadhar: aadhaarNumber}),
+      };
+
+      final response = await MyDocumentRepo().addDocument(params: params);
+      if (!response.isSuccess) {
+        genericDocumentUploadResponse.value = ApiResponse.error('error');
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+        throw Exception('addDocument failed: ${response.message}');
+      }
+      genericDocumentUploadResponse.value = ApiResponse.complete(response);
+    } finally {
+      // Refresh so the Aadhaar tile picks up its new status, whether or not the
+      // record landed.
+      await fetchAllDocumentStatusApi();
+    }
+  }
+
   RxBool isGenericDocumentLoading = false.obs;
   Future<void> genericDocumentApi({
     required String documentType,
@@ -482,95 +535,37 @@ class MyDocumentsController extends GetxController {
   String? _getVerifiableDocumentName(String docType) {
     switch (docType) {
       case DocumentKeys.aadhar:
-        return "Aadhar";
+        return AiDocumentVerificationService.aadhaar;
       case DocumentKeys.pan:
-        return "PAN";
+        return AiDocumentVerificationService.pan;
       case DocumentKeys.drivingLicense:
-        return "Driving License";
+        return AiDocumentVerificationService.drivingLicense;
       case DocumentKeys.vehicleRC:
-        return "RC";
+        return AiDocumentVerificationService.vehicleRc;
       default:
         return null;
     }
   }
 
-  /// Calls the AI document-verification API. Returns true when the document is
-  /// valid (or the API could not be reached for a non-validation reason),
-  /// false when the document is rejected — in which case a snackbar with the
-  /// reason is shown to the user.
+  /// Runs the AI document check and reports the reason to the user when it
+  /// fails. Returns true only when the document was actually verified — any
+  /// rejection, network error or unreadable response returns false, so an
+  /// unverified document is never uploaded.
   Future<bool> _verifyDocument({
     required String documentName,
     required String documentNumber,
     required List<File> images,
   }) async {
-    try {
-      final imageParts = await multiPartMultipleImages(arrImages: images);
-
-      final params = <String, dynamic>{
-        'document_name': documentName,
-        'document_number': documentNumber,
-        ApiKeys.images: imageParts,
-      };
-
-      final response = await MyDocumentRepo().verifyDocument(params: params);
-
-      // Network / server error (non-2xx) — surface the message and stop.
-      if (!response.isSuccess) {
-        commonSnackBar(
-          message: (response.message?.toString().isNotEmpty ?? false)
-              ? response.message
-              : AppStrings.documentVerificationFailed,
-        );
-        return false;
-      }
-
-      // The verifier returns per-check booleans:
-      //   document_type_matches  — the image is the document we asked for
-      //   number_readable        — the number on the image is legible
-      //   document_number_matches — it matches the number the user typed
-      //   is_verified            — overall pass/fail
-      // They sit under `data` (or at the body root). Show the most actionable
-      // message for whichever check failed, and only proceed when all pass.
-      final body = response.response?.data;
-      final Map verifyData = (body is Map)
-          ? (body['data'] is Map ? body['data'] as Map : body)
-          : <String, dynamic>{};
-
-      // Missing flags default to true so documents without that check (e.g. no
-      // number entered) aren't blocked by an absent field.
-      bool flag(String key) {
-        final v = verifyData[key];
-        return v is bool ? v : true;
-      }
-
-      final documentTypeMatches = flag('document_type_matches');
-      final numberReadable = flag('number_readable');
-      final documentNumberMatches = flag('document_number_matches');
-      final isVerified = flag('is_verified');
-
-      String? failureMessage;
-      if (!documentTypeMatches) {
-        failureMessage = AppStrings.docTypeMismatch;
-      } else if (!numberReadable) {
-        failureMessage = AppStrings.docNumberNotReadable;
-      } else if (!documentNumberMatches) {
-        failureMessage = AppStrings.docNumberMismatch;
-      } else if (!isVerified) {
-        failureMessage = (response.message?.toString().isNotEmpty ?? false)
-            ? response.message
-            : AppStrings.documentVerificationFailed;
-      }
-
-      if (failureMessage != null) {
-        commonSnackBar(message: failureMessage);
-        return false;
-      }
-      return true;
-    } catch (e) {
-      log('document verification error -- $e');
-      commonSnackBar(message: AppStrings.documentVerificationFailed);
+    final result = await AiDocumentVerificationService().verify(
+      documentName: documentName,
+      documentNumber: documentNumber,
+      images: images,
+    );
+    if (!result.isValid) {
+      commonSnackBar(message: result.failureMessage!);
       return false;
     }
+    return true;
   }
 
   String getDocumentName(String docType) {
