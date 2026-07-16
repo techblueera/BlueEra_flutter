@@ -642,7 +642,7 @@ class _SpecTile extends StatelessWidget {
       padding: EdgeInsets.symmetric(
           vertical: SizeConfig.size6, horizontal: SizeConfig.size6),
       decoration: BoxDecoration(
-          color: const Color(0xFFF5F7FA),
+          // color: const Color(0xFFF5F7FA),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: AppColors.greyE5, width: 0.5)),
       child: Column(

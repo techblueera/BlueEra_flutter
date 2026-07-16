@@ -52,7 +52,8 @@ class _FinanceListScreenState extends State<FinanceListScreen> {
   Widget build(BuildContext context) {
     return Obx(() {
       if (controller.isLoading.value && controller.profiles.isEmpty) {
-        return const Center(child: CircularProgressIndicator(color: AppColors.primaryColor));
+        return const Center(
+            child: CircularProgressIndicator(color: AppColors.primaryColor));
       }
       if (controller.error.value.isNotEmpty && controller.profiles.isEmpty) {
         return Center(
@@ -83,14 +84,18 @@ class _FinanceListScreenState extends State<FinanceListScreen> {
             builder: (context) {
               final rows = buildNativeAdRows(controller.profiles.length);
               return ListView.builder(
-                itemCount: rows.length + (controller.isLoadingMore.value ? 1 : 0),
+                itemCount:
+                    rows.length + (controller.isLoadingMore.value ? 1 : 0),
                 padding: EdgeInsets.symmetric(vertical: SizeConfig.size12),
                 physics: const AlwaysScrollableScrollPhysics(),
                 itemBuilder: (context, index) {
                   if (index == rows.length) {
                     return Padding(
-                      padding: EdgeInsets.symmetric(vertical: SizeConfig.size12),
-                      child: const Center(child: CircularProgressIndicator(color: AppColors.primaryColor)),
+                      padding:
+                          EdgeInsets.symmetric(vertical: SizeConfig.size12),
+                      child: const Center(
+                          child: CircularProgressIndicator(
+                              color: AppColors.primaryColor)),
                     );
                   }
                   final row = rows[index];
@@ -136,12 +141,16 @@ class _FinanceCard extends StatelessWidget {
 
     const String na = 'N/A';
     final double? ratingValue = item.rating;
-    final String rating = (ratingValue != null && ratingValue > 0) ? ratingValue.toStringAsFixed(1) : na;
+    final String rating = (ratingValue != null && ratingValue > 0)
+        ? ratingValue.toStringAsFixed(1)
+        : na;
 
     final String distance = _distanceFromUser(item);
     final ({String label, Color color}) openBadge = _todayOpenBadge(item);
-    final String registryLabel = item.rbiRegistered == true ? 'RBI Registered' : 'Not RBI Reg.';
-    final Color registryColor = item.rbiRegistered == true ? AppColors.greenShade : AppColors.grey83;
+    final String registryLabel =
+        item.rbiRegistered == true ? 'RBI Registered' : 'Not RBI Reg.';
+    final Color registryColor =
+        item.rbiRegistered == true ? AppColors.greenShade : AppColors.grey83;
 
     final List<String> serviceTags = <String>[
       ...?item.accountType?.where((s) => s.trim().isNotEmpty),
@@ -167,57 +176,29 @@ class _FinanceCard extends StatelessWidget {
                 images: coverImages,
                 rating: rating,
               ),
-              Padding(
-                padding: EdgeInsets.fromLTRB(
-                  SizeConfig.size12,
-                  SizeConfig.size12,
-                  SizeConfig.size12,
-                  SizeConfig.size12,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeaderRow(
-                      address: address,
-                      distance: distance,
-                    ),
-                    SizedBox(height: SizeConfig.size10),
-                    _buildBadgesRow(
-                      registryLabel: registryLabel,
-                      registryColor: registryColor,
-                      openLabel: openBadge.label,
-                      openColor: openBadge.color,
-                    ),
-                    SizedBox(height: SizeConfig.size12),
-                    _buildTagsRow(
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeaderRow(
+                    address: address,
+                    distance: distance,
+                    registryLabel: registryLabel,
+                    registryColor: registryColor,
+                    openLabel: openBadge.label,
+                    openColor: openBadge.color,
+                  ),
+                  SizedBox(height: SizeConfig.size12),
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(12, 0, 12, 0),
+                    child: _buildTagsRow(
                       serviceTags: serviceTags,
                       moreCount: moreTagsCount,
                       category: category,
                     ),
-                    SizedBox(height: SizeConfig.size12),
-                    // _buildActionsRow(),
-                    Container(
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryColor,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CustomText(
-                            AppStrings.inquiry.tr,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.white,
-                          ),
-                          const SizedBox(width: 6),
-                          const Icon(Icons.arrow_forward, size: 16, color: AppColors.white),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                  SizedBox(height: SizeConfig.size12),
+                  _buildActionsRow(),
+                ],
               ),
             ],
           ),
@@ -244,15 +225,18 @@ class _FinanceCard extends StatelessWidget {
   }
 
   Future<void> _shareFinance(FinanceBusinessItem item) async {
-    final name =
-        (item.profileName?.trim().isNotEmpty ?? false) ? item.profileName!.trim() : 'this finance service';
+    final name = (item.profileName?.trim().isNotEmpty ?? false)
+        ? item.profileName!.trim()
+        : 'this finance service';
     final address = _resolveAddress(item);
     final website = item.effectiveWebsite ?? '';
 
     final lines = <String>['Check out $name on BlueEra'];
     if (address.isNotEmpty) lines.add(address);
     if (item.rbiRegistered == true) lines.add('RBI Registered');
-    final types = item.accountType?.where((s) => s.trim().isNotEmpty).toList() ?? const [];
+    final types =
+        item.accountType?.where((s) => s.trim().isNotEmpty).toList() ??
+            const [];
     if (types.isNotEmpty) lines.add('Accounts: ${types.join(', ')}');
     if (website.isNotEmpty) lines.add(website);
     final shareLink = financialDeepLink(
@@ -260,7 +244,8 @@ class _FinanceCard extends StatelessWidget {
     );
 
     await ShareService.instance.openShareSheet(
-      text: "Check out ${item.profileName ?? 'this profile'} on BlueEra:\n$shareLink",
+      text:
+          "Check out ${item.profileName ?? 'this profile'} on BlueEra:\n$shareLink",
       subject: item.profileName,
     );
   }
@@ -292,7 +277,8 @@ class _FinanceCard extends StatelessWidget {
   }
 
   String _distanceFromUser(FinanceBusinessItem item) {
-    final coords = item.contactUs?.firstOrNull?.branch?.location?.coordinates ?? item.location?.coordinates;
+    final coords = item.contactUs?.firstOrNull?.branch?.location?.coordinates ??
+        item.location?.coordinates;
     if (coords == null || coords.length < 2) return 'N/A';
     final lng = coords[0];
     final lat = coords[1];
@@ -345,7 +331,7 @@ class _FinanceCard extends StatelessWidget {
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
       child: SizedBox(
-        height: 170,
+        height: 200,
         width: double.infinity,
         child: Stack(
           fit: StackFit.expand,
@@ -368,7 +354,7 @@ class _FinanceCard extends StatelessWidget {
                     CustomText(
                       rating,
                       fontSize: 12,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w400,
                       color: AppColors.white,
                     ),
                   ],
@@ -376,17 +362,14 @@ class _FinanceCard extends StatelessWidget {
               ),
             ),
             Positioned(
-              top: 10,
-              right: 10,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+              top: 12,
+              right: 12,
+              child: Column(
                 children: [
-                  GestureDetector(
-                    onTap: () => _shareFinance(item),
-                    child: _circleIcon(AppIconAssets.share_bold),
-                  ),
-                  const SizedBox(width: 8),
-                  _circleIcon(AppIconAssets.star),
+                  _circleIconBtn(AppIconAssets.share_bold,
+                      onTap: () => _shareFinance(item)),
+                  const SizedBox(height: 8),
+                  _circleIconBtn(AppIconAssets.star, onTap: () {}),
                 ],
               ),
             ),
@@ -396,19 +379,21 @@ class _FinanceCard extends StatelessWidget {
     );
   }
 
-  Widget _circleIcon(String icon) {
-    return Container(
-      width: 32,
-      height: 32,
-      decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: 0.9),
-        shape: BoxShape.circle,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(6),
-        child: LocalAssets(
-          imagePath: icon,
-          imgColor: AppColors.black,
+  Widget _circleIconBtn(String icon, {required VoidCallback onTap}) {
+    return Material(
+      color: AppColors.black25,
+      shape: const CircleBorder(),
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const CircleBorder(),
+        child: Padding(
+          padding: const EdgeInsets.all(6),
+          child: LocalAssets(
+            imagePath: icon,
+            imgColor: AppColors.white,
+            height: 14,
+            width: 8,
+          ),
         ),
       ),
     );
@@ -417,67 +402,123 @@ class _FinanceCard extends StatelessWidget {
   Widget _buildHeaderRow({
     required String address,
     required String distance,
+    required String registryLabel,
+    required Color registryColor,
+    required String openLabel,
+    required Color openColor,
   }) {
     bool isMeaningful(String s) => s.isNotEmpty && s != 'N/A';
-    final parts = <String>[
-      if (isMeaningful(distance)) distance,
-      if (isMeaningful(address)) address,
-    ];
-    final String locationText = parts.isEmpty ? 'N/A' : parts.join(' · ');
+    final bool showDistance = isMeaningful(distance);
+    final bool showAddress = isMeaningful(address);
+    final bool hasLocation = showDistance || showAddress;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        ClipOval(
-          child: Container(
-            width: 44,
-            height: 44,
-            color: AppColors.liteWhite,
-            child: (item.logoUrl?.isNotEmpty ?? false)
-                ? CachedNetworkImage(
-                    imageUrl: item.logoUrl!,
-                    fit: BoxFit.cover,
-                    placeholder: (_, __) => LocalAssets(imagePath: AppIconAssets.place_holder_image),
-                    errorWidget: (_, __, ___) => LocalAssets(imagePath: AppIconAssets.place_holder_image),
-                  )
-                : LocalAssets(imagePath: AppIconAssets.place_holder_image),
-          ),
-        ),
-        SizedBox(width: SizeConfig.size10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      padding: EdgeInsets.fromLTRB(12, 8, 12, 10),
+      decoration: BoxDecoration(
+        color: AppColors.geryFC,
+        // borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              CustomText(
-                (item.profileName?.isNotEmpty ?? false) ? item.profileName : 'Unknown',
-                fontSize: SizeConfig.medium,
-                fontWeight: FontWeight.w700,
-                color: AppColors.mainTextColor,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              ClipOval(
+                child: Container(
+                  width: 50,
+                  height: 50,
+                  color: AppColors.liteWhite,
+                  child: (item.logoUrl?.isNotEmpty ?? false)
+                      ? CachedNetworkImage(
+                          imageUrl: item.logoUrl!,
+                          fit: BoxFit.cover,
+                          placeholder: (_, __) => LocalAssets(
+                              imagePath: AppIconAssets.place_holder_image),
+                          errorWidget: (_, __, ___) => LocalAssets(
+                              imagePath: AppIconAssets.place_holder_image),
+                        )
+                      : LocalAssets(
+                          imagePath: AppIconAssets.place_holder_image),
+                ),
               ),
-              if (locationText.isNotEmpty) ...[
-                SizedBox(height: SizeConfig.size2),
-                Row(
+              SizedBox(width: SizeConfig.size10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.location_on, size: 14, color: AppColors.primaryColor),
-                    const SizedBox(width: 4),
-                    Expanded(
-                      child: CustomText(
-                        locationText,
-                        fontSize: 12,
-                        color: AppColors.grey83,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                    CustomText(
+                      (item.profileName?.isNotEmpty ?? false)
+                          ? item.profileName
+                          : 'Unknown',
+                      fontSize: SizeConfig.large18,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.black22,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
+                    if (hasLocation) ...[
+                      SizedBox(height: SizeConfig.size2),
+                      Row(
+                        children: [
+                          LocalAssets(
+                            imagePath: AppIconAssets.location_outline,
+                            imgColor: AppColors.primaryColor,
+                          ),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: RichText(
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              text: TextSpan(
+                                children: [
+                                  if (showDistance)
+                                    TextSpan(
+                                      text: distance,
+                                      style: TextStyle(
+                                        color: AppColors.primaryColor,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w400,
+                                      ),
+                                    ),
+                                  if (showDistance && showAddress)
+                                    TextSpan(
+                                      text: "  |  ",
+                                      style: TextStyle(
+                                        color: AppColors.secondaryTextColor,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  if (showAddress)
+                                    TextSpan(
+                                      text: address,
+                                      style: TextStyle(
+                                        color: AppColors.secondaryTextColor,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w400,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
-              ],
+              ),
             ],
           ),
-        ),
-      ],
+          SizedBox(height: SizeConfig.size10),
+          _buildBadgesRow(
+            registryLabel: registryLabel,
+            registryColor: registryColor,
+            openLabel: openLabel,
+            openColor: openColor,
+          ),
+        ],
+      ),
     );
   }
 
@@ -538,7 +579,7 @@ class _FinanceCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
+        color: color.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: color.withValues(alpha: 0.5)),
       ),
@@ -549,8 +590,8 @@ class _FinanceCard extends StatelessWidget {
           const SizedBox(width: 4),
           CustomText(
             label,
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
             color: color,
           ),
         ],
@@ -565,14 +606,18 @@ class _FinanceCard extends StatelessWidget {
   }) {
     final tags = serviceTags.isNotEmpty
         ? serviceTags
-        : (category.isNotEmpty ? [category.replaceAll('_', ' ').capitalize ?? category] : <String>[]);
+        : (category.isNotEmpty
+            ? [category.replaceAll('_', ' ').capitalize ?? category]
+            : <String>[]);
 
     return Wrap(
       spacing: 6,
       runSpacing: 6,
       children: [
-        ...tags.map((t) => _tagChip(t, AppColors.fillColor, AppColors.mainTextColor)),
-        if (moreCount > 0) _tagChip('+$moreCount More', AppColors.red.withValues(alpha: 0.08), AppColors.red),
+        ...tags.map((t) => _tagChip(t, AppColors.fillColor, AppColors.grey7E)),
+        if (moreCount > 0)
+          _tagChip('+$moreCount More', AppColors.red.withValues(alpha: 0.08),
+              AppColors.red),
       ],
     );
   }
@@ -581,12 +626,12 @@ class _FinanceCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(6),
-      ),
+          color: bg,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Color(0xFFDDE2EE), width: 0.5)),
       child: CustomText(
         label,
-        fontSize: 11,
+        fontSize: 12,
         fontWeight: FontWeight.w600,
         color: fg,
       ),
@@ -594,64 +639,97 @@ class _FinanceCard extends StatelessWidget {
   }
 
   Widget _buildActionsRow() {
-    return Row(
-      children: [
-        Expanded(
-          flex: 2,
-          child: Material(
-            color: Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
-            child: InkWell(
-              borderRadius: BorderRadius.circular(10),
-              onTap: _openChat,
-              child: Container(
-                height: 44,
-                decoration: BoxDecoration(
-                  color: AppColors.skyBlueFF,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    LocalAssets(imagePath: AppIconAssets.chat, imgColor: AppColors.primaryColor),
-                    const SizedBox(width: 6),
-                    CustomText(
-                      'Chat',
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.primaryColor,
-                    ),
-                  ],
-                ),
+    return Container(
+      padding: EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: AppColors.geryFC,
+        // borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              height: 44,
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CustomText(
+                    AppStrings.inquiry.tr,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.white,
+                  ),
+                  const SizedBox(width: 6),
+                  const Icon(Icons.arrow_forward,
+                      size: 18, color: AppColors.white),
+                ],
               ),
             ),
           ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          flex: 4,
-          child: Container(
-            height: 44,
-            decoration: BoxDecoration(
-              color: AppColors.primaryColor,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CustomText(
-                  'Open Account',
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.white,
-                ),
-                const SizedBox(width: 6),
-                const Icon(Icons.arrow_forward, size: 16, color: AppColors.white),
-              ],
-            ),
-          ),
-        ),
-      ],
+          // Expanded(
+          //   flex: 2,
+          //   child: Material(
+          //     color: Colors.transparent,
+          //     borderRadius: BorderRadius.circular(10),
+          //     child: InkWell(
+          //       borderRadius: BorderRadius.circular(10),
+          //       onTap: _openChat,
+          //       child: Container(
+          //         height: 44,
+          //         decoration: BoxDecoration(
+          //           color: AppColors.skyBlueFF,
+          //           borderRadius: BorderRadius.circular(10),
+          //         ),
+          //         child: Row(
+          //           mainAxisAlignment: MainAxisAlignment.center,
+          //           children: [
+          //             LocalAssets(
+          //                 imagePath: AppIconAssets.chat,
+          //                 imgColor: AppColors.primaryColor),
+          //             const SizedBox(width: 6),
+          //             CustomText(
+          //               'Chat',
+          //               fontSize: 13,
+          //               fontWeight: FontWeight.w600,
+          //               color: AppColors.primaryColor,
+          //             ),
+          //           ],
+          //         ),
+          //       ),
+          //     ),
+          //   ),
+          // ),
+          // const SizedBox(width: 10),
+          // Expanded(
+          //   flex: 4,
+          //   child: Container(
+          //     height: 44,
+          //     decoration: BoxDecoration(
+          //       color: AppColors.primaryColor,
+          //       borderRadius: BorderRadius.circular(10),
+          //     ),
+          //     child: Row(
+          //       mainAxisAlignment: MainAxisAlignment.center,
+          //       children: [
+          //         CustomText(
+          //           'Open Account',
+          //           fontSize: 13,
+          //           fontWeight: FontWeight.w700,
+          //           color: AppColors.white,
+          //         ),
+          //         const SizedBox(width: 6),
+          //         const Icon(Icons.arrow_forward,
+          //             size: 16, color: AppColors.white),
+          //       ],
+          //     ),
+          //   ),
+          // ),
+        ],
+      ),
     );
   }
 }
