@@ -8,6 +8,7 @@ import 'package:BlueEra/core/language_localization_service/language_controller_n
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/address_cache_service.dart';
 import 'package:BlueEra/core/services/business_profile_cache.dart';
+import 'package:BlueEra/core/services/chat_storage_paths.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/home_cache_service.dart';
 import 'package:BlueEra/core/services/personal_profile_cache.dart';
@@ -115,6 +116,14 @@ class LogoutHelper {
       await Hive.deleteFromDisk();
       final dir = await getApplicationDocumentsDirectory();
       if (dir.existsSync()) await dir.delete(recursive: true);
+    } catch (_) {}
+
+    // The relocated chat-history stores live under the external
+    // `Chat History/` folder, outside the default Hive dir wiped above —
+    // clear them explicitly so the next user can't read the previous user's
+    // cached chats.
+    try {
+      await ChatStoragePaths.clearHistory();
     } catch (_) {}
 
     // `Hive.deleteFromDisk()` closes AND deletes every box, and the directory

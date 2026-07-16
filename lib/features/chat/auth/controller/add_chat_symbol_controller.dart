@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/chat_media_storage_service.dart';
 import 'package:BlueEra/features/common/home/controller/symbol_feed_controller.dart';
 import 'package:BlueEra/features/common/post/widget/video_trimmer_screen.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -389,7 +390,17 @@ class AddChatSymbolController extends GetxController {
       mySymbols.value = (responseModel.response?.data as List)
           .map((e) => SymbolDetailsModel.fromJson(e))
           .toList();
+      _prefetchSymbolMedia(mySymbols);
     }
+  }
+
+  /// Fire-and-forget download of photo/video symbols into the local `Symbols/`
+  /// folder so they render from disk on the next open.
+  void _prefetchSymbolMedia(List<SymbolDetailsModel> symbols) {
+    final idUrls = symbols
+        .where((s) => (s.type == 'photo' || s.type == 'video'))
+        .map((s) => MapEntry(s.id ?? '', s.content ?? ''));
+    ChatMediaStorageService.prefetchSymbols(idUrls);
   }
 
   Future<List<SymbolDetailsModel>?> deleteSymbol(
@@ -409,9 +420,11 @@ class AddChatSymbolController extends GetxController {
     ResponseModel responseModel =
         await symbolRepo.getAllSymbolsSingleUser(userId);
     if (responseModel.isSuccess) {
-      return (responseModel.response?.data as List)
+      final symbols = (responseModel.response?.data as List)
           .map((e) => SymbolDetailsModel.fromJson(e))
           .toList();
+      _prefetchSymbolMedia(symbols);
+      return symbols;
     } else {
       return null;
     }

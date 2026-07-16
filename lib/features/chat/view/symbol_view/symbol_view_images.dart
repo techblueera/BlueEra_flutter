@@ -18,6 +18,7 @@ import '../../auth/controller/add_chat_symbol_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/symbol_details_model.dart';
 import '../widget/custom_video_player.dart';
+import '../widget/symbol_cached_image.dart';
 
 class SymbolViewImages extends StatefulWidget {
   final String? userId;
@@ -306,8 +307,9 @@ class _SymbolViewImagesState extends State<SymbolViewImages> with SingleTickerPr
                       Positioned.fill(
                         child: InteractiveViewer(
                           child: Center(
-                            child: Image.network(
-                              url.content ?? "",
+                            child: SymbolCachedImage(
+                              url: url.content ?? "",
+                              id: url.id ?? "",
                               fit: BoxFit.contain,
                             ),
                           ),
