@@ -554,12 +554,13 @@ class _HospitalCard extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: _serviceRow(
-                    icon: "assets/svg/department.svg",
-                    title: 'Departments',
-                    items: deptNames,
-                    count: deptCount,
-                    emptyLabel: 'No departments listed',
-                    color: AppColors.primaryColor.withValues(alpha: 0.10)),
+                  icon: "assets/svg/department.svg",
+                  title: 'Departments',
+                  items: deptNames,
+                  count: deptCount,
+                  emptyLabel: 'No departments listed',
+                  // color: AppColors.primaryColor.withValues(alpha: 0.10)
+                ),
               ),
               Divider(
                 height: 0.5,
@@ -570,13 +571,14 @@ class _HospitalCard extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: _serviceRow(
-                    icon: "assets/svg/hands_brain.svg",
-                    title: 'Facilities',
-                    items: facilities,
-                    count: facilityCount,
-                    emptyLabel: 'No facilities listed',
-                    color: AppColors.green0B.withValues(alpha: 0.10)),
-              ),
+                  icon: "assets/svg/hands_brain.svg",
+                  title: 'Facilities',
+                  items: facilities,
+                  count: facilityCount,
+                  emptyLabel: 'No facilities listed',
+                  // color: AppColors.green0B.withValues(alpha: 0.10)),
+                ),
+              )
             ],
           ),
         ),
@@ -631,39 +633,150 @@ class _HospitalCard extends StatelessWidget {
   /// `N More` link on the right. Summary always renders on first frame — the
   /// `More` badge is opt-in and its visibility is decided by a lightweight
   /// `LayoutBuilder` overflow check that runs *after* the summary is already
-  /// laid out, so a stale first-frame measurement can never hide the items.
+  // /// laid out, so a stale first-frame measurement can never hide the items.
+  // Widget _serviceRow({
+  //   required String icon,
+  //   required String title,
+  //   required List<String> items,
+  //   required int count,
+  //   required String emptyLabel,
+  //   required Color color,
+  // }) {
+  //   final accent = AppColors.primaryColor;
+  //   final facilityAccent = const Color(0xff00B87A1A);
+  //   // Anchor on the larger of the server count / names length so the badge
+  //   // never under-reports. Guards against server sending count=0 while items
+  //   // are present (which would otherwise hide the badge entirely).
+  //   final total = count > items.length ? count : items.length;
+  //   final summary = items.isEmpty ? emptyLabel : items.join(', ');
+  //   final serverHasMore = count > items.length;
+  //   const preview = 4;
+  //   // Fall-back count for the "More" link when the summary overflows: server
+  //   // extras + everything past the preview cap. Never negative.
+  //   final previewHidden =
+  //       (items.length > preview ? items.length - preview : 0) +
+  //           (serverHasMore ? count - items.length : 0);
+  //
+  //   final summaryText = CustomText(
+  //     summary,
+  //     fontSize: SizeConfig.extraSmall,
+  //     color: items.isEmpty ? AppColors.grey9B : const Color(0xff66727E),
+  //     fontWeight: FontWeight.w600,
+  //     maxLines: 1,
+  //     overflow: TextOverflow.ellipsis,
+  //   );
+  //
+  //   return Row(
+  //     crossAxisAlignment: CrossAxisAlignment.center,
+  //     children: [
+  //       Container(
+  //         width: 38,
+  //         height: 38,
+  //         alignment: Alignment.center,
+  //         decoration: BoxDecoration(
+  //           color: color,
+  //           borderRadius: BorderRadius.circular(10),
+  //         ),
+  //         child: LocalAssets(
+  //           imagePath: icon,
+  //           height: 20,
+  //         ),
+  //       ),
+  //       const SizedBox(width: 10),
+  //       Expanded(
+  //         child: Column(
+  //           crossAxisAlignment: CrossAxisAlignment.start,
+  //           children: [
+  //             Row(
+  //               children: [
+  //                 CustomText(
+  //                   title,
+  //                   fontSize: 14,
+  //                   fontWeight: FontWeight.w600,
+  //                   color: AppColors.black22,
+  //                 ),
+  //                 if (total > 0) ...[
+  //                   const SizedBox(width: 5),
+  //                   CustomText(
+  //                     '• $total',
+  //                     fontSize: SizeConfig.small,
+  //                     fontWeight: FontWeight.w600,
+  //                     color: AppColors.black22,
+  //                   ),
+  //                 ],
+  //               ],
+  //             ),
+  //             const SizedBox(height: 3),
+  //             // Summary sits in Expanded so the row always paints even before
+  //             // LayoutBuilder resolves. LayoutBuilder only decides whether the
+  //             // "More" badge slot on the right is populated — items are never
+  //             // hidden waiting on a measurement.
+  //             LayoutBuilder(
+  //               builder: (context, constraints) {
+  //                 if (constraints.maxWidth <= 0 ||
+  //                     !constraints.maxWidth.isFinite) {
+  //                   return summaryText;
+  //                 }
+  //
+  //                 final summaryStyle = TextStyle(
+  //                   fontSize: 12,
+  //                   fontWeight: FontWeight.w600,
+  //                   color: items.isEmpty
+  //                       ? AppColors.grey9B
+  //                       : const Color(0xff66727E),
+  //                 );
+  //                 final fullPainter = TextPainter(
+  //                   text: TextSpan(text: summary, style: summaryStyle),
+  //                   maxLines: 1,
+  //                   textDirection: TextDirection.ltr,
+  //                 )..layout(maxWidth: constraints.maxWidth);
+  //                 final overflows = fullPainter.didExceedMaxLines;
+  //
+  //                 if (!overflows && !serverHasMore) return summaryText;
+  //                 if (previewHidden <= 0 && !overflows) return summaryText;
+  //
+  //                 final badgeCount =
+  //                     previewHidden > 0 ? previewHidden : items.length;
+  //                 return Row(
+  //                   children: [
+  //                     Expanded(child: summaryText),
+  //                     const SizedBox(width: 8),
+  //                     GestureDetector(
+  //                       behavior: HitTestBehavior.opaque,
+  //                       onTap: _openDetail,
+  //                       child: CustomText(
+  //                         '$badgeCount More',
+  //                         fontSize: SizeConfig.small,
+  //                         fontWeight: FontWeight.w600,
+  //                         color: accent,
+  //                       ),
+  //                     ),
+  //                   ],
+  //                 );
+  //               },
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
+
   Widget _serviceRow({
     required String icon,
     required String title,
     required List<String> items,
     required int count,
     required String emptyLabel,
-    required Color color,
   }) {
     final accent = AppColors.primaryColor;
-    final facilityAccent = const Color(0xff00B87A1A);
-    // Anchor on the larger of the server count / names length so the badge
-    // never under-reports. Guards against server sending count=0 while items
-    // are present (which would otherwise hide the badge entirely).
-    final total = count > items.length ? count : items.length;
-    final summary = items.isEmpty ? emptyLabel : items.join(', ');
-    final serverHasMore = count > items.length;
     const preview = 4;
-    // Fall-back count for the "More" link when the summary overflows: server
-    // extras + everything past the preview cap. Never negative.
-    final previewHidden =
-        (items.length > preview ? items.length - preview : 0) +
-            (serverHasMore ? count - items.length : 0);
-
-    final summaryText = CustomText(
-      summary,
-      fontSize: SizeConfig.extraSmall,
-      color: items.isEmpty ? AppColors.grey9B : const Color(0xff66727E),
-      fontWeight: FontWeight.w600,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
-    );
-
+    final shown = items.length < preview ? items.length : preview;
+    // Anchor on the larger of the server count / names length so the link
+    // never under-reports the remaining items.
+    final total = count > items.length ? count : items.length;
+    final hidden = total - shown;
+    final summary = items.isEmpty ? emptyLabel : items.join(', ');
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -672,13 +785,11 @@ class _HospitalCard extends StatelessWidget {
           height: 38,
           alignment: Alignment.center,
           decoration: BoxDecoration(
-            color: color,
+            color: accent.withValues(alpha: 0.10),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: LocalAssets(
-            imagePath: icon,
-            height: 20,
-          ),
+          child: LocalAssets(imagePath: icon),
+          // child: Icon(icon, size: 20, color: accent),
         ),
         const SizedBox(width: 10),
         Expanded(
@@ -689,73 +800,46 @@ class _HospitalCard extends StatelessWidget {
                 children: [
                   CustomText(
                     title,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.black22,
+                    fontSize: SizeConfig.small,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.mainTextColor,
                   ),
-                  if (total > 0) ...[
-                    const SizedBox(width: 5),
-                    CustomText(
-                      '• $total',
-                      fontSize: SizeConfig.small,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.black22,
-                    ),
-                  ],
+                  const SizedBox(width: 5),
+                  CustomText(
+                    '• $count',
+                    fontSize: SizeConfig.small,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.secondaryTextColor,
+                  ),
                 ],
               ),
               const SizedBox(height: 3),
-              // Summary sits in Expanded so the row always paints even before
-              // LayoutBuilder resolves. LayoutBuilder only decides whether the
-              // "More" badge slot on the right is populated — items are never
-              // hidden waiting on a measurement.
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  if (constraints.maxWidth <= 0 ||
-                      !constraints.maxWidth.isFinite) {
-                    return summaryText;
-                  }
-
-                  final summaryStyle = TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: items.isEmpty
-                        ? AppColors.grey9B
-                        : const Color(0xff66727E),
-                  );
-                  final fullPainter = TextPainter(
-                    text: TextSpan(text: summary, style: summaryStyle),
-                    maxLines: 1,
-                    textDirection: TextDirection.ltr,
-                  )..layout(maxWidth: constraints.maxWidth);
-                  final overflows = fullPainter.didExceedMaxLines;
-
-                  if (!overflows && !serverHasMore) return summaryText;
-                  if (previewHidden <= 0 && !overflows) return summaryText;
-
-                  final badgeCount =
-                      previewHidden > 0 ? previewHidden : items.length;
-                  return Row(
-                    children: [
-                      Expanded(child: summaryText),
-                      const SizedBox(width: 8),
-                      GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: _openDetail,
-                        child: CustomText(
-                          '$badgeCount More',
-                          fontSize: SizeConfig.small,
-                          fontWeight: FontWeight.w600,
-                          color: accent,
-                        ),
-                      ),
-                    ],
-                  );
-                },
+              CustomText(
+                summary,
+                fontSize: SizeConfig.small,
+                color: items.isEmpty
+                    ? AppColors.grey9B
+                    : AppColors.secondaryTextColor,
+                fontWeight: FontWeight.w400,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
         ),
+        if (hidden > 0) ...[
+          const SizedBox(width: 8),
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: _openDetail,
+            child: CustomText(
+              '$hidden More',
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w600,
+              color: accent,
+            ),
+          ),
+        ],
       ],
     );
   }

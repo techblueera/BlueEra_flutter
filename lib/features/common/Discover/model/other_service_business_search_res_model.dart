@@ -112,7 +112,9 @@ class OtherBusinessProfile {
   String? subCategoryOfBusiness;
   double? rating;
   String? coverUrl;
+  String? address;
   OtherLatLng? businessLocation;
+  OtherProfileLocation? location;
   OtherDateOfIncorporation? dateOfIncorporation;
 
   OtherBusinessProfile({
@@ -126,7 +128,9 @@ class OtherBusinessProfile {
     this.subCategoryOfBusiness,
     this.rating,
     this.coverUrl,
+    this.address,
     this.businessLocation,
+    this.location,
     this.dateOfIncorporation,
   });
 
@@ -142,11 +146,37 @@ class OtherBusinessProfile {
     final r = json['rating'];
     rating = r is num ? r.toDouble() : null;
     coverUrl = json['coverUrl']?.toString();
+    address = (json['address'] ?? json['full_address'])?.toString();
     businessLocation = OtherLatLng.fromRaw(json['business_location']);
+    final l = json['location'];
+    if (l is Map) {
+      location = OtherProfileLocation.fromJson(Map<String, dynamic>.from(l));
+    }
     final doi = json['date_of_incorporation'];
     if (doi is Map) {
       dateOfIncorporation = OtherDateOfIncorporation.fromJson(
           Map<String, dynamic>.from(doi));
+    }
+  }
+}
+
+/// Profile-level `location` block:
+/// `{ "address": "...", "coordinates": [lng, lat] }`. Same GeoJSON shape used
+/// by the branch's `OtherBranchLocation`, but keys on `address` instead of
+/// `name` — kept as a separate type so each field is named for what it holds.
+class OtherProfileLocation {
+  String? address;
+  List<double>? coordinates;
+
+  OtherProfileLocation({this.address, this.coordinates});
+
+  OtherProfileLocation.fromJson(Map<String, dynamic> json) {
+    address = json['address']?.toString();
+    final c = json['coordinates'];
+    if (c is List) {
+      coordinates = c
+          .map((e) => e is num ? e.toDouble() : double.tryParse('$e') ?? 0.0)
+          .toList();
     }
   }
 }

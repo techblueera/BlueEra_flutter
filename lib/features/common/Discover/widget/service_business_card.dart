@@ -45,8 +45,9 @@ class ServiceBusinessCard extends StatelessWidget {
   String get _heroImage {
     final cover = _profile?.coverUrl?.trim() ?? '';
     if (cover.isNotEmpty) return cover;
-    final fromGallery =
-        item.gallery.expand((g) => g.imageUrls).firstWhere((u) => u.trim().isNotEmpty, orElse: () => '');
+    final fromGallery = item.gallery
+        .expand((g) => g.imageUrls)
+        .firstWhere((u) => u.trim().isNotEmpty, orElse: () => '');
     if (fromGallery.isNotEmpty) return fromGallery;
     final fromManagement = item.management
         .map((m) => m.imageUrl ?? '')
@@ -83,7 +84,10 @@ class ServiceBusinessCard extends StatelessWidget {
   ({String label, bool isOpen}) get _todayStatus {
     final today = item.timings?.forWeekday(DateTime.now().weekday);
     if (today != null && today.hasHours) {
-      return (label: 'Open | ${today.openTime} - ${today.closeTime}', isOpen: true);
+      return (
+        label: 'Open | ${today.openTime} - ${today.closeTime}',
+        isOpen: true
+      );
     }
     return (label: 'Closed', isOpen: false);
   }
@@ -162,12 +166,14 @@ class ServiceBusinessCard extends StatelessWidget {
                     placeholder: (ctx, _) => Container(color: Colors.grey[200]),
                     errorWidget: (ctx, _, __) => Container(
                       color: Colors.grey[200],
-                      child: const Icon(Icons.image_outlined, size: 40, color: Colors.grey),
+                      child: const Icon(Icons.image_outlined,
+                          size: 40, color: Colors.grey),
                     ),
                   )
                 : Container(
                     color: Colors.grey[200],
-                    child: const Icon(Icons.image_outlined, size: 40, color: Colors.grey),
+                    child: const Icon(Icons.image_outlined,
+                        size: 40, color: Colors.grey),
                   ),
           ),
 
@@ -178,25 +184,30 @@ class ServiceBusinessCard extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AppColors.black25,
                 borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.08),
-                    blurRadius: 4,
-                  ),
-                ],
+                // boxShadow: [
+                //   BoxShadow(
+                //     color: Colors.black.withValues(alpha: 0.08),
+                //     blurRadius: 4,
+                //   ),
+                // ],
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.star, size: 14, color: Color(0xFFFFC107)),
+                  LocalAssets(
+                    imagePath: AppIconAssets.fill_star,
+                    width: 14,
+                    height: 14,
+                    imgColor: AppColors.yellow,
+                  ),
                   const SizedBox(width: 3),
                   CustomText(
                     _ratingText,
                     fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.mainTextColor,
+                    fontWeight: FontWeight.w400,
+                    color: AppColors.white,
                   ),
                 ],
               ),
@@ -221,9 +232,9 @@ class ServiceBusinessCard extends StatelessWidget {
             right: 12,
             bottom: 12,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Color(0xffF2FFF2),
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: pillColor.withValues(alpha: 0.6)),
                 boxShadow: [
@@ -254,7 +265,7 @@ class ServiceBusinessCard extends StatelessWidget {
                   CustomText(
                     status.label,
                     fontSize: 12,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w500,
                     color: pillColor,
                   ),
                 ],
@@ -268,7 +279,7 @@ class ServiceBusinessCard extends StatelessWidget {
 
   Widget _circleIconBtn(String icon, {required VoidCallback onTap}) {
     return Material(
-      color: Colors.white,
+      color: AppColors.black25,
       shape: const CircleBorder(),
       child: InkWell(
         onTap: onTap,
@@ -277,7 +288,7 @@ class ServiceBusinessCard extends StatelessWidget {
           padding: const EdgeInsets.all(6),
           child: LocalAssets(
             imagePath: icon,
-            imgColor: AppColors.black,
+            imgColor: AppColors.white,
             height: 14,
             width: 8,
           ),
@@ -288,21 +299,21 @@ class ServiceBusinessCard extends StatelessWidget {
 
   // ─── BODY ────────────────────────────────────────────────────────
   Widget _buildBody() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // _buildHeaderRow(),
-          // const SizedBox(height: 8),
-          // _buildAddressRow(),
-          _buildHeaderSection(),
-          const SizedBox(height: 10),
-          Divider(indent: 10, endIndent: 10, height: 1, thickness: 0.2, color: AppColors.grey99),
-          const SizedBox(height: 10),
-          _buildServiceChips(),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // _buildHeaderRow(),
+        // const SizedBox(height: 8),
+        // _buildAddressRow(),
+        _buildHeaderSection(),
+        const SizedBox(height: 10),
+        Divider(height: 1, thickness: 0.5, color: Color(0xFFDDE2EE)),
+        const SizedBox(height: 10),
+        Padding(
+          padding: EdgeInsets.fromLTRB(14, 0, 14, 10),
+          child: _buildServiceChips(),
+        ),
+      ],
     );
   }
 
@@ -317,82 +328,84 @@ class ServiceBusinessCard extends StatelessWidget {
 
     return GestureDetector(
       onTap: hasCoords ? () => _showMapBottomSheet(Get.context!) : null,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          CachedAvatarWidget(
-            imageUrl: _avatarUrl,
-            size: 58,
-            borderRadius: 29,
-            borderColor: Colors.white,
-            showProfileOnFullScreen: false,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                /// Business Name
-                CustomText(
-                  _profile?.businessName ?? _profile?.profileName ?? _na,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.mainTextColor,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(14, 8, 14, 0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            CachedAvatarWidget(
+              imageUrl: _avatarUrl,
+              size: 58,
+              borderRadius: 29,
+              borderColor: Colors.white,
+              showProfileOnFullScreen: false,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                // mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  /// Business Name
+                  CustomText(
+                    _profile?.businessName ?? _profile?.profileName ?? _na,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.black22,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
 
-                // const SizedBox(height: 4),
+                  const SizedBox(height: 4),
 
-                /// Address Row
-                Row(
-                  children: [
-                    Icon(
-                      Icons.location_on_outlined,
-                      color: AppColors.primaryColor,
-                      size: 22,
-                    ),
-                    const SizedBox(width: 4),
-                    Flexible(
-                      child: RichText(
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text: distanceText,
-                              style: TextStyle(
-                                color: AppColors.primaryColor,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
+                  /// Address Row
+                  Row(
+                    children: [
+                      LocalAssets(
+                        imagePath: AppIconAssets.location_outline,
+                        imgColor: AppColors.primaryColor,
+                      ),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: RichText(
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: distanceText,
+                                style: TextStyle(
+                                  color: AppColors.primaryColor,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400,
+                                ),
                               ),
-                            ),
-                            TextSpan(
-                              text: "  |  ",
-                              style: TextStyle(
-                                color: Colors.grey.shade500,
-                                fontSize: 14,
+                              TextSpan(
+                                text: "  |  ",
+                                style: TextStyle(
+                                  color: AppColors.secondaryTextColor,
+                                  fontSize: 12,
+                                ),
                               ),
-                            ),
-                            TextSpan(
-                              text: address,
-                              style: TextStyle(
-                                color: Colors.grey.shade600,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
+                              TextSpan(
+                                text: address,
+                                style: TextStyle(
+                                  color: AppColors.secondaryTextColor,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w400,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -486,8 +499,13 @@ class ServiceBusinessCard extends StatelessWidget {
   }
 
   String _resolveAddress() {
-    final branchName = item.contactUs.firstOrNull?.branch?.location?.name?.trim() ?? '';
-    if (branchName.isNotEmpty) return branchName;
+    final locationAddress = _profile?.location?.address?.trim() ?? '';
+    if (locationAddress.isNotEmpty) return locationAddress;
+    // final profileAddress = _profile?.address?.trim() ?? '';
+    // if (profileAddress.isNotEmpty) return profileAddress;
+    // final branchName =
+    //     item.contactUs.firstOrNull?.branch?.location?.name?.trim() ?? '';
+    // if (branchName.isNotEmpty) return branchName;
     return AppStrings.na.tr;
   }
 
@@ -518,7 +536,8 @@ class ServiceBusinessCard extends StatelessWidget {
     }
 
     const maxVisible = 3;
-    final visible = titles.length > maxVisible ? titles.sublist(0, maxVisible) : titles;
+    final visible =
+        titles.length > maxVisible ? titles.sublist(0, maxVisible) : titles;
     final extra = titles.length - visible.length;
 
     return Wrap(
@@ -535,15 +554,13 @@ class ServiceBusinessCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
       decoration: BoxDecoration(
-        color: isMore ? const Color(0xFFFFEBEB) : const Color(0xFFF2F4F7),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: CustomText(
-        label,
-        fontSize: 12,
-        fontWeight: FontWeight.w600,
-        color: isMore ? const Color(0xFFE53935) : AppColors.grey44,
-      ),
+          color: isMore ? const Color(0xFFFFEBEB) : AppColors.geryFC,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Color(0xffDDE2EE), width: 0.5)),
+      child: CustomText(label,
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: isMore ? const Color(0xFFE53935) : Color(0xff66727E)),
     );
   }
 
@@ -560,15 +577,16 @@ class ServiceBusinessCard extends StatelessWidget {
               children: [
                 CustomText(
                   'Price Range',
-                  fontSize: 11,
-                  color: AppColors.grey83,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.grey7E,
                 ),
                 const SizedBox(height: 2),
                 CustomText(
                   _priceRangeText,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.mainTextColor,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primaryColor,
                 ),
               ],
             ),
@@ -596,7 +614,7 @@ class ServiceBusinessCard extends StatelessWidget {
           // ),
           // const SizedBox(width: 10),
           Expanded(
-            flex: 2,
+            flex: 1,
             child: _BookNowBtn(onTap: _openStore),
           ),
         ],
@@ -616,7 +634,8 @@ class ServiceBusinessCard extends StatelessWidget {
     );
 
     await ShareService.instance.openShareSheet(
-      text: "Check out ${_profile?.businessName ?? 'this profile'} on BlueEra:\n$shareLink",
+      text:
+          "Check out ${_profile?.businessName ?? 'this profile'} on BlueEra:\n$shareLink",
       subject: _profile?.businessName,
     );
   }
@@ -658,7 +677,7 @@ class _BookNowBtn extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(10),
       child: Container(
-        height: 44,
+        height: 40,
         decoration: BoxDecoration(
           color: AppColors.primaryColor,
           borderRadius: BorderRadius.circular(10),
@@ -669,11 +688,11 @@ class _BookNowBtn extends StatelessWidget {
             CustomText(
               AppStrings.inquiry.tr,
               fontSize: 14,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: AppColors.white,
             ),
             const SizedBox(width: 8),
-            const Icon(Icons.arrow_forward, size: 16, color: AppColors.white),
+            const Icon(Icons.arrow_forward, size: 18, color: AppColors.white),
           ],
         ),
       ),
