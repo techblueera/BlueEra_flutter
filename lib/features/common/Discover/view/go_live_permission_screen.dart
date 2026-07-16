@@ -25,11 +25,24 @@ class _GoLivePermissionScreenState extends State<GoLivePermissionScreen>
 
   bool _busy = false;
 
+  /// Whether the battery-optimization card is relevant on this device (Android
+  /// ≤ 32). Resolved async in initState — hidden on iOS and on Android 13+
+  /// (API 33+), where the flag can't be reliably reflected, so the user only
+  /// ever sees the permissions they actually need to grant.
+  bool _showBatteryCard = false;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _refreshAll();
+    _resolveBatteryVisibility();
+  }
+
+  Future<void> _resolveBatteryVisibility() async {
+    final show = await GoLivePermissionService.isBatteryOptimizationRelevant();
+    if (!mounted) return;
+    setState(() => _showBatteryCard = show);
   }
 
   @override
@@ -292,16 +305,21 @@ class _GoLivePermissionScreenState extends State<GoLivePermissionScreen>
                         _handleTap(GoLivePermissionType.backgroundLocation),
                   ),
                   SizedBox(height: SizeConfig.size12),
-                  _PermissionCard(
-                    icon: Icons.battery_charging_full,
-                    title: 'Battery Usage',
-                    subtitle: 'Helps app run in background',
-                    granted:
-                        _granted[GoLivePermissionType.batteryOptimization]!,
-                    onTap: () =>
-                        _handleTap(GoLivePermissionType.batteryOptimization),
-                  ),
-                  SizedBox(height: SizeConfig.size12),
+                  // Battery-optimization is only shown on Android ≤ 32 — on
+                  // 13+ (API 33+) its status can't be reliably read, so we
+                  // don't surface a card the user could never satisfy.
+                  if (_showBatteryCard) ...[
+                    _PermissionCard(
+                      icon: Icons.battery_charging_full,
+                      title: 'Battery Usage',
+                      subtitle: 'Helps app run in background',
+                      granted:
+                          _granted[GoLivePermissionType.batteryOptimization]!,
+                      onTap: () =>
+                          _handleTap(GoLivePermissionType.batteryOptimization),
+                    ),
+                    SizedBox(height: SizeConfig.size12),
+                  ],
                   _PermissionCard(
                     icon: Icons.dashboard_outlined,
                     title: 'Display over other apps',

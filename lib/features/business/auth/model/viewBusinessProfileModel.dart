@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/api/model/marketing_card.dart';
 import 'package:BlueEra/features/business/auth/model/ReleatedStoresList.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/model/availability_model.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/model/earn_service_model_response.dart';
@@ -79,6 +80,7 @@ class BusinessProfileDetails {
       this.avg_rating,
       this.userContactNo,
       this.availability,
+      this.marketingCard,
   });
 
   BusinessProfileDetails.fromJson(dynamic json) {
@@ -89,6 +91,9 @@ class BusinessProfileDetails {
     businessName = json['business_name'];
     referral_code = json['referral_code'];
     referralCodeEditable = json['referralCodeEditable'];
+    // Backend-generated share poster — render its URL directly instead of
+    // composing the banner client-side. See [MarketingCard].
+    marketingCard = MarketingCard.fromRaw(json['marketing_card']);
     referral_points = json['referral_points'].toString();
     typeOfBusiness = json['type_of_business'];
     logo = json['logo'];
@@ -218,6 +223,7 @@ class BusinessProfileDetails {
   /// "Update Referral Code" affordance on the referral dashboard.
   /// Sourced from `GET user-service/business/{id}`.
   bool? referralCodeEditable;
+  MarketingCard? marketingCard;
   String? referral_points;
   String? logo;
   String? coverimage;
@@ -280,6 +286,7 @@ class BusinessProfileDetails {
     map['referral_points'] = referral_points;
     map['referral_code'] = referral_code;
     map['referralCodeEditable'] = referralCodeEditable;
+    if (marketingCard != null) map['marketing_card'] = marketingCard!.toJson();
     map['username'] = username;
     map['category_other'] = category_other;
     map['business_name'] = businessName;

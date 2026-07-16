@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -97,6 +98,34 @@ class GoLivePermissionService {
   }
 
   // ---------------- BATTERY OPTIMIZATION ----------------
+
+  /// Android API level at (and above) which the battery-optimization card is
+  /// HIDDEN. On Android 13+ (API 33) the user-facing "Unrestricted" toggle
+  /// (App info → Battery) does NOT flip the `isIgnoringBatteryOptimizations`
+  /// flag we can read, so the card could never show as granted and only
+  /// confuses the user — so we don't display or ask for it there.
+  static const int _batteryOptHiddenFromSdk = 33;
+
+  static int? _cachedSdkInt;
+  static Future<int> _androidSdkInt() async {
+    if (_cachedSdkInt != null) return _cachedSdkInt!;
+    final info = await DeviceInfoPlugin().androidInfo;
+    return _cachedSdkInt = info.version.sdkInt;
+  }
+
+  /// Whether the battery-optimization permission should be shown / asked for on
+  /// THIS device. False on iOS (no such concept) and on Android 13+ (API 33+),
+  /// where its status can't be reliably reflected. Only Android ≤ 32 gets it.
+  static Future<bool> isBatteryOptimizationRelevant() async {
+    if (!Platform.isAndroid) return false;
+    try {
+      return (await _androidSdkInt()) < _batteryOptHiddenFromSdk;
+    } catch (e) {
+      log('isBatteryOptimizationRelevant error: $e');
+      return false;
+    }
+  }
+
   static Future<bool> isBatteryOptimizationDisabled() async {
     try {
       // iOS does not expose this; treat as granted.

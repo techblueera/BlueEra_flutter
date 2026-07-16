@@ -11,9 +11,12 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
+import 'package:BlueEra/features/common/Discover/controller/nearby_stores_controller.dart';
+import 'package:BlueEra/features/common/Discover/controller/recent_shops_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/parcel_pickup_drop_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_categories_data.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_category_section.dart';
+import 'package:BlueEra/features/common/Discover/widget/nearest_stores_section.dart';
 import 'package:BlueEra/features/common/Discover/widget/recently_visited_stores_section.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/automotive_service_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/book_home_service_widget.dart';
@@ -56,10 +59,11 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   final ScrollController _scrollController = ScrollController();
   late final EmergencyProfileController emergencyController;
 
-  /// The share-profile promo dialog is shown once per app launch, the first
-  /// time Discover mounts. Static so it survives this screen being rebuilt /
-  /// re-entered via the bottom nav within the same process.
-  static bool _sharePromoShown = false;
+  /// The share-profile promo dialog is shown once per app SESSION, the first
+  /// time Discover mounts. Backed by the global [sharePromoShownThisSession] so
+  /// it survives this screen being rebuilt / re-entered via the bottom nav, but
+  /// is RESET on logout (unlike a private static, which used to stay true across
+  /// logout→re-login and wrongly suppressed the promo for the next user).
 
   /// Active quick-access tab — see [discoverQuickAccessTabs]:
   /// 0=Quick Access, 1=Grocery & Food, 2=Travel & Booking,
@@ -76,6 +80,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   /// never block forever.
   bool _locationResolved = false;
 
+  /// Drives the header refresh button's spinner while a manual refresh runs.
+  bool _isRefreshing = false;
+
   /// Every Discover section with the set of tab indices it belongs to, in the
   /// same top-to-bottom order as the redesign. Tab 0 (Quick Access / overview)
   /// shows everything, so it's not listed; the other tabs filter down to the
@@ -86,6 +93,17 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   List<({Widget widget, Set<int> tabs})> get _sections {
     return [
       // --- Tab 1 · Grocery & Food (ref: g1.jpeg) ---
+      // "Near You" rail — sits above the grocery grid. ONE rail over the whole
+      // nearby-discover response: grocery/food/product stores + service workers
+      // + riders, distance-sorted, each routed to its own screen by card type.
+      // Self-manages its own white card and collapses when nothing is nearby.
+      (
+        widget: NearestStoresSection(
+          onViewAll: () =>
+              Get.toNamed(RouteHelper.getGroceryStoresScreenRoute()),
+        ),
+        tabs: {1}
+      ),
       (
         widget: DiscoverCategorySection(
           title: "Grocery & General Store",
@@ -183,17 +201,17 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   /// Renders the same [ProfileShareBanner] the me-screens use, configured
   /// for the signed-in account type.
   Future<void> _maybeShowSharePromo() async {
-    if (_sharePromoShown) return;
+    if (sharePromoShownThisSession) return;
     final todayKey = _todayKey();
     final lastShown = await SharedPreferenceUtils.getSecureValue(
         SharedPreferenceUtils.sharePromoLastShownKey);
     // Already shown today → skip, and don't re-check for the rest of this
-    // process.
+    // session.
     if (lastShown == todayKey) {
-      _sharePromoShown = true;
+      sharePromoShownThisSession = true;
       return;
     }
-    _sharePromoShown = true;
+    sharePromoShownThisSession = true;
     await SharedPreferenceUtils.setSecureValue(
         SharedPreferenceUtils.sharePromoLastShownKey, todayKey);
     if (!mounted) return;
@@ -265,6 +283,30 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     if (mounted) setState(() => _locationResolved = true);
   }
 
+  /// Pull-to-refresh — force a fresh fetch of the location-based rails (bypasses
+  /// the 24h TTL). Refreshes location first so a move is picked up, then hits
+  /// the "Near You" (nearby-discover) and "Recently Visited" endpoints again.
+  Future<void> _onRefresh() async {
+    await LocationService.ensureUsableLocation();
+    await Future.wait([
+      getOrPut(() => NearbyStoresController()).fetch(),
+      getOrPut(() => RecentShopsController()).fetch(),
+    ]);
+    if (mounted) setState(() => _locationResolved = true);
+  }
+
+  /// Header refresh button — same force-refetch as pull-to-refresh, with a
+  /// spinner in the button while it runs. Re-entrancy-guarded.
+  Future<void> _manualRefresh() async {
+    if (_isRefreshing) return;
+    setState(() => _isRefreshing = true);
+    try {
+      await _onRefresh();
+    } finally {
+      if (mounted) setState(() => _isRefreshing = false);
+    }
+  }
+
   @override
   void dispose() {
     _scrollController.dispose();
@@ -280,7 +322,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         statusBarBrightness: Brightness.light,
       ),
       child: Scaffold(
-        body: CustomScrollView(
+        body: RefreshIndicator(
+          onRefresh: _onRefresh,
+          child: CustomScrollView(
           controller: _scrollController,
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
@@ -326,6 +370,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             ] else
               const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
           ],
+          ),
         ),
       ),
     );
@@ -360,11 +405,12 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     return Column(
       children: [
         for (final s in visible)
-          // The recently-visited rail is self-managing: it renders with its own
-          // spacing when there are shops, or collapses to zero when there are
-          // none. Skip the white card wrapper + trailing gap so an EMPTY rail
-          // leaves no leftover padding/margin.
-          if (s.widget is RecentlyVisitedStoresSection)
+          // The recently-visited and nearest-stores rails are self-managing: each
+          // carries its OWN white card + bottom spacing (matching the other
+          // sections) when it has data, and collapses to zero when empty. Skip
+          // the wrapper here so an EMPTY rail leaves no leftover white card.
+          if (s.widget is RecentlyVisitedStoresSection ||
+              s.widget is NearestStoresSection)
             s.widget
           else ...[
             Container(
@@ -454,14 +500,39 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             ),
           ),
         ),
-        SizedBox(width: SizeConfig.size10),
-        _circleIconButton(
-          boxShadow: _kTopViewShadow,
-          child: const Icon(Icons.favorite_border,
-              color: AppColors.primaryColor, size: 22),
-          onTap: () {
-            Navigator.pushNamed(context, RouteHelper.getYourCartScreenRoute());
-          },
+        // Trailing button cluster — kept together on the RIGHT (refresh next to
+        // the wishlist) instead of being spread by the row's spaceBetween.
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Manual refresh — force-refetches the location-based rails (same as
+            // pull-to-refresh). Spins while running.
+            _circleIconButton(
+              boxShadow: _kTopViewShadow,
+              onTap: _manualRefresh,
+              child: _isRefreshing
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.2,
+                        color: AppColors.primaryColor,
+                      ),
+                    )
+                  : const Icon(Icons.refresh_rounded,
+                      color: AppColors.primaryColor, size: 22),
+            ),
+            SizedBox(width: SizeConfig.size10),
+            _circleIconButton(
+              boxShadow: _kTopViewShadow,
+              child: const Icon(Icons.favorite_border,
+                  color: AppColors.primaryColor, size: 22),
+              onTap: () {
+                Navigator.pushNamed(
+                    context, RouteHelper.getYourCartScreenRoute());
+              },
+            ),
+          ],
         ),
       ],
     );

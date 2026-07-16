@@ -57,6 +57,12 @@ String userProfileTypeGlobal = '';
 // String schoolIDGlobal = '6954c5337ca7a9670dc99129';
 String productBusinessProfileIDGlobal = '';
 
+/// In-memory guard so the Discover share-promo dialog shows at most once per app
+/// session (the once-per-DAY rule is the persisted `sharePromoLastShownKey`).
+/// Reset on logout (see [SharedPreferenceUtils.clearPreferenceDataOnly]) so a
+/// fresh login re-shows the promo instead of a stale session flag hiding it.
+bool sharePromoShownThisSession = false;
+
 class SharedPreferenceUtils {
   static const FlutterSecureStorage _secureStorage = FlutterSecureStorage(
       aOptions: AndroidOptions(encryptedSharedPreferences: true),
@@ -367,6 +373,9 @@ class SharedPreferenceUtils {
       userId = '';
       businessId = '';
       userMobileGlobal = '';
+      // Reset the Discover share-promo session guard so the next login shows it
+      // again (its persisted per-day key was just wiped by deleteAll() above).
+      sharePromoShownThisSession = false;
       isUserLoginGlobal = '';
       has_reel_profile_status = 'false';
       reel_profile_id_global = '';

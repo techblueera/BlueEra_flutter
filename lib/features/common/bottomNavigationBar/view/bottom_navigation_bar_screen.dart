@@ -9,6 +9,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/core/services/chat_media_storage_service.dart';
@@ -816,22 +817,19 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     final businessCtrl =
         getOrPut(() => ViewBusinessDetailsController(), permanent: true);
     return Obx(() {
-      // Subscribe to profile-load completion so a navigate-first login swaps
-      // this loader for the real shop screen once businessTypeGlobal lands.
-      // On a normal (cached) app-open the login globals are already populated
-      // at boot, so businessTypeGlobal is non-empty and we render immediately
-      // — the loader only ever shows in the brief post-login fetch window.
-      final ready = businessCtrl.isBusinessProfileReady.value;
-      // ALSO subscribe to the in-flight flag: `businessTypeGlobal` is a
-      // non-reactive global, so without this the Obx would never rebuild when a
-      // LATER profile fetch changes the data — the true→false flip on completion
-      // is what re-runs _buildBusinessScreen() against the fresh globals.
-      final fetching = businessCtrl.isMeProfileFetching.value;
-      // Loader ONLY when there's no usable data yet (first load / account
-      // switch) and a fetch is still settling. With data present we keep the
-      // real screen on-screen even during a background refresh (no flashing).
-      if (businessTypeGlobal.isEmpty && (fetching || !ready)) {
-        return const _MeTabLoading();
+      // Subscribe to the fetch flags so this Obx rebuilds when a profile fetch
+      // settles/populates the data — `businessTypeGlobal` is a NON-reactive
+      // global, so on its own it can never trigger a rebuild. Reading these two
+      // (`isBusinessProfileReady` flips on first load, `isMeProfileFetching` on
+      // every refresh) is what re-runs this builder against the fresh globals.
+      businessCtrl.isBusinessProfileReady.value;
+      businessCtrl.isMeProfileFetching.value;
+      // Type not resolved yet (first load, re-login with a stale ready flag, or
+      // an in-flight refresh) → branded SHIMMER. NEVER fall through to
+      // _UnknownBusinessFallback here: that fallback is reserved for a genuinely
+      // UNRECOGNISED *non-empty* type (handled inside _buildBusinessScreen).
+      if (businessTypeGlobal.isEmpty) {
+        return const _MeTabShimmer();
       }
       return _buildBusinessScreen();
     });
@@ -944,25 +942,19 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
 
   Widget resolveIndividualScreen() {
     return Obx(() {
-      // Subscribe to the personal-profile load so a navigate-first login swaps
-      // this loader for the real screen once userProfileTypeGlobal lands. On a
-      // cached app-open the global is already set at boot, so we render
-      // immediately — the loader only shows in the brief post-login window.
-      // Uses the whenComplete-driven `isPersonalProfileReady` flag (NOT the
-      // response status): viewPersonalProfile leaves its status un-set on a
-      // non-success response / logged-out early return, which would otherwise
-      // strand this loader forever.
-      final ready = viewPersonalDetailsController.isPersonalProfileReady.value;
-      // ALSO subscribe to the in-flight flag: `userProfileTypeGlobal` is a
-      // non-reactive global, so without this the Obx would never rebuild when a
-      // LATER profile fetch changes the data — the true→false flip on completion
-      // is what re-runs _buildIndividualScreen() against the fresh globals.
-      final fetching = viewPersonalDetailsController.isMeProfileFetching.value;
-      // Loader ONLY when there's no usable data yet (first load / account
-      // switch) and a fetch is still settling. With data present we keep the
-      // real screen on-screen even during a background refresh (no flashing).
-      if (userProfileTypeGlobal.isEmpty && (fetching || !ready)) {
-        return const _MeTabLoading();
+      // Subscribe to the fetch flags so this Obx rebuilds when a profile fetch
+      // settles/populates the data — `userProfileTypeGlobal` is a NON-reactive
+      // global, so on its own it can never trigger a rebuild. Reading these two
+      // (`isPersonalProfileReady` flips on first load, `isMeProfileFetching` on
+      // every refresh) is what re-runs this builder against the fresh globals.
+      viewPersonalDetailsController.isPersonalProfileReady.value;
+      viewPersonalDetailsController.isMeProfileFetching.value;
+      // Type not resolved yet (first load, re-login with a stale ready flag, or
+      // an in-flight refresh) → branded SHIMMER. NEVER fall through to
+      // _UnknownProfileFallback here: that fallback is reserved for a genuinely
+      // UNRECOGNISED *non-empty* type (handled inside _buildIndividualScreen).
+      if (userProfileTypeGlobal.isEmpty) {
+        return const _MeTabShimmer();
       }
       return _buildIndividualScreen();
     });
@@ -996,39 +988,122 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
   }
 }
 
-/// Lightweight loader shown on the "Me" tab (business AND individual) during
-/// the brief post-login window where we navigated to the home screen first and
-/// the own-profile fetch (which populates businessTypeGlobal /
-/// userProfileTypeGlobal) is still in flight. Swaps to the real screen the
-/// moment `isBusinessProfileReady` / `isPersonalProfileReady` flips true.
-class _MeTabLoading extends StatelessWidget {
-  const _MeTabLoading();
+/// Branded **shimmer** skeleton shown on the "Me" tab (business AND individual)
+/// while the own-profile fetch that populates `businessTypeGlobal` /
+/// `userProfileTypeGlobal` is still resolving (first load, re-login, or an
+/// in-flight refresh). It mimics the real Me-dashboard layout — cover banner +
+/// avatar + identity lines + stats card + action pills + content cards — so the
+/// transition to the real screen doesn't jump. Swaps to the resolved screen the
+/// moment the type global lands (the resolve Obx rebuilds).
+///
+/// This deliberately REPLACES the old "unknown fallback on empty type" flash:
+/// an empty type means "not loaded yet" → shimmer; the identity fallbacks are
+/// reserved for a genuinely unrecognised *non-empty* type.
+class _MeTabShimmer extends StatelessWidget {
+  const _MeTabShimmer();
 
   @override
   Widget build(BuildContext context) {
-    // This loader lives in the tab *body* only — the bottom nav bar is a
-    // sibling Positioned in the parent Stack, so the tabs stay visible and
-    // tappable while this shows (the user can jump to Discover/Chat mid-load).
-    // Uses the app's branded staggered-dots loader (same as AppLoader) + a
-    // short message so the brief post-login fetch reads as an intentional
-    // "loading" state, not a blank/broken screen.
+    // Lives in the tab *body* only — the bottom nav bar is a sibling Positioned
+    // in the parent Stack, so tabs stay visible/tappable while this shows.
+    //
+    // Mirrors the real Me-dashboard skeleton (HomeTabScaffold): a top-bar header
+    // (avatar + title lines + go-live pill) → a pinned 5-tab row with an
+    // underline indicator → tab content cards. So the swap to the real screen
+    // reads as the same page finishing loading, not a different layout.
     return SafeArea(
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            staggeredDotsWaveLoading(color: AppColors.primaryColor),
-            SizedBox(height: SizeConfig.size10),
-            CustomText(
-              AppStrings.pleaseWaitProcessing.tr,
-              fontSize: SizeConfig.small,
-              color: AppColors.secondaryTextColor,
-              fontWeight: FontWeight.w500,
-              textAlign: TextAlign.center,
-            ),
-          ],
+      child: SingleChildScrollView(
+        physics: const NeverScrollableScrollPhysics(),
+        padding: EdgeInsets.fromLTRB(
+          SizeConfig.size16,
+          SizeConfig.size12,
+          SizeConfig.size16,
+          SizeConfig.size16,
+        ),
+        child: buildLoadingShimmer(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ── Header (top bar): avatar + title/subtitle + go-live pill ──
+              Row(
+                children: [
+                  shimmerContainer(width: 44, height: 44, radius: 22),
+                  SizedBox(width: SizeConfig.size12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        shimmerContainer(height: 16, width: 160),
+                        const SizedBox(height: 9),
+                        shimmerContainer(height: 12, width: 100),
+                      ],
+                    ),
+                  ),
+                  SizedBox(width: SizeConfig.size12),
+                  // Go-live pill
+                  shimmerContainer(width: 86, height: 32, radius: 16),
+                ],
+              ),
+              const SizedBox(height: 20),
+              // ── Pinned tab row: 5 label placeholders + indicator on tab 1 ──
+              Row(
+                children: List.generate(5, (i) {
+                  return Expanded(
+                    child: Column(
+                      children: [
+                        shimmerContainer(height: 11, width: 46, radius: 6),
+                        const SizedBox(height: 8),
+                        // Active-tab underline under the first tab only.
+                        shimmerContainer(
+                          height: 3,
+                          width: i == 0 ? 26 : 0,
+                          radius: 2,
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+              ),
+              const SizedBox(height: 6),
+              // Hairline under the tab bar.
+              shimmerContainer(height: 1, radius: 0),
+              const SizedBox(height: 16),
+              // ── Tab content: a hero card + a few list rows ──
+              shimmerContainer(height: 150, radius: 14),
+              const SizedBox(height: 16),
+              _contentRow(),
+              const SizedBox(height: 14),
+              _contentRow(),
+              const SizedBox(height: 14),
+              _contentRow(),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  /// One list-row skeleton: leading thumbnail + two text lines + trailing pill,
+  /// matching the card rows the real Me tabs render (products, orders, etc.).
+  Widget _contentRow() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        shimmerContainer(width: 56, height: 56, radius: 12),
+        SizedBox(width: SizeConfig.size12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              shimmerContainer(height: 14, width: 200),
+              const SizedBox(height: 9),
+              shimmerContainer(height: 11, width: 130),
+            ],
+          ),
+        ),
+        SizedBox(width: SizeConfig.size12),
+        shimmerContainer(width: 64, height: 30, radius: 15),
+      ],
     );
   }
 }

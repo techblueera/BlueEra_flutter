@@ -190,7 +190,7 @@ class ApiBaseHelper {
                     logIcon: Logger.warning);
               }
             } else {
-              logs(
+              log(
                   'SUCCESS CODE ${response.statusCode} : 🌐 $responseUrl\n${jsonEncode(response.data)}');
             }
 

@@ -100,10 +100,16 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
           (widget.overrideSubCategory?.trim().isNotEmpty ?? false)
               ? widget.overrideSubCategory
               : null;
-      // Override path is the individual/professional profile — editability
-      // comes off the personal profile record.
+      // Override path is the individual/professional profile — editability and
+      // the ready-made poster come off the personal profile record. The referral
+      // code falls back to the personal profile too, so callers that don't pass
+      // one (e.g. the Discover share promo) still show it instead of '------'.
+      final referral = (widget.referralCode?.trim().isNotEmpty ?? false)
+          ? widget.referralCode
+          : _safePersonalReferralCode();
       return _buildBannerCard(shopName, shopPhoto, subCategory,
-          widget.referralCode, _safePersonalReferralEditable());
+          referral, _safePersonalReferralEditable(),
+          marketingCardUrl: _safePersonalMarketingCardUrl());
     }
 
     // Legacy business path — observe the registered business profile
@@ -119,8 +125,39 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
       final subCategory =
           details.subCategoryDetails?.name ?? details.subCategoryOfBusiness;
       return _buildBannerCard(shopName, shopPhoto, subCategory,
-          details.referral_code, details.referralCodeEditable ?? false);
+          details.referral_code, details.referralCodeEditable ?? false,
+          marketingCardUrl: details.marketingCard?.readyUrl);
     });
+  }
+
+  /// Reads the ready-made poster URL off the signed-in personal profile. The
+  /// backend nests it inside `user`. Guarded so it never throws when the
+  /// controller isn't registered.
+  String? _safePersonalMarketingCardUrl() {
+    try {
+      return Get.find<ViewPersonalDetailsController>()
+          .personalProfileDetails
+          .value
+          .user
+          ?.marketingCard
+          ?.readyUrl;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Reads the referral code off the signed-in personal profile (`user`).
+  /// Guarded so it never throws when the controller isn't registered.
+  String? _safePersonalReferralCode() {
+    try {
+      return Get.find<ViewPersonalDetailsController>()
+          .personalProfileDetails
+          .value
+          .user
+          ?.referral_code;
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Reads `referralCodeEditable` off the signed-in personal profile.
@@ -150,7 +187,8 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
   }
 
   Widget _buildBannerCard(String shopName, String? shopPhoto,
-      String? subCategory, String? referralCode, bool referralCodeEditable) {
+      String? subCategory, String? referralCode, bool referralCodeEditable,
+      {String? marketingCardUrl}) {
     // In dialog mode the card sits directly inside the dialog (itself a
     // white rounded surface), so keep a tight uniform 10px inset and no
     // top margin instead of stacking padding on the dialog's own inset.
@@ -169,15 +207,44 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
           SizedBox(height: SizeConfig.size12),
           RepaintBoundary(
             key: _bannerKey,
-            child: _BannerArt(
-              shopName: shopName,
-              shopPhoto: shopPhoto,
-              subCategory: subCategory,
-            ),
+            // Prefer the backend-generated poster (composed server-side now);
+            // fall back to the client-composed art when it isn't ready / fails.
+            child: (marketingCardUrl != null && marketingCardUrl.isNotEmpty)
+                ? _backendPoster(
+                    marketingCardUrl, shopName, shopPhoto, subCategory)
+                : _BannerArt(
+                    shopName: shopName,
+                    shopPhoto: shopPhoto,
+                    subCategory: subCategory,
+                  ),
           ),
           SizedBox(height: SizeConfig.size14),
           _shareViaPanel(referralCode),
         ],
+      ),
+    );
+  }
+
+  /// The backend-generated poster, rendered directly. Sits in the same 3:2 slot
+  /// the server art is composed at, and lives inside the [RepaintBoundary] so
+  /// the existing "capture → share as PNG" flow still works unchanged. On a
+  /// load failure it degrades to the client-composed [_BannerArt].
+  Widget _backendPoster(
+      String url, String shopName, String? shopPhoto, String? subCategory) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(18),
+      child: AspectRatio(
+        aspectRatio: 3 / 2,
+        child: CachedNetworkImage(
+          imageUrl: url,
+          fit: BoxFit.cover,
+          placeholder: (_, __) => Container(color: AppColors.greyE5),
+          errorWidget: (_, __, ___) => _BannerArt(
+            shopName: shopName,
+            shopPhoto: shopPhoto,
+            subCategory: subCategory,
+          ),
+        ),
       ),
     );
   }
