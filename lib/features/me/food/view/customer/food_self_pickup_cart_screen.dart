@@ -8,6 +8,7 @@ import 'package:BlueEra/features/me/food/controller/food_selfpickup_controller.d
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/discount_ribbon.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -199,8 +200,7 @@ class _FoodSelfPickUpCartScreenState extends State<FoodSelfPickUpCartScreen> {
                   final items = grouped[businessId]!;
                   final businessInfo =
                       controller.cartBusinessInfo[items.first.id] ?? {};
-                  final Color bgColor =
-                      _cardColors[index % _cardColors.length];
+                  final Color bgColor = _cardColors[index % _cardColors.length];
 
                   return _StoreCard(
                     businessName: businessInfo['businessName'] ??
@@ -302,10 +302,8 @@ class _StoreCard extends StatelessWidget {
     // business lat/lng stashed at add-to-cart time. Returns null if
     // either side is missing/zero (cartBusinessInfo on food may not
     // carry coords yet, in which case the pill simply hides).
-    final lat =
-        double.tryParse(businessInfo['lat']?.toString() ?? '') ?? 0.0;
-    final lng =
-        double.tryParse(businessInfo['lng']?.toString() ?? '') ?? 0.0;
+    final lat = double.tryParse(businessInfo['lat']?.toString() ?? '') ?? 0.0;
+    final lng = double.tryParse(businessInfo['lng']?.toString() ?? '') ?? 0.0;
     if (lat == 0 && lng == 0) return null;
     final km = calculateDistance(lat, lng);
     if (km == null) return null;
@@ -376,7 +374,10 @@ class _StoreCard extends StatelessWidget {
               ],
             ),
           ),
-          if (averageDiscount > 0) _DiscountRibbon(percent: averageDiscount),
+          if (averageDiscount > 0)
+            DiscountRibbon(
+                percent: averageDiscount,
+                padding: const EdgeInsets.only(right: 10)),
         ],
       ),
     );
@@ -543,8 +544,7 @@ class _ProductRow extends StatelessWidget {
     // the variant from the cart.
     Get.dialog(
       Dialog(
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 22, 20, 16),
           child: Column(
@@ -669,14 +669,12 @@ class _ProductRow extends StatelessWidget {
                 width: 18,
                 height: 18,
                 decoration: BoxDecoration(
-                  color: isSelected
-                      ? AppColors.primaryColor
-                      : Colors.transparent,
+                  color:
+                      isSelected ? AppColors.primaryColor : Colors.transparent,
                   borderRadius: BorderRadius.circular(4),
                   border: Border.all(
-                    color: isSelected
-                        ? AppColors.primaryColor
-                        : AppColors.greyCA,
+                    color:
+                        isSelected ? AppColors.primaryColor : AppColors.greyCA,
                     width: 1.5,
                   ),
                 ),
@@ -855,9 +853,7 @@ class _QtyStepper extends StatelessWidget {
               child: Center(
                 child: Icon(
                   quantity == 1 ? Icons.delete_outline : Icons.remove,
-                  color: quantity == 1
-                      ? AppColors.red
-                      : AppColors.primaryColor,
+                  color: quantity == 1 ? AppColors.red : AppColors.primaryColor,
                   size: 16,
                 ),
               ),
@@ -891,105 +887,6 @@ class _QtyStepper extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════
-//  DISCOUNT RIBBON ( top-right of store card )
-// ═══════════════════════════════════════════════════════════════════
-
-class _DiscountRibbon extends StatelessWidget {
-  final double percent;
-  const _DiscountRibbon({required this.percent});
-
-  String get _label {
-    final clamped = percent > 99 ? 99 : percent;
-    final isWhole = clamped == clamped.roundToDouble();
-    return isWhole
-        ? clamped.toStringAsFixed(0)
-        : clamped.toStringAsFixed(1);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 10),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          // Why: radial gradient (lime center → deep-green edge) gives
-          // the badge the "stamped" feel from the grocery mockup, and
-          // the 2-px yellow ring frames it like a sticker on the card
-          // corner.
-          gradient: const RadialGradient(
-            center: Alignment(-0.2, -0.4),
-            radius: 1.1,
-            colors: [Color(0xFFB5D147), Color(0xFF0D8A47)],
-            stops: [0.0, 1.0],
-          ),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: const Color(0xFFFFD83D),
-            width: 2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF15A352).withValues(alpha: 0.28),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            // "20% Off" laid out as a single row so the % and word
-            // read together — matches the grocery hierarchy.
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '$_label%',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                    height: 1.0,
-                    letterSpacing: 0.3,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                const Padding(
-                  padding: EdgeInsets.only(bottom: 1),
-                  child: Text(
-                    'Off',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                      height: 1.0,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'On All Items',
-              style: TextStyle(
-                fontSize: 9,
-                color: Colors.white.withValues(alpha: 0.95),
-                fontWeight: FontWeight.w700,
-                height: 1.0,
-                letterSpacing: 0.2,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -1047,8 +944,7 @@ class _BottomSummaryBar extends StatelessWidget {
               offset: const Offset(0, -4),
             ),
           ],
-          borderRadius:
-              const BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: SafeArea(
           top: false,
@@ -1066,8 +962,7 @@ class _BottomSummaryBar extends StatelessWidget {
                       AppStrings.groceryViewUnknownStore.tr;
                   final shopTotal = calcTotal(items, controller);
                   final shopItems = calcItemCount(items, controller);
-                  final isChecked =
-                      selectedBusinessIds.contains(businessId);
+                  final isChecked = selectedBusinessIds.contains(businessId);
 
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 4),

@@ -1143,6 +1143,9 @@ class ChatEmitEvents {
   static const newTiffinPickupOrderReceived = "newTiffinPickupOrderReceived";
   static const tiffinPickupOrderReady = "tiffinPickupOrderReady";
   static const tiffinPickupOrderCancelled = "tiffinPickupOrderCancelled";
+  static const newMedicalPickupOrderReceived =
+      "newMedicalPickupOrderReceived";
+  static const medicalPickupOrderReady = "medicalPickupOrderReady";
 
   // Service enquiry (Discover self-profession → chat). `new…Received` delivers
   // the enquiry card to the provider; `…StatusUpdated` notifies both parties
@@ -2412,6 +2415,12 @@ final List<OnboardingCategoryModel> healthCareList = [
     individualType: IndividualProfileType.PROFESSIONAL,
     accountType: AppConstants.individual,
   ),
+  // Pharmacy is the odd one out: every other entry routes into
+  // `HealthCareListingScreen`, but PHARMACY has its own flow and opens
+  // `PharmacyStoresScreen` instead. Both consumers of this list special-case it
+  // (`HealthServiceCardWidget._open` and the listing's `onCategoryTap`), because
+  // the listing's `rightContent()` has no PHARMACY branch — without the
+  // special-case the tile would land on "Coming soon".
   OnboardingCategoryModel(
     name: 'Pharmacy',
     slugId: PHARMACY,

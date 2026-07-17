@@ -11,7 +11,7 @@ import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_d
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_profiles_list_screen.dart';
-import 'package:BlueEra/features/me/medical/view/nearest_pharmacies_list_screen.dart';
+import 'package:BlueEra/features/me/medical/view/pharmacy_stores_screen.dart';
 import 'package:BlueEra/features/me/school/view/coming_soon.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_draggable_bottom_sheet.dart';
@@ -94,6 +94,13 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
                     )).toList(),
                     selectedId: controller.selectedProfessionalConsultantData.value?.slugId,
                     onCategoryTap: (item) {
+                      // Pharmacy isn't a tab here — it has its own flow, and
+                      // `rightContent()` has no PHARMACY branch, so selecting it
+                      // would show "Coming soon". Hand off instead of switching.
+                      if (item.id == PHARMACY) {
+                        Get.to(() => const PharmacyStoresScreen());
+                        return;
+                      }
                       final cat = _professionalConsultantCategories.firstWhere((c) => c.slugId == item.id);
                       controller.selectedTabIndex.value = _professionalConsultantCategories.indexOf(cat);
                       controller.selectedProfessionalConsultantData.value = cat;
@@ -124,13 +131,10 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
     return Obx(() {
       final v = _locationVersion;
       final slug = controller.selectedProfessionalConsultantData.value?.slugId;
-      if (slug == PHARMACY) {
-        return NearestPharmaciesListScreen(
-          key: ValueKey('pharmacy_$v'),
-          category: "PHARMACY",
-          // category: "INSTRUMENTS_PHARMACY",
-        );
-      } else if (slug == LABTEST) {
+      // No PHARMACY branch by design — the Pharmacy chip hands off to
+      // `PharmacyStoresScreen` in `onCategoryTap` above and never becomes the
+      // selected category here.
+      if (slug == LABTEST) {
         return LabProfilesListScreen(
           key: ValueKey('lab_$v'),
           category: "DIAGNOSTIC",

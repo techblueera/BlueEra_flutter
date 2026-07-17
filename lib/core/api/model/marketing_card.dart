@@ -14,6 +14,9 @@
 /// instead of building the banner artwork on the client — but only when
 /// [readyUrl] is non-null (status `ready` + a real URL); otherwise the caller
 /// falls back to the client-composed banner.
+///
+/// Note there is **no video here** — the referral promo clip is a top-level
+/// `referal_video` on the profile response, not part of this object.
 class MarketingCard {
   final String url;
   final String status;

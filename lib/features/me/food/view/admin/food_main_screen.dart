@@ -41,6 +41,7 @@ import 'package:BlueEra/features/me/food/view/widget/show_food_product_variant_s
 import 'package:BlueEra/features/me/grocery/model/grocery_nested_category_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/food_type_indicator.dart';
 import 'package:BlueEra/widgets/RatingBadge.dart';
+import 'package:BlueEra/widgets/add_product_prompt_sheet.dart';
 import 'package:BlueEra/widgets/business_live_photo_bottom_sheet.dart';
 import 'package:BlueEra/widgets/common_business_live_photo.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -126,6 +127,19 @@ class _FoodMainScreenState extends State<FoodMainScreen>
       showBusinessLivePhotoBottomSheetIfNeeded(
         context: context,
         controller: _businessController,
+      );
+      // The once-a-day "add your dishes" nudge. Defers to the live-photo sheet
+      // above â€” it skips while the business has no photos and takes the next
+      // visit instead, so the two never stack.
+      showAddProductPromptIfNeeded(
+        context: context,
+        spec: const AddProductPromptSpec(
+          titleKey: AppStrings.addPromptTitleFood,
+          ctaKey: AppStrings.addFood,
+          icon: Icons.restaurant_menu_rounded,
+        ),
+        onAddProduct: () => _tabController.animateTo(2),
+        livePhotoGate: _businessController,
       );
     });
   }

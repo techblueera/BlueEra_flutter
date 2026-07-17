@@ -21,6 +21,7 @@ import 'package:BlueEra/features/business/widgets/profile_share_banner.dart';
 import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
@@ -35,6 +36,7 @@ import 'package:BlueEra/features/me/grocery/widget/grocery_variants_sheet.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/grocery/view/all_top_selling_grocery_products_screen.dart';
 import 'package:BlueEra/features/me/grocery/widget/grocery_order_tab.dart';
+import 'package:BlueEra/widgets/add_product_prompt_sheet.dart';
 import 'package:BlueEra/widgets/common_business_live_photo.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -103,6 +105,28 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
     // default). Switching tabs later will fire other tabs' APIs lazily
     // via [_onTabTapped] â€” mirrors product_screen's per-tab discipline.
     _fetchForTab(_selectedTab);
+    // The once-a-day "add your grocery items" nudge. Lives here rather than in
+    // GroceryScreen because the CTA needs this screen's TabController.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      // Skip when the user isn't on the Me tab â€” same transient-mount guard
+      // GroceryScreen uses for the live-photo sheet.
+      if (Get.isRegistered<BottomBarController>() &&
+          Get.find<BottomBarController>().currentIndex.value != 0) {
+        return;
+      }
+      showAddProductPromptIfNeeded(
+        context: context,
+        spec: const AddProductPromptSpec(
+          titleKey: AppStrings.addPromptTitleGrocery,
+          ctaKey: AppStrings.addProduct,
+          icon: Icons.local_grocery_store_outlined,
+        ),
+        onAddProduct: () => _tabController.animateTo(2),
+        // GroceryScreen pops the live-photo sheet on this same landing.
+        livePhotoGate: _businessController,
+      );
+    });
   }
 
   /// Per-tab API dispatcher. Each tab owns a different data set, so we

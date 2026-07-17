@@ -350,6 +350,13 @@ class _MessageCardState extends State<MessageCard> with SingleTickerProviderStat
         messageWidget = ProductSelfPickupMsgCard(
             message: widget.message, time: time, conversationId: widget.conversationId);
 
+      case "medical_selfpickup":
+        messageWidget = ProductSelfPickupMsgCard(
+            message: widget.message,
+            time: time,
+            conversationId: widget.conversationId,
+            isMedical: true);
+
       case "service_enquiry":
         messageWidget =
             ServiceEnquiryMsgCard(message: widget.message, time: time, conversationId: widget.conversationId);

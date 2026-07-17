@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/controller/nearby_stores_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/nearby_discover_models.dart';
 import 'package:BlueEra/features/common/Discover/view/self_employee_view_discover_screen.dart';
@@ -41,19 +42,50 @@ class _NearestStoresSectionState extends State<NearestStoresSection> {
 
   static const double _railHeight = 116;
 
+  /// Drives the refresh button's spinner. Local rather than read off the
+  /// controller because the refresh also re-acquires location first, and
+  /// `isLoading` only covers the network call itself.
+  bool _isRefreshing = false;
+
   @override
   void initState() {
     super.initState();
     _controller.fetchIfNeeded();
   }
 
-  /// Merge stores + services + riders into one nearest-first list.
+  /// Refresh THIS rail only — re-acquire location so a move is picked up, then
+  /// force-refetch nearby-discover (bypassing the controller's 24h TTL).
+  ///
+  /// This replaces the old Discover header refresh, which reloaded every rail
+  /// at once. Re-entrancy-guarded.
+  Future<void> _refresh() async {
+    if (_isRefreshing) return;
+    setState(() => _isRefreshing = true);
+    try {
+      await LocationService.ensureUsableLocation();
+      await _controller.fetch();
+    } finally {
+      if (mounted) setState(() => _isRefreshing = false);
+    }
+  }
+
+  /// Merge stores + services + riders into one rail.
+  ///
+  /// **Live workers lead**, then everything else nearest-first. The backend
+  /// deliberately ranks live workers ahead of closer offline ones, and the
+  /// guide is explicit: *"don't re-sort purely by distance or you'll bury the
+  /// available people"* (§2.4, §7). This rail flattens several buckets into one
+  /// list so it must re-sort — but only *within* that rule, never across it.
+  /// Stores have no live concept and sort by distance among themselves.
   List<_NearbyEntry> _entries() {
     final list = <_NearbyEntry>[
       ..._controller.stores.map(_NearbyEntry.store),
       ..._controller.services.map(_NearbyEntry.worker),
       ..._controller.riders.map(_NearbyEntry.worker),
-    ]..sort((a, b) => a.distance.compareTo(b.distance));
+    ]..sort((a, b) {
+        if (a.isLive != b.isLive) return a.isLive ? -1 : 1;
+        return a.distance.compareTo(b.distance);
+      });
     return list;
   }
 
@@ -92,9 +124,23 @@ class _NearestStoresSectionState extends State<NearestStoresSection> {
   Widget build(BuildContext context) {
     return Obx(() {
       final entries = _entries();
-      final loading = _controller.isLoading.value && entries.isEmpty;
+      // Shimmer on the first load AND on a button refresh, so a refresh reads
+      // as a reload rather than a frozen rail. `fetch()` leaves the old list in
+      // place until the new one lands (it only `assignAll`s on success), so
+      // `entries` stays non-empty mid-refresh — hence the explicit
+      // `_isRefreshing`, which also covers the location fix before the call.
+      //
+      // Pull-to-refresh deliberately doesn't shimmer: RefreshIndicator has its
+      // own spinner and keeping the content is the expected behaviour there.
+      final loading =
+          _isRefreshing || (_controller.isLoading.value && entries.isEmpty);
 
       if (_controller.loaded.value && !loading && entries.isEmpty) {
+        // Guide §4: an empty slice whose label is in `meta.degraded` means an
+        // OUTAGE, not "nothing nearby" — the response is still 200. Collapsing
+        // silently tells the user there's nothing around them and leaves them
+        // no way to recover, so offer a retry instead.
+        if (_controller.degraded.value) return _degradedCard();
         return const SizedBox.shrink();
       }
 
@@ -121,6 +167,8 @@ class _NearestStoresSectionState extends State<NearestStoresSection> {
                       fontWeight: FontWeight.w700,
                     ),
                   ),
+                  _refreshButton(),
+                  SizedBox(width: SizeConfig.size8),
                   if (widget.onViewAll != null)
                     ViewAllButton(onTap: widget.onViewAll!),
                 ],
@@ -146,6 +194,75 @@ class _NearestStoresSectionState extends State<NearestStoresSection> {
         ),
       );
     });
+  }
+
+  /// Refresh affordance sitting left of "View All" — refreshes only this rail.
+  ///
+  /// Wears the same pale-blue chip as [ViewAllButton] (`primaryColor.withAlpha(10)`,
+  /// radius 30) so the two read as a matched pair rather than a stray icon.
+  /// Spins while running, and is inert both while refreshing and while the
+  /// controller's own fetch is in flight, so it can't stack requests.
+  Widget _refreshButton() {
+    final busy = _isRefreshing || _controller.isLoading.value;
+    return GestureDetector(
+      onTap: busy ? null : _refresh,
+      child: Container(
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor.withAlpha(10),
+          borderRadius: BorderRadius.circular(30),
+        ),
+        child: SizedBox(
+          // Fixed box so swapping icon ⇄ spinner doesn't jiggle the row.
+          width: 18,
+          height: 18,
+          child: busy
+              ? const CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppColors.primaryColor,
+                )
+              : const Icon(
+                  Icons.refresh_rounded,
+                  size: 18,
+                  color: AppColors.primaryColor,
+                ),
+        ),
+      ),
+    );
+  }
+
+  /// Shown when the rail is empty *because an upstream failed* — same white
+  /// card as the rail so the section keeps its place, with a retry that
+  /// force-refetches. Never shown for a genuinely empty area (that collapses).
+  Widget _degradedCard() {
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.only(bottom: SizeConfig.size12),
+      padding: EdgeInsets.all(SizeConfig.size16),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.cloud_off_rounded,
+              size: SizeConfig.size20, color: AppColors.secondaryTextColor),
+          SizedBox(width: SizeConfig.size10),
+          Expanded(
+            child: CustomText(
+              "Couldn't load what's near you",
+              fontSize: SizeConfig.small,
+              fontWeight: FontWeight.w600,
+              color: AppColors.secondaryTextColor,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          SizedBox(width: SizeConfig.size8),
+          _refreshButton(),
+        ],
+      ),
+    );
   }
 
   Widget _loadingRow() {
@@ -185,6 +302,10 @@ class _NearbyEntry {
   const _NearbyEntry.worker(this.worker) : store = null;
 
   double get distance => store?.distance ?? worker?.distance ?? 0;
+
+  /// Only workers can be live — a store is never "live" in this sense, so it
+  /// sorts purely on distance.
+  bool get isLive => worker?.live ?? false;
 }
 
 class _NearbyAvatar extends StatelessWidget {

@@ -27,6 +27,11 @@ mixin MedicalServiceApi {
   final String medicalOrder = "medical-service/orders";
   String updateMedicalOrder(String orderId) =>
       "medical-service/orders/$orderId";
+
+  /// Merchant marks a self-pickup order ready for collection, from the chat
+  /// order card. Mirrors `grocery-service/api/orders/{id}/ready`.
+  String medicalOrderReady(String orderId) =>
+      "medical-service/orders/$orderId/ready";
   String medicalServiceOrder(String orderId) =>
       'medical-service/orders/$orderId/alternatives';
   final String medicalNestedCategory = 'medical-service/categories/nested';

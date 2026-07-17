@@ -6183,6 +6183,18 @@ class AppStrings {
   static const String customersFavoritesThisMonth = "customersFavoritesThisMonth";
   static const String noProductYetCreateOne = "noProductYetCreateOne";
 
+  /// ADD-PRODUCT PROMPT — the once-a-day nudge on the me-section admin
+  /// homes. One title per business field so the sheet names what the
+  /// merchant actually sells; the body copy is shared across all of them.
+  static const String addPromptTitleGrocery = "addPromptTitleGrocery";
+  static const String addPromptTitleFood = "addPromptTitleFood";
+  static const String addPromptTitleProduct = "addPromptTitleProduct";
+  static const String addPromptTitleManufacturer = "addPromptTitleManufacturer";
+  static const String addPromptTitleAutomotive = "addPromptTitleAutomotive";
+  static const String addPromptTitleMedical = "addPromptTitleMedical";
+  static const String addPromptSubtitle = "addPromptSubtitle";
+  static const String addPromptNotNow = "addPromptNotNow";
+
   /// BOTTOM NAVIGATION screen — guest-to-profile prompt dialog, the
   /// Me-tab unknown-profile/business fallbacks, and the rider "I'm
   /// Live" top bar.

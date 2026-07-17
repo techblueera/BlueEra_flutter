@@ -75,6 +75,8 @@ const Set<String> _orderNotificationOperations = {
   'homemade_food_pickup_order_ready',
   'tiffin_pickup_order',
   'tiffin_pickup_order_ready',
+  'medical_pickup_order',
+  'medical_pickup_order_ready',
 };
 
 /// Top-level handler for background notification actions (inline reply, mark as read, etc.)

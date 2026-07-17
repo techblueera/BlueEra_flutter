@@ -2,6 +2,7 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/utils/fetch_cache.dart';
 import 'package:BlueEra/features/me/medical/repo/medical_repo.dart';
 import 'package:get/get.dart';
 
@@ -64,6 +65,34 @@ class NearestPharmaciesController extends GetxController {
   final isLoading = false.obs;
   final error = ''.obs;
   final responseState = ApiResponse.initial('Initial').obs;
+
+  /// Freshness guard for the shared [pharmacies] list — the same pattern
+  /// `StoreController` uses for grocery. Every sub-category writes into this
+  /// one list, so a plain "already loaded?" check would serve the wrong
+  /// sub-category's results; the signature below makes reuse identity-aware.
+  ///
+  /// No distance invalidation, unlike the store list: `business/filter` sends
+  /// no lat/lng, so the response isn't location-scoped (distance is computed
+  /// client-side on the card). Moving can't stale this data — only time can.
+  final FetchCache _cache = FetchCache();
+
+  String _identity(String category, String? subCategory) =>
+      'pharmacies|$category|${subCategory ?? ''}';
+
+  /// Fetch only when the list isn't already loaded & fresh for this exact
+  /// category + sub-category. Use on screen (re)entry; call [fetchNearest]
+  /// directly for explicit refreshes (pull-to-refresh).
+  Future<void> fetchNearestIfNeeded({
+    required String category,
+    String? subCategory,
+  }) async {
+    if (_cache.isFresh(_identity(category, subCategory),
+        hasData: pharmacies.isNotEmpty)) {
+      return;
+    }
+    await fetchNearest(category: category, subCategory: subCategory);
+  }
+
   // curl -X 'GET' \
   // 'https://be.beapp.in/api/user-service/business/filter?category=HOSPITAL_SECTOR&page=1&limit=10' \
   // -H 'accept: application/json'
@@ -89,6 +118,9 @@ class NearestPharmaciesController extends GetxController {
         final List data = res.response?.data?['data'] ?? [];
         final items = data.map((e) => PharmacyItem.fromJson(e)).toList();
         pharmacies.assignAll(items);
+        // Stamp only on success, and with THIS request's identity — the next
+        // reader can then tell whose data is currently in the shared list.
+        _cache.mark(_identity(category, subCategory));
         if (items.isEmpty) {
           error.value = 'No pharmacies found';
         }

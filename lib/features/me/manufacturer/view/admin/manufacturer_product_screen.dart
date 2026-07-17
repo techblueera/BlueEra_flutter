@@ -29,6 +29,7 @@ import 'package:BlueEra/features/me/manufacturer/view/admin/manufacturer_admin_a
 import 'package:BlueEra/features/me/manufacturer/view/admin/manufacturer_product_home_screen.dart';
 import 'package:BlueEra/features/me/manufacturer/view/admin/widget/manufacturer_admin_product_card.dart';
 import 'package:BlueEra/features/me/manufacturer/view/admin/widget/manufacturer_orders_tab_body.dart';
+import 'package:BlueEra/widgets/add_product_prompt_sheet.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/gradient_add_button.dart';
@@ -72,6 +73,22 @@ class _ProductScreenState extends State<ManufacturerProductScreen>
       ChatEmitEvents.ChatList,
       {ApiKeys.type: AppConstants.business_Chat_Type},
     );
+    // The once-a-day "add your products" nudge. No livePhotoGate here: this
+    // screen lands on Order (tab 0) and its live-photo sheet is fired by
+    // ManufacturerProductHomeScreen, which TabBarView doesn't build until the
+    // merchant opens Overview â€” so the two can't collide on this landing.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      showAddProductPromptIfNeeded(
+        context: context,
+        spec: const AddProductPromptSpec(
+          titleKey: AppStrings.addPromptTitleManufacturer,
+          ctaKey: AppStrings.addProduct,
+          icon: Icons.precision_manufacturing_outlined,
+        ),
+        onAddProduct: () => _tabController?.animateTo(2),
+      );
+    });
   }
 
   void _initializeData() {

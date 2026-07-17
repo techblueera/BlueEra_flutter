@@ -29,6 +29,7 @@ import 'package:BlueEra/features/me/automotive_products/model/automotive_product
 import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_admin_all_top_selling_products_screen.dart';
 import 'package:BlueEra/features/me/automotive_products/view/admin/automotive_product_home_screen.dart';
 import 'package:BlueEra/features/me/automotive_products/view/admin/widget/automotive_admin_product_card.dart';
+import 'package:BlueEra/widgets/add_product_prompt_sheet.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/gradient_add_button.dart';
@@ -71,6 +72,22 @@ class _AutomotivePartsScreenState extends State<AutomotivePartsScreen>
       ChatEmitEvents.ChatList,
       {ApiKeys.type: AppConstants.business_Chat_Type},
     );
+    // The once-a-day "add your auto parts" nudge. No livePhotoGate here: this
+    // screen lands on Order (tab 0) and its live-photo sheet is fired by
+    // AutomotiveProductHomeScreen, which TabBarView doesn't build until the
+    // merchant opens Overview â€” so the two can't collide on this landing.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      showAddProductPromptIfNeeded(
+        context: context,
+        spec: const AddProductPromptSpec(
+          titleKey: AppStrings.addPromptTitleAutomotive,
+          ctaKey: AppStrings.addProduct,
+          icon: Icons.car_repair_outlined,
+        ),
+        onAddProduct: () => _tabController?.animateTo(2),
+      );
+    });
   }
 
   void _initializeData() {
