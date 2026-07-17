@@ -3,9 +3,11 @@ import 'dart:io';
 
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/services/chat_local_storage_logger.dart';
+import 'package:BlueEra/core/services/chat_storage_paths.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:hive/hive.dart';
 import 'package:http/http.dart' as http;
+import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import '../../features/chat/auth/model/GetChatListModel.dart';
 import '../../features/chat/auth/model/GetListOfMessageData.dart';
@@ -75,6 +77,29 @@ class LocalStorageHelper {
     return (a.createdAt ?? '').compareTo(b.createdAt ?? '');
   }
 
+  // ── Relocated chat-history stores ──
+  //
+  // These four boxes hold the on-device chat history and now live under the
+  // WhatsApp-style `Chat History/` folder (see [ChatStoragePaths]) instead of
+  // the default Hive dir. New box names are used so the one-time migration can
+  // read the old default-path boxes and the new relocated boxes side by side.
+  static const String _messagesStoreName = 'messagesStore';
+  static const String _chatListStoreName = 'chatListStore';
+  static const String _conversationStoreName = 'conversationStore';
+  static const String _contactsStoreName = 'contactsStore';
+
+  // Legacy (default-path) box names, migrated once then deleted.
+  static const String _legacyMessagesBox = 'messagesBox';
+  static const String _legacyChatListBox = 'chatListJsonBox';
+  static const String _legacyConversationBox = 'conversationBox';
+  static const String _legacyContactsBox = 'contactsBox';
+
+  /// Separator between conversation id and message id in a message key:
+  /// `"$conversationId::$messageId"`. Conversation/message ids are Mongo
+  /// ObjectIds / temp ids and never contain "::", so a prefix match on
+  /// `"$conversationId::"` cleanly selects one conversation's messages.
+  static const String _keySep = '::';
+
   // ── Cached box references (avoid repeated openBox calls) ──
   Box<String>? _conversationBox;
   Box<String>? _userImagesBox;
@@ -90,11 +115,93 @@ class LocalStorageHelper {
     return _appDocDir!;
   }
 
+  /// Open a relocated history store at the `Chat History/` folder. Reuses an
+  /// already-open instance and never calls [_ensureMigrated] itself (the box
+  /// getters do that first) so migration can open the stores without recursion.
+  Future<Box<String>> _openStore(String name) async {
+    if (Hive.isBoxOpen(name)) return Hive.box<String>(name);
+    final dir = await ChatStoragePaths.historyDir();
+    return Hive.openBox<String>(name, path: dir.path);
+  }
+
+  // Single-run migration guard.
+  Future<void>? _migrationFuture;
+
+  Future<void> _ensureMigrated() => _migrationFuture ??= _runMigration();
+
+  /// One-time move of chat-history data from the old default-path boxes into
+  /// the relocated `Chat History/` stores. For messages this also converts the
+  /// old "one JSON blob per conversation" layout into per-message keys. Guarded
+  /// by a `.migrated_v2` marker file so it runs at most once per install.
+  Future<void> _runMigration() async {
+    try {
+      final histDir = await ChatStoragePaths.historyDir();
+      final marker = File(p.join(histDir.path, '.migrated_v2'));
+      if (await marker.exists()) return;
+
+      await _migrateMessagesBox();
+      await _migratePlainBox(_legacyChatListBox, _chatListStoreName);
+      await _migratePlainBox(_legacyConversationBox, _conversationStoreName);
+      await _migratePlainBox(_legacyContactsBox, _contactsStoreName);
+
+      try {
+        await marker.create();
+      } catch (_) {}
+    } catch (e, stack) {
+      ChatStorageLogger.error('migration', 'Chat-history migration failed',
+          error: e, stack: stack);
+    }
+  }
+
+  /// Migrate the legacy messages box (key = conversationId → JSON array blob)
+  /// into per-message keys (`"$conversationId::$messageId"`) in the new store.
+  Future<void> _migrateMessagesBox() async {
+    if (!await Hive.boxExists(_legacyMessagesBox)) return;
+    final oldBox = await Hive.openBox<String>(_legacyMessagesBox);
+    final newBox = await _openStore(_messagesStoreName);
+    try {
+      for (final k in oldBox.keys) {
+        final conversationId = k.toString();
+        final blob = oldBox.get(k);
+        if (blob == null || blob.isEmpty) continue;
+        try {
+          final decoded = jsonDecode(blob) as List<dynamic>;
+          for (int i = 0; i < decoded.length; i++) {
+            final m = Map<String, dynamic>.from(decoded[i] as Map);
+            final id = m['_id']?.toString() ?? '';
+            final key = id.isNotEmpty
+                ? '$conversationId$_keySep$id'
+                : '$conversationId${_keySep}pending_$i';
+            await newBox.put(key, jsonEncode(m));
+          }
+        } catch (_) {
+          // Skip a corrupted conversation blob rather than abort the migration.
+        }
+      }
+    } finally {
+      await oldBox.deleteFromDisk();
+    }
+  }
+
+  /// Migrate a legacy key→JSON box verbatim into its relocated store.
+  Future<void> _migratePlainBox(String oldName, String newName) async {
+    if (!await Hive.boxExists(oldName)) return;
+    final oldBox = await Hive.openBox<String>(oldName);
+    final newBox = await _openStore(newName);
+    try {
+      for (final k in oldBox.keys) {
+        final v = oldBox.get(k);
+        if (v != null) await newBox.put(k.toString(), v);
+      }
+    } finally {
+      await oldBox.deleteFromDisk();
+    }
+  }
+
   Future<Box<String>> get _conversationBoxRef async {
+    await _ensureMigrated();
     if (_conversationBox != null && _conversationBox!.isOpen) return _conversationBox!;
-    _conversationBox = Hive.isBoxOpen('conversationBox')
-        ? Hive.box<String>('conversationBox')
-        : await Hive.openBox<String>('conversationBox');
+    _conversationBox = await _openStore(_conversationStoreName);
     return _conversationBox!;
   }
 
@@ -107,27 +214,43 @@ class LocalStorageHelper {
   }
 
   Future<Box<String>> get _messagesBoxRef async {
+    await _ensureMigrated();
     if (_messagesBox != null && _messagesBox!.isOpen) return _messagesBox!;
-    _messagesBox = Hive.isBoxOpen('messagesBox')
-        ? Hive.box<String>('messagesBox')
-        : await Hive.openBox<String>('messagesBox');
+    _messagesBox = await _openStore(_messagesStoreName);
     return _messagesBox!;
   }
 
   Future<Box<String>> get _chatListBoxRef async {
+    await _ensureMigrated();
     if (_chatListBox != null && _chatListBox!.isOpen) return _chatListBox!;
-    _chatListBox = Hive.isBoxOpen('chatListJsonBox')
-        ? Hive.box<String>('chatListJsonBox')
-        : await Hive.openBox<String>('chatListJsonBox');
+    _chatListBox = await _openStore(_chatListStoreName);
     return _chatListBox!;
   }
 
   Future<Box<String>> get _contactsBoxRef async {
+    await _ensureMigrated();
     if (_contactsBox != null && _contactsBox!.isOpen) return _contactsBox!;
-    _contactsBox = Hive.isBoxOpen('contactsBox')
-        ? Hive.box<String>('contactsBox')
-        : await Hive.openBox<String>('contactsBox');
+    _contactsBox = await _openStore(_contactsStoreName);
     return _contactsBox!;
+  }
+
+  // ── Per-message key helpers ──
+
+  String _msgKey(String conversationId, String messageId) =>
+      '$conversationId$_keySep$messageId';
+
+  String _convIdFromKey(String key) {
+    final i = key.indexOf(_keySep);
+    return i < 0 ? '' : key.substring(0, i);
+  }
+
+  /// Every message key belonging to [conversationId].
+  Iterable<String> _messageKeysForConversation(
+      Box<String> box, String conversationId) {
+    final prefix = '$conversationId$_keySep';
+    return box.keys
+        .map((k) => k.toString())
+        .where((k) => k.startsWith(prefix));
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -330,9 +453,9 @@ class LocalStorageHelper {
 
   /// Bulk-merge server messages into the local conversation cache.
   /// Server pages arrive one at a time (page 1 is latest 30, page 2 is older
-  /// 30, etc.) so a REPLACE strategy would clobber previously-cached pages
-  /// whenever the user scrolls. Instead we merge by message id and sort
-  /// chronologically. Pending messages are preserved untouched.
+  /// 30, etc.). With per-message keys each server message is an isolated
+  /// `box.put`, so older cached pages and locally-pending rows are untouched —
+  /// no whole-conversation re-encode. Server data wins for any overlapping id.
   Future<void> saveMessagesByConversationId(
       String conversationId, List<Messages> messages) async {
     if (conversationId.isEmpty) {
@@ -341,47 +464,22 @@ class LocalStorageHelper {
     }
     try {
       final box = await _messagesBoxRef;
-      final existing = await _getRawMessages(conversationId, box);
 
-      // Index existing by id for O(1) dedup/replace.
-      final byId = <String, Map<String, dynamic>>{};
-      final pendingWithoutId = <Map<String, dynamic>>[];
-      for (final m in existing) {
-        final id = m['_id']?.toString() ?? '';
-        if (id.isEmpty) {
-          // Pending temp messages may land here if their temp id was ever empty;
-          // keep them as-is since we can't key them.
-          if (m['sendStatus'] == 'pending') pendingWithoutId.add(m);
-          continue;
-        }
-        // Drop pending rows that are currently being drained — a concurrent
-        // replacePendingWithServerMessage will write the authoritative server
-        // row, so re-introducing the temp id here would double the message.
-        if (m['sendStatus'] == 'pending' &&
-            _inFlightPendingIds.contains(id)) {
-          continue;
-        }
-        byId[id] = m;
-      }
-
-      // Merge in server messages — server data wins for any overlapping id.
+      // One entry per server message, keyed by "$conversationId::$id".
+      final entries = <String, String>{};
       for (final m in messages) {
         final id = m.id ?? '';
         if (id.isEmpty) continue;
-        byId[id] = _messageToStorableJson(m);
+        entries[_msgKey(conversationId, id)] =
+            jsonEncode(_messageToStorableJson(m));
       }
 
-      // Combine + sort chronologically (oldest first) with date-divider
-      // rows placed ahead of their day's messages. Uses the shared
-      // comparator so every save site and load site agree on order.
-      final merged = <Map<String, dynamic>>[
-        ...byId.values,
-        ...pendingWithoutId,
-      ];
-      merged.sort(_compareMessageJson);
-
-      await box.put(conversationId, jsonEncode(merged));
-      ChatStorageLogger.messagesSaved(conversationId, merged.length);
+      if (entries.isNotEmpty) {
+        // Single batched write — far cheaper than re-serializing the whole
+        // conversation on every page load.
+        await box.putAll(entries);
+      }
+      ChatStorageLogger.messagesSaved(conversationId, entries.length);
     } catch (e, stack) {
       ChatStorageLogger.error('saveMessages', 'Failed to save messages',
           error: e, stack: stack, data: {'conversationId': conversationId});
@@ -400,34 +498,27 @@ class LocalStorageHelper {
     }
     try {
       final box = await _messagesBoxRef;
-      final existing = await _getRawMessages(conversationId, box);
 
-      // Check for duplicate by ID
-      final msgId = newMessage.id ?? '';
-      if (msgId.isNotEmpty) {
-        final alreadyExists = existing.any((m) => m['_id']?.toString() == msgId);
-        if (alreadyExists) {
-          ChatStorageLogger.info('saveSingleMessage',
-              'Message already cached, skipping duplicate',
-              data: {'messageId': msgId});
-          return;
-        }
-      }
-
-      // Convert to storable JSON
       final msgJson = _messageToStorableJson(newMessage);
-
       // Override sendStatus if specified
       if (sendStatus.isNotEmpty) {
         msgJson['sendStatus'] = sendStatus;
       }
 
-      existing.add(msgJson);
-      // Keep the cache chronologically sorted so reloads match the server
-      // snapshot instead of drifting by insertion order.
-      existing.sort(_compareMessageJson);
-      await box.put(conversationId, jsonEncode(existing));
+      final msgId = newMessage.id ?? '';
+      final key = msgId.isNotEmpty
+          ? _msgKey(conversationId, msgId)
+          : _anonKey(conversationId, msgJson);
 
+      // Dedup by key — a single O(1) put, no read/sort/re-encode of the list.
+      if (box.containsKey(key)) {
+        ChatStorageLogger.info('saveSingleMessage',
+            'Message already cached, skipping duplicate',
+            data: {'messageId': msgId});
+        return;
+      }
+
+      await box.put(key, jsonEncode(msgJson));
       ChatStorageLogger.singleMessageSaved(
           conversationId, msgId, sendStatus);
     } catch (e, stack) {
@@ -442,11 +533,13 @@ class LocalStorageHelper {
     if (conversationId.isEmpty) return [];
     try {
       final box = await _messagesBoxRef;
-      final messages = await _getRawMessages(conversationId, box);
-
-      final pending = messages
-          .where((m) => m['sendStatus'] == 'pending')
-          .toList();
+      final pending = <Map<String, dynamic>>[];
+      for (final key in _messageKeysForConversation(box, conversationId)) {
+        final m = _decodeMessage(box.get(key));
+        if (m != null && m['sendStatus'] == 'pending') pending.add(m);
+      }
+      // Stable order so retries drain oldest-first.
+      pending.sort(_compareMessageJson);
 
       ChatStorageLogger.pendingFound(conversationId, pending.length);
       return pending;
@@ -462,22 +555,15 @@ class LocalStorageHelper {
     if (conversationId.isEmpty || messageId.isEmpty) return;
     try {
       final box = await _messagesBoxRef;
-      final messages = await _getRawMessages(conversationId, box);
+      final key = _msgKey(conversationId, messageId);
+      final m = _decodeMessage(box.get(key));
 
-      bool found = false;
-      for (int i = 0; i < messages.length; i++) {
-        if (messages[i]['_id']?.toString() == messageId) {
-          messages[i]['sendStatus'] = '';
-          // Clear retry params once sent
-          messages[i].remove('sendPendingMsgParams');
-          messages[i].remove('pendingFilePaths');
-          found = true;
-          break;
-        }
-      }
-
-      if (found) {
-        await box.put(conversationId, jsonEncode(messages));
+      if (m != null) {
+        m['sendStatus'] = '';
+        // Clear retry params once sent
+        m.remove('sendPendingMsgParams');
+        m.remove('pendingFilePaths');
+        await box.put(key, jsonEncode(m));
         ChatStorageLogger.messageSentMarked(conversationId, messageId);
       } else {
         ChatStorageLogger.warn('markSent',
@@ -492,39 +578,26 @@ class LocalStorageHelper {
   }
 
   /// Replace a local pending message (identified by temp id) with the server-side
-  /// authoritative message. Keeps chronological order stable by replacing in place.
+  /// authoritative message. Deletes the temp-keyed row and writes the server row
+  /// under its own key (unless the socket already delivered it).
   Future<void> replacePendingWithServerMessage(
       String conversationId, String tempId, Messages serverMessage) async {
     if (conversationId.isEmpty || tempId.isEmpty) return;
     try {
       final box = await _messagesBoxRef;
-      final messages = await _getRawMessages(conversationId, box);
-
-      final serverJson = _messageToStorableJson(serverMessage);
+      final tempKey = _msgKey(conversationId, tempId);
       final serverId = serverMessage.id ?? '';
+      final serverKey = serverId.isNotEmpty
+          ? _msgKey(conversationId, serverId)
+          : _anonKey(conversationId, _messageToStorableJson(serverMessage));
 
-      // If the server message is already present (socket beat us), just remove the pending.
-      final serverAlreadyExists = serverId.isNotEmpty &&
-          messages.any((m) => m['_id']?.toString() == serverId);
+      // Drop the pending temp row.
+      if (box.containsKey(tempKey)) await box.delete(tempKey);
 
-      int replacedAt = -1;
-      for (int i = 0; i < messages.length; i++) {
-        if (messages[i]['_id']?.toString() == tempId) {
-          replacedAt = i;
-          break;
-        }
-      }
-
-      if (replacedAt >= 0) {
-        if (serverAlreadyExists) {
-          messages.removeAt(replacedAt);
-        } else {
-          messages[replacedAt] = serverJson;
-        }
-        await box.put(conversationId, jsonEncode(messages));
-      } else if (!serverAlreadyExists) {
-        messages.add(serverJson);
-        await box.put(conversationId, jsonEncode(messages));
+      // Write the server row unless the socket beat us to it.
+      if (!box.containsKey(serverKey)) {
+        await box.put(
+            serverKey, jsonEncode(_messageToStorableJson(serverMessage)));
       }
     } catch (e, stack) {
       ChatStorageLogger.error('replacePending',
@@ -539,15 +612,16 @@ class LocalStorageHelper {
   Future<List<String>> getConversationIdsWithPending() async {
     try {
       final box = await _messagesBoxRef;
-      final result = <String>[];
+      final result = <String>{};
       for (final k in box.keys) {
-        final convId = k.toString();
-        final raw = await _getRawMessages(convId, box);
-        if (raw.any((m) => m['sendStatus'] == 'pending')) {
-          result.add(convId);
+        final key = k.toString();
+        if (!key.contains(_keySep)) continue;
+        final m = _decodeMessage(box.get(key));
+        if (m != null && m['sendStatus'] == 'pending') {
+          result.add(_convIdFromKey(key));
         }
       }
-      return result;
+      return result.toList();
     } catch (e, stack) {
       ChatStorageLogger.error('listPendingConvs',
           'Failed to list conversations with pending messages',
@@ -561,26 +635,23 @@ class LocalStorageHelper {
     if (conversationId.isEmpty) return [];
     try {
       final box = await _messagesBoxRef;
-      final rawList = await _getRawMessages(conversationId, box);
 
-      if (rawList.isEmpty) {
+      final messages = <Messages>[];
+      for (final key in _messageKeysForConversation(box, conversationId)) {
+        final json = _decodeMessage(box.get(key));
+        if (json == null) continue;
+        try {
+          messages.add(Messages.fromJson(json));
+        } catch (e) {
+          ChatStorageLogger.warn('loadMessages', 'Skipping malformed message',
+              data: {'id': json['_id'], 'error': e.toString()});
+        }
+      }
+
+      if (messages.isEmpty) {
         ChatStorageLogger.messagesEmpty(conversationId);
         return [];
       }
-
-      final messages = rawList
-          .map((json) {
-            try {
-              return Messages.fromJson(json);
-            } catch (e) {
-              ChatStorageLogger.warn('loadMessages',
-                  'Skipping malformed message',
-                  data: {'id': json['_id'], 'error': e.toString()});
-              return null;
-            }
-          })
-          .whereType<Messages>()
-          .toList();
 
       // Stable chronological order regardless of insertion order, with
       // date-divider rows pinned to the start of their calendar day.
@@ -592,6 +663,20 @@ class LocalStorageHelper {
       ChatStorageLogger.error('loadMessages', 'Failed to load messages',
           error: e, stack: stack, data: {'conversationId': conversationId});
       return [];
+    }
+  }
+
+  /// Delete every cached message for a conversation (per-message keys).
+  Future<void> deleteMessagesByConversationId(String conversationId) async {
+    if (conversationId.isEmpty) return;
+    try {
+      final box = await _messagesBoxRef;
+      final keys =
+          _messageKeysForConversation(box, conversationId).toList();
+      if (keys.isNotEmpty) await box.deleteAll(keys);
+    } catch (e, stack) {
+      ChatStorageLogger.error('deleteMessages', 'Failed to delete messages',
+          error: e, stack: stack, data: {'conversationId': conversationId});
     }
   }
 
@@ -693,23 +778,22 @@ class LocalStorageHelper {
   // INTERNAL HELPERS
   // ═══════════════════════════════════════════════════════════════════════════
 
-  /// Read raw JSON message list from Hive box.
-  Future<List<Map<String, dynamic>>> _getRawMessages(
-      String conversationId, Box<String> box) async {
-    final jsonString = box.get(conversationId);
-    if (jsonString == null || jsonString.isEmpty) return [];
-
+  /// Decode a single stored message entry (one JSON object per key).
+  Map<String, dynamic>? _decodeMessage(String? jsonString) {
+    if (jsonString == null || jsonString.isEmpty) return null;
     try {
-      final decoded = jsonDecode(jsonString) as List<dynamic>;
-      return decoded
-          .map((item) => Map<String, dynamic>.from(item as Map))
-          .toList();
+      return Map<String, dynamic>.from(jsonDecode(jsonString) as Map);
     } catch (e) {
-      ChatStorageLogger.error('_getRawMessages', 'Corrupted cache, returning empty',
-          error: e, data: {'conversationId': conversationId});
-      return [];
+      ChatStorageLogger.error('_decodeMessage', 'Corrupted message entry',
+          error: e);
+      return null;
     }
   }
+
+  /// Key for a message that has no server/temp id. Derived from the payload so
+  /// repeated saves of the same content dedup instead of piling up duplicates.
+  String _anonKey(String conversationId, Map<String, dynamic> msgJson) =>
+      '$conversationId${_keySep}anon_${jsonEncode(msgJson).hashCode}';
 
   /// Convert a Messages object to a JSON map safe for Hive storage.
   /// Strips non-serializable fields like File objects.

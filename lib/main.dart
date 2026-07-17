@@ -925,7 +925,7 @@ Future<void> main() async {
 // in release mode. FlutterError.onError + PlatformDispatcher.instance.onError
 // already cover all uncaught errors, so runZonedGuarded is unnecessary.
   runApp(MyApp(initialLocale: locale));
-  _initDeferred(localizationService);
+  _initDeferred(localizationService, savedLangCode);
 }
 
 /// True for expected network-image load failures (broken/expired/forbidden URLs
@@ -942,7 +942,8 @@ bool _isNetworkImageError(FlutterErrorDetails details) {
 // PHASE 2 -- Deferred: heavy work that doesn't affect the first frame
 // ═══════════════════════════════════════════════════════════════════════════
 
-Future<void> _initDeferred(LocalizationService localizationService) async {
+Future<void> _initDeferred(
+    LocalizationService localizationService, String initialLangCode) async {
   /// Detect a notification launch FIRST (cheap platform-channel call) so we can
   /// decide whether to defer the heavy background batch. Sets the flag the
   /// splash screen reads AND `AppNotificationHandler.pendingDeepLink`.
@@ -1022,26 +1023,39 @@ Future<void> _initDeferred(LocalizationService localizationService) async {
 
   /// Language & version checks
   Get.put(LanguageListController());
-  await localizationService.preloadCachedLanguages();
   await checkAppVersionAndResetIfNeeded();
 
-  /// Re-apply the saved language's cached translations to GetX after deferred
-  /// init so they survive GetMaterialApp initialization inside
-  /// runZonedGuarded. Cache-only (no forceRefresh) — the language API is NOT
-  /// hit here, in debug or release.
+  /// Re-apply the saved language ONLY if it actually differs from the one
+  /// `main()` built the app with ([initialLangCode]).
   ///
-  /// NOTE: debug builds used to call `resetLanguageLocalization()` here, which
-  /// wiped the entire `translations` box (cached strings + the once-per-login
-  /// refresh gate) on EVERY launch. That forced a fresh `.../languages/{code}`
-  /// download on every debug start. We now use the same cache-first re-apply
-  /// in both modes so the API is only hit once after login.
-  final savedLang =
-      LocalizationService.box.get('selectedLanguage', defaultValue: 'en');
-  await localizationService.loadTranslations(savedLang);
-  await localizationService.ensureFallbackLoaded();
-  Get.clearTranslations();
-  Get.addTranslations(localizationService.keys);
-  Get.updateLocale(Locale(savedLang));
+  /// `main()` already loads the saved language + the English fallback, calls
+  /// `Get.addTranslations`, and hands the matching locale to
+  /// `GetMaterialApp(locale:)` before `runApp` — so on a normal launch there is
+  /// nothing left to do here. The one thing that can move the saved language
+  /// mid-startup is `checkAppVersionAndResetIfNeeded()` above, whose
+  /// `resetLanguageLocalization()` → `updateLanguage("en")` re-applies the
+  /// translations and locale itself; this block is the safety net for that.
+  ///
+  /// The guard matters because `Get.updateLocale` calls `forceAppUpdate()` →
+  /// `engine.performReassemble()`, which rebuilds the ENTIRE widget tree and
+  /// drops touch input until it completes. Running it unconditionally
+  /// reassembled the whole app on every cold start — right after the first
+  /// frame, i.e. exactly while the user is first trying to interact — purely to
+  /// set the locale to the value it already had.
+  ///
+  /// Compared against [initialLangCode] rather than `Get.locale` on purpose:
+  /// `Get.locale` is only assigned inside `GetMaterialApp`'s `initState` (first
+  /// build), so reading it here would make the guard depend on frame timing.
+  ///
+  /// Cache-only (no forceRefresh): the language API is NOT hit here.
+  final savedLang = LocalizationService.box
+      .get('selectedLanguage', defaultValue: 'en') as String;
+  if (savedLang != initialLangCode) {
+    await localizationService.loadTranslations(savedLang);
+    await localizationService.ensureFallbackLoaded();
+    Get.addTranslations(localizationService.keys);
+    Get.updateLocale(Locale(savedLang));
+  }
 
   /// One-time post-login language refresh. Fires exactly once per login
   /// lifecycle (the gate flag lives in the `translations` box, which is wiped

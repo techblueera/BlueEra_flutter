@@ -321,7 +321,19 @@ class LocalizationService extends Translations {
     Get.updateLocale(Locale(effectiveLang));
   }
 
-  /// Load all cached languages at startup (optional)
+  /// Loads *every* language cached in Hive into memory.
+  ///
+  /// Deliberately NOT called on startup — do not re-add it to `main()`.
+  /// GetX's `.tr` only ever resolves against `Get.locale` and `fallbackLocale`
+  /// ('en'), both of which `main()` loads explicitly, so materializing the
+  /// other cached languages buys nothing. It is also unbounded: every language
+  /// the user has ever downloaded (2.5k–6.8k keys each) gets rebuilt via
+  /// `.map()` + `.toString()` on the main isolate in one uninterrupted loop,
+  /// with no yield points — a pure main-thread stall on every cold start.
+  ///
+  /// The language-picker UI does not need this either: it reads download state
+  /// straight from Hive (`LanguageControllerNew.loadLanguages`), and
+  /// [loadTranslations] populates a language on demand when one is selected.
   Future<void> preloadCachedLanguages() async {
     final safeBox = await _safeBox();
     for (final key in safeBox.keys) {

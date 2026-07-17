@@ -1,36 +1,28 @@
 import 'dart:io';
 
-import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:gal/gal.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+
+import 'chat_storage_paths.dart';
 
 /// WhatsApp-style media storage service.
 ///
-/// Saves chat media into organised sub-folders that appear in the phone gallery:
+/// Downloads chat media into the organised BlueEra folder tree owned by
+/// [ChatStoragePaths]:
 ///
-///   Android 10+ (API 29+):
-///     /storage/emulated/0/Android/media/ai.bluecs.app/BlueEra Images/
-///     /storage/emulated/0/Android/media/ai.bluecs.app/BlueEra Video/
-///     /storage/emulated/0/Android/media/ai.bluecs.app/BlueEra Audio/
-///     /storage/emulated/0/Android/media/ai.bluecs.app/BlueEra Documents/
-///     → No permissions needed. MediaStore indexes these → shows in Gallery.
+///   Android 10+:  /storage/emulated/0/Android/media/ai.bluecs.app/Media/...
+///   Android < 10: /storage/emulated/0/BlueEra/Media/...
+///   iOS:          <AppDocuments>/BlueEra/Media/...
 ///
-///   Android < 10:
-///     /storage/emulated/0/BlueEra/Media/...
-///     → Requires storage permission.
-///
-///   iOS:
-///     Documents/BlueEra/Media/...
-///     → Visible in the iOS Files app.
+/// Media/ and Symbols/ are indexed by the gallery; Chat History/ is not. All
+/// directory resolution is delegated to [ChatStoragePaths] so the app agrees
+/// on one layout.
 class ChatMediaStorageService {
   ChatMediaStorageService._();
-
-  static const _packageName = 'ai.bluecs.app';
 
   static final Dio _dio = Dio(
     BaseOptions(
@@ -39,95 +31,15 @@ class ChatMediaStorageService {
     ),
   );
 
-  // Cache SDK version to avoid repeated lookups
-  static int? _cachedSdk;
-
-  static Future<int> _androidSdk() async {
-    if (_cachedSdk != null) return _cachedSdk!;
-    if (!Platform.isAndroid) return _cachedSdk = 0;
-    final info = await DeviceInfoPlugin().androidInfo;
-    return _cachedSdk = info.version.sdkInt;
-  }
-
-  // ─── Sub-folder names (like WhatsApp) ───
-  static String _subFolder(String messageType) {
-    switch (messageType.toLowerCase()) {
-      case 'image':
-        return 'BlueEra Images';
-      case 'video':
-        return 'BlueEra Video';
-      case 'audio':
-        return 'BlueEra Audio';
-      case 'document':
-        return 'BlueEra Documents';
-      default:
-        return 'BlueEra Documents';
-    }
-  }
-
-  // ─── Root media directory ───
-  static Future<Directory> _mediaRoot(String messageType) async {
-    if (Platform.isAndroid) {
-      final sdk = await _androidSdk();
-
-      if (sdk >= 29) {
-        // Android 10+ : Use Android/media/<package>/<subfolder>
-        // This path is:
-        //   ✅ Writable without any permission
-        //   ✅ Indexed by MediaStore → appears in Gallery
-        //   ✅ Visible in file manager
-        // Same approach WhatsApp uses (Android/media/com.whatsapp/...)
-        final dir = Directory(
-            '/storage/emulated/0/Android/media/$_packageName/${_subFolder(messageType)}');
-        return dir;
-      } else {
-        // Android 9 and below: public storage with permission
-        await _requestLegacyStoragePermission();
-        return Directory(
-            '/storage/emulated/0/BlueEra/Media/${_subFolder(messageType)}');
-      }
-    } else {
-      // iOS: app documents folder (visible in Files app)
-      final docs = await getApplicationDocumentsDirectory();
-      return Directory(
-          '${docs.path}/BlueEra/Media/${_subFolder(messageType)}');
-    }
-  }
-
   /// Returns the directory for a given message type, creating it if needed.
   static Future<Directory> getMediaDir(String messageType) async {
-    final dir = await _mediaRoot(messageType);
-    if (!await dir.exists()) {
-      await dir.create(recursive: true);
-    }
-    return dir;
+    return ChatStoragePaths.mediaDir(messageType);
   }
 
   /// Pre-create all media folders and request necessary permissions.
   /// Call this once at app startup (e.g. from BottomNavigationBar initState).
   static Future<void> initializeMediaFolders() async {
-    try {
-      // Request storage permission for Android < 10
-      if (Platform.isAndroid) {
-        final sdk = await _androidSdk();
-        if (sdk < 29) {
-          await _requestLegacyStoragePermission();
-        }
-      }
-
-      // Create all media sub-folders
-      const types = ['image', 'video', 'audio', 'document'];
-      for (final type in types) {
-        final dir = await _mediaRoot(type);
-        if (!await dir.exists()) {
-          await dir.create(recursive: true);
-          debugPrint('ChatMediaStorage: created ${dir.path}');
-        }
-      }
-      debugPrint('ChatMediaStorage: all media folders ready');
-    } catch (e) {
-      debugPrint('ChatMediaStorage: folder init error: $e');
-    }
+    await ChatStoragePaths.ensureAllDirs();
   }
 
   /// Request photo library access on iOS (for saving to Camera Roll).
@@ -135,14 +47,6 @@ class ChatMediaStorageService {
     if (!Platform.isIOS) return true;
     final status = await Permission.photos.request();
     return status.isGranted || status.isLimited;
-  }
-
-  // ─── Permissions ───
-
-  /// Request legacy storage permission for Android < 10.
-  static Future<bool> _requestLegacyStoragePermission() async {
-    final status = await Permission.storage.request();
-    return status.isGranted;
   }
 
   // ─── Download & Save ───
@@ -188,20 +92,100 @@ class ChatMediaStorageService {
   }
 
   /// Checks if a file from [url] already exists in the BlueEra media folder.
+  ///
+  /// Looks in the current `Media/<type>/` folder first, then falls back to the
+  /// legacy flat path used by older builds so previously-downloaded files keep
+  /// resolving locally after the folder-layout upgrade.
   static Future<File?> findExistingFile({
     required String url,
     required String messageType,
     String? fileName,
   }) async {
     try {
-      final dir = await getMediaDir(messageType);
       final name = fileName ?? _fileNameFromUrl(url);
+
+      final dir = await getMediaDir(messageType);
       final file = File(p.join(dir.path, name));
+      if (await file.exists()) return file;
+
+      // Legacy fallback: media saved before the `Media/` nesting.
+      final legacyDir = await ChatStoragePaths.legacyMediaDir(messageType);
+      final legacyFile = File(p.join(legacyDir.path, name));
+      if (await legacyFile.exists()) return legacyFile;
+
+      return null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  // ─── Symbols ───
+
+  /// Downloads a symbol's photo/video into the dedicated `Symbols/` folder.
+  /// [id] is the symbol id, used to build a stable filename so the same symbol
+  /// is cached only once. Returns the saved [File] or `null` on failure.
+  static Future<File?> downloadAndSaveSymbol({
+    required String url,
+    required String id,
+    void Function(int received, int total)? onProgress,
+  }) async {
+    try {
+      final dir = await ChatStoragePaths.symbolsDir();
+      final target = File(p.join(dir.path, _symbolFileName(url, id)));
+      if (await target.exists()) return target;
+
+      await _dio.download(
+        url,
+        target.path,
+        onReceiveProgress: onProgress,
+        options: Options(
+          responseType: ResponseType.bytes,
+          followRedirects: true,
+        ),
+      );
+      if (Platform.isAndroid) _scanFile(target.path);
+      debugPrint('ChatMediaStorageService: saved symbol to ${target.path}');
+      return target;
+    } catch (e) {
+      debugPrint('ChatMediaStorageService symbol download error: $e');
+      return null;
+    }
+  }
+
+  /// Returns the cached symbol file for [id]/[url] if it already exists.
+  static Future<File?> findExistingSymbol({
+    required String url,
+    required String id,
+  }) async {
+    try {
+      final dir = await ChatStoragePaths.symbolsDir();
+      final file = File(p.join(dir.path, _symbolFileName(url, id)));
       if (await file.exists()) return file;
       return null;
     } catch (_) {
       return null;
     }
+  }
+
+  /// Best-effort background download of a batch of symbol photos/videos into
+  /// the `Symbols/` folder. Each entry is (id → url); already-cached and
+  /// non-http entries are skipped. Runs sequentially so it doesn't hammer the
+  /// network. Safe to fire-and-forget from a symbol loader.
+  static Future<void> prefetchSymbols(
+      Iterable<MapEntry<String, String>> idUrls) async {
+    for (final e in idUrls) {
+      final id = e.key;
+      final url = e.value;
+      if (url.isEmpty || !url.startsWith('http')) continue;
+      if (await findExistingSymbol(url: url, id: id) != null) continue;
+      await downloadAndSaveSymbol(url: url, id: id);
+    }
+  }
+
+  static String _symbolFileName(String url, String id) {
+    final ext = p.extension(Uri.tryParse(url)?.path ?? '');
+    final safeId = id.isNotEmpty ? id : url.hashCode.toString();
+    return 'symbol_$safeId${ext.isNotEmpty ? ext : '.jpg'}';
   }
 
   // ─── Delete from device ───
@@ -211,14 +195,17 @@ class ChatMediaStorageService {
       {String messageType = 'image'}) async {
     int deleted = 0;
     final dir = await getMediaDir(messageType);
+    final legacyDir = await ChatStoragePaths.legacyMediaDir(messageType);
 
     for (final url in urls) {
       try {
         final name = _fileNameFromUrl(url);
-        final file = File(p.join(dir.path, name));
-        if (await file.exists()) {
-          await file.delete();
-          deleted++;
+        for (final base in [dir.path, legacyDir.path]) {
+          final file = File(p.join(base, name));
+          if (await file.exists()) {
+            await file.delete();
+            deleted++;
+          }
         }
       } catch (_) {}
     }
