@@ -21,8 +21,19 @@ class AddLabTestScreen extends StatefulWidget {
   final String collection;
   final String? catalogId;
 
-  const AddLabTestScreen(
-      {super.key, this.testToEdit, required this.collection, this.catalogId});
+  /// Optional preset to pre-select in the Package Type dropdown — used by
+  /// the "Create Your Own Packages" landing so tapping e.g. "Diabetes
+  /// Package" opens the form with that package already selected. Silently
+  /// ignored when it doesn't match [LabTestController.packageTypeList].
+  final String? presetPackageType;
+
+  const AddLabTestScreen({
+    super.key,
+    this.testToEdit,
+    required this.collection,
+    this.catalogId,
+    this.presetPackageType,
+  });
 
   @override
   State<AddLabTestScreen> createState() => _AddLabTestScreenState();
@@ -97,6 +108,18 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
       selectedPackageType = widget.testToEdit!.packageType;
       applicableForChild = widget.testToEdit!.applicableForChild ?? false;
       prescriptionRequired = widget.testToEdit!.prescriptionRequired ?? false;
+    }
+
+    // Prefill packageType from the preset the previous screen picked (e.g.
+    // "Diabetes Package"). Only applied when nothing has already been set
+    // (editing an existing test wins), and only when the preset is a valid
+    // dropdown entry so we never sit on an unselectable value.
+    final preset = widget.presetPackageType;
+    if (selectedPackageType == null &&
+        preset != null &&
+        preset.isNotEmpty &&
+        LabTestController.packageTypeList.contains(preset)) {
+      selectedPackageType = preset;
     }
   }
 
@@ -325,18 +348,7 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
                   color: AppColors.mainTextColor,
                 ),
                 SizedBox(height: SizeConfig.paddingXSL),
-                CommonDropdownDialog<String>(
-                  items: LabTestController.packageTypeList,
-                  selectedValue: selectedPackageType,
-                  title: AppStrings.packageType.tr,
-                  hintText: AppStrings.selectPackageType.tr,
-                  displayValue: (value) => value,
-                  onChanged: (value) {
-                    setState(() {
-                      selectedPackageType = value;
-                    });
-                  },
-                ),
+                _buildPackageTypeField(),
                 SizedBox(height: SizeConfig.size32),
                 Obx(() => CustomBtn(
                       onTap: _submitForm,
@@ -397,6 +409,58 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
             ),
           ),
       ],
+    );
+  }
+
+  // Owner-picked preset (from `CreateYourOwnPackagesScreen`) locks the
+  // Package Type — the dropdown is replaced by a read-only surface that
+  // just displays the chosen package. When no preset is provided the
+  // dropdown is rendered as before so the owner can pick freely.
+  Widget _buildPackageTypeField() {
+    final preset = widget.presetPackageType;
+    final hasLockedPreset = preset != null &&
+        preset.isNotEmpty &&
+        LabTestController.packageTypeList.contains(preset);
+
+    if (hasLockedPreset) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: AppColors.primaryColor.withValues(alpha: 0.35),
+          ),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: CustomText(
+                preset,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: AppColors.mainTextColor,
+              ),
+            ),
+            Icon(Icons.check_circle,
+                size: 18, color: AppColors.primaryColor),
+          ],
+        ),
+      );
+    }
+
+    return CommonDropdownDialog<String>(
+      items: LabTestController.packageTypeList,
+      selectedValue: selectedPackageType,
+      title: AppStrings.packageType.tr,
+      hintText: AppStrings.selectPackageType.tr,
+      displayValue: (value) => value,
+      onChanged: (value) {
+        setState(() {
+          selectedPackageType = value;
+        });
+      },
     );
   }
 

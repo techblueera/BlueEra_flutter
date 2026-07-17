@@ -21,7 +21,7 @@ class SchoolQuickInfoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final data = controller.schoolDetailsData?.value;
     final classRange = (data?.classRange ?? '').trim();
-    final ratio = (data?.studentTeacherRatio ?? '').trim();
+    final board = (data?.board ?? '').trim();
     final mediums = data?.mediumOfInstruction ?? const <String>[];
     final mediumLabel = mediums.isEmpty
         ? 'English Medium'
@@ -61,8 +61,8 @@ class SchoolQuickInfoCard extends StatelessWidget {
                 SizedBox(width: SizeConfig.size8),
                 Expanded(
                   child: _InfoChip(
-                    icon: Icons.people_alt_outlined,
-                    label: ratio.isNotEmpty ? '$ratio Ratio' : '1:2 Ratio',
+                    icon: Icons.account_balance_outlined,
+                    label: board.isNotEmpty ? board : 'Board',
                   ),
                 ),
                 SizedBox(width: SizeConfig.size8),

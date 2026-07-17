@@ -16,7 +16,18 @@ class LabTestCatalogScreen extends StatefulWidget {
   final String collection;
   final String? title;
 
-  const LabTestCatalogScreen({super.key, required this.collection, this.title});
+  /// Optional preset the previous screen picked (e.g. the collection name
+  /// from `LabCategoryScreen` or `LabTestListScreen`). Forwarded to
+  /// [AddLabTestScreen] via the "Add Manually" button so the Package Type
+  /// surface can lock onto it.
+  final String? presetPackageType;
+
+  const LabTestCatalogScreen({
+    super.key,
+    required this.collection,
+    this.title,
+    this.presetPackageType,
+  });
 
   @override
   State<LabTestCatalogScreen> createState() => _LabTestCatalogScreenState();
@@ -24,6 +35,7 @@ class LabTestCatalogScreen extends StatefulWidget {
 
 class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
   late final LabTestController controller;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -33,13 +45,52 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
     } else {
       controller = Get.find<LabTestController>();
     }
+    _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.fetchCatalog(
         groupCategory: widget.collection,
         page: 1,
-        limit: 20,
       );
     });
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_onScroll)
+      ..dispose();
+    super.dispose();
+  }
+
+  // Trigger the next page 300px before the scroll extent so users don't
+  // have to hit the very bottom to load more.
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final position = _scrollController.position;
+    if (position.pixels >= position.maxScrollExtent - 300) {
+      controller.fetchMoreCatalog(groupCategory: widget.collection);
+    }
+  }
+
+  // Bottom-of-list slot: spinner while the next page loads, muted "end of
+  // list" caption once the backend has been exhausted.
+  Widget _buildListTrailer() {
+    if (controller.isLoadingMoreCatalog.value) {
+      return Padding(
+        padding: EdgeInsets.symmetric(vertical: SizeConfig.size12),
+        child: const Center(child: CircularProgressIndicator()),
+      );
+    }
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: SizeConfig.size12),
+      child: Center(
+        child: CustomText(
+          AppStrings.noTestsFound.tr,
+          color: AppColors.grey99,
+          fontSize: SizeConfig.small,
+        ),
+      ),
+    );
   }
 
   @override
@@ -51,7 +102,10 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
           padding: const EdgeInsets.only(right: 10.0),
           child: InkWell(
             onTap: () => Get.to(
-              () => AddLabTestScreen(collection: widget.collection),
+              () => AddLabTestScreen(
+                collection: widget.collection,
+                presetPackageType: widget.presetPackageType,
+              ),
             ),
             child: Container(
               height: 30,
@@ -81,15 +135,28 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
                 CustomText(AppStrings.noTestsFound.tr, color: AppColors.grey99),
           );
         }
+        // `+ 1` reserves a trailing slot for the load-more indicator so
+        // the user sees progress feedback while the next page fetches.
+        final showTrailer = controller.isLoadingMoreCatalog.value ||
+            controller.catalogHasMore.value == false;
+        final itemCount =
+            controller.catalogTests.length + (showTrailer ? 1 : 0);
+
         return ListView.separated(
+          controller: _scrollController,
           padding: EdgeInsets.all(SizeConfig.size12),
-          itemCount: controller.catalogTests.length,
+          itemCount: itemCount,
           separatorBuilder: (_, __) => SizedBox(height: SizeConfig.size16),
-          itemBuilder: (_, i) => _CatalogCard(
-            item: controller.catalogTests[i],
-            backgroundColor: LabSoftCardColor.forIndex(i),
-            onTap: () => _showCatalogBottomSheet(controller.catalogTests[i]),
-          ),
+          itemBuilder: (_, i) {
+            if (i >= controller.catalogTests.length) {
+              return _buildListTrailer();
+            }
+            return _CatalogCard(
+              item: controller.catalogTests[i],
+              backgroundColor: LabSoftCardColor.forIndex(i),
+              onTap: () => _showCatalogBottomSheet(controller.catalogTests[i]),
+            );
+          },
         );
       }),
     );
@@ -322,99 +389,163 @@ class _CatalogCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isAdded = item.alreadyAdded == true;
+    // Highlight already-added tests with a thicker green border. The rest
+    // of the card (soft pastel background, badges, chevron) stays intact so
+    // the row still reads as tappable — the border is the "already added"
+    // signal, the corner pill is the label.
+    final borderColor =
+        isAdded ? Colors.green.shade600 : Colors.black.withValues(alpha: 0.05);
+    final borderWidth = isAdded ? 1.6 : 1.0;
+
     return Container(
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+        border: Border.all(color: borderColor, width: borderWidth),
       ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(16),
-        onTap: onTap,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Title + parameters + report time + price
-            Padding(
-              padding: EdgeInsets.all(SizeConfig.size16),
+      child: Stack(
+        children: [
+          Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(16),
+              onTap: onTap,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CustomText(
-                    item.testName ?? "",
-                    fontWeight: FontWeight.w700,
-                    fontSize: SizeConfig.size18,
-                    color: Colors.black87,
-                  ),
-                  SizedBox(height: SizeConfig.size4),
-                  if (item.testParameters?.isNotEmpty ?? false)
-                    CustomText(
-                      item.testParameters!.join(", "),
-                      fontSize: SizeConfig.small,
-                      color: Colors.black54,
-                      maxLines: 1,
-                    ),
-                  const Divider(height: 30, thickness: 0.5),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _reportTimingBadge(),
-                      _priceBadge(),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            // Home-collection bar + chevron
-            Padding(
-              padding: EdgeInsets.fromLTRB(
-                SizeConfig.size16,
-                0,
-                SizeConfig.size16,
-                SizeConfig.size16,
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.circle,
-                              size: 8, color: Colors.grey.shade600),
-                          const SizedBox(width: 8),
+                  // Title + parameters + report time + price
+                  Padding(
+                    padding: EdgeInsets.all(SizeConfig.size16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomText(
+                          item.testName ?? "",
+                          fontWeight: FontWeight.w700,
+                          fontSize: SizeConfig.size18,
+                          color: Colors.black87,
+                        ),
+                        SizedBox(height: SizeConfig.size4),
+                        if (item.testParameters?.isNotEmpty ?? false)
                           CustomText(
-                            AppStrings.labHomeSampleAvailable.tr,
-                            fontSize: 13,
+                            item.testParameters!.join(", "),
+                            fontSize: SizeConfig.small,
                             color: Colors.black54,
+                            maxLines: 1,
                           ),
-                        ],
-                      ),
+                        const Divider(height: 30, thickness: 0.5),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _reportTimingBadge(),
+                            _priceBadge(),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      border:
-                          Border.all(color: Colors.blue.shade400, width: 1.5),
-                      borderRadius: BorderRadius.circular(8),
+
+                  // Home-collection bar + chevron
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      SizeConfig.size16,
+                      0,
+                      SizeConfig.size16,
+                      SizeConfig.size16,
                     ),
-                    child: const Icon(Icons.arrow_forward_ios,
-                        size: 18, color: Colors.blue),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(Icons.circle,
+                                    size: 8, color: Colors.grey.shade600),
+                                const SizedBox(width: 8),
+                                CustomText(
+                                  AppStrings.labHomeSampleAvailable.tr,
+                                  fontSize: 13,
+                                  color: Colors.black54,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            border: Border.all(
+                              color: isAdded
+                                  ? Colors.green.shade500
+                                  : Colors.blue.shade400,
+                              width: 1.5,
+                            ),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                            isAdded
+                                ? Icons.check_rounded
+                                : Icons.arrow_forward_ios,
+                            size: 18,
+                            color:
+                                isAdded ? Colors.green.shade600 : Colors.blue,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+          if (isAdded)
+            Positioned(
+              top: 8,
+              right: 8,
+              child: _addedPill(),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _addedPill() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: Colors.green.shade600,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.check_rounded, size: 12, color: Colors.white),
+          SizedBox(width: 3),
+          Text(
+            'Added',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
       ),
     );
   }

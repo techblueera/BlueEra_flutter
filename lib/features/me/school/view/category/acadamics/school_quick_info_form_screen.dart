@@ -25,15 +25,14 @@ const List<String> kClassRangeOptions = [
   'Class 11 - 12',
 ];
 
-const List<String> kRatioOptions = [
-  '1:5',
-  '1:10',
-  '1:15',
-  '1:20',
-  '1:25',
-  '1:30',
-  '1:35',
-  '1:40',
+const List<String> kBoardOptions = [
+  'CBSE',
+  'ICSE',
+  'State Board',
+  'IB',
+  'IGCSE',
+  'NIOS',
+  'Other',
 ];
 
 const List<String> kMediumOptions = [
@@ -63,7 +62,7 @@ class _SchoolQuickInfoFormScreenState extends State<SchoolQuickInfoFormScreen> {
       Get.find<SchoolAboutUsController>();
 
   final Rxn<String> _classRange = Rxn<String>();
-  final Rxn<String> _ratio = Rxn<String>();
+  final Rxn<String> _board = Rxn<String>();
   final RxList<String> _mediums = <String>[].obs;
   final TextEditingController _feesController = TextEditingController();
   final RxnInt _fees = RxnInt();
@@ -79,9 +78,8 @@ class _SchoolQuickInfoFormScreenState extends State<SchoolQuickInfoFormScreen> {
     final data = _controller.schoolDetailsData?.value;
     _classRange.value =
         (data?.classRange?.isNotEmpty ?? false) ? data!.classRange : null;
-    _ratio.value = (data?.studentTeacherRatio?.isNotEmpty ?? false)
-        ? data!.studentTeacherRatio
-        : null;
+    _board.value =
+        (data?.board?.isNotEmpty ?? false) ? data!.board : null;
     _mediums.assignAll(data?.mediumOfInstruction ?? const []);
     _fees.value = data?.fees;
     _feesController.text = data?.fees?.toString() ?? '';
@@ -95,14 +93,14 @@ class _SchoolQuickInfoFormScreenState extends State<SchoolQuickInfoFormScreen> {
 
   bool get _isFormValid =>
       _classRange.value != null &&
-      _ratio.value != null &&
+      _board.value != null &&
       _mediums.isNotEmpty &&
       (_fees.value ?? -1) >= 0;
 
   Future<void> _onSave() async {
     final ok = await _controller.updateSchoolQuickInfo(
       classRange: _classRange.value!,
-      studentTeacherRatio: _ratio.value!,
+      board: _board.value!,
       mediumOfInstruction: _mediums.toList(),
       fees: _fees.value ?? 0,
     );
@@ -138,16 +136,15 @@ class _SchoolQuickInfoFormScreenState extends State<SchoolQuickInfoFormScreen> {
 
                   SizedBox(height: SizeConfig.size24),
 
-                  // ── Student-Teacher Ratio ──
-                  CustomText("Student-Teacher Ratio",
-                      fontSize: SizeConfig.small),
+                  // ── Board ──
+                  CustomText("Board", fontSize: SizeConfig.small),
                   SizedBox(height: SizeConfig.size8),
                   Obx(() => CommonDropdown<String>(
-                        items: kRatioOptions,
-                        selectedValue: _ratio.value,
-                        hintText: "e.g. 1:20",
+                        items: kBoardOptions,
+                        selectedValue: _board.value,
+                        hintText: "e.g. CBSE",
                         displayValue: (v) => v,
-                        onChanged: (val) => _ratio.value = val,
+                        onChanged: (val) => _board.value = val,
                       )),
 
                   SizedBox(height: SizeConfig.size24),

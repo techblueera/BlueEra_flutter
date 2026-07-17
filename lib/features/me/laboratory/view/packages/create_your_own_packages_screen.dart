@@ -1,7 +1,7 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_package_controller.dart';
-import 'package:BlueEra/features/me/laboratory/view/packages/add_lab_package_screen.dart';
+import 'package:BlueEra/features/me/laboratory/view/add_lab_test_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -13,9 +13,10 @@ import '../../../../../widgets/local_assets.dart';
 /// "Create Your Own Packages" preset landing (assets/img_1.png).
 ///
 /// Vertical list of the presets from [LabPackageController.presetNames]
-/// with an "Add Manually" tile at the bottom for a blank-name package.
-/// Tapping any row opens [AddLabPackageScreen] with the tile's name
-/// pre-filled (still editable).
+/// with an "Add Manually" tile at the bottom. Every row (presets + manual)
+/// funnels into [AddLabTestScreen] under the Pathology collection so the
+/// owner can compose the package by adding tests one at a time. Preset name
+/// is only used as the row label — the form starts empty by design.
 class CreateYourOwnPackagesScreen extends StatelessWidget {
   const CreateYourOwnPackagesScreen({super.key});
 
@@ -38,7 +39,8 @@ class CreateYourOwnPackagesScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       appBar: const CommonBackAppBar(title: 'Create Your Own Packages'),
       body: ListView.separated(
-        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12, vertical: SizeConfig.size12),
+        padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size12, vertical: SizeConfig.size12),
         itemCount: presets.length + 1, // +1 for the "Add Manually" tile
         separatorBuilder: (_, __) => SizedBox(height: SizeConfig.size10),
         itemBuilder: (context, i) {
@@ -47,24 +49,33 @@ class CreateYourOwnPackagesScreen extends StatelessWidget {
             return _PresetTile(
               label: name,
               icon: _iconFor[name] ?? '',
-              onTap: () => _openForm(context, presetName: name),
+              // Hand the preset name over so the form's Package Type
+              // dropdown lands pre-selected on this row's package.
+              onTap: () => _openAddLabTest(presetPackageType: name),
             );
           }
-          // Trailing "Others (Add Manually)" tile — opens the same form
-          // with a blank name so the owner can type their own.
+          // Trailing "Others (Add Manually)" tile — no preset, form starts
+          // blank so the owner can pick a package type themselves.
           return _PresetTile(
             label: 'Others (Add Manually)',
             icon: AppIconAssets.addOutlinedIcon,
             trailingIcon: Icons.add_circle_outline_rounded,
-            onTap: () => _openForm(context, presetName: ''),
+            onTap: () => _openAddLabTest(),
           );
         },
       ),
     );
   }
 
-  void _openForm(BuildContext context, {required String presetName}) {
-    Get.to(() => AddLabPackageScreen(presetName: presetName));
+  // These presets are all pathology-flavored health checkups, so the test
+  // form is opened under the Pathology collection. `presetPackageType`
+  // (when given) matches an entry in `LabTestController.packageTypeList`
+  // and pre-selects that Package Type on the form.
+  void _openAddLabTest({String? presetPackageType}) {
+    Get.to(() => AddLabTestScreen(
+          collection: 'pathology',
+          presetPackageType: presetPackageType,
+        ));
   }
 }
 
@@ -87,7 +98,8 @@ class _PresetTile extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size14, vertical: SizeConfig.size14),
+        padding: EdgeInsets.symmetric(
+            horizontal: SizeConfig.size14, vertical: SizeConfig.size14),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),

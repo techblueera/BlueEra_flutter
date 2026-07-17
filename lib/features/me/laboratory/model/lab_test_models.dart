@@ -189,6 +189,11 @@ class TestCatalogItem {
   String? testMethod;
   List<String>? testParameters;
 
+  /// Backend flag on the catalog response — `true` when the current lab
+  /// has already saved this catalog test. Drives the "Added" affordance on
+  /// the catalog card (green border + badge).
+  bool? alreadyAdded;
+
   TestCatalogItem({
     this.id,
     this.testName,
@@ -207,6 +212,7 @@ class TestCatalogItem {
     this.testCategory,
     this.testMethod,
     this.testParameters,
+    this.alreadyAdded,
   });
 
   factory TestCatalogItem.fromJson(Map<String, dynamic> json) => TestCatalogItem(
@@ -228,6 +234,9 @@ class TestCatalogItem {
         testMethod: json["testMethod"],
         testParameters: json["testParameters"] != null
             ? List<String>.from(json["testParameters"].map((x) => x.toString()))
+            : null,
+        alreadyAdded: json["alreadyAdded"] is bool
+            ? json["alreadyAdded"] as bool
             : null,
       );
 }

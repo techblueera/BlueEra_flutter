@@ -39,7 +39,7 @@ class CommonCardWidget extends StatelessWidget {
           border: Border.all(color: borderColorColor ?? Colors.transparent),
           boxShadow: [
             BoxShadow(
-              color: shadowColor ?? AppColors.white,
+              color: shadowColor ?? AppColors.black25.withValues(alpha: 0.1),
               blurRadius: 10,
               offset: const Offset(0, 2),
             ),

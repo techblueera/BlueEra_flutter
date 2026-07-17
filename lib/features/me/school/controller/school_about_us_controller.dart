@@ -783,8 +783,7 @@ class SchoolAboutUsController extends GetxController {
         final data = res.response?.data['data'];
         if (data != null && schoolDetailsData?.value != null) {
           schoolDetailsData!.value.classRange = data['classRange'];
-          schoolDetailsData!.value.studentTeacherRatio =
-              data['studentTeacherRatio'];
+          schoolDetailsData!.value.board = data['board']?.toString();
           final medium = data['mediumOfInstruction'];
           schoolDetailsData!.value.mediumOfInstruction = medium is List
               ? medium.map((e) => e.toString()).toList()
@@ -806,7 +805,7 @@ class SchoolAboutUsController extends GetxController {
   ///UPDATE SCHOOL QUICK INFO....
   Future<bool> updateSchoolQuickInfo({
     required String classRange,
-    required String studentTeacherRatio,
+    required String board,
     required List<String> mediumOfInstruction,
     required int fees,
   }) async {
@@ -814,7 +813,7 @@ class SchoolAboutUsController extends GetxController {
       isQuickInfoSaving.value = true;
       final res = await SchoolRepo().updateSchoolQuickInfoRepo(reqBODY: {
         'classRange': classRange,
-        'studentTeacherRatio': studentTeacherRatio,
+        'board': board,
         'mediumOfInstruction': mediumOfInstruction,
         'fees': fees,
       });

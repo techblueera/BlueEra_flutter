@@ -57,19 +57,13 @@ class _LabTestListScreenState extends State<LabTestListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final canAdd = !_isOtherProfile && widget.showAddButton;
     return Scaffold(
       appBar: CommonBackAppBar(
         title: widget.title ?? "",
         showRightTextButton: false,
+        buildCustomActionWidget: canAdd ? _buildAddAction : null,
       ),
-      floatingActionButton: (_isOtherProfile || !widget.showAddButton)
-          ? null
-          : FloatingActionButton(
-              onPressed: () => Get.to(
-                () => LabTestCatalogScreen(collection: widget.collection),
-              ),
-              child: const Icon(Icons.add, color: AppColors.white),
-            ),
       body: Obx(() {
         if (controller.isLoading.value && controller.tests.isEmpty) {
           return const Center(child: CircularProgressIndicator());
@@ -101,6 +95,40 @@ class _LabTestListScreenState extends State<LabTestListScreen> {
           },
         );
       }),
+    );
+  }
+
+  // Circular "+" affordance rendered in the app bar's trailing slot via
+  // [CommonBackAppBar.buildCustomActionWidget]. Replaces the previous FAB so
+  // the add-test entry point sits next to the title instead of floating over
+  // the list.
+  //
+  // Seeds `presetPackageType` with `widget.collection` — the catalog forwards
+  // that to [AddLabTestScreen], where the Package Type surface locks onto it
+  // (when the collection name is an entry in
+  // [LabTestController.packageTypeList]). Mirrors the preset-lock behaviour
+  // used by the Create-Your-Own-Packages landing.
+  Widget _buildAddAction() {
+    return Padding(
+      padding: EdgeInsets.only(right: SizeConfig.size12),
+      child: InkWell(
+        onTap: () => Get.to(
+          () => LabTestCatalogScreen(
+            collection: widget.collection,
+            presetPackageType: widget.collection,
+          ),
+        ),
+        customBorder: const CircleBorder(),
+        child: Container(
+          width: SizeConfig.size32,
+          height: SizeConfig.size32,
+          decoration: const BoxDecoration(
+            color: AppColors.primaryColor,
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(Icons.add, color: AppColors.white, size: 20),
+        ),
+      ),
     );
   }
 

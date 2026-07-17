@@ -8,85 +8,169 @@ import 'package:BlueEra/features/me/hotel/view/hotel_amenities_screen.dart';
 import 'package:BlueEra/features/me/hotel/view/hotel_property_screen.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// Amenities + Policies tab — combines the two configuration-heavy
-/// sections so they share a tab. Empty states route into the same
-/// edit screens used by the legacy `HotelHomeDetailScreen`.
+import '../../../../../../core/constants/app_icon_assets.dart';
+
+/// Amenities + Policies tab — chip-based Hotel Amenities + Room Amenities
+/// cards mirror the mockup design (title with edit pencil, pill chips with
+/// SVG icons). Room amenities aggregate across every room in
+/// `profile.rooms`: a chip appears if ANY room has that amenity enabled.
+/// Policies retains its inline pill list below.
 class HotelAmenitiesTabV2 extends StatelessWidget {
   final HotelDetailController controller;
 
   const HotelAmenitiesTabV2({super.key, required this.controller});
 
+  // ── Amenity chip specs (label + SVG basename + boolean picker). Static so
+  // there's a single source of truth for both the current tab UI and the
+  // corresponding edit screens.
+
+  static const _hotelSpecs = <_AmenityChipSpec<HotelAmenities>>[
+    _AmenityChipSpec(
+        label: AppStrings.hotelFreeParking,
+        asset: 'FREE_PARKING',
+        pick: _pickFreeParking),
+    _AmenityChipSpec(
+        label: AppStrings.hotelRestaurant,
+        asset: 'RESTAURANT',
+        pick: _pickRestaurant),
+    _AmenityChipSpec(
+        label: AppStrings.hotelFrontDesk247,
+        asset: 'FRONT_DESK_24_7',
+        pick: _pickFrontDesk),
+    _AmenityChipSpec(
+        label: AppStrings.hotelElevatorLift,
+        asset: 'ELEVATOR_LIFT',
+        pick: _pickElevator),
+    _AmenityChipSpec(
+        label: AppStrings.hotelCctvSurveillance,
+        asset: 'CCTV_SURVEILLANCE',
+        pick: _pickCctv),
+    _AmenityChipSpec(
+        label: AppStrings.hotelPowerBackup,
+        asset: 'POWER_BACKUP',
+        pick: _pickHotelPowerBackup),
+    _AmenityChipSpec(
+        label: AppStrings.hotelLaundryService,
+        asset: 'WARDROBE',
+        pick: _pickLaundry),
+    _AmenityChipSpec(
+        label: AppStrings.hotelSwimmingPool,
+        asset: 'SWIMMING_POOL',
+        pick: _pickPool),
+    _AmenityChipSpec(
+        label: AppStrings.hotelAirportTransportation,
+        asset: 'AIRPORT_TRANSPORT',
+        pick: _pickAirport),
+    _AmenityChipSpec(label: AppStrings.hotelBar, asset: 'BAR', pick: _pickBar),
+    _AmenityChipSpec(
+        label: AppStrings.hotelGym,
+        asset: 'FITNESS_CENTER_GYM',
+        pick: _pickGym),
+  ];
+
+  static const _roomSpecs = <_AmenityChipSpec<Amenities>>[
+    _AmenityChipSpec(
+        label: AppStrings.hotelAirConditioning,
+        asset: 'AIR_CONDITIONING',
+        pick: _pickAc),
+    _AmenityChipSpec(
+        label: AppStrings.hotelFreeWifi, asset: 'WIFI', pick: _pickWifi),
+    _AmenityChipSpec(
+        label: AppStrings.hotelTelevision, asset: 'TELEVISION', pick: _pickTv),
+    _AmenityChipSpec(
+        label: AppStrings.hotelRoomServiceItem,
+        asset: 'ROOM_SERVICE',
+        pick: _pickRoomService),
+    _AmenityChipSpec(
+        label: AppStrings.hotelPowerBackup,
+        asset: 'POWER_BACKUP',
+        pick: _pickRoomPowerBackup),
+    _AmenityChipSpec(
+        label: AppStrings.hotelBalcony, asset: 'BALCONY', pick: _pickBalcony),
+    _AmenityChipSpec(
+        label: AppStrings.hotelAttachedBathroom,
+        asset: 'ATTACHED_BATHROOM',
+        pick: _pickAttachedBath),
+    _AmenityChipSpec(
+        label: AppStrings.hotelWardrobe,
+        asset: 'WARDROBE',
+        pick: _pickWardrobe),
+    _AmenityChipSpec(
+        label: AppStrings.hotelDeskChair, asset: 'WORK_DESK', pick: _pickDesk),
+    _AmenityChipSpec(
+        label: AppStrings.hotelRoomRefrigerators,
+        asset: 'ROOM_REFRIGERATOR',
+        pick: _pickFridge),
+    _AmenityChipSpec(
+        label: AppStrings.hotelElectricKettle,
+        asset: 'ELECTRIC_KETTLE',
+        pick: _pickKettle),
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Obx(() {
       final profile = controller.hotelData.value?.profile;
+      final rooms = controller.hotelData.value?.rooms ?? const <Rooms>[];
+
+      final activeHotel = _activeSpecs(_hotelSpecs, profile?.hotelAmenities);
+      final activeRoom = _activeRoomSpecs(rooms);
+
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(height: SizeConfig.size12),
 
-          // ── Amenities ──
+          // ── Hotel Amenities ──
           Padding(
             padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
-            child: CommonCardWidget(
-              padding: 10,
-              cardMargin: 0,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      CustomText(AppStrings.hotelAmenitiesTitle.tr,
-                          fontWeight: FontWeight.w700),
-                      _EditButton(
-                        onTap: () => Get.to(HotelAmenitiesScreen())
-                            ?.then((_) => controller.loadHotelData()),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 15),
-                  if (profile?.hotelAmenities != null)
-                    _AmenitiesGrid(amen: profile!.hotelAmenities!)
-                  else
-                    EmptySectionPlaceholder(
-                      imageAsset: 'assets/images/other_gallery.png',
-                      ctaLabel: AppStrings.hotelNoAmenitiesAdded.tr,
-                      ctaIcon: Icons.spa_outlined,
-                      onTap: () => Get.to(HotelAmenitiesScreen())
-                          ?.then((_) => controller.loadHotelData()),
-                    ),
-                ],
-              ),
+            child: _AmenityCard(
+              title: AppStrings.hotelAmenitiesTitle.tr,
+              activeChips: activeHotel,
+              emptyLabel: AppStrings.hotelNoAmenitiesAdded.tr,
+              emptyIcon: Icons.spa_outlined,
+              onEdit: () => Get.to(HotelAmenitiesScreen())
+                  ?.then((_) => controller.loadHotelData()),
             ),
           ),
 
           SizedBox(height: SizeConfig.size12),
 
+          // ── Room Amenities (aggregated across all rooms) ──
+          // Padding(
+          //   padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+          //   child: _AmenityCard(
+          //     title: AppStrings.hotelRoomAmenities.tr,
+          //     activeChips: activeRoom,
+          //     emptyLabel: AppStrings.hotelNoAmenitiesAdded.tr,
+          //     emptyIcon: Icons.king_bed_outlined,
+          //     onEdit: () => Get.to(RoomAmenitiesScreen(
+          //       roomID: rooms.isNotEmpty ? rooms.first.id : null,
+          //     ))?.then((_) => controller.loadHotelData()),
+          //   ),
+          // ),
+
+          SizedBox(height: SizeConfig.size10),
+
           // ── Policies ──
           Padding(
             padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
             child: CommonCardWidget(
-              padding: 10,
+              padding: 12,
               cardMargin: 0,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      CustomText(AppStrings.hotelPoliciesTitle.tr,
-                          fontWeight: FontWeight.w700),
-                      _EditButton(
-                        onTap: () => Get.to(HotelPoliciesScreen())
-                            ?.then((_) => controller.loadHotelData()),
-                      ),
-                    ],
+                  _CardHeader(
+                    title: AppStrings.hotelPoliciesTitle.tr,
+                    onEdit: () => Get.to(HotelPoliciesScreen())
+                        ?.then((_) => controller.loadHotelData()),
                   ),
-                  const SizedBox(height: 10),
+                  SizedBox(height: SizeConfig.size12),
                   if (profile?.policy != null)
                     _PolicySummary(policy: profile!.policy!)
                   else
@@ -107,74 +191,177 @@ class HotelAmenitiesTabV2 extends StatelessWidget {
       );
     });
   }
+
+  // Returns the subset of specs whose picker resolves to true on [source].
+  List<_AmenityChipSpec<T>> _activeSpecs<T>(
+    List<_AmenityChipSpec<T>> specs,
+    T? source,
+  ) {
+    if (source == null) return const [];
+    return specs.where((s) => s.pick(source) == true).toList(growable: false);
+  }
+
+  // Aggregates room amenities across every room — an amenity chip appears
+  // if ANY room has it enabled. Keeps the tab useful even when a property
+  // has multiple room types with slightly different amenity sets.
+  List<_AmenityChipSpec<Amenities>> _activeRoomSpecs(List<Rooms> rooms) {
+    if (rooms.isEmpty) return const [];
+    return _roomSpecs.where((spec) {
+      return rooms.any((r) {
+        final a = r.amenities;
+        return a != null && spec.pick(a) == true;
+      });
+    }).toList(growable: false);
+  }
+
+  // ── Static pickers — kept out of Amenities/HotelAmenities so the models
+  // stay untouched. Tear-off references let the const spec lists stay const.
+  static bool? _pickFreeParking(HotelAmenities a) => a.freeParking;
+  static bool? _pickRestaurant(HotelAmenities a) => a.restaurant;
+  static bool? _pickFrontDesk(HotelAmenities a) => a.frontDesk24x7;
+  static bool? _pickElevator(HotelAmenities a) => a.elevatorLift;
+  static bool? _pickCctv(HotelAmenities a) => a.cctvSurveillance;
+  static bool? _pickHotelPowerBackup(HotelAmenities a) => a.powerBackup;
+  static bool? _pickLaundry(HotelAmenities a) => a.laundryService;
+  static bool? _pickPool(HotelAmenities a) => a.swimmingPool;
+  static bool? _pickAirport(HotelAmenities a) => a.airportTransportation;
+  static bool? _pickBar(HotelAmenities a) => a.bar;
+  static bool? _pickGym(HotelAmenities a) => a.gym;
+
+  static bool? _pickAc(Amenities a) => a.airConditioning;
+  static bool? _pickWifi(Amenities a) => a.freeWifi;
+  static bool? _pickTv(Amenities a) => a.television;
+  static bool? _pickRoomService(Amenities a) => a.roomService;
+  static bool? _pickRoomPowerBackup(Amenities a) => a.powerBackup;
+  static bool? _pickBalcony(Amenities a) => a.balcony;
+  static bool? _pickAttachedBath(Amenities a) => a.attachedBathroom;
+  static bool? _pickWardrobe(Amenities a) => a.wardrobe;
+  static bool? _pickDesk(Amenities a) => a.deskChair;
+  static bool? _pickFridge(Amenities a) => a.roomRefrigerators;
+  static bool? _pickKettle(Amenities a) => a.electricKettle;
 }
 
-class _AmenitiesGrid extends StatelessWidget {
-  final HotelAmenities amen;
-  const _AmenitiesGrid({required this.amen});
+/// Reusable amenity card: header + wrap of pill chips (or an empty state).
+class _AmenityCard<T> extends StatelessWidget {
+  final String title;
+  final List<_AmenityChipSpec<T>> activeChips;
+  final String emptyLabel;
+  final IconData emptyIcon;
+  final VoidCallback onEdit;
+
+  const _AmenityCard({
+    required this.title,
+    required this.activeChips,
+    required this.emptyLabel,
+    required this.emptyIcon,
+    required this.onEdit,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 20,
-      children: [
-        if (amen.freeParking ?? false)
-          _AmenityIcon(
-              icon: Icons.local_parking, label: AppStrings.hotelFreeParking.tr),
-        if (amen.restaurant ?? false)
-          _AmenityIcon(
-              icon: Icons.restaurant, label: AppStrings.hotelRestaurant.tr),
-        if (amen.frontDesk24x7 ?? false)
-          _AmenityIcon(
-              icon: Icons.support_agent,
-              label: AppStrings.hotelFrontDesk247.tr),
-        if (amen.elevatorLift ?? false)
-          _AmenityIcon(
-              icon: Icons.elevator, label: AppStrings.hotelElevatorLift.tr),
-        if (amen.cctvSurveillance ?? false)
-          _AmenityIcon(
-              icon: Icons.videocam,
-              label: AppStrings.hotelCctvSurveillance.tr),
-        if (amen.powerBackup ?? false)
-          _AmenityIcon(
-              icon: Icons.battery_charging_full_sharp,
-              label: AppStrings.hotelPowerBackup.tr),
-        if (amen.laundryService ?? false)
-          _AmenityIcon(
-              icon: Icons.local_laundry_service,
-              label: AppStrings.hotelLaundryService.tr),
-        if (amen.swimmingPool ?? false)
-          _AmenityIcon(
-              icon: Icons.pool, label: AppStrings.hotelSwimmingPool.tr),
-        if (amen.airportTransportation ?? false)
-          _AmenityIcon(
-              icon: Icons.airport_shuttle,
-              label: AppStrings.hotelAirportTransportation.tr),
-        if (amen.bar ?? false)
-          _AmenityIcon(icon: Icons.local_bar, label: AppStrings.hotelBar.tr),
-        if (amen.gym ?? false)
-          _AmenityIcon(
-              icon: Icons.fitness_center, label: AppStrings.hotelGym.tr),
-      ],
+    return CommonCardWidget(
+      padding: 12,
+      cardMargin: 0,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _CardHeader(title: title, onEdit: onEdit),
+          SizedBox(height: SizeConfig.size12),
+          if (activeChips.isEmpty)
+            EmptySectionPlaceholder(
+              imageAsset: 'assets/images/other_gallery.png',
+              ctaLabel: emptyLabel,
+              ctaIcon: emptyIcon,
+              onTap: onEdit,
+            )
+          else
+            Wrap(
+              spacing: SizeConfig.size8,
+              runSpacing: SizeConfig.size8,
+              children: activeChips
+                  .map((s) => _AmenityChip(label: s.label.tr, asset: s.asset))
+                  .toList(growable: false),
+            ),
+        ],
+      ),
     );
   }
 }
 
-class _AmenityIcon extends StatelessWidget {
-  final IconData icon;
+/// Rounded pill chip — subtle grey border, icon + label, used in every
+/// amenity card.
+class _AmenityChip extends StatelessWidget {
   final String label;
-  const _AmenityIcon({required this.icon, required this.label});
+  final String asset;
+
+  const _AmenityChip({required this.label, required this.asset});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(3.0),
-      child: Column(
+    return Container(
+      padding: EdgeInsets.symmetric(
+          horizontal: SizeConfig.size12, vertical: SizeConfig.size8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: Color(0xffDDE2EE), width: 0.5),
+        borderRadius: BorderRadius.circular(100),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: AppColors.primaryColor),
-          CustomText(label, fontSize: 12),
+          LocalAssets(
+            imagePath: 'assets/category/hotel_service/$asset.svg',
+            height: 18,
+            width: 18,
+            imgColor: AppColors.grey7E,
+          ),
+          SizedBox(width: SizeConfig.size8),
+          CustomText(
+            label,
+            fontSize: 12,
+            fontWeight: FontWeight.w400,
+            color: AppColors.grey7E,
+          ),
         ],
       ),
+    );
+  }
+}
+
+/// Card title + minimalist pencil-outline edit affordance (matches mockup).
+class _CardHeader extends StatelessWidget {
+  final String title;
+  final VoidCallback onEdit;
+
+  const _CardHeader({required this.title, required this.onEdit});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Expanded(
+          child: CustomText(
+            title,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+            color: AppColors.black22,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        InkWell(
+          onTap: onEdit,
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: EdgeInsets.all(SizeConfig.size4),
+            child: LocalAssets(
+              imagePath: AppIconAssets.editIcon,
+              imgColor: AppColors.black,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -232,57 +419,33 @@ class _PolicySummary extends StatelessWidget {
     }
 
     return Wrap(
-      spacing: 8,
-      runSpacing: 8,
+      spacing: SizeConfig.size8,
+      runSpacing: SizeConfig.size8,
       children: items
           .map((item) => Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 12, vertical: 6),
+                padding: EdgeInsets.symmetric(
+                    horizontal: SizeConfig.size12, vertical: SizeConfig.size6),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryColor.withValues(alpha: 0.08),
+                  color: AppColors.white,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                      color:
-                          AppColors.primaryColor.withValues(alpha: 0.2)),
+                  border: Border.all(color: Color(0xffDDE2EE), width: 0.5),
                 ),
-                child: CustomText(item,
-                    fontSize: 12, color: AppColors.mainTextColor),
+                child: CustomText(item, fontSize: 12, color: AppColors.grey7E),
               ))
           .toList(),
     );
   }
 }
 
-class _EditButton extends StatelessWidget {
-  final VoidCallback onTap;
-  const _EditButton({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-        decoration: BoxDecoration(
-          color: AppColors.primaryColor.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.edit_outlined,
-                size: 14, color: AppColors.primaryColor),
-            const SizedBox(width: 4),
-            CustomText(
-              AppStrings.edit.tr,
-              fontSize: 12,
-              color: AppColors.primaryColor,
-              fontWeight: FontWeight.w600,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+/// Compile-time chip spec: localized label, SVG basename, and a picker that
+/// pulls the boolean off a source model (`HotelAmenities` or `Amenities`).
+class _AmenityChipSpec<T> {
+  final String label;
+  final String asset;
+  final bool? Function(T) pick;
+  const _AmenityChipSpec({
+    required this.label,
+    required this.asset,
+    required this.pick,
+  });
 }

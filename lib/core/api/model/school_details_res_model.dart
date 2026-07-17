@@ -67,6 +67,7 @@ class SchoolDetailsData {
     this.availability,
     this.classRange,
     this.studentTeacherRatio,
+    this.board,
     this.mediumOfInstruction,
     this.fees,
     this.avgRating,
@@ -129,6 +130,8 @@ class SchoolDetailsData {
     final str = quickInfo is Map
         ? quickInfo['studentTeacherRatio']
         : json['studentTeacherRatio'];
+    final boardVal =
+        quickInfo is Map ? quickInfo['board'] : json['board'];
     final medium = quickInfo is Map
         ? quickInfo['mediumOfInstruction']
         : json['mediumOfInstruction'];
@@ -136,6 +139,7 @@ class SchoolDetailsData {
 
     classRange = cr?.toString();
     studentTeacherRatio = str?.toString();
+    board = boardVal?.toString();
     if (medium is List) {
       mediumOfInstruction = medium.map((e) => e.toString()).toList();
     } else if (medium is String && medium.isNotEmpty) {
@@ -168,6 +172,7 @@ class SchoolDetailsData {
   List<Availability>? availability;
   String? classRange;
   String? studentTeacherRatio;
+  String? board;
   List<String>? mediumOfInstruction;
   int? fees;
   double? avgRating;
@@ -209,6 +214,7 @@ class SchoolDetailsData {
     }
     map['classRange'] = classRange;
     map['studentTeacherRatio'] = studentTeacherRatio;
+    map['board'] = board;
     map['mediumOfInstruction'] = mediumOfInstruction;
     map['fees'] = fees;
     map['avg_rating'] = avgRating;
