@@ -2,12 +2,11 @@ import 'dart:ui';
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/go_live_pill.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -74,11 +73,29 @@ class ProfileTopBar extends StatelessWidget {
                   ),
                   SizedBox(width: SizeConfig.size8),
                 ],
-                if (showGoLivePill) _GoLivePill(onTap: onGoLiveTap),
+                if (showGoLivePill) _goLivePill(),
               ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  /// The shared [GoLivePill], fed from the personal profile's shop status.
+  ///
+  /// This used to be a private `_GoLivePill` copied verbatim from the shared
+  /// widget — same frosted pill, same 30×18 toggle, same spinner — differing
+  /// only in that it read its own state instead of taking props. That meant the
+  /// individual screens (self-employed, rider, cab) silently drifted from the
+  /// ~14 business screens. Now there is one Go Live UI everywhere.
+  Widget _goLivePill() {
+    final viewCtrl = Get.find<ViewPersonalDetailsController>();
+    return Obx(
+      () => GoLivePill(
+        value: viewCtrl.shopStatusOpenClose.value,
+        isUpdating: viewCtrl.isShopStatusUpdating.value,
+        onTap: onGoLiveTap,
       ),
     );
   }
@@ -150,106 +167,3 @@ class _CircleIconButton extends StatelessWidget {
   }
 }
 
-class _GoLivePill extends StatelessWidget {
-  final VoidCallback onTap;
-
-  const _GoLivePill({required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    final viewCtrl = Get.find<ViewPersonalDetailsController>();
-    return Obx(() {
-      final isOn = viewCtrl.shopStatusOpenClose.value;
-      final isUpdating = viewCtrl.isShopStatusUpdating.value;
-      return GestureDetector(
-        onTap: isUpdating ? null : onTap,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x1A000000),
-                blurRadius: 3,
-                offset: Offset(0, -1),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-              child: Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size10,
-                  vertical: SizeConfig.size6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: const Color(0xFFC9CDD5),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CustomText(
-                      AppStrings.goLive.tr,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.secondaryTextColor,
-                    ),
-                    SizedBox(width: SizeConfig.size6),
-                    if (isUpdating)
-                      SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            AppColors.primaryColor,
-                          ),
-                        ),
-                      )
-                    else
-                      Container(
-                        width: 30,
-                        height: 18,
-                        padding: const EdgeInsets.all(2),
-                        decoration: BoxDecoration(
-                          color: isOn ? AppColors.primaryColor : Colors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(
-                            color: AppColors.secondaryTextColor
-                                .withValues(alpha: 0.4),
-                            width: 0.5,
-                          ),
-                        ),
-                        child: AnimatedAlign(
-                          duration: const Duration(milliseconds: 180),
-                          alignment: isOn
-                              ? Alignment.centerRight
-                              : Alignment.centerLeft,
-                          child: Container(
-                            height: 14,
-                            width: 14,
-                            decoration: BoxDecoration(
-                              color: isOn
-                                  ? Colors.white
-                                  : AppColors.secondaryTextColor,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      );
-    });
-  }
-}

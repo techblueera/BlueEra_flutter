@@ -9,6 +9,7 @@ import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consum
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/discount_ribbon.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -179,10 +180,9 @@ class _StoreCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = _items;
-    final businessName =
-        _info['businessName']?.isNotEmpty == true
-            ? _info['businessName']!
-            : AppStrings.groceryViewUnknownStore.tr;
+    final businessName = _info['businessName']?.isNotEmpty == true
+        ? _info['businessName']!
+        : AppStrings.groceryViewUnknownStore.tr;
     final businessLogo = _info['logo'] ?? '';
     final businessAddress = _info['address'] ?? '';
     final averageDiscount = _calcAverageDiscount(items);
@@ -275,7 +275,7 @@ class _StoreCard extends StatelessWidget {
               ],
             ),
           ),
-          if (avgDiscount > 0) _DiscountRibbon(percent: avgDiscount),
+          if (avgDiscount > 0) DiscountRibbon(percent: avgDiscount),
           // Clear this store's cart.
           InkWell(
             onTap: () => controller.clearStore(businessId),
@@ -313,7 +313,6 @@ class _StoreCard extends StatelessWidget {
       ),
     );
   }
-
 }
 
 /// Single-column vertical dashed line.
@@ -539,10 +538,9 @@ class _ProductRow extends StatelessWidget {
     final discountPct =
         hasDiscount ? (((mrp - sellingPrice) / mrp) * 100).round() : 0;
 
-    final variantImage =
-        (variant.images != null && variant.images!.isNotEmpty)
-            ? (variant.images!.first.url ?? '')
-            : '';
+    final variantImage = (variant.images != null && variant.images!.isNotEmpty)
+        ? (variant.images!.first.url ?? '')
+        : '';
     final imageUrl = variantImage.isNotEmpty ? variantImage : fallbackImage;
 
     return Container(
@@ -734,8 +732,7 @@ class _QtyStepper extends StatelessWidget {
               child: Center(
                 child: Icon(
                   quantity == 1 ? Icons.delete_outline : Icons.remove,
-                  color:
-                      quantity == 1 ? AppColors.red : AppColors.primaryColor,
+                  color: quantity == 1 ? AppColors.red : AppColors.primaryColor,
                   size: 16,
                 ),
               ),
@@ -763,94 +760,6 @@ class _QtyStepper extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════
-//  DISCOUNT RIBBON ( top-right of store card )
-// ═══════════════════════════════════════════════════════════════════
-
-class _DiscountRibbon extends StatelessWidget {
-  final double percent;
-  const _DiscountRibbon({required this.percent});
-
-  String get _label {
-    final clamped = percent > 99 ? 99 : percent;
-    final isWhole = clamped == clamped.roundToDouble();
-    return isWhole ? clamped.toStringAsFixed(0) : clamped.toStringAsFixed(1);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 4),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          gradient: const RadialGradient(
-            center: Alignment(-0.2, -0.4),
-            radius: 1.1,
-            colors: [Color(0xFFB5D147), Color(0xFF0D8A47)],
-            stops: [0.0, 1.0],
-          ),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: const Color(0xFFFFD83D), width: 2),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF15A352).withValues(alpha: 0.28),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '$_label%',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                    height: 1.0,
-                    letterSpacing: 0.3,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                const Padding(
-                  padding: EdgeInsets.only(bottom: 1),
-                  child: Text(
-                    'Off',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                      height: 1.0,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'On All Items',
-              style: TextStyle(
-                fontSize: 9,
-                color: Colors.white.withValues(alpha: 0.95),
-                fontWeight: FontWeight.w700,
-                height: 1.0,
-                letterSpacing: 0.2,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

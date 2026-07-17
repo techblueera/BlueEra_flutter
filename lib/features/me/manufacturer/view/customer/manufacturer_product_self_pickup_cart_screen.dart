@@ -6,6 +6,7 @@ import 'package:BlueEra/features/me/manufacturer/controller/manufacturer_product
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/discount_ribbon.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -71,23 +72,22 @@ class _ProductSelfPickUpCartScreenState
     return grouped;
   }
 
-  double _calcTotal(
-      List<GetProductData> items, ManufacturerProductSelfPickupController controller) {
+  double _calcTotal(List<GetProductData> items,
+      ManufacturerProductSelfPickupController controller) {
     double total = 0;
     for (final p in items) {
       final id = _variantIdOf(p);
       if (id == null || !selectedVariantIds.contains(id)) continue;
       final qty = controller.getQuantity(id);
       final variants = p.product.sellerClassification?.variants ?? [];
-      final sp =
-          variants.isNotEmpty ? (variants.first.sellingPrice) : 0;
+      final sp = variants.isNotEmpty ? (variants.first.sellingPrice) : 0;
       total += sp * qty;
     }
     return total;
   }
 
-  int _calcItemCount(
-      List<GetProductData> items, ManufacturerProductSelfPickupController controller) {
+  int _calcItemCount(List<GetProductData> items,
+      ManufacturerProductSelfPickupController controller) {
     int count = 0;
     for (final p in items) {
       final id = _variantIdOf(p);
@@ -135,8 +135,7 @@ class _ProductSelfPickUpCartScreenState
       final shopChecked = selectedBusinessIds.contains(entry.key);
       for (final p in entry.value) {
         final id = _variantIdOf(p);
-        final variantChecked =
-            id != null && selectedVariantIds.contains(id);
+        final variantChecked = id != null && selectedVariantIds.contains(id);
         if (!shopChecked || !variantChecked) toDrop.add(p);
       }
     }
@@ -305,8 +304,7 @@ class _StoreGroupCard extends StatelessWidget {
                   product: p,
                   controller: controller,
                   variantIdOf: variantIdOf,
-                  isSelected:
-                      id != null && selectedVariantIds.contains(id),
+                  isSelected: id != null && selectedVariantIds.contains(id),
                   onToggle: () => onVariantToggle(id),
                 );
               });
@@ -361,7 +359,10 @@ class _StoreGroupCard extends StatelessWidget {
               ],
             ),
           ),
-          if (averageDiscount > 0) _DiscountRibbon(percent: averageDiscount),
+          if (averageDiscount > 0)
+            DiscountRibbon(
+                percent: averageDiscount,
+                padding: const EdgeInsets.only(right: 10)),
         ],
       ),
     );
@@ -466,8 +467,7 @@ class _ProductRow extends StatelessWidget {
     final productName = product.product.details?.name ?? 'This product';
     Get.dialog(
       Dialog(
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(20, 22, 20, 16),
           child: Column(
@@ -567,11 +567,9 @@ class _ProductRow extends StatelessWidget {
     final sellingPrice = firstVariant?.sellingPrice ?? 0;
     final mrp = firstVariant?.mrp ?? 0;
     final id = variantIdOf(product);
-    final hasDiscount =
-        mrp > sellingPrice && mrp != 0 && sellingPrice != 0;
-    final discountPct = hasDiscount
-        ? (((mrp - sellingPrice) / mrp) * 100).round()
-        : 0;
+    final hasDiscount = mrp > sellingPrice && mrp != 0 && sellingPrice != 0;
+    final discountPct =
+        hasDiscount ? (((mrp - sellingPrice) / mrp) * 100).round() : 0;
 
     // Selection paints in three subtle layers — bg wash, border tint,
     // and a soft primary shadow — animated together so the row
@@ -623,14 +621,12 @@ class _ProductRow extends StatelessWidget {
                 width: 18,
                 height: 18,
                 decoration: BoxDecoration(
-                  color: isSelected
-                      ? AppColors.primaryColor
-                      : Colors.transparent,
+                  color:
+                      isSelected ? AppColors.primaryColor : Colors.transparent,
                   borderRadius: BorderRadius.circular(4),
                   border: Border.all(
-                    color: isSelected
-                        ? AppColors.primaryColor
-                        : AppColors.greyCA,
+                    color:
+                        isSelected ? AppColors.primaryColor : AppColors.greyCA,
                     width: 1.5,
                   ),
                 ),
@@ -810,9 +806,7 @@ class _QtyStepper extends StatelessWidget {
               child: Center(
                 child: Icon(
                   quantity == 1 ? Icons.delete_outline : Icons.remove,
-                  color: quantity == 1
-                      ? AppColors.red
-                      : AppColors.primaryColor,
+                  color: quantity == 1 ? AppColors.red : AppColors.primaryColor,
                   size: 16,
                 ),
               ),
@@ -852,108 +846,16 @@ class _QtyStepper extends StatelessWidget {
 }
 
 // ═══════════════════════════════════════════════════════════════════
-//  DISCOUNT RIBBON ( top-right of store card )
-// ═══════════════════════════════════════════════════════════════════
-
-class _DiscountRibbon extends StatelessWidget {
-  final double percent;
-  const _DiscountRibbon({required this.percent});
-
-  String get _label {
-    final clamped = percent > 99 ? 99 : percent;
-    final isWhole = clamped == clamped.roundToDouble();
-    return isWhole
-        ? clamped.toStringAsFixed(0)
-        : clamped.toStringAsFixed(1);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 10),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          gradient: const RadialGradient(
-            center: Alignment(-0.2, -0.4),
-            radius: 1.1,
-            colors: [Color(0xFFB5D147), Color(0xFF0D8A47)],
-            stops: [0.0, 1.0],
-          ),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: const Color(0xFFFFD83D),
-            width: 2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF15A352).withValues(alpha: 0.28),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '$_label%',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                    height: 1.0,
-                    letterSpacing: 0.3,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                const Padding(
-                  padding: EdgeInsets.only(bottom: 1),
-                  child: Text(
-                    'Off',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                      height: 1.0,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'On All Items',
-              style: TextStyle(
-                fontSize: 9,
-                color: Colors.white.withValues(alpha: 0.95),
-                fontWeight: FontWeight.w700,
-                height: 1.0,
-                letterSpacing: 0.2,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════
 //  BOTTOM BILL SECTION (per-shop checkboxes + grand total + CTA)
 // ═══════════════════════════════════════════════════════════════════
 
 class _BottomBillSection extends StatelessWidget {
   final Map<String, List<GetProductData>> grouped;
   final ManufacturerProductSelfPickupController controller;
-  final double Function(List<GetProductData>, ManufacturerProductSelfPickupController)
-      calcTotal;
-  final int Function(List<GetProductData>, ManufacturerProductSelfPickupController)
+  final double Function(
+      List<GetProductData>, ManufacturerProductSelfPickupController) calcTotal;
+  final int Function(
+          List<GetProductData>, ManufacturerProductSelfPickupController)
       calcItemCount;
   final RxSet<String> selectedBusinessIds;
   final VoidCallback onPlaceOrder;
@@ -969,8 +871,7 @@ class _BottomBillSection extends StatelessWidget {
 
   String? _firstIdOf(List<GetProductData> items) {
     if (items.isEmpty) return null;
-    final variants =
-        items.first.product.sellerClassification?.variants ?? [];
+    final variants = items.first.product.sellerClassification?.variants ?? [];
     if (variants.isEmpty) return null;
     final id = variants.first.id;
     return id.isEmpty ? null : id;
@@ -1006,8 +907,7 @@ class _BottomBillSection extends StatelessWidget {
               offset: const Offset(0, -4),
             ),
           ],
-          borderRadius:
-              const BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: SafeArea(
           top: false,
@@ -1027,8 +927,7 @@ class _BottomBillSection extends StatelessWidget {
                       businessInfo['businessName'] ?? 'Unknown Store';
                   final shopTotal = calcTotal(items, controller);
                   final shopItems = calcItemCount(items, controller);
-                  final isChecked =
-                      selectedBusinessIds.contains(businessId);
+                  final isChecked = selectedBusinessIds.contains(businessId);
 
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 4),
@@ -1129,8 +1028,7 @@ class _BottomBillSection extends StatelessWidget {
                           onTap: canOrder ? onPlaceOrder : null,
                           borderRadius: BorderRadius.circular(12),
                           child: Container(
-                            padding:
-                                const EdgeInsets.symmetric(vertical: 14),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
                             decoration: BoxDecoration(
                               color: canOrder
                                   ? AppColors.primaryColor
@@ -1154,9 +1052,8 @@ class _BottomBillSection extends StatelessWidget {
                                     width: 20,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      valueColor:
-                                          AlwaysStoppedAnimation<Color>(
-                                              AppColors.white),
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                          AppColors.white),
                                     ),
                                   )
                                 : CustomText(

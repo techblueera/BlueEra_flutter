@@ -1,4 +1,4 @@
-﻿import 'dart:io';
+import 'dart:io';
 import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart' show ApiKeys;
@@ -41,8 +41,10 @@ import 'package:BlueEra/features/me/medical/repo/medical_repo.dart';
 import 'package:BlueEra/features/me/medical/view/medical_gallery/medical_gallery_list_screen.dart';
 import 'package:BlueEra/features/me/medical/view/medical_inquiry_tab_v2.dart';
 import 'package:BlueEra/features/me/others/model/other_service_gallery_res_model.dart';
+import 'package:BlueEra/widgets/add_product_prompt_sheet.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:BlueEra/widgets/gradient_add_button.dart';
 import 'package:BlueEra/widgets/go_live_pill.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -123,6 +125,25 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
       {ApiKeys.type: AppConstants.business_Chat_Type},
     );
     _fetchData();
+    // The once-a-day "add your medicines" nudge. Owner-only: this screen is
+    // also reachable via RouteConstant.medicalHomeScreen with an arbitrary
+    // businessId, and prompting someone to stock a pharmacy that isn't theirs
+    // would be nonsense. No livePhotoGate â€” medical never pops the live-photo
+    // sheet, so there's nothing to collide with.
+    if (widget.businessId == userId) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        showAddProductPromptIfNeeded(
+          context: context,
+          spec: const AddProductPromptSpec(
+            titleKey: AppStrings.addPromptTitleMedical,
+            ctaKey: AppStrings.addProduct,
+            icon: Icons.medication_outlined,
+          ),
+          onAddProduct: () => _tabController.animateTo(2),
+        );
+      });
+    }
   }
 
   void _ensureProductsLoaded() {
@@ -207,7 +228,6 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
     final topInset = MediaQuery.of(context).padding.top;
     final topBarHeight = topInset + 56;
     return Scaffold(
-      backgroundColor: const Color(0xFFEAF2FB),
       body: SafeArea(
         top: false,
         child: _isLoading
@@ -320,88 +340,182 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
     ];
   }
 
+  // PRODUCTS TAB — top-level "Add Product" CTA, then the category-with-
+  // inventory card. Mirrors `GroceryHomeScreenV2._buildProductsTab()`.
+  //
+  // Grocery also carries a "Top Selling" section between the two. Medical has
+  // no merchant-side data for one — there's no equivalent of grocery's
+  // `groceryBusinessProductsList`, and `fetchMyGroceryProducts` needs a
+  // categoryId so it can't build a store-wide rail. The section drops in here
+  // once the backend ships the endpoint; see
+  // docs/backend/MEDICAL_TOP_SELLING_BACKEND_GUIDE.md.
   List<Widget> _buildProductsTab() {
     return [
-      // Breathing room under the pinned tab bar so the title row isn't
-      // stuck against the tabs — matches the visual rhythm of Overview.
-      SizedBox(height: SizeConfig.size16),
-      Padding(
-        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            CustomText(
-              AppStrings.medicalMyProductsTitle.tr,
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-              color: AppColors.mainTextColor,
-            ),
-            ElevatedButton.icon(
-              onPressed: () =>
-                  Get.toNamed(RouteHelper.getAddMedicalSnapSearchScreenRoute()),
-              icon: const Icon(Icons.add, size: 18, color: Colors.white),
-              label: CustomText(AppStrings.addMoreProduct.tr,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryColor,
-                padding: EdgeInsets.symmetric(
-                    horizontal: SizeConfig.size16, vertical: SizeConfig.size8),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20)),
-                elevation: 0,
-              ),
-            ),
-          ],
-        ),
+      GradientAddButton(
+        label: AppStrings.addMoreProduct.tr,
+        onTap: () =>
+            Get.toNamed(RouteHelper.getAddMedicalSnapSearchScreenRoute()),
+        margin:
+            EdgeInsets.only(top: SizeConfig.size10, right: SizeConfig.size12),
       ),
-      SizedBox(height: SizeConfig.size10),
+      SizedBox(height: SizeConfig.size16),
       _buildMyProductsInline(),
       SizedBox(height: SizeConfig.size16),
     ];
   }
 
+  /// Category-with-inventory card — the same white shell + accent-bar header +
+  /// CTA chip + card grid as `GroceryHomeScreenV2._buildCategoryWithInventorySection()`.
   Widget _buildMyProductsInline() {
     return Obx(() {
-      if (_medicalController.myMedicalCategoryLoading.value) {
-        return Padding(
-          padding: EdgeInsets.symmetric(vertical: SizeConfig.size30),
-          child: const Center(child: CircularProgressIndicator()),
-        );
-      }
-
+      final isLoading = _medicalController.myMedicalCategoryLoading.value;
       final list = List<MyMedicalSuperCategoryModel>.from(
           _medicalController.myMedicalCategoryList);
 
-      if (list.isEmpty) {
-        return Padding(
-          padding: EdgeInsets.symmetric(vertical: SizeConfig.size20),
-          child: Center(
-            child: EmptyStateWidget(
-              message: AppStrings.medicalHaveNotPostedProducts.tr,
-              actionText: AppStrings.medicalAddProductsNow.tr,
-              actionCallback: () =>
-                  Get.toNamed(RouteHelper.getMedicalCategoryScreenRoute()),
-            ),
-          ),
-        );
-      }
-
-      return GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-        itemCount: list.length,
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          crossAxisSpacing: SizeConfig.size12,
-          mainAxisSpacing: SizeConfig.size12,
-          childAspectRatio: 0.92,
+      return Container(
+        // White-bordered shell wrapping header + grid, matching grocery.
+        margin: EdgeInsets.only(right: SizeConfig.size12),
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppColors.white, width: 1),
         ),
-        itemBuilder: (_, i) => _myProductCategoryCard(list[i]),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _categorySectionHeader(),
+            SizedBox(height: SizeConfig.size16),
+            if (isLoading)
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: SizeConfig.size30),
+                child: const Center(
+                    child: CircularProgressIndicator(strokeWidth: 2)),
+              )
+            else if (list.isEmpty)
+              // Categories keep their empty state (grocery does the same) —
+              // unlike Top Selling, an empty catalog is the merchant's cue to
+              // add stock, so hiding the section would hide the CTA with it.
+              Padding(
+                padding: EdgeInsets.symmetric(vertical: SizeConfig.size20),
+                child: Center(
+                  child: EmptyStateWidget(
+                    message: AppStrings.medicalHaveNotPostedProducts.tr,
+                    actionText: AppStrings.medicalAddProductsNow.tr,
+                    actionCallback: () =>  Get.toNamed(RouteHelper.getAddMedicalSnapSearchScreenRoute()),
+                  ),
+                ),
+              )
+            else
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final crossAxisCount = constraints.maxWidth > 600 ? 3 : 2;
+                  return GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    padding: EdgeInsets.only(top: SizeConfig.size4),
+                    itemCount: list.length,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossAxisCount,
+                      crossAxisSpacing: SizeConfig.size12,
+                      mainAxisSpacing: SizeConfig.size12,
+                      childAspectRatio: 1.0,
+                    ),
+                    itemBuilder: (_, i) => _myProductCategoryCard(list[i]),
+                  );
+                },
+              ),
+          ],
+        ),
       );
     });
+  }
+
+  /// Accent bar + title + helper + CTA chip — grocery's `_categorySectionHeader`.
+  Widget _categorySectionHeader() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+          width: 3,
+          height: 26,
+          decoration: BoxDecoration(
+            color: AppColors.primaryColor,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        SizedBox(width: SizeConfig.size10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CustomText(
+                AppStrings.medicalMyProductsTitle.tr,
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: AppColors.mainTextColor,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 2),
+              CustomText(
+                AppStrings.tapCategoryToManageInventory.tr,
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: AppColors.secondaryTextColor,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+        SizedBox(width: SizeConfig.size8),
+        _addProductCta(),
+      ],
+    );
+  }
+
+  /// Solid primary `+` badge anchoring a brand-outlined chip — grocery's
+  /// `_addGroceryCta`.
+  Widget _addProductCta() {
+    return GestureDetector(
+      onTap: () =>
+          Get.toNamed(RouteHelper.getAddMedicalSnapSearchScreenRoute()),
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(4, 4, 12, 4),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: AppColors.primaryColor.withValues(alpha: 0.25),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 26,
+              height: 26,
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.add, size: 16, color: Colors.white),
+            ),
+            SizedBox(width: SizeConfig.size6),
+            CustomText(
+              AppStrings.addMoreProduct.tr,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: AppColors.primaryColor,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _myProductCategoryCard(MyMedicalSuperCategoryModel item) {

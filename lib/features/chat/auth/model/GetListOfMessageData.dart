@@ -474,6 +474,12 @@ class MessageMetadata {
   String? tiffinPickupOrderId;
   SelfPickupOrderModel? tiffinPickupOrder;
 
+  /// Pharmacy / medical self-pickup order (`message_type: medical_selfpickup`).
+  /// Same [SelfPickupOrderModel] shape as every other vertical — only the id
+  /// key differs. See docs/backend/PHARMACY_CUSTOMER_FLOW_INTEGRATION.md.
+  String? medicalPickupOrderId;
+  SelfPickupOrderModel? medicalPickupOrder;
+
   String? riderAssociationId;
   RiderAssociationMetadata? riderAssociation;
 
@@ -606,6 +612,8 @@ class MessageMetadata {
     this.homeMadeFoodPickupOrder,
     this.tiffinPickupOrderId,
     this.tiffinPickupOrder,
+    this.medicalPickupOrderId,
+    this.medicalPickupOrder,
     this.riderAssociationId,
     this.riderAssociation,
     this.rideOrderId,
@@ -697,6 +705,11 @@ class MessageMetadata {
       tiffinPickupOrderId: json['tiffinPickupOrderId']?.toString(),
       tiffinPickupOrder:
           (json['order'] != null && json['tiffinPickupOrderId'] != null)
+              ? SelfPickupOrderModel.fromJson(json['order'])
+              : null,
+      medicalPickupOrderId: json['medicalPickupOrderId']?.toString(),
+      medicalPickupOrder:
+          (json['order'] != null && json['medicalPickupOrderId'] != null)
               ? SelfPickupOrderModel.fromJson(json['order'])
               : null,
       riderAssociationId: json['riderAssociationId']?.toString(),

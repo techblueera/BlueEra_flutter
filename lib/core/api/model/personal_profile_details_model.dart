@@ -48,6 +48,11 @@ class PersonalProfileDetailsModel {
     // docs/backend/SELF_WORK_GO_LIVE_GUIDE.md.
     freeServiceUsed =
         json['freeServiceUsed'] as bool? ?? json['freeRideUsed'] as bool?;
+    // Referral promo clip — a TOP-LEVEL sibling of `user` / `securityDeposit`,
+    // NOT part of `marketing_card` (that object is poster-only). The backend
+    // key really is spelled `referal_video`, with one 'r'; `referral_video` is
+    // accepted too so a future spelling fix doesn't silently drop the video.
+    referalVideo = (json['referal_video'] ?? json['referral_video'])?.toString();
   }
 
   /// Tolerates the API returning a list, a single string (legacy), or null.
@@ -71,6 +76,15 @@ class PersonalProfileDetailsModel {
   // deposit). See [isFirstServiceFree].
   bool? freeServiceUsed;
   List<String> earnProfileType;
+
+  /// Referral promo clip URL (`referal_video`), or null when the profile has
+  /// none. Top-level on the response — nothing to do with `marketing_card`.
+  String? referalVideo;
+
+  /// The clip to play, or null when there isn't one — trimmed and
+  /// empty-checked so `""` never reaches a video player.
+  String? get referalVideoUrl =>
+      (referalVideo?.trim().isNotEmpty ?? false) ? referalVideo!.trim() : null;
 
   /// Go-live decision for the individual/self-employed provider: allowed when
   /// there's no deposit info or the deposit is paid / not required; blocked

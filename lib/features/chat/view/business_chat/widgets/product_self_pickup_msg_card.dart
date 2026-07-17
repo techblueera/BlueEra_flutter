@@ -20,6 +20,7 @@ import 'package:BlueEra/features/chat/view/widget/component_widgets.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/product_order_booking_rider_main.dart';
 import 'package:BlueEra/features/common/connect/view/inquiry_ride_order_selection_screen.dart';
+import 'package:BlueEra/features/me/medical/repo/medical_repo.dart';
 import 'package:BlueEra/features/me/product/repo/product_repo.dart';
 import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -40,16 +41,28 @@ import '../../../../../core/api/apiService/api_keys.dart';
 /// Mirrors [SelfPickupMsgCard] (call / payment / ride + packing PDF) but uses
 /// `productPickupOrderId` / `productPickupOrder` metadata and routes the
 /// "Mark as Ready" API to the inventory service.
+///
+/// Reused as-is for the `medical_selfpickup` message type by passing
+/// [isMedical] = true — the same trick [FoodSelfPickupMsgCard] uses for its
+/// home-made / tiffin variants. In that mode the order is read from
+/// `medicalPickupOrder` / `medicalPickupOrderId` and "Mark as Ready" routes to
+/// the medical service. See docs/backend/PHARMACY_CUSTOMER_FLOW_INTEGRATION.md.
 class ProductSelfPickupMsgCard extends StatefulWidget {
   final Messages message;
   final String time;
   final String? conversationId;
+
+  /// When true, read the pharmacy order metadata and mark-ready via the
+  /// medical service (`PUT medical-service/orders/{orderId}/ready`) instead of
+  /// the inventory service.
+  final bool isMedical;
 
   const ProductSelfPickupMsgCard({
     super.key,
     required this.message,
     required this.time,
     this.conversationId,
+    this.isMedical = false,
   });
 
   @override
@@ -72,8 +85,15 @@ class _ProductSelfPickupMsgCardState extends State<ProductSelfPickupMsgCard> {
       widget.message.sender?.id;
 
   SelfPickupOrderModel? get _order =>
+      (widget.isMedical ? widget.message.metadata?.medicalPickupOrder : null) ??
       widget.message.metadata?.productPickupOrder ??
       widget.message.metadata?.selfPickupOrder;
+
+  /// The pickup order id for this card's type — used when [_order]'s own
+  /// `orderId` is absent (mark-ready, payment QR, rider dispatch).
+  String? get _pickupOrderId => widget.isMedical
+      ? widget.message.metadata?.medicalPickupOrderId
+      : widget.message.metadata?.productPickupOrderId;
 
   bool get _isReady =>
       _order?.isReady ?? (widget.message.metadata?.orderStatus == true);
@@ -718,11 +738,10 @@ class _ProductSelfPickupMsgCardState extends State<ProductSelfPickupMsgCard> {
     }
   }
 
-  /// Mark product order as ready via inventory-service API
+  /// Mark the order as ready — inventory service for products, medical service
+  /// for pharmacy orders.
   Future<void> _markAsReady() async {
-    final orderId = _order?.orderId ??
-        widget.message.metadata?.productPickupOrderId ??
-        '';
+    final orderId = _order?.orderId ?? _pickupOrderId ?? '';
 
     if (orderId.isEmpty) {
       commonSnackBar(message: 'Order ID not found');
@@ -732,8 +751,9 @@ class _ProductSelfPickupMsgCardState extends State<ProductSelfPickupMsgCard> {
     setState(() => _isMarkingReady = true);
 
     try {
-      final response =
-          await ProductRepo().markProductOrderReadyRepo(orderId: orderId);
+      final response = widget.isMedical
+          ? await MedicalRepo().markMedicalOrderReadyRepo(orderId: orderId)
+          : await ProductRepo().markProductOrderReadyRepo(orderId: orderId);
 
       if (!response.isSuccess) {
         commonSnackBar(
@@ -746,10 +766,14 @@ class _ProductSelfPickupMsgCardState extends State<ProductSelfPickupMsgCard> {
       _order?.isReady = true;
       setState(() {});
 
-      commonSnackBar(message: 'Product order marked as ready for pickup');
-      log('Product self-pickup order $orderId marked as ready');
+      commonSnackBar(
+        message: widget.isMedical
+            ? 'Pharmacy order marked as ready for pickup'
+            : 'Product order marked as ready for pickup',
+      );
+      log('${widget.isMedical ? 'Medical' : 'Product'} self-pickup order $orderId marked as ready');
     } catch (e) {
-      log('Error marking product order ready: $e');
+      log('Error marking order ready: $e');
       commonSnackBar(message: AppStrings.somethingWentWrong);
     } finally {
       setState(() => _isMarkingReady = false);
@@ -1079,8 +1103,7 @@ class _ProductSelfPickupMsgCardState extends State<ProductSelfPickupMsgCard> {
             // Shows the payment QR bottom sheet (dummy QR + download/share).
             onTap: () => showPaymentQrBottomSheet(
               context,
-              data: _order?.orderId ??
-                  widget.message.metadata?.productPickupOrderId,
+              data: _order?.orderId ?? _pickupOrderId,
               userId: _conversationPersonId,
               conversationId: widget.conversationId,
             ),
@@ -1152,14 +1175,13 @@ class _ProductSelfPickupMsgCardState extends State<ProductSelfPickupMsgCard> {
       discoverController.selectedToLong?.value = dropLng;
       discoverController.selectedToAddress?.value = drop.fullAddress;
 
-      // Chat self-pickup → rider dispatch (product).
+      // Chat self-pickup → rider dispatch (product / pharmacy).
       discoverController.setChatDispatchContext(
-        selfpickupOrderId: _order?.orderId ??
-            widget.message.metadata?.productPickupOrderId ??
-            '',
-        selfpickupType: widget.message.messageType ?? 'product_selfpickup',
+        selfpickupOrderId: _order?.orderId ?? _pickupOrderId ?? '',
+        selfpickupType: widget.message.messageType ??
+            (widget.isMedical ? 'medical_selfpickup' : 'product_selfpickup'),
         businessId: businessId,
-        orderFor: 'product',
+        orderFor: widget.isMedical ? 'medical' : 'product',
       );
 
       await discoverController.getBookingRidersApi();

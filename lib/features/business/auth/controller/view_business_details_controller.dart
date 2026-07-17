@@ -121,6 +121,19 @@ class ViewBusinessDetailsController extends GetxController
   // bool get canGoLive =>
   //     businessProfileDetails.value?.data?.canGoLive ?? false;
 
+  /// Free intro quota (first N orders / enquiries) — waives the deposit while
+  /// it lasts. Fail-closed: only an explicit `freeOrdersUsed == false` waives,
+  /// so an absent flag enforces the deposit. Mirrors the individual
+  /// `isFirstServiceFree` and the rider `isFirstRideFree` waivers.
+  bool get isFreeQuotaAvailable =>
+      businessProfileDetails.value?.data?.isFreeQuotaAvailable ?? false;
+
+  /// The single go-live truth: the deposit is satisfied OR the free quota
+  /// covers it. Every consumer of the gate must use THIS, not bare
+  /// [canGoLive] — the pill's live state, the sheet gate and the today-override
+  /// all read it, and if they disagree the pill lies about being live.
+  bool get isGoLiveAllowed => canGoLive || isFreeQuotaAvailable;
+
   /// Joining-bonus object embedded in the `business/:id` response. Drives the
   /// app-open claim popup; null until the profile loads (or when absent).
   final Rxn<JoiningBounce> joiningBounce = Rxn<JoiningBounce>();
@@ -925,8 +938,11 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
     // Security deposit is the FIRST wall: an unpaid business is never shown as
     // live, even inside its scheduled hours (e.g. the deposit was set up, hours
     // saved, then the deposit later became unpaid/refunded). `canGoLive`
-    // fail-opens when the backend doesn't report a deposit requirement.
-    isLive.value = status.isOpenNow && canGoLive;
+    // fail-opens when the backend doesn't report a deposit requirement, and the
+    // free intro quota waives it — so this must use the same [isGoLiveAllowed]
+    // the sheet gate uses, or a quota-covered business would pass the gate and
+    // still render as not-live.
+    isLive.value = status.isOpenNow && isGoLiveAllowed;
   }
 
   /// Start the once-a-minute recompute so the pill crosses open/close
@@ -960,13 +976,26 @@ logs("upgraded.businessId=== ${upgraded.businessId}");
   /// Security-deposit gate. Returns true when the merchant may open the shop;
   /// otherwise shows the reason and routes to the deposit flow, returning
   /// false. Fail-open — blocks only when the backend reports required && !paid.
+  ///
+  /// FREE INTRO QUOTA: the deposit is WAIVED while the business still has free
+  /// orders / enquiries left (`freeOrdersUsed == false`); once spent, it's
+  /// enforced on every subsequent go-live. Absent flag → not free → deposit
+  /// enforced (safe default). Mirrors the self-employed first-service-free and
+  /// rider first-ride-free waivers. This is the ONLY deposit gate the 13
+  /// business home screens go through (they all delegate to
+  /// [openAvailabilityControl]), so the waiver lands everywhere at once.
+  /// See docs/backend/BUSINESS_GO_LIVE_FREE_QUOTA_GUIDE.md.
   bool ensureCanGoLive() {
-    if (canGoLive) return true;
+    if (isGoLiveAllowed) return true;
     commonSnackBar(
       message:
           'Your payment is incomplete. Please complete the security deposit to go live and receive service enquiries.',
     );
-    Get.to(() => const ContributionScreenV2());
+    // Refresh on return so a freshly-paid deposit (reconciled server-side by
+    // the Razorpay webhook, with no in-app trigger) and the updated
+    // `freeOrdersUsed` are picked up.
+    Get.to(() => const ContributionScreenV2())
+        ?.then((_) => viewBusinessProfile(silent: true));
     return false;
   }
 

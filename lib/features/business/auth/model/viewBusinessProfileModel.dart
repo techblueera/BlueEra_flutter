@@ -17,10 +17,29 @@ class ViewBusinessProfileModel {
         relatedStoresList?.add(RelatedStoresList.fromJson(v));
       });
     }
+    // Referral promo clip. On the individual profile this is top-level, so it's
+    // read from the root here too — but also from `data`, since this response
+    // wraps everything in `data` and the key's level isn't pinned down. Backend
+    // really does spell it `referal_video` (one 'r'); `referral_video` is
+    // accepted so a future spelling fix doesn't silently drop the video.
+    final root = json['referal_video'] ?? json['referral_video'];
+    final nested = json['data'] is Map
+        ? (json['data']['referal_video'] ?? json['data']['referral_video'])
+        : null;
+    referalVideo = (root ?? nested)?.toString();
   }
   bool? status;
   BusinessProfileDetails? data;
   List<RelatedStoresList>? relatedStoresList;
+
+  /// Referral promo clip URL (`referal_video`), or null when absent. Nothing to
+  /// do with `marketing_card` — that object is poster-only.
+  String? referalVideo;
+
+  /// The clip to play, or null when there isn't one — trimmed and
+  /// empty-checked so `""` never reaches a video player.
+  String? get referalVideoUrl =>
+      (referalVideo?.trim().isNotEmpty ?? false) ? referalVideo!.trim() : null;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};
@@ -155,6 +174,14 @@ class BusinessProfileDetails {
     securityDeposit = sd is Map
         ? SecurityDepositStatus.fromJson(Map<String, dynamic>.from(sd))
         : null;
+    // Free-quota waiver. Deliberately fail-CLOSED (unlike `securityDeposit`,
+    // which fails open): only an explicit `false` waives the deposit, so a
+    // missing / null flag enforces it. Mirrors `freeServiceUsed` on the
+    // individual profile — see personal_profile_details_model.dart.
+    freeOrdersUsed = json['freeOrdersUsed'] as bool?;
+    freeOrdersRemaining = json['freeOrdersRemaining'] is num
+        ? (json['freeOrdersRemaining'] as num).toInt()
+        : null;
 
     // ── Location fallbacks ──
     // Service-business profiles often carry coordinates and the human
@@ -266,9 +293,23 @@ class BusinessProfileDetails {
   /// docs/backend/BUSINESS_GO_LIVE_BACKEND_INTEGRATION.md.
   SecurityDepositStatus? securityDeposit;
 
+  /// Whether this business has spent its free intro quota (the first N orders /
+  /// enquiries, N being a backend policy — the client never needs to know it).
+  /// `false` → quota left → the deposit is waived. Null/absent → enforce.
+  bool? freeOrdersUsed;
+
+  /// How many free orders/enquiries are left, for display copy only. Never gate
+  /// on this — [freeOrdersUsed] is the authority, so a backend that ships the
+  /// boolean but not the count still behaves correctly.
+  int? freeOrdersRemaining;
+
   /// The go-live decision: allowed when there's no deposit info or the deposit
   /// is paid / not required; blocked ONLY when explicitly `required && !paid`.
   bool get canGoLive => securityDeposit?.canGoLive ?? true;
+
+  /// True while the business still has free intro quota, which waives the
+  /// deposit. Fail-closed: only an explicit `false` from the backend counts.
+  bool get isFreeQuotaAvailable => freeOrdersUsed == false;
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};

@@ -1,4 +1,4 @@
-﻿import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
@@ -15,11 +16,16 @@ import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/features/common/store/widget/store_live_photo_widget.dart';
 import 'package:BlueEra/features/me/medical/controller/medical_cart_controller.dart';
 import 'package:BlueEra/features/me/medical/model/medical_home_response_model.dart';
+import 'package:BlueEra/features/me/medical/model/medical_product_card_adapter.dart';
 import 'package:BlueEra/features/me/medical/repo/medical_repo.dart';
-import 'package:BlueEra/features/me/medical/view/medical_inventory_category_screen.dart';
+import 'package:BlueEra/features/me/medical/view/all_popular_medical_products_screen.dart';
+import 'package:BlueEra/features/me/medical/view/medical_category_products_screen.dart';
 import 'package:BlueEra/features/me/medical/widget/healthcare_enquiry_sheet.dart';
 import 'package:BlueEra/features/me/medical/widget/medical_floating_cart.dart';
 import 'package:BlueEra/features/me/medical/widget/medical_product_card.dart';
+import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
+import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -52,6 +58,15 @@ class _MedicalPharmacyDetailScreenState
   final medicalCart = getOrPut(() => MedicalCartController(), permanent: true);
   MedicalHomeResponseModel? _data;
   bool _isLoading = true;
+
+  /// Cards shown in the popular rail before "View All" takes over. Matches
+  /// grocery's `businessProductsPreviewLimit`.
+  static const int _kPopularPreviewLimit = 5;
+
+  /// Category nodes carry no image, so any category outside [_staticCategories]
+  /// falls back to this.
+  static const String _kCategoryFallbackIcon =
+      'assets/category/medical/health_pharmacy.png';
 
   @override
   void initState() {
@@ -98,10 +113,11 @@ class _MedicalPharmacyDetailScreenState
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-    if (_data == null) {
+    // Only a *failed* fetch gets the full-page fallback. While loading, the page
+    // renders immediately and each section shows its own shimmer — the same
+    // pattern the grocery store screen uses, so the two behave identically
+    // instead of pharmacy blocking on a full-screen spinner.
+    if (!_isLoading && _data == null) {
       return Scaffold(
         appBar: CommonBackAppBar(title: AppStrings.pharmacy),
         body: Center(
@@ -120,108 +136,150 @@ class _MedicalPharmacyDetailScreenState
       );
     }
 
-    final profile = _data!.businessProfile;
-    final inventory = _data!.inventorySummary;
+    // Null while the inventory fetch is in flight — the sections below show
+    // skeletons until it lands.
+    final profile = _data?.businessProfile;
+    final inventory = _data?.inventorySummary;
     final popularProducts = inventory?.popularProducts ?? [];
     final categoriesWithProducts = inventory?.categoriesWithProducts ?? [];
 
     return Scaffold(
       appBar: CommonBackAppBar(
           title: profile?.businessName ?? AppStrings.pharmacy.tr),
-      bottomNavigationBar: _buildBottomBar(profile),
-      body: RefreshIndicator(
-        onRefresh: _refresh,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Shared profile header — same one grocery uses. Handles
-              // banner, logo, name, rating, follow/share/rate actions.
-              // Wrapped in Obx so silent profile refreshes (rating, follow)
-              // rebuild without a full page reload.
-              Obx(() {
-                viewBusinessDetailsController.profileVersion.value;
-                if (viewBusinessDetailsController.isProfileLoading.value) {
-                  return buildBusinessHeaderSkeleton();
-                }
-                final details = viewBusinessDetailsController
-                    .visitedBusinessProfileDetails?.data;
-                return Padding(
-                  padding: EdgeInsets.all(SizeConfig.size12),
-                  child: VisitBusinessCommonHeader(
-                    details: details,
-                    onRated: () =>
-                        viewBusinessDetailsController.viewBusinessProfileById(
-                      widget.businessId,
-                      silent: true,
+      // The cart lives in this Stack rather than `bottomNavigationBar` so its
+      // expandable panel can rise *over* the page content — a bottomNavigationBar
+      // slot is sized to its child and would clip the panel / shove the page up.
+      body: Stack(
+        children: [
+          RefreshIndicator(
+            onRefresh: _refresh,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Shared profile header — same one grocery uses. Handles
+                  // banner, logo, name, rating, follow/share/rate actions.
+                  // Wrapped in Obx so silent profile refreshes (rating, follow)
+                  // rebuild without a full page reload.
+                  Obx(() {
+                    viewBusinessDetailsController.profileVersion.value;
+                    if (viewBusinessDetailsController.isProfileLoading.value) {
+                      return buildBusinessHeaderSkeleton();
+                    }
+                    final details = viewBusinessDetailsController
+                        .visitedBusinessProfileDetails?.data;
+                    return Padding(
+                      padding: EdgeInsets.all(SizeConfig.size12),
+                      child: VisitBusinessCommonHeader(
+                        details: details,
+                        onRated: () => viewBusinessDetailsController
+                            .viewBusinessProfileById(
+                          widget.businessId,
+                          silent: true,
+                        ),
+                        onFollowChanged: () => viewBusinessDetailsController
+                            .viewBusinessProfileById(
+                          widget.businessId,
+                          silent: true,
+                        ),
+                      ),
+                    );
+                  }),
+                  // SizedBox(height: SizeConfig.size10),
+                  _buildUploadPrescriptionCard(),
+                  SizedBox(height: SizeConfig.size10),
+                  Obx(() {
+                    viewBusinessDetailsController.profileVersion.value;
+                    return Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+                      child: VisitBusinessStatsCard(
+                        details: viewBusinessDetailsController
+                            .visitedBusinessProfileDetails?.data,
+                      ),
+                    );
+                  }),
+                  SizedBox(height: SizeConfig.size10),
+
+                  // Website preview
+                  if (profile?.websiteUrl != null &&
+                      profile!.websiteUrl!.isNotEmpty) ...[
+                    _buildWebsitePreview(profile.websiteUrl!),
+                    SizedBox(height: SizeConfig.size10),
+                  ],
+
+                  // Popular rail + category grid — same section language as the
+                  // grocery store screen, each independently swapping its own
+                  // shimmer for content. Both supply their own CustomFormCard,
+                  // so only the page inset is applied here.
+                  if (_isLoading) ...[
+                    buildHorizontalListSkeleton(),
+                    SizedBox(height: SizeConfig.size10),
+                  ] else if (popularProducts.isNotEmpty) ...[
+                    Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+                      child: _buildPopularProducts(popularProducts),
                     ),
-                    onFollowChanged: () =>
-                        viewBusinessDetailsController.viewBusinessProfileById(
-                      widget.businessId,
-                      silent: true,
+                    SizedBox(height: SizeConfig.size10),
+                  ],
+
+                  if (_isLoading) ...[
+                    Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+                      child: buildCategoryGridSkeleton(),
                     ),
-                  ),
-                );
-              }),
-              // SizedBox(height: SizeConfig.size10),
-              _buildUploadPrescriptionCard(),
-              SizedBox(height: SizeConfig.size10),
-              Obx(() {
-                viewBusinessDetailsController.profileVersion.value;
-                return Padding(
-                  padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-                  child: VisitBusinessStatsCard(
-                    details: viewBusinessDetailsController
-                        .visitedBusinessProfileDetails?.data,
-                  ),
-                );
-              }),
-              SizedBox(height: SizeConfig.size10),
+                    SizedBox(height: SizeConfig.size10),
+                  ] else if (categoriesWithProducts.isNotEmpty) ...[
+                    Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+                      child: _buildMedicalProductCategories(
+                          categoriesWithProducts),
+                    ),
+                    SizedBox(height: SizeConfig.size10),
+                  ],
 
-              // Website preview
-              if (profile?.websiteUrl != null &&
-                  profile!.websiteUrl!.isNotEmpty) ...[
-                _buildWebsitePreview(profile.websiteUrl!),
-                SizedBox(height: SizeConfig.size10),
-              ],
+                  // Live Photos — mirrors the grocery store screen; sourced
+                  // from the shared business profile so the section shows up
+                  // as soon as the profile fetch completes.
+                  _buildLivePhotosSection(),
 
-              if (popularProducts.isNotEmpty) ...[
-                _buildPopularProducts(popularProducts),
-                SizedBox(height: SizeConfig.size10),
-              ],
+                  _buildGallerySection(),
 
-              if (categoriesWithProducts.isNotEmpty) ...[
-                _buildMedicalProductCategories(categoriesWithProducts),
-                SizedBox(height: SizeConfig.size10),
-              ],
-
-              // Live Photos — mirrors the grocery store screen; sourced
-              // from the shared business profile so the section shows up
-              // as soon as the profile fetch completes.
-              _buildLivePhotosSection(),
-
-              _buildGallerySection(),
-
-              // Unified contact + map card — same widget grocery uses.
-              Obx(() {
-                if (viewBusinessDetailsController.isProfileLoading.value) {
-                  return const SizedBox.shrink();
-                }
-                final details = viewBusinessDetailsController
-                    .visitedBusinessProfileDetails?.data;
-                return Padding(
-                  padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-                  child: BusinessContactMapCard(
-                    businessProfileDetails: details,
-                    showEditButton: false,
-                  ),
-                );
-              }),
-              SizedBox(height: kBottomNavigationBarHeight + 30),
-            ],
+                  // Unified contact + map card — same widget grocery uses.
+                  Obx(() {
+                    if (viewBusinessDetailsController.isProfileLoading.value) {
+                      return const SizedBox.shrink();
+                    }
+                    final details = viewBusinessDetailsController
+                        .visitedBusinessProfileDetails?.data;
+                    return Padding(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+                      child: BusinessContactMapCard(
+                        businessProfileDetails: details,
+                        showEditButton: false,
+                      ),
+                    );
+                  }),
+                  // Clears the floating cart / enquiry bar stacked over the page.
+                  SizedBox(height: kBottomNavigationBarHeight + 30),
+                ],
+              ),
+            ),
           ),
-        ),
+          // Floating cart when the cart has items, else the Send Enquiry CTA —
+          // pinned to the bottom of the Stack, floating over the content.
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: _buildBottomBar(profile) ?? const SizedBox.shrink(),
+          ),
+        ],
       ),
     );
   }
@@ -351,52 +409,72 @@ class _MedicalPharmacyDetailScreenState
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // POPULAR PRODUCTS â€” View More if > 5
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  /// Popular rail — mirrors grocery's `_topSellingProduct()`: same CustomFormCard,
+  /// same title + working View All, same 265-high rail of 150-wide bordered
+  /// cards.
   Widget _buildPopularProducts(List<PopularProduct> products) {
-    final showViewMore = products.length > 5;
-    final displayList = showViewMore ? products.sublist(0, 5) : products;
+    final previewList = products.length > _kPopularPreviewLimit
+        ? products.sublist(0, _kPopularPreviewLimit)
+        : products;
+    final ctx = _businessCtxFor(_data?.businessProfile);
 
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-      child: CommonCardWidget(
-        padding: 10,
-        cardMargin: 0,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                    child: ServiceHomeTitleWidget(
-                        title: AppStrings.popularMedicalProducts.tr)),
-                if (showViewMore)
-                  CustomText(AppStrings.viewAllLabel,
-                      fontSize: SizeConfig.small,
+    return CustomFormCard(
+      padding: EdgeInsets.all(SizeConfig.size10),
+      color: AppColors.white,
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: CustomText(AppStrings.popularMedicalProducts.tr,
+                    fontSize: SizeConfig.large,
+                    color: AppColors.mainTextColor,
+                    fontWeight: FontWeight.w600),
+              ),
+              SizedBox(width: SizeConfig.size8),
+              if (ctx != null)
+                InkWell(
+                  onTap: () => Get.to(() => AllPopularMedicalProductsScreen(
+                        products: products,
+                        businessCtx: ctx,
+                      )),
+                  child: CustomText(AppStrings.groceryViewViewAll.tr,
+                      fontSize: SizeConfig.medium,
                       color: AppColors.primaryColor,
                       fontWeight: FontWeight.w600),
-              ],
-            ),
-            SizedBox(height: SizeConfig.size10),
-            SizedBox(
-              height: 290,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: displayList.length,
-                separatorBuilder: (_, __) => SizedBox(width: SizeConfig.size10),
-                // Align.topLeft lets the card size to its intrinsic height —
-                // otherwise the horizontal ListView's tight 290h cross-axis
-                // constraint stretches the bordered Container down past the
-                // content, leaving a big blank gap below the ADD button.
-                itemBuilder: (_, i) => Align(
-                  alignment: Alignment.topLeft,
+                ),
+            ],
+          ),
+          SizedBox(height: SizeConfig.paddingXSL),
+          SizedBox(
+            height: 265,
+            child: ListView.builder(
+              itemCount: previewList.length,
+              scrollDirection: Axis.horizontal,
+              itemBuilder: (context, index) => Padding(
+                padding: const EdgeInsets.only(right: 8),
+                // topCenter so the min-height card doesn't stretch to fill the
+                // rail's 265 and leave a gap under the ADD button.
+                child: Align(
+                  alignment: Alignment.topCenter,
                   child: SizedBox(
-                    width: SizeConfig.size160,
-                    child: _popularProductCard(displayList[i]),
+                    width: SizeConfig.size150,
+                    // Outer border so the white card reads against the
+                    // section's white background.
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: AppColors.greyE5),
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: _popularProductCard(previewList[index]),
+                    ),
                   ),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -474,46 +552,14 @@ class _MedicalPharmacyDetailScreenState
     //           ),
     //         ),
     final ctx = _businessCtxFor(_data?.businessProfile);
-    // Fall back to the popular-product entry id when the API doesn't include
-    // an explicit variant._id — keeps us on the rich MedicalProductCard
-    // instead of dropping to the sparse image+name tile.
-    final variantId = item.variant?.sId ?? item.sId;
-    if (ctx == null || variantId == null || variantId.isEmpty) {
+    final card = item.toCardProduct();
+    if (ctx == null || card == null) {
       debugPrint(
           '[MedicalPharmacy] static tile fallback for "${item.product?.name}" — '
-          'ctx=${ctx == null ? 'null' : 'ok'} variantId=$variantId');
+          'ctx=${ctx == null ? 'null' : 'ok'} card=${card == null ? 'null' : 'ok'}');
       return _staticProductTile(item);
     }
-    final mrp = item.batches?.mrp ?? item.variant?.pricing?.firstOrNull?.mrp;
-    final sellingPrice = item.batches?.sellingPrice ??
-        item.variant?.pricing?.firstOrNull?.sellingPrice;
-    final variantImage = item.variant?.images?.firstOrNull?.url;
-    final productImage = item.product?.images?.firstOrNull?.url;
-
-    return MedicalProductCard(
-      product: MedicalCardProduct(
-        productId: item.product?.sId,
-        name: item.product?.name ??
-            item.variant?.variantName ??
-            AppStrings.productParcel.tr,
-        brand: item.product?.brand,
-        form: null,
-        isPrescriptionRequired: false,
-        imageUrl: (productImage ?? '').isNotEmpty ? productImage : variantImage,
-        variants: [
-          MedicalCardVariant(
-            variantId: variantId,
-            variantName: item.variant?.variantName,
-            inventoryId: item.sId,
-            mrp: mrp,
-            sellingPrice: sellingPrice,
-            imageUrl:
-                (variantImage ?? '').isNotEmpty ? variantImage : productImage,
-          ),
-        ],
-      ),
-      businessCtx: ctx,
-    );
+    return MedicalProductCard(product: card, businessCtx: ctx);
   }
 
   Widget _staticProductTile(PopularProduct item) {
@@ -623,98 +669,66 @@ class _MedicalPharmacyDetailScreenState
       }
     }
 
-    if (activeCats.isEmpty) return const SizedBox.shrink();
-
-    final showViewMore = activeCats.length > 6;
-    final displayList = showViewMore ? activeCats.sublist(0, 6) : activeCats;
-
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-      child: CommonCardWidget(
-        padding: 12,
-        cardMargin: 0,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                    child: ServiceHomeTitleWidget(
-                        title: AppStrings.medicalProducts.tr)),
-                if (showViewMore)
-                  CustomText(AppStrings.viewAllLabel,
-                      fontSize: SizeConfig.small,
-                      color: AppColors.primaryColor,
-                      fontWeight: FontWeight.w600),
-              ],
-            ),
-            SizedBox(height: SizeConfig.size12),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              itemCount: displayList.length,
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: SizeConfig.size10,
-                mainAxisSpacing: SizeConfig.size10,
-                childAspectRatio: 0.85,
-              ),
-              itemBuilder: (context, index) {
-                final item = displayList[index];
-                final productCount = item.category.getAllProducts().length;
-                return _productCategoryCard(item, productCount);
-              },
-            ),
-          ],
-        ),
+    // Mirrors grocery's `_categoryWithInventoryWidget()`: same CustomFormCard,
+    // title, and 3-up masonry of CommonServiceCard. No "View All" and no 6-cap
+    // — grocery shows every category, and the masonry grows to fit.
+    return CustomFormCard(
+      padding: EdgeInsets.all(SizeConfig.size10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CustomText(AppStrings.medicalProducts.tr,
+              fontSize: SizeConfig.large,
+              color: AppColors.mainTextColor,
+              fontWeight: FontWeight.w600),
+          SizedBox(height: SizeConfig.paddingXSL),
+          activeCats.isNotEmpty
+              ? MasonryGridView.count(
+                  crossAxisCount: 3,
+                  crossAxisSpacing: 6,
+                  mainAxisSpacing: 6,
+                  padding: EdgeInsets.zero,
+                  // Required — this sits inside the page's SingleChildScrollView.
+                  primary: false,
+                  shrinkWrap: true,
+                  itemCount: activeCats.length,
+                  itemBuilder: (context, index) {
+                    final item = activeCats[index];
+                    return CommonServiceCard<_CategoryDisplay>(
+                      service: item,
+                      getName: (c) => c.title,
+                      // Local asset for the six known categories; anything the
+                      // backend adds falls back to the pharmacy placeholder,
+                      // since category nodes carry no image.
+                      getIcon: (c) =>
+                          c.image.isNotEmpty ? c.image : _kCategoryFallbackIcon,
+                      iconHeight: SizeConfig.size60,
+                      onTap: (c) => _openCategory(c),
+                    );
+                  },
+                )
+              : EmptyStateWidget(
+                  message: AppStrings.groceryViewNoProductsYet.trParams({
+                    'name': _data?.businessProfile?.businessName ?? '',
+                  }),
+                ),
+        ],
       ),
     );
   }
 
-  Widget _productCategoryCard(_CategoryDisplay item, int productCount) {
-    return InkWell(
-      onTap: () {
-        if (item.category.children != null &&
-            item.category.children!.isNotEmpty) {
-          Get.to(() => MedicalInventoryCategoryScreen(
-                title: item.title,
-                children: item.category.children!,
-              ));
-        }
-      },
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        padding: EdgeInsets.all(6),
-        decoration: BoxDecoration(
-          color: AppColors.whiteF3,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (item.image.isNotEmpty)
-              Image.asset(item.image,
-                  width: 44, height: 44, fit: BoxFit.contain)
-            else
-              Icon(Icons.medical_services_outlined,
-                  size: 44, color: AppColors.primaryColor),
-            SizedBox(height: 4),
-            CustomText(item.title,
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                color: Colors.blueGrey.shade700),
-            SizedBox(height: 2),
-            CustomText('$productCount ${AppStrings.productsCountLabel.tr}',
-                fontSize: 9,
-                color: AppColors.green00,
-                fontWeight: FontWeight.w600),
-          ],
-        ),
-      ),
-    );
+  /// Category tap → the grocery-style browser (left sub-category rail, tabs,
+  /// 2-col product grid). A category with products but no children would be a
+  /// dead tap there, so it's wrapped in a synthetic single-row rail.
+  void _openCategory(_CategoryDisplay item) {
+    final ctx = _businessCtxFor(_data?.businessProfile);
+    if (ctx == null) return;
+    final children = item.category.children ?? const <CategoryWithProducts>[];
+    Get.to(() => MedicalCategoryProductsScreen(
+          title: item.title,
+          children: children.isNotEmpty ? children : [item.category],
+          businessCtx: ctx,
+        ));
   }
 
   // ─────────────────────────────────────────────────────────────────────

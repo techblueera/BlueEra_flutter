@@ -63,6 +63,17 @@ String productBusinessProfileIDGlobal = '';
 /// fresh login re-shows the promo instead of a stale session flag hiding it.
 bool sharePromoShownThisSession = false;
 
+/// Local `yyyy-MM-dd` the merchant add-product prompt last displayed, mirroring
+/// the persisted `addProductPromptLastShownKey`.
+///
+/// The persisted key is the real once-a-day gate; this mirrors it in memory so
+/// two mounts in the same frame can't both slip through before the async
+/// secure-storage write lands. Keyed by DAY rather than a bool so a session
+/// left running across midnight still gets the next day's prompt. Only set when
+/// the sheet actually opens — a skipped visit must not burn the day. Reset on
+/// logout (see [SharedPreferenceUtils.clearPreferenceDataOnly]).
+String? addProductPromptShownForDay;
+
 class SharedPreferenceUtils {
   static const FlutterSecureStorage _secureStorage = FlutterSecureStorage(
       aOptions: AndroidOptions(encryptedSharedPreferences: true),
@@ -139,6 +150,13 @@ class SharedPreferenceUtils {
   /// was shown, so it pops at most once per calendar day (not on every
   /// Discover mount).
   static const sharePromoLastShownKey = 'share_promo_last_shown';
+
+  /// Local `yyyy-MM-dd` the merchant add-product prompt was last shown, so it
+  /// pops at most once per calendar day across the me-section admin homes
+  /// (grocery, food, product, manufacturer, automotive, medical). One shared
+  /// key, not one per service — an account has a single business category, so
+  /// it only ever lands on one of those screens.
+  static const addProductPromptLastShownKey = 'add_product_prompt_last_shown';
 
   /// Persist a referral code that arrived via deeplink before the user
   /// completed onboarding. No-op for empty / whitespace-only input so
@@ -376,6 +394,9 @@ class SharedPreferenceUtils {
       // Reset the Discover share-promo session guard so the next login shows it
       // again (its persisted per-day key was just wiped by deleteAll() above).
       sharePromoShownThisSession = false;
+      // Same reasoning for the merchant add-product prompt's in-memory day
+      // mirror — its persisted key was wiped by deleteAll() above.
+      addProductPromptShownForDay = null;
       isUserLoginGlobal = '';
       has_reel_profile_status = 'false';
       reel_profile_id_global = '';

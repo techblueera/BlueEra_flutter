@@ -1,7 +1,6 @@
 import 'dart:ui' show ImageFilter;
 
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -18,6 +17,7 @@ import 'package:BlueEra/features/common/Discover/widget/discover_categories_data
 import 'package:BlueEra/features/common/Discover/widget/discover_category_section.dart';
 import 'package:BlueEra/features/common/Discover/widget/nearest_stores_section.dart';
 import 'package:BlueEra/features/common/Discover/widget/recently_visited_stores_section.dart';
+import 'package:BlueEra/features/common/Discover/widget/share_promo_sheet.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/automotive_service_card_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/book_home_service_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/education_service_card_widget.dart';
@@ -33,10 +33,8 @@ import 'package:BlueEra/features/common/Discover/view/widget/shopping_card_widge
 import 'package:BlueEra/features/common/Discover/view/widget/transport_service_widget.dart';
 import 'package:BlueEra/features/common/Discover/view/hmf_category_discover_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/v2/home_service_discover_screen_v2.dart';
-import 'package:BlueEra/features/business/widgets/profile_share_banner.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/qr_code/view/emergency_qr_screen.dart';
-import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
 import 'package:BlueEra/features/common/qr_code/view/qr_design_options_widget.dart';
 import 'package:BlueEra/features/me/food/view/customer/restaurant_near_me_screen.dart';
 import 'package:BlueEra/features/personal/emergency/controller/emergency_profile_controller.dart';
@@ -79,9 +77,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   /// are available OR the fetch attempt finishes (even on denial), so we
   /// never block forever.
   bool _locationResolved = false;
-
-  /// Drives the header refresh button's spinner while a manual refresh runs.
-  bool _isRefreshing = false;
 
   /// Every Discover section with the set of tab indices it belongs to, in the
   /// same top-to-bottom order as the redesign. Tab 0 (Quick Access / overview)
@@ -162,6 +157,8 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       ),
 
       // --- Tab 4 · Services & Professional (ref: ss2.jpeg) ---
+      // Pharmacy is a tile inside Healthcare (see `healthCareList`) rather than
+      // its own section — tapping it opens `PharmacyStoresScreen`.
       (widget: HealthServiceCardWidget(), tabs: {4}),
       (widget: FindServiceCardWidget(), tabs: {4}),
 
@@ -195,11 +192,10 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     _maybeShowSharePromo();
   }
 
-  /// Pops the share-profile promo dialog at most once per calendar day
-  /// (persisted across launches), the first time Discover mounts that day.
-  /// Deferred to after the first frame so a valid context/overlay exists.
-  /// Renders the same [ProfileShareBanner] the me-screens use, configured
-  /// for the signed-in account type.
+  /// Pops the share-profile promo at most once per calendar day (persisted
+  /// across launches), the first time Discover mounts that day. Deferred to
+  /// after the first frame so a valid context/overlay exists. The sheet itself
+  /// — marketing clip + share card — lives in [SharePromoSheet].
   Future<void> _maybeShowSharePromo() async {
     if (sharePromoShownThisSession) return;
     final todayKey = _todayKey();
@@ -217,7 +213,9 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     if (!mounted) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _showSharePromoDialog();
+      // Bottom sheet, not a dialog — it carries the marketing clip above the
+      // share card, which needs the height a sheet gives it.
+      SharePromoSheet.show(context);
     });
   }
 
@@ -227,55 +225,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     final m = now.month.toString().padLeft(2, '0');
     final d = now.day.toString().padLeft(2, '0');
     return '${now.year}-$m-$d';
-  }
-
-  Future<void> _showSharePromoDialog() async {
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: true,
-      builder: (_) => Dialog(
-        backgroundColor: AppColors.white,
-        insetPadding: const EdgeInsets.all(10),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        // No extra Padding wrapper — the banner's card supplies its own
-        // ~10px inset in dialog mode. Header row removed; the banner
-        // carries its own close button (right of the referral code).
-        child: SingleChildScrollView(
-          child: _sharePromoBanner(),
-        ),
-      ),
-    );
-  }
-
-  /// The share banner configured for the signed-in account type — business
-  /// reads its own [ViewBusinessDetailsController]; individual is fed name /
-  /// photo / designation from the personal profile (same as the me-screens).
-  Widget _sharePromoBanner() {
-    if (isBusinessUser()) {
-      return const ProfileShareBanner(showCloseButton: true);
-    }
-    final viewCtrl = getOrPut(() => ViewPersonalDetailsController());
-    return Obx(() {
-      final user = viewCtrl.personalProfileDetails.value.user;
-      final name = (user?.name ?? '').trim();
-      return ProfileShareBanner(
-        // Always non-empty so the widget takes its override (individual) path
-        // instead of falling back to the business profile.
-        overrideName: name.isNotEmpty ? _capitalizeFirst(name) : 'My Profile',
-        overridePhoto: user?.profileImage,
-        overrideSubCategory: user?.designation ?? '',
-        accountType: AppConstants.individual,
-        // Dialog usage — surface the banner's own close button.
-        showCloseButton: true,
-      );
-    });
-  }
-
-  String _capitalizeFirst(String text) {
-    if (text.isEmpty) return '';
-    return text[0].toUpperCase() + text.substring(1).toLowerCase();
   }
 
   Future<void> _ensureLocationThenBuild() async {
@@ -293,18 +242,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       getOrPut(() => RecentShopsController()).fetch(),
     ]);
     if (mounted) setState(() => _locationResolved = true);
-  }
-
-  /// Header refresh button — same force-refetch as pull-to-refresh, with a
-  /// spinner in the button while it runs. Re-entrancy-guarded.
-  Future<void> _manualRefresh() async {
-    if (_isRefreshing) return;
-    setState(() => _isRefreshing = true);
-    try {
-      await _onRefresh();
-    } finally {
-      if (mounted) setState(() => _isRefreshing = false);
-    }
   }
 
   @override
@@ -500,39 +437,16 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             ),
           ),
         ),
-        // Trailing button cluster — kept together on the RIGHT (refresh next to
-        // the wishlist) instead of being spread by the row's spaceBetween.
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Manual refresh — force-refetches the location-based rails (same as
-            // pull-to-refresh). Spins while running.
-            _circleIconButton(
-              boxShadow: _kTopViewShadow,
-              onTap: _manualRefresh,
-              child: _isRefreshing
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.2,
-                        color: AppColors.primaryColor,
-                      ),
-                    )
-                  : const Icon(Icons.refresh_rounded,
-                      color: AppColors.primaryColor, size: 22),
-            ),
-            SizedBox(width: SizeConfig.size10),
-            _circleIconButton(
-              boxShadow: _kTopViewShadow,
-              child: const Icon(Icons.favorite_border,
-                  color: AppColors.primaryColor, size: 22),
-              onTap: () {
-                Navigator.pushNamed(
-                    context, RouteHelper.getYourCartScreenRoute());
-              },
-            ),
-          ],
+        // The header's refresh button is gone — refreshing every rail from up
+        // here was a blunt instrument. Each rail now owns its own refresh (see
+        // NearestStoresSection); pull-to-refresh still reloads them all.
+        _circleIconButton(
+          boxShadow: _kTopViewShadow,
+          child: const Icon(Icons.favorite_border,
+              color: AppColors.primaryColor, size: 22),
+          onTap: () {
+            Navigator.pushNamed(context, RouteHelper.getYourCartScreenRoute());
+          },
         ),
       ],
     );

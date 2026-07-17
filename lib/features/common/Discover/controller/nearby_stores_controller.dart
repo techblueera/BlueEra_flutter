@@ -36,8 +36,10 @@ class NearbyStoresController extends GetxController {
   /// True once at least one fetch attempt has settled.
   final RxBool loaded = false.obs;
 
-  /// True when the stores slice failed upstream (outage) rather than genuinely
-  /// having nothing nearby — see the guide's `meta.degraded`.
+  /// True when a slice this rail draws from failed upstream (an outage) rather
+  /// than genuinely having nothing nearby — see the guide's §4 `meta.degraded`.
+  /// An empty rail + this flag must show a retry, never an empty state: the
+  /// user can't recover from "nothing nearby" when the truth is "we failed".
   final RxBool degraded = false.obs;
 
   final FetchCache _cache = FetchCache(ttl: const Duration(hours: 24));
@@ -131,14 +133,17 @@ class NearbyStoresController extends GetxController {
         final rawData = Map<String, dynamic>.from(res.response!.data);
         final parsed = NearbyDiscoverResult.fromJson(rawData);
         _apply(parsed);
-        degraded.value = parsed.storesDegraded;
+        // Covers stores AND workers — the rail mixes both, so either slice
+        // failing makes an empty rail a lie.
+        degraded.value = parsed.anyDegraded;
         _lastFetchLat = lat;
         _lastFetchLng = lng;
         _cache.mark(_identity);
 
         // Persist the raw response (24h TTL). Skip on outage so a degraded
-        // payload doesn't get cached as if it were real.
-        if (!parsed.storesDegraded) {
+        // payload doesn't get cached as if it were real — a partial payload
+        // pinned for 24h is worse than no cache.
+        if (!parsed.anyDegraded) {
           unawaited(HiveServices().saveGeoList(
             boxName: HiveServices.nearByStoreBox,
             key: _identity,

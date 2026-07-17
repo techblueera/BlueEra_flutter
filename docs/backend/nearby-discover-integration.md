@@ -2,6 +2,8 @@
 
 One call answers "what's around me": nearby **stores** bucketed by business category, plus nearby **workers** split into **services** (plumbers, electricians…) and **riders** (bike riders, taxi drivers…).
 
+`data` comes back as five sections in a fixed render order: **riders → grocery → food → services → product**.
+
 Source: `src/controllers/discover.controller.js`, mounted at `src/routes/index.js` (`/api` → `/nearby` → `/discover`).
 
 ---
@@ -38,15 +40,19 @@ The authenticated user is **excluded from their own results** — their business
 {
   "success": true,
   "data": {
-    "stores": { "Grocery": [ /* buckets */ ], "Food": [], "Product": [] },
+    "riders":   [ /* buckets */ ],
+    "grocery":  [ /* buckets */ ],
+    "food":     [ /* buckets */ ],
     "services": [ /* buckets */ ],
-    "riders": [ /* buckets */ ]
+    "product":  [ /* buckets */ ]
   },
   "meta": { /* see §4 */ }
 }
 ```
 
-`data.stores` is **keyed by the types you requested**. If you pass `types=Food`, the object has only a `Food` key. Every requested type is always present, possibly as an empty array — so `data.stores.Food.length === 0` is a valid "nothing nearby", not a missing key.
+**The key order is the intended render order**, and the backend emits it deliberately: riders, grocery, food, services, product. Iterating `Object.keys(data)` gives you the section sequence for free — you don't need to hardcode it client-side. (JSON preserves insertion order; if your client parses into a structure that doesn't, keep the list above.)
+
+`riders` and `services` are always present. The three store keys are **the types you requested**: pass `types=Food` and only `food` appears. A requested type is always present, possibly as an empty array — so `data.food.length === 0` is a valid "nothing nearby", while a *missing* `data.food` means you didn't ask for it.
 
 ### 2.1 Store bucket
 
@@ -56,7 +62,7 @@ The authenticated user is **excluded from their own results** — their business
     "id": "68a1...",
     "name": "Kirana Store",
     "image_url": "https://…",
-    "type": "Grocery"              // same as the parent key
+    "type": "Grocery"              // matches the section key, title-cased
   },
   "count": 2,                       // === items.length
   "items": [ /* store cards, max per_category */ ]
@@ -175,16 +181,16 @@ Render price off `price_type`: `single_price` when single, `price_range` when a 
 }
 ```
 
-**Every upstream is best-effort.** A failure degrades its slice to empty and names itself in `meta.degraded` — the response is still `200 success: true`. This is the important thing to handle: an empty `Food` array with `"food_inventory"` in `degraded` means *an outage*, not *no restaurants nearby*. Showing "No restaurants in your area" there is wrong and unrecoverable from the user's side.
+**Every upstream is best-effort.** A failure degrades its slice to empty and names itself in `meta.degraded` — the response is still `200 success: true`. This is the important thing to handle: an empty `data.food` with `"food_inventory"` in `degraded` means *an outage*, not *no restaurants nearby*. Showing "No restaurants in your area" there is wrong and unrecoverable from the user's side.
 
 Recommended: if a slice is empty **and** its label is in `degraded`, show a "couldn't load, retry" state instead of an empty state.
 
 | `degraded` label | Slice affected |
 |---|---|
-| `businesses` | all of `stores` |
-| `grocery_inventory` | `stores.Grocery` |
-| `food_inventory` | `stores.Food` |
-| `product_inventory` | `stores.Product` |
+| `businesses` | all of `grocery` + `food` + `product` |
+| `grocery_inventory` | `grocery` |
+| `food_inventory` | `food` |
+| `product_inventory` | `product` |
 | `profession_master` | all of `services` + `riders` |
 | `live_providers` | live workers (fallback still fills registered ones) |
 | `live_user_hydration` | live workers |
@@ -245,13 +251,20 @@ type WorkerCard = {
 
 type Bucket<T, M> = { count: number; items: T[] } & M;
 
+type StoreBucket = Bucket<StoreCard,
+  { category: { id: string; name: string; image_url: string; type: string } }>;
+type WorkerBucket = Bucket<WorkerCard, { profession: Profession }>;
+
+// Declared in render order. Store sections are optional — absent when excluded
+// by ?types.
 type DiscoverResponse = {
   success: true;
   data: {
-    stores: Partial<Record<"Grocery" | "Food" | "Product",
-      Bucket<StoreCard, { category: { id: string; name: string; image_url: string; type: string } }>[]>>;
-    services: Bucket<WorkerCard, { profession: Profession }>[];
-    riders: Bucket<WorkerCard, { profession: Profession }>[];
+    riders: WorkerBucket[];
+    grocery?: StoreBucket[];
+    food?: StoreBucket[];
+    services: WorkerBucket[];
+    product?: StoreBucket[];
   };
   meta: {
     lat: number; lng: number; radius: number; types: string[];
@@ -286,12 +299,20 @@ async function discoverNearby(
 Rendering a slice with the degraded distinction intact:
 
 ```ts
-const foodBuckets = data.stores.Food ?? [];
+const foodBuckets = data.food ?? [];
 if (foodBuckets.length === 0) {
   return meta.degraded.includes("food_inventory") || meta.degraded.includes("businesses")
     ? <RetryState onRetry={refetch} />
     : <EmptyState message="No food stores within 5 km" />;
 }
+```
+
+Rendering every section in the backend's order, without hardcoding it:
+
+```tsx
+{Object.entries(data).map(([key, buckets]) => (
+  <Section key={key} title={SECTION_TITLES[key]} buckets={buckets} />
+))}
 ```
 
 ---

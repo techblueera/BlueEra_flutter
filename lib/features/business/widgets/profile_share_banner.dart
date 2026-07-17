@@ -28,9 +28,17 @@ import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:video_player/video_player.dart';
 
 import '../../../core/constants/app_strings.dart';
 
+/// The referral share card: referral-code header, the promo clip, the
+/// "Share One-Time, Earn Full Year" headline, the poster, and the share-via
+/// row — one card, in that order.
+///
+/// The clip and the poster both come off the signed-in profile, so the whole
+/// card composes itself from whatever the caller's account type resolves to;
+/// each part self-hides when the profile carries no URL for it.
 class ProfileShareBanner extends StatefulWidget {
   /// Optional override — display name on the banner. When omitted the
   /// widget falls back to the registered business profile (legacy
@@ -61,6 +69,18 @@ class ProfileShareBanner extends StatefulWidget {
   /// leave it `false` so no stray close control appears.
   final bool showCloseButton;
 
+  /// Starts the promo clip immediately, **muted**, with a tap-to-unmute badge.
+  ///
+  /// Only the Discover promo sheet sets this: it opens on its own once a day,
+  /// so the clip plays without being asked for — which is exactly why it must
+  /// not make noise until the viewer opts in.
+  ///
+  /// Inline placements on the me-section profile screens leave it `false` and
+  /// keep the plain tap-to-play behaviour: the user navigated there on purpose
+  /// and the card is one section among many, so a clip that started itself
+  /// mid-scroll would be an interruption.
+  final bool autoPlayVideo;
+
   const ProfileShareBanner({
     super.key,
     this.overrideName,
@@ -69,6 +89,7 @@ class ProfileShareBanner extends StatefulWidget {
     this.accountType,
     this.referralCode,
     this.showCloseButton = false,
+    this.autoPlayVideo = false,
   });
 
   @override
@@ -146,6 +167,46 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
     }
   }
 
+  /// The promo clip for the signed-in account, or null when there isn't one.
+  ///
+  /// Sourced from `referal_video` on the profile response — a TOP-LEVEL key,
+  /// not part of `marketing_card` (that object is poster-only). Business
+  /// accounts read their business profile; everyone else reads the personal
+  /// profile — the same split this widget uses to pick its poster, so the clip
+  /// and the card always come from one profile.
+  ///
+  /// Falls back across the two profiles: a business user whose business
+  /// response omits the key still gets the clip off their personal profile,
+  /// which is where the sample payload carries it.
+  String? _resolveVideoUrl() {
+    final business = _safeBusinessVideo();
+    final personal = _safePersonalVideo();
+    return isBusinessUser() ? (business ?? personal) : (personal ?? business);
+  }
+
+  /// Guarded — the controller may not be registered on every entry path.
+  String? _safeBusinessVideo() {
+    try {
+      return Get.find<ViewBusinessDetailsController>()
+          .businessProfileDetails
+          .value
+          ?.referalVideoUrl;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String? _safePersonalVideo() {
+    try {
+      return Get.find<ViewPersonalDetailsController>()
+          .personalProfileDetails
+          .value
+          .referalVideoUrl;
+    } catch (_) {
+      return null;
+    }
+  }
+
   /// Reads the referral code off the signed-in personal profile (`user`).
   /// Guarded so it never throws when the controller isn't registered.
   String? _safePersonalReferralCode() {
@@ -193,17 +254,32 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
     // white rounded surface), so keep a tight uniform 10px inset and no
     // top margin instead of stacking padding on the dialog's own inset.
     final bool dialogMode = widget.showCloseButton;
+    final videoUrl = _resolveVideoUrl();
     return CustomFormCard(
       padding: EdgeInsets.all(dialogMode ? 10.0 : 14.0),
       margin: dialogMode ? EdgeInsets.zero : const EdgeInsets.only(top: 10.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _header(referralCode, referralCodeEditable),
+          _header(),
           SizedBox(height: SizeConfig.size10),
           const _DashedDivider(),
           SizedBox(height: SizeConfig.size12),
-          _headline(),
+          // Clip sits between the header and the headline, and collapses away
+          // entirely when the profile has none — kept OUT of the
+          // [RepaintBoundary] below so it never lands in the shared PNG.
+          if (videoUrl != null) ...[
+            _PromoVideoPlayer(
+              key: ValueKey(videoUrl),
+              url: videoUrl,
+              autoPlay: widget.autoPlayVideo,
+            ),
+            SizedBox(height: SizeConfig.size12),
+          ],
+          SizedBox(height: SizeConfig.size10),
+          const _DashedDivider(),
+          SizedBox(height: SizeConfig.size12),
+          _headline(referralCode, referralCodeEditable),
           SizedBox(height: SizeConfig.size12),
           RepaintBoundary(
             key: _bannerKey,
@@ -260,11 +336,58 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
 
   // ───── Header (referral code + optional close) ────────────────────
 
-  Widget _header(String? referralCode, bool referralCodeEditable) {
+  Widget _header() {
+    return Row(
+      children: [
+        Expanded(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              RichText(
+                text: TextSpan(
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                    height: 1.12,
+                    color: AppColors.mainTextColor,
+                  ),
+                  children: [
+                    const TextSpan(text: 'Share One-Time ,\nEarn '),
+                    TextSpan(
+                      text: 'Full Year',
+                      style: TextStyle(color: AppColors.blueAF),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(width: SizeConfig.size10),
+              _learnMoreButton(),
+            ],
+          ),
+        ),
+
+        if (widget.showCloseButton)
+          InkWell(
+            onTap: () => Get.back(),
+            borderRadius: BorderRadius.circular(20),
+            child: Padding(
+              padding: const EdgeInsets.all(2),
+              child: Icon(Icons.close_rounded,
+                  size: 22, color: AppColors.secondaryTextColor),
+            ),
+          ),
+      ],
+    );
+  }
+
+  // ───── Headline + Learn More ──────────────────────────────────────
+
+  Widget _headline(String? referralCode, bool referralCodeEditable) {
     final code = (referralCode?.trim().isNotEmpty ?? false)
         ? referralCode!.trim().toUpperCase()
         : '------';
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Expanded(
           child: RichText(
@@ -311,47 +434,6 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
           ),
           SizedBox(width: SizeConfig.size4),
         ],
-        if (widget.showCloseButton)
-          InkWell(
-            onTap: () => Get.back(),
-            borderRadius: BorderRadius.circular(20),
-            child: Padding(
-              padding: const EdgeInsets.all(2),
-              child: Icon(Icons.close_rounded,
-                  size: 22, color: AppColors.secondaryTextColor),
-            ),
-          ),
-      ],
-    );
-  }
-
-  // ───── Headline + Learn More ──────────────────────────────────────
-
-  Widget _headline() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        Expanded(
-          child: RichText(
-            text: TextSpan(
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-                height: 1.12,
-                color: AppColors.mainTextColor,
-              ),
-              children: [
-                const TextSpan(text: 'Share One-Time ,\nEarn '),
-                TextSpan(
-                  text: 'Full Year',
-                  style: TextStyle(color: AppColors.blueAF),
-                ),
-              ],
-            ),
-          ),
-        ),
-        SizedBox(width: SizeConfig.size10),
-        _learnMoreButton(),
       ],
     );
   }
@@ -904,6 +986,220 @@ class _BannerArt extends StatelessWidget {
             color: Colors.white,
           ),
         ),
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+//  Promo clip — 16:9 tap-to-play referral video.
+// ═══════════════════════════════════════════════════════════════════
+
+/// Tap the body to play/pause; the badge replays once it ends.
+///
+/// With [autoPlay] false (the inline placements) it starts **paused** at full
+/// volume — the viewer presses play, so they've asked for sound.
+///
+/// With [autoPlay] true (the Discover sheet) it starts playing **muted** and
+/// shows a tap-to-unmute badge. The sheet opens on its own, so nobody asked for
+/// audio; playing it anyway would blast a stranger's promo at whoever happens
+/// to be in earshot. Sound stays one tap away.
+///
+/// Collapses to nothing if the video fails to load, so a bad URL costs an empty
+/// box, not a broken one.
+class _PromoVideoPlayer extends StatefulWidget {
+  final String url;
+  final bool autoPlay;
+
+  const _PromoVideoPlayer({
+    super.key,
+    required this.url,
+    this.autoPlay = false,
+  });
+
+  @override
+  State<_PromoVideoPlayer> createState() => _PromoVideoPlayerState();
+}
+
+class _PromoVideoPlayerState extends State<_PromoVideoPlayer> {
+  VideoPlayerController? _controller;
+  bool _failed = false;
+  bool _ready = false;
+
+  /// Only ever true in [widget.autoPlay] mode — a clip the viewer started
+  /// themselves plays at full volume.
+  bool _muted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _muted = widget.autoPlay;
+    _init();
+  }
+
+  Future<void> _init() async {
+    final controller = VideoPlayerController.networkUrl(Uri.parse(widget.url));
+    _controller = controller;
+    try {
+      await controller.initialize();
+      await controller.setLooping(false);
+      if (!mounted) return;
+      controller.addListener(_onValueChanged);
+      if (widget.autoPlay) {
+        // Mute BEFORE play so the first frames can't leak audio.
+        await controller.setVolume(0);
+        await controller.play();
+      }
+      if (!mounted) return;
+      setState(() => _ready = true);
+    } catch (_) {
+      if (mounted) setState(() => _failed = true);
+    }
+  }
+
+  Future<void> _toggleMute() async {
+    final c = _controller;
+    if (c == null || !c.value.isInitialized) return;
+    final next = !_muted;
+    await c.setVolume(next ? 0 : 1);
+    if (mounted) setState(() => _muted = next);
+  }
+
+  /// Repaints for play/pause and the end-of-video replay affordance.
+  void _onValueChanged() {
+    if (mounted) setState(() {});
+  }
+
+  @override
+  void dispose() {
+    _controller?.removeListener(_onValueChanged);
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  bool get _isEnded {
+    final v = _controller?.value;
+    if (v == null || !v.isInitialized) return false;
+    return v.position >= v.duration && v.duration > Duration.zero;
+  }
+
+  Future<void> _toggle() async {
+    final c = _controller;
+    if (c == null || !c.value.isInitialized) return;
+    if (_isEnded) {
+      await c.seekTo(Duration.zero);
+      await c.play();
+      return;
+    }
+    c.value.isPlaying ? await c.pause() : await c.play();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_failed) return const SizedBox.shrink();
+
+    final c = _controller;
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(14),
+      child: AspectRatio(
+        // Fixed 16:9 rather than the source ratio, so the card's height doesn't
+        // jump once the video reports its real dimensions.
+        aspectRatio: 16 / 9,
+        child: GestureDetector(
+          onTap: _toggle,
+          child: Container(
+            color: Colors.black,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (_ready && c != null)
+                  FittedBox(
+                    fit: BoxFit.contain,
+                    child: SizedBox(
+                      width: c.value.size.width,
+                      height: c.value.size.height,
+                      child: VideoPlayer(c),
+                    ),
+                  )
+                else
+                  const Center(
+                    child: SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                if (_ready && c != null && !c.value.isPlaying)
+                  Center(child: _playBadge()),
+                // Sound control only in autoplay mode — inline placements start
+                // paused at full volume, so there's nothing to unmute and the
+                // me-screens keep the plain play/pause they had.
+                if (widget.autoPlay && _ready && c != null)
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: GestureDetector(
+                      onTap: _toggleMute,
+                      child: _muteBadge(),
+                    ),
+                  ),
+                if (_ready && c != null)
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    child: VideoProgressIndicator(
+                      c,
+                      allowScrubbing: true,
+                      colors: VideoProgressColors(
+                        playedColor: AppColors.primaryColor,
+                        bufferedColor: Colors.white24,
+                        backgroundColor: Colors.white10,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _playBadge() {
+    return Container(
+      width: 46,
+      height: 46,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.black.withValues(alpha: 0.45),
+        border: Border.all(color: Colors.white70, width: 1.5),
+      ),
+      child: Icon(
+        _isEnded ? Icons.replay_rounded : Icons.play_arrow_rounded,
+        color: Colors.white,
+        size: 28,
+      ),
+    );
+  }
+
+  Widget _muteBadge() {
+    return Container(
+      width: 32,
+      height: 32,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: Colors.black.withValues(alpha: 0.45),
+        border: Border.all(color: Colors.white70, width: 1.2),
+      ),
+      child: Icon(
+        _muted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+        color: Colors.white,
+        size: 17,
       ),
     );
   }

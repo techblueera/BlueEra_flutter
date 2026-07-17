@@ -174,40 +174,57 @@ class NearbyDiscoverResult {
     required this.degraded,
   });
 
-  /// True when the whole stores slice failed upstream (not just "nothing
-  /// nearby"). Per-type inventory degradations still return the other types.
-  bool get storesDegraded => degraded.contains('businesses');
+  /// The three store sections, in the guide's render order (riders → **grocery**
+  /// → **food** → services → **product**).
+  static const List<String> _storeSectionKeys = ['grocery', 'food', 'product'];
 
-  /// Flattens **every** store type in `data.stores` (Grocery / Food / Product)
-  /// into one nearest-first list. Each card keeps its own `type` so the UI can
-  /// route it to the right store-visit screen.
+  /// True when a slice the rail renders failed upstream (an outage) rather than
+  /// genuinely having nothing nearby — see the guide's §4 `meta.degraded` table.
+  /// `businesses` kills all three store types; the per-type inventory labels
+  /// kill only their own.
+  bool get storesDegraded =>
+      degraded.contains('businesses') ||
+      degraded.contains('grocery_inventory') ||
+      degraded.contains('food_inventory') ||
+      degraded.contains('product_inventory');
+
+  /// `services` and `riders` both come from the profession master, so one label
+  /// takes out both worker slices.
+  bool get workersDegraded => degraded.contains('profession_master');
+
+  /// Any slice this rail draws from is degraded. The rail mixes stores +
+  /// workers, so an empty rail is only honestly "nothing nearby" when NOTHING
+  /// is degraded.
+  bool get anyDegraded => storesDegraded || workersDegraded;
+
+  /// Flattens every store section (Grocery / Food / Product) into one
+  /// nearest-first list. Each card keeps its own `type` so the UI can route it
+  /// to the right store-visit screen.
   factory NearbyDiscoverResult.fromJson(Map<String, dynamic> json) {
     final data = json['data'];
-    final storesObj = (data is Map) ? data['stores'] : null;
 
     final cards = <NearbyStoreCard>[];
-    if (storesObj is Map) {
-      for (final buckets in storesObj.values) {
-        if (buckets is! List) continue;
-        for (final b in buckets) {
-          if (b is! Map) continue;
-          final cat = b['category'];
-          final catName = (cat is Map) ? _str(cat['name']) : '';
-          final catImage = (cat is Map) ? _str(cat['image_url']) : '';
-          final items = (b['items'] is List) ? b['items'] as List : const [];
-          for (final it in items) {
-            if (it is! Map) continue;
-            cards.add(NearbyStoreCard.fromJson(
-              Map<String, dynamic>.from(it),
-              categoryName: catName,
-              categoryImageUrl: catImage,
-            ));
-          }
+    if (data is Map) {
+      // Per the guide the store sections are TOP-LEVEL on `data`, beside
+      // `riders`/`services` — there is no `data.stores` wrapper. A legacy
+      // wrapper is still honoured if one shows up, so the rail renders against
+      // either shape rather than silently producing zero stores.
+      final legacy = data['stores'];
+      if (legacy is Map) {
+        for (final buckets in legacy.values) {
+          _addStoreBuckets(buckets, cards);
+        }
+      } else {
+        // A requested type is always present (possibly empty); a missing key
+        // just means it wasn't requested — both are a no-op here.
+        for (final key in _storeSectionKeys) {
+          _addStoreBuckets(data[key], cards);
         }
       }
     }
     // Buckets are nearest-first per type, but flattening across types/categories
     // interleaves them; sort so the rail reads strictly nearest-first overall.
+    // (Stores have no `live` concept — only workers do, see _parseWorkers.)
     cards.sort((a, b) => a.distance.compareTo(b.distance));
 
     final services = _parseWorkers((data is Map) ? data['services'] : null);
@@ -224,6 +241,27 @@ class NearbyDiscoverResult {
       riders: riders,
       degraded: degraded,
     );
+  }
+
+  /// Adds every store card in one section's buckets (`[{category, count,
+  /// items}]`), tagging each with its parent category's name + image.
+  static void _addStoreBuckets(dynamic buckets, List<NearbyStoreCard> out) {
+    if (buckets is! List) return;
+    for (final b in buckets) {
+      if (b is! Map) continue;
+      final cat = b['category'];
+      final catName = (cat is Map) ? _str(cat['name']) : '';
+      final catImage = (cat is Map) ? _str(cat['image_url']) : '';
+      final items = (b['items'] is List) ? b['items'] as List : const [];
+      for (final it in items) {
+        if (it is! Map) continue;
+        out.add(NearbyStoreCard.fromJson(
+          Map<String, dynamic>.from(it),
+          categoryName: catName,
+          categoryImageUrl: catImage,
+        ));
+      }
+    }
   }
 
   /// Flattens `services` / `riders` buckets into one worker list. The backend

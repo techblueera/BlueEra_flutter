@@ -217,6 +217,19 @@ class MedicalRepo extends BaseService {
     return response;
   }
 
+  /// Merchant marks a self-pickup order ready, from the chat order card.
+  /// Backend then pushes `medicalPickupOrderReady` to the customer.
+  Future<ResponseModel> markMedicalOrderReadyRepo(
+      {required String orderId}) async {
+    final response = await ApiBaseHelper().putHTTP(
+      medicalOrderReady(orderId),
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   /// Update Order (assign rider etc.)
   Future<ResponseModel> updateGroceryOrderRepo(
       {Map<String, dynamic>? params, required String orderId}) async {
