@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart' show ApiKeys;
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -33,6 +34,12 @@ import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/common/statistics/view/profile_statistics_screen.dart';
+// The medical business-products endpoint ships grocery's exact response shape
+// (docs/backend/MEDICAL_TOP_SELLING_BACKEND_GUIDE.md), so the Top Selling rail
+// reuses grocery's grouping helper, card and variants sheet.
+import 'package:BlueEra/features/me/grocery/model/grocery_business_products_model.dart';
+import 'package:BlueEra/features/me/grocery/widget/grocery_top_selling_product_card.dart';
+import 'package:BlueEra/features/me/grocery/widget/grocery_variants_sheet.dart';
 import 'package:BlueEra/features/me/medical/controller/medical_controller.dart';
 import 'package:BlueEra/features/me/medical/controller/medical_gallery_controller.dart';
 import 'package:BlueEra/features/me/medical/model/medical_home_response_model.dart';
@@ -97,8 +104,6 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
   final ChatFlagController _chatFlagController =
       getOrPut(() => ChatFlagController());
 
-  bool _productsFetched = false;
-
   List<String> _tabs = [
     AppStrings.inquiry.tr,
     // AppStrings.orders.tr,
@@ -146,10 +151,39 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
     }
   }
 
+  /// Per-tab API dispatcher. Nothing but the profile fetch runs on landing —
+  /// every other tab's data is pulled the first time that tab is opened, and
+  /// each `*IfNeeded()` no-ops while its data is still loaded and fresh, so
+  /// hopping between tabs (or leaving and coming back) doesn't refetch.
+  ///
+  /// Tabs: 0 Inquiry, 1 Overview, 2 Products, 3 Posts, 4 Stats.
+  void _fetchForTab(int tab) {
+    switch (tab) {
+      case 0:
+        // Inquiry — the chat list is hydrated once in initState.
+        break;
+      case 1:
+        // Overview — reads the profile fetched by _fetchData() plus the
+        // permanent ViewBusinessDetailsController. Nothing of its own.
+        break;
+      case 2:
+        _ensureProductsLoaded();
+        break;
+      case 3:
+        // Post — FeedScreen owns its own fetch on mount.
+        break;
+      case 4:
+        // Stats — ProfileStatisticsScreen owns its own data.
+        break;
+    }
+  }
+
+  /// Products tab: Top Selling + category-with-inventory, both behind the
+  /// controller's freshness guard.
   void _ensureProductsLoaded() {
-    if (_productsFetched) return;
-    _productsFetched = true;
-    _medicalController.fetchMyMedicalCategory();
+    _medicalController.fetchMedicalProductsTabDataIfNeeded(
+      businessId: widget.businessId,
+    );
   }
 
   Future<void> _fetchData() async {
@@ -193,15 +227,11 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // BUILD
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-  /// Lazy-loads the products catalog only when the Products tab is opened.
-  /// Products sits at index 2 (Inquiry, Overview, Products, Posts, Stats) —
-  /// the previous `== 3` compared against Posts, so the fetch never fired
-  /// on the Products tab and the Obx stayed stuck on its initial loader.
+  /// Fires the newly-opened tab's fetch. Guarded on `indexIsChanging` so a
+  /// swipe only dispatches once it settles, not for every tab it passes over.
   void _handleTabChange() {
     if (_tabController.indexIsChanging) return;
-    if (_tabController.index == 2) {
-      _ensureProductsLoaded();
-    }
+    _fetchForTab(_tabController.index);
   }
 
   @override
@@ -340,28 +370,159 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
     ];
   }
 
-  // PRODUCTS TAB — top-level "Add Product" CTA, then the category-with-
-  // inventory card. Mirrors `GroceryHomeScreenV2._buildProductsTab()`.
-  //
-  // Grocery also carries a "Top Selling" section between the two. Medical has
-  // no merchant-side data for one — there's no equivalent of grocery's
-  // `groceryBusinessProductsList`, and `fetchMyGroceryProducts` needs a
-  // categoryId so it can't build a store-wide rail. The section drops in here
-  // once the backend ships the endpoint; see
-  // docs/backend/MEDICAL_TOP_SELLING_BACKEND_GUIDE.md.
+  // PRODUCTS TAB — "Add Product" CTA, the Top Selling rail, then the
+  // category-with-inventory card. Mirrors `GroceryHomeScreenV2._buildProductsTab()`.
   List<Widget> _buildProductsTab() {
     return [
       GradientAddButton(
-        label: AppStrings.addMoreProduct.tr,
+        label: AppStrings.addProduct.tr,
         onTap: () =>
             Get.toNamed(RouteHelper.getAddMedicalSnapSearchScreenRoute()),
         margin:
             EdgeInsets.only(top: SizeConfig.size10, right: SizeConfig.size12),
       ),
       SizedBox(height: SizeConfig.size16),
+      _buildTopSellingSection(),
       _buildMyProductsInline(),
       SizedBox(height: SizeConfig.size16),
     ];
+  }
+
+  /// Top Selling rail — store-wide products from
+  /// `medical-service/inventory/business-products`.
+  ///
+  /// The endpoint ships grocery's exact response shape on purpose (see
+  /// docs/backend/MEDICAL_TOP_SELLING_BACKEND_GUIDE.md), so this reuses
+  /// grocery's grouping helper and card rather than cloning both.
+  ///
+  /// Hides entirely when the list is empty — no empty state, matching grocery
+  /// and what the guide's §3 tells the backend to expect.
+  Widget _buildTopSellingSection() {
+    return Obx(() {
+      final isLoading = _medicalController
+              .fetchMedicalBusinessProductsResponse.value.status ==
+          Status.INITIAL;
+      final products = _medicalController.medicalBusinessProductsList;
+      if (!isLoading && products.isEmpty) return const SizedBox.shrink();
+
+      // One row per variant comes back, so the same product repeats — group by
+      // product id: one card each, tapping opens its variants sheet.
+      final grouped = groupBusinessProductsByProduct(products.toList());
+      final previewGroups =
+          grouped.length > MedicalController.medicalBusinessProductsPreviewLimit
+              ? grouped
+                  .take(MedicalController.medicalBusinessProductsPreviewLimit)
+                  .toList()
+              : grouped;
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            margin: EdgeInsets.only(right: SizeConfig.size12),
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: AppColors.white, width: 1),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _topSellingSectionHeader(),
+                SizedBox(height: SizeConfig.size12),
+                SizedBox(
+                  height: 225,
+                  child: isLoading
+                      ? const Center(
+                          child: CircularProgressIndicator(strokeWidth: 2))
+                      : ListView.builder(
+                          itemCount: previewGroups.length,
+                          scrollDirection: Axis.horizontal,
+                          padding: EdgeInsets.zero,
+                          itemBuilder: (context, index) {
+                            final group = previewGroups[index];
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 12),
+                              // Align keeps the horizontal ListView's tight
+                              // height constraint from stretching the card.
+                              child: Align(
+                                alignment: Alignment.topCenter,
+                                child: SizedBox(
+                                  width: 160,
+                                  child: GestureDetector(
+                                    behavior: HitTestBehavior.opaque,
+                                    onTap: () => showGroceryVariantsSheet(
+                                      context: context,
+                                      productName:
+                                          group.product.product?.name ?? '',
+                                      productImageUrl:
+                                          group.product.productImageUrlOnly,
+                                      variants: group.variants,
+                                    ),
+                                    child: GroceryTopSellingProductCard(
+                                      product: group.product,
+                                      variants: group.variants,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: SizeConfig.size16),
+        ],
+      );
+    });
+  }
+
+  /// No "View All" CTA: medical has no all-top-selling screen yet (grocery's
+  /// chip opens `AllTopSellingGroceryProductsScreen`), so the rail caps at its
+  /// preview limit.
+  Widget _topSellingSectionHeader() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+          width: 3,
+          height: 26,
+          decoration: BoxDecoration(
+            color: AppColors.primaryColor,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        SizedBox(width: SizeConfig.size10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CustomText(
+                AppStrings.topSelling.tr,
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: AppColors.mainTextColor,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 2),
+              CustomText(
+                AppStrings.customersFavoritesThisMonth.tr,
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: AppColors.secondaryTextColor,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   /// Category-with-inventory card — the same white shell + accent-bar header +
@@ -369,6 +530,10 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
   Widget _buildMyProductsInline() {
     return Obx(() {
       final isLoading = _medicalController.myMedicalCategoryLoading.value;
+      // Show exactly what the with-inventory endpoint returns — no level
+      // filtering, same as grocery. (The response is already the merchant's
+      // inventory categories; here they come back as level 0, and filtering
+      // those out left the grid empty.)
       final list = List<MyMedicalSuperCategoryModel>.from(
           _medicalController.myMedicalCategoryList);
 
@@ -507,7 +672,7 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
             ),
             SizedBox(width: SizeConfig.size6),
             CustomText(
-              AppStrings.addMoreProduct.tr,
+              AppStrings.addProduct.tr,
               fontSize: 12,
               fontWeight: FontWeight.w700,
               color: AppColors.primaryColor,
@@ -518,6 +683,14 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
     );
   }
 
+  // Two-tone storefront card — same shell as grocery's `_groceryCategoryCard`:
+  // a tinted hero zone (contain image, nothing crops) over a crisp white footer
+  // with the name and a small filled brand chevron. Keeps medical's SVG-aware
+  // [_categoryImage] for the hero so vector category icons still render.
+  //
+  // Tapping goes straight to the variant screen for this category — no products
+  // list in between. That screen fetches the category's products and flattens
+  // every variant into one grid.
   Widget _myProductCategoryCard(MyMedicalSuperCategoryModel item) {
     final hasImage = item.image != null && item.image!.isNotEmpty;
     final isNetwork = hasImage && isNetworkImage(item.image!);
@@ -525,86 +698,95 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
 
     return InkWell(
       onTap: () => Get.toNamed(
-        RouteHelper.getMyMedicalProductsScreenRoute(),
+        RouteHelper.getMyMedicalVariantScreenRoute(),
         arguments: {
           ApiKeys.argCategoryId: item.sId,
           ApiKeys.argCategoryName: item.name,
+          ApiKeys.argIsShowInGrid: true,
         },
       ),
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: AppColors.greyE5),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFE6E8EE), width: 1),
         ),
-        child: Column(
-          children: [
-            Expanded(
-              flex: 3,
-              child: Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: AppColors.primaryColor.withValues(alpha: 0.05),
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    topRight: Radius.circular(12),
+        clipBehavior: Clip.antiAlias,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Column(
+            children: [
+              Expanded(
+                flex: 7,
+                child: Container(
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppColors.primaryColor.withValues(alpha: 0.10),
+                        AppColors.primaryColor.withValues(alpha: 0.04),
+                      ],
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Center(
+                      child: _categoryImage(
+                        hasImage: hasImage,
+                        isNetwork: isNetwork,
+                        isSvg: isSvg,
+                        imagePath: item.image ?? '',
+                      ),
+                    ),
                   ),
                 ),
-                child: Center(
-                  child: _categoryImage(
-                      hasImage: hasImage,
-                      isNetwork: isNetwork,
-                      isSvg: isSvg,
-                      imagePath: item.image ?? ''),
-                ),
               ),
-            ),
-            Expanded(
-              flex: 2,
-              child: Padding(
+              Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  border: Border(
+                    top: BorderSide(color: Color(0xFFEEF1F4), width: 1),
+                  ),
+                ),
                 padding: EdgeInsets.symmetric(
-                    horizontal: SizeConfig.size10, vertical: SizeConfig.size8),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  horizontal: SizeConfig.size10,
+                  vertical: SizeConfig.size10,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    CustomText(
-                      item.name ?? '',
-                      fontSize: SizeConfig.medium,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.mainTextColor,
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    SizedBox(height: SizeConfig.size6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryColor.withValues(alpha: 0.08),
-                        borderRadius: BorderRadius.circular(6),
+                    Expanded(
+                      child: CustomText(
+                        item.name ?? '',
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.mainTextColor,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.arrow_forward_ios_rounded,
-                              size: 10, color: AppColors.primaryColor),
-                          SizedBox(width: 4),
-                          CustomText(
-                            AppStrings.medicalViewProducts.tr,
-                            fontSize: 11,
-                            color: AppColors.primaryColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ],
+                    ),
+                    SizedBox(width: SizeConfig.size6),
+                    Container(
+                      width: 22,
+                      height: 22,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryColor,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.arrow_forward_rounded,
+                        size: 14,
+                        color: Colors.white,
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

@@ -235,8 +235,13 @@ class GroceryController extends GetxController {
     required String title,
     required ProductVariants variant,
   }) {
-    showDialog(
+    showModalBottomSheet(
       context: context,
+      // The sheet pads itself against the keyboard, so it must be free to grow
+      // past the default half-screen cap; transparent because the sheet draws
+      // its own rounded white surface.
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (_) {
         return EditGroceryVarientDialog(
           title: title,

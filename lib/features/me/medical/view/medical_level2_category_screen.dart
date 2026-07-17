@@ -3,7 +3,7 @@ import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/medical/model/medical_nested_category_model.dart';
-import 'package:BlueEra/features/me/medical/view/medical_subcategory_screen.dart';
+import 'package:BlueEra/features/me/medical/view/medical_product_selection_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -196,7 +196,7 @@ class MedicalLevel2CategoryScreen extends StatelessWidget {
         onTap: () {
           final level3Children = category.children ?? [];
           if (level3Children.isNotEmpty) {
-            Get.to(() => MedicalSubCategoryScreen(
+            Get.to(() => MedicalProductSelectionScreen(
                   arrLevel3Category: level3Children,
                 ));
           }

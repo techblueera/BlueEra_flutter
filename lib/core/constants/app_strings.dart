@@ -4681,7 +4681,15 @@ class AppStrings {
   static const String medicalBrowseCategoriesSubtitle = "medical_browse_categories_subtitle";
   static const String medicalUploadBulkProduct = "medical_upload_bulk_product";
   static const String medicalUploadPicMenuHint = "medical_upload_pic_menu_hint";
-  static const String medicalChooseYourMedicalProducts = "medical_choose_your_medical_products";
+  /// Heading over the category grid on the medical snap-search screen.
+  ///
+  /// Replaces `medical_choose_your_medical_products`, which never resolved: the
+  /// constant was snake_case while every translation file keys that string
+  /// camelCase, so `.tr` echoed the raw key back. A fresh key (no value on the
+  /// language service yet) also means the bundled en.json value below wins —
+  /// API values override the asset layer, so reusing the old key would have
+  /// kept serving the old wording.
+  static const String medicalProductViaCategory = "medicalProductViaCategory";
   static const String medicalRetry = "medical_retry";
   static const String medicalSearchManually = "medical_search_manually";
   static const String medicalNoProductsIdentified = "medical_no_products_identified";
@@ -4696,9 +4704,19 @@ class AppStrings {
   static const String medicalSubmit = "medical_submit";
   static const String medicalPostProductsPrefix = "medical_post_products_prefix";
   static const String medicalPostProductsSuffix = "medical_post_products_suffix";
-  static const String medicalPublishPrefix = "medical_publish_prefix";
-  static const String medicalPublishProductsLabel = "medical_publish_products_label";
-  static const String medicalPublishVariantsLabel = "medical_publish_variants_label";
+  /// Publish button on the medical variant + snap-search screens. One
+  /// parametrized string, mirroring grocery's
+  /// [groceryViewPublishProductsVariants].
+  ///
+  /// Replaces a three-part composition (`medical_publish_prefix` + count +
+  /// `medical_publish_products_label` + count + `medical_publish_variants_label`)
+  /// where only the prefix ever resolved — the two labels are keyed camelCase in
+  /// the translation files, so `.tr` echoed the raw snake_case key onto the
+  /// button. Gluing a sentence together from separate keys also can't reorder
+  /// for languages that need a different word order, which is what trParams is
+  /// for.
+  static const String medicalPublishProductsVariants =
+      "medical_publish_products_variants";
   static const String medicalQuantity = "medical_quantity";
   static const String medicalUnit = "medical_unit";
   static const String medicalUnitHint = "medical_unit_hint";

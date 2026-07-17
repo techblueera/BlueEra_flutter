@@ -22,6 +22,21 @@ mixin MedicalServiceApi {
       'medical-service/products/$productId/variants';
   final String myMedicalProducts = 'medical-service/inventory/my-products';
   final String addMedicalProductVariant = 'medical-service/inventory';
+
+  /// The merchant's own store-wide product list, backing the "Top Selling"
+  /// rail on the Products tab. `myMedicalProducts` above can't do this — it's
+  /// scoped to one categoryId.
+  ///
+  /// Mirrors grocery's `inventory/business-products` exactly: same
+  /// {businessId, page, limit} body, same {data[], pagination{}} response, one
+  /// row per variant (the client groups by product). See
+  /// docs/backend/MEDICAL_TOP_SELLING_BACKEND_GUIDE.md.
+  final String medicalBusinessProducts =
+      'medical-service/inventory/business-products';
+
+  /// The public twin — another store's products, for a customer-side rail.
+  final String medicalPublicBusinessProducts =
+      'medical-service/inventory/public/business-products';
   final String medicalCategoryWithVariant =
       'medical-service/categories/with-inventory';
   final String medicalOrder = "medical-service/orders";

@@ -6,7 +6,7 @@ import 'package:BlueEra/core/constants/string_utils.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/medical/controller/medical_controller.dart';
 import 'package:BlueEra/features/me/medical/model/medical_nested_category_model.dart';
-import 'package:BlueEra/features/me/medical/view/medical_subcategory_screen.dart';
+import 'package:BlueEra/features/me/medical/view/medical_product_selection_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -99,7 +99,7 @@ class _MedicalCategoryScreenState extends State<MedicalCategoryScreen>
                                     onTap: (c) {
                                       List<MedicalNestedCategoryModel> level3Category = item2.children ?? [];
 
-                                      Get.to(() => MedicalSubCategoryScreen(
+                                      Get.to(() => MedicalProductSelectionScreen(
                                         arrLevel3Category: level3Category,
                                       ));
                                     },

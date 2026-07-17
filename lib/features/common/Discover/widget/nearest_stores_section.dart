@@ -283,9 +283,11 @@ class _NearestStoresSectionState extends State<NearestStoresSection> {
           children: [
             shimmerContainer(width: 64, height: 64, radius: 32),
             const SizedBox(height: 10),
-            shimmerContainer(width: 56, height: 11, radius: 4),
-            const SizedBox(height: 6),
+            // Short category bar first, then the wider name bar — same order
+            // the real card lays out, so the swap to content doesn't jump.
             shimmerContainer(width: 40, height: 9, radius: 4),
+            const SizedBox(height: 6),
+            shimmerContainer(width: 56, height: 11, radius: 4),
           ],
         ),
       ),
@@ -388,27 +390,32 @@ class _NearbyAvatar extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            CustomText(
-              name,
-              fontSize: 12.5,
-              fontWeight: FontWeight.w700,
-              color: AppColors.mainTextColor,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-            ),
-            if (label.isNotEmpty) ...[
-              const SizedBox(height: 2),
+            // Category reads as a small eyebrow ABOVE the name — two points
+            // down from the name so the name still wins the row, and the pair
+            // reads as one block rather than two competing labels.
+
               CustomText(
-                label,
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-                color: AppColors.secondaryTextColor,
+                name,
+                fontSize: 12.5,
+                fontWeight: FontWeight.w700,
+                color: AppColors.mainTextColor,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
               ),
-            ],
+
+              const SizedBox(height: 2),
+            if (label.isNotEmpty)
+            CustomText(
+              label,
+              fontSize: 9,
+              fontWeight: FontWeight.w500,
+              color: AppColors.secondaryTextColor,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+            ),
+
           ],
         ),
       ),

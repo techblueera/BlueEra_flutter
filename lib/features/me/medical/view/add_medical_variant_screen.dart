@@ -45,9 +45,12 @@ class _AddMedicalVariantScreenState extends State<AddMedicalVariantScreen> {
                   bgColor: controller.canSubmitProducts
                       ? AppColors.primaryColor
                       : Colors.grey,
-                  title:
-                      '${AppStrings.medicalPublishPrefix.tr} ${controller.selectedMedicalProducts.length} ${AppStrings.medicalPublishProductsLabel.tr}, '
-                      '${controller.selectedProductVariants.length} ${AppStrings.medicalPublishVariantsLabel.tr}',
+                  title: AppStrings.medicalPublishProductsVariants.trParams({
+                    'productCount':
+                        '${controller.selectedMedicalProducts.length}',
+                    'variantCount':
+                        '${controller.selectedProductVariants.length}',
+                  }),
                   isLoading: controller.isAddMedicalProductsLoading.value,
                 );
               },
@@ -171,6 +174,18 @@ class _AddMedicalVariantScreenState extends State<AddMedicalVariantScreen> {
                                                   ),
                                                 ),
                                                 const SizedBox(width: 4),
+                                                // Weight / MRP / price share
+                                                // whatever's left, so the edit
+                                                // pen always lands flush at the
+                                                // row's end. A Spacer wouldn't
+                                                // do it: against three Flexible
+                                                // siblings it only claims a
+                                                // quarter of the free space,
+                                                // and MainAxisAlignment.start
+                                                // leaves the rest AFTER the pen.
+                                                Expanded(
+                                                  child: Row(
+                                                    children: [
                                                 Flexible(
                                                   child: CustomText(
                                                     (v.weight != null || v.unit != null)
@@ -219,6 +234,9 @@ class _AddMedicalVariantScreenState extends State<AddMedicalVariantScreen> {
                                                     color: AppColors.mainTextColor,
                                                     overflow: TextOverflow.ellipsis,
                                                     maxLines: 1,
+                                                  ),
+                                                ),
+                                                    ],
                                                   ),
                                                 ),
                                                 const SizedBox(width: 4),
