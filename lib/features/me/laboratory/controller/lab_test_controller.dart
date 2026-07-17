@@ -25,6 +25,14 @@ class LabTestController extends GetxController {
   final RxList<TestCatalogItem> catalogTests = <TestCatalogItem>[].obs;
   final RxString descriptionTest = ''.obs;
 
+  // Catalog pagination state — [fetchCatalog] resets when page == 1 and
+  // appends otherwise. [catalogHasMore] flips false when the backend returns
+  // a short page (fewer items than [_catalogPageSize]).
+  final RxBool isLoadingMoreCatalog = false.obs;
+  final RxBool catalogHasMore = true.obs;
+  int catalogPage = 1;
+  static const int _catalogPageSize = 20;
+
   // ---- Picker reference data (UI-facing constants) -------------------------
 
   static const List<String> specimenList = [
@@ -48,6 +56,19 @@ class LabTestController extends GetxController {
   static const List<String> genderList = ['Male', 'Female'];
 
   static const List<String> packageTypeList = [
+    // ── Group categories surfaced by `LabCategoryScreen` — added here so
+    // tapping a category row can pre-select and lock the Package Type on
+    // `AddLabTestScreen` (values must match the `collection` strings in
+    // `LabCategoryScreen._entries`).
+    'Blood & Routine Tests',
+    'Preventive & Wellness Checkups',
+    'Women, Pregnancy & Child Health',
+    'Diagnostics & Imaging',
+    'Organ & System Health',
+    'Infection, Cancer & Immunity',
+    // ── Legacy package presets (still used by the Create-Your-Own-Packages
+    // landing and by tests that were created before the group categories
+    // were introduced).
     'Basic Blood Test',
     'Basic Health Checkup',
     'Full Body Checkup',
@@ -146,7 +167,8 @@ class LabTestController extends GetxController {
   Future<void> fetchTestsByLab(String labId, String collection) async {
     try {
       isLoading.value = true;
-      final ResponseModel res = await _repo.getPathologyTestsByLab(labId, collection);
+      final ResponseModel res =
+          await _repo.getPathologyTestsByLab(labId, collection);
       if (res.isSuccess) {
         final List data = res.response?.data['data'] ?? [];
         tests.value = data.map((e) => PathologyTest.fromJson(e)).toList();
@@ -161,10 +183,17 @@ class LabTestController extends GetxController {
   Future<void> fetchCatalog({
     required String groupCategory,
     int page = 1,
-    int limit = 20,
+    int limit = _catalogPageSize,
   }) async {
+    final isFirstPage = page == 1;
     try {
-      isLoading.value = true;
+      if (isFirstPage) {
+        isLoading.value = true;
+        catalogPage = 1;
+        catalogHasMore.value = true;
+      } else {
+        isLoadingMoreCatalog.value = true;
+      }
       final ResponseModel res = await _repo.getTestCatalog(
         groupCategory: groupCategory,
         page: page,
@@ -172,27 +201,56 @@ class LabTestController extends GetxController {
       );
       if (res.isSuccess) {
         final List data = res.response?.data['data'] ?? [];
-        catalogTests.value = data.map((e) => TestCatalogItem.fromJson(e)).toList();
+        final items = data.map((e) => TestCatalogItem.fromJson(e)).toList();
+        if (isFirstPage) {
+          catalogTests.value = items;
+        } else if (items.isNotEmpty) {
+          catalogTests.addAll(items);
+        }
+        // Backend returns no total; short pages mark the end.
+        if (items.length < limit) {
+          catalogHasMore.value = false;
+        }
+        if (items.isNotEmpty) {
+          catalogPage = page;
+        }
       }
     } catch (e) {
       logs("LabTestController.fetchCatalog ERROR $e");
     } finally {
       isLoading.value = false;
+      isLoadingMoreCatalog.value = false;
     }
+  }
+
+  /// Loads the next catalog page. No-op when already loading or exhausted.
+  Future<void> fetchMoreCatalog({required String groupCategory}) async {
+    if (!catalogHasMore.value ||
+        isLoading.value ||
+        isLoadingMoreCatalog.value) {
+      return;
+    }
+    await fetchCatalog(
+      groupCategory: groupCategory,
+      page: catalogPage + 1,
+    );
   }
 
   // ---- Writes ---------------------------------------------------------------
 
-  Future<bool> selectCatalog(String id, {Map<String, dynamic>? customData}) async {
+  Future<bool> selectCatalog(String id,
+      {Map<String, dynamic>? customData}) async {
     try {
       isSaving.value = true;
-      final ResponseModel res = await _repo.selectCatalogTests([id], overrides: customData);
+      final ResponseModel res =
+          await _repo.selectCatalogTests([id], overrides: customData);
       if (res.isSuccess) {
         commonSnackBar(message: AppStrings.labSelectedSuccess.tr);
         return true;
       }
       commonSnackBar(
-        message: res.response?.data['message'] ?? AppStrings.labFailedToSelect.tr,
+        message:
+            res.response?.data['message'] ?? AppStrings.labFailedToSelect.tr,
       );
       return false;
     } catch (e) {
@@ -214,7 +272,8 @@ class LabTestController extends GetxController {
         return true;
       }
       commonSnackBar(
-        message: res.response?.data['message'] ?? AppStrings.labFailedToAddTest.tr,
+        message:
+            res.response?.data['message'] ?? AppStrings.labFailedToAddTest.tr,
       );
       return false;
     } catch (e) {
@@ -229,14 +288,16 @@ class LabTestController extends GetxController {
   Future<bool> updateTest(PathologyTest test) async {
     try {
       isSaving.value = true;
-      final ResponseModel res = await _repo.updatePathologyTest(test.id!, test.toJson());
+      final ResponseModel res =
+          await _repo.updatePathologyTest(test.id!, test.toJson());
       if (res.isSuccess) {
         commonSnackBar(message: AppStrings.labTestUpdatedSuccess.tr);
         await fetchTests(test.collection ?? '');
         return true;
       }
       commonSnackBar(
-        message: res.response?.data['message'] ?? AppStrings.labFailedToUpdateTest.tr,
+        message: res.response?.data['message'] ??
+            AppStrings.labFailedToUpdateTest.tr,
       );
       return false;
     } catch (e) {
@@ -257,7 +318,8 @@ class LabTestController extends GetxController {
         await fetchTests(collection);
       } else {
         commonSnackBar(
-          message: res.response?.data['message'] ?? AppStrings.labFailedToDeleteTest.tr,
+          message: res.response?.data['message'] ??
+              AppStrings.labFailedToDeleteTest.tr,
         );
       }
     } catch (e) {

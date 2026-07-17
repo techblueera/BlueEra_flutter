@@ -30,7 +30,8 @@ class SchoolAvailabilityCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final availability = controller.schoolDetailsData?.value.availability ?? const <Availability>[];
+    final availability = controller.schoolDetailsData?.value.availability ??
+        const <Availability>[];
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
@@ -118,7 +119,9 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = isOpen ? AppColors.greenShade.withValues(alpha: 0.12) : AppColors.greyE6;
+    final bg = isOpen
+        ? AppColors.greenShade.withValues(alpha: 0.12)
+        : AppColors.greyE6;
     final fg = isOpen ? AppColors.greenShade : AppColors.grey83;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),

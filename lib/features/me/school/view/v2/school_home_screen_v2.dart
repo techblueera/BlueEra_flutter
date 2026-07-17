@@ -6,13 +6,11 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/widgets/go_live_pill.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_flag_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
-import 'package:BlueEra/features/common/delivery_partner/view/rider_service_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/features/me/school/view/v2/tabs/school_academics_tab_v2.dart';
@@ -20,6 +18,7 @@ import 'package:BlueEra/features/me/school/view/v2/tabs/school_inquiry_tab_v2.da
 import 'package:BlueEra/features/me/school/view/v2/tabs/school_overview_tab_v2.dart';
 import 'package:BlueEra/features/me/school/view/v2/tabs/school_posts_tab_v2.dart';
 import 'package:BlueEra/features/me/school/view/v2/tabs/school_stats_tab_v2.dart';
+import 'package:BlueEra/widgets/go_live_pill.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:flutter/material.dart';
@@ -45,13 +44,12 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2>
   late final TabController _tabController;
 
   List<String> get _tabs => [
-    AppStrings.inquiry.tr,
-    AppStrings.overview.tr,
-    AppStrings.academics.tr,
-    AppStrings.posts.tr,
-    AppStrings.stats.tr,
-  ];
-
+        AppStrings.inquiry.tr,
+        AppStrings.overview.tr,
+        AppStrings.academics.tr,
+        AppStrings.posts.tr,
+        AppStrings.stats.tr,
+      ];
 
   // Drives the inquiry list shown under the Inquiry tab — same controller
   // the Connect screen uses, so socket-driven updates land on both.
@@ -100,11 +98,16 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2>
       onRefresh: _schoolController.getSchoolByIdController,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.only(bottom: kBottomNavigationBarHeight + 30),
+        padding: EdgeInsets.only(
+          left: 20,
+          top: SizeConfig.size10,
+          bottom: kBottomNavigationBarHeight + 30,
+        ),
         child: child,
       ),
     );
   }
+
   Widget _buildTopBar() {
     final topInset = MediaQuery.of(context).padding.top;
     return DecoratedBox(
@@ -168,7 +171,10 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2>
         alignment: Alignment.centerLeft,
         child: SizedBox(
           height: double.infinity,
-          child: Drawer(backgroundColor: Colors.transparent, elevation: 0, child: ProfileMenuDrawer()),
+          child: Drawer(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              child: ProfileMenuDrawer()),
         ),
       ),
     );
@@ -238,6 +244,7 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2>
       ),
     );
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -271,8 +278,4 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2>
       ),
     );
   }
-
-
-
 }
-

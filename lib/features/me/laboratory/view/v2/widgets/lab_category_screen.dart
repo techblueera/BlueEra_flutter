@@ -1,11 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_full_details_controller.dart';
-import 'package:BlueEra/features/me/laboratory/view/facility_screen.dart';
-import 'package:BlueEra/features/me/laboratory/view/health_camp_detail_screen.dart';
-import 'package:BlueEra/features/me/laboratory/view/lab_contact_us_screen.dart';
-import 'package:BlueEra/features/me/laboratory/view/lab_service_gallery/upload_lab_service_photos_screen.dart';
-import 'package:BlueEra/features/me/laboratory/view/lab_test_list_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/packages/create_your_own_packages_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -14,6 +9,7 @@ import 'package:get/get.dart';
 import '../../../../../../core/constants/app_icon_assets.dart';
 import '../../../../../../widgets/common_back_app_bar.dart';
 import '../../../../../../widgets/local_assets.dart';
+import '../../lab_test_catalog_screen.dart';
 
 /// Tests ("Create") tab — linear-list redesign matching assets/img.png.
 ///
@@ -30,10 +26,8 @@ class LabCategoryScreen extends StatelessWidget {
   const LabCategoryScreen({super.key, required this.controller});
 
   /// Rows in top-to-bottom order — matches the reference image exactly.
-  /// `collection` is threaded through to [LabTestListScreen] where it
-  /// filters `PathologyTest.groupCategory` on the backend; for the seven
-  /// test rows it names the category, for the "Others" row it lets the
-  /// owner park custom tests under a free-text category.
+  /// `collection` filters `PathologyTest.groupCategory` on the backend and
+  /// is passed through to [LabTestCatalogScreen].
   static final List<_MenuEntry> _entries = [
     const _MenuEntry(
       label: 'Blood & Routine Tests',
@@ -65,15 +59,6 @@ class LabCategoryScreen extends StatelessWidget {
       icon: AppIconAssets.infectionTestIcon,
       collection: 'Infection, Cancer & Immunity',
     ),
-    const _MenuEntry(
-      label: 'Others (Add Manually)',
-      icon: AppIconAssets.othersTestIcon,
-      collection: 'Others',
-    ),
-    _MenuEntry(label: 'Facility', icon: AppIconAssets.fecilityIcon),
-    // _MenuEntry(label: 'Gallery', icon: Icons.photo_library_outlined),
-    _MenuEntry(label: 'Create Health Camp', icon: AppIconAssets.healthcampIcon),
-    // _MenuEntry(label: 'Contact Us', icon: Icons.mail_outline_rounded),
   ];
 
   @override
@@ -112,28 +97,18 @@ class LabCategoryScreen extends StatelessWidget {
   }
 
   void _onTap(_MenuEntry entry) {
-    // Category rows share the same destination — a test list scoped to
-    // the row's `collection` — which mirrors the legacy CategorySelector.
+    // Every row now carries a `collection` — route into the catalog scoped
+    // to that group category. The same value is passed as
+    // `presetPackageType` so the "Add Manually" path from the catalog lands
+    // on `AddLabTestScreen` with the Package Type surface already locked
+    // onto this category (the six category names live in
+    // `LabTestController.packageTypeList`, so the lock condition on the
+    // form catches them).
     if (entry.collection != null) {
-      Get.to(() => LabTestListScreen(
+      Get.to(() => LabTestCatalogScreen(
             collection: entry.collection!,
-            title: entry.label,
+            presetPackageType: entry.collection,
           ));
-      return;
-    }
-    switch (entry.label) {
-      case 'Facility':
-        Get.to(() => FacilityScreen());
-        return;
-      case 'Gallery':
-        Get.to(() => const UploadLabServicePhotosScreen());
-        return;
-      case 'Create Health Camp':
-        Get.to(() => const HealthCampDetailScreen(isOwnProfile: true));
-        return;
-      case 'Contact Us':
-        Get.to(() => LabContactUsScreen());
-        return;
     }
   }
 }
@@ -143,8 +118,8 @@ class _MenuEntry {
   final String label;
   final String icon;
 
-  /// Non-null for the seven test-category rows; picked up by
-  /// [LabTestsTabV2._onTap] to route into [LabTestListScreen].
+  /// Row's group-category filter — passed through to
+  /// [LabTestCatalogScreen] by [_onTap].
   final String? collection;
 
   const _MenuEntry({
@@ -176,7 +151,8 @@ class _MenuRow extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Container(
-          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size14, vertical: SizeConfig.size14),
+          padding: EdgeInsets.symmetric(
+              horizontal: SizeConfig.size14, vertical: SizeConfig.size14),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(12),

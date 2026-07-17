@@ -6,7 +6,6 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/widgets/go_live_pill.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_flag_controller.dart';
@@ -20,6 +19,7 @@ import 'package:BlueEra/features/me/hotel/view/v2/tabs/hotel_overview_tab_v2.dar
 import 'package:BlueEra/features/me/hotel/view/v2/tabs/hotel_posts_tab_v2.dart';
 import 'package:BlueEra/features/me/hotel/view/v2/tabs/hotel_rooms_tab_v2.dart';
 import 'package:BlueEra/features/me/hotel/view/v2/tabs/hotel_stats_tab_v2.dart';
+import 'package:BlueEra/widgets/go_live_pill.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:flutter/material.dart';
@@ -39,7 +39,8 @@ class HotelHomeScreenV2 extends StatefulWidget {
 class _HotelHomeScreenV2State extends State<HotelHomeScreenV2>
     with SingleTickerProviderStateMixin, MeTabBackHandlerMixin {
   late final HotelDetailController _hotelController;
-  final _businessController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+  final _businessController =
+      getOrPut(() => ViewBusinessDetailsController(), permanent: true);
   late final TabController _tabController;
 
   List<String> get _tabs => [
@@ -56,14 +57,16 @@ class _HotelHomeScreenV2State extends State<HotelHomeScreenV2>
   // Mirrors the wiring used by the other v2 home screens (Hospital,
   // School, Medical, Lab, Other) and the Order tab in
   // `professionals_main.dart`.
-  final ChatViewController _chatViewController = getOrPut(() => ChatViewController());
+  final ChatViewController _chatViewController =
+      getOrPut(() => ChatViewController());
 
   // Pre-registered so the Flagged sub-tab inside `BusinessChatsList`
   // (`BusinessFlagChatList` → `Get.find<ChatFlagController>()`) doesn't
   // crash when this is the first screen the user touches. Mirrors the
   // top-level registration in `connect_main_page.dart`.
   // ignore: unused_field
-  final ChatFlagController _chatFlagController = getOrPut(() => ChatFlagController());
+  final ChatFlagController _chatFlagController =
+      getOrPut(() => ChatFlagController());
 
   @override
   void initState() {
@@ -99,7 +102,11 @@ class _HotelHomeScreenV2State extends State<HotelHomeScreenV2>
       onRefresh: () async => _hotelController.loadHotelData(),
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.only(bottom: kBottomNavigationBarHeight + 30),
+        padding: EdgeInsets.only(
+          left: 20,
+          top: SizeConfig.size10,
+          bottom: kBottomNavigationBarHeight + 30,
+        ),
         child: child,
       ),
     );
@@ -108,7 +115,7 @@ class _HotelHomeScreenV2State extends State<HotelHomeScreenV2>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFEAF2FB),
+      // backgroundColor: const Color(0xFFEAF2FB),
       body: SafeArea(
         top: false,
         child: Stack(
@@ -198,7 +205,10 @@ class _HotelHomeScreenV2State extends State<HotelHomeScreenV2>
         alignment: Alignment.centerLeft,
         child: SizedBox(
           height: double.infinity,
-          child: Drawer(backgroundColor: Colors.transparent, elevation: 0, child: ProfileMenuDrawer()),
+          child: Drawer(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              child: ProfileMenuDrawer()),
         ),
       ),
     );
