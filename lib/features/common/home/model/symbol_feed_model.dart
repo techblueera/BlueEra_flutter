@@ -226,6 +226,9 @@ class SymbolFeedItem {
   String? content;
   String? caption;
   String? backgroundColor;
+
+  /// Video playback length in seconds; 0 for non-video or legacy symbols.
+  double mediaDuration;
   DateTime? expiresAt;
   String? visibility;
   List<String>? hiddenFrom;
@@ -239,6 +242,9 @@ class SymbolFeedItem {
   bool? hasLiked;
   SymbolFeedUser? user;
 
+  /// Whether the backend supplied a usable video length.
+  bool get hasKnownDuration => mediaDuration > 0;
+
   SymbolFeedItem({
     this.id,
     this.userId,
@@ -246,6 +252,7 @@ class SymbolFeedItem {
     this.content,
     this.caption,
     this.backgroundColor,
+    this.mediaDuration = 0,
     this.expiresAt,
     this.visibility,
     this.hiddenFrom,
@@ -286,6 +293,7 @@ class SymbolFeedItem {
       content: json['content'],
       caption: json['caption'],
       backgroundColor: json['backgroundColor'],
+      mediaDuration: (json['media_duration'] as num?)?.toDouble() ?? 0,
       expiresAt: json['expires_at'] != null
           ? DateTime.tryParse(json['expires_at'])
           : null,

@@ -82,7 +82,8 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
   bool isShortSavedInDb = false;
 
   /// Follow state for an individual author's reel (seeded from
-  /// `interactions.isFollowing`, toggled optimistically on tap).
+  /// `interactions.isFollowing`, falling back to `author.isFollowing` for the
+  /// hot/trending feed; toggled optimistically on tap).
   bool _isFollowing = false;
   bool _isDisposed = false;
   Timer? _overlayTimer;
@@ -313,7 +314,9 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
     isShortSavedInDb = HiveServices()
         .isVideoSaved(fullScreenShortController.videoItem?.videoId ?? '');
     _isFollowing =
-        fullScreenShortController.videoItem?.interactions?.isFollowing ?? false;
+        fullScreenShortController.videoItem?.interactions?.isFollowing ??
+            fullScreenShortController.videoItem?.author?.isFollowing ??
+            false;
     fullScreenShortController.isLiked.value =
         fullScreenShortController.videoItem?.interactions?.isLiked ?? false;
     fullScreenShortController.likes.value =

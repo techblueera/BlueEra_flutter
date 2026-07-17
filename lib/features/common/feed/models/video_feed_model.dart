@@ -42,15 +42,23 @@ class VideoResponse {
     // player has no avatar / name / @handle / like-state to show.
     final items = (json['data'] as List?)
             ?.whereType<Map<String, dynamic>>()
-            .map((e) => ShortFeedItem(
-                  videoId: e['_id'] as String?,
-                  video: VideoData.fromJson(e),
-                  author: e['author'] is Map<String, dynamic>
-                      ? Author.fromJson(e['author'] as Map<String, dynamic>)
-                      : null,
-                  interactions:
-                      Interactions(isLiked: e['isLiked'] as bool? ?? false),
-                ))
+            .map((e) {
+              final author = e['author'] is Map<String, dynamic>
+                  ? Author.fromJson(e['author'] as Map<String, dynamic>)
+                  : null;
+              return ShortFeedItem(
+                videoId: e['_id'] as String?,
+                video: VideoData.fromJson(e),
+                author: author,
+                // Follow state ships on the author here, not in an
+                // `interactions` block. Mirror it so consumers can read it
+                // from the same place as the unified feed.
+                interactions: Interactions(
+                  isLiked: e['isLiked'] as bool? ?? false,
+                  isFollowing: author?.isFollowing ?? false,
+                ),
+              );
+            })
             .toList() ??
         <ShortFeedItem>[];
 
@@ -789,6 +797,7 @@ class Author {
   final String? designation; // Common designation
   final bool? isVerified;
   final int? followersCount;
+  final bool? isFollowing;
   // Routing taxonomy used by [VisitProfileResolver] to open the right visit
   // screen for a tapped author:
   //  - [typeOfBusiness]     → BusinessType (Food / Grocery / Automotive / …)
@@ -808,6 +817,7 @@ class Author {
     this.designation,
     this.isVerified,
     this.followersCount,
+    this.isFollowing,
     this.businessType,
     this.categoryOfBusiness,
     this.profileType,
@@ -822,6 +832,7 @@ class Author {
         designation: json['designation'] as String?,
         isVerified: json['isVerified'] as bool?,
         followersCount: json['followersCount'] as int?,
+        isFollowing: json['isFollowing'] as bool?,
         // Defensive key fallbacks — backends vary between camelCase and
         // snake_case for these fields.
         businessType:
@@ -841,6 +852,7 @@ class Author {
         'designation': designation,
         'isVerified': isVerified,
         'followersCount': followersCount,
+        'isFollowing': isFollowing,
       };
 
   Author copyWith({
@@ -852,6 +864,10 @@ class Author {
     String? designation,
     bool? isVerified,
     int? followersCount,
+    bool? isFollowing,
+    String? businessType,
+    String? categoryOfBusiness,
+    String? profileType,
   }) {
     return Author(
       id: id ?? this.id,
@@ -862,6 +878,10 @@ class Author {
       designation: designation ?? this.designation,
       isVerified: isVerified ?? this.isVerified,
       followersCount: followersCount ?? this.followersCount,
+      isFollowing: isFollowing ?? this.isFollowing,
+      businessType: businessType ?? this.businessType,
+      categoryOfBusiness: categoryOfBusiness ?? this.categoryOfBusiness,
+      profileType: profileType ?? this.profileType,
     );
   }
 }

@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -676,6 +677,31 @@ class _SymbolUploadWidgetState extends State<SymbolUploadWidget> {
                   ),
                 ),
               ),
+
+              // Clip length — the same value posted as `media_duration`, so
+              // what the user sees here is what the feed will show.
+              Obx(() {
+                final seconds = controller.videoDurationSeconds.value;
+                if (seconds == null) return const SizedBox.shrink();
+                return Positioned(
+                  bottom: 12,
+                  right: 12,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.6),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: CustomText(
+                      formatMediaDuration(seconds),
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                );
+              }),
             ],
           ),
         ),
@@ -984,7 +1010,7 @@ class _SymbolTypeOption {
 void openVideoPreview(File file) async {
   final trimmedPath = await Get.to(VideoTrimmerPage(videoPath: file.path));
   if (trimmedPath != null) {
-    Get.find<AddChatSymbolController>().imagesList[0] = File(trimmedPath);
+    await Get.find<AddChatSymbolController>().setVideoFile(File(trimmedPath));
   }
 }
 

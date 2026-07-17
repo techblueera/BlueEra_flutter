@@ -65,7 +65,7 @@ class _VideoSavedFeedSectionState extends State<VideoSavedFeedSection>  with Rou
       controller: _scrollController,
       headerHeight: widget.headerHeight,
       onVisibilityChanged: (visible, offset) {
-        final controller = Get.find<HomeScreenController>();
+        final controller = HomeScreenController.to;
         final currentOffset = controller.headerOffset.value;
 
         // Linear animation step (same speed up/down)

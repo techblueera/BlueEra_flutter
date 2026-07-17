@@ -188,7 +188,7 @@ class _OttScreenState extends State<OttScreen> {
       controller: scrollController,
       headerHeight: (widget.headerHeight),
       onVisibilityChanged: (visible, offset) {
-        final controller = Get.find<HomeScreenController>();
+        final controller = HomeScreenController.to;
         controller.headerOffset.value = offset;
         controller.isVisible.value = visible;
         widget.onHeaderVisibilityChanged?.call(visible);

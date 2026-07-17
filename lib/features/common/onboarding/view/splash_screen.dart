@@ -572,7 +572,7 @@ class _SplashScreenState extends State<SplashScreen> {
       }
 
     else   if (segments.length >= 3 && segments[0] == 'app') {
-        final type = segments[1]; // post | video | short | job | product
+        final type = segments[1]; // post | video | product | profile | …
         final id = segments[2];
 print("type==== ${type}");
         // Validate that the ID follows the expected MongoDB ObjectID format (24 hex characters)
@@ -584,6 +584,15 @@ print("type==== ${type}");
         switch (type) {
           case 'post':
             Get.to(() => PostDeatilPage(), arguments: {"postId": id});
+            break;
+          case 'video':
+            // Public video/reel share landing
+            // (`https://beapp.in/app/video/<videoId>`). Both `videoDeepLink`
+            // and `shortDeepLink` emit this same path, so the id alone doesn't
+            // say whether it's a long video or a short. Fetch it first and let
+            // [navigateToVideoDetail] branch on the resolved type: longs open
+            // the watch page, shorts open the fullscreen reels player.
+            deepLinkNetworkResources.navigateToVideoDetail(id);
             break;
           case 'product':
             Get.to(() => ShareProductScreen(productId: id));
