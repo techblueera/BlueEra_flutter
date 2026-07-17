@@ -403,6 +403,7 @@ Widget  ChatListTile({
         chatViewController.selectedChatList.add(chat);
         onSelect();
       } else {
+
       commonSnackBar(message: AppStrings.onlyFiveMembersCanChoose.tr);
       }
     }
@@ -2031,7 +2032,7 @@ AppBar getChatTitleAppBar(BuildContext context, {
                           fontSize: SizeConfig.size12,
                         );
                       }
-                
+
                       final String statusLabel;
                       if (name == "BlueEra Orders") {
                         statusLabel = "BlueCs Ltd";
