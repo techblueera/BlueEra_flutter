@@ -62,6 +62,10 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
   late String designation;
   bool _initialized = false;
   bool _hasError = false;
+
+  /// Set once the HLS master has failed, pinning playback to the progressive
+  /// mp4 so the retry can't loop straight back onto the broken stream.
+  bool _useMp4Fallback = false;
   bool isShortSavedInDb = false;
   bool _isDisposed = false;
   bool _isCurrentPage = false; // Track if this is the current page
@@ -242,6 +246,9 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
   }
 
   void _setupViewTimer() {
+    // Retry re-runs the setup path — without this the old timer survives and
+    // the view gets counted twice.
+    _viewTimer?.cancel();
     _viewTimer = Timer(const Duration(seconds: 5), () {
       if (!_isDisposed) {
         fullScreenShortController.shortVideoView(
@@ -304,54 +311,98 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
     }
   }
 
+  /// Picks the playback url: the HLS/adaptive master on Android (smoother and
+  /// lighter than the raw mp4), falling back to the progressive url. Mirrors
+  /// [ShortsPlayerScreen._resolveUrl] — some HEVC/H.265 masters fail to load,
+  /// and [_handlePlaybackFailure] pins those to the mp4 via [_useMp4Fallback].
+  String _resolveUrl() {
+    final video = fullScreenShortController.videoItem?.video;
+    final master = video?.transcodedUrls?.master;
+    final mp4 = video?.videoUrl;
+    if (GetPlatform.isAndroid &&
+        !_useMp4Fallback &&
+        master != null &&
+        master.isNotEmpty) {
+      return master;
+    }
+    return mp4 ?? master ?? '';
+  }
+
   Future<void> _initializePlayer() async {
     if (_controller != null || _isDisposed) return;
 
+    final videoUrl = _resolveUrl();
+    if (videoUrl.isEmpty) {
+      if (!_isDisposed) setState(() => _hasError = true);
+      return;
+    }
+
+    final controller = VideoPlayerController.networkUrl(
+      Uri.parse(videoUrl),
+      videoPlayerOptions: VideoPlayerOptions(
+        mixWithOthers: true,
+        allowBackgroundPlayback: false,
+      ),
+      // The HLS master is served only to a recognised agent; without this the
+      // request stalls and initialize() never settles. Matches the feed player.
+      httpHeaders: isHlsUrl(videoUrl)
+          ? const {'User-Agent': 'Flutter Video Player'}
+          : const {},
+    );
+    _controller = controller;
+    // A load failure reaches us through the player's value, not always as a
+    // thrown error — without this listener a broken stream just spins forever.
+    controller.addListener(_videoListener);
+
     try {
-
-      String? videoUrl;
-      if(GetPlatform.isAndroid){
-        videoUrl =
-            fullScreenShortController.videoItem?.video?.transcodedUrls?.master
-                ?? fullScreenShortController.videoItem?.video?.videoUrl;
-      }else{
-        videoUrl =
-            fullScreenShortController.videoItem?.video?.videoUrl;
-      }
-
-      // final videoUrl = fullScreenShortController.videoItem?.video?.transcodedUrls?.master ?? fullScreenShortController.videoItem?.video?.videoUrl;
-      if (videoUrl == null || videoUrl.isEmpty) {
-        if (!_isDisposed) {
-          setState(() => _hasError = true);
-        }
-        return;
-      }
-
-      _controller = VideoPlayerController.networkUrl(
-        Uri.parse(videoUrl),
-        videoPlayerOptions: isHlsUrl(videoUrl)
-            ? VideoPlayerOptions(mixWithOthers: true)
-            : null,
-      );
-
-      await _controller!.initialize();
-
-      if (!_isDisposed) {
-        _controller?.setLooping(true);
-        _controller?.setVolume(1.0);
-
-        if (widget.autoPlay) {
-          _controller?.play();
-        }
-
-        setState(() => _initialized = true);
-      }
+      // Belt and braces: a stalled source can leave initialize() pending
+      // indefinitely, which is precisely the infinite-spinner case.
+      await controller.initialize().timeout(const Duration(seconds: 20));
+      if (_isDisposed) return;
+      controller.setLooping(true);
+      controller.setVolume(1.0);
+      if (widget.autoPlay) controller.play();
+      setState(() => _initialized = true);
     } catch (e) {
       debugPrint('Video init error: $e');
-      if (!_isDisposed) {
-        setState(() => _hasError = true);
-      }
+      if (!_isDisposed) _handlePlaybackFailure();
     }
+  }
+
+  /// Surfaces a mid-playback failure instead of leaving a frozen frame or an
+  /// endless spinner.
+  void _videoListener() {
+    final controller = _controller;
+    if (controller == null || _isDisposed || !mounted) return;
+    if (controller.value.hasError && !_hasError) {
+      _handlePlaybackFailure();
+    }
+  }
+
+  /// First failure on the HLS master → rebuild on the progressive mp4. If we're
+  /// already on the mp4 (or there isn't one) it's a genuine failure, so show
+  /// the Retry rather than looping on a source that cannot work.
+  void _handlePlaybackFailure() {
+    final mp4 = fullScreenShortController.videoItem?.video?.videoUrl;
+    final canFallBack =
+        !_useMp4Fallback && mp4 != null && mp4.isNotEmpty && _resolveUrl() != mp4;
+    if (canFallBack) {
+      _useMp4Fallback = true;
+      _disposeControllerOnly();
+      _initializePlayer();
+      return;
+    }
+    if (mounted && !_isDisposed) setState(() => _hasError = true);
+  }
+
+  /// Tears down just the player, leaving timers and state intact so
+  /// [_initializePlayer] can rebuild on a different source.
+  void _disposeControllerOnly() {
+    final controller = _controller;
+    _controller = null;
+    _initialized = false;
+    controller?.removeListener(_videoListener);
+    controller?.dispose();
   }
 
   void getAndSetData() {
@@ -392,9 +443,7 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
   void disposePlayer() {
     _overlayTimer?.cancel();
     _viewTimer?.cancel();
-    _controller?.dispose();
-    _controller = null;
-    _initialized = false;
+    _disposeControllerOnly();
   }
 
   @override
@@ -410,10 +459,11 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
-                setState(() {
-                  _hasError = false;
-                  _initialized = false;
-                });
+                // Drop the failed player first — _initializePlayer bails while
+                // a controller is still attached, so without this the retry
+                // would silently do nothing.
+                _disposeControllerOnly();
+                setState(() => _hasError = false);
                 _fetchVideoDataAndSetup();
               },
               child: const Text('Retry'),

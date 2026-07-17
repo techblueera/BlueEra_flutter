@@ -2,8 +2,10 @@ import 'dart:math' as math;
 
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
+import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
 import 'package:BlueEra/features/common/home/controller/symbol_feed_controller.dart';
 import 'package:BlueEra/features/common/home/model/symbol_feed_model.dart';
@@ -314,7 +316,13 @@ class _StatusCard extends StatelessWidget {
     final String? content = symbol.content;
     final bool hasContent = content != null && content.isNotEmpty;
 
-    // 1. Explicit image type, OR a URL whose path looks like an image file.
+    // 1. Video → play glyph and the clip length. Checked before the image
+    // branch so an mp4 mislabelled `image` doesn't fail to decode.
+    if (hasContent && (type == 'video' || _isVideoUrl(content))) {
+      return _buildVideoPreview(symbol);
+    }
+
+    // 2. Explicit image type, OR a URL whose path looks like an image file.
     if (hasContent && (type == 'image' || _isImageUrl(content))) {
       return CachedNetworkImage(
         imageUrl: content,
@@ -325,7 +333,7 @@ class _StatusCard extends StatelessWidget {
       );
     }
 
-    // 2. Any other URL (embeddedUrl or plain link in content) → link preview.
+    // 3. Any other URL (embeddedUrl or plain link in content) → link preview.
     if (hasContent && _isHttpUrl(content)) {
       return _buildLinkPreview(symbol, content);
     }
@@ -333,8 +341,49 @@ class _StatusCard extends StatelessWidget {
     return _buildTextPreview(symbol);
   }
 
+  /// Video tile for the story row. Deliberately doesn't buffer the clip just to
+  /// paint a card — the length comes from `media_duration`, so the badge is
+  /// correct on the first frame.
+  Widget _buildVideoPreview(SymbolFeedItem symbol) {
+    return Container(
+      color: const Color(0xFF1A1A2E),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          const Center(
+            child: Icon(Icons.play_circle_fill_rounded,
+                color: Colors.white70, size: 26),
+          ),
+          if (symbol.hasKnownDuration)
+            Positioned(
+              left: 4,
+              bottom: 4,
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.55),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: CustomText(
+                  formatMediaDuration(symbol.mediaDuration),
+                  color: Colors.white,
+                  fontSize: 9,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   static const Set<String> _imageExtensions = {
     'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'heic', 'heif', 'avif', 'svg',
+  };
+
+  static const Set<String> _videoExtensions = {
+    'mp4', 'mov', 'm4v', 'webm', 'mkv', '3gp', 'avi',
   };
 
   bool _isHttpUrl(String value) {
@@ -342,11 +391,11 @@ class _StatusCard extends StatelessWidget {
     return uri != null && (uri.scheme == 'http' || uri.scheme == 'https');
   }
 
-  bool _isImageUrl(String value) {
+  /// Lower-cased file extension of a URL, or null when there isn't one to read.
+  /// Decodes percent-encoded paths (e.g. "uploads%2F...jpg") first.
+  String? _urlExtension(String value) {
     final uri = Uri.tryParse(value.trim());
-    if (uri == null) return false;
-    // Decode percent-encoded paths (e.g. "uploads%2F...jpg") and check the
-    // last segment's extension.
+    if (uri == null) return null;
     String path;
     try {
       path = Uri.decodeFull(uri.path);
@@ -354,10 +403,15 @@ class _StatusCard extends StatelessWidget {
       path = uri.path;
     }
     final dot = path.lastIndexOf('.');
-    if (dot == -1) return false;
-    final ext = path.substring(dot + 1).toLowerCase();
-    return _imageExtensions.contains(ext);
+    if (dot == -1) return null;
+    return path.substring(dot + 1).toLowerCase();
   }
+
+  bool _isImageUrl(String value) =>
+      _imageExtensions.contains(_urlExtension(value));
+
+  bool _isVideoUrl(String value) =>
+      _videoExtensions.contains(_urlExtension(value));
 
   Widget _buildLinkPreview(SymbolFeedItem symbol, String url) {
     final Color bg = _parseColor(symbol.backgroundColor) ?? Colors.white;

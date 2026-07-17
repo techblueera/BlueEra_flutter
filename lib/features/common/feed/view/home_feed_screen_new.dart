@@ -60,9 +60,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
       ? Get.find<InventoryController>()
       : Get.put(InventoryController());
 
-  var homeScreenController = Get.isRegistered<HomeScreenController>()
-      ? Get.find<HomeScreenController>()
-      : Get.put(HomeScreenController());
+  final homeScreenController = HomeScreenController.to;
 
   final viewPersonalDetailsController =
       getOrPut(() => ViewPersonalDetailsController(), permanent: true);
@@ -293,91 +291,17 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
 
             return _buildFeedItem(item, index);
           },
-          // separatorBuilder: (BuildContext context, int index) {
-          //   // 3. Cleaned up the separator - removing the redundant return and container padding
-          //   return Divider(
-          //     color: AppColors.whiteE5,
-          //     thickness: 1.5,
-          //     height: 1, // Ensures the divider itself doesn't add vertical height
-          //     indent: 0,
-          //     endIndent: 0,
-          //   );
-          // },
         );
-        /*    // 🔹 Build listView once
-        final listView = ListView.separated(
-          controller: _scrollController,
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          padding:
-              EdgeInsets.only(top: SizeConfig.size2, bottom: SizeConfig.size80),
-          itemCount: blocks.length + (showStories ? 1 : 0),
-          shrinkWrap: widget.isInParentScroll,
-          physics: widget.isInParentScroll
-              ? const NeverScrollableScrollPhysics()
-              : const AlwaysScrollableScrollPhysics(),
-          itemBuilder: (context, indexFeed) {
-            // First item: story row (scrolls with feed)
-            if (showStories && indexFeed == 0) {
-              return const SymbolStoryRow();
-            }
-            int index = showStories ? indexFeed - 1 : indexFeed;
-            final block = blocks[index];
-            final item = block.items.first;
-            if (item.type?.toLowerCase() == "message_post" ||
-                item.type?.toLowerCase() == "poll_post") {
-              trackPostView(item.id);
-              // widget.post?.media_types?.firstOrNull == "video/mp4"
-
-              return Padding(
-                // padding: EdgeInsetsGeometry.zero,
-                padding: EdgeInsets.only(
-                    left: item.type?.toLowerCase() == "poll_post"
-                        ? SizeConfig.size5
-                        : SizeConfig.size1,
-                    right: item.type?.toLowerCase() == "poll_post"
-                        ? 0
-                        : SizeConfig.size2,
-                    top: item.type?.toLowerCase() == "poll_post"
-                        ? SizeConfig.size10
-                        : 1,
-                    bottom: item.type?.toLowerCase() == "message_post" ? 0 : 0),
-                child: FeedCard(
-                  post: item,
-                  index: index,
-                  postFilteredType: PostType.all,
-                  bottomPadding: 0,
-                  horizontalPadding: 10,
-                  isRepost: false,
-                ),
-              );
-            }
-            return const SizedBox.shrink(); // skip if no card
-          },
-          separatorBuilder: (BuildContext context, int index) {
-            return Container(height: 1,color: Colors.red,padding: EdgeInsets.zero,);
-            return Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 0),
-              child: Divider(
-                color: AppColors.whiteE5,
-                thickness: 1.5,
-              ),
-            );
-          },
-        );*/
 
         // 🔹 Only wrap with RefreshIndicator if headerOffset == 0
         final content = RefreshIndicator(
           notificationPredicate: (notification) {
-            Get.isRegistered<HomeScreenController>()
-                ? Get.find<HomeScreenController>()
-                : Get.put(HomeScreenController());
-            return Get.find<HomeScreenController>().headerOffset.value == 0.0 &&
+            return homeScreenController.headerOffset.value == 0.0 &&
                 notification.metrics.pixels <=
                     notification.metrics.minScrollExtent;
           },
           onRefresh: () async {
-            if (Get.find<HomeScreenController>().headerOffset.value != 0.0) {
+            if (homeScreenController.headerOffset.value != 0.0) {
               return;
             }
 
@@ -395,7 +319,7 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
             controller: widget.isInParentScroll ? null : _scrollController,
             headerHeight: (widget.headerHeight ?? SizeConfig.size100),
             onVisibilityChanged: (visible, offset) {
-              final controller = Get.find<HomeScreenController>();
+              final controller = homeScreenController;
               controller.headerOffset.value = offset;
               controller.isVisible.value = visible;
               widget.onHeaderVisibilityChanged?.call(visible);

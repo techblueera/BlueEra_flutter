@@ -11,6 +11,9 @@ class SymbolDetailsModel {
   double? fontSize;          // 18
   String? fontWeight;        // "Medium"
 
+  /// Video playback length in seconds; 0 for non-video or legacy symbols.
+  double mediaDuration;
+
   DateTime? expiresAt;
   String? visibility;
   List<String>? hiddenFrom;
@@ -39,6 +42,7 @@ class SymbolDetailsModel {
     this.fontFamily,
     this.fontSize,
     this.fontWeight,
+    this.mediaDuration = 0,
 
     this.expiresAt,
     this.visibility,
@@ -72,6 +76,7 @@ class SymbolDetailsModel {
           ? (json['fontSize'] as num).toDouble()
           : null,
       fontWeight: json['fontWeight'],
+      mediaDuration: (json['media_duration'] as num?)?.toDouble() ?? 0,
 
       expiresAt: json['expires_at'] != null
           ? DateTime.parse(json['expires_at'])
@@ -116,6 +121,7 @@ class SymbolDetailsModel {
       'font_family': fontFamily,
       'font_size': fontSize,
       'font_weight': fontWeight,
+      'media_duration': mediaDuration,
 
       'expires_at': expiresAt?.toIso8601String(),
       'visibility': visibility,

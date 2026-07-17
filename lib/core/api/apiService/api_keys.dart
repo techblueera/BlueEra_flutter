@@ -617,6 +617,10 @@ class ApiKeys {
   static const argMyGrocery = 'argMyGrocery';
   static const caption = 'caption';
   static const duration_days = 'duration_days';
+
+  /// Video playback length in seconds. Unrelated to [duration_days], which is
+  /// the symbol's visibility window.
+  static const media_duration = 'media_duration';
   static const hidden_from = 'hidden_from';
   static const backgroundColor = 'backgroundColor';
   static const fontFamily = 'fontFamily';

@@ -6,7 +6,6 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/repo/feed_repo.dart';
 import 'package:get/state_manager.dart';
-
 class FullScreenShortController extends GetxController{
   ApiResponse shortVideoLikeResponse = ApiResponse.initial('Initial');
   ApiResponse shortVideoUnlikeResponse = ApiResponse.initial('Initial');

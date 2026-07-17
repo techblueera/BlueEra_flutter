@@ -37,6 +37,12 @@ class AddChatSymbolController extends GetxController {
   final SymbolRepo symbolRepo = SymbolRepo();
   Rx<SymbolPostType?> selectedSymbolPostType = Rx<SymbolPostType?>(null);
   RxMap<String, File> videoThumbnails = <String, File>{}.obs;
+
+  /// Playback length of the selected video in seconds, or null when it hasn't
+  /// been read yet / couldn't be determined. Sent as `media_duration` on
+  /// create — the app is the only component that knows it, so omitting it
+  /// makes the symbol render as 0:00 everywhere.
+  Rxn<double> videoDurationSeconds = Rxn<double>();
   RxString selectedBgImage = ''.obs,
       selectedFontFamily = 'OpenSans'.obs,
       uploadMsgPostUrl = "".obs;
@@ -145,6 +151,7 @@ class AddChatSymbolController extends GetxController {
 
   void choosePostType(SymbolPostType? type) {
     imagesList.clear();
+    videoDurationSeconds.value = null;
     linkTextSymbolController.clear();
     selectedSymbolPostType.value = type;
   }
@@ -214,20 +221,35 @@ class AddChatSymbolController extends GetxController {
 
     if (trimmedPath != null) {
       print("✅ Trimmed Video Path: $trimmedPath");
-      // final files = result.paths.map((e) => File(e!)).toList();
-      final videoTriFile = File(trimmedPath);
       choosePostType(SymbolPostType.video);
-
-      imagesList.value = [videoTriFile];
-      _generateThumbnail(videoTriFile);
-
-      // Upload / Save / Play trimmed video here
+      await setVideoFile(File(trimmedPath));
     }
     // <-- Add for video
   }
 
+  /// Makes [videoFile] the selected video and refreshes everything derived
+  /// from it. Trimming can happen again from the preview, so the thumbnail and
+  /// duration are always re-read from the file that will actually be uploaded.
+  Future<void> setVideoFile(File videoFile) async {
+    imagesList.value = [videoFile];
+    videoDurationSeconds.value = null;
+    await Future.wait([
+      _generateThumbnail(videoFile),
+      _readAndStoreVideoDuration(videoFile),
+    ]);
+  }
+
+  Future<void> _readAndStoreVideoDuration(File videoFile) async {
+    final seconds = await readVideoDurationSeconds(videoFile);
+    // Guard against a slow read landing after the user swapped/removed the
+    // video — otherwise we'd attach one clip's length to another.
+    if (imagesList.isEmpty || imagesList.first.path != videoFile.path) return;
+    videoDurationSeconds.value = seconds;
+  }
+
   void removeMedia(int index) {
     imagesList.removeAt(index);
+    if (imagesList.isEmpty) videoDurationSeconds.value = null;
   }
 
   Future<void> _generateThumbnail(File videoFile) async {
@@ -309,6 +331,15 @@ class AddChatSymbolController extends GetxController {
 
     isPosting.value = true;
     try {
+      final isVideoPost = selectedSymbolPostType.value == SymbolPostType.video;
+      // The pick/trim flow normally reads this already; re-read here as a
+      // fallback so a video never posts without its length.
+      if (isVideoPost &&
+          videoDurationSeconds.value == null &&
+          imagesList.isNotEmpty) {
+        await _readAndStoreVideoDuration(imagesList.first);
+      }
+
       GenerateUploadUlrModel? MediaUploadRes;
       if (imagesList.isNotEmpty) {
         List<String?> fileNames = [];
@@ -349,6 +380,10 @@ class AddChatSymbolController extends GetxController {
           ApiKeys.fontSize: selectedFontSize.value,
         if (selectedSymbolPostType.value == SymbolPostType.text)
           ApiKeys.fontWeight: "${selectedFontWeight.value}",
+        // Video length in seconds. Ignored by the server for other types, so
+        // it's only sent for video to keep the payload honest.
+        if (isVideoPost && videoDurationSeconds.value != null)
+          ApiKeys.media_duration: videoDurationSeconds.value,
         ApiKeys.caption: "${captionController.text}",
         ApiKeys.duration_days: selectedDays.value,
         ApiKeys.visibility: visibility.value == PostVisibility.public
@@ -436,6 +471,7 @@ class AddChatSymbolController extends GetxController {
     captionController.clear();
     linkTextSymbolController.clear();
     imagesList.clear();
+    videoDurationSeconds.value = null;
     selectedDays.value = 3;
   }
 

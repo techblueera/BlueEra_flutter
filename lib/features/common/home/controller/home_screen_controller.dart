@@ -15,6 +15,13 @@ class HomeScreenController extends GetxController{
   final RxBool isVisible = true.obs;
   final RxDouble headerOffset = 0.0.obs;
 
+  /// Fetch the singleton, registering it on first use. FeedScreen is embedded in
+  /// routes that never register this controller, so consumers must not assume a
+  /// prior Get.put. Permanent because the header state outlives any one route.
+  static HomeScreenController get to => Get.isRegistered<HomeScreenController>()
+      ? Get.find<HomeScreenController>()
+      : Get.put(HomeScreenController(), permanent: true);
+
 
   // Future<void> getBusinessProfileData() async {
   //   try {

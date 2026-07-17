@@ -239,11 +239,11 @@ class _FeedScreenState extends State<FeedScreen> {
 
               final content = RefreshIndicator(
                 notificationPredicate: (notification) {
-                  return Get.find<HomeScreenController>().headerOffset.value == 0.0 &&
+                  return HomeScreenController.to.headerOffset.value == 0.0 &&
                       notification.metrics.pixels <= notification.metrics.minScrollExtent;
                 },
                 onRefresh: () async {
-                  if (Get.find<HomeScreenController>().headerOffset.value != 0.0) return;
+                  if (HomeScreenController.to.headerOffset.value != 0.0) return;
                   fetchPostData(isInitialLoad: true, refresh: true, id: widget.id);
                   return Future.value();
                 },
@@ -265,7 +265,7 @@ class _FeedScreenState extends State<FeedScreen> {
                   controller: widget.isInParentScroll ? null : _scrollController,
                   headerHeight: (widget.headerHeight ?? SizeConfig.size100),
                   onVisibilityChanged: (visible, offset) {
-                    final controller = Get.find<HomeScreenController>();
+                    final controller = HomeScreenController.to;
                     const step = 0.25;
                     double newOffset = visible
                         ? (controller.headerOffset.value - step).clamp(0.0, 1.0)

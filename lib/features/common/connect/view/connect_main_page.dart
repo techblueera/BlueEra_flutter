@@ -1640,7 +1640,7 @@ class _MultiFlagBottomSheetState extends State<_MultiFlagBottomSheet> {
   int selectedIndex = 0;
   final TextEditingController searchController = TextEditingController();
   late SavedFeedTab _selectedSavedTab;
-  final homeScreenController = Get.put(HomeScreenController());
+  final homeScreenController = HomeScreenController.to;
 
   late PageController _pageController;
 

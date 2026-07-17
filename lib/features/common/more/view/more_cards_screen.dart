@@ -78,7 +78,7 @@ class _MoreCardsScreenState extends State<MoreCardsScreen> {
             controller: _scrollController,
             headerHeight: (widget.headerHeight ?? SizeConfig.size100),
             onVisibilityChanged: (visible, offset) {
-              final controller = Get.find<HomeScreenController>();
+              final controller = HomeScreenController.to;
               final currentOffset = controller.headerOffset.value;
 
               // Linear animation step (same speed up/down)

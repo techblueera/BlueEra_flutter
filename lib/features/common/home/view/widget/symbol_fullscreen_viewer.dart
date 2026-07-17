@@ -16,10 +16,12 @@ import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:any_link_preview/any_link_preview.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:video_player/video_player.dart';
 
 class SymbolFullscreenViewer extends StatefulWidget {
   final List<SymbolUserGroup> groups;
@@ -40,12 +42,17 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
   late int _groupIndex;
   late int _symbolIndex;
   late AnimationController _progressController;
-  bool _isPaused = false;
 
-  /// Whether the current symbol's media (image) has finished buffering. For
-  /// image stories the 5s progress timer must not run until this is true —
-  /// otherwise a slow-loading image gets skipped before the user ever sees it
-  /// (WhatsApp behaviour). Text/link stories set this true immediately.
+  /// Whether the user is holding the screen. Exposed as a listenable because
+  /// the video story has to pause playback in step with the progress timer.
+  final ValueNotifier<bool> _paused = ValueNotifier<bool>(false);
+  bool get _isPaused => _paused.value;
+  set _isPaused(bool value) => _paused.value = value;
+
+  /// Whether the current symbol's media (image or video) has finished
+  /// buffering. For those stories the progress timer must not run until this
+  /// is true — otherwise slow-loading media gets skipped before the user ever
+  /// sees it (WhatsApp behaviour). Text/link stories set this true immediately.
   bool _mediaReady = false;
 
   /// Mutable, growable copy of the groups passed in. Silent pagination appends
@@ -98,6 +105,7 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
   @override
   void dispose() {
     _progressController.dispose();
+    _paused.dispose();
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.dark,
@@ -109,9 +117,11 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
     _progressController.reset();
 
     final symbol = _currentSymbol;
-    // Image stories wait for the image to buffer; the timer is kicked off in
-    // [_onMediaLoaded]. Everything else (text / link) starts right away.
-    _mediaReady = !_isImageSymbol(symbol);
+    _progressController.duration = _durationFor(symbol);
+    // Image and video stories wait for the media to buffer; the timer is
+    // kicked off in [_onMediaLoaded]. Everything else (text / link) starts
+    // right away.
+    _mediaReady = !_isImageSymbol(symbol) && !_isVideoSymbol(symbol);
     if (_mediaReady) {
       _progressController.forward();
     }
@@ -129,6 +139,44 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
     final content = symbol.content;
     final hasContent = content != null && content.isNotEmpty;
     return hasContent && (symbol.type == 'image' || _isImageUrl(content));
+  }
+
+  /// True when the symbol renders as a full-screen video. Mirrors the check in
+  /// [_buildContent] so the timer gating and the rendering stay in sync.
+  bool _isVideoSymbol(SymbolFeedItem symbol) {
+    final content = symbol.content;
+    final hasContent = content != null && content.isNotEmpty;
+    return hasContent && (symbol.type == 'video' || _isVideoUrl(content));
+  }
+
+  /// How long the current story runs. Video plays for the clip's own length,
+  /// taken from `media_duration` so the timer is right from the first frame
+  /// rather than waiting on the player; [_onVideoReady] corrects it for legacy
+  /// symbols posted before the app sent the field. Everything else gets the
+  /// fixed story beat.
+  Duration _durationFor(SymbolFeedItem symbol) {
+    if (_isVideoSymbol(symbol) && symbol.hasKnownDuration) {
+      return Duration(milliseconds: (symbol.mediaDuration * 1000).round());
+    }
+    return _storyDuration;
+  }
+
+  /// The player reports the real length once the clip is buffered. Prefer it
+  /// over `media_duration`, which is 0 on symbols posted by older app builds.
+  void _onVideoReady(Duration playerDuration) {
+    if (!mounted) return;
+    if (playerDuration > Duration.zero) {
+      _progressController.duration = playerDuration;
+    }
+    _onMediaLoaded();
+  }
+
+  /// A clip that won't load shouldn't hold the story for its full advertised
+  /// length — fall back to the standard beat and move on.
+  void _onVideoError() {
+    if (!mounted) return;
+    _progressController.duration = _storyDuration;
+    _onMediaLoaded();
   }
 
   /// Called once the current image has finished buffering (or failed). Starts
@@ -712,6 +760,16 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
   Widget _buildContent(SymbolFeedItem symbol, Color bgColor) {
     final String? content = symbol.content;
     final bool hasContent = content != null && content.isNotEmpty;
+    // Checked before the image branch so an mp4 mislabelled `image` still
+    // plays rather than failing to decode.
+    if (_isVideoSymbol(symbol)) {
+      return _StorySymbolVideo(
+        url: content!,
+        paused: _paused,
+        onReady: _onVideoReady,
+        onError: _onVideoError,
+      );
+    }
     if (hasContent && (symbol.type == 'image' || _isImageUrl(content))) {
       return Center(
         child: CachedNetworkImage(
@@ -779,15 +837,21 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
     'jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'heic', 'heif', 'avif', 'svg',
   };
 
+  static const Set<String> _videoExtensions = {
+    'mp4', 'mov', 'm4v', 'webm', 'mkv', '3gp', 'avi',
+  };
+
   bool _isHttpUrl(String value) {
     final uri = Uri.tryParse(value.trim());
     return uri != null && (uri.scheme == 'http' || uri.scheme == 'https');
   }
 
-  bool _isImageUrl(String value) {
+  /// Lower-cased file extension of an http(s) URL, or null when there isn't
+  /// one to read.
+  String? _urlExtension(String value) {
     final uri = Uri.tryParse(value.trim());
-    if (uri == null) return false;
-    if (uri.scheme != 'http' && uri.scheme != 'https') return false;
+    if (uri == null) return null;
+    if (uri.scheme != 'http' && uri.scheme != 'https') return null;
     String path;
     try {
       path = Uri.decodeFull(uri.path);
@@ -795,16 +859,25 @@ class _SymbolFullscreenViewerState extends State<SymbolFullscreenViewer>
       path = uri.path;
     }
     final dot = path.lastIndexOf('.');
-    if (dot == -1) return false;
-    return _imageExtensions.contains(path.substring(dot + 1).toLowerCase());
+    if (dot == -1) return null;
+    return path.substring(dot + 1).toLowerCase();
   }
+
+  bool _isImageUrl(String value) =>
+      _imageExtensions.contains(_urlExtension(value));
+
+  bool _isVideoUrl(String value) =>
+      _videoExtensions.contains(_urlExtension(value));
 
   bool _shouldShowLinkPreview(SymbolFeedItem symbol) {
     final String? content = symbol.content;
     if (content == null || content.isEmpty) return false;
     if (symbol.type == 'embeddedUrl') return true;
-    // Plain URL in `content` that isn't an image — render as a link preview.
-    return _isHttpUrl(content) && !_isImageUrl(content);
+    // Plain URL in `content` that isn't media — render as a link preview.
+    // Media URLs are shown by their own player/image block.
+    return _isHttpUrl(content) &&
+        !_isImageUrl(content) &&
+        !_isVideoUrl(content);
   }
 
   Widget _buildLinkPlaceholder(String link) {
@@ -1649,5 +1722,98 @@ class _CommentTile extends StatelessWidget {
     if (diff.inMinutes < 60) return '${diff.inMinutes} ${AppStrings.minutesAgo.tr}';
     if (diff.inHours < 24) return '${diff.inHours} ${AppStrings.hoursAgo.tr}';
     return '${diff.inDays} ${AppStrings.daysAgo.tr}';
+  }
+}
+
+/// Full-screen playback for a video symbol, following the viewer's [paused]
+/// state so holding the story holds the clip too.
+///
+/// Owns its controller rather than letting the viewer hold one across symbols:
+/// the story background is already rebuilt under a per-symbol key, so each
+/// clip gets a fresh State and the previous controller is disposed for us.
+class _StorySymbolVideo extends StatefulWidget {
+  const _StorySymbolVideo({
+    required this.url,
+    required this.paused,
+    required this.onReady,
+    required this.onError,
+  });
+
+  final String url;
+  final ValueListenable<bool> paused;
+
+  /// Fired once the clip is buffered, carrying the player's own length.
+  final void Function(Duration playerDuration) onReady;
+  final VoidCallback onError;
+
+  @override
+  State<_StorySymbolVideo> createState() => _StorySymbolVideoState();
+}
+
+class _StorySymbolVideoState extends State<_StorySymbolVideo> {
+  VideoPlayerController? _controller;
+  bool _failed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.paused.addListener(_syncPlayback);
+    _init();
+  }
+
+  Future<void> _init() async {
+    final controller = VideoPlayerController.networkUrl(Uri.parse(widget.url));
+    try {
+      await controller.initialize();
+    } catch (_) {
+      await controller.dispose();
+      if (!mounted) return;
+      setState(() => _failed = true);
+      widget.onError();
+      return;
+    }
+    // The user can swipe on before a slow clip finishes buffering; drop it
+    // rather than leaking the controller into a dead State.
+    if (!mounted) {
+      await controller.dispose();
+      return;
+    }
+    setState(() => _controller = controller);
+    widget.onReady(controller.value.duration);
+    _syncPlayback();
+  }
+
+  void _syncPlayback() {
+    final controller = _controller;
+    if (controller == null) return;
+    widget.paused.value ? controller.pause() : controller.play();
+  }
+
+  @override
+  void dispose() {
+    widget.paused.removeListener(_syncPlayback);
+    _controller?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_failed) {
+      return const Center(
+        child: Icon(Icons.videocam_off_rounded, color: Colors.white54, size: 48),
+      );
+    }
+    final controller = _controller;
+    if (controller == null) {
+      return const Center(
+        child: CircularProgressIndicator(color: Colors.white),
+      );
+    }
+    return Center(
+      child: AspectRatio(
+        aspectRatio: controller.value.aspectRatio,
+        child: VideoPlayer(controller),
+      ),
+    );
   }
 }

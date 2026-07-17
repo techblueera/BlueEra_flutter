@@ -319,6 +319,36 @@ String formatDuration(Duration duration) {
   return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
 }
 
+/// Formats a playback length expressed in seconds — the `media_duration` API
+/// field — for display.
+///
+/// Rounds to the nearest second so a 27.9s clip reads as 00:28, and floors any
+/// non-zero length at one second: 00:00 is how "we don't know the length"
+/// reads, so a sub-second clip must not borrow that look.
+String formatMediaDuration(num seconds) {
+  if (seconds <= 0) return formatDuration(Duration.zero);
+  final rounded = seconds.round();
+  return formatDuration(Duration(seconds: rounded < 1 ? 1 : rounded));
+}
+
+/// Reads the playback length of [videoFile] in SECONDS, or null when it can't
+/// be determined. Read from the local file before uploading — reading it back
+/// off the S3 URL is a needless round-trip and unreliable.
+Future<double?> readVideoDurationSeconds(File videoFile) async {
+  final controller = VideoPlayerController.file(videoFile);
+  try {
+    await controller.initialize();
+    final duration = controller.value.duration;
+    if (duration == Duration.zero) return null;
+    // Milliseconds rather than `inSeconds`, which truncates 27.9s to 27.
+    return duration.inMilliseconds / 1000.0;
+  } catch (_) {
+    return null;
+  } finally {
+    await controller.dispose();
+  }
+}
+
 Future<Size?> getVideoDimensions(String videoPath) async {
   final controller = VideoPlayerController.file(File(videoPath));
   await controller.initialize();
