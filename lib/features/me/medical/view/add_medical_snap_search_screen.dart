@@ -42,8 +42,13 @@ class _AddMedicalSnapSearchScreenState extends State<AddMedicalSnapSearchScreen>
   }
 
   @override
-  dispose(){
-    deleteIfRegistered<MedicalController>();
+  dispose() {
+    // MedicalController deliberately NOT deleted here. Publishing pops this
+    // screen via Get.until, so deleting on the way out killed the controller
+    // mid-refresh — the post-publish Top Selling / inventory fetch would land
+    // on an instance the Medical home screen no longer reads, and the tab came
+    // back showing the pre-publish catalog. The home screen owns this
+    // controller's lifetime now.
     super.dispose();
   }
 
@@ -117,7 +122,10 @@ class _AddMedicalSnapSearchScreenState extends State<AddMedicalSnapSearchScreen>
             isValidate: canSubmit,
             radius: SizeConfig.size8,
             bgColor: canSubmit ? AppColors.primaryColor : Colors.grey,
-            title: '${AppStrings.medicalPublishPrefix.tr} $productCount ${AppStrings.medicalPublishProductsLabel.tr}, $variantCount ${AppStrings.medicalPublishVariantsLabel.tr}',
+            title: AppStrings.medicalPublishProductsVariants.trParams({
+              'productCount': '$productCount',
+              'variantCount': '$variantCount',
+            }),
             isLoading: loading,
           ),
         );
@@ -262,7 +270,7 @@ class _AddMedicalSnapSearchScreenState extends State<AddMedicalSnapSearchScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             CustomText(
-              AppStrings.medicalChooseYourMedicalProducts,
+              AppStrings.medicalProductViaCategory.tr,
               fontSize: SizeConfig.large,
               fontWeight: FontWeight.w600,
               color: AppColors.mainTextColor,

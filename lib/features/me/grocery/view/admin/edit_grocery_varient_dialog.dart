@@ -2,6 +2,7 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
+import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -40,6 +41,13 @@ class _EditGroceryVarientDialogState extends State<EditGroceryVarientDialog> {
     _validateForm();
   }
 
+  @override
+  void dispose() {
+    mrpController.dispose();
+    sellingController.dispose();
+    super.dispose();
+  }
+
   void _validateForm() {
     final mrpText = mrpController.text.trim();
     final sellingText = sellingController.text.trim();
@@ -75,81 +83,93 @@ class _EditGroceryVarientDialogState extends State<EditGroceryVarientDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      insetPadding: const EdgeInsets.all(40),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: EdgeInsets.only(
-          left: SizeConfig.size15,
-          right: SizeConfig.size15,
-          bottom: SizeConfig.size15,
-        ),
+    return Container(
+      padding: EdgeInsets.only(
+        left: SizeConfig.size20,
+        right: SizeConfig.size20,
+        top: SizeConfig.size10,
+        // Both fields are numeric, so the keyboard is up the whole time this is
+        // open — viewInsets lifts the sheet clear of it.
+        bottom: MediaQuery.of(context).viewInsets.bottom + SizeConfig.size20,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: CustomText(
-                    widget.title,
-                    fontSize: SizeConfig.medium,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.mainTextColor,
-                  ),
+            // Drag handle replaces the old ✕ — a modal sheet already dismisses
+            // on swipe-down and on barrier tap.
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                margin: EdgeInsets.only(bottom: SizeConfig.size12),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
                 ),
-                SizedBox(width: SizeConfig.size8),
-                IconButton(
-                  onPressed: () => Get.back(),
-                  icon: Icon(
-                    Icons.close,
-                    size: SizeConfig.size20,
-                    color: AppColors.black,
-                  ),
-                ),
-              ],
+              ),
             ),
-            // const SizedBox(height: 8),
+
+            CustomText(
+              widget.title,
+              fontSize: SizeConfig.large,
+              fontWeight: FontWeight.w700,
+              color: AppColors.mainTextColor,
+            ),
+            SizedBox(height: SizeConfig.size15),
 
             _input(AppStrings.groceryViewMrp.tr, AppStrings.groceryViewPriceHint.tr, mrpController, isNumber: true),
-            const SizedBox(height: 12),
+            SizedBox(height: SizeConfig.size12),
 
             _input(AppStrings.groceryViewSellingPrice.tr, AppStrings.groceryViewPriceHint.tr, sellingController, isNumber: true),
-            const SizedBox(height: 20),
 
-            // Error Message Display
-            if (errorMessage != null)
-              Padding(
-                padding: const EdgeInsets.only(top: 8.0),
-                child: CustomText(
-                  errorMessage!,
-                  fontSize: SizeConfig.extraSmall,
-                  color: Colors.red,
+            if (errorMessage != null) ...[
+              SizedBox(height: SizeConfig.size8),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.error_outline, size: 14, color: Colors.red),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: CustomText(
+                        errorMessage!,
+                        fontSize: SizeConfig.extraSmall,
+                        color: Colors.red,
+                      ),
+                    ),
+                  ],
                 ),
               ),
+            ],
 
-            const SizedBox(height: 20),
+            SizedBox(height: SizeConfig.size20),
 
-            Align(
-              alignment: Alignment.centerRight,
-              child: GestureDetector(
-                onTap:  () {
-                  widget.onSubmit(
-                    mrpController.text,
-                    sellingController.text
-                  );
-                },
-                child: CustomText(
-                  AppStrings.groceryViewSubmit.tr,
-                  fontSize: SizeConfig.medium,
-                  fontWeight: FontWeight.w600,
-                  color: (isFormValid)
-                      ? AppColors.primaryColor
-                      : Colors.grey,
-                ),
-              ),
+            // Gated on isFormValid. The old Submit was a GestureDetector that
+            // greyed its label but still fired onTap, so an invalid price
+            // (selling > MRP) went through despite the validator.
+            CustomBtn(
+              onTap: isFormValid
+                  ? () => widget.onSubmit(
+                        mrpController.text.trim(),
+                        sellingController.text.trim(),
+                      )
+                  : null,
+              isValidate: isFormValid,
+              radius: SizeConfig.size10,
+              title: AppStrings.groceryViewSubmit.tr,
             ),
-            const SizedBox(height: 5),
+            SizedBox(height: SizeConfig.size10),
           ],
         ),
       ),

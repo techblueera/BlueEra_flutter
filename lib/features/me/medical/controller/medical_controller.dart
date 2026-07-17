@@ -1,4 +1,5 @@
-﻿import 'dart:convert';
+﻿import 'dart:async';
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -6,11 +7,17 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/core/utils/fetch_cache.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
+// The medical business-products endpoint ships grocery's exact response shape
+// (see docs/backend/MEDICAL_TOP_SELLING_BACKEND_GUIDE.md), so the model and its
+// grouping helper are shared rather than duplicated.
+import 'package:BlueEra/features/me/grocery/model/grocery_business_products_model.dart';
 import 'package:BlueEra/features/me/medical/model/medical_nested_category_model.dart';
 import 'package:BlueEra/features/me/medical/model/medical_product_model.dart';
 import 'package:BlueEra/features/me/medical/model/my_medical_super_category_model.dart';
@@ -211,6 +218,11 @@ class MedicalController extends GetxController {
       commonSnackBar(
         message: response.message ?? AppStrings.medicalProductsAddedSuccessfully.tr,
       );
+      // Same as the manual path: empty the basket, then refresh Top Selling +
+      // inventory so the just-published items are on the tab we popped back to.
+      clearMedicalSelection();
+      invalidateMedicalProductsTabCache();
+      unawaited(fetchMedicalProductsTabData(businessId: businessId));
       log('success-- ${response.isSuccess}');
     } catch (e) {
       log('addMedicalSnapSearchProductNewVariant error: $e');
@@ -630,12 +642,47 @@ class MedicalController extends GetxController {
       commonSnackBar(
         message: response.message ?? AppStrings.somethingWentWrong,
       );
+      // The basket is published — empty it before anything can re-open the
+      // add flow and find the same items still in the cart.
+      clearMedicalSelection();
+      // We just landed back on the Products tab and both its lists are stale —
+      // the item the merchant published isn't in either. Drop the freshness
+      // stamp so nothing short-circuits, then refetch Top Selling + inventory.
+      // Not awaited: the snackbar and the pop shouldn't wait on two GETs.
+      invalidateMedicalProductsTabCache();
+      unawaited(fetchMedicalProductsTabData(businessId: businessId));
       log('success-- ${response.isSuccess}');
     } catch (e) {
       addMedicalProductVariantResponse.value = ApiResponse.error('error');
     } finally {
       isAddMedicalProductsLoading.value = false;
     }
+  }
+
+  /// Empties the add-product basket after a successful publish.
+  ///
+  /// This screen's controller used to be deleted on the way out, which wiped
+  /// the selection as a side effect. It now survives (so the Products tab can
+  /// reuse its cached lists), which means the basket has to be cleared on
+  /// purpose — otherwise re-entering "Add Product" shows the items that were
+  /// just published still sitting in the cart.
+  ///
+  /// Covers both publish paths: the manual category pick and snap-search.
+  void clearMedicalSelection() {
+    selectedMedicalProducts.clear();
+    selectedProductVariants.clear();
+
+    selectedSnapSearchProductVariants.clear();
+    productSnapSearchData.value = null;
+    medicalSnapSearchResponse.value = ApiResponse.initial('Initial');
+    // Drop the captured photos too — otherwise the snap-search screen reopens
+    // showing the shelf picture whose products were already published, and its
+    // "one image at a time" guard blocks a new capture.
+    medicalSnapSearchImagesMap.clear();
+
+    // selectedProductVariants is a plain Map, so the variant screen's
+    // GetBuilder won't repaint on its own.
+    update();
   }
 
   List<Map<String, dynamic>> buildInventoryPayload() {
@@ -657,7 +704,11 @@ class MedicalController extends GetxController {
           "cityName": city,
           "batches": [
             {
-              "quantity": variant.weight,
+              // Opening stock for the batch. Was `variant.weight`, which is the
+              // pack SIZE (e.g. 500 mg), not a stock count — and it's null on
+              // most catalog variants, so every publish sent quantity: null and
+              // the item landed with totalStock: 0.
+              "quantity": 1,
               "mrp": variant.pricing?[0].mrp,
               "sellingPrice": variant.pricing?[0].sellingPrice,
             }
@@ -672,6 +723,141 @@ class MedicalController extends GetxController {
   /// Fetch Grocery Products
   RxBool myMedicalCategoryLoading = true.obs;
   RxList<MyMedicalSuperCategoryModel> myMedicalCategoryList = <MyMedicalSuperCategoryModel>[].obs;
+
+  // ─── "Top Selling" — store-wide products (business-products API) ─────────
+  // Reuses grocery's model + grouping + card: the backend ships this endpoint
+  // with grocery's exact response shape on purpose, so duplicating the parsing
+  // would only be a second thing to keep in sync.
+  // See docs/backend/MEDICAL_TOP_SELLING_BACKEND_GUIDE.md.
+  Rx<ApiResponse> fetchMedicalBusinessProductsResponse =
+      ApiResponse.initial('Initial').obs;
+  RxList<BusinessProductData> medicalBusinessProductsList =
+      <BusinessProductData>[].obs;
+  RxBool isMedicalBusinessProductsLoadingMore = false.obs;
+  int _medicalBusinessProductsPage = 1;
+  bool _medicalBusinessProductsHasMore = true;
+  static const int _medicalBusinessProductsLimit = 20;
+  static const int medicalBusinessProductsPreviewLimit = 20;
+
+  bool get medicalBusinessProductsHasMore => _medicalBusinessProductsHasMore;
+
+  /// Products-tab data: the Top Selling rail + the category-with-inventory
+  /// grid. Fires both in parallel, mirroring grocery's [fetchAllGroceryData].
+  ///
+  /// [businessId] is always explicit — merchant-side callers pass the global
+  /// `businessId`, the customer-side rail passes another store's id with
+  /// [otherStore] true. Threaded as a parameter (rather than read off the
+  /// global in here) both because grocery does it that way and because a
+  /// parameter of that name would shadow the global anyway.
+  Future<void> fetchMedicalProductsTabData({
+    required String businessId,
+    bool otherStore = false,
+  }) async {
+    await Future.wait([
+      fetchMyMedicalCategory(),
+      fetchMedicalBusinessProducts(
+        businessId: businessId,
+        otherStore: otherStore,
+      ),
+    ]);
+  }
+
+  /// Freshness guard for the Products tab, keyed per store — so re-opening the
+  /// tab reuses what's already loaded instead of refetching on every visit.
+  final FetchCache _medicalProductsTabCache = FetchCache();
+
+  /// Products-tab fetch that no-ops while the data is still loaded & fresh.
+  /// Use on tab open / screen re-entry; call [fetchMedicalProductsTabData]
+  /// directly for an explicit refresh (pull-to-refresh, post-publish).
+  Future<void> fetchMedicalProductsTabDataIfNeeded({
+    required String businessId,
+    bool otherStore = false,
+  }) async {
+    final signature = 'medical|$businessId|$otherStore';
+    final hasData = myMedicalCategoryList.isNotEmpty ||
+        medicalBusinessProductsList.isNotEmpty;
+    if (_medicalProductsTabCache.isFresh(signature, hasData: hasData)) return;
+    await fetchMedicalProductsTabData(
+      businessId: businessId,
+      otherStore: otherStore,
+    );
+    if (fetchMyMedicalCategoryResponse.value.status == Status.COMPLETE) {
+      _medicalProductsTabCache.mark(signature);
+    }
+  }
+
+  /// Drops the freshness stamp so the next `*IfNeeded()` refetches. Called
+  /// after publishing, where the lists are known-stale.
+  void invalidateMedicalProductsTabCache() =>
+      _medicalProductsTabCache.invalidate();
+
+  Future<void> fetchMedicalBusinessProducts({
+    required String businessId,
+    bool otherStore = false,
+    bool isLoadMore = false,
+  }) async {
+    try {
+      if (isLoadMore) {
+        // Guard against overlapping load-more calls and stop once the server
+        // says there are no more pages.
+        if (!_medicalBusinessProductsHasMore ||
+            isMedicalBusinessProductsLoadingMore.value ||
+            fetchMedicalBusinessProductsResponse.value.status ==
+                Status.INITIAL) {
+          return;
+        }
+        isMedicalBusinessProductsLoadingMore.value = true;
+      } else {
+        fetchMedicalBusinessProductsResponse.value =
+            ApiResponse.initial('Initial');
+        _medicalBusinessProductsPage = 1;
+        _medicalBusinessProductsHasMore = true;
+        medicalBusinessProductsList.clear();
+      }
+
+      final Map<String, dynamic> params = {
+        ApiKeys.businessId: businessId,
+        ApiKeys.page: _medicalBusinessProductsPage,
+        ApiKeys.limit: _medicalBusinessProductsLimit,
+      };
+
+      final ResponseModel responseModel = otherStore
+          ? await MedicalRepo()
+              .fetchPublicMedicalBusinessProductsRepo(params: params)
+          : await MedicalRepo()
+              .fetchMedicalBusinessProductsRepo(params: params);
+
+      if (!responseModel.isSuccess) {
+        fetchMedicalBusinessProductsResponse.value = ApiResponse.error('error');
+        return;
+      }
+
+      final parsed =
+          GroceryBusinessProductsModel.fromJson(responseModel.response?.data);
+      final newItems = parsed.data ?? [];
+
+      if (isLoadMore) {
+        medicalBusinessProductsList.addAll(newItems);
+      } else {
+        medicalBusinessProductsList.value = newItems;
+      }
+
+      if (newItems.isNotEmpty) _medicalBusinessProductsPage++;
+      // Short page → last page; no point asking for another.
+      if (newItems.length < _medicalBusinessProductsLimit) {
+        _medicalBusinessProductsHasMore = false;
+      }
+
+      fetchMedicalBusinessProductsResponse.value =
+          ApiResponse.complete(responseModel);
+      log("Loaded ${medicalBusinessProductsList.length} medical business products");
+    } catch (e, s) {
+      fetchMedicalBusinessProductsResponse.value = ApiResponse.error('error');
+      log("fetchMedicalBusinessProducts failed: $e\n$s");
+    } finally {
+      if (isLoadMore) isMedicalBusinessProductsLoadingMore.value = false;
+    }
+  }
 
   Future<void> fetchMyMedicalCategory() async {
     try {

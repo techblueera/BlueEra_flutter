@@ -133,12 +133,11 @@ import 'package:BlueEra/features/me/product/view/admin/product_selection_screen.
 import 'package:BlueEra/features/me/product/model/product_nested_category_response.dart';
 import 'package:BlueEra/features/me/grocery/view/admin/grocery_screen.dart';
 import 'package:BlueEra/features/me/medical/model/my_medical_products_response.dart';
-import 'package:BlueEra/features/me/medical/view/add_medical_screen.dart';
 import 'package:BlueEra/features/me/medical/view/add_medical_variant_screen.dart';
 import 'package:BlueEra/features/me/medical/view/medical_listing/medical_cart_screen.dart';
 import 'package:BlueEra/features/me/medical/view/medical_listing/medical_confirm_screen.dart';
 import 'package:BlueEra/features/me/medical/view/medical_listing/medical_listing_screen.dart';
-import 'package:BlueEra/features/me/medical/view/medical_subcategory_screen.dart';
+import 'package:BlueEra/features/me/medical/view/medical_product_selection_screen.dart';
 import 'package:BlueEra/features/me/medical/view/my_medical_listing/my_medical_products_screen.dart';
 import 'package:BlueEra/features/me/medical/view/my_medical_listing/my_medical_variant_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/booking_enquiries_screen/my_enquires_screen.dart';
@@ -210,13 +209,13 @@ class RouteHelper {
   static final RouteObserver<PageRoute> routeObserver =
       RouteObserver<PageRoute>();
 
-  static String getMobileNumberLoginRoute() => 
+  static String getMobileNumberLoginRoute() =>
       RouteConstant.MobileNumberScreen;
 
-  // static String getOnboardingStartedScreenRoute() => 
+  // static String getOnboardingStartedScreenRoute() =>
   // RouteConstant.OnboardingStartedScreen;
 
-  static String getOtpPageScreenRoute() => 
+  static String getOtpPageScreenRoute() =>
       RouteConstant.OtpPageScreen;
 
   // static String getSelectAccountScreenRoute() =>
@@ -225,16 +224,16 @@ class RouteHelper {
   // static String getCreateUserAccountRoute() =>
   //     RouteConstant.CreateUserAccount;
 
-  static String getHomeScreenRoute() => 
+  static String getHomeScreenRoute() =>
       RouteConstant.HomeScreen;
 
-  static String getSplashScreenRoute() => 
+  static String getSplashScreenRoute() =>
       RouteConstant.SplashScreen;
 
-  static String getPermissionScreenRoute() => 
+  static String getPermissionScreenRoute() =>
       RouteConstant.PermissionScreen;
 
-  static String getAudioCallScreenRoute() => 
+  static String getAudioCallScreenRoute() =>
       RouteConstant.AudioCallScreen;
 
   // static String getBusinessAccountRoute() =>
@@ -249,7 +248,7 @@ class RouteHelper {
   static String getPersonalProfileCreateScreenRoute() =>
       RouteConstant.PersonalProfileCreateScreen;
 
-  static String getFeedScreenRoute() => 
+  static String getFeedScreenRoute() =>
       RouteConstant.FeedScreen;
 
   static String getBusinessVerificationScreenRoute() =>
@@ -264,10 +263,10 @@ class RouteHelper {
   static String getManageChannelScreenRoute() =>
       RouteConstant.ManageChannelScreen;
 
-  static String getChannelScreenRoute() => 
+  static String getChannelScreenRoute() =>
       RouteConstant.ChannelScreen;
 
-  static String getCreateReelScreenRoute() => 
+  static String getCreateReelScreenRoute() =>
       RouteConstant.CreateReelScreen;
 
   static String getCustomizeMapScreenRoute() =>
@@ -276,7 +275,7 @@ class RouteHelper {
   static String getSearchLocationScreenRoute() =>
       RouteConstant.SearchLocationScreen;
 
-  static String getAddSongScreenRoute() => 
+  static String getAddSongScreenRoute() =>
       RouteConstant.addSongScreen;
 
   static String getAddPlaceStepOneScreenRoute() =>
@@ -288,13 +287,13 @@ class RouteHelper {
   static String getCategorySelectionScreenRoute() =>
       RouteConstant.categorySelectionScreen;
 
-  static String getJobQnaScreenRoute() => 
+  static String getJobQnaScreenRoute() =>
       RouteConstant.JobQnaScreen;
 
   static String getJobDetailsOverviewScreenRoute() =>
       RouteConstant.JobDetailsOverviewScreen;
 
-  static String getAppliedJobsScreenRoute() => 
+  static String getAppliedJobsScreenRoute() =>
       RouteConstant.AppliedJobsScreen;
 
   static String getAddUpdateProductScreenRoute() =>
@@ -303,7 +302,7 @@ class RouteHelper {
   static String getFollowerFollowingScreenRoute() =>
       RouteConstant.FollowerFollowingScreen;
 
-  static String getChatContactsRoute() => 
+  static String getChatContactsRoute() =>
       RouteConstant.ChatContactsScreen;
 
   static String getCreateJobPostScreenRoute() =>
@@ -321,31 +320,31 @@ class RouteHelper {
   static String getCreateJobPostStep5Route() =>
       RouteConstant.CreateJobPostStep5;
 
-  static String getTagPeopleScreenRoute() => 
+  static String getTagPeopleScreenRoute() =>
       RouteConstant.tagPeopleScreen;
 
   static String getVideoReelRecorderScreenRoute() =>
       RouteConstant.videoRecorderScreen;
 
-  static String getFullVideoPreviewRoute() => 
+  static String getFullVideoPreviewRoute() =>
       RouteConstant.fullVideoPreview;
 
-  static String getVideoTrimScreenRoute() => 
+  static String getVideoTrimScreenRoute() =>
       RouteConstant.videoTrimScreen;
 
-  static String getAllSongsScreenRoute() => 
+  static String getAllSongsScreenRoute() =>
       RouteConstant.allSongsScreen;
 
   static String getCreateMessagePostScreenRoute() =>
       RouteConstant.CreateMessagePostScreen;
 
-  static String getPollInputScreenRoute() => 
+  static String getPollInputScreenRoute() =>
       RouteConstant.PollInputScreen;
 
-  static String getPollReviewScreenRoute() => 
+  static String getPollReviewScreenRoute() =>
       RouteConstant.PollReviewScreen;
 
-  static String getPhotoPostScreenRoute() => 
+  static String getPhotoPostScreenRoute() =>
       RouteConstant.PhotoPostScreen;
 
   static String getPhotoPostPreviewScreenRoute() =>
@@ -395,7 +394,7 @@ class RouteHelper {
   static String getMyEnquiresRoute() =>
       RouteConstant.MyEnquiresScreen;
 
-  static String sentEnquiresRoute() => 
+  static String sentEnquiresRoute() =>
       RouteConstant.EnquiryForm;
 
   static String getBookingAndEnquiresRoute() =>
@@ -413,19 +412,19 @@ class RouteHelper {
   static String getAddAccountUpiScreenRoute() =>
       RouteConstant.addAccountUpiScreen;
 
-  static String getWalletScreenRoute() => 
+  static String getWalletScreenRoute() =>
       RouteConstant.walletScreen;
 
   static String getAllTransactionsScreen() =>
       RouteConstant.allTransactionsScreen;
 
-  static String getAddDocumentScreenRoute() => 
+  static String getAddDocumentScreenRoute() =>
       RouteConstant.addDocumentScreen;
 
-  static String getPostDetailPageRoute() => 
+  static String getPostDetailPageRoute() =>
       RouteConstant.postDetailPage;
 
-  static String getMoreCardsScreenRoute() => 
+  static String getMoreCardsScreenRoute() =>
       RouteConstant.moreCardsScreen;
 
   static String getAddProductTextOrSnapScreenRoute() =>
@@ -434,7 +433,7 @@ class RouteHelper {
   // static String getListingFormScreenRoute() =>
   //      RouteConstant.listingFormScreen;
 
-  static String getProductScreenRoute() => 
+  static String getProductScreenRoute() =>
       RouteConstant.productScreen;
 
   static String getAddServicesScreenRoute() =>
@@ -532,7 +531,7 @@ class RouteHelper {
   static String getManufacturerNestedCategoryWithInventoryScreenRoute() =>
       RouteConstant.manufacturerNestedCategoryWithInventoryScreen;
 
-  static String getFoodUploadScreenRoute() => 
+  static String getFoodUploadScreenRoute() =>
       RouteConstant.foodUploadScreen;
 
   static String getAddFlatRoomRentalServiceScreenRoute() =>
@@ -571,10 +570,10 @@ class RouteHelper {
   // â”€â”€ be_vehicle_service routes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   static String getVehicleHomeScreenRoute() =>
       RouteConstant.vehicleHomeScreen;
-  
+
   static String getVehicleListingScreenRoute() =>
       RouteConstant.vehicleListingScreen;
-  
+
   static String getVehicleDetailScreenRoute() =>
       RouteConstant.vehicleDetailScreen;
 
@@ -596,13 +595,13 @@ class RouteHelper {
   static String getPersonalAccountNewScreenRoute() =>
       RouteConstant.personalAccountNewScreen;
 
-  static String getGstNumberScreenRoute() => 
+  static String getGstNumberScreenRoute() =>
       RouteConstant.gstNumberScreen;
 
   static String getAddBioViaAiScreenRoute() =>
       RouteConstant.addBioViaAiScreen;
 
-  static String getGroceryScreenRoute() => 
+  static String getGroceryScreenRoute() =>
       RouteConstant.groceryScreen;
 
   static String getGroceryNestedCategoryScreenRoute() =>
@@ -632,10 +631,10 @@ class RouteHelper {
   static String getRiderServiceScreenRoute() =>
       RouteConstant.riderServiceScreen;
 
-  static String getRiderMeScreenRoute() => 
+  static String getRiderMeScreenRoute() =>
       RouteConstant.riderMeScreen;
 
-  static String getGroceryCartScreenRoute() => 
+  static String getGroceryCartScreenRoute() =>
       RouteConstant.groceryCartScreen;
 
   // static String getYourAddToCardScreenRoute() =>
@@ -653,7 +652,7 @@ class RouteHelper {
   // static String getMedicalOtcItemsScreen() =>
   //     RouteConstant.medicalOtcItemsScreen;
 
-  static String getHospitalOptCategory() => 
+  static String getHospitalOptCategory() =>
       RouteConstant.hospitalOptCategory;
 
   static String getHospitalDoctorViewCategory() =>
@@ -662,7 +661,7 @@ class RouteHelper {
   static String getHospitalWardViewCategory() =>
       RouteConstant.hospitalWardViewCategory;
 
-  static String getRiderStoreScreenRoute() => 
+  static String getRiderStoreScreenRoute() =>
       RouteConstant.riderStoreScreen;
 
   static String getGroceryConfirmScreenRoute() =>
@@ -680,7 +679,7 @@ class RouteHelper {
   static String getGigWorkerOptionsScreenRoute() =>
       RouteConstant.gigWorkerOptionsScreen;
 
-  static String getMedicalScreenRoute() => 
+  static String getMedicalScreenRoute() =>
       RouteConstant.medicalScreen;
 
   static String getMedicalCategoryScreenRoute() =>
@@ -689,8 +688,11 @@ class RouteHelper {
   static String getMedicalSubCategoryScreenRoute() =>
       RouteConstant.medicalSubCategoryScreen;
 
-  static String getAddMedicalScreenRoute() => 
-      RouteConstant.addMedicalScreen;
+  // Retired with the grocery-style flow: the selection screen's floating cart
+  // now goes straight to the variant screen, so the AddMedicalScreen review
+  // grid has no entry point. Mirrors getAddGroceryScreenRoute above.
+  // static String getAddMedicalScreenRoute() =>
+  //     RouteConstant.addMedicalScreen;
 
   static String getAddMedicalVariantScreenRoute() =>
       RouteConstant.addMedicalVariantScreen;
@@ -704,7 +706,7 @@ class RouteHelper {
   static String getMedicalListingScreenRoute() =>
       RouteConstant.medicalListingScreen;
 
-  static String getMedicalCartScreenRoute() => 
+  static String getMedicalCartScreenRoute() =>
       RouteConstant.medicalCartScreen;
 
   static String getMedicalConfirmScreenRoute() =>
@@ -758,7 +760,7 @@ class RouteHelper {
   static String getMyProductProductsScreenRoute() =>
       RouteConstant.myProductProductsScreen;
 
-  static String getFoodEntryAiScreenRoute() => 
+  static String getFoodEntryAiScreenRoute() =>
       RouteConstant.foodEntryAiScreen;
 
   static String getFoodAiDetailScreenRoute() =>
@@ -2035,15 +2037,15 @@ class RouteHelper {
         // final GroceryNestedCategoryModel argSelectedGroceryData =
         //     args[ApiKeys.argSelectedGroceryData] as GroceryNestedCategoryModel;
         return MaterialPageRoute(
-            builder: (_) => MedicalSubCategoryScreen(
+            builder: (_) => MedicalProductSelectionScreen(
                   arrLevel3Category: argGroceries,
                 ),
             settings: RouteSettings(name: getMedicalSubCategoryScreenRoute()));
 
-      case RouteConstant.addMedicalScreen:
-        return MaterialPageRoute(
-            builder: (_) => AddMedicalScreen(),
-            settings: RouteSettings(name: getAddMedicalScreenRoute()));
+      // case RouteConstant.addMedicalScreen:
+      //   return MaterialPageRoute(
+      //       builder: (_) => AddMedicalScreen(),
+      //       settings: RouteSettings(name: getAddMedicalScreenRoute()));
 
       case RouteConstant.addMedicalVariantScreen:
         return MaterialPageRoute(
@@ -2063,15 +2065,20 @@ class RouteHelper {
 
       case RouteConstant.myMedicalVariantScreen:
         final args = settings.arguments as Map<String, dynamic>;
-        final List<MedicalProductVariants> variants =
-            args[ApiKeys.argVariants] as List<MedicalProductVariants>;
+        // Optional now: the category-card path passes no variants (the screen
+        // fetches them from categoryId); the legacy path still passes a list.
+        final List<MedicalProductVariants>? variants =
+            args[ApiKeys.argVariants] as List<MedicalProductVariants>?;
         final bool? argIsShowInGrid = args[ApiKeys.argIsShowInGrid] as bool?;
         final String? argMedCategoryId = args[ApiKeys.argCategoryId] as String?;
+        final String? argMedCategoryName =
+            args[ApiKeys.argCategoryName] as String?;
         return MaterialPageRoute(
             builder: (_) => MyMedicalVariantScreen(
                   variants: variants,
-                  isShowInGrid: argIsShowInGrid,
+                  isShowInGrid: argIsShowInGrid ?? true,
                   categoryId: argMedCategoryId,
+                  categoryName: argMedCategoryName,
                 ),
             settings: RouteSettings(name: getMyMedicalVariantScreenRoute()));
 

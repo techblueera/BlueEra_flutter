@@ -134,6 +134,36 @@ class MedicalRepo extends BaseService {
     return response;
   }
 
+  /// MEDICAL BUSINESS PRODUCTS (own store) — the store-wide list behind the
+  /// Products tab's "Top Selling" rail. Copy of
+  /// `GroceryRepo.fetchGroceryBusinessProductsRepo`, per
+  /// docs/backend/MEDICAL_TOP_SELLING_BACKEND_GUIDE.md §4.
+  Future<ResponseModel> fetchMedicalBusinessProductsRepo(
+      {Map<String, dynamic>? params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      medicalBusinessProducts,
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  /// MEDICAL BUSINESS PRODUCTS (other store) — the public twin, for a
+  /// customer-side rail.
+  Future<ResponseModel> fetchPublicMedicalBusinessProductsRepo(
+      {Map<String, dynamic>? params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      medicalPublicBusinessProducts,
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   /// Fetch My Products (grouped by category)
   Future<ResponseModel> fetchMyGroceryProductsRepo(
       {Map<String, dynamic>? queryParam}) async {

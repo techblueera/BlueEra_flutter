@@ -1,5 +1,6 @@
 ﻿import 'dart:developer';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -129,7 +130,11 @@ class _MedicalListingScreenState extends State<MedicalListingScreen> {
                               onTap: null,
                               isValidate: false,
                               radius: SizeConfig.size10,
-                              title: 'â‚¹${controller.totalSellingPrice.toStringAsFixed(2)}, ${controller.selectedMedicalProductVariants.length} ${AppStrings.medicalPublishProductsLabel.tr}',
+                              // productsTab ("Products") rather than the old
+                              // medicalPublishProductsLabel, which rendered its
+                              // raw key. Rupee via the constant so it can't be
+                              // mangled by an encoding round-trip again.
+                              title: '${AppConstants.rupeeSymbol}${controller.totalSellingPrice.toStringAsFixed(2)}, ${controller.selectedMedicalProductVariants.length} ${AppStrings.productsTab.tr}',
                               // isLoading: authController.isAddBusinessUserLoading.value
                               borderColor: AppColors.primaryColor,
                               textColor: AppColors.primaryColor,

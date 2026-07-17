@@ -2,11 +2,11 @@
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
 import 'package:BlueEra/features/me/medical/controller/medical_controller.dart';
 import 'package:BlueEra/features/me/medical/model/medical_nested_category_model.dart';
 import 'package:BlueEra/features/me/medical/model/medical_product_model.dart';
+import 'package:BlueEra/features/me/medical/widget/medical_selection_floating_cart.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -18,31 +18,35 @@ import '../../../../../widgets/common_back_app_bar.dart';
 import '../../../../../widgets/custom_text_cm.dart';
 import '../../../../../widgets/local_assets.dart';
 
-class MedicalSubCategoryScreen extends StatefulWidget {
+class MedicalProductSelectionScreen extends StatefulWidget {
   final List<MedicalNestedCategoryModel> arrLevel3Category;
 
-  MedicalSubCategoryScreen({
+  MedicalProductSelectionScreen({
     super.key,
     required this.arrLevel3Category,
   });
 
   @override
-  State<MedicalSubCategoryScreen> createState() =>
-      _MedicalSubCategoryScreenState();
+  State<MedicalProductSelectionScreen> createState() =>
+      _MedicalProductSelectionScreenState();
 }
 
-class _MedicalSubCategoryScreenState extends State<MedicalSubCategoryScreen> {
+class _MedicalProductSelectionScreenState extends State<MedicalProductSelectionScreen> {
   final controller = getOrPut(() => MedicalController());
   final ScrollController scrollController = ScrollController();
 
   @override
   void initState() {
+    super.initState();
     scrollController.addListener(_onScrollListener);
-    controller.fetchGroceryCategoryProducts();
+    // Category FIRST, then fetch — same order grocery uses.
+    // fetchGroceryCategoryProducts() sends `selectedMedicalData.value?.key` as
+    // its searchTerm, so firing it before the selection was set (as this did)
+    // queried a null/stale category while the title already read the first one.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.selectedMedicalData.value = widget.arrLevel3Category.first;
+      controller.fetchGroceryCategoryProducts();
     });
-    super.initState();
   }
 
   void _onScrollListener() {
@@ -64,79 +68,55 @@ class _MedicalSubCategoryScreenState extends State<MedicalSubCategoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() => Scaffold(
-          appBar: CommonBackAppBar(
-              title: controller.selectedMedicalData.value?.name,
-              isShadowShow: false,
-              buildCustomActionWidget: () => Obx(
-                    () => controller.selectedMedicalProducts.isEmpty
-                        ? Padding(
-                            padding: const EdgeInsets.only(right: 20.0),
-                            child: Icon(Icons.search),
-                          )
-                        : InkWell(
-                            onTap: () => Get.toNamed(
-                                RouteHelper.getAddMedicalScreenRoute()),
-                            child: Padding(
-                              padding: const EdgeInsets.only(right: 20.0),
-                              child: Stack(clipBehavior: Clip.none, children: [
-                                LocalAssets(
-                                  imagePath: AppIconAssets.cartIcon,
-                                ),
-                                Positioned(
-                                    top: -5,
-                                    right: -5,
-                                    child: Container(
-                                      height: SizeConfig.size16,
-                                      width: SizeConfig.size16,
-                                      decoration: BoxDecoration(
-                                          color: AppColors.red,
-                                          shape: BoxShape.circle),
-                                      alignment: Alignment.center,
-                                      child: CustomText(
-                                        '${controller.selectedMedicalProducts.length}',
-                                        color: AppColors.white,
-                                      ),
-                                    ))
-                              ]),
-                            ),
-                          ),
-                  )),
-          bottomNavigationBar: Obx(() {
-            if (controller.selectedMedicalProducts.isEmpty)
-              return SizedBox();
-            else
-              return Material(
-                elevation: 8.0,
-                child: Container(
-                  color: AppColors.white,
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(
-                        horizontal: SizeConfig.size15,
-                        vertical: SizeConfig.size15),
-                    child: SafeArea(
-                      child: CustomBtn(
-                        onTap: () {
-                          Get.toNamed(RouteHelper.getAddMedicalScreenRoute());
-                        },
-                        isValidate: true,
-                        radius: SizeConfig.size8,
-                        title: AppStrings.next,
-                        // isLoading: authController.isAddBusinessUserLoading.value
-                      ),
-                    ),
-                  ),
-                ),
-              );
-          }),
-          body: Row(
+    // No Scaffold-wide Obx: the title, the left list (its own Obx lives inside
+    // CommonGenericLeftSideCategoryList) and rightContent each subscribe for
+    // themselves, so wrapping the whole tree just rebuilt everything on every
+    // selection tap. Same shape as GroceryProductsSelectionScreen.
+    return Scaffold(
+      appBar: CommonBackAppBar(
+        isCustomTitleWidget: () => Obx(() {
+          final name = controller.selectedMedicalData.value?.name ?? '';
+          return Text(
+            name,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+              color: AppColors.mainTextColor,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          );
+        }),
+        isShadowShow: false,
+        // Search only. The cart badge that used to live here is now the
+        // floating cart below — one cart affordance, not two.
+        buildCustomActionWidget: () => Padding(
+          padding: const EdgeInsets.only(right: 20.0),
+          child: Icon(Icons.search),
+        ),
+      ),
+      body: Stack(
+        children: [
+          Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               leftCategoryList(),
               Expanded(child: rightContent()),
             ],
           ),
-        ));
+          // Floating cart — replaces the old "Next" bottom bar. Self-hides
+          // while nothing is selected.
+          Positioned(
+            bottom: 40,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: MedicalSelectionFloatingCart(controller: controller),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget leftCategoryList() {
@@ -239,8 +219,14 @@ class _MedicalSubCategoryScreenState extends State<MedicalSubCategoryScreen> {
                                       mainAxisSpacing: 10,
                                       childAspectRatio: childAspectRatio,
                                     ),
+                                    // Extra clearance so the last row can
+                                    // scroll clear of the floating cart.
                                     padding: EdgeInsets.only(
-                                        bottom: SizeConfig.size30),
+                                      bottom: controller
+                                              .selectedMedicalProducts.isNotEmpty
+                                          ? SizeConfig.size80
+                                          : SizeConfig.size30,
+                                    ),
                                     itemBuilder: (_, i) {
                                       if (i ==
                                           controller.arrMedicalCategoryProducts
