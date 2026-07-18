@@ -164,14 +164,16 @@ class _SecurityDepositVideoSection extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Keyed by the URL set so a changed list rebuilds the player.
-              // Fixed square (1:1) box — the source clip is portrait, but a
-              // full-height portrait player is too tall here, so we cap it to a
-              // square instead of adopting the video's own ratio.
+              // Auto-height: the box adopts each video's own aspect ratio once
+              // it loads, so portrait/landscape clips render at their real
+              // proportions instead of being forced into a fixed box. The 1:1
+              // ratio is just the placeholder height while the clip initializes.
               HorizontalVideoPlayer(
                 key: ValueKey(urls.join(',')),
                 videoUrls: urls,
                 isNetworkUrl: true,
                 aspectRatio: 1,
+                useVideoAspectRatio: true,
                 isAutoPlay: true,
                 showMuteButton: true,
               ),

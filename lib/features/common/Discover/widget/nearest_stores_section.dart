@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/controller/nearby_stores_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/nearby_discover_models.dart';
+import 'package:BlueEra/features/common/Discover/view/book_your_transport/quick_rider_book_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/self_employee_view_discover_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/discover_professionals_view_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/rounded_view_all_btn.dart';
@@ -111,8 +112,14 @@ class _NearestStoresSectionState extends State<NearestStoresSection> {
     }
     final worker = e.worker!;
     if (worker.userId.isEmpty) return;
-    // Professional → consultant view; self-employed AND riders → the
-    // self-employee view by userId (rider has no dedicated profile screen yet).
+    // Riders (gig workers) → the quick-book flow instead of a profile: the user
+    // wants to hire THIS rider, not view them. Enter drop location on a map and
+    // connect to the rider.
+    if (worker.isRider) {
+      Get.to(() => QuickRiderBookScreen(rider: worker));
+      return;
+    }
+    // Professional → consultant view; self-employed → the self-employee view.
     if (worker.isProfessional) {
       Get.to(() => DiscoverProfessionalsViewScreen(userId: worker.userId));
     } else {

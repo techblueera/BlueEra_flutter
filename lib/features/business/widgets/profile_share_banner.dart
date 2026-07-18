@@ -1026,14 +1026,13 @@ class _PromoVideoPlayerState extends State<_PromoVideoPlayer> {
   bool _failed = false;
   bool _ready = false;
 
-  /// Only ever true in [widget.autoPlay] mode — a clip the viewer started
-  /// themselves plays at full volume.
+  /// Clips start unmuted — both the inline placements and the autoplay Discover
+  /// sheet play at full volume by default. The badge lets the viewer mute.
   bool _muted = false;
 
   @override
   void initState() {
     super.initState();
-    _muted = widget.autoPlay;
     _init();
   }
 
@@ -1046,8 +1045,8 @@ class _PromoVideoPlayerState extends State<_PromoVideoPlayer> {
       if (!mounted) return;
       controller.addListener(_onValueChanged);
       if (widget.autoPlay) {
-        // Mute BEFORE play so the first frames can't leak audio.
-        await controller.setVolume(0);
+        // Play at full volume by default — the viewer can mute via the badge.
+        await controller.setVolume(1);
         await controller.play();
       }
       if (!mounted) return;

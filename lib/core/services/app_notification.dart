@@ -59,6 +59,21 @@ String hello_delivery = 'sound/hello_delivery.mp3';
 String chatNotificationSound = 'sound/messenger.mp3';
 String orderNotificationSound = 'sound/foodpanda_order_an.mp3';
 
+/// Dedicated Android channel + raw-resource sound for order alerts.
+///
+/// The asset (`sound/foodpanda_order_an.mp3`) played via `audioplayers` in
+/// [AppNotificationHandler.playCustomSound] only fires in the FOREGROUND. In
+/// background/terminated the OS plays the *notification channel's* sound, so the
+/// custom order chime must live on a channel as an Android raw resource
+/// (android/app/src/main/res/raw/foodpanda_order_an.mp3).
+///
+/// The id is versioned (`_v1`): Android freezes a channel's sound at creation
+/// time and resurrects the old settings if the same id is recreated, so a new
+/// id is required to ever change the sound.
+const String orderNotificationChannelId = 'order_alerts_v1';
+const String orderNotificationChannelName = 'Order Alerts';
+const String orderNotificationRawSound = 'foodpanda_order_an';
+
 /// Pickup-order operations from be_chat_service (see docs/backend/chat_order.md).
 /// These get their own alert sound so a seller/customer can tell an incoming
 /// order apart from a normal chat message without looking at the screen.
@@ -946,6 +961,20 @@ class AppNotificationHandler {
     );
     await androidPlugin?.createNotificationChannel(incomingCallsRingtoneV2);
     await androidPlugin?.createNotificationChannel(fareRideRingtoneV2);
+
+    // Order alerts: dedicated channel so the custom order chime plays in
+    // background/terminated (OS plays the channel sound there). See the
+    // `orderNotification*` constants at the top of this file.
+    const AndroidNotificationChannel orderAlertsV1 = AndroidNotificationChannel(
+      orderNotificationChannelId,
+      orderNotificationChannelName,
+      description: 'New order alerts for sellers and customers',
+      importance: Importance.max,
+      playSound: true,
+      sound: RawResourceAndroidNotificationSound(orderNotificationRawSound),
+      audioAttributesUsage: AudioAttributesUsage.notification,
+    );
+    await androidPlugin?.createNotificationChannel(orderAlertsV1);
     for (final legacyId in [
       'incoming_calls_ringtone',
       'fare_ride_incoming_ringtone',
@@ -1782,6 +1811,22 @@ class AppNotificationHandler {
     // Map importance string to Android importance level
     final importance = _mapImportanceFromString(channelImportance);
 
+    // Order alerts get their own channel + custom raw-resource sound so the
+    // chime plays in background/terminated too (the OS plays the channel sound
+    // there — audioplayers only works in the foreground). Everything else keeps
+    // the backend-provided channel.
+    final bool isOrderNotification =
+        _orderNotificationOperations.contains(operation);
+    final String effChannelId =
+        isOrderNotification ? orderNotificationChannelId : channelId;
+    final String effChannelName =
+        isOrderNotification ? orderNotificationChannelName : channelName;
+    final Importance effImportance =
+        isOrderNotification ? Importance.max : importance;
+    final AndroidNotificationSound? orderSound = isOrderNotification
+        ? const RawResourceAndroidNotificationSound(orderNotificationRawSound)
+        : null;
+
     // Download image for BigPictureStyle if needed
     ByteArrayAndroidBitmap? bigPicture;
     if (style == 'bigPicture' && imageUrl.isNotEmpty) {
@@ -1811,13 +1856,15 @@ class AppNotificationHandler {
 
     // Build Android notification details
     final androidDetails = AndroidNotificationDetails(
-      channelId,
-      channelName,
-      importance: importance,
-      priority: importance == Importance.max || importance == Importance.high
-          ? Priority.high
-          : Priority.defaultPriority,
+      effChannelId,
+      effChannelName,
+      importance: effImportance,
+      priority:
+          effImportance == Importance.max || effImportance == Importance.high
+              ? Priority.high
+              : Priority.defaultPriority,
       playSound: true,
+      sound: orderSound,
       enableVibration: true,
       icon: '@drawable/ic_stat',
       groupKey: groupKey.isNotEmpty ? groupKey : null,
@@ -1826,11 +1873,14 @@ class AppNotificationHandler {
       actions: androidActions,
     );
 
-    // Build iOS notification details
-    const iosDetails = DarwinNotificationDetails(
+    // Build iOS notification details. Order alerts reference the bundled custom
+    // sound (add foodpanda_order_an.mp3 to the iOS app bundle for it to play;
+    // falls back to the default alert sound if absent).
+    final iosDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
       presentSound: true,
+      sound: isOrderNotification ? 'foodpanda_order_an.mp3' : null,
       interruptionLevel: InterruptionLevel.active,
     );
 
@@ -1850,9 +1900,9 @@ class AppNotificationHandler {
         body,
         NotificationDetails(
           android: AndroidNotificationDetails(
-            channelId,
-            channelName,
-            importance: importance,
+            effChannelId,
+            effChannelName,
+            importance: effImportance,
             icon: '@drawable/ic_stat',
             groupKey: groupKey,
             setAsGroupSummary: true,
@@ -3158,10 +3208,14 @@ class AppNotificationHandler {
     // Don't play custom sound for incoming calls (CallKit handles its own ringtone)
     if (operation == 'incoming_call') return;
 
+    // Order alerts now play their custom chime via the dedicated notification
+    // channel (`order_alerts_v1`), which works in foreground AND
+    // background/terminated. Skip the audioplayers path so the foreground
+    // doesn't chime twice.
+    if (_orderNotificationOperations.contains(operation)) return;
+
     try {
-      if (_orderNotificationOperations.contains(operation)) {
-        playNotificationSound = orderNotificationSound;
-      } else if (operation == 'sent_message' ||
+      if (operation == 'sent_message' ||
           operation == 'message_reminder' ||
           operation == 'tagged_in_message' ||
           operation == 'commented_on_message' ||
