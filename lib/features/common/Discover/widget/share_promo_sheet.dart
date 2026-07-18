@@ -21,9 +21,10 @@ class SharePromoSheet {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      // The banner is tall; let the sheet use most of the screen and scroll.
+      // Open at 70% of the screen height; the banner is tall, so the body
+      // scrolls within that cap (see the SingleChildScrollView below).
       constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.92,
+        maxHeight: MediaQuery.of(context).size.height * 0.70,
       ),
       builder: (_) => const _SharePromoSheetBody(),
     );

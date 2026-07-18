@@ -74,6 +74,17 @@ bool sharePromoShownThisSession = false;
 /// logout (see [SharedPreferenceUtils.clearPreferenceDataOnly]).
 String? addProductPromptShownForDay;
 
+/// Local `yyyy-MM-dd` the business-profile QR promo sheet last displayed,
+/// mirroring the persisted `qrPromoLastShownKey`.
+///
+/// Same reasoning as [addProductPromptShownForDay]: the persisted key is the
+/// real once-a-day gate; this mirrors it in memory so two mounts in the same
+/// frame can't both slip through before the async secure-storage write lands.
+/// Keyed by DAY so a session left running across midnight gets the next day's
+/// sheet. Only set when the sheet actually opens. Reset on logout (see
+/// [SharedPreferenceUtils.clearPreferenceDataOnly]).
+String? qrPromoShownForDay;
+
 class SharedPreferenceUtils {
   static const FlutterSecureStorage _secureStorage = FlutterSecureStorage(
       aOptions: AndroidOptions(encryptedSharedPreferences: true),
@@ -157,6 +168,11 @@ class SharedPreferenceUtils {
   /// key, not one per service — an account has a single business category, so
   /// it only ever lands on one of those screens.
   static const addProductPromptLastShownKey = 'add_product_prompt_last_shown';
+
+  /// `yyyy-MM-dd` of the last day the business-profile QR promo sheet was
+  /// shown, so it pops at most once per calendar day (not on every profile
+  /// mount / bottom-nav re-entry).
+  static const qrPromoLastShownKey = 'qr_promo_last_shown';
 
   /// Persist a referral code that arrived via deeplink before the user
   /// completed onboarding. No-op for empty / whitespace-only input so
@@ -397,6 +413,8 @@ class SharedPreferenceUtils {
       // Same reasoning for the merchant add-product prompt's in-memory day
       // mirror — its persisted key was wiped by deleteAll() above.
       addProductPromptShownForDay = null;
+      // ...and for the business-profile QR promo sheet's in-memory day mirror.
+      qrPromoShownForDay = null;
       isUserLoginGlobal = '';
       has_reel_profile_status = 'false';
       reel_profile_id_global = '';

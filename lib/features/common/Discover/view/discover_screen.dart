@@ -110,6 +110,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           onItemTap: (_) =>
               Get.toNamed(RouteHelper.getGroceryStoresScreenRoute()),
         ),
+
         tabs: {1}
       ),
       (

@@ -45,6 +45,17 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
   /// renders without clipping.
   static const double _kMinNativeAdHeight = 300;
 
+  /// Sentinel tag id for the leading "All Grocery" tab. Selecting it clears
+  /// the category filter so the store API returns stores across every grocery
+  /// category instead of a single one.
+  static const String _allGroceryTagId = 'ALL_GROCERY';
+
+  /// Synthetic category backing the "All Grocery" tab — not a real onboarding
+  /// category. It only exists to represent the "show all" selection state;
+  /// [StoreController.businessCategoryId] is set to null when it's active.
+  final CategoryData _allGroceryCategory =
+      CategoryData(tagId: _allGroceryTagId, name: 'All Grocery');
+
   static const List<String> _categoryOrderKeywords = [
     'kirana',
     'dairy',
@@ -98,12 +109,15 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
 
     controller.typeOfBusiness = BusinessType.Grocery.name;
 
-    if (controller.selectedGroceryCategoryData.value != null) {
-      controller.businessCategoryId =
-          controller.selectedGroceryCategoryData.value?.tagId;
-    } else if (_arrCategories.isNotEmpty) {
-      controller.businessCategoryId = _arrCategories.first.tagId;
-      controller.selectedGroceryCategoryData.value = _arrCategories.first;
+    // Default landing tab is "All Grocery" (no category filter → every grocery
+    // store). Preserve an already-chosen specific category on re-entry, but
+    // treat null / the All-Grocery sentinel as "show all".
+    final selected = controller.selectedGroceryCategoryData.value;
+    if (selected != null && selected.tagId != _allGroceryTagId) {
+      controller.businessCategoryId = selected.tagId;
+    } else {
+      controller.selectedGroceryCategoryData.value = _allGroceryCategory;
+      controller.businessCategoryId = null;
     }
 
     // Re-entry no longer refetches: only hits the API when the cached list is
@@ -209,19 +223,35 @@ class _GroceryStoresScreenState extends State<GroceryStoresScreen>
                     pinned: true,
                     delegate: StickyCategoryHeaderDelegate(
                       topPadding: statusBarHeight,
-                      categories: _arrCategories.map((c) {
-                        debugPrint('GroceryCategory tagId=${c.tagId} name=${c.name}');
-                        return StickyCategory(
-                          id: c.tagId ?? '',
-                          name: c.name ?? '',
-                          imageUrl: _localCategoryIcon(c.tagId),
-                        );
-                      }).toList(),
+                      categories: [
+                        // Leading "All Grocery" tab — shows every grocery store
+                        // across all categories (no category filter).
+                        StickyCategory(
+                          id: _allGroceryTagId,
+                          name: 'All Grocery',
+                        ),
+                        ..._arrCategories.map((c) {
+                          debugPrint('GroceryCategory tagId=${c.tagId} name=${c.name}');
+                          return StickyCategory(
+                            id: c.tagId ?? '',
+                            name: c.name ?? '',
+                            imageUrl: _localCategoryIcon(c.tagId),
+                          );
+                        }),
+                      ],
                       selectedId: controller.selectedGroceryCategoryData.value?.tagId,
                       onCategoryTap: (item) {
-                        final cat = _arrCategories.firstWhere((c) => c.tagId == item.id);
-                        controller.selectedGroceryCategoryData.value = cat;
-                        controller.businessCategoryId = cat.tagId;
+                        if (item.id == _allGroceryTagId) {
+                          // "Show all" — clear the category filter.
+                          controller.selectedGroceryCategoryData.value =
+                              _allGroceryCategory;
+                          controller.businessCategoryId = null;
+                        } else {
+                          final cat = _arrCategories
+                              .firstWhere((c) => c.tagId == item.id);
+                          controller.selectedGroceryCategoryData.value = cat;
+                          controller.businessCategoryId = cat.tagId;
+                        }
                         // Cache-aware: re-tapping a category you viewed recently
                         // serves it instantly from its own cache entry instead
                         // of re-hitting the API. Pull-to-refresh forces fresh.

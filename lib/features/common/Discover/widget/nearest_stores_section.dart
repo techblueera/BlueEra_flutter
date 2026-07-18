@@ -366,7 +366,7 @@ class _NearbyAvatar extends StatelessWidget {
                   ),
                   child: image.isNotEmpty
                       ? CachedNetworkImage(
-                          imageUrl: image,
+                          imageUrl: Uri.encodeFull(image),
                           fit: BoxFit.cover,
                           placeholder: (_, __) => _fallbackIcon(isStore),
                           errorWidget: (_, __, ___) => _fallbackIcon(isStore),

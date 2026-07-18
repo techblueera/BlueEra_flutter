@@ -6,6 +6,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/widgets/business_profile_screen.dart';
+import 'package:BlueEra/features/business/widgets/business_qr_promo_sheet.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -40,6 +41,16 @@ class _BusinessOwnProfileScreenState extends State<BusinessOwnProfileScreen> {
     if (args is Map && args['open_go_live'] == true) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         viewProfileController.openAvailabilityControl();
+      });
+    } else {
+      // Once-a-day "your QR code" promo sheet. Skipped when the go-live deep
+      // link is opening its own sheet, so the two never stack.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        showBusinessQrPromoSheetIfNeeded(
+          context: context,
+          controller: viewProfileController,
+        );
       });
     }
     super.initState();
