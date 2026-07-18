@@ -57,29 +57,33 @@ import 'package:BlueEra/features/personal/auth/controller/view_personal_details_
 String notificationSound = 'sound/hangouts_call.mp3';
 String hello_delivery = 'sound/hello_delivery.mp3';
 String chatNotificationSound = 'sound/messenger.mp3';
-String orderNotificationSound = 'sound/foodpanda_order_an.mp3';
+String foodpanda_order_an = 'sound/new_order_mu.mp3';
 
-/// Dedicated Android channel + raw-resource sound for order alerts.
+/// Dedicated Android channel for order alerts.
 ///
-/// The asset (`sound/foodpanda_order_an.mp3`) played via `audioplayers` in
-/// [AppNotificationHandler.playCustomSound] only fires in the FOREGROUND. In
-/// background/terminated the OS plays the *notification channel's* sound, so the
-/// custom order chime must live on a channel as an Android raw resource
-/// (android/app/src/main/res/raw/foodpanda_order_an.mp3).
+/// `foodpanda_order_an` above is a Flutter ASSET played via `audioplayers` in
+/// [AppNotificationHandler.playCustomSound] — that only works in the
+/// FOREGROUND. In background/terminated the OS plays the *notification
+/// channel's* sound, so the order chime must also exist as an Android raw
+/// resource (android/app/src/main/res/raw/new_order_mu.mp3) attached to a
+/// channel. Both point at the same audio file.
 ///
-/// The id is versioned (`_v1`): Android freezes a channel's sound at creation
-/// time and resurrects the old settings if the same id is recreated, so a new
-/// id is required to ever change the sound.
-const String orderNotificationChannelId = 'order_alerts_v1';
+/// The id is versioned: Android freezes a channel's sound at creation time and
+/// resurrects the old settings if the same id is recreated, so changing the
+/// sound REQUIRES a new id. v3 = the `new_order_mu` sound (v1/v2 were the older
+/// `foodpanda_order_an` chime and are deleted in [firebaseNotificationSetup]).
+/// If you change the sound again, bump to v4 — editing this constant's sound
+/// alone will NOT take effect on devices that already have the channel.
+const String orderNotificationChannelId = 'order_alerts_v3';
 const String orderNotificationChannelName = 'Order Alerts';
-const String orderNotificationRawSound = 'foodpanda_order_an';
 
-/// Pickup-order operations from be_chat_service (see docs/backend/chat_order.md).
-/// These get their own alert sound so a seller/customer can tell an incoming
-/// order apart from a normal chat message without looking at the screen.
-/// The `_order` variants go to the business/seller, `_ready` to the customer.
-/// Ride operations (`ride_order_*`) are deliberately NOT in this set — they
-/// keep the `hello_delivery` sound they have always used.
+/// Raw-resource name (no extension) of android/app/src/main/res/raw/new_order_mu.mp3.
+const String orderNotificationRawSound = 'new_order_mu';
+
+/// iOS bundle sound for order alerts. Must be added to the Runner target in
+/// Xcode to play; iOS falls back to the default alert sound if it's missing.
+const String orderNotificationIosSound = 'new_order_mu.mp3';
+
 const Set<String> _orderNotificationOperations = {
   'food_pickup_order',
   'food_pickup_order_ready',
@@ -497,10 +501,11 @@ Future<void> showIncomingCallLocalNotification({
   // second show replaces the first notification, which is why the caller name
   // appeared and then vanished. Never overwrite an already-shown notification
   // for this call with a nameless one.
-  if (callerName.isEmpty || callerName == 'Unknown' || callerName == 'Incoming Call') {
+  if (callerName.isEmpty ||
+      callerName == 'Unknown' ||
+      callerName == 'Incoming Call') {
     final existing = await peekPendingIncomingCallExtras();
-    if (existing != null &&
-        (existing['callId'] ?? '').toString() == callId) {
+    if (existing != null && (existing['callId'] ?? '').toString() == callId) {
       return;
     }
   }
@@ -962,10 +967,12 @@ class AppNotificationHandler {
     await androidPlugin?.createNotificationChannel(incomingCallsRingtoneV2);
     await androidPlugin?.createNotificationChannel(fareRideRingtoneV2);
 
-    // Order alerts: dedicated channel so the custom order chime plays in
-    // background/terminated (OS plays the channel sound there). See the
-    // `orderNotification*` constants at the top of this file.
-    const AndroidNotificationChannel orderAlertsV1 = AndroidNotificationChannel(
+    // Order alerts: dedicated channel carrying the order chime as a raw
+    // resource. This is what makes the sound play in BACKGROUND/TERMINATED —
+    // the OS plays the channel sound there, and audioplayers (playCustomSound)
+    // only runs in the foreground. See the `orderNotification*` constants.
+    const AndroidNotificationChannel orderAlertsChannel =
+        AndroidNotificationChannel(
       orderNotificationChannelId,
       orderNotificationChannelName,
       description: 'New order alerts for sellers and customers',
@@ -974,11 +981,16 @@ class AppNotificationHandler {
       sound: RawResourceAndroidNotificationSound(orderNotificationRawSound),
       audioAttributesUsage: AudioAttributesUsage.notification,
     );
-    await androidPlugin?.createNotificationChannel(orderAlertsV1);
+    await androidPlugin?.createNotificationChannel(orderAlertsChannel);
+
     for (final legacyId in [
       'incoming_calls_ringtone',
       'fare_ride_incoming_ringtone',
       'fare_ride_incoming',
+      // Older order channels — frozen with the previous chime. Deleted so the
+      // v3 channel above is the only one users see in system settings.
+      'order_alerts_v1',
+      'order_alerts_v2',
     ]) {
       await androidPlugin?.deleteNotificationChannel(legacyId);
     }
@@ -1180,8 +1192,7 @@ class AppNotificationHandler {
         onError: (e) {
           print("===fcm-token-sync=== error: $e");
         },
-        onSuccess: (_) {
-        },
+        onSuccess: (_) {},
       );
     } catch (e) {
       print("===fcm-token-sync=== threw: $e");
@@ -1661,7 +1672,6 @@ class AppNotificationHandler {
       final customerName = data['senderName'] ?? data['title'] ?? 'Customer';
       final customerImage = data['senderProfileImage'] ?? '';
 
-
       // Ensure CallController exists and set fare-call state
       if (!Get.isRegistered<CallController>()) {
         Get.put(CallController(), permanent: true);
@@ -1696,14 +1706,12 @@ class AppNotificationHandler {
       // fare-call pushes carry it inside rideDetails, standard ride-request
       // pushes carry it at the payload top level. IncomingRiderOrderScreen
       // reads these to label the job correctly instead of assuming "Ride".
-      final jobType =
-          ((rideDetails is Map ? rideDetails['jobType'] : null) ??
-                  payload['jobType'])
-              ?.toString();
-      final jobLabel =
-          ((rideDetails is Map ? rideDetails['jobLabel'] : null) ??
-                  payload['jobLabel'])
-              ?.toString();
+      final jobType = ((rideDetails is Map ? rideDetails['jobType'] : null) ??
+              payload['jobType'])
+          ?.toString();
+      final jobLabel = ((rideDetails is Map ? rideDetails['jobLabel'] : null) ??
+              payload['jobLabel'])
+          ?.toString();
       final callTitle =
           ((rideDetails is Map ? rideDetails['callTitle'] : null) ??
                   payload['callTitle'])
@@ -1794,7 +1802,7 @@ class AppNotificationHandler {
     // announcements, etc.) into the in-app "BlueEra" chat thread so they
     // surface as chat messages in the personal chat list. 1:1 chat messages
     // are excluded — they already have their own conversation rows.
-    _captureBlueEraNotification(
+    await _captureBlueEraNotification(
       operation: operation,
       title: title,
       body: body,
@@ -1811,10 +1819,12 @@ class AppNotificationHandler {
     // Map importance string to Android importance level
     final importance = _mapImportanceFromString(channelImportance);
 
-    // Order alerts get their own channel + custom raw-resource sound so the
-    // chime plays in background/terminated too (the OS plays the channel sound
-    // there — audioplayers only works in the foreground). Everything else keeps
-    // the backend-provided channel.
+    // Order alerts override the backend-provided channel with the dedicated
+    // order channel + raw-resource sound, so the chime plays in
+    // background/terminated too (the OS plays the channel sound there).
+    // Passing `sound` in the details also makes flutter_local_notifications
+    // create the channel on demand — important in the background isolate,
+    // which never runs firebaseNotificationSetup().
     final bool isOrderNotification =
         _orderNotificationOperations.contains(operation);
     final String effChannelId =
@@ -1874,13 +1884,13 @@ class AppNotificationHandler {
     );
 
     // Build iOS notification details. Order alerts reference the bundled custom
-    // sound (add foodpanda_order_an.mp3 to the iOS app bundle for it to play;
+    // sound (add new_order_mu.mp3 to the Runner target in Xcode for it to play;
     // falls back to the default alert sound if absent).
     final iosDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
       presentSound: true,
-      sound: isOrderNotification ? 'foodpanda_order_an.mp3' : null,
+      sound: isOrderNotification ? orderNotificationIosSound : null,
       interruptionLevel: InterruptionLevel.active,
     );
 
@@ -1973,13 +1983,13 @@ class AppNotificationHandler {
   /// thread. Skips 1:1 chat messages (they have their own rows), AI greetings,
   /// and call/ride operations (handled by their own UI). Best-effort — never
   /// throws into the notification render path.
-  void _captureBlueEraNotification({
+  Future<void> _captureBlueEraNotification({
     required String operation,
     required String title,
     required String body,
     required bool isChatMessage,
     List<String> images = const [],
-  }) {
+  }) async {
     try {
       if (isChatMessage) return;
       if (operation.contains('call') ||
@@ -1988,7 +1998,9 @@ class AppNotificationHandler {
         return;
       }
       if (title.trim().isEmpty && body.trim().isEmpty && images.isEmpty) return;
-      BlueEraNotificationController.to.addNotification(
+      // Awaited so the Hive write finishes before the background isolate is
+      // torn down — a fire-and-forget put is dropped in background/terminated.
+      await BlueEraNotificationController.to.addNotification(
         title: title,
         body: body,
         operation: operation,
@@ -1998,7 +2010,7 @@ class AppNotificationHandler {
       // this push without an API round-trip. Same guard as above (no chat /
       // call / ride / greeting); ride/call statuses the hub also shows are
       // reconciled on the next server sync instead of inserted here.
-      NotificationCacheService.to.upsertFromPush(
+      await NotificationCacheService.to.upsertFromPush(
         operation: operation,
         title: title,
         body: body,
@@ -2429,8 +2441,7 @@ class AppNotificationHandler {
         try {
           if (initial == null || initial.data.isEmpty) return;
           final data = Map<String, dynamic>.from(initial.data);
-          final operation =
-              (data['operation'] ?? '').toString().toLowerCase();
+          final operation = (data['operation'] ?? '').toString().toLowerCase();
 
           // Wait for the navigator to be mounted before pushing. Splash is
           // blocked on `notificationNavigationCompleter` so this delay only
@@ -2956,7 +2967,7 @@ class AppNotificationHandler {
           "postId": (operation == 'reposted_post' && repostId != null)
               ? repostId
               : payloadMap['post_id'],
-          "operation":operation
+          "operation": operation
         },
       );
     }
@@ -3136,8 +3147,9 @@ class AppNotificationHandler {
   static bool _openBlueEraChatFromList() {
     try {
       final chatViewController = getOrPut(() => ChatViewController());
-      final list = chatViewController.getPersonalChatListModel?.value.chatList ??
-          <ChatList?>[];
+      final list =
+          chatViewController.getPersonalChatListModel?.value.chatList ??
+              <ChatList?>[];
       for (final chat in list) {
         if (chat == null) continue;
         final name = (chat.sender?.name ?? '').trim().toLowerCase();
@@ -3208,10 +3220,10 @@ class AppNotificationHandler {
     // Don't play custom sound for incoming calls (CallKit handles its own ringtone)
     if (operation == 'incoming_call') return;
 
-    // Order alerts now play their custom chime via the dedicated notification
-    // channel (`order_alerts_v1`), which works in foreground AND
-    // background/terminated. Skip the audioplayers path so the foreground
-    // doesn't chime twice.
+    // Order alerts play their chime via the dedicated `order_alerts_v3`
+    // channel, which works in foreground AND background/terminated. Skip the
+    // audioplayers path (foreground-only) so the foreground doesn't chime
+    // twice — once from the channel, once from here.
     if (_orderNotificationOperations.contains(operation)) return;
 
     try {
