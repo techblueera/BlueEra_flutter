@@ -101,6 +101,17 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     logs('[CALL_DEBUG] bg handler firebaseInitializeApp error: $e\n$st');
   }
 
+  // Hive lives per-isolate: main()'s Hive.initFlutter() does NOT carry over
+  // here, so any box opened in this isolate throws "You need to initialize
+  // Hive or provide a path to store the box". The render path below persists
+  // through Hive (BlueEraNotificationController, NotificationCacheService),
+  // so give this isolate its own storage path first.
+  try {
+    await Hive.initFlutter();
+  } catch (e, st) {
+    logs('[CALL_DEBUG] bg handler Hive.initFlutter error: $e\n$st');
+  }
+
   // NOTE: Do NOT call getInitialMsg(), onMsgOpen(), or _onTapNotificationFromStatusBar() here.
   // This handler runs in a separate isolate with no UI engine — GetX navigation
   // (Get.to, Get.toNamed) will crash with "contextless navigation" error.
