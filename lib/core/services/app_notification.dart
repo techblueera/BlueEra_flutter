@@ -57,15 +57,15 @@ import 'package:BlueEra/features/personal/auth/controller/view_personal_details_
 String notificationSound = 'sound/hangouts_call.mp3';
 String hello_delivery = 'sound/hello_delivery.mp3';
 String chatNotificationSound = 'sound/messenger.mp3';
-String orderNotificationSound = 'sound/foodpanda_order_an.mp3';
+String orderNotificationSound = 'sound/new_order_sound.mp3';
 
 /// Dedicated Android channel + raw-resource sound for order alerts.
 ///
-/// The asset (`sound/foodpanda_order_an.mp3`) played via `audioplayers` in
+/// The asset (`sound/new_order_sound.mp3`) played via `audioplayers` in
 /// [AppNotificationHandler.playCustomSound] only fires in the FOREGROUND. In
 /// background/terminated the OS plays the *notification channel's* sound, so the
 /// custom order chime must live on a channel as an Android raw resource
-/// (android/app/src/main/res/raw/foodpanda_order_an.mp3).
+/// (android/app/src/main/res/raw/new_order_sound.mp3).
 ///
 /// The id is versioned (`_v1`): Android freezes a channel's sound at creation
 /// time and resurrects the old settings if the same id is recreated, so a new
@@ -1874,13 +1874,13 @@ class AppNotificationHandler {
     );
 
     // Build iOS notification details. Order alerts reference the bundled custom
-    // sound (add foodpanda_order_an.mp3 to the iOS app bundle for it to play;
+    // sound (add new_order_sound.mp3 to the iOS app bundle for it to play;
     // falls back to the default alert sound if absent).
     final iosDetails = DarwinNotificationDetails(
       presentAlert: true,
       presentBadge: true,
       presentSound: true,
-      sound: isOrderNotification ? 'foodpanda_order_an.mp3' : null,
+      sound: isOrderNotification ? 'new_order_sound.mp3' : null,
       interruptionLevel: InterruptionLevel.active,
     );
 
