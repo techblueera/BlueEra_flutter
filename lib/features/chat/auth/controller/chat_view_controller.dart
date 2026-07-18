@@ -2314,7 +2314,31 @@ class ChatViewController extends GetxController {
   //       ApiResponse.complete(getPersonalChatListModel?.value);
   // }
 
+  /// Sender names of the AI-assistant thread that must never appear as a row
+  /// in any chat list. The synthetic top row was removed from the Personal /
+  /// Business lists, but the server also emits this conversation inside the
+  /// `ChatList` socket payload — so it is stripped centrally here as well,
+  /// otherwise it would simply reappear from the socket.
+  static const Set<String> _hiddenAiChatNames = {'ask blueera ai'};
+
+  /// Drops the AI-assistant conversation from a freshly-parsed list. Matched
+  /// on the sender name (case/whitespace-insensitive) because these rows carry
+  /// no stable, server-side type flag to key off.
+  GetChatListModel _stripAiChats(GetChatListModel model) {
+    final list = model.chatList;
+    if (list == null || list.isEmpty) return model;
+    model.chatList = list.where((chat) {
+      final name = (chat?.sender?.name ?? '').trim().toLowerCase();
+      return !_hiddenAiChatNames.contains(name);
+    }).toList();
+    return model;
+  }
+
+  /// Single funnel for every chat-list payload (socket push + offline cache),
+  /// so [_stripAiChats] here covers Personal, Business, History, Group, Order
+  /// and every screen that reads those models (Inquiry / Orders / Me tabs).
   void loadChatListWithType({required GetChatListModel chatListModel}) {
+    chatListModel = _stripAiChats(chatListModel);
     if (chatListModel.type == AppConstants.business_Chat_Type) {
       getBusinessChatListModel?.value = chatListModel;
       businessChatListResponse.value = ApiResponse.complete(chatListModel);

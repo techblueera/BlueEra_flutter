@@ -9,14 +9,12 @@ import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/api/apiService/api_response.dart';
 import '../../../../core/constants/getx_utils.dart';
 import '../../../../core/constants/size_config.dart';
-// import '../../../../core/services/local_strorage_helper.dart';
 import '../../auth/controller/chat_lock_controller.dart';
 import '../../auth/controller/chat_pin_archive_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/controller/custom_chat_tab_controller.dart';
 import '../../auth/model/GetChatListModel.dart';
 import '../../auth/model/custom_chat_tab_model.dart';
-// import '../ai_chat/view/ai_chat_screen.dart';
 import '../archive_chat/archive_chat_list.dart';
 import '../flag_chat/flag_chat_list.dart';
 import '../group_chat/group_chat_list.dart';
@@ -29,13 +27,11 @@ class PersonalChatsList extends StatefulWidget {
     super.key,
     this.isForwardUI,
     this.isNewGroupUI,
-    this.hideAiChats,
     this.hideSubTabs,
   });
 
   final bool? isForwardUI;
   final bool? isNewGroupUI;
-  final bool? hideAiChats;
   /// When `true`, the All / Group / Pinned / Flagged / Records sub-tab
   /// strip is hidden and only the personal chat list is rendered.
   final bool? hideSubTabs;
@@ -49,30 +45,6 @@ class _PersonalChatsListState extends State<PersonalChatsList> {
   final pinArchiveController = getOrPut(() => ChatPinArchiveController());
   final lockController = getOrPut(() => ChatLockController());
   final customTabController = getOrPut(() => CustomChatTabController());
-
-  // Locally-personalized name/image for the personal AI chat row. Loaded from
-  // [AiChatProfileStorage] and refreshed when returning from the AI chat
-  // screen so a rename/avatar change made there is reflected in this list.
-  // Commented out along with the Ask BlueEra AI row.
-  // String _aiName = '';
-  // String _aiImage = '';
-
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   _loadAiProfile();
-  // }
-
-  // Future<void> _loadAiProfile() async {
-  //   const aiType = AppConstants.personal_Chat_Type;
-  //   final name = (await AiChatProfileStorage.getName(aiType)) ?? '';
-  //   final image = (await AiChatProfileStorage.getImagePath(aiType)) ?? '';
-  //   if (!mounted) return;
-  //   setState(() {
-  //     _aiName = name;
-  //     _aiImage = image;
-  //   });
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -576,15 +548,14 @@ Widget personalChatListWidget(GetChatListModel? data,ThemeData theme ){
 
     final hasArchived = archivedIds.isNotEmpty;
 
-    // Count special rows at top: Records row (if archived) + AI chat. The
+    // Count special rows at top: just the Records row (if archived). The
     // BlueEra thread is no longer a synthetic pinned row — it now comes
-    // straight from the server chat list like any other conversation.
-    // Ask BlueEra AI row is disabled for now (both the Me section and the chat
-    // section). Restore by putting back:
-    // final aiOffset = widget.hideAiChats == true ? 0 : 1;
-    const aiOffset = 0;
+    // straight from the server chat list like any other conversation — and the
+    // AI-assistant row has been removed from every chat list (the server-side
+    // copy is stripped in `ChatViewController.loadChatListWithType`, so it
+    // can't reappear via the socket either).
     final recordsOffset = hasArchived ? 1 : 0;
-    final topRowCount = aiOffset + recordsOffset;
+    final topRowCount = recordsOffset;
 
     return Container(
       // Still render the list when there are no real chats but pinned system
@@ -607,55 +578,6 @@ Widget personalChatListWidget(GetChatListModel? data,ThemeData theme ){
           if (hasArchived && index == 0) {
             return _buildRecordsRow();
           }
-
-          // Ask BlueEra AI row (right after Records row) — commented out.
-          // if (index == recordsOffset && widget.hideAiChats != true) {
-          //   final chat = ChatViewController.personalAiChatModule;
-          //   // Apply the locally-saved custom name/image so the row matches
-          //   // what the user set inside the AI chat screen.
-          //   if (_aiName.isNotEmpty) {
-          //     chat?.sender?.name = _aiName;
-          //   }
-          //   if (_aiImage.isNotEmpty) {
-          //     chat?.sender?.profileImage = _aiImage;
-          //   }
-          //   final isInSelectionMode = chatViewController.isChatListSelectionMode.value;
-          //   final isChatSelected = chatViewController.selectedConversationIds
-          //       .contains(chat?.conversationId ?? '');
-          //
-          //   return ChatListTile(
-          //     onTab: (widget.isForwardUI == false) ? () {
-          //       if (isInSelectionMode) {
-          //         chatViewController.toggleChatListSelection(chat);
-          //         setState(() {});
-          //         return;
-          //       }
-          //       Get.to(() => AiChatScreen(
-          //         profileImage: chat?.sender?.profileImage,
-          //         name: chat?.sender?.name,
-          //         type: chat?.sender?.accountType,
-          //       ))?.then((_) => _loadAiProfile());
-          //     } : null,
-          //     isFromGroupSelect: widget.isNewGroupUI,
-          //     onLongPress: () {
-          //       if (!isInSelectionMode) {
-          //         chatViewController.isChatListSelectionMode.value = true;
-          //         chatViewController.toggleChatListSelection(chat);
-          //         setState(() {});
-          //       }
-          //     },
-          //     isChatListSelected: isChatSelected,
-          //     onSelect: () => setState(() {}),
-          //     type: chat?.sender?.accountType ?? AppConstants.individual,
-          //     index: -1,
-          //     chatViewController: chatViewController,
-          //     chat: chat,
-          //     theme: theme,
-          //     isForwardUI: widget.isForwardUI,
-          //     showFlagBadge: true,
-          //     context: context,
-          //   );
-          // }
 
           final chatIndex = index - topRowCount;
           final chat = chatList[chatIndex];

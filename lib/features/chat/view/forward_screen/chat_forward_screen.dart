@@ -156,7 +156,7 @@ class _ChatForwardScreenState extends State<ChatForwardScreen> {
                   _topOptions(),
                   _recentInquiries(),
                   _sectionTitle(AppStrings.recentChatsLabel.tr),
-                  PersonalChatsList(isForwardUI: true,hideAiChats: true,),
+                  PersonalChatsList(isForwardUI: true),
                 ],
               ),
             ),
