@@ -4,9 +4,16 @@ import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 
 class NotificationListRepo extends BaseService {
-  Future<ResponseModel> fetchNotificationRepo({required String filterType}) async {
+  Future<ResponseModel> fetchNotificationRepo({
+    required String filterType,
+    int? page,
+    int? limit,
+  }) async {
+    final buffer = StringBuffer("${notificationListApi}?filter=${filterType}");
+    if (page != null) buffer.write("&page=$page");
+    if (limit != null) buffer.write("&limit=$limit");
     final response = await ApiBaseHelper().getHTTP(
-      "${notificationListApi}?filter=${filterType}",
+      buffer.toString(),
       showProgress: false,
       onError: (error) {},
       onSuccess: (data) {},

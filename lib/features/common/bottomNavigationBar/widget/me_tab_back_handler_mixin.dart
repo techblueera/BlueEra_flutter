@@ -33,12 +33,19 @@ import 'package:get/get.dart';
 /// ```
 mixin MeTabBackHandlerMixin<T extends StatefulWidget> on State<T> {
   bool Function()? _meBackHandlerRef;
+  void Function(int index)? _meSelectTabRef;
 
   /// Registers a back-press interceptor that animates [controller] to its
   /// first tab (index 0) when it's currently on any other tab. Call once,
   /// right after the [TabController] is created in `initState`.
+  ///
+  /// Also wires up deep-link tab selection: a notification tap can ask this
+  /// live "Me" screen to jump to a specific internal tab (e.g. Overview), and
+  /// any Overview request that arrived before this screen was built is honoured
+  /// here on first frame.
   void registerMeTabBackHandler(TabController controller) {
     if (!Get.isRegistered<BottomBarController>()) return;
+    final bbc = Get.find<BottomBarController>();
     bool handler() {
       if (!mounted) return false;
       if (controller.index != 0) {
@@ -49,19 +56,43 @@ mixin MeTabBackHandlerMixin<T extends StatefulWidget> on State<T> {
     }
 
     _meBackHandlerRef = handler;
-    Get.find<BottomBarController>().meTabBackHandler = handler;
+    bbc.meTabBackHandler = handler;
+
+    void selectTab(int index) {
+      if (!mounted) return;
+      if (index >= 0 && index < controller.length && controller.index != index) {
+        controller.animateTo(index);
+      }
+    }
+
+    _meSelectTabRef = selectTab;
+    bbc.meTabSelectTabHandler = selectTab;
+
+    // A deep-link (e.g. profile_completion_reminder) that landed on the "Me"
+    // tab before this screen existed leaves a pending Overview request; honour
+    // it once the first frame is laid out.
+    if (bbc.pendingMeOverview) {
+      bbc.pendingMeOverview = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        selectTab(BottomBarController.meOverviewTabIndex);
+      });
+    }
   }
 
   void _clearMeTabBackHandler() {
-    if (_meBackHandlerRef == null) return;
+    if (_meBackHandlerRef == null && _meSelectTabRef == null) return;
     if (Get.isRegistered<BottomBarController>()) {
       final bbc = Get.find<BottomBarController>();
       // Only clear if it's still ours — a newer screen may have replaced it.
       if (bbc.meTabBackHandler == _meBackHandlerRef) {
         bbc.meTabBackHandler = null;
       }
+      if (bbc.meTabSelectTabHandler == _meSelectTabRef) {
+        bbc.meTabSelectTabHandler = null;
+      }
     }
     _meBackHandlerRef = null;
+    _meSelectTabRef = null;
   }
 
   @override

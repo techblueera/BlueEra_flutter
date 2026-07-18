@@ -118,6 +118,11 @@ class Metadata {
   // the top-level `message` empty — parse them so those rows aren't blank.
   String? title;
   String? body;
+  // Backend-supplied operation key (e.g. `profile_completion_reminder`,
+  // `SYMBOL_VIEWED`). Drives tap redirection independent of the coarse
+  // `notification_type`, so a notification without a `notification_type` can
+  // still route to the right screen.
+  String? originalOperation;
 
   Metadata({
     this.jobId,
@@ -127,6 +132,7 @@ class Metadata {
     this.conversationId,
     this.title,
     this.body,
+    this.originalOperation,
   });
 
   Metadata.fromJson(Map<String, dynamic> json) {
@@ -137,6 +143,7 @@ class Metadata {
     conversationId = json['conversation_id'] ?? json['conversationId'];
     title = json['title'];
     body = json['body'];
+    originalOperation = json['originalOperation'];
   }
 
   Map<String, dynamic> toJson() {
@@ -148,6 +155,7 @@ class Metadata {
     data['conversation_id'] = this.conversationId;
     data['title'] = this.title;
     data['body'] = this.body;
+    data['originalOperation'] = this.originalOperation;
     return data;
   }
 }
