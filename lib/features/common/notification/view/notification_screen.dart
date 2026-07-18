@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/model/tab_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -10,10 +11,14 @@ import 'package:BlueEra/features/chat/auth/repo/symbol_repo.dart';
 import 'package:BlueEra/features/chat/view/call_screen/call_history_screen.dart';
 import 'package:BlueEra/features/chat/view/personal_chat/personal_chat_screen.dart';
 import 'package:BlueEra/features/chat/view/symbol_view/symbol_view_images.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/common/feed/view/post_detail_screen.dart';
 import 'package:BlueEra/features/common/jobs/view/job_details_screen.dart';
 import 'package:BlueEra/features/common/notification/model/notification_model.dart';
 import 'package:BlueEra/features/common/notification/notification_repo.dart';
+import 'package:BlueEra/features/common/notification/service/notification_cache_service.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/app_notification.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_horizontal_divider.dart';
@@ -39,9 +44,22 @@ class NotificationScreen extends StatefulWidget {
 
 class _NotificationScreenState extends State<NotificationScreen> {
   final TextEditingController searchController = TextEditingController();
-  List<NotificationDataList> allNotifications = [];
-  late List<NotificationDataList> filteredNotifications;
-  bool isLoading = true;
+  final ScrollController _scrollController = ScrollController();
+
+  /// Local-first store: the list is served from here (Hive-backed) so opening
+  /// the hub, switching tabs, marking read and deleting never wait on the API.
+  final NotificationCacheService cache = NotificationCacheService.to;
+
+  /// Client-side filter/search state. Reactive so the Obx list rebuilds without
+  /// manual setState juggling.
+  final RxString _searchQuery = ''.obs;
+  final RxBool _isSyncing = false.obs;
+  final RxBool _isLoadingMore = false.obs;
+
+  /// Stable filter ids (decoupled from the localized tab titles) used for
+  /// client-side filtering of the cached "all" stream.
+  static const List<String> _tabIds = ['All', 'Orders', 'Tags', 'Jobs', 'Posts'];
+
   List<TabItem> notificationFilters = [];
 
   int selectedIndex = 0;
@@ -50,105 +68,151 @@ class _NotificationScreenState extends State<NotificationScreen> {
   @override
   void initState() {
     super.initState();
-    filteredNotifications = [...allNotifications];
-    fetchNotification(filterType: "all");
 
     searchController.addListener(() {
-      _onSearchChanged(searchController.text);
-    }); // To show/hide clear icon
+      if (_debounce?.isActive ?? false) _debounce?.cancel();
+      _debounce = Timer(const Duration(milliseconds: 250), () {
+        _searchQuery.value = searchController.text;
+      });
+    });
+
+    _scrollController.addListener(_onScroll);
+
+    // Serve the cache instantly; only touch the network once per app session
+    // (or when the cache is empty). Incoming pushes keep the cache fresh in the
+    // meantime, so re-opening the hub is a pure local read.
+    if (!cache.syncedThisSession || cache.items.isEmpty) {
+      _syncFirstPage();
+    }
   }
 
   @override
   void dispose() {
+    _debounce?.cancel();
+    _scrollController.dispose();
     searchController.dispose();
     super.dispose();
   }
 
-  Future<void> fetchNotification({required String filterType}) async {
+  /// Pagination only makes sense on the "All" tab — the filter tabs slice the
+  /// already-cached stream client-side, so there are no extra server pages to
+  /// pull for them.
+  bool get _isAllTab => selectedIndex == 0;
+
+  void _onScroll() {
+    if (!_scrollController.hasClients) return;
+    final pos = _scrollController.position;
+    if (pos.pixels >= pos.maxScrollExtent - 200 &&
+        _isAllTab &&
+        cache.hasMore &&
+        !_isLoadingMore.value &&
+        !_isSyncing.value &&
+        _searchQuery.value.isEmpty) {
+      _loadMore();
+    }
+  }
+
+  /// Parse the visible (hub-eligible) items out of a list response. Chat
+  /// text/broadcast messages belong to the Chat section and are excluded here.
+  List<NotificationDataList> _parseVisible(dynamic data) {
+    final list = (data is Map ? data['data'] : null);
+    if (list is! List) return [];
+    return list
+        .map((e) => NotificationDataList.fromJson(e))
+        .where((n) => !_isChatMessageNotification(n))
+        .toList();
+  }
+
+  bool _hasNext(dynamic data, int returnedCount) {
+    final pg = data is Map ? data['pagination'] : null;
+    if (pg is Map && pg['hasNextPage'] is bool) return pg['hasNextPage'] as bool;
+    return returnedCount >= NotificationCacheService.pageLimit;
+  }
+
+  /// Authoritative refresh of page 1 → replaces the cache (keeping any newer
+  /// push-only rows). Also the pull-to-refresh handler.
+  Future<void> _syncFirstPage() async {
+    if (_isSyncing.value) return;
+    _isSyncing.value = true;
     try {
-      filteredNotifications.clear();
-      allNotifications.clear();
-      isLoading = true;
-      final response = await NotificationListRepo()
-          .fetchNotificationRepo(filterType: filterType);
+      final response = await NotificationListRepo().fetchNotificationRepo(
+        filterType: "all",
+        page: 1,
+        limit: NotificationCacheService.pageLimit,
+      );
       if (response.isSuccess) {
         final data = response.response!.data;
-
-        final List<NotificationDataList> fetchedData =
-            List<NotificationDataList>.from(
-          (data['data'] as List).map((e) => NotificationDataList.fromJson(e)),
+        final visible = _parseVisible(data);
+        await cache.replaceWithServerPage(
+          visible,
+          hasNext: _hasNext(data, visible.length),
         );
-
-        // Chat text/broadcast messages are intentionally excluded from this
-        // list — they belong to the Chat section and open the respective
-        // person's chat there. Call notifications (incoming/missed/cancelled)
-        // still surface here even though they share the "chat" type.
-        final List<NotificationDataList> visibleData = fetchedData
-            .where((n) => !_isChatMessageNotification(n))
-            .toList();
-
-        setState(() {
-          allNotifications = visibleData;
-          filteredNotifications = visibleData;
-        });
-      } else {
-        print("API failed with status: ${response.statusCode}");
       }
     } catch (e) {
-      print("Error: $e");
+      // Keep whatever is cached — offline / transient failures degrade to the
+      // last known list rather than an empty screen.
+      print("Notification sync error: $e");
     } finally {
-      setState(() {
-        isLoading = false;
-      });
+      _isSyncing.value = false;
     }
   }
 
-  Future<void> deleteNotification({required String? notifyId}) async {
+  /// Fetch the next older page on scroll and merge it into the cache.
+  Future<void> _loadMore() async {
+    if (_isLoadingMore.value) return;
+    _isLoadingMore.value = true;
+    final nextPage = cache.loadedPages + 1;
     try {
-      final response = await NotificationListRepo()
-          .deleteNotification(notifyId: notifyId ?? "");
-
+      final response = await NotificationListRepo().fetchNotificationRepo(
+        filterType: "all",
+        page: nextPage,
+        limit: NotificationCacheService.pageLimit,
+      );
       if (response.isSuccess) {
-        commonSnackBar(
-            message: response.message ?? AppStrings.notificationDeleted.tr);
-      } else {
-        commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong);
+        final data = response.response!.data;
+        final visible = _parseVisible(data);
+        await cache.appendServerPage(
+          visible,
+          page: nextPage,
+          hasNext: _hasNext(data, visible.length),
+        );
       }
     } catch (e) {
-      commonSnackBar(message: AppStrings.somethingWentWrong);
+      print("Notification load-more error: $e");
+    } finally {
+      _isLoadingMore.value = false;
     }
   }
 
-  Future<void> deleteAllNotifications() async {
-    try {
-      final response = await NotificationListRepo().deleteAllNotification();
-
-      if (response.isSuccess) {
-        commonSnackBar(
-            message: response.message ?? AppStrings.allNotificationsDeleted.tr);
-      } else {
-        commonSnackBar(
-            message: response.message ?? AppStrings.somethingWentWrong);
-      }
-    } catch (e) {
-      commonSnackBar(message: AppStrings.somethingWentWrong);
+  /// Client-side tab filter over the cached "all" stream.
+  bool _matchesTab(NotificationDataList n, String tabId) {
+    final type = (n.notification_type ?? '').toLowerCase();
+    switch (tabId) {
+      case 'Orders':
+        return type == 'orders';
+      case 'Tags':
+        return type == 'tags';
+      case 'Jobs':
+        return type == 'jobs';
+      case 'Posts':
+        return type == 'posts';
+      default:
+        return true; // "All"
     }
   }
 
-  void _onSearchChanged(String query) {
-    if (_debounce?.isActive ?? false) _debounce?.cancel();
-    filterNotifications(query);
-  }
-
-  void filterNotifications(String query) {
-    setState(() {
-      filteredNotifications = allNotifications
-          .where((notification) => (notification.message ?? '')
-              .toLowerCase()
-              .contains(query.toLowerCase()))
-          .toList();
-    });
+  /// The rows to render: cache filtered by the active tab + search query.
+  List<NotificationDataList> _computeVisible() {
+    final tabId = _tabIds[selectedIndex.clamp(0, _tabIds.length - 1)];
+    final q = _searchQuery.value.toLowerCase().trim();
+    return cache.items.where((n) {
+      if (_isChatMessageNotification(n)) return false;
+      if (!_matchesTab(n, tabId)) return false;
+      if (q.isEmpty) return true;
+      return (n.message ?? '').toLowerCase().contains(q) ||
+          (n.metadata?.title ?? '').toLowerCase().contains(q) ||
+          (n.metadata?.body ?? '').toLowerCase().contains(q);
+    }).toList();
   }
 
   @override
@@ -191,43 +255,15 @@ class _NotificationScreenState extends State<NotificationScreen> {
     );
   }
 
-  String? getTypeFromTabLabel(String label) {
-    switch (label) {
-      case "Chat":
-        return "CHAT";
-      case "Orders":
-        return "ORDERS";
-      case "Tags":
-        return "TAGS";
-      case "Jobs":
-        return "JOBS";
-      case "Posts":
-        return "POSTS";
-      default:
-        return null; // "All"
-    }
-  }
-
   Widget _buildTabButtons() {
     return HorizontalTabSelector(
         tabs: notificationFilters,
         selectedIndex: selectedIndex,
         onTabSelected: (index, value) {
+          // Tabs filter the locally-cached "all" stream client-side — no API
+          // call per tab switch.
           setState(() {
             selectedIndex = index;
-
-            final String? selectedType = getTypeFromTabLabel(value);
-
-            fetchNotification(filterType: selectedType?.toLowerCase() ?? "all");
-
-            // if (selectedType == null) {
-            //   // Show all
-            //   filteredNotifications = allNotifications;
-            // } else {
-            //   filteredNotifications = allNotifications
-            //       .where((notification) => notification.type == selectedType)
-            //       .toList();
-            // }
           });
         },
         labelBuilder: (TabItem label) => label.title);
@@ -235,16 +271,55 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
   Widget _buildNotificationList() {
     return Expanded(
-        child: filteredNotifications.isNotEmpty
-            ? ListView.builder(
-                itemCount: filteredNotifications.length,
-                keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.onDrag,
-                padding: EdgeInsets.only(
-                    top: SizeConfig.paddingXSL, bottom: SizeConfig.size20),
-                itemBuilder: (_, index) {
-                  final data = filteredNotifications[index];
-                  final isLast = index == filteredNotifications.length - 1;
+      child: Obx(() {
+        final List<NotificationDataList> visible = _computeVisible();
+
+        // First-ever load with nothing cached yet → spinner.
+        if (visible.isEmpty && _isSyncing.value && cache.items.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (visible.isEmpty) {
+          // Keep pull-to-refresh reachable even on the empty state.
+          return RefreshIndicator(
+            onRefresh: _syncFirstPage,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                SizedBox(height: SizeConfig.screenHeight * 0.25),
+                EmptyStateWidget(message: AppStrings.noNotificationsFound.tr),
+              ],
+            ),
+          );
+        }
+
+        final bool showFooter =
+            _isAllTab && cache.hasMore && _searchQuery.value.isEmpty;
+        return RefreshIndicator(
+          onRefresh: _syncFirstPage,
+          child: ListView.builder(
+            controller: _scrollController,
+            itemCount: visible.length + (showFooter ? 1 : 0),
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.only(
+                top: SizeConfig.paddingXSL, bottom: SizeConfig.size20),
+            itemBuilder: (_, index) {
+              if (index >= visible.length) {
+                // Pagination footer loader.
+                return Padding(
+                  padding: EdgeInsets.symmetric(vertical: SizeConfig.size16),
+                  child: const Center(
+                    child: SizedBox(
+                      width: 22,
+                      height: 22,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+                );
+              }
+              final data = visible[index];
+              final isLast = index == visible.length - 1;
 
                   final String imageUrl =
                       data.senderProfile?.profileImage ?? '';
@@ -287,12 +362,40 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   }
                   return InkWell(
                     onTap: () {
-                      final data = filteredNotifications[index];
                       if (data.status == "UNREAD") {
-                        NotificationListRepo().notificationReadRepo(
-                            notificationId: data.sId ?? "");
+                        // Optimistic: flip read locally now, sync to the server
+                        // in the background. Skip the API for push-only rows
+                        // (synthetic `local_…` ids the server doesn't know yet).
+                        cache.markRead(id);
+                        if (id.isNotEmpty && !id.startsWith('local_')) {
+                          NotificationListRepo()
+                              .notificationReadRepo(notificationId: id);
+                        }
                       }
-                      if (data.type == "SYMBOL_CREATED") {
+                      // Redirect off the backend operation key first: it's
+                      // present even when `notification_type` is null (e.g.
+                      // profile_completion_reminder), so it drives routing more
+                      // reliably than the coarse type. Falls through to the
+                      // existing type-based handling when the operation isn't one
+                      // we redirect explicitly (or is missing entirely).
+                      final String operation =
+                          (data.metadata?.originalOperation ?? data.type ?? '')
+                              .trim();
+                      if (operation == "profile_completion_reminder") {
+                        _redirectToMeOverview();
+                      }
+                      else if (operation == "admin_broadcast") {
+                        // Open the in-app "BlueEra" broadcast thread via the
+                        // same path a push tap uses. Warm app resolves the row
+                        // from the chat list; ids are passed for the fallback.
+                        AppNotificationHandler.openBlueEraChat({
+                          'senderId':
+                              data.senderProfile?.id ?? data.sentBy ?? '',
+                          'conversationId':
+                              data.metadata?.conversationId ?? '',
+                        });
+                      }
+                      else if (data.type == "SYMBOL_CREATED") {
                         _openSymbol(data);
                       }
                       else if (_isCallNotification(data)) {
@@ -453,9 +556,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       ],
                     ),
                   );
-                },
-              )
-            : EmptyStateWidget(message: AppStrings.noNotificationsFound.tr));
+            },
+          ),
+        );
+      }),
+    );
   }
 
   Future<void> _openSymbol(NotificationDataList data) async {
@@ -496,6 +601,23 @@ class _NotificationScreenState extends State<NotificationScreen> {
   // not messages, so they are excluded from the hide rule.
   bool _isChatMessageNotification(NotificationDataList data) {
     return data.notification_type == "chat" && !_isCallNotification(data);
+  }
+
+  // profile_completion_reminder → the logged-in user's own "Me" → Overview
+  // tab, which hosts the profile-completion card. No-op for logged-out users
+  // (nothing to complete without a session). When the bottom-nav shell is live
+  // we pop back to it and switch tabs; otherwise we route to the shell fresh.
+  void _redirectToMeOverview() {
+    if (!isLoggedIn()) return;
+    if (Get.isRegistered<BottomBarController>()) {
+      Get.until((route) => route.isFirst);
+      Get.find<BottomBarController>().openMeOverviewTab();
+    } else {
+      Get.offAllNamed(
+        RouteHelper.getBottomNavigationBarScreenRoute(),
+        arguments: {ApiKeys.initialIndex: BottomBarController.meTabIndex},
+      );
+    }
   }
 
   void redirectToChat(NotificationDataList data) {
@@ -654,47 +776,27 @@ class _NotificationScreenState extends State<NotificationScreen> {
   Future<void> handleNotificationDelete(int selected,
       {String? notifyId}) async {
     if (selected == 0) {
-      // ✅ Clear all notifications
+      // ✅ Clear all — remove from the local cache immediately, then sync the
+      // server in the background (push-only rows never existed server-side).
+      await cache.clear();
+      commonSnackBar(message: AppStrings.allNotificationsDeleted.tr);
       try {
-        final response = await NotificationListRepo().deleteAllNotification();
-
-        if (response.isSuccess) {
-          commonSnackBar(
-              message:
-                  response.message ?? AppStrings.allNotificationsDeleted.tr);
-
-          setState(() {
-            allNotifications.clear();
-            filteredNotifications.clear();
-          });
-        } else {
-          commonSnackBar(
-              message: response.message ?? AppStrings.somethingWentWrong);
-        }
-      } catch (e) {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
+        await NotificationListRepo().deleteAllNotification();
+      } catch (_) {
+        // Local state already cleared; a failed server call self-heals on the
+        // next successful sync.
       }
     } else {
       if (notifyId == null || notifyId.isEmpty) return;
 
-      try {
-        final response =
-            await NotificationListRepo().deleteNotification(notifyId: notifyId);
-
-        if (response.isSuccess) {
-          commonSnackBar(
-              message: response.message ?? AppStrings.notificationDeleted.tr);
-
-          setState(() {
-            allNotifications.removeWhere((item) => item.sId == notifyId);
-            filteredNotifications.removeWhere((item) => item.sId == notifyId);
-          });
-        } else {
-          commonSnackBar(
-              message: response.message ?? AppStrings.somethingWentWrong);
-        }
-      } catch (e) {
-        commonSnackBar(message: AppStrings.somethingWentWrong);
+      // ✅ Single delete — optimistic local removal, background server delete
+      // (skipped for synthetic push-only ids the server doesn't know).
+      await cache.remove(notifyId);
+      commonSnackBar(message: AppStrings.notificationDeleted.tr);
+      if (!notifyId.startsWith('local_')) {
+        try {
+          await NotificationListRepo().deleteNotification(notifyId: notifyId);
+        } catch (_) {}
       }
     }
   }

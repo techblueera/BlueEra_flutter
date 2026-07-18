@@ -30,6 +30,37 @@ class BottomBarController extends GetxController {
   /// Cleared by the owning screen on dispose.
   bool Function()? meTabBackHandler;
 
+  /// Bottom-nav index of the "Me" tab.
+  static const int meTabIndex = 0;
+
+  /// Internal tab index of the "Overview" tab inside every "Me" home screen
+  /// (all of them order it second, right after Order/Inquiry).
+  static const int meOverviewTabIndex = 1;
+
+  /// Set by the currently-mounted "Me" tab home screen (via
+  /// `MeTabBackHandlerMixin`) so a deep-link / notification tap can jump that
+  /// screen to a specific internal tab (e.g. Overview). Cleared on dispose.
+  void Function(int index)? meTabSelectTabHandler;
+
+  /// A request to open the "Me" → Overview tab that arrived before the "Me"
+  /// screen was built (cold start, or a fresh switch onto the tab). The "Me"
+  /// screen consumes and clears this once it registers its select handler.
+  bool pendingMeOverview = false;
+
+  /// Deep-link entry point: bring the user to the "Me" tab's Overview screen.
+  /// Used by notification taps (e.g. profile_completion_reminder). If the "Me"
+  /// screen is already live it jumps straight there; otherwise it flags the
+  /// request so the screen opens Overview as soon as it (re)builds.
+  void openMeOverviewTab() {
+    final selectTab = meTabSelectTabHandler;
+    if (currentIndex.value == meTabIndex && selectTab != null) {
+      selectTab(meOverviewTabIndex);
+    } else {
+      pendingMeOverview = true;
+      onChangeIndex(meTabIndex);
+    }
+  }
+
   void onChangeIndex(int index) {
     // Pause and release feed video when leaving Home tab to free GPU buffers
     if (currentIndex.value == 0 && index != 0) {

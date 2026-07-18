@@ -7,6 +7,8 @@ import 'dart:typed_data';
 
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
+import 'package:BlueEra/features/common/notification/service/notification_cache_service.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -1940,6 +1942,16 @@ class AppNotificationHandler {
         operation: operation,
         images: images,
       );
+      // Mirror into the notification-hub local cache so the hub list reflects
+      // this push without an API round-trip. Same guard as above (no chat /
+      // call / ride / greeting); ride/call statuses the hub also shows are
+      // reconciled on the next server sync instead of inserted here.
+      NotificationCacheService.to.upsertFromPush(
+        operation: operation,
+        title: title,
+        body: body,
+        images: images,
+      );
     } catch (_) {}
   }
 
@@ -2731,9 +2743,23 @@ class AppNotificationHandler {
       case 'bank_details_updated':
       case 'experience_verification':
       case 'profile_updated':
-      case 'profile_completion_reminder':
       case 'new_user':
         Get.toNamed(RouteHelper.getNotificationScreenRoute());
+        break;
+
+      // Profile-completion nudge → the user's own "Me" → Overview tab, which
+      // hosts the completion card. Reuse the live bottom-nav shell when present
+      // (pop any pushed screens, then switch tab); otherwise route to it fresh.
+      case 'profile_completion_reminder':
+        if (Get.isRegistered<BottomBarController>()) {
+          Get.until((route) => route.isFirst);
+          Get.find<BottomBarController>().openMeOverviewTab();
+        } else {
+          Get.offAllNamed(
+            RouteHelper.getBottomNavigationBarScreenRoute(),
+            arguments: {ApiKeys.initialIndex: BottomBarController.meTabIndex},
+          );
+        }
         break;
 
       // Reports
@@ -3001,6 +3027,13 @@ class AppNotificationHandler {
   ///   2. The BlueEra account id carried on the push (`senderId`), via the same
   ///      `checkChatConnectionAndOpenChat` the list-row tap ultimately runs.
   ///   3. Fallback to the read-only notifications screen when neither exists.
+  /// Public entry point so other surfaces (e.g. the notification hub list) can
+  /// open the in-app "BlueEra" broadcast thread through the same tested path a
+  /// push tap uses. [data] may carry `senderId`/`conversationId` for the
+  /// cold-start fallback; a warm app resolves the row from the loaded chat list.
+  static Future<void> openBlueEraChat(Map<String, dynamic> data) =>
+      _openBlueEraChat(data);
+
   static Future<void> _openBlueEraChat(Map<String, dynamic> data) async {
     // Fast path: the BlueEra row is already in the loaded chat list (app was
     // warm / list cached). Open it straight away.
