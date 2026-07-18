@@ -18,7 +18,6 @@ import '../../auth/controller/chat_pin_archive_controller.dart';
 import '../../auth/controller/chat_theme_controller.dart';
 import '../../auth/controller/chat_view_controller.dart';
 import '../../auth/model/GetChatListModel.dart';
-import '../ai_chat/view/ai_chat_screen.dart';
 import '../archive_chat/archive_chat_list.dart';
 import '../flag_chat/business_flag_chat_list.dart';
 import '../pin_chat/business_pin_chat_list.dart';
@@ -496,10 +495,14 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
 
     final hasArchived = archivedIds.isNotEmpty;
 
-    // Top rows: Records + AI chat
+    // Top rows: Records only. The "Ask BlueEra Ai" row was removed from every
+    // chat list — the server-side copy is stripped in
+    // `ChatViewController.loadChatListWithType`, so it can't come back via the
+    // socket either. `recordsOffset` is 0 or 1: the Records shortcut only
+    // exists once at least one conversation has been archived, and the builder
+    // subtracts it before indexing into `chatList` / `historyList`.
     final recordsOffset = hasArchived ? 1 : 0;
-    final aiOffset = 1; // always show AI chat
-    final topRowCount = recordsOffset + aiOffset;
+    final topRowCount = recordsOffset;
 
     // Merge the History bucket into the All tab: the live chats render under a
     // "Today" heading, followed by the aged-out conversations (the History
@@ -530,53 +533,9 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
             return _buildRecordsRow();
           }
 
-          // AI chat right after Records row
+          // Past the Records row — `i` now indexes into the real content:
+          // [Today?, current…, History?, history…]
           int i = index - recordsOffset;
-          if (i == 0) {
-            final chat = ChatViewController.businessAiChatModule;
-            final isInSelectionMode =
-                chatViewController.isChatListSelectionMode.value;
-            final isChatSelected = chatViewController
-                .selectedConversationIds
-                .contains(chat?.conversationId ?? '');
-
-            return ChatListTile(
-              onTab: () {
-                if (isInSelectionMode) {
-                  chatViewController.toggleChatListSelection(chat);
-                  setState(() {});
-                  return;
-                }
-                Get.to(() => AiChatScreen(
-                  profileImage: chat?.sender?.profileImage,
-                  name: chat?.sender?.name,
-                  type: chat?.sender?.accountType,
-                ));
-              },
-              isFromGroupSelect: widget.isNewGroupUI,
-              onLongPress: () {
-                if (!isInSelectionMode) {
-                  chatViewController.isChatListSelectionMode.value =
-                  true;
-                  chatViewController.toggleChatListSelection(chat);
-                  setState(() {});
-                }
-              },
-              isChatListSelected: isChatSelected,
-              onSelect: () => setState(() {}),
-              type:
-              chat?.sender?.accountType ?? AppConstants.business,
-              index: -1,
-              chatViewController: chatViewController,
-              chat: chat,
-              theme: theme,
-              isForwardUI: widget.isForwardUI,
-              showFlagBadge: true,
-              context: context,
-            );
-          }
-          // i now indexes into [Today?, current…, History?, history…]
-          i -= aiOffset;
 
           // "Today" heading above the live chat list.
           if (showTodayHeader) {
