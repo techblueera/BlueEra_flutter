@@ -472,6 +472,11 @@ class AuthController extends GetxController {
       final dobJsonString = reqData?[ApiKeys.date_of_birth_Obj];
       final dobMap = jsonDecode(dobJsonString);
 
+      // Fresh account just created — we're about to land on Discover and push
+      // the "add bio" onboarding screen on top. Suppress the once-a-day promo
+      // sheets for the rest of this session so nothing pops behind onboarding.
+      suppressPromosAfterAccountCreation = true;
+
       if (Get.isRegistered<BottomBarController>()) {
         Get.find<BottomBarController>().currentIndex.value = 1;
       }
@@ -642,6 +647,11 @@ class AuthController extends GetxController {
           // the user sees it as a confirmation, not while the spinner
           // is still running.
           commonSnackBar(message: response.message ?? AppStrings.success);
+
+          // Fresh account just created — we're about to land on Discover and
+          // push the step-2 onboarding screen on top. Suppress the once-a-day
+          // promo sheets for the rest of this session so nothing pops behind it.
+          suppressPromosAfterAccountCreation = true;
 
           if (Get.isRegistered<BottomBarController>()) {
             Get.find<BottomBarController>().currentIndex.value = 1;

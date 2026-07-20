@@ -340,9 +340,11 @@ class WaitingForPaymentDialog extends StatelessWidget {
                                     orderId, {ApiKeys.status: "cancelled"});
                                 debugPrint(
                                     "Payment Failed: ${response.message}");
+                                // Shared mapping — a back-press / cancel reads
+                                // as "payment cancelled", not raw "Payment Error".
                                 commonSnackBar(
-                                    message:
-                                        "Payment Failed ${response.message}");
+                                    message: RazorpayService
+                                        .humanReadableError(response));
                               },
                             );
                           },

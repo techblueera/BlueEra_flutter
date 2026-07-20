@@ -298,7 +298,9 @@ class SecurityDepositController extends GetxController {
 
   void _onRazorpayError(PaymentFailureResponse response) {
     isProcessing.value = false;
-    commonSnackBar(message: response.message ?? AppStrings.paymentFailed.tr);
+    // Route through the shared mapping so a back-press / cancel shows
+    // "payment cancelled" instead of Razorpay's raw "Payment Error".
+    commonSnackBar(message: RazorpayService.humanReadableError(response));
   }
 
   /// After a deposit is successfully activated, refresh the rider onboarding

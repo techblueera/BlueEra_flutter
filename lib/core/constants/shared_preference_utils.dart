@@ -74,6 +74,19 @@ bool sharePromoShownThisSession = false;
 /// logout (see [SharedPreferenceUtils.clearPreferenceDataOnly]).
 String? addProductPromptShownForDay;
 
+/// Suppresses the once-a-day promo pops (Discover share-promo sheet, business
+/// QR promo sheet) for the rest of THIS session after a fresh account was just
+/// created (individual or business — see `addIndividualUser` / `addBusinessUser`
+/// in AuthController).
+///
+/// Account creation navigates to the Discover tab and immediately pushes an
+/// "update your data" screen on top; without this guard the Discover mount would
+/// pop the share-promo sheet behind that onboarding screen — irritating right
+/// when the user is being asked to fill in their profile. Reset on logout (see
+/// [SharedPreferenceUtils.clearPreferenceDataOnly]) so the next account/session
+/// behaves normally.
+bool suppressPromosAfterAccountCreation = false;
+
 /// Local `yyyy-MM-dd` the business-profile QR promo sheet last displayed,
 /// mirroring the persisted `qrPromoLastShownKey`.
 ///
@@ -415,6 +428,9 @@ class SharedPreferenceUtils {
       addProductPromptShownForDay = null;
       // ...and for the business-profile QR promo sheet's in-memory day mirror.
       qrPromoShownForDay = null;
+      // Clear the account-creation promo suppression so the next session pops
+      // the once-a-day promos normally.
+      suppressPromosAfterAccountCreation = false;
       isUserLoginGlobal = '';
       has_reel_profile_status = 'false';
       reel_profile_id_global = '';

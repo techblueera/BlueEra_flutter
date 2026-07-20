@@ -39,7 +39,6 @@ class GrocerySelfPickUpCartScreen extends StatelessWidget {
         () => GrocerySelfPickupConsumerController());
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
       appBar: AppBar(
         backgroundColor: AppColors.white,
         surfaceTintColor: AppColors.white,
@@ -82,7 +81,8 @@ class GrocerySelfPickUpCartScreen extends StatelessWidget {
                 itemBuilder: (context, index) => _StoreCard(
                   controller: controller,
                   businessId: keys[index],
-                  bgColor: _cardColors[index % _cardColors.length],
+                  bgColor: Colors.white,
+                  // bgColor: _cardColors[index % _cardColors.length],
                 ),
               ),
             ),

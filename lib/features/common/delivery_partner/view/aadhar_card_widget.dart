@@ -1,9 +1,12 @@
+import 'dart:io';
+
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
+import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -98,6 +101,7 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
                           controller.aadhaarConsentGiven.value = v ?? false,
                       activeColor: AppColors.primaryColor,
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      checkColor: Colors.white,
                     ),
                   ),
                   SizedBox(width: SizeConfig.size8),
@@ -129,6 +133,115 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
         ],
       ),
     );
+  }
+
+  /// Red note on the OTP screen pointing riders to the image option when the
+  /// OTP isn't being delivered.
+  Widget _buildOtpFallbackNote() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(Icons.error_outline_rounded, size: 16, color: AppColors.red),
+        SizedBox(width: SizeConfig.size6),
+        Expanded(
+          child: CustomText(
+            "If the OTP isn't coming through, verify with your Aadhaar photos "
+            "instead — upload the front and back below.",
+            fontSize: SizeConfig.small,
+            color: AppColors.red,
+            maxLines: 3,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// "— OR —" separator between the OTP path and the image path.
+  Widget _buildOrDivider() {
+    return Row(
+      children: [
+        Expanded(child: Divider(color: AppColors.greyE5, thickness: 1)),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+          child: CustomText(
+            'OR',
+            fontSize: SizeConfig.small,
+            fontWeight: FontWeight.w600,
+            color: AppColors.coloGreyText,
+          ),
+        ),
+        Expanded(child: Divider(color: AppColors.greyE5, thickness: 1)),
+      ],
+    );
+  }
+
+  /// Second verification option: upload the Aadhaar front & back images and
+  /// submit them (with the number entered above) via [submitAadhaarImages].
+  Widget _buildAadhaarImageSection() {
+    // Full-width regardless of the parent's cross-axis alignment (the OTP
+    // stage centers its children), so the tiles and button span the sheet.
+    return SizedBox(
+      width: double.infinity,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          CustomText(
+            'Verify using Aadhaar photo',
+            fontSize: SizeConfig.medium,
+            fontWeight: FontWeight.w600,
+          ),
+        SizedBox(height: SizeConfig.size4),
+        CustomText(
+          'Upload clear photos of the front and back of your Aadhaar card.',
+          fontSize: SizeConfig.small,
+          color: AppColors.coloGreyText,
+          maxLines: 2,
+        ),
+        SizedBox(height: SizeConfig.paddingS),
+        CommonImageUploadTile(
+          title: 'Upload Aadhaar Front',
+          imageFile: controller.aadharFrontImage,
+          context: context,
+          onImageSelected: () =>
+              _pickAadhaarImage(controller.aadharFrontImage, 'Aadhaar Front'),
+        ),
+        SizedBox(height: SizeConfig.paddingS),
+        CommonImageUploadTile(
+          title: 'Upload Aadhaar Back',
+          imageFile: controller.aadharBackImage,
+          context: context,
+          onImageSelected: () =>
+              _pickAadhaarImage(controller.aadharBackImage, 'Aadhaar Back'),
+        ),
+        SizedBox(height: SizeConfig.paddingM),
+        Obx(
+          () => CustomBtn(
+            title: controller.isAadhaarImageSubmitting.value
+                ? null
+                : 'Submit Aadhaar Images',
+            onTap: controller.isAadhaarImageSubmitting.value
+                ? null
+                : () => controller.submitAadhaarImages(),
+            radius: 10.0,
+            bgColor: AppColors.primaryColor,
+            isLoading: controller.isAadhaarImageSubmitting.value,
+          ),
+        ),
+        ],
+      ),
+    );
+  }
+
+  /// Picks a document photo (ID-card crop ratio) and stores it in [target].
+  Future<void> _pickAadhaarImage(Rxn<File> target, String title) async {
+    final path = await CommonImageUploadTile.pickImage(
+      context: context,
+      title: title,
+      cropAspectRatio: CommonImageUploadTile.documentCropAspectRatio,
+    );
+    if (path != null && path.isNotEmpty) {
+      target.value = File(path);
+    }
   }
 
   // ── Stage 2: enter OTP ─────────────────────────────────────────────
@@ -229,6 +342,14 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
             fontWeight: FontWeight.w600,
           ),
         ),
+        SizedBox(height: SizeConfig.paddingM),
+        // Fallback — OTP delivery fails for some Aadhaar-linked numbers, so
+        // offer the "verify by image" option right here on the OTP screen.
+        _buildOtpFallbackNote(),
+        SizedBox(height: SizeConfig.paddingM),
+        _buildOrDivider(),
+        SizedBox(height: SizeConfig.paddingM),
+        _buildAadhaarImageSection(),
       ],
     );
   }

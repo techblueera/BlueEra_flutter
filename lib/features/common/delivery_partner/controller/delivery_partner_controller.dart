@@ -804,6 +804,10 @@ class DeliveryPartnerController extends GetxController {
   final RxBool isAadhaarOtpSending = false.obs;
   final RxBool isAadhaarOtpVerifying = false.obs;
 
+  /// True while the "verify by image" path (alternative to OTP) is uploading
+  /// the Aadhaar front/back images and submitting them.
+  final RxBool isAadhaarImageSubmitting = false.obs;
+
   /// Mandatory consent — must be explicitly ticked (never pre-ticked) before
   /// an OTP can be generated.
   final RxBool aadhaarConsentGiven = false.obs;
@@ -837,6 +841,9 @@ class DeliveryPartnerController extends GetxController {
     aadhaarOtpController.clear();
     aadhaarReferenceId = '';
     aadhaarConsentGiven.value = false;
+    // Clear any Aadhaar images picked in a previous open of the "by image" path.
+    aadharFrontImage.value = null;
+    aadharBackImage.value = null;
     aadhaarIsVerified.value = false;
     aadhaarVerifiedName.value = null;
     aadhaarMaskedNumber.value = null;
@@ -1018,6 +1025,74 @@ class DeliveryPartnerController extends GetxController {
     aadhaarResendSeconds.value = 0;
     aadhaarOtpController.clear();
     aadhaarStage.value = AadhaarStage.entry;
+  }
+
+  /// Alternative to the OTP flow: submit the Aadhaar number together with the
+  /// front & back images (the "verify by image" option). Mirrors the old
+  /// image-based identification payload — uploads both images to S3 and POSTs
+  /// `{ aadharNo, aadharImages: { front, back } }` to the same personal-
+  /// identification endpoint the number-only path uses. Shown when OTP isn't
+  /// working for the rider. On success the sheet closes and the onboarding
+  /// status refreshes so the "aadhar" step reflects the submission.
+  Future<void> submitAadhaarImages() async {
+    // This runs from the OTP screen, where the entry-stage Form is no longer
+    // mounted (so aadharFormKey.currentState is null). Validate the already-
+    // entered number directly instead of via the form key.
+    final aadhaar = aadharController.text.replaceAll(RegExp(r'\s+'), '');
+    if (aadhaar.length != 12) {
+      commonSnackBar(message: 'Please enter a valid 12-digit Aadhaar number.');
+      return;
+    }
+    if (aadharFrontImage.value == null) {
+      commonSnackBar(message: 'Please select the Aadhaar front image.');
+      return;
+    }
+    if (aadharBackImage.value == null) {
+      commonSnackBar(message: 'Please select the Aadhaar back image.');
+      return;
+    }
+    try {
+      isAadhaarImageSubmitting.value = true;
+      final frontUrl = await _uploadToS3(aadharFrontImage.value!);
+      final backUrl = await _uploadToS3(aadharBackImage.value!);
+      if ((frontUrl ?? '').isEmpty || (backUrl ?? '').isEmpty) {
+        commonSnackBar(message: AppStrings.somethingWentWrong);
+        return;
+      }
+      final params = {
+        ApiKeys.aadharNo: aadhaar,
+        ApiKeys.aadharImages: {
+          ApiKeys.front: frontUrl,
+          ApiKeys.back: backUrl,
+        },
+      };
+      final response = await DeliveryPartnerRepo()
+          .ridersOnboardingPersonalIdentificationRepo(params: params);
+      if (response.isSuccess) {
+        ridersOnboardingPersonalIdentificationResponse.value =
+            ApiResponse.complete(response);
+        // Show the SAME success/verified state the OTP path lands on, rather
+        // than closing the sheet. The image submission carries no OKYC name, so
+        // we surface the masked number from the entered Aadhaar for the row.
+        aadhaarIsVerified.value = true;
+        aadhaarMaskedNumber.value = _formatMaskedFromLast4(aadhaar.substring(8));
+        aadhaarVerifiedAt.value = DateTime.now().toIso8601String();
+        aadhaarStage.value = AadhaarStage.verified;
+        commonSnackBar(
+            message: response.message ?? 'Aadhaar submitted successfully');
+        await ridersOnboardingStatusRepoApi(forceRefresh: true);
+      } else {
+        ridersOnboardingPersonalIdentificationResponse.value =
+            ApiResponse.error('error');
+        commonSnackBar(
+            message: response.message ?? AppStrings.somethingWentWrong);
+      }
+    } catch (e, s) {
+      debugPrint('❌ submitAadhaarImages error: $e\n$s');
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+    } finally {
+      isAadhaarImageSubmitting.value = false;
+    }
   }
 
   /// Writes the verified Aadhaar number to the rider onboarding step and

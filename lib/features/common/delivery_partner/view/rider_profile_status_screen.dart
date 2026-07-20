@@ -1409,7 +1409,9 @@ class _RiderFormWidgetState extends State<RiderFormWidget>
           Get.bottomSheet(
             CommonBottomSheet(
               title: AppStrings.aadharCard.tr,
-              height: MediaQuery.of(context).size.height * 0.62,
+              // Taller now that the sheet carries the OTP path plus the "OR →
+              // upload Aadhaar front/back" fallback option.
+              height: MediaQuery.of(context).size.height * 0.80,
               child: const AadharCardWidget(),
             ),
             isScrollControlled: true,

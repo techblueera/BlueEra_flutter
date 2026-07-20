@@ -274,9 +274,11 @@ class _PorterVehicleListScreenState extends State<PorterVehicleListScreen> {
                             },
                             onPaymentError: (response) {
                               debugPrint("Payment Failed: ${response.message}");
+                              // Shared mapping — a back-press / cancel reads as
+                              // "payment cancelled", not raw "Payment Error".
                               commonSnackBar(
-                                  message:
-                                      "Payment Failed ${response.message}");
+                                  message: RazorpayService
+                                      .humanReadableError(response));
                             },
                           );
                         }

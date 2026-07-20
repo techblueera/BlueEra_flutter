@@ -1,5 +1,4 @@
-﻿import 'dart:developer';
-import 'dart:io';
+﻿import 'dart:io';
 import 'dart:ui';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -21,8 +20,10 @@ import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/features/business/widgets/profile_share_banner.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
-import 'package:BlueEra/widgets/order_actions_carousel.dart';
-import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
+// Store "Manage your store" CTA + Inquiry chat list removed with the Store /
+// Inquiry tabs — imports kept commented for easy restore.
+// import 'package:BlueEra/widgets/order_actions_carousel.dart';
+// import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/features/common/Discover/view/go_live_permission_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
@@ -78,9 +79,11 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   // which of the two sub-tabs is active. Rentals are not a tab either
   // â€” they're surfaced as a CTA card inside the Overview tab (see
   // _buildRentalCard), so the top strip stays at four entries.
-  static const _orderSubOrders = 0;
-  static const _orderSubChat = 1;
-  int _orderSubTab = _orderSubOrders;
+  // Inquiry sub-tab removed — the Preference/Order | Inquiry toggle is gone,
+  // so the preference/orders content renders directly with no sub-tab state.
+  // static const _orderSubOrders = 0;
+  // static const _orderSubChat = 1;
+  // int _orderSubTab = _orderSubOrders;
 
   // ── "Set Preference" sub-tab state ─────────────────────────────
   // Local UI state backing the new Set Preference form that renders
@@ -128,7 +131,8 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 5, vsync: this);
+    // Store tab removed → 4 top-level tabs (My Order, Overview, Post, Statistics).
+    _tabController = TabController(length: 4, vsync: this);
     registerMeTabBackHandler(_tabController);
     _checkRiderStatus();
     // Resume the best-effort daily auto go-live scheduler if the rider opted in
@@ -217,7 +221,8 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
               final tabLabels = <String>[
                 approved ? AppStrings.myOrder.tr : AppStrings.document.tr,
                 AppStrings.overview.tr,
-                AppStrings.store.tr,
+                // Store tab removed.
+                // AppStrings.store.tr,
                 AppStrings.post.tr,
                 AppStrings.statics.tr,
               ];
@@ -232,7 +237,9 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
                 tabViews: [
                   _tabScroll(_buildOrderTab()),
                   _tabScroll(_buildOverviewTab()),
-                  _tabScroll(const [EarnStoreCards()]),
+                  // Store tab removed — EarnStoreCards (and its API load) no
+                  // longer built.
+                  // _tabScroll(const [EarnStoreCards()]),
                   _tabScroll(_buildPostTab()),
                   _tabScroll(_buildStaticsTab()),
                 ],
@@ -286,34 +293,21 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
         final hasActiveOrders = _ordersCtrl.newOrders.isNotEmpty ||
             _ordersCtrl.onGoingOrders.isNotEmpty;
 
+        // Inquiry sub-tab removed — the Preference/Order | Inquiry toggle and
+        // the Inquiry (chat inquiries) content are gone, so the order-aware
+        // preference/orders content renders directly:
+        //   • Active order (pending/in-progress) → EXISTING orders flow
+        //     (DeliveryPartnerOrders).
+        //   • No active order (complete/cancel/idle) → "Set Preference" form.
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildOrderSubTabs(hasActiveOrders),
-            SizedBox(height: SizeConfig.size12),
-            // First sub-tab is order-aware:
-            //   • Active order (pending/in-progress) → EXISTING orders
-            //     flow (DeliveryPartnerOrders); label reads "Order".
-            //   • No active order (complete/cancel/idle) → "Set
-            //     Preference" form; label reads "Preference".
-            // The Inquiry sub-tab still shows the chat inquiries list
-            // (unchanged).
-            if (_orderSubTab == _orderSubOrders)
-              _buildPreferenceOrOrders(hasActiveOrders)
-            else ...[
-              OrderActionsCarousel(
-                onAddCatalog: () => _tabController.animateTo(2),
-                catalogIcon: Icons.storefront_rounded,
-                catalogTitle: AppStrings.store.tr,
-                catalogSubtitle: 'Manage your store',
-              ),
-              SizedBox(height: SizeConfig.size12),
-              BusinessChatsList(
-                isForwardUI: false,
-                excludeSenderId: userId,
-                isInParentScroll: true,
-              ),
-            ],
+            // _buildOrderSubTabs(hasActiveOrders),
+            // SizedBox(height: SizeConfig.size12),
+            _buildPreferenceOrOrders(hasActiveOrders),
+            // Inquiry sub-tab content removed:
+            // OrderActionsCarousel(onAddCatalog: () => _tabController.animateTo(2), …)
+            // BusinessChatsList(isForwardUI: false, excludeSenderId: userId, …)
           ],
         );
       }),
@@ -339,6 +333,9 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   // backdrop. Still pill-shaped (BorderRadius 100) so it stays
   // distinct from the L1 strip (white card, animated underline)
   // and from the L3 filter (white form field with chevron).
+  // Commented out — Inquiry sub-tab removed, so this segmented toggle and its
+  // button builder below are unused.
+  /*
   Widget _buildOrderSubTabs(bool hasActiveOrders) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -504,6 +501,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
       ),
     );
   }
+  */
 
   // SET PREFERENCE TAB
   // Two stacked cards rendered for the first ("Preference") sub-tab:
@@ -527,16 +525,17 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-            child: OrderActionsCarousel(
-              onAddCatalog: () => _tabController.animateTo(2),
-              catalogIcon: Icons.storefront_rounded,
-              catalogTitle: AppStrings.store.tr,
-              catalogSubtitle: 'Manage your store',
-            ),
-          ),
-          SizedBox(height: 20,),
+          // Store "Manage your store" CTA removed with the Store tab.
+          // Padding(
+          //   padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+          //   child: OrderActionsCarousel(
+          //     onAddCatalog: () => _tabController.animateTo(2),
+          //     catalogIcon: Icons.storefront_rounded,
+          //     catalogTitle: AppStrings.store.tr,
+          //     catalogSubtitle: 'Manage your store',
+          //   ),
+          // ),
+          // SizedBox(height: 20,),
           // Red notice shown while the rider is offline (Go Live toggle off).
           // Preferences can still be edited, but they won't receive orders
           // until they go live — surface that up-front above the cards.

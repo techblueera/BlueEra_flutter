@@ -198,6 +198,10 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   /// after the first frame so a valid context/overlay exists. The sheet itself
   /// — marketing clip + share card — lives in [SharePromoSheet].
   Future<void> _maybeShowSharePromo() async {
+    // A fresh account was just created this session — Discover is mounting
+    // behind the onboarding "update data" screen, so don't pop the promo over
+    // it. See [suppressPromosAfterAccountCreation].
+    if (suppressPromosAfterAccountCreation) return;
     if (sharePromoShownThisSession) return;
     final todayKey = _todayKey();
     final lastShown = await SharedPreferenceUtils.getSecureValue(

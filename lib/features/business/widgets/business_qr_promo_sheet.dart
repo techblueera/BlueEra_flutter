@@ -26,6 +26,10 @@ Future<void> showBusinessQrPromoSheetIfNeeded({
   required BuildContext context,
   required ViewBusinessDetailsController controller,
 }) async {
+  // A fresh account was just created this session — the onboarding "update
+  // data" screens take priority, so don't pop a promo over them.
+  if (suppressPromosAfterAccountCreation) return;
+
   final today = _todayKey();
   if (qrPromoShownForDay == today) return;
 
