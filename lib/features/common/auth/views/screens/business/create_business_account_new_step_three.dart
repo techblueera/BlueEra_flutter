@@ -371,8 +371,10 @@ class _CreateBusinessAccountNewStepThreeState
     );
     Get.offAllNamed(
       RouteHelper.getBottomNavigationBarScreenRoute(),
-      // New business lands on its own Me tab (0) right after signup.
-      arguments: {ApiKeys.initialIndex: 0},
+      // New business lands on Discover (1) right after signup, same as an
+      // individual — the marketplace, not its own empty dashboard. The shop
+      // screen is one tab away.
+      arguments: {ApiKeys.initialIndex: 1},
     );
   }
 }

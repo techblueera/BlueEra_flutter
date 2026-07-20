@@ -21,6 +21,7 @@ import 'package:BlueEra/core/language_localization_service/language_service_app.
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/app_lifecycle_handler.dart';
 import 'package:BlueEra/core/services/app_notification.dart';
+import 'package:BlueEra/core/services/ride_ring_notification.dart';
 import 'package:BlueEra/core/services/app_version_checker_service.dart';
 import 'package:BlueEra/core/services/firebase_crshanalitics_service.dart';
 import 'package:BlueEra/core/services/hive_services.dart';
@@ -256,7 +257,11 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
     }
     return; // Don't play sound or show notification for calls
   }
-  if (operation == 'fare_ride_incoming_call') {
+  // Broadcast ride requests ring on this SAME path as fare-call requests —
+  // same ringtone channel, CATEGORY_CALL, insistent repeat, full-screen intent.
+  // Deliberately not a second implementation: see
+  // docs/backend/RIDER_BROADCAST_DISPATCH_FRONTEND_GUIDE.md §7.1.
+  if (kRingingRideOperations.contains(operation)) {
     try {
       final data = message.data;
       final callerName = (data['senderName'] ?? 'Unknown').toString();
@@ -315,7 +320,14 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
             onBackgroundNotificationResponse,
       );
 
-      final notifId = DateTime.now().millisecondsSinceEpoch % 2147483647;
+      // Derived from the orderId, not the clock: a broadcast LOSER is
+      // dismissed by a silent `broadcast_ride_closed` push that carries only
+      // the orderId, so the id has to be recomputable to cancel the ring.
+      // It also collapses a re-delivered FCM onto the same notification
+      // instead of starting a second ringing copy.
+      final notifId = ringNotificationIdFor(
+        orderIdFromRidePayload(data, metadata: metadata is Map ? metadata : null),
+      );
 
       // Call-style presentation, mirroring showIncomingCallLocalNotification:
       // ringtone channel + CATEGORY_CALL + insistent repeating ring +

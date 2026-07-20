@@ -266,7 +266,46 @@
                 <action android:name="ai.bluecs.app.CALL_DECLINE" />
             </intent-filter>
         </receiver>
+        <!--
+          FileProvider for app-targeted sharing (WhatsApp "send image
+          directly"). Distinct authority from share_plus's own provider —
+          two providers cannot register the same authority, and share_plus
+          merges its own in from the plugin manifest.
+        -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.beshare"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/be_share_paths" />
+        </provider>
     </application>
+
+    <!--
+      Package visibility for app-targeted shares. On Android 11+ (API 30)
+      `resolveActivity` and `canLaunchUrl` return null for anything not
+      declared here, so without these the WhatsApp share silently falls back
+      to the generic sheet on every modern device.
+    -->
+    <queries>
+        <package android:name="com.whatsapp" />
+        <package android:name="com.whatsapp.w4b" />
+        <package android:name="com.instagram.android" />
+        <intent>
+            <action android:name="android.intent.action.SEND" />
+            <data android:mimeType="image/*" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="whatsapp" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="instagram" />
+        </intent>
+    </queries>
 
     <!-- Queries (for deep links / external apps) -->
     <queries>

@@ -252,7 +252,12 @@ class AuthController extends GetxController {
               Get.offNamedUntil(
                 RouteHelper.getBottomNavigationBarScreenRoute(),
                 (route) => false,
-                arguments: {ApiKeys.initialIndex: 0},
+                // Discover (1), same as individuals — a business user logging
+                // in lands on the marketplace, not their own dashboard. Their
+                // shop is one tab away. The business-profile fetch still runs
+                // from the home screen's post-frame init regardless of which
+                // tab is showing.
+                arguments: {ApiKeys.initialIndex: 1},
               );
             } else if (data.data?.accountType?.toUpperCase() == AppConstants.individual) {
               await SharedPreferenceUtils.setSecureValue(

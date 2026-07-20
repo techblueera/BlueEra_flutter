@@ -1,5 +1,3 @@
-import 'dart:ui' show ImageFilter;
-
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -12,7 +10,10 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/nearby_stores_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/recent_shops_controller.dart';
-import 'package:BlueEra/features/common/Discover/view/book_your_transport/parcel_pickup_drop_screen.dart';
+// Retained for the commented-out parcel entry point in _searchRow — see the
+// note there. Uncomment alongside it if that route is restored.
+// import 'package:BlueEra/features/common/Discover/view/book_your_transport/parcel_pickup_drop_screen.dart';
+import 'package:BlueEra/features/ride_booking/view/ride_home_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_categories_data.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_category_section.dart';
 import 'package:BlueEra/features/common/Discover/widget/nearest_stores_section.dart';
@@ -110,7 +111,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
           onItemTap: (_) =>
               Get.toNamed(RouteHelper.getGroceryStoresScreenRoute()),
         ),
-
         tabs: {1}
       ),
       (
@@ -267,51 +267,51 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         body: RefreshIndicator(
           onRefresh: _onRefresh,
           child: CustomScrollView(
-          controller: _scrollController,
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            /// Light-blue header: location + wishlist, quick-access tabs,
-            /// search bar. Covers the status bar area. The location row and
-            /// quick-access tabs collapse away on scroll while the search bar
-            /// stays pinned below the status bar.
-            _buildHeaderSliver(context),
+            controller: _scrollController,
+            physics: const AlwaysScrollableScrollPhysics(),
+            slivers: [
+              /// Light-blue header: location + wishlist, quick-access tabs,
+              /// search bar. Covers the status bar area. The location row and
+              /// quick-access tabs collapse away on scroll while the search bar
+              /// stays pinned below the status bar.
+              _buildHeaderSliver(context),
 
-            SliverToBoxAdapter(child: SizedBox(height: SizeConfig.size12)),
+              SliverToBoxAdapter(child: SizedBox(height: SizeConfig.size12)),
 
-            /// Category content — gated behind the shimmer while location and
-            /// the initial fetch are still in flight.
-            _buildSectionsSliver(),
+              /// Category content — gated behind the shimmer while location and
+              /// the initial fetch are still in flight.
+              _buildSectionsSliver(),
 
-            /// Emergency QR + sticker options — only on the overview tab, as
-            /// in the previous design.
-            if (_activeTabIndex == 0) ...[
-              SliverToBoxAdapter(
-                child: Builder(
-                  builder: (_) =>
-                      EmergencyQrWidget(key: const ValueKey('emergency_qr')),
+              /// Emergency QR + sticker options — only on the overview tab, as
+              /// in the previous design.
+              if (_activeTabIndex == 0) ...[
+                SliverToBoxAdapter(
+                  child: Builder(
+                    builder: (_) =>
+                        EmergencyQrWidget(key: const ValueKey('emergency_qr')),
+                  ),
                 ),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.only(bottom: 100),
-                sliver: SliverToBoxAdapter(
-                  child: Obx(() {
-                    if (!emergencyController.hasEmergencyData.value) {
-                      return const SizedBox.shrink();
-                    }
-                    return Column(
-                      children: [
-                        SizedBox(height: SizeConfig.size8),
-                        QrDesignOptionsWidget(
-                          userName: emergencyController.fullName.value,
-                        ),
-                      ],
-                    );
-                  }),
+                SliverPadding(
+                  padding: const EdgeInsets.only(bottom: 100),
+                  sliver: SliverToBoxAdapter(
+                    child: Obx(() {
+                      if (!emergencyController.hasEmergencyData.value) {
+                        return const SizedBox.shrink();
+                      }
+                      return Column(
+                        children: [
+                          SizedBox(height: SizeConfig.size8),
+                          QrDesignOptionsWidget(
+                            userName: emergencyController.fullName.value,
+                          ),
+                        ],
+                      );
+                    }),
+                  ),
                 ),
-              ),
-            ] else
-              const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
-          ],
+              ] else
+                const SliverPadding(padding: EdgeInsets.only(bottom: 100)),
+            ],
           ),
         ),
       ),
@@ -380,11 +380,10 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   Widget _buildHeaderSliver(BuildContext context) {
     final statusBarHeight = MediaQuery.of(context).padding.top;
 
-    // ONE continuous frosted-glass panel for the WHOLE header — a single
-    // BackdropFilter (not two adjacent ones), so the location row, tabs and
-    // search bar share one seamless background. As it collapses the tabs fade /
+    // ONE continuous panel for the WHOLE header, so the location row, tabs and
+    // search bar share a seamless background. As it collapses the tabs fade /
     // slide up while the search bar stays pinned at the bottom of the SAME
-    // glass, so the tint/blur is identical at every scroll position.
+    // panel, so the tint is identical at every scroll position.
     return SliverPersistentHeader(
       pinned: true,
       delegate: _DiscoverHeaderDelegate(
@@ -547,9 +546,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
                   fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
                   // Label follows the same light→dark blue theme as the tile:
                   // deep blue + bold when selected, brand blue when not.
-                  color: isActive
-                      ? AppColors.blue5CAF
-                      : AppColors.primaryColor,
+                  color: isActive ? AppColors.blue5CAF : AppColors.primaryColor,
                   maxLines: 2,
                   textAlign: TextAlign.center,
                   overflow: TextOverflow.ellipsis,
@@ -572,8 +569,12 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             width: 24,
             height: 24,
           ),
-          // onTap: () => null,
-          onTap: () => Get.to(ParcelPickupDropScreen()),
+          // Previous entry point — the parcel pickup/drop form. Kept here (and
+          // still reachable from the parcel/GOODS flows) while the new
+          // Rapido-style booking flow under lib/features/ride_booking/ takes
+          // over this icon.
+          // onTap: () => Get.to(ParcelPickupDropScreen()),
+          onTap: () => Get.to(() => const RideHomeScreen()),
         ),
         SizedBox(width: SizeConfig.size10),
         Expanded(
@@ -620,12 +621,26 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   }
 }
 
-/// One continuous frosted-glass Discover header. A single [BackdropFilter] fills
-/// the whole (pinned) header extent — so location + tabs + search read as ONE
-/// background — while the location row and tabs fade/slide up as the header
-/// collapses and the search bar stays pinned at the bottom of the same glass.
-/// This keeps the exact same tint/blur at every scroll position (no seam, and
-/// no colour change when the search sticks).
+/// One continuous Discover header. It fills the whole (pinned) header extent —
+/// so location + tabs + search read as ONE background — while the location row
+/// and tabs fade/slide up as the header collapses and the search bar stays
+/// pinned at the bottom. The tint is identical at every scroll position (no
+/// seam, and no colour change when the search sticks).
+///
+/// ## Why this is an opaque gradient and NOT a frosted-glass [BackdropFilter]
+///
+/// It used to be `BackdropFilter(blur 24)` over a translucent white tint. A
+/// BackdropFilter forces a `saveLayer` and re-samples everything painted
+/// beneath it on every frame — and here it sits in a PINNED sliver with the
+/// whole feed scrolling underneath it. On a lot of Android GPU/driver combos
+/// (and differently again on Impeller vs Skia) that sampled backdrop isn't
+/// invalidated correctly, so stale text tiles get re-blitted: the section
+/// labels smeared and repeated horizontally down the page.
+///
+/// An opaque background gives the same "one continuous header" read with
+/// nothing to sample, so the artifact can't occur. If frosted glass is ever
+/// reinstated here, it needs testing on low-end Android — this is a
+/// device-dependent bug that will not reproduce on most dev hardware.
 class _DiscoverHeaderDelegate extends SliverPersistentHeaderDelegate {
   _DiscoverHeaderDelegate({
     required this.statusBarHeight,
@@ -658,49 +673,77 @@ class _DiscoverHeaderDelegate extends SliverPersistentHeaderDelegate {
     final double opacity =
         range == 0 ? 1.0 : (1 - collapse / range).clamp(0.0, 1.0);
 
-    return ClipRRect(
-      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(22)),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-        // The same translucent-white tint the "Me" home top bars use.
-        child: Container(
-          color: const Color(0x33FFFFFF),
-          child: Stack(
-            clipBehavior: Clip.hardEdge,
-            children: [
-              // Location + tabs — slide up & fade out as the header collapses.
-              Positioned(
-                top: statusBarHeight + 12 - collapse,
-                left: 12,
-                right: 12,
-                child: Opacity(
-                  opacity: opacity,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      locationRow,
-                      const SizedBox(height: 16),
-                      tabs,
-                    ],
-                  ),
-                ),
-              ),
-              // Search bar — always pinned to the bottom of the same glass.
-              Positioned(
-                left: 12,
-                right: 12,
-                bottom: 16,
-                child: searchRow,
-              ),
-            ],
+    return Container(
+      decoration: const BoxDecoration(
+        // Opaque, so nothing behind it is sampled. The soft vertical gradient
+        // keeps the light, airy read the frosted panel had.
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFF3F7FD), Color(0xFFE8F0FA)],
+        ),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(22)),
+        // Replaces the depth the blur used to imply, so the header still
+        // reads as floating above the feed.
+        boxShadow: [
+          BoxShadow(
+            color: Color(0x1A101828),
+            blurRadius: 14,
+            offset: Offset(0, 4),
           ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(22)),
+        child: Stack(
+          clipBehavior: Clip.hardEdge,
+          children: [
+            // Location + tabs — slide up & fade out as the header collapses.
+            Positioned(
+              top: statusBarHeight + 12 - collapse,
+              left: 12,
+              right: 12,
+              // Skip the Opacity layer entirely at the extremes: fully
+              // expanded and fully collapsed are the two states the header
+              // rests in, and Opacity forces its own saveLayer.
+              child: opacity >= 1.0
+                  ? _collapsingBlock()
+                  : opacity <= 0.0
+                      ? const SizedBox.shrink()
+                      : Opacity(opacity: opacity, child: _collapsingBlock()),
+            ),
+            // Search bar — always pinned to the bottom of the header.
+            Positioned(
+              left: 12,
+              right: 12,
+              bottom: 16,
+              child: searchRow,
+            ),
+          ],
         ),
       ),
     );
   }
 
+  Widget _collapsingBlock() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        locationRow,
+        const SizedBox(height: 16),
+        tabs,
+      ],
+    );
+  }
+
   @override
-  bool shouldRebuild(covariant _DiscoverHeaderDelegate oldDelegate) => true;
+  bool shouldRebuild(covariant _DiscoverHeaderDelegate oldDelegate) =>
+      statusBarHeight != oldDelegate.statusBarHeight ||
+      headerBlockHeight != oldDelegate.headerBlockHeight ||
+      searchAreaHeight != oldDelegate.searchAreaHeight ||
+      locationRow != oldDelegate.locationRow ||
+      tabs != oldDelegate.tabs ||
+      searchRow != oldDelegate.searchRow;
 }
 
 /// Shimmer skeleton shown in place of the Discover content while location and

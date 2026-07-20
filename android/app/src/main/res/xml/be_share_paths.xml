@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  FileProvider paths for app-targeted sharing (see AppTargetedShare / the
+  `app_share` MethodChannel in MainActivity).
+
+  Only the cache dir is exposed, which is where `getTemporaryDirectory()`
+  writes the captured share images. Nothing else in the app's storage is
+  reachable through this provider.
+-->
+<paths>
+    <cache-path name="be_share_cache" path="." />
+</paths>

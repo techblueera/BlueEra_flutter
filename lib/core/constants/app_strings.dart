@@ -6155,6 +6155,12 @@ class AppStrings {
   static const String coverPhoto = "coverPhoto";
   static const String nearbyRiders = "nearbyRiders";
   static const String handPickedBestSellers = "handPickedBestSellers";
+  static const String manageYourStoreProducts = "manageYourStoreProducts";
+  static const String highDiscountProducts = "highDiscountProducts";
+  static const String manageViaCategories = "manageViaCategories";
+  // NOTE: `customersFavoritesThisMonth` is NOT declared here — it already
+  // exists further down in the PRODUCT (admin) block and is shared with the
+  // medical / product / automotive home screens.
   static const String discountOffFmt = "discountOffFmt";
   static const String tapCategoryToManageInventory = "tapCategoryToManageInventory";
   static const String joinedDateFmt = "joinedDateFmt";

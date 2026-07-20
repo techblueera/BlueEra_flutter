@@ -21,6 +21,22 @@ import 'package:get/get.dart';
 /// [imageOverlay] is shown top-right over the image (customer add-to-cart
 /// stepper); omit it for the owner/admin view. The whole card is meant to be
 /// wrapped in a tap handler by the caller (→ variants sheet).
+/// The single price entry the card displays: the variant's first inventory
+/// batch, falling back to its first catalog price. Returns null when the
+/// variant has neither, which [GroceryController.getPriceDetails] renders as
+/// zeroes.
+List<Pricing>? _firstPrice(ProductVariants? variant) {
+  if (variant == null) return null;
+  final batches = variant.inventory?.batches;
+  if (batches != null && batches.isNotEmpty) {
+    final batch = batches.first;
+    return [Pricing(mrp: batch.mrp, sellingPrice: batch.sellingPrice)];
+  }
+  final pricing = variant.pricing;
+  if (pricing != null && pricing.isNotEmpty) return [pricing.first];
+  return null;
+}
+
 class GroceryTopSellingProductCard extends StatelessWidget {
   final BusinessProductData product;
   final List<ProductVariants> variants;
@@ -39,26 +55,32 @@ class GroceryTopSellingProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller =
-        Get.isRegistered<GroceryController>() ? Get.find<GroceryController>() : Get.put(GroceryController());
-    final firstVariant = variants.isNotEmpty ? variants.first : product.productVariant;
+    final controller = Get.isRegistered<GroceryController>()
+        ? Get.find<GroceryController>()
+        : Get.put(GroceryController());
+    final firstVariant =
+        variants.isNotEmpty ? variants.first : product.productVariant;
     // Show the MERCHANT'S INVENTORY price (variant.inventory.batches — what the
     // store actually sells at), NOT the catalog variant price
-    // (variant.pricing). Fall back to the variant pricing only when the variant
+    // (variant.pricing). Fall back to the catalog pricing only when the variant
     // has no inventory batches yet.
-    final invBatches = firstVariant?.inventory?.batches;
-    final pricingSource = (invBatches != null && invBatches.isNotEmpty)
-        ? invBatches
-            .map((b) => Pricing(mrp: b.mrp, sellingPrice: b.sellingPrice))
-            .toList()
-        : firstVariant?.pricing;
+    //
+    // ONE entry — the first variant's first price. getPriceDetails renders a
+    // min–max range, so feeding it every variant produced unreadable cards
+    // ("₹199.0 - ₹512.0" struck through "₹999.0 - ₹2249.0", with a meaningless
+    // blended discount). A single entry makes min == max, so it formats as a
+    // plain price. Trade-off: the card tracks the FIRST variant only, so an
+    // edit to any other variant won't move it.
+    final pricingSource = _firstPrice(firstVariant);
     final price = controller.getPriceDetails(pricingSource);
     // Variant image first, product image as fallback (handles missing OR
     // broken variant images).
-    final variantImageUrl =
-        (firstVariant?.images?.isNotEmpty ?? false) ? firstVariant!.images!.first.url : null;
-    final productImageUrl =
-        (product.product?.images?.isNotEmpty ?? false) ? product.product!.images!.first.url : null;
+    final variantImageUrl = (firstVariant?.images?.isNotEmpty ?? false)
+        ? firstVariant!.images!.first.url
+        : null;
+    final productImageUrl = (product.product?.images?.isNotEmpty ?? false)
+        ? product.product!.images!.first.url
+        : null;
     final quantity = firstVariant?.quantity ?? '';
 
     return Container(
@@ -118,8 +140,8 @@ class GroceryTopSellingProductCard extends StatelessWidget {
             ),
           ),
           Padding(
-            padding:
-                EdgeInsets.fromLTRB(SizeConfig.size8, SizeConfig.size6, SizeConfig.size8, SizeConfig.size10),
+            padding: EdgeInsets.fromLTRB(SizeConfig.size8, SizeConfig.size6,
+                SizeConfig.size8, SizeConfig.size10),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -136,19 +158,22 @@ class GroceryTopSellingProductCard extends StatelessWidget {
                 Row(
                   children: [
                     if (firstVariant?.isVegetarian != null) ...[
-                      FoodTypeIndicator(isVegetarian: firstVariant?.isVegetarian ?? false),
+                      FoodTypeIndicator(
+                          isVegetarian: firstVariant?.isVegetarian ?? false),
                       SizedBox(width: SizeConfig.size6),
                     ],
                     Container(
                       decoration: BoxDecoration(
-                          border: Border.all(color: AppColors.green00, width: 1),
+                          border:
+                              Border.all(color: AppColors.green00, width: 1),
                           borderRadius: BorderRadius.circular(2)),
                       padding: const EdgeInsets.all(3.5),
                       child: Container(
                         height: 7,
                         width: 7,
-                        decoration:
-                            BoxDecoration(borderRadius: BorderRadius.circular(7), color: AppColors.green00),
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(7),
+                            color: AppColors.green00),
                       ),
                     ),
                     if (quantity.isNotEmpty) ...[
@@ -156,8 +181,10 @@ class GroceryTopSellingProductCard extends StatelessWidget {
                       Container(
                         decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(4),
-                            border: Border.all(width: 0.5, color: AppColors.greyE5)),
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            border: Border.all(
+                                width: 0.5, color: AppColors.greyE5)),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 2),
                         child: CustomText(
                           quantity,
                           fontSize: 11,

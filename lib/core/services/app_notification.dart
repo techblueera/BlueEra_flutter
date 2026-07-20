@@ -47,6 +47,7 @@ import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../features/chat/auth/controller/call_controller.dart';
+import 'ride_ring_notification.dart';
 import '../../features/common/Discover/controller/discover_controller.dart';
 import '../../features/chat/view/ai_chat/view/ai_chat_screen.dart';
 import '../routes/route_helper.dart';
@@ -1551,11 +1552,21 @@ class AppNotificationHandler {
   Future<void> showMsg(RemoteMessage message) async {
     final operation =
         (message.data['operation'] ?? '').toString().toLowerCase();
-    // Handle fare-call incoming call — show IncomingRiderOrderScreen with ride details.
-    // Regular calls are handled by socket `call:incoming` in CallController.
-    if (operation == 'fare_ride_incoming_call') {
+    // Handle fare-call / broadcast incoming ride — show IncomingRiderOrderScreen
+    // with ride details. Regular calls are handled by socket `call:incoming` in
+    // CallController.
+    if (kRingingRideOperations.contains(operation)) {
       try {
         _showRiderOrderScreen(message.data);
+      } catch (_) {}
+      return;
+    }
+
+    // A broadcast race we LOST (or that expired). Silent by contract — kill
+    // the ring and close the popup, never show a banner. Guide §7.4.
+    if (operation == kBroadcastRideClosedOperation) {
+      try {
+        await dismissBroadcastRide(message.data);
       } catch (_) {}
       return;
     }
@@ -1758,6 +1769,52 @@ class AppNotificationHandler {
       logs('_showRiderOrderScreen ERROR: $e');
       logs('Stack: $stack');
     }
+  }
+
+  /// Another rider won the broadcast race (or it expired): stop the ring and
+  /// close the incoming popup — **silently**.
+  ///
+  /// Losing a race is not an error and not news; a banner or toast here would
+  /// interrupt a rider who is very likely already driving. See
+  /// docs/backend/RIDER_BROADCAST_DISPATCH_FRONTEND_GUIDE.md §7.4.
+  Future<void> dismissBroadcastRide(Map<String, dynamic> data) async {
+    // The dismissal push carries only the orderId, which is exactly why the
+    // ring notification id is derived from it rather than the clock.
+    Map<dynamic, dynamic>? metadata;
+    final payloadRaw = data['payload'];
+    try {
+      if (payloadRaw is String && payloadRaw.isNotEmpty) {
+        final decoded = jsonDecode(payloadRaw);
+        if (decoded is Map) metadata = decoded['metadata'] as Map?;
+      } else if (payloadRaw is Map) {
+        metadata = payloadRaw['metadata'] as Map?;
+      }
+    } catch (_) {
+      // Malformed payload — fall through and try the top-level keys.
+    }
+
+    final orderId = orderIdFromRidePayload(data, metadata: metadata);
+
+    // 1. Kill the ringing notification (FLAG_INSISTENT repeats until cancelled).
+    try {
+      await flutterLocalNotificationsPlugin.cancel(
+        ringNotificationIdFor(orderId),
+      );
+    } catch (_) {}
+
+    // 2. Close the incoming screen, but ONLY if it's showing this order — a
+    //    rider can be re-rung for a different ride while this push lands, and
+    //    dismissing that one would cost them the job.
+    try {
+      if (Get.currentRoute != '/IncomingRiderOrderScreen') return;
+      if (orderId != null && orderId.isNotEmpty) {
+        final openOrderId = Get.isRegistered<CallController>()
+            ? Get.find<CallController>().fareCallOrderId.value
+            : '';
+        if (openOrderId.isNotEmpty && openOrderId != orderId) return;
+      }
+      Get.back();
+    } catch (_) {}
   }
 
   double _parseDouble(dynamic value) {
@@ -2617,9 +2674,15 @@ class AppNotificationHandler {
         Get.toNamed(RouteHelper.getNotificationScreenRoute());
         break;
 
-      // Fare ride incoming — open the rider order screen
+      // Fare ride / broadcast incoming — open the rider order screen
       case 'fare_ride_incoming_call':
+      case 'broadcast_ride_request':
         AppNotificationHandler()._showRiderOrderScreen(data);
+        break;
+
+      // Broadcast race lost/expired — dismiss quietly, never surface anything.
+      case 'broadcast_ride_closed':
+        AppNotificationHandler().dismissBroadcastRide(data);
         break;
 
       // Ride operations
