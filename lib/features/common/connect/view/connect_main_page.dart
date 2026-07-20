@@ -82,21 +82,25 @@ class ConnectMainPage extends StatefulWidget {
 }
 
 class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProviderStateMixin {
-  /// Business profiles trade the Call tab for an Order tab that mirrors the
-  /// merchant dashboard's first tab (see [OrdersTabBody]); everyone else keeps
-  /// the call history.
-  bool get _isBusinessProfile => isBusinessUser();
+  /// Business profiles — plus the individual Social and Skill Worker profile
+  /// types — trade the Call tab for an Order tab that mirrors the merchant
+  /// dashboard's first tab (see [OrdersTabBody]); everyone else keeps the
+  /// call history.
+  bool get _showsOrderTab =>
+      isBusinessUser() ||
+      userProfileTypeGlobal == SOCIAL_PROFILE ||
+      userProfileTypeGlobal == SKILL_WORKER;
 
   List<String> get iconTab => [
         AppIconAssets.chat,
         AppIconAssets.shop,
-        _isBusinessProfile ? AppIconAssets.orderBookingIcon : AppIconAssets.call,
+        _showsOrderTab ? AppIconAssets.orderBookingIcon : AppIconAssets.call,
       ];
 
   List<String> get postTab => [
         AppStrings.chat.tr,
         AppStrings.inquiryTab.tr,
-        _isBusinessProfile ? AppStrings.orderTab.tr : AppStrings.call.tr,
+        _showsOrderTab ? AppStrings.orderTab.tr : AppStrings.call.tr,
       ];
 
   int selectedIndex = 0;
@@ -355,9 +359,9 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
         ChatEmitEvents.ChatList,
         {ApiKeys.type: AppConstants.personal_Chat_Type},
       );
-    } else if (index == 1 || (index == 2 && _isBusinessProfile)) {
-      // Inquiry and the business-only Order tab both render from the
-      // business chat list, so both need the same socket emit.
+    } else if (index == 1 || (index == 2 && _showsOrderTab)) {
+      // Inquiry and the Order tab both render from the business chat list,
+      // so both need the same socket emit.
       chatViewController.emitEvent(
         ChatEmitEvents.ChatList,
         {ApiKeys.type: AppConstants.business_Chat_Type},
@@ -804,15 +808,16 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
                           ),
                         ],
                       ),
-                      // Third tab. Business profiles get the merchant Order
-                      // tab (identical to the Me-tab dashboard's first tab);
-                      // everyone else gets call history. Both own their own
+                      // Third tab. Business / Social / Skill Worker profiles
+                      // get the merchant Order tab (identical to the Me-tab
+                      // dashboard's first tab); everyone else gets call
+                      // history. Both own their own
                       // scrollable, so detach them from the parent
                       // NestedScrollView's inherited PrimaryScrollController —
                       // otherwise the inner scrollable recursively tries to
                       // attach to it (which blows the stack).
                       PrimaryScrollController.none(
-                        child: _isBusinessProfile
+                        child: _showsOrderTab
                             ? _buildOrderTab()
                             : const CallHistoryScreen(),
                       ),
@@ -826,7 +831,7 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
     );
   }
 
-  /// Business-only Order tab — the exact body the merchant dashboards render
+  /// Order tab — the exact body the merchant dashboards render
   /// under their first ("Order") tab: the [OrderActionsCarousel] deck above
   /// the incoming-orders business chat list. [OrdersTabBody] builds itself
   /// with `isInParentScroll: true`, so the scroll has to be owned here.
