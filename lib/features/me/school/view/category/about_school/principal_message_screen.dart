@@ -26,6 +26,7 @@ class PrincipalMessageScreen extends StatefulWidget {
 class _PrincipalMessageScreenState extends State<PrincipalMessageScreen> {
   final schoolAboutUsController = Get.find<SchoolAboutUsController>();
   final descriptionEditController = TextEditingController();
+  final nameEditController = TextEditingController();
 
   @override
   void initState() {
@@ -34,6 +35,7 @@ class _PrincipalMessageScreenState extends State<PrincipalMessageScreen> {
     schoolAboutUsController.directorMessageImageFile.value = null;
     schoolAboutUsController.isDirectorImageUpdate.value = false;
     schoolAboutUsController.directorProfile.value = "";
+    schoolAboutUsController.directorName.value = "";
     schoolAboutUsController.getSchoolAboutUsController();
 
     // Listen for data load
@@ -47,10 +49,15 @@ class _PrincipalMessageScreenState extends State<PrincipalMessageScreen> {
             data.principalMessage?.message ?? "";
         schoolAboutUsController.initialDirectImageUrl =
             data.principalMessage?.photo ?? "";
+        schoolAboutUsController.initialDirectName =
+            data.principalMessage?.name ?? "";
         // Populate UI
         descriptionEditController.text = data.principalMessage?.message ?? "";
         schoolAboutUsController.directorMessageText.value =
             data.principalMessage?.message ?? "";
+        nameEditController.text = data.principalMessage?.name ?? "";
+        schoolAboutUsController.directorName.value =
+            data.principalMessage?.name ?? "";
       }
     });
     super.initState();
@@ -98,6 +105,24 @@ class _PrincipalMessageScreenState extends State<PrincipalMessageScreen> {
                     _buildImageSection(),
 
                     SizedBox(height: SizeConfig.size20),
+                    CustomText(
+                      'Principal Name',
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.mainTextColor,
+                    ),
+                    SizedBox(height: SizeConfig.size8),
+                    CommonTextField(
+                      textEditController: nameEditController,
+                      title: "",
+                      hintText: "e.g. Dr. Ramesh Kumar",
+                      isValidate: false,
+                      maxLength: 100,
+                      onChange: (value) {
+                        schoolAboutUsController.directorName.value = value;
+                        _runValidation();
+                      },
+                    ),
+                    SizedBox(height: SizeConfig.size16),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

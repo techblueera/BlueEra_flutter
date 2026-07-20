@@ -1,6 +1,7 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/laboratory/model/lab_test_models.dart';
 import 'package:BlueEra/features/me/laboratory/repo/lab_test_repo.dart';
@@ -46,29 +47,37 @@ class LabTestController extends GetxController {
     'Body Fluid',
   ];
 
+  // Values match the backend `specimenCollectionMethod` enum returned by
+  // `GET /test-catalog/enums` (`Hospital`, `Home`, `Laboratory`, `Other`,
+  // `All`). See `lib/docs/CREATE_PATHOLOGY_TEST_GUIDE.md` §1.2.
   static const List<String> collectionMethods = [
     'Hospital',
     'Home',
     'Laboratory',
     'Other',
+    'All',
   ];
 
-  static const List<String> genderList = ['Male', 'Female'];
+  // Matches the backend `gender` enum (`Male`, `Female`, `All`) — see guide
+  // §1.2. `All` means "no gender restriction" and is the backend default.
+  static const List<String> genderList = ['Male', 'Female', 'All'];
 
-  static const List<String> packageTypeList = [
-    // ── Group categories surfaced by `LabCategoryScreen` — added here so
-    // tapping a category row can pre-select and lock the Package Type on
-    // `AddLabTestScreen` (values must match the `collection` strings in
-    // `LabCategoryScreen._entries`).
+  // The 6 backend `groupCategory` enum values (guide §1.2 + §3). These are
+  // the top-level UI tabs and are NOT valid `packageType` values — kept in
+  // a separate list so the two dropdowns can never share a source.
+  static const List<String> groupCategoryList = [
     'Blood & Routine Tests',
     'Preventive & Wellness Checkups',
     'Women, Pregnancy & Child Health',
     'Diagnostics & Imaging',
     'Organ & System Health',
     'Infection, Cancer & Immunity',
-    // ── Legacy package presets (still used by the Create-Your-Own-Packages
-    // landing and by tests that were created before the group categories
-    // were introduced).
+  ];
+
+  // Backend `packageType` enum values (guide §1.2 / §3). Must contain ONLY
+  // real package types — never a `groupCategory` value. Sending e.g.
+  // `"Blood & Routine Tests"` here is a guaranteed 400.
+  static const List<String> packageTypeList = [
     'Basic Blood Test',
     'Basic Health Checkup',
     'Full Body Checkup',
@@ -106,9 +115,18 @@ class LabTestController extends GetxController {
 
   // ---- Reads ----------------------------------------------------------------
 
-  Future<void> fetchCategories() async {
+  // Both fetches use the `/laboratory/{labId}` variant — the unscoped
+  // endpoints return every lab's rows, and picking by name grabs a
+  // different lab's `_id`, which the backend then rejects on create with
+  // "testCategory does not belong to your laboratory".
+  // See lib/docs/CREATE_PATHOLOGY_TEST_GUIDE.md §4.
+
+  Future<void> fetchCategories({String? labId}) async {
+    final scopedLabId = labId ?? labIDGlobal;
+    if (scopedLabId.isEmpty) return;
     try {
-      final ResponseModel res = await _repo.getTestCategories();
+      final ResponseModel res =
+          await _repo.getTestCategoriesByLab(scopedLabId);
       if (res.isSuccess) {
         final List data = res.response?.data['data'] ?? [];
         categories.value = data.map((e) => TestCategory.fromJson(e)).toList();
@@ -118,9 +136,12 @@ class LabTestController extends GetxController {
     }
   }
 
-  Future<void> fetchParameters() async {
+  Future<void> fetchParameters({String? labId}) async {
+    final scopedLabId = labId ?? labIDGlobal;
+    if (scopedLabId.isEmpty) return;
     try {
-      final ResponseModel res = await _repo.getTestParameters();
+      final ResponseModel res =
+          await _repo.getTestParametersByLab(scopedLabId);
       if (res.isSuccess) {
         final List data = res.response?.data['data'] ?? [];
         parameters.value = data.map((e) => TestParameter.fromJson(e)).toList();

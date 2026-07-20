@@ -97,8 +97,8 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2>
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: EdgeInsets.only(
-          left: 20,
           top: SizeConfig.size10,
+          left: 20,
           bottom: kBottomNavigationBarHeight + 30,
         ),
         child: child,

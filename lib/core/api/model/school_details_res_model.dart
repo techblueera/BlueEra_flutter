@@ -67,9 +67,10 @@ class SchoolDetailsData {
     this.availability,
     this.classRange,
     this.studentTeacherRatio,
-    this.board,
+    this.boards,
     this.mediumOfInstruction,
     this.fees,
+    this.numberOfStudents,
     this.avgRating,
   });
 
@@ -130,22 +131,29 @@ class SchoolDetailsData {
     final str = quickInfo is Map
         ? quickInfo['studentTeacherRatio']
         : json['studentTeacherRatio'];
-    final boardVal =
-        quickInfo is Map ? quickInfo['board'] : json['board'];
+    final boardVal = quickInfo is Map ? quickInfo['board'] : json['board'];
     final medium = quickInfo is Map
         ? quickInfo['mediumOfInstruction']
         : json['mediumOfInstruction'];
     final feesVal = quickInfo is Map ? quickInfo['fees'] : json['fees'];
+    final studentsVal = quickInfo is Map
+        ? quickInfo['numberOfStudents']
+        : json['numberOfStudents'];
 
     classRange = cr?.toString();
     studentTeacherRatio = str?.toString();
-    board = boardVal?.toString();
+    if (boardVal is List) {
+      boards = boardVal.map((e) => e.toString()).toList();
+    } else if (boardVal is String && boardVal.isNotEmpty) {
+      boards = [boardVal];
+    }
     if (medium is List) {
       mediumOfInstruction = medium.map((e) => e.toString()).toList();
     } else if (medium is String && medium.isNotEmpty) {
       mediumOfInstruction = [medium];
     }
     fees = feesVal is num ? feesVal.toInt() : null;
+    numberOfStudents = studentsVal is num ? studentsVal.toInt() : null;
 
     final ratingVal = json['avg_rating'] ?? json['avgRating'];
     avgRating = ratingVal is num ? ratingVal.toDouble() : null;
@@ -172,9 +180,10 @@ class SchoolDetailsData {
   List<Availability>? availability;
   String? classRange;
   String? studentTeacherRatio;
-  String? board;
+  List<String>? boards;
   List<String>? mediumOfInstruction;
   int? fees;
+  int? numberOfStudents;
   double? avgRating;
 
   Map<String, dynamic> toJson() {
@@ -214,9 +223,10 @@ class SchoolDetailsData {
     }
     map['classRange'] = classRange;
     map['studentTeacherRatio'] = studentTeacherRatio;
-    map['board'] = board;
+    map['board'] = boards;
     map['mediumOfInstruction'] = mediumOfInstruction;
     map['fees'] = fees;
+    map['numberOfStudents'] = numberOfStudents;
     map['avg_rating'] = avgRating;
     return map;
   }
@@ -262,6 +272,7 @@ class Courses {
     this.eligibility,
     this.duration,
     this.description,
+    this.image,
     this.schoolId,
     this.isActive,
     this.createdAt,
@@ -279,6 +290,7 @@ class Courses {
     eligibility = json['eligibility'];
     duration = json['duration'];
     description = json['description'];
+    image = json['image']?.toString();
     schoolId = json['schoolId'];
     isActive = json['isActive'];
     createdAt = json['createdAt'];
@@ -292,6 +304,7 @@ class Courses {
   String? eligibility;
   String? duration;
   String? description;
+  String? image;
   String? schoolId;
   bool? isActive;
   String? createdAt;
@@ -309,6 +322,7 @@ class Courses {
     map['eligibility'] = eligibility;
     map['duration'] = duration;
     map['description'] = description;
+    map['image'] = image;
     map['schoolId'] = schoolId;
     map['isActive'] = isActive;
     map['createdAt'] = createdAt;

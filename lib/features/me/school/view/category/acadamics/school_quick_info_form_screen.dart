@@ -1,4 +1,3 @@
-import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
@@ -62,10 +61,13 @@ class _SchoolQuickInfoFormScreenState extends State<SchoolQuickInfoFormScreen> {
       Get.find<SchoolAboutUsController>();
 
   final Rxn<String> _classRange = Rxn<String>();
-  final Rxn<String> _board = Rxn<String>();
+  final RxList<String> _boards = <String>[].obs;
   final RxList<String> _mediums = <String>[].obs;
-  final TextEditingController _feesController = TextEditingController();
-  final RxnInt _fees = RxnInt();
+  // final TextEditingController _feesController = TextEditingController();
+  // final RxnInt _fees = RxnInt();
+  final TextEditingController _numberOfStudentsController =
+      TextEditingController();
+  final RxnInt _numberOfStudents = RxnInt();
 
   @override
   void initState() {
@@ -78,31 +80,34 @@ class _SchoolQuickInfoFormScreenState extends State<SchoolQuickInfoFormScreen> {
     final data = _controller.schoolDetailsData?.value;
     _classRange.value =
         (data?.classRange?.isNotEmpty ?? false) ? data!.classRange : null;
-    _board.value =
-        (data?.board?.isNotEmpty ?? false) ? data!.board : null;
+    _boards.assignAll(data?.boards ?? const []);
     _mediums.assignAll(data?.mediumOfInstruction ?? const []);
-    _fees.value = data?.fees;
-    _feesController.text = data?.fees?.toString() ?? '';
+    // _fees.value = data?.fees;
+    // _feesController.text = data?.fees?.toString() ?? '';
+    _numberOfStudents.value = data?.numberOfStudents;
+    _numberOfStudentsController.text = data?.numberOfStudents?.toString() ?? '';
   }
 
   @override
   void dispose() {
-    _feesController.dispose();
+    // _feesController.dispose();
+    _numberOfStudentsController.dispose();
     super.dispose();
   }
 
   bool get _isFormValid =>
       _classRange.value != null &&
-      _board.value != null &&
+      _boards.isNotEmpty &&
       _mediums.isNotEmpty &&
-      (_fees.value ?? -1) >= 0;
+      (_numberOfStudents.value ?? -1) >= 0;
 
   Future<void> _onSave() async {
     final ok = await _controller.updateSchoolQuickInfo(
       classRange: _classRange.value!,
-      board: _board.value!,
+      boards: _boards.toList(),
       mediumOfInstruction: _mediums.toList(),
-      fees: _fees.value ?? 0,
+      // fees: _fees.value ?? 0,
+      numberOfStudents: _numberOfStudents.value ?? 0,
     );
     if (ok) Get.back(result: true);
   }
@@ -110,14 +115,14 @@ class _SchoolQuickInfoFormScreenState extends State<SchoolQuickInfoFormScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.appBackgroundColor,
+      // backgroundColor: AppColors.appBackgroundColor,
       appBar: CommonBackAppBar(
         title: "School Quick Info",
         isShadowShow: false,
       ),
       body: SafeArea(
         child: Padding(
-          padding: EdgeInsets.all(SizeConfig.size16),
+          padding: EdgeInsets.all(SizeConfig.size12),
           child: SingleChildScrollView(
             child: CommonCardWidget(
               child: Column(
@@ -136,15 +141,34 @@ class _SchoolQuickInfoFormScreenState extends State<SchoolQuickInfoFormScreen> {
 
                   SizedBox(height: SizeConfig.size24),
 
-                  // ── Board ──
+                  // ── Board (multi-select) ──
                   CustomText("Board", fontSize: SizeConfig.small),
                   SizedBox(height: SizeConfig.size8),
                   Obx(() => CommonDropdown<String>(
-                        items: kBoardOptions,
-                        selectedValue: _board.value,
+                        items: kBoardOptions
+                            .where((b) => !_boards.contains(b))
+                            .toList(),
+                        selectedValue: null,
                         hintText: "e.g. CBSE",
                         displayValue: (v) => v,
-                        onChanged: (val) => _board.value = val,
+                        onChanged: (val) {
+                          if (val != null && !_boards.contains(val)) {
+                            _boards.add(val);
+                          }
+                        },
+                      )),
+
+                  SizedBox(height: SizeConfig.size10),
+
+                  Obx(() => Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: _boards
+                            .map((b) => CommonChip(
+                                  label: b,
+                                  onDeleted: () => _boards.remove(b),
+                                ))
+                            .toList(),
                       )),
 
                   SizedBox(height: SizeConfig.size24),
@@ -183,15 +207,29 @@ class _SchoolQuickInfoFormScreenState extends State<SchoolQuickInfoFormScreen> {
                   SizedBox(height: SizeConfig.size24),
 
                   // ── Fees ──
-                  CustomText("Fees", fontSize: SizeConfig.small),
+                  // CustomText("Fees", fontSize: SizeConfig.small),
+                  // SizedBox(height: SizeConfig.size8),
+                  // CommonTextField(
+                  //   textEditController: _feesController,
+                  //   hintText: "e.g. 25000",
+                  //   keyBoardType: TextInputType.number,
+                  //   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  //   onChange: (val) {
+                  //     _fees.value = int.tryParse(val);
+                  //   },
+                  // ),
+                  // SizedBox(height: SizeConfig.size24),
+
+                  // ── No of Students ──
+                  CustomText("No of Students", fontSize: SizeConfig.small),
                   SizedBox(height: SizeConfig.size8),
                   CommonTextField(
-                    textEditController: _feesController,
-                    hintText: "e.g. 25000",
+                    textEditController: _numberOfStudentsController,
+                    hintText: "e.g. 500",
                     keyBoardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     onChange: (val) {
-                      _fees.value = int.tryParse(val);
+                      _numberOfStudents.value = int.tryParse(val);
                     },
                   ),
 

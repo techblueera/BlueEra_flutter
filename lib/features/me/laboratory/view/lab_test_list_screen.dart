@@ -82,7 +82,7 @@ class _LabTestListScreenState extends State<LabTestListScreen> {
           separatorBuilder: (_, __) => SizedBox(height: SizeConfig.size16),
           itemBuilder: (_, i) {
             final PathologyTest t = controller.tests[i];
-            return _TestCard(
+            return TestCard(
               test: t,
               backgroundColor: LabSoftCardColor.forIndex(i),
               canEdit: !_isOtherProfile,
@@ -156,14 +156,14 @@ class _LabTestListScreenState extends State<LabTestListScreen> {
 /// Owner mode (`canEdit: true`) adds a floating delete pill in the top-right
 /// corner and swaps the chevron for an edit-pencil so the whole card taps
 /// straight into [AddLabTestScreen].
-class _TestCard extends StatelessWidget {
+class TestCard extends StatelessWidget {
   final PathologyTest test;
   final Color backgroundColor;
   final bool canEdit;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
-  const _TestCard({
+  const TestCard({
     required this.test,
     required this.backgroundColor,
     required this.canEdit,

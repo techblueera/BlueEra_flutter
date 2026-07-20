@@ -33,39 +33,36 @@ class SchoolAvailabilityCard extends StatelessWidget {
     final availability = controller.schoolDetailsData?.value.availability ??
         const <Availability>[];
 
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
-      child: CommonCardWidget(
-        padding: 12,
-        cardMargin: 0,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                CustomText(
-                  "Set Your School Timing",
-                  fontWeight: FontWeight.w700,
-                  fontSize: 15,
-                ),
-                _EditPill(onTap: onEditTap),
-              ],
-            ),
-            SizedBox(height: SizeConfig.size12),
-            ...kSchoolWeekDays.map((day) {
-              final slot = availability.firstWhereOrNull(
-                (a) => (a.day ?? '').toLowerCase() == day.toLowerCase(),
-              );
-              return _AvailabilityRow(
-                day: day,
-                isOpen: slot?.isOpen ?? false,
-                openTime: slot?.openTime ?? '10:00',
-                closeTime: slot?.closeTime ?? '10:00',
-              );
-            }),
-          ],
-        ),
+    return CommonCardWidget(
+      padding: 12,
+      cardMargin: 0,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              CustomText(
+                "Set Your School Timing",
+                fontWeight: FontWeight.w700,
+                fontSize: 15,
+              ),
+              _EditPill(onTap: onEditTap),
+            ],
+          ),
+          SizedBox(height: SizeConfig.size12),
+          ...kSchoolWeekDays.map((day) {
+            final slot = availability.firstWhereOrNull(
+              (a) => (a.day ?? '').toLowerCase() == day.toLowerCase(),
+            );
+            return _AvailabilityRow(
+              day: day,
+              isOpen: slot?.isOpen ?? false,
+              openTime: slot?.openTime ?? '10:00',
+              closeTime: slot?.closeTime ?? '10:00',
+            );
+          }),
+        ],
       ),
     );
   }

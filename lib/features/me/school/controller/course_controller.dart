@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/school_course_res_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
@@ -5,6 +7,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/me/school/repo/school_repo.dart';
+import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:get/get.dart';
 
 class CourseController extends GetxController {
@@ -91,6 +94,11 @@ class CourseController extends GetxController {
   var isFormValid = false.obs;
   var isUploading = false.obs;
 
+  // Image upload state
+  final Rxn<File> courseImageFile = Rxn<File>();
+  final RxString courseImageUrl = ''.obs;
+  final RxBool isImageUpdated = false.obs;
+
   // Change Detection Snapshots
   Map<String, dynamic> originalCourseData = {};
 
@@ -117,7 +125,8 @@ class CourseController extends GetxController {
         courseFee.isNotEmpty &&
         eligibility.isNotEmpty &&
         admissionProcess.isNotEmpty &&
-        description.isNotEmpty;
+        description.isNotEmpty &&
+        courseImageUrl.value.isNotEmpty;
 
     if (!isEdit) {
       isFormValid.value = basicValid;
@@ -158,6 +167,19 @@ class CourseController extends GetxController {
         "yearly": feeType.value == "Yearly" ? feeAsInt : 0,
       };
 
+      // 3. If the image was updated, upload the local file to S3 first.
+      String imageUrl = courseImageUrl.value;
+      if (isImageUpdated.value && courseImageFile.value != null) {
+        final result =
+            await S3UploadService.uploadFile(courseImageFile.value!);
+        if (!result.isSuccess) {
+          commonSnackBar(message: AppStrings.somethingWentWrong);
+          return;
+        }
+        imageUrl = result.url;
+        courseImageUrl.value = imageUrl;
+      }
+
       Map<String, dynamic> reqParm = {
         "name": name,
         "admissionProcess": admission,
@@ -165,6 +187,7 @@ class CourseController extends GetxController {
         "courseFees": fees,
         "duration": duration,
         "description": courseDescriptionText.value,
+        "image": imageUrl,
         if (isEdit == false) "schoolId": schoolIDGlobal
       };
       ResponseModel response = isEdit

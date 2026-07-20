@@ -17,9 +17,13 @@ class LabPackageRepo extends BaseService {
     return await ApiBaseHelper().getHTTP('$labPackagesByLab/$labId');
   }
 
-  /// GET /packages — owner's own packages (token-scoped).
+  /// GET /packages/me — owner's own packages, token-scoped, with `tests`
+  /// **populated**. This is the correct list per
+  /// FLUTTER_CATALOGUE_INTEGRATION.md PART 6/7 — do NOT use `GET /packages`
+  /// (unscoped, returns every lab's packages) or `GET /packages/laboratory/:id`
+  /// (public view of some other lab; unpopulated tests).
   Future<ResponseModel> getMyPackages() async {
-    return await ApiBaseHelper().getHTTP(labPackages);
+    return await ApiBaseHelper().getHTTP(labPackagesMe);
   }
 
   /// GET /packages/:id — populated tests.

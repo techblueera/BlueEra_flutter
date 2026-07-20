@@ -74,17 +74,18 @@ SchoolCourseData dataFromJson(String str) => SchoolCourseData.fromJson(json.deco
 String dataToJson(SchoolCourseData data) => json.encode(data.toJson());
 class SchoolCourseData {
   SchoolCourseData({
-      this.courseFees, 
-      this.id, 
-      this.name, 
-      this.admissionProcess, 
-      this.eligibility, 
-      this.duration, 
-      this.description, 
-      this.schoolId, 
-      this.isActive, 
-      this.createdAt, 
-      this.updatedAt, 
+      this.courseFees,
+      this.id,
+      this.name,
+      this.admissionProcess,
+      this.eligibility,
+      this.duration,
+      this.description,
+      this.image,
+      this.schoolId,
+      this.isActive,
+      this.createdAt,
+      this.updatedAt,
       this.v,});
 
   SchoolCourseData.fromJson(dynamic json) {
@@ -95,6 +96,7 @@ class SchoolCourseData {
     eligibility = json['eligibility'];
     duration = json['duration'];
     description = json['description'];
+    image = json['image']?.toString();
     schoolId = json['schoolId'] != null ? SchoolId.fromJson(json['schoolId']) : null;
     isActive = json['isActive'];
     createdAt = json['createdAt'];
@@ -108,6 +110,7 @@ class SchoolCourseData {
   String? eligibility;
   String? duration;
   String? description;
+  String? image;
   SchoolId? schoolId;
   bool? isActive;
   String? createdAt;
@@ -125,6 +128,7 @@ class SchoolCourseData {
     map['eligibility'] = eligibility;
     map['duration'] = duration;
     map['description'] = description;
+    map['image'] = image;
     if (schoolId != null) {
       map['schoolId'] = schoolId?.toJson();
     }

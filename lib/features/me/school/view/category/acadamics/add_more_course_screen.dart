@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:BlueEra/core/api/model/school_course_res_model.dart';
+import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/features/common/delivery_partner/widget/common_image_upload_section.dart';
 import 'package:BlueEra/features/me/school/controller/course_controller.dart';
 import 'package:BlueEra/features/me/school/view/common_ai_genereted_button.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
@@ -43,6 +47,11 @@ class _AddMoreCourseScreenState extends State<AddMoreCourseScreen> {
   @override
   void initState() {
     super.initState();
+    // Reset image state for a fresh form; edit mode re-hydrates below.
+    courseController.courseImageFile.value = null;
+    courseController.courseImageUrl.value = '';
+    courseController.isImageUpdated.value = false;
+
     _initializeData();
 
     // Listeners for all controllers to trigger validation
@@ -78,6 +87,7 @@ class _AddMoreCourseScreenState extends State<AddMoreCourseScreen> {
       courseDurationEditController.text = data.duration ?? "";
       descriptionEditController.text = data.description ?? "";
       courseController.courseDescriptionText.value = data.description ?? "";
+      courseController.courseImageUrl.value = data.image ?? "";
       // Save snapshot for comparison
       courseController.originalCourseData = {
         'name': data.name,
@@ -87,6 +97,7 @@ class _AddMoreCourseScreenState extends State<AddMoreCourseScreen> {
         'feeType': courseController.feeType.value,
         'duration': data.duration,
         'description': data.description,
+        'image': data.image,
       };
     }
   }
@@ -96,7 +107,7 @@ class _AddMoreCourseScreenState extends State<AddMoreCourseScreen> {
     return Scaffold(
       appBar: CommonBackAppBar(
         isShowMoreInfoIcon: true,
-        title:AppStrings.addMoreCourse,
+        title: AppStrings.addMoreCourse,
         isShadowShow: false,
       ),
       body: SafeArea(
@@ -104,10 +115,13 @@ class _AddMoreCourseScreenState extends State<AddMoreCourseScreen> {
           child: SingleChildScrollView(
             child: Column(
               children: [
+                ///UPLOAD COURSE BANNER....
+                _buildBannerUpload(),
+                SizedBox(height: SizeConfig.paddingM),
                 CommonTextField(
                   textEditController: courseNameEditController,
                   hintText: "E.g. B.Sc. Geography Honours....",
-                  title:AppStrings.courseName,
+                  title: AppStrings.courseName,
                   maxLength: 100,
                   onChange: (_) => _runValidation(),
                 ),
@@ -115,7 +129,7 @@ class _AddMoreCourseScreenState extends State<AddMoreCourseScreen> {
                 CommonTextField(
                   textEditController: admissionProcessEditController,
                   hintText: "E.g. Direct Admission ",
-                  title:AppStrings.admission,
+                  title: AppStrings.admission,
                   maxLength: 50,
                   onChange: (_) => _runValidation(),
                 ),
@@ -169,9 +183,8 @@ class _AddMoreCourseScreenState extends State<AddMoreCourseScreen> {
                 CommonTextField(
                   textEditController: courseDurationEditController,
                   hintText: "E.g. 4 Years",
-                  title:AppStrings.courseDuration,
+                  title: AppStrings.courseDuration,
                   maxLength: 15,
-
                   onChange: (_) => _runValidation(),
                 ),
                 SizedBox(height: SizeConfig.paddingM),
@@ -268,8 +281,145 @@ class _AddMoreCourseScreenState extends State<AddMoreCourseScreen> {
       admissionProcess: admissionProcessEditController.text,
       description: descriptionEditController.text,
     );
-    setState(() {
+    setState(() {});
+  }
 
+  Widget _buildBannerUpload() {
+    return Obx(() {
+      final localFile = courseController.courseImageFile.value;
+      final networkUrl = courseController.courseImageUrl.value;
+      final hasImage = localFile != null ||
+          (networkUrl.isNotEmpty && networkUrl.startsWith('http'));
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CustomText(
+            "Upload Course Banner",
+            fontWeight: FontWeight.w600,
+            fontSize: SizeConfig.medium,
+            color: AppColors.mainTextColor,
+          ),
+          SizedBox(height: SizeConfig.paddingXSL),
+          if (hasImage)
+            _buildBannerPreview(localFile, networkUrl)
+          else
+            _buildBannerPlaceholder(),
+        ],
+      );
     });
+  }
+
+  Widget _buildBannerPlaceholder() {
+    return InkWell(
+      onTap: _pickBannerImage,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(vertical: SizeConfig.paddingXL),
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Color(0xffDDE2EE)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.upload_file_outlined, color: AppColors.grey7E, size: 20),
+            const SizedBox(width: 8),
+            CustomText(
+              "Upload Photo",
+              color: AppColors.grey7E,
+              fontWeight: FontWeight.w600,
+              fontSize: SizeConfig.medium,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBannerPreview(File? localFile, String networkUrl) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10),
+      child: Stack(
+        children: [
+          SizedBox(
+            width: double.infinity,
+            height: 160,
+            child: localFile != null
+                ? Image.file(localFile, fit: BoxFit.cover)
+                : Image.network(
+                    networkUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => Container(
+                      color: Colors.grey.shade200,
+                      child: const Icon(Icons.broken_image),
+                    ),
+                  ),
+          ),
+          Positioned(
+            top: 8,
+            right: 8,
+            child: InkWell(
+              onTap: () {
+                courseController.courseImageFile.value = null;
+                courseController.courseImageUrl.value = '';
+                courseController.isImageUpdated.value = false;
+                _runValidation();
+              },
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.55),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.close, size: 16, color: Colors.white),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 8,
+            right: 8,
+            child: InkWell(
+              onTap: _pickBannerImage,
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.edit, size: 12, color: AppColors.white),
+                    const SizedBox(width: 4),
+                    CustomText(
+                      "Change",
+                      color: AppColors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 12,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _pickBannerImage() async {
+    final path = await CommonProfileImageUpload.pickImage(context: context);
+    if (path != null) {
+      courseController.courseImageFile.value = File(path);
+      courseController.courseImageUrl.value = path;
+      courseController.isImageUpdated.value = true;
+      _runValidation();
+    }
   }
 }

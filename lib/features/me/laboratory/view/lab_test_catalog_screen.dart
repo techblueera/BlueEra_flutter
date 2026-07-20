@@ -4,9 +4,11 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_test_controller.dart';
 import 'package:BlueEra/features/me/laboratory/model/lab_test_models.dart';
 import 'package:BlueEra/features/me/laboratory/view/add_lab_test_screen.dart';
+import 'package:BlueEra/features/me/laboratory/view/lab_test_list_screen.dart';
 import 'package:BlueEra/features/me/laboratory/widget/lab_soft_card_color.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
+import 'package:BlueEra/widgets/common_dialog.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -33,8 +35,10 @@ class LabTestCatalogScreen extends StatefulWidget {
   State<LabTestCatalogScreen> createState() => _LabTestCatalogScreenState();
 }
 
-class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
+class _LabTestCatalogScreenState extends State<LabTestCatalogScreen>
+    with SingleTickerProviderStateMixin {
   late final LabTestController controller;
+  late final TabController _tabController;
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -45,17 +49,25 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
     } else {
       controller = Get.find<LabTestController>();
     }
+    // Tab 0 = manually-added tests, Tab 1 = catalog. Kept in this order so
+    // owners land on their own tests first.
+    _tabController = TabController(length: 2, vsync: this);
     _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       controller.fetchCatalog(
         groupCategory: widget.collection,
         page: 1,
       );
+      // Populates `controller.tests` for the "Manually Added" tab. The
+      // controller already refreshes this list after each successful
+      // create/update, so no extra hook is needed on return.
+      controller.fetchTests(widget.collection);
     });
   }
 
   @override
   void dispose() {
+    _tabController.dispose();
     _scrollController
       ..removeListener(_onScroll)
       ..dispose();
@@ -97,7 +109,11 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: widget.title,
+        // Callers (`LabTestListScreen`, `LabCategoryScreen`) usually pass
+        // just `collection` and leave `title` null — fall back to the
+        // group-category name so the app bar always labels the current
+        // page instead of rendering blank.
+        title: widget.title ?? widget.collection,
         buildCustomActionWidget: () => Padding(
           padding: const EdgeInsets.only(right: 10.0),
           child: InkWell(
@@ -125,40 +141,129 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen> {
           ),
         ),
       ),
-      body: Obx(() {
-        if (controller.isLoading.value && controller.catalogTests.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
-        }
-        if (controller.catalogTests.isEmpty) {
-          return Center(
-            child:
-                CustomText(AppStrings.noTestsFound.tr, color: AppColors.grey99),
-          );
-        }
-        // `+ 1` reserves a trailing slot for the load-more indicator so
-        // the user sees progress feedback while the next page fetches.
-        final showTrailer = controller.isLoadingMoreCatalog.value ||
-            controller.catalogHasMore.value == false;
-        final itemCount =
-            controller.catalogTests.length + (showTrailer ? 1 : 0);
+      body: Column(
+        children: [
+          Container(
+            color: AppColors.white,
+            child: TabBar(
+              controller: _tabController,
+              labelColor: AppColors.primaryColor,
+              unselectedLabelColor: AppColors.grey99,
+              indicatorColor: AppColors.primaryColor,
+              labelStyle: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+              ),
+              tabs: const [
+                Tab(text: 'Tests'),
+                Tab(text: 'My Test'),
+              ],
+            ),
+          ),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildCatalogTab(),
+                _buildManualTab(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-        return ListView.separated(
-          controller: _scrollController,
-          padding: EdgeInsets.all(SizeConfig.size12),
-          itemCount: itemCount,
-          separatorBuilder: (_, __) => SizedBox(height: SizeConfig.size16),
-          itemBuilder: (_, i) {
-            if (i >= controller.catalogTests.length) {
-              return _buildListTrailer();
-            }
-            return _CatalogCard(
-              item: controller.catalogTests[i],
-              backgroundColor: LabSoftCardColor.forIndex(i),
-              onTap: () => _showCatalogBottomSheet(controller.catalogTests[i]),
-            );
-          },
+  // Tab 0 — this lab's own tests filtered to `source == "manual"`.
+  // Backend stamps `source: "manual"` on `POST /pathology-tests` and
+  // `source: "catalog"` on `POST /test-catalog/select`; the filter is
+  // client-side because the list endpoint returns both together.
+  Widget _buildManualTab() {
+    return Obx(() {
+      final manualTests = controller.tests
+          .where((t) => (t.source ?? '').toLowerCase() == 'manual')
+          .toList();
+      if (controller.isLoading.value && manualTests.isEmpty) {
+        return const Center(child: CircularProgressIndicator());
+      }
+      if (manualTests.isEmpty) {
+        return Center(
+          child: CustomText(
+            AppStrings.noTestsFound.tr,
+            color: AppColors.grey99,
+          ),
         );
-      }),
+      }
+      return ListView.separated(
+        padding: EdgeInsets.all(SizeConfig.size12),
+        itemCount: manualTests.length,
+        separatorBuilder: (_, __) => SizedBox(height: SizeConfig.size16),
+        itemBuilder: (_, i) {
+          final t = manualTests[i];
+          return TestCard(
+            test: t,
+            backgroundColor: LabSoftCardColor.forIndex(i),
+            canEdit: true,
+            onEdit: () => Get.to(() => AddLabTestScreen(
+                  testToEdit: t,
+                  collection: widget.collection,
+                )),
+            onDelete: () => _confirmDelete(t),
+          );
+        },
+      );
+    });
+  }
+
+  // Tab 1 — unchanged catalog list. Kept its own scroll controller so
+  // pagination fires only while this tab is visible.
+  Widget _buildCatalogTab() {
+    return Obx(() {
+      if (controller.isLoading.value && controller.catalogTests.isEmpty) {
+        return const Center(child: CircularProgressIndicator());
+      }
+      if (controller.catalogTests.isEmpty) {
+        return Center(
+          child:
+              CustomText(AppStrings.noTestsFound.tr, color: AppColors.grey99),
+        );
+      }
+      // `+ 1` reserves a trailing slot for the load-more indicator so
+      // the user sees progress feedback while the next page fetches.
+      final showTrailer = controller.isLoadingMoreCatalog.value ||
+          controller.catalogHasMore.value == false;
+      final itemCount = controller.catalogTests.length + (showTrailer ? 1 : 0);
+
+      return ListView.separated(
+        controller: _scrollController,
+        padding: EdgeInsets.all(SizeConfig.size12),
+        itemCount: itemCount,
+        separatorBuilder: (_, __) => SizedBox(height: SizeConfig.size16),
+        itemBuilder: (_, i) {
+          if (i >= controller.catalogTests.length) {
+            return _buildListTrailer();
+          }
+          return _CatalogCard(
+            item: controller.catalogTests[i],
+            backgroundColor: LabSoftCardColor.forIndex(i),
+            onTap: () => _showCatalogBottomSheet(controller.catalogTests[i]),
+          );
+        },
+      );
+    });
+  }
+
+  void _confirmDelete(PathologyTest t) {
+    showCommonDialog(
+      context: context,
+      text: AppStrings.deleteThisTest.tr,
+      confirmCallback: () {
+        Get.back();
+        controller.deleteTest(t.id!, widget.collection);
+      },
+      cancelCallback: () => Get.back(),
+      confirmText: AppStrings.delete,
+      cancelText: AppStrings.cancel,
     );
   }
 

@@ -7,9 +7,10 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_package_controller.dart';
-import 'package:BlueEra/features/me/laboratory/controller/lab_test_controller.dart';
 import 'package:BlueEra/features/me/laboratory/model/lab_package_model.dart';
 import 'package:BlueEra/features/me/laboratory/model/lab_test_models.dart';
+import 'package:BlueEra/features/me/laboratory/repo/lab_test_repo.dart';
+import 'package:BlueEra/features/me/laboratory/view/packages/my_lab_packages_screen.dart';
 import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -122,6 +123,16 @@ class _AddLabPackageScreenState extends State<AddLabPackageScreen> {
       commonSnackBar(message: 'Please select at least 1 test');
       return;
     }
+    // Advisable pricing check per FLUTTER_CATALOGUE_INTEGRATION.md PART 14
+    // — the backend does not reject it, but customer price above MRP is
+    // almost always a data-entry mistake.
+    final mrp = int.tryParse(_mrpController.text.trim());
+    final price = int.tryParse(_priceController.text.trim());
+    if (mrp != null && price != null && price > mrp) {
+      commonSnackBar(
+          message: 'Customer price must be less than or equal to MRP');
+      return;
+    }
 
     // Upload picked image just before submitting so the wire stays clean
     // if the user backs out of the form.
@@ -143,7 +154,12 @@ class _AddLabPackageScreenState extends State<AddLabPackageScreen> {
     );
 
     final ok = await _pkgCtrl.createPackage(pkg);
-    if (ok && mounted) Get.back();
+    if (ok && mounted) {
+      // Land on My Packages so the user sees the newly created package.
+      // `Get.off` replaces the form in the stack — back button returns to
+      // the presets landing (which pushed this form), not to a stale form.
+      Get.off(() => const MyLabPackagesScreen());
+    }
   }
 
   @override
@@ -467,26 +483,24 @@ class _LabTestPickerSheet extends StatefulWidget {
 }
 
 class _LabTestPickerSheetState extends State<_LabTestPickerSheet> {
-  static const List<String> _collections = [
-    'Blood & Routine Tests',
-    'Preventive & Wellness Checkups',
-    'Women, Pregnancy & Child Health',
-    'Diagnostics & Imaging',
-    'Organ & System Health',
-    'Infection, Cancer & Immunity',
-  ];
-
   static const Color _accent = AppColors.primaryColor;
   static const Color _accentDeep = AppColors.blue5CAF;
   static const Color _surface = Color(0xFFF4F6FA);
   static const Color _line = Color(0xFFE5E7EB);
 
-  final _testCtrl = getOrPut(() => LabTestController());
+  /// Use the repo directly (not the shared [LabTestController]) so this
+  /// sheet's fetch doesn't overwrite the tests list the parent Tests tab
+  /// keeps in state — per FLUTTER_CATALOGUE_INTEGRATION.md PART 5, the
+  /// picker loads the full lab-scoped test list once via
+  /// `GET /pathology-tests` (token, no pagination) and does client-side
+  /// search over it.
+  final LabTestRepo _testRepo = LabTestRepo();
 
-  /// Aggregated tests per collection — loaded on demand when a section is
-  /// first expanded.
-  final Map<String, List<PathologyTest>> _testsByCollection = {};
-  final Set<String> _loadingCollections = {};
+  bool _loading = true;
+  String? _loadError;
+
+  /// The full flat list of the lab's tests (single fetch).
+  List<PathologyTest> _allTests = const <PathologyTest>[];
 
   /// Live selection: id → name (name kept so the parent can preview).
   late final Map<String, String> _selected =
@@ -498,8 +512,7 @@ class _LabTestPickerSheetState extends State<_LabTestPickerSheet> {
   @override
   void initState() {
     super.initState();
-    // Preload the first collection so the user sees content immediately.
-    _loadCollection(_collections.first);
+    _loadAllTests();
   }
 
   @override
@@ -508,29 +521,35 @@ class _LabTestPickerSheetState extends State<_LabTestPickerSheet> {
     super.dispose();
   }
 
-  Future<void> _loadCollection(String collection) async {
-    if (_testsByCollection.containsKey(collection) ||
-        _loadingCollections.contains(collection)) {
-      return;
-    }
-    setState(() => _loadingCollections.add(collection));
+  Future<void> _loadAllTests() async {
+    setState(() {
+      _loading = true;
+      _loadError = null;
+    });
     try {
-      // Reuse the shared repo through the shared controller so this
-      // doesn't clobber any list state the tests-list screen has open.
-      // Fetching in isolation via a scratch controller keeps the Rx list
-      // on the shared instance untouched.
-      await _testCtrl.fetchTests(collection);
-      _testsByCollection[collection] =
-          _testCtrl.tests.map((t) => t).toList();
+      // Empty groupCategory → unfiltered lab-scoped list (see
+      // LabTestController.fetchPopularTests for the same convention).
+      final res = await _testRepo.getPathologyTests('');
+      if (res.isSuccess) {
+        final List data = res.response?.data['data'] ?? [];
+        _allTests = data
+            .whereType<Map<String, dynamic>>()
+            .map(PathologyTest.fromJson)
+            .toList();
+      } else {
+        _loadError = res.message ?? 'Failed to load tests';
+      }
+    } catch (e) {
+      _loadError = '$e';
     } finally {
-      if (mounted) setState(() => _loadingCollections.remove(collection));
+      if (mounted) setState(() => _loading = false);
     }
   }
 
-  List<PathologyTest> _filter(List<PathologyTest> tests) {
-    if (_search.trim().isEmpty) return tests;
+  List<PathologyTest> get _filteredTests {
+    if (_search.trim().isEmpty) return _allTests;
     final q = _search.trim().toLowerCase();
-    return tests
+    return _allTests
         .where((t) => (t.testName ?? '').toLowerCase().contains(q))
         .toList();
   }
@@ -557,18 +576,81 @@ class _LabTestPickerSheetState extends State<_LabTestPickerSheet> {
               _header(),
               _searchField(),
               const Divider(height: 1, thickness: 1, color: _line),
-              Flexible(
-                child: ListView.builder(
-                  padding: EdgeInsets.only(top: SizeConfig.size6),
-                  itemCount: _collections.length,
-                  itemBuilder: (_, i) => _collectionSection(_collections[i]),
-                ),
-              ),
+              Flexible(child: _body()),
               _footer(),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _body() {
+    if (_loading) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 32),
+          child: SizedBox(
+            width: 26,
+            height: 26,
+            child: CircularProgressIndicator(
+                strokeWidth: 2.4, color: _accentDeep),
+          ),
+        ),
+      );
+    }
+    if (_loadError != null) {
+      return Padding(
+        padding: EdgeInsets.all(SizeConfig.size16),
+        child: Column(
+          children: [
+            CustomText(
+              _loadError!,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+              color: AppColors.secondaryTextColor,
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: SizeConfig.size10),
+            InkWell(
+              onTap: _loadAllTests,
+              child: Container(
+                padding: EdgeInsets.symmetric(
+                    horizontal: SizeConfig.size16,
+                    vertical: SizeConfig.size8),
+                decoration: BoxDecoration(
+                  color: _accent.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: CustomText('Retry',
+                    fontSize: 13, fontWeight: FontWeight.w700, color: _accent),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    final tests = _filteredTests;
+    if (tests.isEmpty) {
+      return Padding(
+        padding: EdgeInsets.all(SizeConfig.size16),
+        child: Center(
+          child: CustomText(
+            _search.isNotEmpty
+                ? 'No matching tests.'
+                : 'No tests yet — add one from the Tests tab first.',
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: AppColors.secondaryTextColor,
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+    return ListView.builder(
+      padding: EdgeInsets.only(top: SizeConfig.size6),
+      itemCount: tests.length,
+      itemBuilder: (_, i) => _testRow(tests[i]),
     );
   }
 
@@ -627,75 +709,6 @@ class _LabTestPickerSheetState extends State<_LabTestPickerSheet> {
         hintText: 'Search by test name',
         isValidate: false,
         onChange: (v) => setState(() => _search = v),
-      ),
-    );
-  }
-
-  Widget _collectionSection(String collection) {
-    final loaded = _testsByCollection[collection];
-    final loading = _loadingCollections.contains(collection);
-    final tests = _filter(loaded ?? const []);
-    final pickedInSection =
-        (loaded ?? const []).where((t) => _selected.containsKey(t.id)).length;
-    return Theme(
-      data: Theme.of(context).copyWith(
-        dividerColor: Colors.transparent,
-        splashColor: Colors.transparent,
-        highlightColor: Colors.transparent,
-      ),
-      child: ExpansionTile(
-        onExpansionChanged: (open) {
-          if (open) _loadCollection(collection);
-        },
-        tilePadding: EdgeInsets.symmetric(
-            horizontal: SizeConfig.size16, vertical: SizeConfig.size2),
-        childrenPadding: EdgeInsets.only(bottom: SizeConfig.size6),
-        initiallyExpanded: collection == _collections.first,
-        title: CustomText(
-          collection,
-          fontSize: 13.5,
-          fontWeight: FontWeight.w700,
-          color: AppColors.mainTextColor,
-        ),
-        subtitle: pickedInSection > 0
-            ? CustomText(
-                '$pickedInSection selected',
-                fontSize: 11,
-                fontWeight: FontWeight.w600,
-                color: _accent,
-              )
-            : null,
-        children: [
-          if (loading)
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: SizeConfig.size14),
-              child: const Center(
-                child: SizedBox(
-                  width: 22,
-                  height: 22,
-                  child: CircularProgressIndicator(
-                      strokeWidth: 2, color: _accentDeep),
-                ),
-              ),
-            )
-          else if (loaded == null)
-            const SizedBox.shrink()
-          else if (tests.isEmpty)
-            Padding(
-              padding: EdgeInsets.fromLTRB(SizeConfig.size16,
-                  SizeConfig.size4, SizeConfig.size16, SizeConfig.size12),
-              child: CustomText(
-                _search.isNotEmpty
-                    ? 'No matching tests in this category.'
-                    : 'No tests in this category yet — add one from the Tests tab.',
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: AppColors.secondaryTextColor,
-              ),
-            )
-          else
-            ...tests.map(_testRow),
-        ],
       ),
     );
   }

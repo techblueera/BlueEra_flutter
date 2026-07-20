@@ -5,7 +5,6 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
-import 'package:BlueEra/features/business/widgets/business_description_card.dart';
 import 'package:BlueEra/features/business/widgets/business_joined_profile_card.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/profile_share_banner.dart';
@@ -30,6 +29,9 @@ import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+import '../../category/acadamics/school_quick_info_form_screen.dart';
+import '../../category/acadamics/widgets/school_quick_info_view.dart';
 
 /// Overview tab for the redesigned school "me" profile.
 ///
@@ -106,47 +108,75 @@ class _SchoolOverviewTabV2State extends State<SchoolOverviewTabV2> {
           // ── Joined date + identity + cover (self-pads at _hInset) ──
           BusinessJoinedProfileCard(businessController: _businessController),
 
-          // ── Live photos ──
-          _hPad(
-              child: CommonBusinessLivePhoto(controller: _businessController)),
-
-          // ── Business description ──
-          _hPad(child: const BusinessDescriptionCard()),
-
-          SizedBox(height: SizeConfig.size10),
+          // SizedBox(height: SizeConfig.size10),
 
           // ── Director / Principal Message ──
+          // _hPad(
+          //   child:
+          hasDirector
+              ? DirectorCard(
+                  schoolAboutUsController: widget.controller,
+                  isEdit: true,
+                )
+              : _SectionEmptyCard(
+                  title: AppStrings.principalDirectorMessage.tr,
+                  ctaLabel: AppStrings.principalDirectorMessage.tr,
+                  ctaIcon: Icons.person_outline,
+                  onTap: () => Get.to(PrincipalMessageScreen())?.then(
+                      (_) => widget.controller.getSchoolByIdController()),
+                ),
+          // ),
+
+          // SizedBox(height: SizeConfig.size10),
+
+          // ── School Quick Info (Class range / Ratio / Medium) ──
           _hPad(
-            child: hasDirector
-                ? DirectorCard(
-                    schoolAboutUsController: widget.controller,
-                    isEdit: true,
-                  )
-                : _SectionEmptyCard(
-                    title: AppStrings.principalDirectorMessage.tr,
-                    ctaLabel: AppStrings.principalDirectorMessage.tr,
-                    ctaIcon: Icons.person_outline,
-                    onTap: () => Get.to(PrincipalMessageScreen())?.then(
-                        (_) => widget.controller.getSchoolByIdController()),
-                  ),
+            child: SchoolQuickInfoCard(
+              controller: widget.controller,
+              onEditTap: () => Get.to(const SchoolQuickInfoFormScreen())
+                  ?.then((_) => widget.controller.getSchoolByIdController()),
+            ),
           ),
 
+          // SizedBox(height: SizeConfig.size10),
+
           // ── Management ──
+          // _hPad(
+          //   child:
+          management.isNotEmpty
+              ? SchoolManagementSection(
+                  managementData: management,
+                  isEdit: true,
+                )
+              : _SectionEmptyCard(
+                  title: AppStrings.managementTrust.tr,
+                  ctaLabel: AppStrings.managementTrust.tr,
+                  ctaIcon: Icons.groups_outlined,
+                  onTap: () => Get.to(ManagementTrustFormScreen(isEdit: false))
+                      ?.then(
+                          (_) => widget.controller.getSchoolByIdController()),
+                ),
+          // ),
+
+          // SizedBox(height: SizeConfig.size10),
+
+          // ── Availability ──
           _hPad(
-            child: management.isNotEmpty
-                ? SchoolManagementSection(
-                    managementData: management,
-                    isEdit: true,
-                  )
-                : _SectionEmptyCard(
-                    title: AppStrings.managementTrust.tr,
-                    ctaLabel: AppStrings.managementTrust.tr,
-                    ctaIcon: Icons.groups_outlined,
-                    onTap: () =>
-                        Get.to(ManagementTrustFormScreen(isEdit: false))?.then(
-                            (_) => widget.controller.getSchoolByIdController()),
-                  ),
+            child: SchoolAvailabilityCard(
+              controller: widget.controller,
+              onEditTap: () => Get.to(const AvailabilityFormScreen())
+                  ?.then((_) => widget.controller.getSchoolByIdController()),
+            ),
           ),
+
+          // SizedBox(height: SizeConfig.size10),
+
+          // ── Live photos ──
+          _hPad(
+            child: CommonBusinessLivePhoto(controller: _businessController),
+          ),
+
+          SizedBox(height: SizeConfig.size10),
 
           // ── Campus Life Gallery ──
           _hPad(
@@ -163,18 +193,7 @@ class _SchoolOverviewTabV2State extends State<SchoolOverviewTabV2> {
                   ),
           ),
 
-          SizedBox(height: SizeConfig.size10),
-
-          // ── Availability ──
-          _hPad(
-            child: SchoolAvailabilityCard(
-              controller: widget.controller,
-              onEditTap: () => Get.to(const AvailabilityFormScreen())
-                  ?.then((_) => widget.controller.getSchoolByIdController()),
-            ),
-          ),
-
-          SizedBox(height: SizeConfig.size10),
+          // SizedBox(height: SizeConfig.size10),
 
           // ── Contact Us ──
           _hPad(
@@ -225,8 +244,12 @@ class _SchoolOverviewTabV2State extends State<SchoolOverviewTabV2> {
               ),
             ),
 
+          // SizedBox(height: SizeConfig.size10),
+
           // ── QR Code (shared) ──
           _hPad(child: _buildQrCodeSection()),
+
+          // SizedBox(height: SizeConfig.size10),
 
           // ── Share banner (shared) ──
           _hPad(child: const ProfileShareBanner()),
