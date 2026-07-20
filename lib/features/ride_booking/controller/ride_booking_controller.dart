@@ -1,6 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math' as math;
 
+import 'package:BlueEra/core/api/model/place_details.dart';
+import 'package:BlueEra/core/api/model/place_prediction.dart';
+import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/services/get_current_location.dart';
 import 'package:BlueEra/features/ride_booking/model/ride_booking_models.dart';
 import 'package:BlueEra/features/ride_booking/repo/ride_booking_repo.dart';
@@ -14,14 +19,63 @@ import 'package:get/get.dart';
 /// the older `book_your_transport/` screens, so neither flow can regress the
 /// other.
 ///
-/// ### Stub mode
-/// [_useStub] keeps the flow fully demoable before the backend ships. Every
-/// network method is `if (_useStub) return _stubX()`, so flipping the single
-/// flag to `false` switches the whole flow onto the real API with no other
-/// edit. See docs/backend/RIDE_BOOKING_FRONTEND_INTEGRATION.md.
+/// ### Broadcast dispatch
+/// Rides are created with `orderType: "broadcast"` and NO `selectedRiders`:
+/// the server rings nearby riders in expanding waves (~3 → 6 → 10 km) and the
+/// first to accept wins. The customer just polls status until a rider is
+/// attached. Contract:
+/// docs/backend/RIDER_BROADCAST_DISPATCH_FRONTEND_GUIDE.md
+///
+/// ### What is live vs. local
+/// Ride creation, status, captain location and cancel all hit the real
+/// `rider-service/fare/*` API. Four things have no backend (guide §6) and are
+/// handled on-device instead: place search (Google Places via [PlaceRepo]),
+/// recents and saved places (SharedPreferences), cancel reasons (a shipped
+/// list), and fare-raise (disabled — see [kFareRaiseEnabled]).
 class RideBookingController extends GetxController {
-  /// Flip to `false` once the backend is live.
-  static const bool _useStub = true;
+  /// Broadcast dispatch has no fare-bump endpoint — the "+₹10/₹20/₹30" chips
+  /// must not ship until one exists, or the user pays more for nothing.
+  /// Guide §6. Flip when the backend lands.
+  static const bool kFareRaiseEnabled = false;
+
+  /// Maps this flow's vehicle codes onto the backend's `vehicleType` values.
+  /// Kept in one place so the quote response and the create body can't drift.
+  static const Map<String, String> _vehicleTypeByCode = {
+    'BIKE': 'twoWheelerRider',
+    'AUTO': 'autoRider',
+    'CAB_ECONOMY': 'carHatchback',
+    'CAB_DAILY': 'carSedan',
+    'CAB_PREMIUM': 'carSuv',
+    'PARCEL': 'twoWheelerRider',
+  };
+
+  /// Reverse of [_vehicleTypeByCode], for reading the quote response.
+  static String _codeForVehicleType(String vehicleType) {
+    for (final entry in _vehicleTypeByCode.entries) {
+      if (entry.value == vehicleType) return entry.key;
+    }
+    return vehicleType.toUpperCase();
+  }
+
+  /// Display name for a vehicle code, used when the quote response omits one.
+  static String _nameForCode(String code) {
+    switch (code) {
+      case 'BIKE':
+        return 'Bike';
+      case 'AUTO':
+        return 'Auto';
+      case 'CAB_ECONOMY':
+        return 'Cab Economy';
+      case 'CAB_DAILY':
+        return 'Cab Daily';
+      case 'CAB_PREMIUM':
+        return 'Cab Premium';
+      case 'PARCEL':
+        return 'Parcel';
+      default:
+        return code;
+    }
+  }
 
   final RideBookingRepo _repo = RideBookingRepo();
 
@@ -50,6 +104,17 @@ class RideBookingController extends GetxController {
 
   final RxList<RidePlace> searchResults = <RidePlace>[].obs;
   final isSearching = false.obs;
+
+  /// The live search text.
+  ///
+  /// Reactive on purpose: the results list switches between recents and
+  /// matches based on the query, and the search screen used to read the
+  /// TextEditingController directly inside an Obx. That looked like it worked
+  /// (the Obx rebuilt when `searchResults`/`isSearching` changed) but the text
+  /// itself was invisible to GetX, so a keystroke that changed nothing else
+  /// left the list stale.
+  final searchQuery = ''.obs;
+
   Timer? _searchDebounce;
 
   // --------------------------------------------------------------- quoting
@@ -90,7 +155,8 @@ class RideBookingController extends GetxController {
   void onInit() {
     super.onInit();
     _bootstrapLocation();
-    loadRecentPlaces();
+    // Saved first, so the hearts are already correct when recents render.
+    loadSavedPlaces().then((_) => loadRecentPlaces());
   }
 
   @override
@@ -133,21 +199,74 @@ class RideBookingController extends GetxController {
 
   // ------------------------------------------------------------------ home
 
+  /// Recent destinations, stored on-device.
+  ///
+  /// There is no recents endpoint (guide §6), so this is a local list keyed to
+  /// SharedPreferences — same approach the older transport screens take.
+  static const String _recentPlacesKey = 'ride_booking_recent_places';
+  static const int _maxRecentPlaces = 8;
+
   Future<void> loadRecentPlaces() async {
     isLoadingRecents.value = true;
     try {
-      if (_useStub) {
-        await Future.delayed(const Duration(milliseconds: 250));
-        recentPlaces.assignAll(_stubRecents());
-        return;
-      }
-      final response = await _repo.getRecentPlaces();
-      if (!response.isSuccess) return;
-      recentPlaces.assignAll(_parsePlaces(response.data));
+      final raw = await SharedPreferenceUtils.getSecureValue(_recentPlacesKey);
+      if (raw == null || raw.isEmpty) return;
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) return;
+      recentPlaces.assignAll(
+        decoded.whereType<Map>().map(RidePlace.fromJson),
+      );
+      // Recents are persisted without their hearted state — re-derive it from
+      // the saved list so the icons are right on first paint.
+      _applySavedFlags();
     } catch (_) {
-      // Recents are a convenience — an empty list is an acceptable outcome.
+      // Corrupt/absent cache is not worth surfacing — an empty recents list is
+      // a perfectly good starting state.
     } finally {
       isLoadingRecents.value = false;
+    }
+  }
+
+  /// Push [place] to the front of the on-device recents, de-duped by
+  /// coordinates and capped at [_maxRecentPlaces].
+  Future<void> _rememberRecentPlace(RidePlace place) async {
+    try {
+      final next = <RidePlace>[
+        place,
+        ...recentPlaces.where((p) =>
+            p.latitude != place.latitude || p.longitude != place.longitude),
+      ].take(_maxRecentPlaces).toList();
+      recentPlaces.assignAll(next);
+      await SharedPreferenceUtils.setSecureValue(
+        _recentPlacesKey,
+        jsonEncode(next.map((p) => p.toJson()).toList()),
+      );
+    } catch (_) {
+      // Best-effort — never block navigation on a cache write.
+    }
+  }
+
+  /// Saved (hearted) places, stored on-device.
+  ///
+  /// No saved-places endpoint either (guide §6), so these live in
+  /// SharedPreferences next to the recents. They do not sync across devices —
+  /// swap this for the real endpoint when a places service ships.
+  static const String _savedPlacesKey = 'ride_booking_saved_places';
+
+  Future<void> loadSavedPlaces() async {
+    try {
+      final raw = await SharedPreferenceUtils.getSecureValue(_savedPlacesKey);
+      if (raw == null || raw.isEmpty) return;
+      final decoded = jsonDecode(raw);
+      if (decoded is! List) return;
+      savedPlaces.assignAll(
+        decoded.whereType<Map>().map(
+              (m) => RidePlace.fromJson(m).copyWith(isSaved: true),
+            ),
+      );
+      _applySavedFlags();
+    } catch (_) {
+      // An empty saved list is a fine starting state.
     }
   }
 
@@ -155,23 +274,47 @@ class RideBookingController extends GetxController {
   Future<void> toggleSavedPlace(RidePlace place) async {
     final nowSaved = !place.isSaved;
 
-    // Optimistic: the heart flips immediately, the request settles after.
+    if (nowSaved) {
+      savedPlaces.add(place.copyWith(isSaved: true));
+    } else {
+      savedPlaces.removeWhere((p) => _samePlace(p, place));
+    }
+
     _replaceInList(recentPlaces, place, place.copyWith(isSaved: nowSaved));
     _replaceInList(searchResults, place, place.copyWith(isSaved: nowSaved));
 
-    if (_useStub) return;
     try {
-      if (nowSaved) {
-        await _repo.savePlace(place.toJson());
-      } else if (place.id != null) {
-        await _repo.deleteSavedPlace(place.id!);
-      }
+      await SharedPreferenceUtils.setSecureValue(
+        _savedPlacesKey,
+        jsonEncode(savedPlaces.map((p) => p.toJson()).toList()),
+      );
     } catch (_) {
       // Roll back so the heart never lies about persisted state.
+      if (nowSaved) {
+        savedPlaces.removeWhere((p) => _samePlace(p, place));
+      } else {
+        savedPlaces.add(place.copyWith(isSaved: true));
+      }
       _replaceInList(recentPlaces, place, place.copyWith(isSaved: !nowSaved));
       _replaceInList(searchResults, place, place.copyWith(isSaved: !nowSaved));
     }
   }
+
+  /// Re-apply the hearted flag onto the visible lists after they reload —
+  /// saved state lives in its own list, so freshly-fetched rows arrive unset.
+  void _applySavedFlags() {
+    for (var i = 0; i < recentPlaces.length; i++) {
+      final isSaved = savedPlaces.any((s) => _samePlace(s, recentPlaces[i]));
+      if (recentPlaces[i].isSaved != isSaved) {
+        recentPlaces[i] = recentPlaces[i].copyWith(isSaved: isSaved);
+      }
+    }
+  }
+
+  /// Places are identified by coordinates — the same spot reached via search
+  /// and via recents can carry different ids.
+  static bool _samePlace(RidePlace a, RidePlace b) =>
+      a.latitude == b.latitude && a.longitude == b.longitude;
 
   void _replaceInList(
       RxList<RidePlace> list, RidePlace target, RidePlace updated) {
@@ -187,6 +330,7 @@ class RideBookingController extends GetxController {
   void onSearchQueryChanged(String query) {
     _searchDebounce?.cancel();
     final trimmed = query.trim();
+    searchQuery.value = trimmed;
     if (trimmed.length < 2) {
       searchResults.clear();
       isSearching.value = false;
@@ -199,23 +343,37 @@ class RideBookingController extends GetxController {
     );
   }
 
+  /// Google Places autocomplete, via the app's existing [PlaceRepo].
+  ///
+  /// Broadcast dispatch has no places service of its own (guide §6) — it only
+  /// needs pickup/drop lat-lng, and the source is our choice. This reuses the
+  /// same path the older booking screens already use.
+  ///
+  /// Autocomplete returns place_ids without coordinates, so each result needs
+  /// a details lookup. Those run in parallel and the list is published once,
+  /// rather than one setState per resolved row.
   Future<void> _runSearch(String query) async {
     try {
-      if (_useStub) {
-        await Future.delayed(const Duration(milliseconds: 300));
-        searchResults.assignAll(_stubSearch(query));
-        return;
-      }
-      final response = await _repo.searchPlaces(
-        query: query,
-        lat: currentLat.value == 0 ? null : currentLat.value,
-        lng: currentLng.value == 0 ? null : currentLng.value,
-      );
-      if (!response.isSuccess) {
+      final response = await PlaceRepo().autoCompleteSearch(query: query);
+      if (response.statusCode != 200) {
         searchResults.clear();
         return;
       }
-      searchResults.assignAll(_parsePlaces(response.data));
+      final body = response.response?.data;
+      final predictionsJson = (body is Map ? body['predictions'] : null);
+      if (predictionsJson is! List) {
+        searchResults.clear();
+        return;
+      }
+      final predictions = PlacePrediction.fromList(predictionsJson);
+
+      final resolved = await Future.wait(
+        predictions.map(_resolvePrediction),
+        eagerError: false,
+      );
+      // Drop anything whose coordinates didn't resolve — a place we can't
+      // locate can't be a pickup or drop.
+      searchResults.assignAll(resolved.whereType<RidePlace>());
     } catch (_) {
       searchResults.clear();
     } finally {
@@ -223,8 +381,43 @@ class RideBookingController extends GetxController {
     }
   }
 
+  /// Turn one autocomplete prediction into a [RidePlace] with coordinates.
+  /// Returns null when the details lookup fails.
+  Future<RidePlace?> _resolvePrediction(PlacePrediction prediction) async {
+    final placeId = prediction.placeId ?? '';
+    if (placeId.isEmpty) return null;
+    try {
+      final details = await PlaceRepo().getCompletePlaceDetails(
+        placeId: placeId,
+      );
+      final location = PlaceDetailsResponse.fromJson(details.response?.data)
+          .result
+          ?.geometry
+          ?.location;
+      final lat = location?.lat;
+      final lng = location?.lng;
+      if (lat == null || lng == null) return null;
+
+      // Google's `description` is "Name, Area, City, State, Country" — split
+      // on the first comma so the UI's two-line title/subtitle stays honest
+      // instead of repeating the whole string twice.
+      final description = prediction.description ?? '';
+      final comma = description.indexOf(',');
+      return RidePlace(
+        id: placeId,
+        title: comma > 0 ? description.substring(0, comma) : description,
+        subtitle: comma > 0 ? description.substring(comma + 1).trim() : '',
+        latitude: lat,
+        longitude: lng,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
   void clearSearch() {
     _searchDebounce?.cancel();
+    searchQuery.value = '';
     searchResults.clear();
     isSearching.value = false;
   }
@@ -233,17 +426,7 @@ class RideBookingController extends GetxController {
 
   void setDrop(RidePlace place) {
     drop.value = place;
-    if (!_useStub) _recordRecentSilently(place);
-  }
-
-  /// Fire-and-forget recents write — a failure here must never block or delay
-  /// navigation into the booking flow.
-  Future<void> _recordRecentSilently(RidePlace place) async {
-    try {
-      await _repo.recordRecentPlace(place.toJson());
-    } catch (_) {
-      // Intentionally ignored.
-    }
+    _rememberRecentPlace(place);
   }
 
   void setPickup(RidePlace place) => pickup.value = place;
@@ -275,24 +458,14 @@ class RideBookingController extends GetxController {
     vehicleOptions.clear();
     selectedVehicle.value = null;
     try {
-      if (_useStub) {
-        await Future.delayed(const Duration(milliseconds: 600));
-        vehicleOptions.assignAll(_stubQuotes(from, to));
-      } else {
-        final response = await _repo.getFareQuote(
-          pickup: from.toJson(),
-          drop: to.toJson(),
-          stops: stops.map((s) => s.toJson()).toList(),
-        );
-        if (!response.isSuccess) return;
-        final data = response.data;
-        final list = data is Map ? data['options'] : data;
-        if (list is List) {
-          vehicleOptions.assignAll(
-            list.whereType<Map>().map(RideVehicleOption.fromJson),
-          );
-        }
-      }
+      final response = await _repo.getDynamicFare(
+        pickupLat: from.latitude,
+        pickupLng: from.longitude,
+        dropLat: to.latitude,
+        dropLng: to.longitude,
+      );
+      if (!response.isSuccess) return;
+      vehicleOptions.assignAll(_parseDynamicFare(response.data));
       if (vehicleOptions.isNotEmpty) {
         selectedVehicle.value = vehicleOptions.first;
       }
@@ -301,6 +474,53 @@ class RideBookingController extends GetxController {
     } finally {
       isQuoting.value = false;
     }
+  }
+
+  /// Read the dynamic-fare response into vehicle options.
+  ///
+  /// The payload groups riders by vehicle type with a fare per group; the
+  /// exact envelope isn't pinned down in the guide, so this accepts the
+  /// plausible shapes (`vehicles` / `options` / `data` / a bare list) rather
+  /// than hard-failing on one.
+  ///
+  /// There is no `quoteId` in this API (guide §1) — [RideVehicleOption.quoteId]
+  /// is synthesised from the vehicle type purely so the UI can identify the
+  /// selected row. Booking sends `{vehicleType, fare}`, not a quote token.
+  List<RideVehicleOption> _parseDynamicFare(dynamic data) {
+    final list = data is Map
+        ? (data['vehicles'] ?? data['options'] ?? data['riders'] ?? data['data'])
+        : data;
+    if (list is! List) return const [];
+
+    final options = <RideVehicleOption>[];
+    for (final entry in list.whereType<Map>()) {
+      final vehicleType =
+          (entry['vehicleType'] ?? entry['type'] ?? '').toString();
+      if (vehicleType.isEmpty) continue;
+      final code = _codeForVehicleType(vehicleType);
+      final fare = _toNum(entry['fare'] ?? entry['dynamicFare'] ?? entry['price']);
+      if (fare == null) continue;
+
+      options.add(RideVehicleOption(
+        code: code,
+        name: (entry['label'] ?? entry['name'] ?? _nameForCode(code)).toString(),
+        description: entry['description']?.toString(),
+        fare: fare.toDouble(),
+        seats: _toNum(entry['seats'])?.toInt(),
+        pickupEtaMinutes: _toNum(entry['etaMinutes'] ?? entry['pickupEtaMinutes'])
+            ?.toInt(),
+        dropEtaMinutes: _toNum(entry['dropEtaMinutes'])?.toInt(),
+        // Not a server token — see the doc comment above.
+        quoteId: vehicleType,
+      ));
+    }
+    return options;
+  }
+
+  static num? _toNum(dynamic v) {
+    if (v == null) return null;
+    if (v is num) return v;
+    return num.tryParse(v.toString());
   }
 
   void selectVehicle(RideVehicleOption option) =>
@@ -324,29 +544,37 @@ class RideBookingController extends GetxController {
     terminalStatus.value = null;
     fareBoost.value = 0;
     try {
-      if (_useStub) {
-        await Future.delayed(const Duration(milliseconds: 700));
-        activeBooking.value = RideBooking(
-          rideId: 'stub-ride-1',
-          status: RideStatus.searching,
-          pickup: from,
-          drop: to,
-          vehicleCode: option.code,
-          vehicleName: option.name,
-          fare: option.fare,
-          paymentMode: paymentMode.value,
-        );
-      } else {
-        final response = await _repo.createBooking(
-          quoteId: option.quoteId,
-          vehicleCode: option.code,
-          paymentMode: paymentMode.value,
-        );
-        if (!response.isSuccess) return false;
-        final data = response.data;
-        if (data is! Map) return false;
-        activeBooking.value = RideBooking.fromJson(data);
-      }
+      final response = await _repo.createBroadcastOrder(
+        pickupLocation: _locationBody(from),
+        dropLocation: _locationBody(to),
+        fare: option.fare,
+        // CASH → postpaid, ONLINE → prepaid (guide §2).
+        modeOfPayment: paymentMode.value == 'CASH' ? 'postpaid' : 'prepaid',
+        vehicleType: _vehicleTypeByCode[option.code],
+      );
+      if (!response.isSuccess) return false;
+
+      final data = response.data;
+      if (data is! Map) return false;
+      final order = data['order'] is Map ? data['order'] as Map : data;
+      final rideId =
+          (order['orderId'] ?? order['_id'] ?? order['id'] ?? '').toString();
+      if (rideId.isEmpty) return false;
+
+      // Build the local booking from what we already know rather than from the
+      // create response — the order payload is the backend's own shape, and
+      // the screens only need pickup/drop/fare/vehicle until the first status
+      // poll lands (which is authoritative from then on).
+      activeBooking.value = RideBooking(
+        rideId: rideId,
+        status: RideStatus.fromString(order['status']?.toString()),
+        pickup: from,
+        drop: to,
+        vehicleCode: option.code,
+        vehicleName: option.name,
+        fare: option.fare,
+        paymentMode: paymentMode.value,
+      );
       _startSearching();
       return true;
     } catch (_) {
@@ -355,6 +583,14 @@ class RideBookingController extends GetxController {
       isBooking.value = false;
     }
   }
+
+  /// `{address, latitude, longitude}` — the shape `fare/orders` expects for
+  /// both ends of the trip.
+  Map<String, dynamic> _locationBody(RidePlace place) => {
+        'address': place.fullAddress,
+        'latitude': place.latitude,
+        'longitude': place.longitude,
+      };
 
   /// Begin the searching phase: a fast local progress animation plus the
   /// slower status poll that actually decides when a captain is attached.
@@ -389,15 +625,39 @@ class RideBookingController extends GetxController {
     if (booking == null || _statusRequestInFlight) return;
     _statusRequestInFlight = true;
     try {
-      if (_useStub) {
-        _stubAdvanceStatus();
-        return;
-      }
       final response = await _repo.getBookingStatus(booking.rideId);
       if (!response.isSuccess) return; // transient — the next tick retries
       final data = response.data;
       if (data is! Map) return;
-      _applyStatus(RideBooking.fromJson(data));
+
+      // `{ status, pickupOTP?, metadata }` (guide §3). Merge onto the booking
+      // we already hold rather than reconstructing it — the status payload
+      // carries no pickup/drop/fare.
+      final status = RideStatus.fromString(data['status']?.toString());
+      final metadata = data['metadata'];
+      final otp = (data['pickupOTP'] ?? data['pickupOtp'])?.toString();
+
+      var updated = booking.copyWith(
+        status: status,
+        startOtp: (otp != null && otp.isNotEmpty) ? otp : null,
+      );
+
+      // metadata.assignedRider names the winning rider; hydrate the captain
+      // card from whatever detail rides along with it.
+      if (metadata is Map) {
+        final rider = metadata['assignedRider'];
+        if (rider is Map) {
+          updated = updated.copyWith(captain: RideCaptain.fromJson(rider));
+        } else if (rider != null && updated.captain == null) {
+          // Bare id — show the card with what we have; the location poll
+          // fills in position, and the socket payload (if wired) fills names.
+          updated = updated.copyWith(
+            captain: RideCaptain(id: rider.toString(), name: ''),
+          );
+        }
+      }
+
+      _applyStatus(updated);
     } catch (_) {
       // Swallow: keep the timer alive so a blip doesn't kill tracking.
     } finally {
@@ -435,76 +695,94 @@ class RideBookingController extends GetxController {
     final booking = activeBooking.value;
     if (booking == null || !booking.status.hasCaptain) return;
     try {
-      if (_useStub) {
-        _stubDriftCaptain();
-        return;
-      }
       final response = await _repo.getCaptainLocation(booking.rideId);
       if (!response.isSuccess) return;
-      final data = response.data;
-      if (data is! Map) return;
+      final payload = response.data;
+      if (payload is! Map) return;
+
+      // `{ rideActive, rider: { location, ... } }` (guide §1). A false
+      // rideActive means the ride ended between status polls — let the status
+      // poll own the terminal transition, just stop chasing the marker.
+      if (payload['rideActive'] == false) {
+        _captainTimer?.cancel();
+        _captainTimer = null;
+        return;
+      }
+
+      final rider = payload['rider'];
+      if (rider is! Map) return; // transient GPS gap — keep the last marker
+
+      // Coordinates arrive either flat or nested under `location`, which may
+      // itself be GeoJSON `[lng, lat]`.
+      double? lat = _toNum(rider['latitude'])?.toDouble();
+      double? lng = _toNum(rider['longitude'])?.toDouble();
+      final location = rider['location'];
+      if (location is Map) {
+        lat ??= _toNum(location['latitude'])?.toDouble();
+        lng ??= _toNum(location['longitude'])?.toDouble();
+        final coords = location['coordinates'];
+        if (coords is List && coords.length >= 2) {
+          lng ??= _toNum(coords[0])?.toDouble();
+          lat ??= _toNum(coords[1])?.toDouble();
+        }
+      }
 
       final existing = booking.captain;
-      if (existing == null) return;
       activeBooking.value = booking.copyWith(
         captain: RideCaptain(
-          id: existing.id,
-          name: existing.name,
-          phone: existing.phone,
-          photoUrl: existing.photoUrl,
-          vehicleNumber: existing.vehicleNumber,
-          vehicleModel: existing.vehicleModel,
-          rating: existing.rating,
-          latitude: (data['latitude'] as num?)?.toDouble() ?? existing.latitude,
-          longitude:
-              (data['longitude'] as num?)?.toDouble() ?? existing.longitude,
+          id: (rider['riderId'] ?? rider['id'] ?? existing?.id ?? '').toString(),
+          name: (rider['name'] ?? existing?.name ?? '').toString(),
+          phone: rider['phone']?.toString() ?? existing?.phone,
+          photoUrl: rider['photoUrl']?.toString() ??
+              rider['profileImage']?.toString() ??
+              existing?.photoUrl,
+          vehicleNumber:
+              rider['vehicleNumber']?.toString() ?? existing?.vehicleNumber,
+          vehicleModel:
+              rider['vehicleModel']?.toString() ?? existing?.vehicleModel,
+          rating: _toNum(rider['rating'])?.toDouble() ?? existing?.rating,
+          latitude: lat ?? existing?.latitude,
+          longitude: lng ?? existing?.longitude,
         ),
-        pickupEtaMinutes: (data['pickupEtaMinutes'] as num?)?.toInt(),
-        captainDistanceMeters: (data['distanceMeters'] as num?)?.toInt(),
+        pickupEtaMinutes: _toNum(payload['etaMinutes'] ??
+                payload['pickupEtaMinutes'] ??
+                rider['etaMinutes'])
+            ?.toInt(),
+        captainDistanceMeters: _toNum(payload['distanceMeters'])?.toInt() ??
+            // Server may send km; the UI wants metres.
+            (_toNum(payload['distanceToPickupKm']) != null
+                ? (_toNum(payload['distanceToPickupKm'])! * 1000).round()
+                : null),
       );
     } catch (_) {
       // Keep the last known marker; the next tick retries.
     }
   }
 
-  /// Bump the offered fare to attract a captain. Optimistic so the chip feels
-  /// instant; the next status poll reconciles the authoritative fare.
+  /// Bump the offered fare to attract a captain.
+  ///
+  /// NOT IMPLEMENTED server-side for broadcast dispatch (guide §6), so this is
+  /// inert and the chips are hidden behind [kFareRaiseEnabled]. Raising the
+  /// fare locally would charge the customer more for nothing — the backend
+  /// would never see it and riders would never be re-rung at the new price.
   Future<void> raiseFare(double amount) async {
+    if (!kFareRaiseEnabled) return;
     final booking = activeBooking.value;
     if (booking == null) return;
     fareBoost.value += amount;
     activeBooking.value = booking.copyWith(fare: booking.fare + amount);
-    if (_useStub) return;
-    try {
-      await _repo.raiseFare(rideId: booking.rideId, amount: amount);
-    } catch (_) {
-      fareBoost.value -= amount;
-      activeBooking.value = booking;
-    }
   }
 
   // -------------------------------------------------------------- cancelling
 
+  /// Cancellation reasons.
+  ///
+  /// There is no reasons endpoint (guide §6) — the built-in list is the
+  /// source. Kept async so a server-driven list can drop in later without
+  /// touching the sheet.
   Future<void> loadCancelReasons() async {
     if (cancelReasons.isNotEmpty) return; // cached for the session
-    try {
-      if (_useStub) {
-        cancelReasons.assignAll(_stubCancelReasons());
-        return;
-      }
-      final response = await _repo.getCancelReasons();
-      if (!response.isSuccess) return;
-      final data = response.data;
-      if (data is List) {
-        cancelReasons.assignAll(
-          data.whereType<Map>().map(RideCancelReason.fromJson),
-        );
-      }
-    } catch (_) {
-      // Fall back to the built-in list so cancelling is never blocked by a
-      // failed reasons fetch.
-      cancelReasons.assignAll(_stubCancelReasons());
-    }
+    cancelReasons.assignAll(_defaultCancelReasons());
   }
 
   /// Cancel the booking. Returns `true` on success so the caller can pop back
@@ -517,16 +795,12 @@ class RideBookingController extends GetxController {
     if (booking == null) return false;
     isCancelling.value = true;
     try {
-      if (!_useStub) {
-        final response = await _repo.cancelBooking(
-          rideId: booking.rideId,
-          reasonCode: reasonCode,
-          comment: comment,
-        );
-        if (!response.isSuccess) return false;
-      } else {
-        await Future.delayed(const Duration(milliseconds: 400));
-      }
+      final response = await _repo.cancelBooking(
+        orderId: booking.rideId,
+        reasonCode: reasonCode,
+        comment: comment,
+      );
+      if (!response.isSuccess) return false;
       _stopAllPolling();
       activeBooking.value = booking.copyWith(status: RideStatus.cancelled);
       terminalStatus.value = RideStatus.cancelled;
@@ -554,183 +828,9 @@ class RideBookingController extends GetxController {
     paymentMode.value = 'CASH';
   }
 
-  // ---------------------------------------------------------------- parsing
-
-  List<RidePlace> _parsePlaces(dynamic data) {
-    final list = data is Map ? (data['places'] ?? data['results']) : data;
-    if (list is! List) return const [];
-    return list.whereType<Map>().map(RidePlace.fromJson).toList();
-  }
-
-  // ------------------------------------------------------------------ stubs
-  // Everything below exists only while [_useStub] is true. Delete this block
-  // once the backend is live and the flag is flipped.
-
-  List<RidePlace> _stubRecents() => const [
-        RidePlace(
-          title: 'Rani Kamlapati Railway Station',
-          subtitle: 'Habib Ganj, Bhopal, Madhya Pradesh, India',
-          latitude: 23.2333,
-          longitude: 77.4344,
-        ),
-        RidePlace(
-          title: 'Railway Colony',
-          subtitle: 'Bhopal, Madhya Pradesh 462010, India',
-          latitude: 23.2599,
-          longitude: 77.4126,
-        ),
-        RidePlace(
-          title: 'New Market',
-          subtitle: 'STT Nagar, TT Nagar, Bhopal, Madhya Pradesh, India',
-          latitude: 23.2337,
-          longitude: 77.4009,
-        ),
-      ];
-
-  List<RidePlace> _stubSearch(String query) {
-    final pool = [
-      ..._stubRecents(),
-      const RidePlace(
-        title: 'DB City Mall',
-        subtitle: 'Arera Hills, Bhopal, Madhya Pradesh 462011, India',
-        latitude: 23.2340,
-        longitude: 77.4340,
-      ),
-      const RidePlace(
-        title: 'AIIMS Bhopal',
-        subtitle: 'Saket Nagar, Bhopal, Madhya Pradesh 462020, India',
-        latitude: 23.2076,
-        longitude: 77.4645,
-      ),
-      const RidePlace(
-        title: 'Bhopal Junction',
-        subtitle: 'Railway Station Rd, Bhopal, Madhya Pradesh, India',
-        latitude: 23.2685,
-        longitude: 77.4126,
-      ),
-    ];
-    final lower = query.toLowerCase();
-    final matches = pool
-        .where((p) =>
-            p.title.toLowerCase().contains(lower) ||
-            p.subtitle.toLowerCase().contains(lower))
-        .toList();
-    // Always return something so the UI can be exercised with any query.
-    return matches.isEmpty ? pool.take(4).toList() : matches;
-  }
-
-  List<RideVehicleOption> _stubQuotes(RidePlace from, RidePlace to) {
-    final km = _haversineKm(
-      from.latitude,
-      from.longitude,
-      to.latitude,
-      to.longitude,
-    );
-    double fare(double perKm, double base) =>
-        (base + perKm * km).roundToDouble();
-    final rideMinutes = math.max(5, (km * 3).round());
-    return [
-      RideVehicleOption(
-        code: 'BIKE',
-        name: 'Bike',
-        description: 'Quick Bike rides',
-        badge: 'FASTEST',
-        fare: fare(6, 15),
-        seats: 1,
-        dropEtaMinutes: rideMinutes,
-        pickupEtaMinutes: 2,
-        quoteId: 'stub-quote-bike',
-      ),
-      RideVehicleOption(
-        code: 'CAB_ECONOMY',
-        name: 'Cab Economy',
-        fare: fare(14, 35),
-        seats: 4,
-        dropEtaMinutes: rideMinutes + 3,
-        pickupEtaMinutes: 5,
-        quoteId: 'stub-quote-cab-eco',
-      ),
-      RideVehicleOption(
-        code: 'AUTO',
-        name: 'Auto',
-        fare: fare(10, 25),
-        seats: 3,
-        dropEtaMinutes: rideMinutes + 2,
-        pickupEtaMinutes: 4,
-        quoteId: 'stub-quote-auto',
-      ),
-      RideVehicleOption(
-        code: 'CAB_DAILY',
-        name: 'Cab Daily',
-        fare: fare(14, 35),
-        seats: 4,
-        dropEtaMinutes: rideMinutes + 3,
-        pickupEtaMinutes: 6,
-        quoteId: 'stub-quote-cab-daily',
-      ),
-      RideVehicleOption(
-        code: 'CAB_PREMIUM',
-        name: 'Cab Premium',
-        fare: fare(18, 45),
-        seats: 4,
-        dropEtaMinutes: rideMinutes + 3,
-        pickupEtaMinutes: 7,
-        quoteId: 'stub-quote-cab-premium',
-      ),
-    ];
-  }
-
-  /// Stub lifecycle: searching for ~9s, then a captain is assigned.
-  int _stubTicks = 0;
-  void _stubAdvanceStatus() {
-    final booking = activeBooking.value;
-    if (booking == null) return;
-    _stubTicks++;
-    if (_stubTicks < 3 || booking.status.hasCaptain) return;
-    _stubTicks = 0;
-    _applyStatus(booking.copyWith(
-      status: RideStatus.assigned,
-      pickupEtaMinutes: 2,
-      captainDistanceMeters: 775,
-      captain: RideCaptain(
-        id: 'stub-captain',
-        name: 'Akash Singh',
-        phone: '9876543210',
-        vehicleNumber: 'MP04NW2444',
-        vehicleModel: 'FZ',
-        rating: 4.8,
-        // Start the marker slightly off the pickup so it visibly approaches.
-        latitude: booking.pickup.latitude - 0.006,
-        longitude: booking.pickup.longitude - 0.006,
-      ),
-    ));
-  }
-
-  /// Nudge the stub captain toward the pickup each poll, so the marker moves.
-  void _stubDriftCaptain() {
-    final booking = activeBooking.value;
-    final captain = booking?.captain;
-    if (booking == null || captain == null) return;
-    final lat = captain.latitude ?? booking.pickup.latitude;
-    final lng = captain.longitude ?? booking.pickup.longitude;
-    activeBooking.value = booking.copyWith(
-      captain: RideCaptain(
-        id: captain.id,
-        name: captain.name,
-        phone: captain.phone,
-        photoUrl: captain.photoUrl,
-        vehicleNumber: captain.vehicleNumber,
-        vehicleModel: captain.vehicleModel,
-        rating: captain.rating,
-        latitude: lat + (booking.pickup.latitude - lat) * 0.18,
-        longitude: lng + (booking.pickup.longitude - lng) * 0.18,
-      ),
-      captainDistanceMeters:
-          math.max(50, ((booking.captainDistanceMeters ?? 775) * 0.8).round()),
-    );
-  }
-
-  List<RideCancelReason> _stubCancelReasons() => const [
+  /// The shipped cancellation reasons. Broadcast dispatch has no reasons
+  /// endpoint (guide §6), so this list IS the source — not a fallback.
+  List<RideCancelReason> _defaultCancelReasons() => const [
         RideCancelReason(
           code: 'TAKING_LONGER',
           label: 'Taking longer than expected',
@@ -746,18 +846,4 @@ class RideBookingController extends GetxController {
         ),
         RideCancelReason(code: 'OTHERS', label: 'Others'),
       ];
-
-  /// Great-circle distance in km — used for stub fares and the trip summary.
-  double _haversineKm(double lat1, double lng1, double lat2, double lng2) {
-    const earthRadiusKm = 6371.0;
-    double toRad(double deg) => deg * math.pi / 180;
-    final dLat = toRad(lat2 - lat1);
-    final dLng = toRad(lng2 - lng1);
-    final a = math.sin(dLat / 2) * math.sin(dLat / 2) +
-        math.cos(toRad(lat1)) *
-            math.cos(toRad(lat2)) *
-            math.sin(dLng / 2) *
-            math.sin(dLng / 2);
-    return earthRadiusKm * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
-  }
 }

@@ -212,8 +212,14 @@ class _RideSearchingScreenState extends State<RideSearchingScreen> {
           _progressBar(),
           const SizedBox(height: 20),
           _fareCard(),
-          const SizedBox(height: 20),
-          _boostCard(),
+          // Fare-bump chips are hidden: broadcast dispatch has no raise-fare
+          // endpoint (RIDER_BROADCAST_DISPATCH_FRONTEND_GUIDE.md §6), so the
+          // bump would never reach the server or re-ring riders. Shipping it
+          // would charge more for nothing.
+          if (RideBookingController.kFareRaiseEnabled) ...[
+            const SizedBox(height: 20),
+            _boostCard(),
+          ],
         ],
       ),
     );

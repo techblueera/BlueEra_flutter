@@ -3,6 +3,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_product_model.dart';
 import 'package:BlueEra/features/me/grocery/repo/grocery_repo.dart';
@@ -72,12 +73,10 @@ class GroceryVariantsSheet extends StatefulWidget {
   });
 
   @override
-  State<GroceryVariantsSheet> createState() =>
-      _GroceryVariantsSheetState();
+  State<GroceryVariantsSheet> createState() => _GroceryVariantsSheetState();
 }
 
-class _GroceryVariantsSheetState
-    extends State<GroceryVariantsSheet> {
+class _GroceryVariantsSheetState extends State<GroceryVariantsSheet> {
   late final List<ProductVariants> _variants =
       List<ProductVariants>.from(widget.variants);
 
@@ -100,23 +99,53 @@ class _GroceryVariantsSheetState
 
   void _editVariant(int index) {
     final variant = _variants[index];
-    final price = (variant.pricing?.isNotEmpty ?? false) ? variant.pricing![0] : null;
-    showDialog(
+    // Seed the form from the INVENTORY price (what the endpoint writes and
+    // what every surface displays), not the catalog `pricing`. Opening the
+    // form on the catalog price meant the prefilled value could differ from
+    // the price shown on the card the user just tapped.
+    final price = _displayPriceOf(variant);
+    // Bottom sheet, not showDialog: EditGroceryVarientDialog is built as a
+    // sheet (top-only corners, drag handle, viewInsets keyboard padding), and
+    // showDialog supplies no Material ancestor for its TextFields.
+    showModalBottomSheet(
       context: context,
+      // Both fields are numeric, so the keyboard is up the whole time — the
+      // sheet pads itself and must be free to grow past the half-screen cap.
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (_) => EditGroceryVarientDialog(
         title: AppStrings.groceryViewEditVariant.tr,
         mrp: price?.mrp?.toString() ?? '',
         selling: price?.sellingPrice?.toString() ?? '',
-        onSubmit: (mrp, selling) {
-          Get.back(); // close the edit dialog, then persist
-          _saveVariantPricing(variant, mrp: mrp, selling: selling);
-        },
+        // Persist FIRST, close only once the server has accepted it. Closing
+        // up-front dismissed the form before the call resolved, so a failure
+        // surfaced as a snackbar over a sheet the user had already left — with
+        // their typed values gone.
+        onSubmit: (mrp, selling) =>
+            _saveVariantPricing(variant, mrp: mrp, selling: selling),
       ),
     );
   }
 
+  /// The price every grocery surface displays for a variant: the merchant's
+  /// inventory batch price, falling back to the catalog `pricing` only when
+  /// the variant has no batches yet.
+  ///
+  /// Mirrors the resolution in [GroceryTopSellingProductCard] — both must read
+  /// the same source or the card and this sheet disagree after an edit.
+  Pricing? _displayPriceOf(ProductVariants variant) {
+    final batches = variant.inventory?.batches;
+    if (batches != null && batches.isNotEmpty) {
+      return Pricing(
+        mrp: batches.first.mrp,
+        sellingPrice: batches.first.sellingPrice,
+      );
+    }
+    return (variant.pricing?.isNotEmpty ?? false) ? variant.pricing![0] : null;
+  }
+
   /// `PUT grocery-service/api/inventory/{inventoryId}` with the new pricing,
-  /// then update the local row on success.
+  /// then update the local model and close the edit sheet on success.
   Future<void> _saveVariantPricing(ProductVariants variant,
       {required String mrp, required String selling}) async {
     final inventoryId = variant.inventory?.inventoryId ?? '';
@@ -124,26 +153,76 @@ class _GroceryVariantsSheetState
       commonSnackBar(message: "This variant can't be updated.");
       return;
     }
+    final newMrp = num.tryParse(mrp);
+    final newSelling = num.tryParse(selling);
+    // Batch quantity ("2 kg") is carried through unchanged — this form edits
+    // price only. Prefer the existing batch's own value; fall back to the
+    // variant's quantity + unit when there's no batch row yet.
+    final existingBatch = (variant.inventory?.batches?.isNotEmpty ?? false)
+        ? variant.inventory!.batches!.first
+        : null;
+    final batchQuantity = existingBatch?.quantity ??
+        '${variant.quantity ?? ''} ${variant.unit ?? ''}'.trim();
+
     AppLoader.show();
     final res = await GroceryRepo().updateInventoryVariantRepo(
       inventoryId: inventoryId,
+      // The endpoint takes the batch list, not flat price fields — a bare
+      // {mrp, sellingPrice} body doesn't identify which batch to write.
       params: {
-        'sellingPrice': num.tryParse(selling),
-        'mrp': num.tryParse(mrp),
+        'batches': [
+          {
+            'quantity': batchQuantity,
+            'mrp': newMrp,
+            'sellingPrice': newSelling,
+          },
+        ],
       },
     );
     AppLoader.hide();
     if (!res.isSuccess) {
+      // Leave the edit sheet open so the user can correct and retry without
+      // retyping.
       commonSnackBar(message: res.message ?? 'Could not update the variant.');
       return;
     }
-    if (variant.pricing != null && variant.pricing!.isNotEmpty) {
-      variant.pricing![0] = variant.pricing![0].copyWith(
-        mrp: num.tryParse(mrp),
-        sellingPrice: num.tryParse(selling),
-      );
+
+    // Mirror ONLY what the endpoint actually wrote: the merchant's inventory
+    // batch price.
+    //
+    // `variant.pricing` is deliberately left alone — that's the shared master
+    // catalog price, which this endpoint does not touch. Writing the
+    // merchant's price into it would make the client disagree with the server
+    // and the edit would appear to revert on the next fetch.
+    final inventory = variant.inventory;
+    final batches = inventory?.batches;
+    if (batches != null && batches.isNotEmpty) {
+      batches.first.mrp = newMrp;
+      batches.first.sellingPrice = newSelling;
+    } else if (inventory != null) {
+      // No batch row yet — the server just created one from the body above, so
+      // echo it locally instead of falling back to the catalog price. A later
+      // refetch fills in the batchNumber/id this local stub can't know.
+      inventory.batches = [
+        ...?batches,
+        Batches(
+          quantity: batchQuantity,
+          mrp: newMrp,
+          sellingPrice: newSelling,
+        ),
+      ];
     }
+
+    // `variant` is the same object the controller's list holds (the sheet
+    // shallow-copies the list, not its elements), so the model is already
+    // current — but mutating an element doesn't notify an RxList. Nudge it so
+    // the top-selling rail behind this sheet rebuilds.
+    if (Get.isRegistered<GroceryController>()) {
+      Get.find<GroceryController>().groceryBusinessProductsList.refresh();
+    }
+
     if (mounted) setState(() {});
+    Get.back(); // close the edit sheet — the variants list stays open
     commonSnackBar(message: 'Variant updated');
   }
 
@@ -158,8 +237,8 @@ class _GroceryVariantsSheetState
       return;
     }
     AppLoader.show();
-    final res =
-        await GroceryRepo().deleteInventoryVariantRepo(inventoryId: inventoryId);
+    final res = await GroceryRepo()
+        .deleteInventoryVariantRepo(inventoryId: inventoryId);
     AppLoader.hide();
     if (!res.isSuccess) {
       commonSnackBar(message: res.message ?? 'Could not delete the variant.');
@@ -236,11 +315,14 @@ class _GroceryVariantsSheetState
                   )
                 : ListView.separated(
                     shrinkWrap: true,
+                    // Bottom padding clears the gesture bar so the last row
+                    // isn't flush against the sheet edge / under the home
+                    // indicator when the list scrolls to the end.
                     padding: EdgeInsets.fromLTRB(
                       SizeConfig.size12,
                       SizeConfig.size8,
                       SizeConfig.size12,
-                      SizeConfig.size12,
+                      SizeConfig.size24 + MediaQuery.of(context).padding.bottom,
                     ),
                     itemCount: _variants.length,
                     separatorBuilder: (_, __) =>
@@ -307,11 +389,13 @@ class _GroceryVariantsSheetState
 
   Widget _variantRow(int index) {
     final variant = _variants[index];
-    final price =
-        (variant.pricing?.isNotEmpty ?? false) ? variant.pricing![0] : null;
+    // Inventory batch price, same source the top-selling card reads — the two
+    // must not diverge.
+    final price = _displayPriceOf(variant);
     // Variant image first, product image as fallback (missing OR broken).
-    final variantImageUrl =
-        (variant.images?.isNotEmpty ?? false) ? variant.images!.first.url : null;
+    final variantImageUrl = (variant.images?.isNotEmpty ?? false)
+        ? variant.images!.first.url
+        : null;
 
     return Container(
       decoration: BoxDecoration(
@@ -353,7 +437,8 @@ class _GroceryVariantsSheetState
                     Expanded(
                       child: CustomText(
                         variant.variantName ??
-                            '${variant.quantity ?? ''} ${variant.unit ?? ''}'.trim(),
+                            '${variant.quantity ?? ''} ${variant.unit ?? ''}'
+                                .trim(),
                         fontSize: SizeConfig.small,
                         fontWeight: FontWeight.w600,
                         color: AppColors.mainTextColor,

@@ -2,162 +2,105 @@ import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
 import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 
-/// API layer for the Rapido-style ride-booking flow.
+/// API layer for the Rapido-style BROADCAST ride flow.
 ///
-/// Endpoint contract: docs/backend/RIDE_BOOKING_FRONTEND_INTEGRATION.md
+/// Contract: docs/backend/RIDER_BROADCAST_DISPATCH_FRONTEND_GUIDE.md
+///
+/// These are the REAL `rider-service/fare/*` endpoints. The imagined
+/// `ride-booking-service/*` API this flow was first written against does not
+/// exist — see the guide's reconciliation note. What makes a ride a broadcast
+/// is one field on create: `orderType: "broadcast"` with no `selectedRiders`.
+/// The server then rings nearby riders in expanding waves and the first to
+/// accept wins.
+///
+/// The older hand-picked flow (`Discover/`, `orderType: "standard"` /
+/// `"fare-call"`) is untouched and keeps its own repo.
 ///
 /// `showProgress: false` throughout — this flow drives its own inline loading
-/// states (shimmer rows, the searching progress bar), and a blocking global
-/// spinner on top of a live map reads as a hang.
+/// states, and a blocking global spinner over a live map reads as a hang.
 class RideBookingRepo extends BaseService {
-  /// GET recent destinations for the home list.
-  Future<ResponseModel> getRecentPlaces({int limit = 10}) {
-    return ApiBaseHelper().getHTTP(
-      rideRecentPlaces,
-      params: {'limit': limit},
-      showProgress: false,
-    );
-  }
-
-  /// GET place autocomplete. [lat]/[lng] bias results toward the user so
-  /// "New Market" resolves in their city, not the first match nationally.
-  Future<ResponseModel> searchPlaces({
-    required String query,
-    double? lat,
-    double? lng,
+  /// `GET fare/riders/dynamic` — riders grouped by vehicle type with a
+  /// dynamic fare per type. Prices the vehicle list; the customer does NOT
+  /// pick a rider from it.
+  Future<ResponseModel> getDynamicFare({
+    required double pickupLat,
+    required double pickupLng,
+    required double dropLat,
+    required double dropLng,
+    String? orderFor,
   }) {
     return ApiBaseHelper().getHTTP(
-      ridePlaceSearch,
+      getBookingRidersDynamic,
       params: {
-        'q': query,
-        if (lat != null) 'lat': lat,
-        if (lng != null) 'lng': lng,
+        'pickupLatitude': pickupLat,
+        'pickupLongitude': pickupLng,
+        'dropLatitude': dropLat,
+        'dropLongitude': dropLng,
+        if (orderFor != null) 'orderFor': orderFor,
       },
       showProgress: false,
     );
   }
 
-  /// POST a chosen place so it appears in the recents list next time.
-  Future<ResponseModel> recordRecentPlace(Map<String, dynamic> place) {
-    return ApiBaseHelper().postHTTP(
-      ridePlaceSearch,
-      params: place,
-      showProgress: false,
-    );
-  }
-
-  /// GET snapped pickup points near a coordinate, for the confirm-pickup map.
-  Future<ResponseModel> getPickupPoints({
-    required double lat,
-    required double lng,
-  }) {
-    return ApiBaseHelper().getHTTP(
-      ridePickupPoints,
-      params: {'lat': lat, 'lng': lng},
-      showProgress: false,
-    );
-  }
-
-  /// GET the user's hearted places.
-  Future<ResponseModel> getSavedPlaces() {
-    return ApiBaseHelper().getHTTP(rideSavedPlaces, showProgress: false);
-  }
-
-  /// POST a place into the saved list (heart tap).
-  Future<ResponseModel> savePlace(Map<String, dynamic> place) {
-    return ApiBaseHelper().postHTTP(
-      rideSavedPlaces,
-      params: place,
-      showProgress: false,
-    );
-  }
-
-  /// DELETE a saved place (un-heart tap).
-  Future<ResponseModel> deleteSavedPlace(String id) {
-    return ApiBaseHelper().deleteHTTP(
-      rideSavedPlaceById(id),
-      showProgress: false,
-    );
-  }
-
-  /// POST a fare quote for the pickup/drop pair. Returns one option per
-  /// available vehicle category.
-  Future<ResponseModel> getFareQuote({
-    required Map<String, dynamic> pickup,
-    required Map<String, dynamic> drop,
-    List<Map<String, dynamic>> stops = const [],
+  /// `POST fare/orders` with `orderType: "broadcast"`.
+  ///
+  /// [selectedRiders] is deliberately absent — sending it would turn this back
+  /// into the hand-picked flow. Response carries `orderId`, which the whole
+  /// tracking phase is keyed on.
+  Future<ResponseModel> createBroadcastOrder({
+    required Map<String, dynamic> pickupLocation,
+    required Map<String, dynamic> dropLocation,
+    required num fare,
+    required String modeOfPayment,
+    String orderFor = 'InCity',
+    String orderForWhom = 'myself',
+    String? vehicleType,
   }) {
     return ApiBaseHelper().postHTTP(
-      rideFareQuote,
+      makeTransportBookOrder,
       params: {
-        'pickup': pickup,
-        'drop': drop,
-        if (stops.isNotEmpty) 'stops': stops,
+        'orderType': 'broadcast',
+        'orderFor': orderFor,
+        'pickupLocation': pickupLocation,
+        'dropLocation': dropLocation,
+        'fare': fare,
+        'modeOfPayment': modeOfPayment,
+        'orderForWhom': orderForWhom,
+        if (vehicleType != null && vehicleType.isNotEmpty)
+          'vehicleType': vehicleType,
       },
       showProgress: false,
     );
   }
 
-  /// POST the booking. [quoteId] locks in the fare the user saw.
-  Future<ResponseModel> createBooking({
-    required String quoteId,
-    required String vehicleCode,
-    required String paymentMode,
-  }) {
-    return ApiBaseHelper().postHTTP(
-      rideBookings,
-      params: {
-        'quoteId': quoteId,
-        'vehicleCode': vehicleCode,
-        'paymentMode': paymentMode,
-      },
-      showProgress: false,
-    );
-  }
-
-  /// GET the booking's current state — the searching/tracking poll.
-  Future<ResponseModel> getBookingStatus(String rideId) {
+  /// `GET fare/orders/{orderId}/status` → `{ status, pickupOTP?, metadata }`.
+  /// Drives searching → assigned → tracking.
+  Future<ResponseModel> getBookingStatus(String orderId) {
     return ApiBaseHelper().getHTTP(
-      rideBookingStatus(rideId),
+      checkTrackOrderStatus(orderId),
       showProgress: false,
     );
   }
 
-  /// GET the assigned captain's live position.
-  Future<ResponseModel> getCaptainLocation(String rideId) {
+  /// `GET fare/orders/{orderId}/rider-location` → `{ rideActive, rider }`.
+  /// Polled ~5s once a rider is attached.
+  Future<ResponseModel> getCaptainLocation(String orderId) {
     return ApiBaseHelper().getHTTP(
-      rideCaptainLocation(rideId),
+      riderLiveLocationForOrder(orderId),
       showProgress: false,
     );
   }
 
-  /// POST a fare bump while still searching ("+₹20").
-  Future<ResponseModel> raiseFare({
-    required String rideId,
-    required double amount,
-  }) {
-    return ApiBaseHelper().postHTTP(
-      rideRaiseFare(rideId),
-      params: {'amount': amount},
-      showProgress: false,
-    );
-  }
-
-  /// GET the cancellation reason list.
-  Future<ResponseModel> getCancelReasons() {
-    return ApiBaseHelper().getHTTP(rideCancelReasons, showProgress: false);
-  }
-
-  /// POST the cancellation.
+  /// `POST fare/orders/{orderId}/cancel` — customer cancels.
   Future<ResponseModel> cancelBooking({
-    required String rideId,
+    required String orderId,
     required String reasonCode,
     String? comment,
   }) {
     return ApiBaseHelper().postHTTP(
-      rideCancelBooking(rideId),
+      cancelFareOrder(orderId),
       params: {
-        'reasonCode': reasonCode,
+        'reason': reasonCode,
         if (comment != null && comment.isNotEmpty) 'comment': comment,
       },
       showProgress: false,

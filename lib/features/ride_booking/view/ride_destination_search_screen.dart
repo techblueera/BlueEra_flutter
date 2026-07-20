@@ -107,18 +107,19 @@ class _RideDestinationSearchScreenState
                       ),
                     ),
                   ),
+                  // Reads searchQuery FIRST, before any early return — an Obx
+                  // that bails out without touching an observable has nothing
+                  // to subscribe to and throws "improper use of GetX". The
+                  // field starts empty, so the old version threw on the very
+                  // first build.
                   Obx(() {
-                    if (_textController.text.isEmpty) {
+                    if (controller.searchQuery.value.isEmpty) {
                       return const SizedBox.shrink();
                     }
-                    // Read an observable so this rebuilds as results change,
-                    // keeping the clear affordance in sync with the field.
-                    controller.searchResults.length;
                     return GestureDetector(
                       onTap: () {
                         _textController.clear();
                         controller.clearSearch();
-                        setState(() {});
                       },
                       child: const Icon(Icons.close,
                           size: 20, color: RideStyle.inkMuted),
@@ -135,7 +136,10 @@ class _RideDestinationSearchScreenState
 
   Widget _results() {
     return Obx(() {
-      final query = _textController.text.trim();
+      // The controller's observable copy, not the TextEditingController — the
+      // latter isn't reactive, so Obx couldn't see a keystroke that didn't
+      // also move searchResults/isSearching.
+      final query = controller.searchQuery.value;
       final showRecents = query.length < 2;
       final places =
           showRecents ? controller.recentPlaces : controller.searchResults;

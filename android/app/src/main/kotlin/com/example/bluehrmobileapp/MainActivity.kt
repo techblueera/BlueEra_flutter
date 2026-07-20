@@ -45,6 +45,7 @@ class MainActivity: FlutterActivity() {
     private val CALL_LAUNCHER_CHANNEL = "com.bluehr.call/launcher"
     private val INCOMING_CALL_NOTIF_CHANNEL = "com.bluehr.incoming_call_notification"
     private val MEDIA_SCANNER_CHANNEL = "ai.bluecs.app/media_scanner"
+    private val APP_SHARE_CHANNEL = "ai.bluecs.app/app_share"
     private val CALL_VOLUME_CHANNEL = "com.bluehr.call/volume"
 
     // Target size for the downsampled chat-shortcut launcher icon (px). Adaptive
@@ -86,6 +87,29 @@ class MainActivity: FlutterActivity() {
                         } else {
                             result.error("INVALID", "Path is empty", null)
                         }
+                    }
+                    else -> result.notImplemented()
+                }
+            }
+
+        // ------------------------------
+        // APP-TARGETED SHARE CHANNEL — send a file straight to a named app
+        // (e.g. WhatsApp) instead of opening the system chooser.
+        //
+        // share_plus cannot do this: ShareParams has no package field, and the
+        // `whatsapp://send?text=` URL scheme carries text only — it has no way
+        // to attach a file. Sending an image directly therefore needs a native
+        // ACTION_SEND with setPackage().
+        // ------------------------------
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, APP_SHARE_CHANNEL)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "shareFileToApp" -> {
+                        val path = call.argument<String>("path")
+                        val mimeType = call.argument<String>("mimeType") ?: "image/*"
+                        val text = call.argument<String>("text")
+                        val packages = call.argument<List<String>>("packages") ?: emptyList()
+                        result.success(shareFileToApp(path, mimeType, text, packages))
                     }
                     else -> result.notImplemented()
                 }
@@ -340,6 +364,61 @@ class MainActivity: FlutterActivity() {
     // CallRinger singleton so a ring started here can be stopped from the
     // CallActivity engine or CallActionReceiver (and vice versa).
     // ------------------------------
+    /**
+     * Send [path] straight to the first app in [packages] that can receive it,
+     * skipping the system chooser.
+     *
+     * Returns false when nothing could be launched — no file, no FileProvider
+     * URI, or none of the target apps are installed/visible. The Dart caller
+     * treats false as "fall back to the normal share sheet", so a missing
+     * WhatsApp degrades instead of failing.
+     *
+     * Package visibility matters here: on API 30+ `resolveActivity` returns
+     * null for any package not declared in the manifest's <queries>, so the
+     * targets must be listed there or this always returns false.
+     */
+    private fun shareFileToApp(
+        path: String?,
+        mimeType: String,
+        text: String?,
+        packages: List<String>
+    ): Boolean {
+        if (path.isNullOrEmpty() || packages.isEmpty()) return false
+        val file = java.io.File(path)
+        if (!file.exists()) return false
+
+        // file:// URIs throw FileUriExposedException on API 24+, so the image
+        // has to be handed over through the FileProvider declared in the
+        // manifest (authority ${applicationId}.beshare).
+        val uri = try {
+            androidx.core.content.FileProvider.getUriForFile(
+                this,
+                "$packageName.beshare",
+                file
+            )
+        } catch (e: Exception) {
+            return false
+        }
+
+        for (pkg in packages) {
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = mimeType
+                putExtra(Intent.EXTRA_STREAM, uri)
+                if (!text.isNullOrEmpty()) putExtra(Intent.EXTRA_TEXT, text)
+                setPackage(pkg)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            if (intent.resolveActivity(packageManager) == null) continue
+            try {
+                startActivity(intent)
+                return true
+            } catch (e: Exception) {
+                // Installed but refused the intent — try the next candidate.
+            }
+        }
+        return false
+    }
+
     private fun playDefaultRingtone() = CallRinger.play(applicationContext)
 
     private fun stopDefaultRingtone() = CallRinger.stop(applicationContext)

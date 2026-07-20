@@ -512,11 +512,14 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     // navigates a tab — it then runs from _ensureHeavyInit().
     final boot = !widget.deferHeavyInit;
     if (isBusiness()) {
-      // Business users land on the Me tab (0) by default on app open / login /
-      // signup so their own shop/dashboard is front and centre. An explicit
-      // deep-link tab (notification, or a post-action nav that requests a
-      // specific tab) still wins because it passes a non-null initialIndex.
-      bottomBarController.currentIndex.value = widget.initialIndex ?? 0;
+      // Business users land on Discover (1) by default on app open / login /
+      // signup — same as individuals. They used to open straight onto their
+      // own Me dashboard, which meant the app opened on a screen the owner
+      // already knows and hid everything happening around them; their shop is
+      // one tab away either way. An explicit deep-link tab (notification, or a
+      // post-action nav that requests a specific tab) still wins because it
+      // passes a non-null initialIndex.
+      bottomBarController.currentIndex.value = widget.initialIndex ?? 1;
       // Keep the controller registered even on a deferred open so any
       // Get.find<ViewBusinessDetailsController>() elsewhere stays safe; only
       // the network fetch is part of the home boot and gets deferred.

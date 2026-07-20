@@ -109,20 +109,11 @@ class _SplashScreenState extends State<SplashScreen> {
       final sharedText = media.content;
       final attachments = media.attachments ?? [];
       if ((sharedText != null && sharedText.isNotEmpty) || attachments.isNotEmpty) {
-        if (accountTypeGlobal.toUpperCase() == AppConstants.individual) {
-          Navigator.of(context).pushNamedAndRemoveUntil(
-            RouteHelper.getBottomNavigationBarScreenRoute(),
-            arguments: {ApiKeys.initialIndex: 1},
-            (Route<dynamic> route) => false,
-          );
-        } else {
-          // Business cold-starts onto its own Me tab (0); individuals → Discover.
-          Navigator.of(context).pushNamedAndRemoveUntil(
-            RouteHelper.getBottomNavigationBarScreenRoute(),
-            arguments: {ApiKeys.initialIndex: 0},
-            (Route<dynamic> route) => false,
-          );
-        }
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          RouteHelper.getBottomNavigationBarScreenRoute(),
+          arguments: {ApiKeys.initialIndex: _coldStartTabIndex()},
+          (Route<dynamic> route) => false,
+        );
 
         if (sharedText != null && sharedText.isNotEmpty) {
           Get.to(() => ChatForwardScreen(sharedText: sharedText));
@@ -189,26 +180,14 @@ class _SplashScreenState extends State<SplashScreen> {
         final sharedMedia = await _getSharedMedia();
 
         if (!mounted) return;
-        if (accountTypeGlobal.toUpperCase() == AppConstants.individual) {
-          Navigator.of(context).pushNamedAndRemoveUntil(
-            RouteHelper.getBottomNavigationBarScreenRoute(),
-            (Route<dynamic> route) => false,
-            arguments: {
-              ApiKeys.initialIndex: 1,
-              if (sharedMedia != null) 'sharedMedia': sharedMedia,
-            },
-          );
-        } else {
-          // Business cold-starts onto its own Me tab (0); individuals → Discover.
-          Navigator.of(context).pushNamedAndRemoveUntil(
-            RouteHelper.getBottomNavigationBarScreenRoute(),
-            (Route<dynamic> route) => false,
-            arguments: {
-              ApiKeys.initialIndex: 0,
-              if (sharedMedia != null) 'sharedMedia': sharedMedia,
-            },
-          );
-        }
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          RouteHelper.getBottomNavigationBarScreenRoute(),
+          (Route<dynamic> route) => false,
+          arguments: {
+            ApiKeys.initialIndex: _coldStartTabIndex(),
+            if (sharedMedia != null) 'sharedMedia': sharedMedia,
+          },
+        );
 
         // Now that the bottom-nav is the root of the navigator stack,
         // push the deep-link target on top. Back-press from the target
@@ -227,6 +206,20 @@ class _SplashScreenState extends State<SplashScreen> {
 
     // await OnesignalService().initialize();
   }
+
+  /// Which bottom-nav tab a cold start lands on.
+  ///
+  /// Discover (1) for both individuals and businesses — a shop owner opening
+  /// the app sees the marketplace, not their own dashboard, which they already
+  /// know and which is one tab away. This used to branch on account type and
+  /// drop businesses on the Me tab (0).
+  ///
+  /// Guests keep the Me tab: that's where their limited / sign-up state lives,
+  /// and it matches where [AuthController] sends them after guest login.
+  ///
+  /// A deep link or notification still overrides this — those pass their own
+  /// `initialIndex` through the route arguments.
+  int _coldStartTabIndex() => isGuestUser() ? 0 : 1;
 
   Future<SharedMedia?> _getSharedMedia() async {
     try {

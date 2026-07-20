@@ -3251,7 +3251,14 @@ class CallController extends GetxController {
 
   // ==================== FARE-CALL RIDE ACTIONS ====================
 
-  /// Accept the ride from fare-call. Call stays active, order gets assigned.
+  /// Accept the ride from fare-call or broadcast. Call stays active, order
+  /// gets assigned.
+  ///
+  /// For BROADCAST rides this is a race: the server rings every nearby rider
+  /// at once and only the first accept wins. Losers get **409** — which is a
+  /// normal outcome, not a failure, so it closes the popup quietly instead of
+  /// showing an error. See
+  /// docs/backend/RIDER_BROADCAST_DISPATCH_FRONTEND_GUIDE.md §7.4.
   Future<bool> acceptFareCallRide() async {
     if (fareCallOrderId.value.isEmpty) return false;
     print('[FARE_CALL] acceptFareCallRide → orderId=${fareCallOrderId.value}');
@@ -3263,10 +3270,23 @@ class CallController extends GetxController {
     if (response.isSuccess) {
       print('[FARE_CALL] Ride accepted successfully');
       return true;
-    } else {
-      commonSnackBar(message: response.message ?? AppStrings.failedToAcceptRide.tr);
+    }
+
+    // 409 = another rider got there first. Silent dismissal: no toast, and
+    // stop the ring so it doesn't keep going for a ride that's gone.
+    if (response.response?.statusCode == 409) {
+      print('[FARE_CALL] Ride already taken by another rider — closing quietly');
+      await AppNotificationHandler().dismissBroadcastRide({
+        'payload': {
+          'metadata': {'orderId': fareCallOrderId.value}
+        },
+      });
       return false;
     }
+
+    commonSnackBar(
+        message: response.message ?? AppStrings.failedToAcceptRide.tr);
+    return false;
   }
 
   /// Reject the ride from fare-call. Call ends, next rider gets called.

@@ -9,6 +9,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/services/app_targeted_share.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
@@ -26,7 +27,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:video_player/video_player.dart';
 
 import '../../../core/constants/app_strings.dart';
@@ -619,23 +619,34 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
     }
   }
 
-  /// Snapshots the poster and opens the OS share sheet with the
-  /// referral message so the user can pick any target app.
+  /// Captures the poster and writes it to a temp PNG, or null if the capture
+  /// failed. Shared by every share path so they all send the same image.
+  ///
+  /// The cache dir is deliberate — it's the only location exposed by the
+  /// `beshare` FileProvider that the direct-to-app share hands URIs through.
+  Future<File?> _writeBannerPng() async {
+    final bytes = await _captureBannerPng();
+    if (bytes == null) return null;
+    final dir = await getTemporaryDirectory();
+    final file = File(
+        '${dir.path}/referral_banner_${DateTime.now().millisecondsSinceEpoch}.png');
+    await file.writeAsBytes(bytes);
+    return file;
+  }
+
+  /// Opens the OS share sheet with the poster + referral message so the user
+  /// can pick any target app. Also the fallback for the per-app buttons.
   Future<void> _shareGeneric(String? referralCode) async {
     setState(() => _isExporting = true);
     try {
       final caption = _referralMessage(referralCode);
-      final bytes = await _captureBannerPng();
-      if (bytes == null) {
-        // Fall back to a text-only share if the capture fails.
+      final file = await _writeBannerPng();
+      if (file == null) {
+        // Text-only share if the capture failed — better than nothing.
         await SharePlus.instance
             .share(ShareParams(text: caption, subject: caption));
         return;
       }
-      final dir = await getTemporaryDirectory();
-      final file = File(
-          '${dir.path}/referral_banner_${DateTime.now().millisecondsSinceEpoch}.png');
-      await file.writeAsBytes(bytes);
       await SharePlus.instance.share(ShareParams(
         files: [
           XFile(file.path, mimeType: 'image/png', name: 'referral_banner.png')
@@ -650,37 +661,68 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
     }
   }
 
-  /// WhatsApp accepts a pre-filled text intent, so send the referral
-  /// message straight into it; fall back to the generic sheet when
-  /// WhatsApp isn't installed.
+  /// Share the poster straight into WhatsApp.
+  ///
+  /// This used to launch `whatsapp://send?text=…`, which is why it sent text
+  /// with no image: a URL scheme can carry a message but has no way to attach
+  /// a file. Pushing the image needs a native ACTION_SEND with setPackage
+  /// (see [AppTargetedShare]).
+  ///
+  /// Falls back to the system sheet — still carrying the image — when the
+  /// direct route isn't available (iOS, WhatsApp not installed, capture
+  /// failed). The user then picks WhatsApp themselves and the poster still
+  /// goes with it.
   Future<void> _shareToWhatsApp(String? referralCode) async {
-    final caption = _referralMessage(referralCode);
-    final uri =
-        Uri.parse('whatsapp://send?text=${Uri.encodeComponent(caption)}');
+    setState(() => _isExporting = true);
     try {
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-        return;
+      final caption = _referralMessage(referralCode);
+      final file = await _writeBannerPng();
+      if (file != null) {
+        final sent = await AppTargetedShare.shareFileToApp(
+          filePath: file.path,
+          packages: AppTargetedShare.whatsappPackages,
+          text: caption,
+        );
+        if (sent) return;
       }
-    } catch (_) {}
+    } catch (_) {
+      // Fall through to the sheet.
+    } finally {
+      if (mounted) setState(() => _isExporting = false);
+    }
     await _shareGeneric(referralCode);
   }
 
-  /// Instagram has no pre-fill text intent, so copy the referral
-  /// message to the clipboard and open the app for the user to paste;
-  /// fall back to the generic sheet when Instagram isn't installed.
+  /// Share the poster into Instagram.
+  ///
+  /// Instagram accepts a shared image but ignores `EXTRA_TEXT` — it has no
+  /// caption pre-fill — so the referral message is copied to the clipboard for
+  /// the user to paste. Without that, a direct share would post the poster
+  /// with no code attached.
   Future<void> _shareToInstagram(String? referralCode) async {
     final caption = _referralMessage(referralCode);
     await Clipboard.setData(ClipboardData(text: caption));
-    final uri = Uri.parse('instagram://app');
+
+    setState(() => _isExporting = true);
     try {
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-        commonSnackBar(
-            message: 'Referral copied — paste it into your Instagram post');
-        return;
+      final file = await _writeBannerPng();
+      if (file != null) {
+        final sent = await AppTargetedShare.shareFileToApp(
+          filePath: file.path,
+          packages: AppTargetedShare.instagramPackages,
+          text: caption,
+        );
+        if (sent) {
+          commonSnackBar(
+              message: 'Referral copied — paste it into your Instagram post');
+          return;
+        }
       }
-    } catch (_) {}
+    } catch (_) {
+      // Fall through to the sheet.
+    } finally {
+      if (mounted) setState(() => _isExporting = false);
+    }
     await _shareGeneric(referralCode);
   }
 

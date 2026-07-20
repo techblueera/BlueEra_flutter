@@ -56,6 +56,18 @@ mixin RiderServiceApi {
   final String sendOrderReqToRider = "rider-service/riders/orders";
   final String getOrderFare = "rider-service/riders/fare";
   final String getBookingRiders = "rider-service/fare/riders";
+
+  /// Dynamic fare quote for the BROADCAST flow — riders grouped by vehicle
+  /// type with a computed fare per type. Unlike [getBookingRiders] the
+  /// customer never picks a rider from this; it only prices the vehicle
+  /// options. See docs/backend/RIDER_BROADCAST_DISPATCH_FRONTEND_GUIDE.md §1.
+  final String getBookingRidersDynamic = "rider-service/fare/riders/dynamic";
+
+  /// Customer-initiated cancel of a broadcast order. Distinct from
+  /// [cancelFareCallQueue], which cancels the sequential fare-call QUEUE of
+  /// the old hand-picked flow.
+  String cancelFareOrder(String orderId) =>
+      'rider-service/fare/orders/$orderId/cancel';
   final String favoriteLocations = "rider-service/favorite-locations";
 
   // Claim an order surfaced on the rider's active route (the

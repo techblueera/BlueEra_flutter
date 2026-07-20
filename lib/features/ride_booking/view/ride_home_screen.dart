@@ -1,10 +1,12 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/features/ride_booking/controller/ride_booking_controller.dart';
 import 'package:BlueEra/features/ride_booking/model/ride_booking_models.dart';
 import 'package:BlueEra/features/ride_booking/view/ride_confirm_pickup_screen.dart';
 import 'package:BlueEra/features/ride_booking/view/ride_destination_search_screen.dart';
 import 'package:BlueEra/features/ride_booking/widget/ride_booking_style.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -249,11 +251,15 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
 
   /// Vehicle categories. Tapping one still routes through destination search —
   /// the choice is carried into the vehicle screen as a pre-selection.
+  ///
+  /// Uses the app's own transport artwork rather than Material glyphs, so this
+  /// rail matches the vehicle imagery already used across the transport
+  /// screens.
   static const List<_ExploreItem> _exploreItems = [
-    _ExploreItem('Parcel on Bike', 'PARCEL', Icons.inventory_2_outlined),
-    _ExploreItem('Auto', 'AUTO', Icons.electric_rickshaw_outlined),
-    _ExploreItem('Cab Economy', 'CAB_ECONOMY', Icons.local_taxi_outlined),
-    _ExploreItem('Bike', 'BIKE', Icons.two_wheeler_outlined),
+    _ExploreItem('Parcel on Bike', 'PARCEL', AppIconAssets.carbon_delivery),
+    _ExploreItem('Auto', 'AUTO', AppIconAssets.transport_auto),
+    _ExploreItem('Cab Economy', 'CAB_ECONOMY', AppIconAssets.transport_taxi),
+    _ExploreItem('Bike', 'BIKE', AppIconAssets.transport_bike),
   ];
 
   Widget _exploreSection() {
@@ -417,10 +423,12 @@ class _DashedDivider extends StatelessWidget {
 }
 
 class _ExploreItem {
-  const _ExploreItem(this.label, this.code, this.icon);
+  const _ExploreItem(this.label, this.code, this.assetPath);
   final String label;
   final String code;
-  final IconData icon;
+
+  /// SVG under `assets/svg/` — see [AppIconAssets].
+  final String assetPath;
 }
 
 class _ExploreTile extends StatelessWidget {
@@ -440,11 +448,17 @@ class _ExploreTile extends StatelessWidget {
           children: [
             Container(
               height: 74,
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: RideStyle.surfaceTint,
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Icon(item.icon, size: 34, color: RideStyle.ink),
+              // No imgColor — these are full-colour vehicle illustrations, so
+              // tinting them would flatten them to a silhouette.
+              child: LocalAssets(
+                imagePath: item.assetPath,
+                boxFix: BoxFit.contain,
+              ),
             ),
             const SizedBox(height: 8),
             CustomText(

@@ -160,24 +160,45 @@ enum RideStatus {
   cancelled,
   noRidersFound;
 
+  /// Maps the backend's `status` string onto the UI lifecycle.
+  ///
+  /// Covers the broadcast vocabulary (`pending` / `payment-pending` /
+  /// `confirmed` / `in-progress` / `rejected`) documented in
+  /// RIDER_BROADCAST_DISPATCH_FRONTEND_GUIDE.md §3, alongside the older
+  /// spellings so nothing regresses if either is sent.
+  ///
+  /// Hyphens are normalised to underscores first, so `payment-pending` and
+  /// `PAYMENT_PENDING` both land on the same branch.
   static RideStatus fromString(String? raw) {
-    switch ((raw ?? '').toUpperCase()) {
+    final key = (raw ?? '').toUpperCase().replaceAll('-', '_').trim();
+    switch (key) {
+      case 'PENDING':
+        // Broadcast waves are still ringing riders — nobody has won yet.
+        return RideStatus.searching;
+      case 'PAYMENT_PENDING':
+      case 'CONFIRMED':
       case 'ASSIGNED':
       case 'ACCEPTED':
         return RideStatus.assigned;
       case 'ARRIVED':
         return RideStatus.arrived;
+      case 'IN_PROGRESS':
       case 'ON_TRIP':
       case 'STARTED':
         return RideStatus.onTrip;
       case 'COMPLETED':
         return RideStatus.completed;
       case 'CANCELLED':
+      case 'CANCELED':
         return RideStatus.cancelled;
+      case 'REJECTED':
       case 'NO_RIDERS_FOUND':
       case 'EXPIRED':
         return RideStatus.noRidersFound;
       default:
+        // Unknown → keep searching rather than falsely ending the ride. An
+        // unrecognised terminal state would strand the user on this screen,
+        // which the status poll's own terminal branches will still catch.
         return RideStatus.searching;
     }
   }
@@ -305,6 +326,7 @@ class RideBooking {
     int? captainDistanceMeters,
     double? searchProgress,
     double? fare,
+    String? startOtp,
   }) {
     return RideBooking(
       rideId: rideId,
@@ -315,7 +337,7 @@ class RideBooking {
       vehicleName: vehicleName,
       fare: fare ?? this.fare,
       paymentMode: paymentMode,
-      startOtp: startOtp,
+      startOtp: startOtp ?? this.startOtp,
       captain: captain ?? this.captain,
       pickupEtaMinutes: pickupEtaMinutes ?? this.pickupEtaMinutes,
       captainDistanceMeters:
