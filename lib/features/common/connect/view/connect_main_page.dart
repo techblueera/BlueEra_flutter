@@ -29,6 +29,8 @@ import 'package:BlueEra/features/chat/view/symbol_view/symbol_chat_list_screen.d
 import 'package:BlueEra/features/chat/view/symbol_view/symbol_view_images.dart';
 import 'package:BlueEra/features/chat/view/wallet_chat/wallet_chat_screen.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
+import 'package:BlueEra/features/me/product/view/admin/widget/orders_tab_body.dart';
 import 'package:BlueEra/features/common/home/controller/symbol_feed_controller.dart';
 import 'package:BlueEra/features/common/order_history/view/local_orders_list_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/manage_notification/notification.dart';
@@ -80,15 +82,21 @@ class ConnectMainPage extends StatefulWidget {
 }
 
 class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProviderStateMixin {
-  final List<String> iconTab = [
-    AppIconAssets.chat,
-    AppIconAssets.shop,
-    AppIconAssets.call,
-  ];
+  /// Business profiles trade the Call tab for an Order tab that mirrors the
+  /// merchant dashboard's first tab (see [OrdersTabBody]); everyone else keeps
+  /// the call history.
+  bool get _isBusinessProfile => isBusinessUser();
+
+  List<String> get iconTab => [
+        AppIconAssets.chat,
+        AppIconAssets.shop,
+        _isBusinessProfile ? AppIconAssets.orderBookingIcon : AppIconAssets.call,
+      ];
+
   List<String> get postTab => [
         AppStrings.chat.tr,
         AppStrings.inquiryTab.tr,
-        AppStrings.call.tr,
+        _isBusinessProfile ? AppStrings.orderTab.tr : AppStrings.call.tr,
       ];
 
   int selectedIndex = 0;
@@ -347,14 +355,16 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
         ChatEmitEvents.ChatList,
         {ApiKeys.type: AppConstants.personal_Chat_Type},
       );
-    } else if (index == 1) {
+    } else if (index == 1 || (index == 2 && _isBusinessProfile)) {
+      // Inquiry and the business-only Order tab both render from the
+      // business chat list, so both need the same socket emit.
       chatViewController.emitEvent(
         ChatEmitEvents.ChatList,
         {ApiKeys.type: AppConstants.business_Chat_Type},
       );
     }
-    // index == 2 is the Call tab — CallHistoryScreen loads its own data,
-    // so there is no chat-list socket emit for it.
+    // For non-business profiles index == 2 is the Call tab —
+    // CallHistoryScreen loads its own data, so there is no emit for it.
   }
 
   @override
@@ -634,7 +644,7 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
             // shows through and the glass header can frost it.
             backgroundColor: Colors.transparent,
             // The "+" FAB starts a new chat/group — only meaningful on the
-            // Chat / Inquiry tabs, not the Call tab.
+            // Chat / Inquiry tabs, not the third (Call / Order) tab.
             floatingActionButton: selectedIndex == 2
                 ? null
                 : SafeArea(
@@ -794,12 +804,17 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
                           ),
                         ],
                       ),
-                      // Call tab. CallHistoryScreen owns its own scrollable;
-                      // detach it from the parent NestedScrollView's inherited
-                      // PrimaryScrollController so the inner ListView doesn't
-                      // recursively try to attach to it (which blows the stack).
+                      // Third tab. Business profiles get the merchant Order
+                      // tab (identical to the Me-tab dashboard's first tab);
+                      // everyone else gets call history. Both own their own
+                      // scrollable, so detach them from the parent
+                      // NestedScrollView's inherited PrimaryScrollController —
+                      // otherwise the inner scrollable recursively tries to
+                      // attach to it (which blows the stack).
                       PrimaryScrollController.none(
-                        child: const CallHistoryScreen(),
+                        child: _isBusinessProfile
+                            ? _buildOrderTab()
+                            : const CallHistoryScreen(),
                       ),
                     ],
                   ),
@@ -808,6 +823,24 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
           ),
         );
       }),
+    );
+  }
+
+  /// Business-only Order tab — the exact body the merchant dashboards render
+  /// under their first ("Order") tab: the [OrderActionsCarousel] deck above
+  /// the incoming-orders business chat list. [OrdersTabBody] builds itself
+  /// with `isInParentScroll: true`, so the scroll has to be owned here.
+  ///
+  /// The dashboards wire "Add product" to their own Products tab; there is no
+  /// such tab here, so we hop to the Me tab where it lives.
+  Widget _buildOrderTab() {
+    return SingleChildScrollView(
+      child: OrdersTabBody(
+        onAddProducts: () {
+          final bottomBar = getOrPut(() => BottomBarController());
+          bottomBar.onChangeIndex(BottomBarController.meTabIndex);
+        },
+      ),
     );
   }
 
