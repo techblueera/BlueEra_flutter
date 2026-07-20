@@ -171,6 +171,12 @@ class _BusinessChatsListState extends State<BusinessChatsList> {
     if (chatViewController.canPopBusiness.value) {
       chatViewController.canPopBusiness.value = false;
     }
+    Future.delayed(Duration(milliseconds: 800),(){
+      chatViewController.emitEvent(
+        ChatEmitEvents.ChatList,
+        {ApiKeys.type: AppConstants.business_Chat_Type},
+      );
+    });
 
     // The All tab now renders the History bucket beneath the live chats, so
     // prefetch it here (the live Business emit never carries history rows, and
