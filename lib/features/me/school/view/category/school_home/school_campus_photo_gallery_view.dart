@@ -4,7 +4,6 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/school/view/category/campus_life/campus_life_listing_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
-import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -42,7 +41,7 @@ class CampusPhotoGallery extends StatelessWidget {
     }
 
     return Card(
-      margin: const EdgeInsets.all(10),
+      margin: EdgeInsets.zero,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
@@ -56,17 +55,15 @@ class CampusPhotoGallery extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                ServiceHomeTitleWidget(title: AppStrings.photo),
+                CustomText(
+                  "Gallery",
+                  fontWeight: FontWeight.w700,
+                  fontSize: 16,
+                  color: Colors.black,
+                ),
                 if (isEdit)
-                  IconButton(
-                    onPressed: () => Get.to(CampusLifeListingScreen()),
-                    icon: Icon(
-                      allImages.isEmpty
-                          ? Icons.add_circle_outline
-                          : Icons.edit_outlined,
-                      size: 20,
-                    ),
-                  ),
+                  _AddPhotoPill(
+                      onTap: () => Get.to(CampusLifeListingScreen())),
               ],
             ),
             const SizedBox(height: 12),
@@ -118,9 +115,6 @@ class CampusPhotoGallery extends StatelessWidget {
   }
 
   Widget _buildGalleryLayout(BuildContext context, List<String> images) {
-    final display = images.length > 4 ? images.sublist(0, 4) : images;
-    final extra = images.length > 4 ? images.length - 4 : 0;
-
     void openViewer(int index) => navigatePushTo(
           context,
           ImageViewScreen(
@@ -131,7 +125,7 @@ class CampusPhotoGallery extends StatelessWidget {
           ),
         );
 
-    Widget imgTile(int index, {bool showOverlay = false}) {
+    Widget imgTile(int index, {int overlayCount = 0}) {
       return GestureDetector(
         onTap: () => openViewer(index),
         child: ClipRRect(
@@ -140,19 +134,19 @@ class CampusPhotoGallery extends StatelessWidget {
             fit: StackFit.expand,
             children: [
               Image.network(
-                display[index],
+                images[index],
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => Container(
                   color: Colors.grey[300],
                   child: const Icon(Icons.broken_image),
                 ),
               ),
-              if (showOverlay && extra > 0)
+              if (overlayCount > 0)
                 Container(
                   color: Colors.black.withValues(alpha: 0.5),
                   alignment: Alignment.center,
                   child: Text(
-                    '+$extra',
+                    '+$overlayCount',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 26,
@@ -167,10 +161,10 @@ class CampusPhotoGallery extends StatelessWidget {
     }
 
     const double height = 220;
-    const double gap = 4;
+    const double gap = 6;
 
     // 1 image — full width
-    if (display.length == 1) {
+    if (images.length == 1) {
       return SizedBox(
         height: height,
         width: double.infinity,
@@ -179,7 +173,7 @@ class CampusPhotoGallery extends StatelessWidget {
     }
 
     // 2 images — side by side
-    if (display.length == 2) {
+    if (images.length == 2) {
       return SizedBox(
         height: height,
         child: Row(
@@ -192,53 +186,58 @@ class CampusPhotoGallery extends StatelessWidget {
       );
     }
 
-    // 3 images — 1 large left, 2 stacked right
-    if (display.length == 3) {
-      return SizedBox(
-        height: height,
-        child: Row(
-          children: [
-            Expanded(child: imgTile(0)),
-            const SizedBox(width: gap),
-            Expanded(
-              child: Column(
-                children: [
-                  Expanded(child: imgTile(1)),
-                  const SizedBox(height: gap),
-                  Expanded(child: imgTile(2)),
-                ],
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    // 4+ images — 2×2 grid (with +N overlay on last cell)
+    // 3+ images — 1 large left, 2 stacked right (with +N overlay on last)
+    final extra = images.length > 3 ? images.length - 3 : 0;
     return SizedBox(
       height: height,
-      child: Column(
+      child: Row(
         children: [
+          Expanded(flex: 3, child: imgTile(0)),
+          const SizedBox(width: gap),
           Expanded(
-            child: Row(
+            flex: 2,
+            child: Column(
               children: [
-                Expanded(child: imgTile(0)),
-                const SizedBox(width: gap),
                 Expanded(child: imgTile(1)),
-              ],
-            ),
-          ),
-          const SizedBox(height: gap),
-          Expanded(
-            child: Row(
-              children: [
-                Expanded(child: imgTile(2)),
-                const SizedBox(width: gap),
-                Expanded(child: imgTile(3, showOverlay: extra > 0)),
+                const SizedBox(height: gap),
+                Expanded(child: imgTile(2, overlayCount: extra)),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _AddPhotoPill extends StatelessWidget {
+  final VoidCallback onTap;
+  const _AddPhotoPill({required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: AppColors.primaryColor.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.add, size: 14, color: AppColors.primaryColor),
+            const SizedBox(width: 4),
+            CustomText(
+              "Add Photo",
+              fontSize: 13,
+              color: AppColors.primaryColor,
+              fontWeight: FontWeight.w600,
+            ),
+          ],
+        ),
       ),
     );
   }

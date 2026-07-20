@@ -80,13 +80,25 @@ class PathologyTest {
   int? estimatedReportHours;
   String? gender;
   String? beforeTestGuidance;
+  String? postTestGuidance;
   String? testMethod;
+  String? organSystemTested;
   bool? applicableForChild;
   bool? prescriptionRequired;
   int? testFees;
   int? customerPrice;
+  // Legacy: the previous screen's route-collection string (e.g. 'pathology',
+  // 'Radiology'). Kept to drive local list refetches; no longer sent as
+  // `groupCategory` — that is now an explicit form field.
   String? collection;
+  // Backend enum — one of the 6 values in `LabTestController.groupCategoryList`.
+  String? groupCategory;
   String? packageType;
+  // Backend-stamped provenance: `"manual"` when created via
+  // `POST /pathology-tests`, `"catalog"` when created via
+  // `POST /test-catalog/select`. Read-only — never sent on create/update.
+  // Used by the catalog screen's tab to isolate manual entries.
+  String? source;
 
   PathologyTest({
     this.id,
@@ -101,13 +113,17 @@ class PathologyTest {
     this.estimatedReportHours,
     this.gender,
     this.beforeTestGuidance,
+    this.postTestGuidance,
     this.testMethod,
+    this.organSystemTested,
     this.applicableForChild,
     this.prescriptionRequired,
     this.testFees,
     this.customerPrice,
     this.collection,
+    this.groupCategory,
     this.packageType,
+    this.source,
   });
 
   factory PathologyTest.fromJson(Map<String, dynamic> json) => PathologyTest(
@@ -132,16 +148,24 @@ class PathologyTest {
         estimatedReportHours: json["estimatedReportHours"],
         gender: json["gender"],
         beforeTestGuidance: json["beforeTestGuidance"],
+        postTestGuidance: json["postTestGuidance"],
         testMethod: json["testMethod"],
+        organSystemTested: json["organSystemTested"],
         applicableForChild: json["applicableForChild"],
         prescriptionRequired: json["prescriptionRequired"],
         testFees: json["testFees"],
         customerPrice: json["customerPrice"],
         collection: json["groupCategory"] ?? json["collection"],
-    packageType: json["packageType"],
+        groupCategory: json["groupCategory"],
+        packageType: json["packageType"],
+        source: json["source"],
       );
 
   Map<String, dynamic> toJson() {
+    // `groupCategory` is required by the backend and must be one of the 6
+    // enum values. Falls back to `collection` only for older call-sites that
+    // haven't been migrated yet — those will 400 if `collection` isn't a
+    // valid enum, which is the correct signal to migrate them.
     final data = <String, dynamic>{
       "testName": testName,
       "testCategory": testCategory is TestCategory ? (testCategory as TestCategory).id : testCategory,
@@ -155,13 +179,15 @@ class PathologyTest {
       "estimatedReportHours": estimatedReportHours,
       "gender": gender,
       "beforeTestGuidance": beforeTestGuidance,
+      "postTestGuidance": postTestGuidance,
       "testMethod": testMethod,
+      "organSystemTested": organSystemTested,
       "applicableForChild": applicableForChild,
       "prescriptionRequired": prescriptionRequired,
       "testFees": testFees,
       "customerPrice": customerPrice,
-      "groupCategory": collection,
-      "packageType":packageType
+      "groupCategory": groupCategory ?? collection,
+      "packageType": packageType,
     };
     if (id != null) data["_id"] = id;
     if (userId != null) data["userId"] = userId;

@@ -80,102 +80,105 @@ class SchoolManagementSection extends StatelessWidget {
         children: [
           /// MANAGEMENT LIST SECTION (Horizontal Scroll)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                ServiceHomeTitleWidget(
-                  title: AppStrings.managementTrust,
+                CustomText(
+                  "Management",
+                  fontWeight: FontWeight.w700,
+                  fontSize: 16,
+                  color: Colors.black,
                 ),
-                Row(
-                  children: [
-                    if ((managementData?.length ?? 0) > 5)
-                      InkWell(
-                        onTap: () {
-                          Get.to(ManagementAndTrust());
-                        },
-                        child: const CustomText(
-                          AppStrings.viewAll,
-                          color: AppColors.primaryColor,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    if (isEdit)
-                      IconButton(
-                        onPressed: () => Get.to(ManagementAndTrust()),
-                        icon: const Icon(Icons.edit_outlined, size: 20),
-                      ),
-                  ],
+                InkWell(
+                  onTap: () => Get.to(ManagementAndTrust()),
+                  child: CustomText(
+                    AppStrings.viewAll.tr,
+                    color: AppColors.primaryColor,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
                 ),
               ],
             ),
           ),
 
           Container(
-            height: 200,
-            padding: const EdgeInsets.symmetric(horizontal: 5),
-            child: ListView.builder(
+            height: 220,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: (managementData?.length ?? 0) > 5
                   ? 5
-                  : managementData?.length,
+                  : managementData?.length ?? 0,
               padding: EdgeInsets.zero,
+              separatorBuilder: (_, __) => const SizedBox(width: 10),
               itemBuilder: (context, index) {
                 final person = managementData?[index];
                 return _buildManagementCard(person ?? Management());
               },
             ),
           ),
+          const SizedBox(height: 10),
         ],
       ),
     );
   }
 
   Widget _buildManagementCard(Management person) {
-    return Container(
+    return SizedBox(
       width: 160,
-      margin: const EdgeInsets.all(4),
-      child: Card(
-        elevation: 0,
-        shape: RoundedRectangleBorder(
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
           borderRadius: BorderRadius.circular(12),
-          side: BorderSide(color: Colors.grey.shade200),
+          border: Border.all(color: Colors.grey.shade200),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
-              flex: 2,
-              child: ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(12)),
-                child: (person.photo?.isNotEmpty ?? false)
-                    ? Image.network(
-                        person.photo ?? "",
-                        height: 110,
+            ClipRRect(
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(12)),
+              child: (person.photo?.isNotEmpty ?? false)
+                  ? Image.network(
+                      person.photo ?? "",
+                      height: 140,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stack) => Container(
+                        height: 140,
                         width: double.infinity,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stack) {
-                          return LocalAssets(
-                              imagePath: AppIconAssets.place_holder_image);
-                        },
-                      )
-                    : const SizedBox.shrink(),
-              ),
+                        color: Colors.grey.shade200,
+                        child: LocalAssets(
+                            imagePath: AppIconAssets.place_holder_image),
+                      ),
+                    )
+                  : Container(
+                      height: 140,
+                      width: double.infinity,
+                      color: Colors.grey.shade200,
+                      child: LocalAssets(
+                          imagePath: AppIconAssets.place_holder_image),
+                    ),
             ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 10, vertical: 10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     CustomText(
                       person.name ?? "",
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      color: Colors.black,
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 4),
                     CustomText(
                       person.position ?? "",
                       maxLines: 1,

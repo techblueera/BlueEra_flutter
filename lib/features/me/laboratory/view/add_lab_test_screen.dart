@@ -47,7 +47,9 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
   late TextEditingController descriptionController;
   late TextEditingController reportHoursController;
   late TextEditingController guidanceController;
+  late TextEditingController postGuidanceController;
   late TextEditingController methodController;
+  late TextEditingController organSystemController;
   late TextEditingController feesController;
   late TextEditingController priceController;
 
@@ -56,6 +58,7 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
   String? selectedSpecimen;
   String? selectedCollectionMethod;
   String? selectedGender;
+  String? selectedGroupCategory;
   String? selectedPackageType;
   bool applicableForChild = false;
   bool prescriptionRequired = false;
@@ -68,6 +71,20 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
     } else {
       controller = Get.find<LabTestController>();
     }
+    // Ensure Category + Parameters dropdowns are populated with THIS lab's
+    // rows. Both fetches internally hit `/laboratory/{labId}` so the ids
+    // we submit back always belong to this lab — the unscoped endpoints
+    // silently return other labs' data (see CREATE_PATHOLOGY_TEST_GUIDE §4).
+    // The controller is `permanent: true` so this covers the case where it
+    // was initialised before `labIDGlobal` was populated. The dropdowns are
+    // built off plain lists (not `Obx`), so `setState` after the refetch
+    // is what pushes fresh rows into the UI.
+    controller.fetchCategories().then((_) {
+      if (mounted) setState(() {});
+    });
+    controller.fetchParameters().then((_) {
+      if (mounted) setState(() {});
+    });
     nameController = TextEditingController(text: widget.testToEdit?.testName);
     descriptionController =
         TextEditingController(text: widget.testToEdit?.description);
@@ -75,8 +92,12 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
         text: widget.testToEdit?.estimatedReportHours?.toString());
     guidanceController =
         TextEditingController(text: widget.testToEdit?.beforeTestGuidance);
+    postGuidanceController =
+        TextEditingController(text: widget.testToEdit?.postTestGuidance);
     methodController =
         TextEditingController(text: widget.testToEdit?.testMethod);
+    organSystemController =
+        TextEditingController(text: widget.testToEdit?.organSystemTested);
     feesController =
         TextEditingController(text: widget.testToEdit?.testFees?.toString());
     priceController = TextEditingController(
@@ -106,6 +127,11 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
       selectedCollectionMethod = widget.testToEdit!.specimenCollectionMethod;
       selectedGender = widget.testToEdit!.gender;
       selectedPackageType = widget.testToEdit!.packageType;
+      // Existing tests store the group category on the model directly.
+      // Fall back to `collection` for older docs that only round-tripped it
+      // through the legacy field.
+      selectedGroupCategory = widget.testToEdit!.groupCategory ??
+          widget.testToEdit!.collection;
       applicableForChild = widget.testToEdit!.applicableForChild ?? false;
       prescriptionRequired = widget.testToEdit!.prescriptionRequired ?? false;
     }
@@ -120,6 +146,23 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
         preset.isNotEmpty &&
         LabTestController.packageTypeList.contains(preset)) {
       selectedPackageType = preset;
+    }
+
+    // Pre-select the group-category dropdown from `widget.collection` when
+    // it's one of the 6 backend enum values (e.g. "Blood & Routine Tests"
+    // handed over from `LabCategoryScreen`). Values like `'pathology'` or
+    // `'Radiology'` are route-only markers, not valid enums — silently
+    // ignore them so the dropdown stays on a legal value.
+    if (selectedGroupCategory == null &&
+        LabTestController.groupCategoryList.contains(widget.collection)) {
+      selectedGroupCategory = widget.collection;
+    }
+    // Guard against a stale value coming off the edited test that isn't
+    // (or is no longer) a valid enum — clear it so the required-field
+    // check forces the user to pick one.
+    if (selectedGroupCategory != null &&
+        !LabTestController.groupCategoryList.contains(selectedGroupCategory)) {
+      selectedGroupCategory = null;
     }
   }
 
@@ -147,6 +190,24 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
                   isValidate: true,
                   onChange: (val) {
                     setState(() {});
+                  },
+                ),
+                SizedBox(height: SizeConfig.size16),
+                CustomText(
+                  'Group Category',
+                  color: AppColors.mainTextColor,
+                ),
+                SizedBox(height: SizeConfig.paddingXSL),
+                CommonDropdownDialog<String>(
+                  items: LabTestController.groupCategoryList,
+                  selectedValue: selectedGroupCategory,
+                  title: 'Group Category',
+                  hintText: 'Select Group Category',
+                  displayValue: (value) => value,
+                  onChanged: (value) {
+                    setState(() {
+                      selectedGroupCategory = value;
+                    });
                   },
                 ),
                 SizedBox(height: SizeConfig.size16),
@@ -271,9 +332,24 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
                 ),
                 SizedBox(height: SizeConfig.size16),
                 CommonTextField(
+                  textEditController: postGuidanceController,
+                  title: 'Post-Test Guidance (Optional)',
+                  hintText: 'e.g. No special care needed.',
+                  maxLine: 3,
+                  isValidate: false,
+                ),
+                SizedBox(height: SizeConfig.size16),
+                CommonTextField(
                   textEditController: methodController,
                   title: AppStrings.testMethodOptional.tr,
                   hintText: AppStrings.egText.tr,
+                  isValidate: false,
+                ),
+                SizedBox(height: SizeConfig.size16),
+                CommonTextField(
+                  textEditController: organSystemController,
+                  title: 'Organ / System Tested (Optional)',
+                  hintText: 'e.g. Liver',
                   isValidate: false,
                 ),
                 SizedBox(height: SizeConfig.size16),
@@ -412,44 +488,10 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
     );
   }
 
-  // Owner-picked preset (from `CreateYourOwnPackagesScreen`) locks the
-  // Package Type — the dropdown is replaced by a read-only surface that
-  // just displays the chosen package. When no preset is provided the
-  // dropdown is rendered as before so the owner can pick freely.
+  // A `presetPackageType` from the caller (e.g. `CreateYourOwnPackagesScreen`)
+  // only pre-selects the dropdown value via `initState` — it never locks
+  // the field. The owner can always change it before submitting.
   Widget _buildPackageTypeField() {
-    final preset = widget.presetPackageType;
-    final hasLockedPreset = preset != null &&
-        preset.isNotEmpty &&
-        LabTestController.packageTypeList.contains(preset);
-
-    if (hasLockedPreset) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-        decoration: BoxDecoration(
-          color: AppColors.primaryColor.withValues(alpha: 0.06),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: AppColors.primaryColor.withValues(alpha: 0.35),
-          ),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: CustomText(
-                preset,
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: AppColors.mainTextColor,
-              ),
-            ),
-            Icon(Icons.check_circle,
-                size: 18, color: AppColors.primaryColor),
-          ],
-        ),
-      );
-    }
-
     return CommonDropdownDialog<String>(
       items: LabTestController.packageTypeList,
       selectedValue: selectedPackageType,
@@ -495,6 +537,10 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
 
   void _submitForm() async {
     if (_formKey.currentState!.validate()) {
+      if (selectedGroupCategory == null) {
+        commonSnackBar(message: 'Please select group category');
+        return;
+      }
       if (selectedCategory == null) {
         commonSnackBar(message: AppStrings.pleaseSelectCategory.tr);
         return;
@@ -518,6 +564,9 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
         return;
       }
 
+      final organSystem = organSystemController.text.trim();
+      final postGuidance = postGuidanceController.text.trim();
+
       final test = PathologyTest(
         id: widget.catalogId ?? widget.testToEdit?.id,
         testName: nameController.text,
@@ -530,12 +579,19 @@ class _AddLabTestScreenState extends State<AddLabTestScreen> {
         estimatedReportHours: int.tryParse(reportHoursController.text) ?? 0,
         gender: selectedGender,
         beforeTestGuidance: guidanceController.text,
+        postTestGuidance: postGuidance.isEmpty ? null : postGuidance,
         testMethod: methodController.text,
+        organSystemTested: organSystem.isEmpty ? null : organSystem,
         applicableForChild: applicableForChild,
         prescriptionRequired: prescriptionRequired,
         testFees: int.tryParse(feesController.text) ?? 0,
         customerPrice: int.tryParse(priceController.text) ?? 0,
+        // Retained so the follow-up `fetchTests(collection)` in the
+        // controller uses the same route-scoped list the caller opened.
         collection: widget.collection,
+        // Explicit backend enum — never derived from `widget.collection`
+        // because that can be a route-only marker like 'pathology'.
+        groupCategory: selectedGroupCategory,
         packageType: selectedPackageType,
       );
 

@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
@@ -6,6 +7,7 @@ import 'package:BlueEra/core/api/model/school_about_us_model.dart';
 import 'package:BlueEra/core/api/model/school_details_res_model.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
+import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/reel/models/upload_init_response.dart';
@@ -14,7 +16,6 @@ import 'package:BlueEra/features/me/school/repo/school_repo.dart';
 import 'package:BlueEra/features/me/school/repo/upload_file_to_s3.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:BlueEra/core/constants/regular_expression.dart';
 
 class SchoolAboutUsController extends GetxController {
   Rx<ApiResponse> getAboutUsSchoolResponse = ApiResponse.initial('Initial').obs;
@@ -26,6 +27,10 @@ class SchoolAboutUsController extends GetxController {
   RxString visionMissionText = ''.obs;
   RxString historyText = ''.obs;
   RxString directorMessageText = ''.obs;
+  // Principal / director's display name — sent as `principalMessage.name`
+  // on the About-Us update. Managed alongside the message text so both
+  // fields can be edited from the same screen.
+  RxString directorName = ''.obs;
   RxString managementDescriptionText = ''.obs;
   final isDirectorImageUpdate = false.obs;
 
@@ -46,6 +51,7 @@ class SchoolAboutUsController extends GetxController {
   // Initial values (to check if data changed)
   String initialDirectText = "";
   String initialDirectImageUrl = "";
+  String initialDirectName = "";
 
   String initialManagementProfileImageUrl = "";
 
@@ -639,6 +645,7 @@ class SchoolAboutUsController extends GetxController {
             reqBODY: {
               "principalMessage": {
                 ApiKeys.photo: result?.url,
+                ApiKeys.name: directorName.value,
                 ApiKeys.message: directorMessageText.value,
               },
               "schoolId": schoolIDGlobal
@@ -648,6 +655,7 @@ class SchoolAboutUsController extends GetxController {
             aboutUsID: aboutUsData?.value.id ?? "",
             reqBODY: {
               "principalMessage": {
+                ApiKeys.name: directorName.value,
                 ApiKeys.message: directorMessageText.value,
               },
               "schoolId": schoolIDGlobal
@@ -777,21 +785,26 @@ class SchoolAboutUsController extends GetxController {
   Future<void> fetchSchoolQuickInfo({String? schoolID}) async {
     try {
       isQuickInfoLoading.value = true;
-      final res =
-          await SchoolRepo().getSchoolQuickInfoRepo(schoolID: schoolID);
+      final res = await SchoolRepo().getSchoolQuickInfoRepo(schoolID: schoolID);
       if (res.isSuccess) {
         final data = res.response?.data['data'];
         if (data != null && schoolDetailsData?.value != null) {
           schoolDetailsData!.value.classRange = data['classRange'];
-          schoolDetailsData!.value.board = data['board']?.toString();
+          final boardVal = data['board'];
+          schoolDetailsData!.value.boards = boardVal is List
+              ? boardVal.map((e) => e.toString()).toList()
+              : (boardVal is String && boardVal.isNotEmpty
+                  ? [boardVal]
+                  : <String>[]);
           final medium = data['mediumOfInstruction'];
           schoolDetailsData!.value.mediumOfInstruction = medium is List
               ? medium.map((e) => e.toString()).toList()
-              : (medium is String && medium.isNotEmpty
-                  ? [medium]
-                  : <String>[]);
+              : (medium is String && medium.isNotEmpty ? [medium] : <String>[]);
           schoolDetailsData!.value.fees =
               data['fees'] is num ? (data['fees'] as num).toInt() : null;
+          schoolDetailsData!.value.numberOfStudents = data['numberOfStudents'] is num
+              ? (data['numberOfStudents'] as num).toInt()
+              : null;
           schoolDetailsData?.refresh();
         }
       }
@@ -805,22 +818,23 @@ class SchoolAboutUsController extends GetxController {
   ///UPDATE SCHOOL QUICK INFO....
   Future<bool> updateSchoolQuickInfo({
     required String classRange,
-    required String board,
+    required List<String> boards,
     required List<String> mediumOfInstruction,
-    required int fees,
+    int? fees,
+    int? numberOfStudents,
   }) async {
     try {
       isQuickInfoSaving.value = true;
       final res = await SchoolRepo().updateSchoolQuickInfoRepo(reqBODY: {
         'classRange': classRange,
-        'board': board,
+        'board': boards,
         'mediumOfInstruction': mediumOfInstruction,
-        'fees': fees,
+        if (fees != null) 'fees': fees,
+        if (numberOfStudents != null) 'numberOfStudents': numberOfStudents,
       });
       if (res.isSuccess) {
         commonSnackBar(
-            message:
-                res.response?.data['message'] ?? AppStrings.successful);
+            message: res.response?.data['message'] ?? AppStrings.successful);
         await fetchSchoolQuickInfo();
         return true;
       }
@@ -875,8 +889,7 @@ class SchoolAboutUsController extends GetxController {
       });
       if (res.isSuccess) {
         commonSnackBar(
-            message:
-                res.response?.data['message'] ?? AppStrings.successful);
+            message: res.response?.data['message'] ?? AppStrings.successful);
         await fetchSchoolTimings();
         return true;
       }

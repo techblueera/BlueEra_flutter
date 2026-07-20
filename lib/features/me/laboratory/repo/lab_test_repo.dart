@@ -4,12 +4,18 @@ import 'package:BlueEra/core/api/apiService/response_model.dart';
 
 class LabTestRepo extends BaseService {
 
-  Future<ResponseModel> getTestCategories() async {
-    return await ApiBaseHelper().getHTTP(testCategories);
+  // Lab-scoped listing — mandatory for the create form. The unscoped
+  // `GET /test-categories` returns every lab's categories (~257 docs with
+  // ~8 rows named "Hematology"), so matching by name picks another lab's
+  // id, and the backend rejects the create with
+  // "testCategory does not belong to your laboratory". See guide §4.
+  Future<ResponseModel> getTestCategoriesByLab(String labId) async {
+    return await ApiBaseHelper().getHTTP("$testCategories/laboratory/$labId");
   }
 
-  Future<ResponseModel> getTestParameters() async {
-    return await ApiBaseHelper().getHTTP(testParameters);
+  // Lab-scoped parameters — same reason as `getTestCategoriesByLab` above.
+  Future<ResponseModel> getTestParametersByLab(String labId) async {
+    return await ApiBaseHelper().getHTTP("$testParameters/laboratory/$labId");
   }
 
   Future<ResponseModel> getPathologyTests(String collection) async {

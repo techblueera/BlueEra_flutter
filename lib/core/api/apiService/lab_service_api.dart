@@ -24,8 +24,10 @@ mixin LabServiceApi {
       'lab-service/laboratory-profiles/full-details';
 
   // Packages — "Create Your Own Packages" bundle-of-tests screens.
-  // See lib/docs/LABORATORY_INTEGRATION.md §1.
+  // See lib/docs/LABORATORY_INTEGRATION.md §1 and
+  // lib/docs/FLUTTER_CATALOGUE_INTEGRATION.md PART 6/7.
   final String labPackages = 'lab-service/packages';
+  final String labPackagesMe = 'lab-service/packages/me';
   final String labPackagesByLab = 'lab-service/packages/laboratory';
 
   // Testimonials — profile-section carousel.

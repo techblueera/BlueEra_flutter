@@ -21,9 +21,12 @@ import '../../lab_test_catalog_screen.dart';
 /// health-camp hero) so the tab reads as one uniform navigation surface.
 class LabCategoryScreen extends StatelessWidget {
   // ignore: unused_element
-  final LabFullDetailsController controller;
+  final LabFullDetailsController? controller;
 
-  const LabCategoryScreen({super.key, required this.controller});
+  const LabCategoryScreen({
+    super.key,
+    this.controller,
+  });
 
   /// Rows in top-to-bottom order — matches the reference image exactly.
   /// `collection` filters `PathologyTest.groupCategory` on the backend and
@@ -97,13 +100,10 @@ class LabCategoryScreen extends StatelessWidget {
   }
 
   void _onTap(_MenuEntry entry) {
-    // Every row now carries a `collection` — route into the catalog scoped
-    // to that group category. The same value is passed as
-    // `presetPackageType` so the "Add Manually" path from the catalog lands
-    // on `AddLabTestScreen` with the Package Type surface already locked
-    // onto this category (the six category names live in
-    // `LabTestController.packageTypeList`, so the lock condition on the
-    // form catches them).
+    // Route into the catalog scoped to that group category. The category
+    // name is forwarded as `presetPackageType` so the catalog's "Add
+    // Manually" lands on the form with Package Type locked onto this
+    // category — matches the pre-existing flow from the Tests tab.
     if (entry.collection != null) {
       Get.to(() => LabTestCatalogScreen(
             collection: entry.collection!,
