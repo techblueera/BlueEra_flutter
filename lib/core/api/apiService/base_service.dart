@@ -25,6 +25,7 @@ import 'package:BlueEra/core/api/apiService/order_service_api.dart';
 import 'package:BlueEra/core/api/apiService/other_service_api.dart';
 import 'package:BlueEra/core/api/apiService/post_service_api.dart';
 import 'package:BlueEra/core/api/apiService/product_service_api.dart';
+import 'package:BlueEra/core/api/apiService/ride_booking_service_api.dart';
 import 'package:BlueEra/core/api/apiService/rider_service_api.dart';
 import 'package:BlueEra/core/api/apiService/services_service_api.dart';
 import 'package:BlueEra/core/api/apiService/social_service_api.dart';
@@ -91,6 +92,7 @@ abstract class BaseService
         WalletServiceApi,
         NotificationServiceApi,
         RiderServiceApi,
+        RideBookingServiceApi,
         EarnServiceApi,
         GroceryServiceApi,
         FoodServiceApi,

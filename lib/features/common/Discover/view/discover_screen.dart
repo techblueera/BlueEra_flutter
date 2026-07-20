@@ -12,7 +12,10 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/nearby_stores_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/recent_shops_controller.dart';
-import 'package:BlueEra/features/common/Discover/view/book_your_transport/parcel_pickup_drop_screen.dart';
+// Retained for the commented-out parcel entry point in _searchRow — see the
+// note there. Uncomment alongside it if that route is restored.
+// import 'package:BlueEra/features/common/Discover/view/book_your_transport/parcel_pickup_drop_screen.dart';
+import 'package:BlueEra/features/ride_booking/view/ride_home_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_categories_data.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_category_section.dart';
 import 'package:BlueEra/features/common/Discover/widget/nearest_stores_section.dart';
@@ -572,8 +575,12 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             width: 24,
             height: 24,
           ),
-          // onTap: () => null,
-          onTap: () => Get.to(ParcelPickupDropScreen()),
+          // Previous entry point — the parcel pickup/drop form. Kept here (and
+          // still reachable from the parcel/GOODS flows) while the new
+          // Rapido-style booking flow under lib/features/ride_booking/ takes
+          // over this icon.
+          // onTap: () => Get.to(ParcelPickupDropScreen()),
+          onTap: () => Get.to(() => const RideHomeScreen()),
         ),
         SizedBox(width: SizeConfig.size10),
         Expanded(
