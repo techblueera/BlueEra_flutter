@@ -28,14 +28,12 @@ import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/common/statistics/controller/profile_statistics_controller.dart';
 import 'package:BlueEra/features/common/statistics/view/profile_statistics_screen.dart';
-import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_business_products_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/grocery_top_selling_product_card.dart';
 import 'package:BlueEra/features/me/grocery/widget/grocery_variants_sheet.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/grocery/view/all_top_selling_grocery_products_screen.dart';
-import 'package:BlueEra/features/me/grocery/widget/grocery_order_tab.dart';
 import 'package:BlueEra/widgets/add_product_prompt_sheet.dart';
 import 'package:BlueEra/widgets/common_business_live_photo.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
@@ -77,9 +75,8 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
   final ChatViewController _chatViewController = getOrPut(() => ChatViewController());
 
   List<String> get _tabs => [
-        AppStrings.orderTab.tr,
-        AppStrings.overviewTab.tr,
         AppStrings.productsTab.tr,
+        AppStrings.overviewTab.tr,
         AppStrings.postTabLabel.tr,
         AppStrings.staticsTab.tr,
       ];
@@ -101,7 +98,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
       ChatEmitEvents.ChatList,
       {ApiKeys.type: AppConstants.business_Chat_Type},
     );
-    // Fire the API(s) backing the tab the screen lands on (Overview by
+    // Fire the API(s) backing the tab the screen lands on (Products by
     // default). Switching tabs later will fire other tabs' APIs lazily
     // via [_onTabTapped] â€” mirrors product_screen's per-tab discipline.
     _fetchForTab(_selectedTab);
@@ -122,7 +119,7 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
           ctaKey: AppStrings.addProduct,
           icon: Icons.local_grocery_store_outlined,
         ),
-        onAddProduct: () => _tabController.animateTo(2),
+        onAddProduct: () => _tabController.animateTo(0),
         // GroceryScreen pops the live-photo sheet on this same landing.
         livePhotoGate: _businessController,
       );
@@ -135,9 +132,11 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
   void _fetchForTab(int tab) {
     switch (tab) {
       case 0:
-        // Order â€” order chat list is hydrated in initState; the
-        // ContributionController binds lazily when its slot renders
-        // and fires its own /recharge/plans + /recharge/current.
+        // Products â€” top-selling products + category-with-inventory.
+        _groceryController.fetchAllGroceryData(
+          widget.businessId,
+          otherStore: false,
+        );
         break;
       case 1:
         // Overview â€” the joined-profile / contact / QR / share-banner
@@ -145,16 +144,9 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
         // [ViewBusinessDetailsController]; no grocery API needed.
         break;
       case 2:
-        // Products â€” top-selling products + category-with-inventory.
-        _groceryController.fetchAllGroceryData(
-          widget.businessId,
-          otherStore: false,
-        );
-        break;
-      case 3:
         // Post â€” FeedScreen owns its own controller fetch on mount.
         break;
-      case 4:
+      case 3:
         // Statics â€” ProfileStatisticsScreen self-fetches on first build.
         // It's kept alive (AutomaticKeepAliveClientMixin), so its initState
         // won't re-run on later taps; trigger a refresh here so the analytics
@@ -190,29 +182,20 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
   Future<void> _onRefreshCurrentTab() async {
     switch (_selectedTab) {
       case 0:
-        _chatViewController.emitEvent(
-          ChatEmitEvents.ChatList,
-          {ApiKeys.type: AppConstants.business_Chat_Type},
-        );
-        if (Get.isRegistered<ContributionController>()) {
-          await Get.find<ContributionController>().fetchCurrent();
-        }
-        break;
-      case 1:
-        await _businessController.viewBusinessProfile();
-        break;
-      case 2:
         await _groceryController.fetchAllGroceryData(
           widget.businessId,
           otherStore: false,
         );
         break;
-      case 3:
+      case 1:
+        await _businessController.viewBusinessProfile();
+        break;
+      case 2:
         if (Get.isRegistered<FeedController>()) {
           await Get.find<FeedController>().getFeed(refresh: true);
         }
         break;
-      case 4:
+      case 3:
         // ProfileStatisticsScreen manages its own state and doesn't
         // expose an external refresh hook â€” no-op for now.
         break;
@@ -238,14 +221,8 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
               topBar: _buildTopBar(),
               topBarHeight: topBarHeight,
               tabViews: [
-                _tabScroll([
-                  GroceryOrderTab(
-                    businessId: widget.businessId,
-                    onAddProduct: () => _tabController.animateTo(2),
-                  ),
-                ]),
-                _tabScroll(_buildOverviewSlivers()),
                 _tabScroll(_buildProductsTab()),
+                _tabScroll(_buildOverviewSlivers()),
                 _tabScroll(_buildPostTab()),
                 ProfileStatisticsScreen(userId: widget.businessId),
               ],
@@ -562,8 +539,6 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
                 SizedBox(width: SizeConfig.size6),
                 // Pills wrapped in Flexible so their inner text can ellipsize
                 // instead of pushing the row past its width.
-                Flexible(child: _nearbyRidersPill()),
-                SizedBox(width: SizeConfig.size6),
                 Flexible(child: const ReferEarnPill()),
                 const Spacer(),
                 _circleIconButton(icon: Icons.notifications_none, onTap: _openNotifications),
@@ -628,64 +603,6 @@ class _GroceryHomeScreenV2State extends State<GroceryHomeScreenV2>
                 ),
               ),
               child: Icon(icon, size: 20, color: AppColors.secondaryTextColor),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Grocery-specific quick action â€” replaces medical's "Earn" pill so
-  /// the merchant can hop straight to nearby riders for self-pickup
-  /// or delivery dispatch.
-  Widget _nearbyRidersPill() {
-    return GestureDetector(
-      onTap: () => Get.toNamed(RouteHelper.getNearByRidersScreenRoute()),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x1A000000),
-              blurRadius: 3,
-              offset: Offset(0, -1),
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(24),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12, vertical: SizeConfig.size6),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
-                border: Border.all(
-                  color: const Color(0xFFC9CDD5),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  LocalAssets(
-                    imagePath: AppIconAssets.riderIcon,
-                    imgColor: AppColors.secondaryTextColor,
-                    height: 18,
-                    width: 18,
-                  ),
-                  SizedBox(width: SizeConfig.size6),
-                  Flexible(
-                    child: CustomText(AppStrings.nearbyRiders.tr,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.secondaryTextColor,
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1),
-                  ),
-                ],
-              ),
             ),
           ),
         ),

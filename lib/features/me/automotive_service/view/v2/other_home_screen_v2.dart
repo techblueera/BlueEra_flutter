@@ -14,7 +14,6 @@ import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart'
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/me/automotive_service/controller/business_profile_full_controller.dart';
-import 'package:BlueEra/features/me/automotive_service/view/v2/tabs/other_inquiry_tab_v2.dart';
 import 'package:BlueEra/features/me/automotive_service/view/v2/tabs/other_overview_tab_v2.dart';
 import 'package:BlueEra/features/me/automotive_service/view/v2/tabs/other_posts_tab_v2.dart';
 import 'package:BlueEra/features/me/automotive_service/view/v2/tabs/other_services_tab_v2.dart';
@@ -47,9 +46,8 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
   TabController? _tabController;
 
   List<String> get _tabs => [
-        AppStrings.inquiry.tr,
-        AppStrings.overview.tr,
         AppStrings.services.tr,
+        AppStrings.overview.tr,
         AppStrings.posts.tr,
         AppStrings.statics.tr,
       ];
@@ -112,11 +110,8 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
               topBar: _buildTopBar(),
               topBarHeight: MediaQuery.of(context).padding.top + 56,
               tabViews: [
-                _tabScroll(OtherInquiryTabV2(
-                  onAddServices: () => tabCtrl.animateTo(2),
-                )),
-                _tabScroll(OtherOverviewTabV2(controller: _otherController)),
                 _tabScroll(const OtherServicesTabV2()),
+                _tabScroll(OtherOverviewTabV2(controller: _otherController)),
                 _tabScroll(const OtherPostsTabV2()),
                 _tabScroll(const OtherStatsTabV2()),
               ],

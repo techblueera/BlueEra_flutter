@@ -75,6 +75,7 @@ class _VisitGroceryProductsScreenState extends State<VisitGroceryProductsScreen>
     final String categoryId = controller.selectedGroceryData.value?.sId ?? '';
 
     controller.fetchGlobalGroceryProducts(
+      userId: widget.userId,
       categoryId: categoryId,
       isLoadMore: isLoadMore,
     );

@@ -15,7 +15,6 @@ import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_departments_tab_v2.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_facilities_tab_v2.dart';
-import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_inquiry_tab_v2.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_overview_tab_v2.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_posts_tab_v2.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/tabs/hospital_stats_tab_v2.dart';
@@ -46,9 +45,8 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2>
   late final TabController _tabController;
 
   static final _tabs = [
-    AppStrings.hospitalInquiry.tr,
-    AppStrings.overview.tr,
     AppStrings.hospitalDepartments.tr,
+    AppStrings.overview.tr,
     AppStrings.facilities.tr,
     AppStrings.posts.tr,
     AppStrings.hospitalStats.tr,
@@ -104,7 +102,7 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2>
       onRefresh: () async {
         await Future.wait([
           _hospitalController.getHospitalFullDetailsController(),
-          if (_tabController.index == 4) _appointmentController.fetchOwnerAppointments(),
+          if (_tabController.index == 3) _appointmentController.fetchOwnerAppointments(),
         ]);
       },
       child: SingleChildScrollView(
@@ -129,11 +127,8 @@ class _HospitalHomeScreenV2State extends State<HospitalHomeScreenV2>
               topBar: _buildTopBar(),
               topBarHeight: MediaQuery.of(context).padding.top + 56,
               tabViews: [
-                _tabScroll(HospitalInquiryTabV2(
-                  onAddDepartments: () => _tabController.animateTo(2),
-                )),
-                _tabScroll(HospitalOverviewTabV2(controller: _hospitalController)),
                 _tabScroll(HospitalDepartmentsTabV2(controller: _hospitalController)),
+                _tabScroll(HospitalOverviewTabV2(controller: _hospitalController)),
                 _tabScroll(HospitalFacilitiesTabV2(controller: _hospitalController)),
                 _tabScroll(const HospitalPostsTabV2()),
                 _tabScroll(const HospitalStatsTabV2()),

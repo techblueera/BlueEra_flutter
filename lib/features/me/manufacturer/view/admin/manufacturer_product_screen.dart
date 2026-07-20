@@ -21,14 +21,12 @@ import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_h
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
-import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
 import 'package:BlueEra/features/common/statistics/view/profile_statistics_screen.dart';
 import 'package:BlueEra/features/me/manufacturer/controller/manufacturer_inventory_controller.dart';
 import 'package:BlueEra/features/me/product/model/product_category_with_inventory_model.dart';
 import 'package:BlueEra/features/me/manufacturer/view/admin/manufacturer_admin_all_top_selling_products_screen.dart';
 import 'package:BlueEra/features/me/manufacturer/view/admin/manufacturer_product_home_screen.dart';
 import 'package:BlueEra/features/me/manufacturer/view/admin/widget/manufacturer_admin_product_card.dart';
-import 'package:BlueEra/features/me/manufacturer/view/admin/widget/manufacturer_orders_tab_body.dart';
 import 'package:BlueEra/widgets/add_product_prompt_sheet.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
@@ -52,7 +50,7 @@ class ManufacturerProductScreen extends StatefulWidget {
 class _ProductScreenState extends State<ManufacturerProductScreen>
     with SingleTickerProviderStateMixin, MeTabBackHandlerMixin {
   TabController? _tabController;
-  int _selectedTab = 0; // land on the first tab (Order) on open
+  int _selectedTab = 0; // land on the first tab (Products) on open
   bool _isLoading = true;
 
   late final List<String> _tabs;
@@ -86,7 +84,7 @@ class _ProductScreenState extends State<ManufacturerProductScreen>
           ctaKey: AppStrings.addProduct,
           icon: Icons.precision_manufacturing_outlined,
         ),
-        onAddProduct: () => _tabController?.animateTo(2),
+        onAddProduct: () => _tabController?.animateTo(0),
       );
     });
   }
@@ -94,13 +92,11 @@ class _ProductScreenState extends State<ManufacturerProductScreen>
   void _initializeData() {
     // Tabs mirror the grocery v2 home screen exactly so the merchant
     // sees a consistent layout across me-section services.
-    _tabs = const ['Order', 'Overview', 'Products', 'Post', 'Statics'];
+    _tabs = const ['Products', 'Overview', 'Post', 'Statics'];
 
     _tabViews = [
-      ManufacturerOrdersTabBody(
-          onAddProducts: () => _tabController?.animateTo(2)),
-      const ManufacturerProductHomeScreen(),
       _ProductsTabBody(onAddProduct: _onAddProduct),
+      const ManufacturerProductHomeScreen(),
       _PostTabBody(),
       ProfileStatisticsScreen(userId: userId),
     ];
@@ -125,7 +121,7 @@ class _ProductScreenState extends State<ManufacturerProductScreen>
       setState(() => _selectedTab = c.index);
       // Fetch product data lazily â€” only when the merchant actually
       // opens the Products tab, not on every Me-tab landing.
-      if (c.index == 2) {
+      if (c.index == 0) {
         inventoryController.fetchAllProductData();
       }
     }
@@ -137,14 +133,8 @@ class _ProductScreenState extends State<ManufacturerProductScreen>
   Future<void> _onRefreshCurrentTab() async {
     switch (_selectedTab) {
       case 0:
-        // Orders: re-pull the order chat list + recharge status.
-        _chatViewController.emitEvent(
-          ChatEmitEvents.ChatList,
-          {ApiKeys.type: AppConstants.business_Chat_Type},
-        );
-        if (Get.isRegistered<ContributionController>()) {
-          await Get.find<ContributionController>().fetchCurrent();
-        }
+        // Products: re-pull catalog + categories.
+        inventoryController.fetchAllProductData();
         break;
       case 1:
         // Overview: re-pull the business profile (drives joined date,
@@ -152,16 +142,12 @@ class _ProductScreenState extends State<ManufacturerProductScreen>
         await viewBusinessDetailsController.viewBusinessProfile();
         break;
       case 2:
-        // Products: re-pull catalog + categories.
-        inventoryController.fetchAllProductData();
-        break;
-      case 3:
         // Post: re-pull the merchant's own posts feed.
         if (Get.isRegistered<FeedController>()) {
           await Get.find<FeedController>().getFeed(refresh: true);
         }
         break;
-      case 4:
+      case 3:
         // Statics: ProfileStatisticsScreen manages its own state and
         // doesn't expose an external refresh hook â€” no-op for now.
         break;
@@ -200,12 +186,8 @@ class _ProductScreenState extends State<ManufacturerProductScreen>
               topBar: _buildTopBar(),
               topBarHeight: topBarHeight,
               tabViews: [
-                _tabScroll([
-                  ManufacturerOrdersTabBody(
-                      onAddProducts: () => _tabController?.animateTo(2)),
-                ]),
-                _tabScroll(const [ManufacturerProductHomeScreen()]),
                 _tabScroll([_ProductsTabBody(onAddProduct: _onAddProduct)]),
+                _tabScroll(const [ManufacturerProductHomeScreen()]),
                 _tabScroll([_PostTabBody()]),
                 ProfileStatisticsScreen(userId: userId),
               ],
@@ -286,8 +268,6 @@ class _ProductScreenState extends State<ManufacturerProductScreen>
                 SizedBox(width: SizeConfig.size6),
                 // Pills wrapped in Flexible so their inner text can
                 // ellipsize instead of pushing the row past its width.
-                Flexible(child: _nearbyRidersPill()),
-                SizedBox(width: SizeConfig.size6),
                 Flexible(child: const ReferEarnPill()),
                 const Spacer(),
                 if (!isGuest) ...[
@@ -342,7 +322,7 @@ class _ProductScreenState extends State<ManufacturerProductScreen>
       // After a publish the merchant wants to see the new item in the
       // catalog, not whatever tab they launched the add flow from. Jump
       // to the Products tab before kicking off the refresh.
-      _tabController?.animateTo(2);
+      _tabController?.animateTo(0);
       inventoryController.fetchAllProductData();
     }
   }
@@ -370,55 +350,6 @@ class _ProductScreenState extends State<ManufacturerProductScreen>
               ),
             ),
             child: Icon(icon, size: 20, color: AppColors.secondaryTextColor),
-          ),
-        ),
-      ),
-    );
-  }
-
-  /// Quick-action pill â€” jumps to the nearby-riders screen so the
-  /// merchant can dispatch self-pickup or delivery. Glass white
-  /// surface + #C9CDD5 outline matching the grocery v2 pill.
-  Widget _nearbyRidersPill() {
-    return GestureDetector(
-      onTap: () => Get.toNamed(RouteHelper.getNearByRidersScreenRoute()),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-          child: Container(
-            padding: EdgeInsets.symmetric(
-                horizontal: SizeConfig.size12, vertical: SizeConfig.size6),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: const Color(0xFFC9CDD5),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                LocalAssets(
-                  imagePath: AppIconAssets.riderIcon,
-                  imgColor: AppColors.secondaryTextColor,
-                  height: 18,
-                  width: 18,
-                ),
-                SizedBox(width: SizeConfig.size6),
-                Flexible(
-                  child: CustomText(
-                    'Nearby Riders',
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.secondaryTextColor,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                ),
-              ],
-            ),
           ),
         ),
       ),

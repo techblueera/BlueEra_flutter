@@ -1,23 +1,19 @@
 import 'dart:io';
 import 'dart:ui';
 
-import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/go_live_pill.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_service_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/me/grocery/view/admin/shop_availability_screen.dart';
 import 'package:BlueEra/features/me/vehicle/controller/vehicle_controller.dart';
 import 'package:BlueEra/features/me/vehicle/view/v2/actions/vehicle_owner_actions.dart';
-import 'package:BlueEra/features/me/vehicle/view/v2/tabs/vehicle_inquiry_tab_v2.dart';
 import 'package:BlueEra/features/me/vehicle/view/v2/tabs/vehicle_overview_tab_v2.dart';
 import 'package:BlueEra/features/me/vehicle/view/v2/tabs/vehicle_posts_tab_v2.dart';
 import 'package:BlueEra/features/me/vehicle/view/v2/tabs/vehicle_stats_tab_v2.dart';
@@ -36,8 +32,8 @@ import 'package:get/get.dart';
 /// Redesigned to match the architecture of `HospitalHomeScreenV2`: a thin
 /// shell (gradient top bar + pill tab strip) that delegates each tab to a
 /// dedicated file under `tabs/`, with shared building blocks in
-/// `widgets/` and owner CRUD flows in `actions/`. Five tabs adapted to
-/// vehicle ownership: Inquiry, Overview, Vehicles, Posts, Stats.
+/// `widgets/` and owner CRUD flows in `actions/`. Four tabs adapted to
+/// vehicle ownership: Vehicles, Overview, Posts, Stats.
 class VehicleHomeScreenV2 extends StatefulWidget {
   const VehicleHomeScreenV2({super.key});
 
@@ -50,18 +46,12 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2>
   final VehicleController _ctrl =
       getOrPut(() => VehicleController(), permanent: true);
 
-  // Drives the inquiry list shown under the Inquiry tab — same controller
-  // the Connect screen uses, so socket-driven updates land on both.
-  final ChatViewController _chatViewController =
-      getOrPut(() => ChatViewController());
-
-  int _selectedTab = 0; // default to first tab
+  int _selectedTab = 0; // default to first tab (Vehicles)
   late final TabController _tabController;
 
   final List<String> _tabs = [
-    AppStrings.inquiryTab.tr,
-    AppStrings.overview.tr,
     AppStrings.vehiclesTab.tr,
+    AppStrings.overview.tr,
     AppStrings.posts.tr,
     AppStrings.statsTab.tr,
   ];
@@ -85,11 +75,6 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2>
     _ctrl.fetchMyVehicles();
     _ctrl.fetchMyContacts(showProgress: false);
     _ctrl.fetchMyGallery(showProgress: false);
-    // Hydrate the business chat list for the Inquiry tab.
-    _chatViewController.emitEvent(
-      ChatEmitEvents.ChatList,
-      {ApiKeys.type: AppConstants.business_Chat_Type},
-    );
   }
 
   /// Keep [_selectedTab] synced so the Vehicles-tab FAB shows/hides correctly.
@@ -145,17 +130,14 @@ class _VehicleHomeScreenV2State extends State<VehicleHomeScreenV2>
           // ),
           topBarHeight: MediaQuery.of(context).padding.top + 56,
           tabViews: [
-            _tabScroll(VehicleInquiryTabV2(
-              onAddVehicles: () => _tabController.animateTo(2),
-            )),
-            _tabScroll(VehicleOverviewTabV2(controller: _ctrl)),
             _tabScroll(VehicleVehiclesTabV2(controller: _ctrl)),
+            _tabScroll(VehicleOverviewTabV2(controller: _ctrl)),
             _tabScroll(const VehiclePostsTabV2()),
             _tabScroll(VehicleStatsTabV2(controller: _ctrl)),
           ],
         ),
       ),
-      // floatingActionButton: _selectedTab == 2
+      // floatingActionButton: _selectedTab == 0
       //     ? FloatingActionButton.extended(
       //         backgroundColor: AppColors.primaryColor,
       //         icon: const Icon(Icons.add, color: Colors.white),

@@ -917,6 +917,7 @@ class GroceryController extends GetxController {
   bool globalGroceryDataHasMore = true;
 
   Future<void> fetchGlobalGroceryProducts({
+    required String userId,
     required String categoryId,
     bool isLoadMore = false,
   }) async {
@@ -931,9 +932,10 @@ class GroceryController extends GetxController {
 
     try {
       Map<String, dynamic> params = {
+        ApiKeys.businessId: userId,
+        ApiKeys.categoryId: categoryId,
         ApiKeys.page: groceryDataPage,
         ApiKeys.limit: pageLimit,
-        ApiKeys.categoryId: categoryId
       };
 
       ResponseModel responseModel = await GroceryRepo().fetchGlobalGroceryProductsRepo(queryParam: params);

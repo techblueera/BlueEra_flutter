@@ -46,7 +46,6 @@ import 'package:BlueEra/features/me/medical/model/medical_home_response_model.da
 import 'package:BlueEra/features/me/medical/model/my_medical_super_category_model.dart';
 import 'package:BlueEra/features/me/medical/repo/medical_repo.dart';
 import 'package:BlueEra/features/me/medical/view/medical_gallery/medical_gallery_list_screen.dart';
-import 'package:BlueEra/features/me/medical/view/medical_inquiry_tab_v2.dart';
 import 'package:BlueEra/features/me/others/model/other_service_gallery_res_model.dart';
 import 'package:BlueEra/widgets/add_product_prompt_sheet.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -105,10 +104,9 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
       getOrPut(() => ChatFlagController());
 
   List<String> _tabs = [
-    AppStrings.inquiry.tr,
     // AppStrings.orders.tr,
-    AppStrings.overview.tr,
     AppStrings.products.tr,
+    AppStrings.overview.tr,
     AppStrings.posts.tr,
     AppStrings.stats.tr,
   ];
@@ -145,7 +143,7 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
             ctaKey: AppStrings.addProduct,
             icon: Icons.medication_outlined,
           ),
-          onAddProduct: () => _tabController.animateTo(2),
+          onAddProduct: () => _tabController.animateTo(0),
         );
       });
     }
@@ -156,23 +154,20 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
   /// each `*IfNeeded()` no-ops while its data is still loaded and fresh, so
   /// hopping between tabs (or leaving and coming back) doesn't refetch.
   ///
-  /// Tabs: 0 Inquiry, 1 Overview, 2 Products, 3 Posts, 4 Stats.
+  /// Tabs: 0 Products, 1 Overview, 2 Posts, 3 Stats.
   void _fetchForTab(int tab) {
     switch (tab) {
       case 0:
-        // Inquiry — the chat list is hydrated once in initState.
+        _ensureProductsLoaded();
         break;
       case 1:
         // Overview — reads the profile fetched by _fetchData() plus the
         // permanent ViewBusinessDetailsController. Nothing of its own.
         break;
       case 2:
-        _ensureProductsLoaded();
-        break;
-      case 3:
         // Post — FeedScreen owns its own fetch on mount.
         break;
-      case 4:
+      case 3:
         // Stats — ProfileStatisticsScreen owns its own data.
         break;
     }
@@ -281,14 +276,9 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
                     // overflow).
                     // topBarHeight: MediaQuery.of(context).padding.top + 132,
                     tabViews: [
-                      _tabScroll([
-                        MedicalInquiryTabV2(
-                          onAddProducts: () => _tabController.animateTo(2),
-                        ),
-                      ]),
+                      _tabScroll(_buildProductsTab()),
                       // ProfileStatisticsScreen(userId: userId),
                       _tabScroll(_buildOverviewSlivers()),
-                      _tabScroll(_buildProductsTab()),
                       _tabScroll(_buildPostTab()),
                       ProfileStatisticsScreen(userId: userId),
                     ],

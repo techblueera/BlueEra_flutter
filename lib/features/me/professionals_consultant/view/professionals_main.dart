@@ -22,10 +22,8 @@ import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/widgets/profile_share_banner.dart';
-import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
-import 'package:BlueEra/features/me/professionals_consultant/widget/professionals_inquiry_tab.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
@@ -79,17 +77,12 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
   late final TabController _tabController;
 
   List<String> get _tabs => [
-        AppStrings.order.tr,
-        AppStrings.overview.tr,
         AppStrings.service.tr,
+        AppStrings.overview.tr,
         AppStrings.store.tr,
         AppStrings.post.tr,
         AppStrings.proConsultTabStatics.tr,
       ];
-
-  // Drives the inquiry list shown under the Order tab â€” same controller
-  // the Connect screen uses, so socket-driven updates land on both.
-  final ChatViewController _chatViewController = getOrPut(() => ChatViewController());
 
   @override
   void initState() {
@@ -103,13 +96,6 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
     // No blocking progress dialog on screen entry — load silently.
     _ctrl.professionalsFullDetailsController(showProgress: false);
     _viewCtrl.UserFollowersAndPostsCount(userId);
-    // Hydrate the business chat list so the Order tab's inquiry list
-    // has data ready when the user switches to it. Mirrors what
-    // ConnectMainPage does for its Inquiry tab.
-    _chatViewController.emitEvent(
-      ChatEmitEvents.ChatList,
-      {ApiKeys.type: AppConstants.business_Chat_Type},
-    );
     // Hydrate the weekly schedule + today override (individual endpoints) so
     // the Go-Live pill reflects the real auto open/close state on entry.
     _viewCtrl.loadHours();
@@ -140,13 +126,8 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
               topBar: _buildTopBar(),
               topBarHeight: topBarHeight,
               tabViews: [
-                _tabScroll([
-                  ProfessionalsInquiryTab(
-                    onAddServices: () => _tabController.animateTo(2),
-                  ),
-                ]),
-                _tabScroll(_buildOverviewTab()),
                 _tabScroll(_buildServiceTab()),
+                _tabScroll(_buildOverviewTab()),
                 _tabScroll(const [EarnStoreCards()]),
                 _tabScroll(_buildPostTab()),
                 _tabScroll(_buildStaticsTab()),

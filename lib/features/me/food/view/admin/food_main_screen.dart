@@ -26,12 +26,10 @@ import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart'
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
-import 'package:BlueEra/features/me/food/view/widget/food_order_tab.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/common/statistics/view/profile_statistics_screen.dart';
-import 'package:BlueEra/features/contribution/controller/contribution_controller.dart';
 import 'package:BlueEra/features/me/food/controller/restaurant_controller.dart';
 import 'package:BlueEra/features/me/food/model/category_food_product_res_model.dart';
 import 'package:BlueEra/features/me/food/view/admin/discount_food_products_screen.dart';
@@ -68,7 +66,7 @@ class FoodMainScreen extends StatefulWidget {
 
 class _FoodMainScreenState extends State<FoodMainScreen>
     with SingleTickerProviderStateMixin, MeTabBackHandlerMixin {
-  int _selectedTab = 0; // Order tab
+  int _selectedTab = 0; // Products tab
   late final TabController _tabController;
 
   late final RestaurantController _foodController;
@@ -80,9 +78,8 @@ class _FoodMainScreenState extends State<FoodMainScreen>
       getOrPut(() => ChatViewController());
 
   List<String> get _tabs => [
-        AppStrings.orderTab.tr,
-        AppStrings.overviewTab.tr,
         AppStrings.productsTab.tr,
+        AppStrings.overviewTab.tr,
         AppStrings.postTabLabel.tr,
         AppStrings.statisticsTab.tr,
       ];
@@ -138,7 +135,7 @@ class _FoodMainScreenState extends State<FoodMainScreen>
           ctaKey: AppStrings.addFood,
           icon: Icons.restaurant_menu_rounded,
         ),
-        onAddProduct: () => _tabController.animateTo(2),
+        onAddProduct: () => _tabController.animateTo(0),
         livePhotoGate: _businessController,
       );
     });
@@ -150,8 +147,11 @@ class _FoodMainScreenState extends State<FoodMainScreen>
   void _fetchForTab(int tab) {
     switch (tab) {
       case 0:
-        // Order â€” order chat list is hydrated in initState; the
-        // ContributionController binds lazily when its slot renders.
+        // Products â€” popular dishes + food menu grid.
+        final id = businessId;
+        if (id.isEmpty) return;
+        _foodController.fetchHomeData(businessId: id);
+        _foodController.fetchDiscountFoodProducts(businessId: id);
         break;
       case 1:
         // Overview â€” the joined-profile / contact / QR / share-banner
@@ -160,16 +160,9 @@ class _FoodMainScreenState extends State<FoodMainScreen>
         // No food-specific API is needed for this tab.
         break;
       case 2:
-        // Products â€” popular dishes + food menu grid.
-        final id = businessId;
-        if (id.isEmpty) return;
-        _foodController.fetchHomeData(businessId: id);
-        _foodController.fetchDiscountFoodProducts(businessId: id);
-        break;
-      case 3:
         // Post â€” FeedScreen owns its own controller fetch on mount.
         break;
-      case 4:
+      case 3:
         // Statistics â€” ProfileStatisticsScreen owns its own data.
         break;
     }
@@ -208,13 +201,8 @@ class _FoodMainScreenState extends State<FoodMainScreen>
               topBar: _buildTopBar(),
               topBarHeight: topBarHeight,
               tabViews: [
-                _tabScroll([
-                  FoodOrderTab(
-                    onAddProduct: () => _tabController.animateTo(2),
-                  ),
-                ]),
-                _tabScroll(_buildOverviewSlivers()),
                 _tabScroll(_buildProductsTab()),
+                _tabScroll(_buildOverviewSlivers()),
                 _tabScroll(_buildPostTab()),
                 ProfileStatisticsScreen(
                   userId: businessId.isNotEmpty ? businessId : userId,
@@ -233,29 +221,20 @@ class _FoodMainScreenState extends State<FoodMainScreen>
   Future<void> _onRefreshCurrentTab() async {
     switch (_selectedTab) {
       case 0:
-        _chatViewController.emitEvent(
-          ChatEmitEvents.ChatList,
-          {ApiKeys.type: AppConstants.business_Chat_Type},
-        );
-        if (Get.isRegistered<ContributionController>()) {
-          await Get.find<ContributionController>().fetchCurrent();
-        }
-        break;
-      case 1:
-        await _businessController.viewBusinessProfile();
-        break;
-      case 2:
         final id = businessId;
         if (id.isEmpty) return;
         _foodController.fetchHomeData(businessId: id);
         await _foodController.fetchDiscountFoodProducts(businessId: id);
         break;
-      case 3:
+      case 1:
+        await _businessController.viewBusinessProfile();
+        break;
+      case 2:
         if (Get.isRegistered<FeedController>()) {
           await Get.find<FeedController>().getFeed(refresh: true);
         }
         break;
-      case 4:
+      case 3:
         // ProfileStatisticsScreen manages its own state and doesn't
         // expose an external refresh hook â€” no-op for now.
         break;
@@ -824,8 +803,6 @@ class _FoodMainScreenState extends State<FoodMainScreen>
                 SizedBox(width: SizeConfig.size6),
                 // Pills wrapped in Flexible so their inner text can ellipsize
                 // instead of pushing the row past its width.
-                Flexible(child: _nearbyRidersPill()),
-                SizedBox(width: SizeConfig.size6),
                 Flexible(child: const ReferEarnPill()),
                 const Spacer(),
                 _circleIconButton(
@@ -890,57 +867,6 @@ class _FoodMainScreenState extends State<FoodMainScreen>
       ),
     );
   }
-
-  /// Quick-action pill in the top bar â€” jumps to the nearby-riders
-  /// screen so the merchant can dispatch self-pickup or delivery.
-  /// Visually identical to the grocery v2 pill: glass white surface,
-  /// rider icon, neutral grey label, thin #C9CDD5 border.
-  Widget _nearbyRidersPill() {
-    return GestureDetector(
-      onTap: () => Get.toNamed(RouteHelper.getNearByRidersScreenRoute()),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
-          child: Container(
-            padding: EdgeInsets.symmetric(
-                horizontal: SizeConfig.size12, vertical: SizeConfig.size6),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(
-                color: const Color(0xFFC9CDD5),
-                width: 1,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                LocalAssets(
-                  imagePath: AppIconAssets.riderIcon,
-                  imgColor: AppColors.secondaryTextColor,
-                  height: 18,
-                  width: 18,
-                ),
-                SizedBox(width: SizeConfig.size6),
-                Flexible(
-                  child: CustomText(
-                    AppStrings.nearbyRiders.tr,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.secondaryTextColor,
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
 
   /// Drive the Go-Live toggle. Turning ON opens the shop-availability
   /// (open-timer) form directly — same as the grocery v2 home. The form

@@ -14,7 +14,6 @@ import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_h
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/features/me/school/view/v2/tabs/school_academics_tab_v2.dart';
-import 'package:BlueEra/features/me/school/view/v2/tabs/school_inquiry_tab_v2.dart';
 import 'package:BlueEra/features/me/school/view/v2/tabs/school_overview_tab_v2.dart';
 import 'package:BlueEra/features/me/school/view/v2/tabs/school_posts_tab_v2.dart';
 import 'package:BlueEra/features/me/school/view/v2/tabs/school_stats_tab_v2.dart';
@@ -44,9 +43,8 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2>
   late final TabController _tabController;
 
   List<String> get _tabs => [
-        AppStrings.inquiry.tr,
-        AppStrings.overview.tr,
         AppStrings.academics.tr,
+        AppStrings.overview.tr,
         AppStrings.posts.tr,
         AppStrings.stats.tr,
       ];
@@ -264,11 +262,8 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2>
               // ),
               topBarHeight: MediaQuery.of(context).padding.top + 56,
               tabViews: [
-                _tabScroll(SchoolInquiryTabV2(
-                  onAddAcademics: () => _tabController.animateTo(2),
-                )),
-                _tabScroll(SchoolOverviewTabV2(controller: _schoolController)),
                 _tabScroll(SchoolAcademicsTabV2(controller: _schoolController)),
+                _tabScroll(SchoolOverviewTabV2(controller: _schoolController)),
                 _tabScroll(const SchoolPostsTabV2()),
                 _tabScroll(const SchoolStatsTabV2()),
               ],

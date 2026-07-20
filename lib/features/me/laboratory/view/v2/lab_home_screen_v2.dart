@@ -14,7 +14,6 @@ import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_h
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_full_details_controller.dart';
 import 'package:BlueEra/features/me/laboratory/view/v2/tabs/lab_facilities_tab_v2.dart';
-import 'package:BlueEra/features/me/laboratory/view/v2/tabs/lab_inquiry_tab_v2.dart';
 import 'package:BlueEra/features/me/laboratory/view/v2/tabs/lab_overview_tab_v2.dart';
 import 'package:BlueEra/features/me/laboratory/view/v2/tabs/lab_posts_tab_v2.dart';
 import 'package:BlueEra/features/me/laboratory/view/v2/tabs/lab_stats_tab_v2.dart';
@@ -43,9 +42,8 @@ class _LabHomeScreenV2State extends State<LabHomeScreenV2>
 
   late final TabController _tabController;
   List<String> get _tabs => [
-        AppStrings.inquiry.tr,
-        AppStrings.overview.tr,
         AppStrings.tests.tr,
+        AppStrings.overview.tr,
         AppStrings.facilities.tr,
         AppStrings.posts.tr,
         AppStrings.stats.tr,
@@ -125,11 +123,8 @@ class _LabHomeScreenV2State extends State<LabHomeScreenV2>
               topBar: _buildTopBar(),
               topBarHeight: MediaQuery.of(context).padding.top + 56,
               tabViews: [
-                _tabScroll(LabInquiryTabV2(
-                  onAddTests: () => _tabController.animateTo(2),
-                )),
-                _tabScroll(LabOverviewTabV2(controller: _labController)),
                 _tabScroll(LabTestsTabV2(controller: _labController)),
+                _tabScroll(LabOverviewTabV2(controller: _labController)),
                 _tabScroll(LabFacilitiesTabV2(controller: _labController)),
                 _tabScroll(const LabPostsTabV2()),
                 _tabScroll(const LabStatsTabV2()),
