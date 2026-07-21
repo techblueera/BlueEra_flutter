@@ -208,6 +208,8 @@ class _RideSearchingScreenState extends State<RideSearchingScreen> {
             fontWeight: FontWeight.w700,
             color: RideStyle.ink,
           ),
+          const SizedBox(height: 4),
+          _waveStatus(),
           const SizedBox(height: 14),
           _progressBar(),
           const SizedBox(height: 20),
@@ -223,6 +225,33 @@ class _RideSearchingScreenState extends State<RideSearchingScreen> {
         ],
       ),
     );
+  }
+
+  /// Live wave-progress line, fed by the `ride:broadcast:searching` socket
+  /// event. Hidden until the first wave lands so it never shows a bare "0/0".
+  Widget _waveStatus() {
+    return Obx(() {
+      final total = controller.broadcastTotalWaves.value;
+      if (total <= 0) {
+        return CustomText(
+          'Notifying nearby captains…',
+          fontSize: 13,
+          fontWeight: FontWeight.w500,
+          color: RideStyle.inkMuted,
+        );
+      }
+      final wave = controller.broadcastWave.value.clamp(1, total);
+      final notified = controller.broadcastRidersNotified.value;
+      final ridersPart = notified > 0
+          ? ' · $notified captain${notified == 1 ? '' : 's'} notified'
+          : '';
+      return CustomText(
+        'Wave $wave of $total$ridersPart',
+        fontSize: 13,
+        fontWeight: FontWeight.w500,
+        color: RideStyle.inkMuted,
+      );
+    });
   }
 
   Widget _progressBar() {

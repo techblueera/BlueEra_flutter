@@ -10,6 +10,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/services/get_current_location.dart';
 import 'package:BlueEra/environment_config.dart';
+import 'package:BlueEra/features/chat/auth/socket/chat_socket.dart';
 import 'package:BlueEra/features/ride_booking/model/ride_booking_models.dart';
 import 'package:BlueEra/features/ride_booking/repo/ride_booking_repo.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
@@ -194,6 +195,17 @@ class RideBookingController extends GetxController {
 
   /// Set when the booking ends, so the tracking screen can pop with a reason.
   final Rxn<RideStatus> terminalStatus = Rxn<RideStatus>();
+
+  // ----------------------------------------------------- broadcast socket
+  // Real-time signals from the broadcast dispatch (guide §4). Polling stays the
+  // source of truth; the socket just finishes the search bar the instant a
+  // rider wins and drives the "searching wave N/M" copy. Handlers guard on the
+  // active order id, so a stale registration after resetTrip is a no-op — no
+  // explicit off() needed.
+  final broadcastWave = 0.obs; // current wave (1-based)
+  final broadcastTotalWaves = 0.obs; // total waves the server will run
+  final broadcastRidersNotified = 0.obs; // riders rung so far this order
+  bool _broadcastSocketBound = false;
 
   // ------------------------------------------------------------- lifecycle
 
@@ -930,6 +942,12 @@ class RideBookingController extends GetxController {
   /// slower status poll that actually decides when a captain is attached.
   void _startSearching() {
     searchProgress.value = 0;
+    broadcastWave.value = 0;
+    broadcastTotalWaves.value = 0;
+    broadcastRidersNotified.value = 0;
+
+    // Real-time race updates (instant winner / exhaustion / wave progress).
+    _subscribeBroadcastSocket();
 
     // Creep toward 90% over ~45s. It never completes on its own — only a real
     // assignment finishes the bar, so the UI can't imply success falsely.
@@ -998,6 +1016,102 @@ class RideBookingController extends GetxController {
       _statusRequestInFlight = false;
     }
   }
+
+  // ----------------------------------------------------- broadcast socket
+
+  /// Register the broadcast race listeners once. Idempotent — [ChatSocketService]
+  /// de-dupes by event name and replays on reconnect. Handlers ignore any event
+  /// whose orderId isn't our current booking, so they self-cancel after reset.
+  void _subscribeBroadcastSocket() {
+    if (_broadcastSocketBound) return;
+    _broadcastSocketBound = true;
+    final socket = ChatSocketService();
+
+    // Wave fan-out progress → "Searching · wave 1/3 · 5 riders".
+    socket.listenEvent('ride:broadcast:searching', (data) {
+      final m = _asMap(data);
+      if (!_isForActiveOrder(m)) return;
+      broadcastWave.value = _asInt(m['wave']) ?? broadcastWave.value;
+      broadcastTotalWaves.value =
+          _asInt(m['totalWaves']) ?? broadcastTotalWaves.value;
+      broadcastRidersNotified.value =
+          _asInt(m['ridersNotified']) ?? broadcastRidersNotified.value;
+    });
+
+    // Full winner payload — finish the bar and hydrate the captain immediately,
+    // without waiting for the next 3s status poll.
+    socket.listenEvent('ride:queue:accepted', (data) {
+      final m = _asMap(data);
+      if (!_isForActiveOrder(m)) return;
+      _applyBroadcastWinner(m);
+    });
+
+    // Lighter "someone won" signal — nudge the status poll to hydrate the
+    // captain right away.
+    socket.listenEvent('ride:broadcast:accepted', (data) {
+      final m = _asMap(data);
+      if (!_isForActiveOrder(m)) return;
+      final b = activeBooking.value;
+      if (b != null && !b.status.hasCaptain) {
+        startStatusPolling(interval: const Duration(seconds: 2));
+      }
+    });
+
+    // No rider took it — end the search instantly instead of waiting for the
+    // status poll to report `rejected`.
+    socket.listenEvent('ride:broadcast:exhausted', (data) {
+      final m = _asMap(data);
+      if (!_isForActiveOrder(m)) return;
+      final b = activeBooking.value;
+      if (b != null && b.status.isActive) {
+        _applyStatus(b.copyWith(status: RideStatus.noRidersFound));
+      }
+    });
+  }
+
+  /// Apply the `ride:queue:accepted` winner payload: flip to assigned and build
+  /// the captain card from `riderInfo`, keeping whatever the status poll may
+  /// already have hydrated.
+  void _applyBroadcastWinner(Map data) {
+    final booking = activeBooking.value;
+    if (booking == null) return;
+    final info = _asMap(data['riderInfo']);
+    final otp = (data['pickupOTP'] ?? data['pickupOtp'])?.toString();
+
+    RideCaptain? captain = booking.captain;
+    final riderId = (info['id'] ?? info['riderId'] ?? data['riderId'])?.toString();
+    if (riderId != null && riderId.isNotEmpty) {
+      captain = RideCaptain(
+        id: riderId,
+        name: (info['name'] ?? captain?.name ?? '').toString(),
+        phone: (info['contact'] ?? info['phone'] ?? captain?.phone)?.toString(),
+        photoUrl:
+            (info['profileImage'] ?? info['photoUrl'] ?? captain?.photoUrl)
+                ?.toString(),
+        vehicleNumber: captain?.vehicleNumber,
+        vehicleModel: captain?.vehicleModel,
+        rating: captain?.rating,
+        latitude: captain?.latitude,
+        longitude: captain?.longitude,
+      );
+    }
+
+    _applyStatus(booking.copyWith(
+      status: booking.status.hasCaptain ? booking.status : RideStatus.assigned,
+      captain: captain,
+      startOtp: (otp != null && otp.isNotEmpty) ? otp : null,
+    ));
+  }
+
+  bool _isForActiveOrder(Map data) {
+    final id = (data['orderId'] ?? data['rideId'] ?? data['id'])?.toString();
+    final active = activeBooking.value?.rideId;
+    return id != null && active != null && id == active;
+  }
+
+  Map _asMap(dynamic v) => v is Map ? v : const {};
+  int? _asInt(dynamic v) =>
+      v == null ? null : (v is num ? v.toInt() : int.tryParse(v.toString()));
 
   void _applyStatus(RideBooking updated) {
     activeBooking.value = updated;
@@ -1167,6 +1281,9 @@ class RideBookingController extends GetxController {
     activeBooking.value = null;
     terminalStatus.value = null;
     searchProgress.value = 0;
+    broadcastWave.value = 0;
+    broadcastTotalWaves.value = 0;
+    broadcastRidersNotified.value = 0;
     fareBoost.value = 0;
     paymentMode.value = 'CASH';
   }
