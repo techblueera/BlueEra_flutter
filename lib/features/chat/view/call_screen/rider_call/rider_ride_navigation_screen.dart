@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:flutter/material.dart';
@@ -249,7 +250,13 @@ class _RiderRideNavigationScreenState extends State<RiderRideNavigationScreen> {
         'orderId': widget.orderId,
       },
     );
-    Navigator.of(context).pop();
+    // Guarded — see the matching note in RiderPickupNavigationScreen: popping
+    // the last route leaves the app black with only the floating mini-map.
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    } else {
+      Get.offAllNamed(RouteHelper.getRiderServiceScreenRoute());
+    }
   }
 
   @override

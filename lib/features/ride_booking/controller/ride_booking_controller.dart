@@ -999,10 +999,15 @@ class RideBookingController extends GetxController {
       if (metadata is Map) {
         final rider = metadata['assignedRider'];
         if (rider is Map) {
-          updated = updated.copyWith(captain: RideCaptain.fromJson(rider));
+          // Merge, never replace: this poll runs every 3s and may carry less
+          // than the socket winner payload already gave us.
+          final incoming = RideCaptain.fromJson(rider);
+          updated = updated.copyWith(
+            captain: booking.captain?.merge(incoming) ?? incoming,
+          );
         } else if (rider != null && updated.captain == null) {
           // Bare id — show the card with what we have; the location poll
-          // fills in position, and the socket payload (if wired) fills names.
+          // fills in position, and the socket payload fills names.
           updated = updated.copyWith(
             captain: RideCaptain(id: rider.toString(), name: ''),
           );
@@ -1081,19 +1086,12 @@ class RideBookingController extends GetxController {
     RideCaptain? captain = booking.captain;
     final riderId = (info['id'] ?? info['riderId'] ?? data['riderId'])?.toString();
     if (riderId != null && riderId.isNotEmpty) {
-      captain = RideCaptain(
-        id: riderId,
-        name: (info['name'] ?? captain?.name ?? '').toString(),
-        phone: (info['contact'] ?? info['phone'] ?? captain?.phone)?.toString(),
-        photoUrl:
-            (info['profileImage'] ?? info['photoUrl'] ?? captain?.photoUrl)
-                ?.toString(),
-        vehicleNumber: captain?.vehicleNumber,
-        vehicleModel: captain?.vehicleModel,
-        rating: captain?.rating,
-        latitude: captain?.latitude,
-        longitude: captain?.longitude,
-      );
+      // `riderInfo` carries the full rider shape (name, photo, contact and a
+      // nested vehicleInformation) — parse it with the model rather than
+      // hand-picking a few keys, which is how the plate and model used to go
+      // missing on the card.
+      final incoming = RideCaptain.fromJson({'riderId': riderId, ...info});
+      captain = captain?.merge(incoming) ?? incoming;
     }
 
     _applyStatus(booking.copyWith(
@@ -1139,6 +1137,26 @@ class RideBookingController extends GetxController {
     _captainTimer = Timer.periodic(interval, (_) => _pollCaptainLocation());
   }
 
+  /// Stop chasing the captain marker while another screen owns live tracking.
+  ///
+  /// `TrackRiderLiveLocationPage` polls the SAME
+  /// `fare/orders/{orderId}/rider-location` endpoint on its own timer, so
+  /// leaving ours running would double the request rate against one endpoint
+  /// for two maps, only one of which is visible. Status polling continues —
+  /// that is what detects completion.
+  void pauseCaptainPolling() {
+    _captainTimer?.cancel();
+    _captainTimer = null;
+  }
+
+  /// Resume after that screen closes, if the ride is still live.
+  void resumeCaptainPolling() {
+    final booking = activeBooking.value;
+    if (booking == null || !booking.status.hasCaptain) return;
+    if (!booking.status.isActive) return;
+    _startCaptainPolling();
+  }
+
   Future<void> _pollCaptainLocation() async {
     final booking = activeBooking.value;
     if (booking == null || !booking.status.hasCaptain) return;
@@ -1160,38 +1178,14 @@ class RideBookingController extends GetxController {
       final rider = payload['rider'];
       if (rider is! Map) return; // transient GPS gap — keep the last marker
 
-      // Coordinates arrive either flat or nested under `location`, which may
-      // itself be GeoJSON `[lng, lat]`.
-      double? lat = _toNum(rider['latitude'])?.toDouble();
-      double? lng = _toNum(rider['longitude'])?.toDouble();
-      final location = rider['location'];
-      if (location is Map) {
-        lat ??= _toNum(location['latitude'])?.toDouble();
-        lng ??= _toNum(location['longitude'])?.toDouble();
-        final coords = location['coordinates'];
-        if (coords is List && coords.length >= 2) {
-          lng ??= _toNum(coords[0])?.toDouble();
-          lat ??= _toNum(coords[1])?.toDouble();
-        }
-      }
-
+      // `fromJson` already unpacks flat / nested / GeoJSON coordinates and the
+      // nested vehicleInformation; `merge` keeps the name, plate and photo the
+      // socket winner gave us when this thinner location payload omits them.
+      final incoming = RideCaptain.fromJson(rider);
       final existing = booking.captain;
+
       activeBooking.value = booking.copyWith(
-        captain: RideCaptain(
-          id: (rider['riderId'] ?? rider['id'] ?? existing?.id ?? '').toString(),
-          name: (rider['name'] ?? existing?.name ?? '').toString(),
-          phone: rider['phone']?.toString() ?? existing?.phone,
-          photoUrl: rider['photoUrl']?.toString() ??
-              rider['profileImage']?.toString() ??
-              existing?.photoUrl,
-          vehicleNumber:
-              rider['vehicleNumber']?.toString() ?? existing?.vehicleNumber,
-          vehicleModel:
-              rider['vehicleModel']?.toString() ?? existing?.vehicleModel,
-          rating: _toNum(rider['rating'])?.toDouble() ?? existing?.rating,
-          latitude: lat ?? existing?.latitude,
-          longitude: lng ?? existing?.longitude,
-        ),
+        captain: existing?.merge(incoming) ?? incoming,
         pickupEtaMinutes: _toNum(payload['etaMinutes'] ??
                 payload['pickupEtaMinutes'] ??
                 rider['etaMinutes'])

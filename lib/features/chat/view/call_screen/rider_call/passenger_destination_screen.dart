@@ -1,12 +1,16 @@
 import 'dart:async';
 
+import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/features/chat/auth/controller/upi_payment_controller.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../../../common/delivery_partner/controller/delivery_partner_orders_controller.dart';
 import '../../../auth/service/ride_location_publisher.dart';
@@ -85,6 +89,31 @@ class _PassengerDestinationScreenState
   bool _rideCompleted = false;
   bool _isEndingRide = false;
   double _dragX = 0;
+
+  /// Rider's own UPI id (VPA), for the collection QR on the completion sheet.
+  /// Null while loading, or when the rider has no UPI configured.
+  String? _riderUpiId;
+
+  /// True when the fare is still to be collected in person. `prepaid` rides
+  /// were paid online at booking — a QR there invites a double payment.
+  bool get _collectsPayment =>
+      widget.paymentMethod.toLowerCase() != 'prepaid' &&
+      widget.paymentMethod.toLowerCase() != 'online' &&
+      widget.fareAmount > 0;
+
+  /// Scannable UPI payload. The amount IS included here (unlike the chat
+  /// payment sheet, which asks the payer to type it) — the fare is known
+  /// exactly, and pre-filling it removes the most common way a rider gets
+  /// underpaid at the end of a trip.
+  String get _upiPayString => Uri.parse('upi://pay').replace(
+        queryParameters: {
+          'pa': _riderUpiId ?? '',
+          'pn': 'BlueEra Rider',
+          'am': widget.fareAmount.toStringAsFixed(2),
+          'cu': 'INR',
+          if (widget.orderId.isNotEmpty) 'tn': 'Ride ${widget.orderId}',
+        },
+      ).toString();
 
   LatLng get _dropLatLng => LatLng(widget.dropLat, widget.dropLng);
 
@@ -272,6 +301,107 @@ class _PassengerDestinationScreenState
       _rideCompleted = true;
       _isEndingRide = false;
     });
+    // Fetch the rider's own UPI id so the completion sheet can show a QR for
+    // the passenger to scan. Fired here rather than in initState so a ride that
+    // is minimised or abandoned never makes the call.
+    _loadPayoutQr();
+  }
+
+  /// Load the signed-in rider's UPI id for the collection QR.
+  ///
+  /// Only for rides the rider still has to collect for — a `prepaid` trip was
+  /// already paid online, and showing a QR there invites a double payment.
+  Future<void> _loadPayoutQr() async {
+    if (!_collectsPayment) return;
+    final me = userId;
+    if (me.isEmpty) return;
+    final controller = Get.put(UpiPaymentController());
+    await controller.fetchUserUpi(me);
+    if (!mounted) return;
+    setState(() => _riderUpiId = controller.upiId.value);
+  }
+
+  /// QR the passenger scans to pay the fare, shown on the completion sheet.
+  ///
+  /// Three states, because a blank square at the moment of collection is worse
+  /// than any of them: loading, no-UPI-configured (fall back to cash), and the
+  /// code itself.
+  Widget _buildCollectionQr() {
+    final upi = _riderUpiId;
+
+    if (upi == null) {
+      // Either still loading or the rider has no UPI on file. Either way the
+      // instruction is the same and unambiguous, so don't split hairs in the UI.
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFF8E1),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Row(
+            children: [
+              const Icon(Icons.payments_outlined,
+                  size: 20, color: Color(0xFFB26A00)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Collect ₹${widget.fareAmount.toStringAsFixed(0)} in cash',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFFB26A00),
+                    fontFamily: 'OpenSans',
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        Text(
+          'Ask the passenger to scan to pay',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Colors.grey.shade700,
+            fontFamily: 'OpenSans',
+          ),
+        ),
+        const SizedBox(height: 10),
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFFE5E7EB), width: 1.5),
+          ),
+          child: QrImageView(
+            data: _upiPayString,
+            version: QrVersions.auto,
+            size: 148,
+            // High correction: this is scanned off a phone held at arm's length,
+            // often in sunlight, sometimes with a cracked screen.
+            errorCorrectionLevel: QrErrorCorrectLevel.H,
+            gapless: true,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          upi,
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey.shade600,
+            fontFamily: 'OpenSans',
+          ),
+        ),
+      ],
+    );
   }
 
   /// Minimise back to the floating PiP overlay so the rider can keep the ride
@@ -306,7 +436,14 @@ class _PassengerDestinationScreenState
         'orderId': widget.orderId,
       },
     );
-    Navigator.of(context).pop();
+    // Guarded: this screen is reached by `pushReplacement` from the pickup
+    // screen, so when the whole chain started from a notification launch it is
+    // the only route on the stack and an unguarded pop blanks the app.
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    } else {
+      Get.offAllNamed(RouteHelper.getRiderServiceScreenRoute());
+    }
   }
 
   @override
@@ -798,13 +935,26 @@ class _PassengerDestinationScreenState
               fontFamily: 'OpenSans',
             ),
           ),
+          if (_collectsPayment) ...[
+            const SizedBox(height: 18),
+            _buildCollectionQr(),
+          ],
           const SizedBox(height: 22),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(),
+                // Guarded — this screen is reached by `pushReplacement`, so on a
+                // notification-launched ride it can be the only route on the
+                // stack and a bare pop would leave the app blank.
+                onPressed: () {
+                  if (Navigator.of(context).canPop()) {
+                    Navigator.of(context).pop();
+                  } else {
+                    Get.offAllNamed(RouteHelper.getRiderServiceScreenRoute());
+                  }
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF00C853),
                   padding: const EdgeInsets.symmetric(vertical: 15),

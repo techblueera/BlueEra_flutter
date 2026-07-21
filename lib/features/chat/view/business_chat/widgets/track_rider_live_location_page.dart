@@ -173,11 +173,17 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
 
   }
 
+  /// False when the caller had no drop coordinates — e.g. tracking opened from
+  /// a notification for an order this session never booked. The rider is still
+  /// worth showing; routing to `0,0` is not.
+  bool get _hasDestination => widget.endLat != 0 || widget.endLng != 0;
+
   Future<void> _getRoutePolyline() async {
     final riderLat = riderController.liveLat.value;
     final riderLng = riderController.liveLng.value;
 
     if (riderLat == 0 || riderLng == 0) return;
+    if (!_hasDestination) return;
 
     PolylinePoints polylinePoints =
     PolylinePoints(apiKey: googleMapKey);
@@ -230,10 +236,12 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
         position: LatLng(widget.startLat, widget.startLng),
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
       );
-      endMarker = Marker(
-        markerId: const MarkerId('drop_marker'),
-        position: LatLng(widget.endLat, widget.endLng),
-      );
+      endMarker = _hasDestination
+          ? Marker(
+              markerId: const MarkerId('drop_marker'),
+              position: LatLng(widget.endLat, widget.endLng),
+            )
+          : null;
     });
   }
 
@@ -396,6 +404,10 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
     // to a local straight-line calc until it arrives (both are haversine).
     final serverKm = riderController.distanceToDropKm.value;
     if (serverKm != null) return serverKm;
+
+    // No drop coordinates to measure against — 0 renders as "—" rather than a
+    // multi-thousand-km distance to the null island.
+    if (!_hasDestination) return 0;
 
     // Calculate distance from rider to end point using Geolocator math
     final total = Geolocator.distanceBetween(

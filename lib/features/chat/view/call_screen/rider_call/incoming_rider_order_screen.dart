@@ -2,7 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:get/get.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
+import '../../../../../environment_config.dart';
 
 import '../../../../../core/constants/getx_utils.dart';
 import '../../../../../core/routes/route_helper.dart';
@@ -69,6 +73,69 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
   // we just return to the orders dashboard where the card takes over.
   late final bool _isGoodsOrder;
 
+  /// True when this arrived via broadcast dispatch (`orderType: "broadcast"`).
+  ///
+  /// The difference is not cosmetic: a broadcast has **no VoIP call behind it**
+  /// (guide §7.3 — no `call_id` is sent), so Accept must confirm the order
+  /// directly instead of trying to answer a call that does not exist.
+  late final bool _isBroadcast;
+
+  /// `InCity | OutStation | HourlyRental | Parcel`.
+  late final String _orderFor;
+
+  /// Countdown length. The push carries `ttl_seconds` (20 for broadcast); the
+  /// old hard-coded 45 outlived the offer and left the rider tapping Accept on
+  /// a ride the server had already given away.
+  late final int _totalSeconds;
+
+  GoogleMapController? _mapController;
+  List<LatLng> _routePoints = const [];
+
+  bool get _hasRouteCoordinates =>
+      (_pickupLat != 0 || _pickupLng != 0) && (_dropLat != 0 || _dropLng != 0);
+
+  /// Rate behind the fare — the number a rider actually judges a job by, and
+  /// the one thing the payload never sends. Null when distance is unknown, so
+  /// the row is hidden rather than showing a misleading ₹0/km.
+  double? get _farePerKm =>
+      (_distance > 0 && _fare > 0) ? _fare / _distance : null;
+
+  String get _orderTypeLabel {
+    switch (_orderFor.toLowerCase()) {
+      case 'incity':
+        return 'In city';
+      case 'outstation':
+        return 'Outstation';
+      case 'hourlyrental':
+        return 'Hourly rental';
+      case 'parcel':
+        return 'Parcel';
+      default:
+        return _orderFor;
+    }
+  }
+
+  /// How far — and how long — the rider is from the pickup, when the push says.
+  ///
+  /// This is the deciding number for a rider weighing an offer: a ₹50 job is
+  /// good at 1 km out and bad at 6, so it sits on the PICKUP row itself rather
+  /// than in a chip further down.
+  String? get _pickupDistanceLabel {
+    final parts = <String>[
+      if (_etaDistanceKm > 0) '${_etaDistanceKm.toStringAsFixed(1)} km away',
+      if (_etaDurationMin > 0) '${_etaDurationMin.round()} min',
+    ];
+    return parts.isEmpty ? null : parts.join(' · ');
+  }
+
+  /// Heading for the offer. `jobLabel` ("Passenger ride") is the friendlier of
+  /// the two; `callTitle` ("Incoming Ride Request") is the legacy fallback.
+  String get _offerTitle {
+    if (_jobLabel.isNotEmpty) return _jobLabel;
+    if (_callTitle.isNotEmpty) return _callTitle;
+    return 'New ride request';
+  }
+
   @override
   void initState() {
     super.initState();
@@ -104,6 +171,13 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
     _riderTask = ride?['riderTask'] ?? '';
     _etaDistanceKm = _toDouble(ride?['eta']?['distanceKm']);
     _etaDurationMin = _toDouble(ride?['eta']?['durationMin']);
+    _orderFor = (ride?['orderFor'] ?? '').toString();
+    _isBroadcast =
+        (ride?['orderType'] ?? '').toString().toLowerCase() == 'broadcast';
+    final ttl = _toDouble(ride?['ttlSeconds']).round();
+    _totalSeconds = ttl > 0 ? ttl : 45;
+    _remainingSeconds = _totalSeconds;
+    _loadRoute();
 
     _pulseController = AnimationController(
       vsync: this,
@@ -117,10 +191,19 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
 
     _timerController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 45),
+      // Matches the server's ttl_seconds, not a fixed 45.
+      duration: Duration(seconds: _totalSeconds),
     )..forward();
 
-    // Ringtone is played by CallController.startRingtone() in _handleIncomingCall
+    // Ring for as long as this screen is up.
+    //
+    // A fare-call reaches here with the ringtone already going (started by
+    // `_handleIncomingCall` on the VoIP path), but a BROADCAST has no call
+    // behind it — nothing ever called startRingtone, so the screen opened in
+    // silence. The notification's own insistent ring stops the moment the
+    // rider taps it, so the offer sat there mute. `startRingtone` is idempotent,
+    // so this is a no-op on the fare-call path and the fix on the broadcast one.
+    _callController.startRingtone();
     HapticFeedback.heavyImpact();
 
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
@@ -181,6 +264,68 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
     return 0.0;
   }
 
+  /// Fetch the driving route for the preview map.
+  ///
+  /// Best-effort and non-blocking: the sheet and the Accept button must be
+  /// usable the instant the screen opens — this offer expires in
+  /// [_totalSeconds], so nothing here may gate the decision on a network call.
+  /// Until it lands (or if it fails) the map shows a dashed straight hint.
+  Future<void> _loadRoute() async {
+    if (!_hasRouteCoordinates) return;
+    try {
+      final result =
+          await PolylinePoints(apiKey: googleMapKey).getRouteBetweenCoordinates(
+        request: PolylineRequest(
+          origin: PointLatLng(_pickupLat, _pickupLng),
+          destination: PointLatLng(_dropLat, _dropLng),
+          mode: TravelMode.driving,
+        ),
+      );
+      if (!mounted || result.points.length < 2) return;
+      setState(() {
+        _routePoints = result.points
+            .map((p) => LatLng(p.latitude, p.longitude))
+            .toList(growable: false);
+      });
+      _fitRouteBounds();
+    } catch (_) {
+      // Keep the dashed hint — a missing preview must never block accepting.
+    }
+  }
+
+  /// Frame pickup, drop and the route between them.
+  Future<void> _fitRouteBounds() async {
+    final map = _mapController;
+    if (map == null || !_hasRouteCoordinates) return;
+
+    final points = <LatLng>[
+      LatLng(_pickupLat, _pickupLng),
+      LatLng(_dropLat, _dropLng),
+      ..._routePoints,
+    ];
+    var minLat = points.first.latitude, maxLat = points.first.latitude;
+    var minLng = points.first.longitude, maxLng = points.first.longitude;
+    for (final p in points) {
+      if (p.latitude < minLat) minLat = p.latitude;
+      if (p.latitude > maxLat) maxLat = p.latitude;
+      if (p.longitude < minLng) minLng = p.longitude;
+      if (p.longitude > maxLng) maxLng = p.longitude;
+    }
+    try {
+      await map.animateCamera(
+        CameraUpdate.newLatLngBounds(
+          LatLngBounds(
+            southwest: LatLng(minLat, minLng),
+            northeast: LatLng(maxLat, maxLng),
+          ),
+          60,
+        ),
+      );
+    } catch (_) {
+      // Map not laid out yet — the next call after the route lands retries.
+    }
+  }
+
   void _stopRingtone() {
     // Stop the controller's ringtone (centralized player)
     _callController.stopRingtone();
@@ -221,6 +366,25 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
     debugPrint('[FARE_CALL_DEBUG] _onAcceptRide → isFareCall=${_callController.isFareCall.value}, fareCallOrderId=${_callController.fareCallOrderId.value}');
     _countdownTimer.cancel();
     setState(() => _isAccepting = true);
+
+    // Broadcast dispatch has NO call behind it — the server rings every nearby
+    // rider with a data push and the first to accept wins (guide §7.3: no
+    // `call_id` is sent). Routing it through acceptCall() would try to answer a
+    // WebRTC session that was never created, fail, and drop the rider back to a
+    // dead screen with the job lost. Claim the order directly instead.
+    if (_isBroadcast) {
+      _stopRingtone();
+      final claimed = await _callController.acceptFareCallRide();
+      if (!mounted) return;
+      if (!claimed) {
+        // 409 = another rider won the race. acceptFareCallRide already closes
+        // the popup quietly in that case; anything else surfaced its own error.
+        setState(() => _isAccepting = false);
+        return;
+      }
+      await _proceedAfterRideAccepted();
+      return;
+    }
 
     // 1. Stop ringtone and release audio resources BEFORE WebRTC starts.
     //    On Android, the native AudioPlayer must fully release the audio
@@ -280,7 +444,16 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
     // Accept the ride order via API (rider confirmed after speaking with customer)
     final rideAccepted = await _callController.acceptFareCallRide();
     if (!rideAccepted) return;
+    await _proceedAfterRideAccepted();
+  }
 
+  /// Shared tail of both accept paths: tear down any call and route the rider
+  /// to the job.
+  ///
+  /// Broadcast reaches here straight from the sheet with no call to end;
+  /// fare-call reaches it after the conversation. Keeping one implementation
+  /// means the goods-vs-passenger branch can't drift between them.
+  Future<void> _proceedAfterRideAccepted() async {
     // Capture orderMongoId and the customer user id before endCall() clears
     // them via _resetState() — the rider pickup screen needs the customer id
     // so the "call customer" button can initiate a fresh audio call.
@@ -361,141 +534,221 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
         // ending the call or rejecting the ride request.
         await CallPipService.enterPipMode();
       },
-      child: Scaffold(
-        backgroundColor: const Color(0xFF0B141A),
-        body: Container(
-          width: double.infinity,
-          height: double.infinity,
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Color(0xFF1A2E35),
-                Color(0xFF0F1F27),
-                Color(0xFF0B141A),
-              ],
-              stops: [0.0, 0.5, 1.0],
+      // The two phases are different surfaces: the ringing phase is a map-led
+      // job offer (light, edge-to-edge, its own SafeArea inside the sheet), the
+      // call room stays the dark call UI it shares with the customer's screen.
+      child: _isCallConnected
+          ? Scaffold(
+              backgroundColor: const Color(0xFF0B141A),
+              body: Container(
+                width: double.infinity,
+                height: double.infinity,
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Color(0xFF1A2E35),
+                      Color(0xFF0F1F27),
+                      Color(0xFF0B141A),
+                    ],
+                    stops: [0.0, 0.5, 1.0],
+                  ),
+                ),
+                child: SafeArea(child: _buildCallRoomUI()),
+              ),
+            )
+          : Scaffold(
+              backgroundColor: Colors.white,
+              // No SafeArea around the map — it should run under the status
+              // bar; the countdown pill and the sheet inset themselves.
+              body: _buildRingingUI(),
             ),
-          ),
-          child: SafeArea(
-            child: _isCallConnected
-                ? _buildCallRoomUI()
-                : _buildRingingUI(),
-          ),
-        ),
-      ),
     );
   }
 
   // ─────────────────────────────────────────────
   // RINGING UI (Phase 1 — before accept)
+  //
+  // Map on top with the pickup→drop route, details sheet below. Replaces the
+  // earlier dark "incoming call" card: a rider decides on a job from the
+  // geometry (how far away is the pickup, where does it end up) far more than
+  // from a list of fields, so the route is the primary content and everything
+  // else reads against it.
   // ─────────────────────────────────────────────
 
   Widget _buildRingingUI() {
-    return Column(
+    return Stack(
       children: [
-        const SizedBox(height: 12),
-        _buildHeader(),
-        const SizedBox(height: 16),
-        Expanded(child: _buildRideInfoCard()),
-        _buildBottomActions(),
-        const SizedBox(height: 30),
+        Positioned.fill(child: _buildRouteMap()),
+        // Countdown floats over the map so it never scrolls out of sight —
+        // this offer expires whether or not the rider is looking at it.
+        //
+        // Offset by the status-bar inset: the map is deliberately edge-to-edge
+        // (no SafeArea), so a bare `top: 12` puts the pill under the clock and
+        // the notch.
+        Positioned(
+          top: MediaQuery.of(context).padding.top + 12,
+          left: 16,
+          right: 16,
+          child: _buildCountdownBar(),
+        ),
+        Align(alignment: Alignment.bottomCenter, child: _buildDetailsSheet()),
       ],
     );
   }
 
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
-        children: [
-          Flexible(
-            child: AnimatedBuilder(
-            animation: _pulseController,
-            builder: (context, child) {
-              final opacity = 0.5 + (_pulseController.value * 0.5);
-              return Opacity(opacity: opacity, child: child);
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              decoration: BoxDecoration(
-                color: const Color(0xFF00C853).withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: const Color(0xFF00C853).withValues(alpha: 0.4),
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(_jobIcon, color: const Color(0xFF00C853), size: 18),
-                  const SizedBox(width: 6),
-                  Flexible(
-                    child: Text(
-                      _callTitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF00C853),
-                        fontFamily: 'OpenSans',
-                      ),
-                    ),
-                  ),
-                ],
+  // ------------------------------------------------------------------- map
+
+  Widget _buildRouteMap() {
+    if (!_hasRouteCoordinates) {
+      // No coordinates in the push — show a neutral panel rather than a map
+      // parked on the null island.
+      return Container(
+        color: const Color(0xFFEDF1F5),
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.map_outlined, size: 44, color: Color(0xFF9AA5B1)),
+            const SizedBox(height: 8),
+            Text(
+              'Route preview unavailable',
+              style: TextStyle(
+                color: const Color(0xFF6B7280),
+                fontSize: 13,
+                fontFamily: 'OpenSans',
               ),
             ),
-          ),
-          ),
-          const SizedBox(width: 12),
-          _buildCountdownTimer(),
-        ],
+          ],
+        ),
+      );
+    }
+
+    return GoogleMap(
+      initialCameraPosition: CameraPosition(
+        target: LatLng(_pickupLat, _pickupLng),
+        zoom: 13,
       ),
+      onMapCreated: (c) {
+        _mapController = c;
+        _fitRouteBounds();
+      },
+      myLocationEnabled: false,
+      myLocationButtonEnabled: false,
+      zoomControlsEnabled: false,
+      mapToolbarEnabled: false,
+      liteModeEnabled: false,
+      // Keep the fitted route inside the band that is actually visible —
+      // between the floating countdown pill (status bar + its own height) and
+      // the details sheet covering the lower half.
+      padding: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top + 76,
+        bottom: 260,
+      ),
+      markers: {
+        Marker(
+          markerId: const MarkerId('pickup'),
+          position: LatLng(_pickupLat, _pickupLng),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+          infoWindow: const InfoWindow(title: 'Pickup'),
+        ),
+        Marker(
+          markerId: const MarkerId('drop'),
+          position: LatLng(_dropLat, _dropLng),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+          infoWindow: const InfoWindow(title: 'Drop'),
+        ),
+      },
+      polylines: {
+        if (_routePoints.length >= 2)
+          Polyline(
+            polylineId: const PolylineId('route'),
+            points: _routePoints,
+            color: const Color(0xFF0F172A),
+            width: 5,
+            startCap: Cap.roundCap,
+            endCap: Cap.roundCap,
+            jointType: JointType.round,
+          )
+        else
+          // Straight hint until the Directions call lands — dashed so it never
+          // reads as the actual road route.
+          Polyline(
+            polylineId: const PolylineId('route_pending'),
+            points: [
+              LatLng(_pickupLat, _pickupLng),
+              LatLng(_dropLat, _dropLng),
+            ],
+            color: const Color(0xFF94A3B8),
+            width: 3,
+            patterns: [PatternItem.dash(18), PatternItem.gap(10)],
+          ),
+      },
     );
   }
 
-  Widget _buildCountdownTimer() {
-    final color = _remainingSeconds <= 10
-        ? const Color(0xFFFF5252)
-        : const Color(0xFF00C853);
+  // -------------------------------------------------------------- countdown
+
+  Widget _buildCountdownBar() {
+    final total = _totalSeconds <= 0 ? 1 : _totalSeconds;
+    final progress = (_remainingSeconds / total).clamp(0.0, 1.0);
+    final urgent = _remainingSeconds <= 5;
 
     return Container(
-      width: 52,
-      height: 52,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: color.withValues(alpha: 0.3),
-          width: 2,
-        ),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.16),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
-      child: Stack(
-        alignment: Alignment.center,
+      child: Row(
         children: [
-          SizedBox(
-            width: 48,
-            height: 48,
-            child: AnimatedBuilder(
-              animation: _timerController,
-              builder: (context, _) {
-                return CircularProgressIndicator(
-                  value: 1.0 - _timerController.value,
-                  strokeWidth: 3,
-                  color: color,
-                  backgroundColor: Colors.white.withValues(alpha: 0.05),
-                );
-              },
+          Icon(_jobIcon, size: 20, color: const Color(0xFF0F172A)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _offerTitle,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF0F172A),
+                    fontFamily: 'OpenSans',
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 5),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(3),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    minHeight: 4,
+                    backgroundColor: const Color(0xFFE2E8F0),
+                    valueColor: AlwaysStoppedAnimation(
+                      urgent ? const Color(0xFFEA4335) : const Color(0xFF00A65A),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
+          const SizedBox(width: 12),
           Text(
-            '$_remainingSeconds',
+            '${_remainingSeconds}s',
             style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: color,
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: urgent ? const Color(0xFFEA4335) : const Color(0xFF0F172A),
               fontFamily: 'OpenSans',
             ),
           ),
@@ -504,114 +757,118 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
     );
   }
 
-  Widget _buildRideInfoCard() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Column(
-        children: [
-          _buildCustomerRow(),
-          if (_riderTask.isNotEmpty) ...[
-            const SizedBox(height: 12),
+  // ------------------------------------------------------------------ sheet
+
+  Widget _buildDetailsSheet() {
+    return Container(
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(22)),
+        boxShadow: [
+          BoxShadow(color: Color(0x33000000), blurRadius: 22, offset: Offset(0, -6)),
+        ],
+      ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 10),
             Container(
-              width: double.infinity,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              width: 40,
+              height: 4,
               decoration: BoxDecoration(
-                color: const Color(0xFF42A5F5).withValues(alpha: 0.10),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: const Color(0xFF42A5F5).withValues(alpha: 0.25),
+                color: const Color(0xFFCBD5E1),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            // Scrollable so a long address pair can't overflow on a short
+            // screen — the action row below stays pinned either way.
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildFareRow(),
+                    const SizedBox(height: 14),
+                    const Divider(height: 1, color: Color(0xFFEEF2F6)),
+                    const SizedBox(height: 14),
+                    _buildRouteRows(),
+                    const SizedBox(height: 12),
+                    _buildCustomerRow(),
+                  ],
                 ),
               ),
-              child: Row(
-                children: [
-                  Icon(_jobIcon,
-                      color: const Color(0xFF42A5F5), size: 18),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      _riderTask,
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white.withValues(alpha: 0.85),
-                        fontFamily: 'OpenSans',
-                      ),
-                    ),
-                  ),
-                ],
-              ),
             ),
+            _buildBottomActions(),
           ],
-          const SizedBox(height: 20),
-          Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.06),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.08),
-                width: 1,
-              ),
-            ),
-            child: Column(
-              children: [
-                _buildFareDistanceHeader(),
-                Divider(
-                    color: Colors.white.withValues(alpha: 0.08), height: 1),
-                _buildRouteTimeline(),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 10,
-            runSpacing: 8,
-            alignment: WrapAlignment.center,
-            children: [
-              _buildPaymentChip(),
-              if (_jobLabel.isNotEmpty) _buildInfoChip(
-                icon: _jobIcon,
-                label: _jobLabel,
-                color: const Color(0xFF42A5F5),
-              ),
-              if (_etaDurationMin > 0) _buildInfoChip(
-                icon: Icons.access_time_rounded,
-                label: '${_etaDurationMin.toStringAsFixed(0)} min${_etaDistanceKm > 0 ? ' (${_etaDistanceKm.toStringAsFixed(1)} km)' : ''}',
-                color: const Color(0xFF66BB6A),
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildCustomerRow() {
+  /// Fare, the per-km rate behind it, and the trip's shape (type + payment).
+  ///
+  /// Per-km is what tells a rider whether a job is worth taking, and it is the
+  /// one number the payload does NOT send — it is derived here from fare and
+  /// distance, and hidden when distance is unknown rather than shown as ₹0/km.
+  Widget _buildFareRow() {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildAvatar(50),
-        const SizedBox(width: 14),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                _customerName,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                  fontFamily: 'OpenSans',
-                ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Text(
+                    '₹${_fare.toStringAsFixed(0)}',
+                    style: const TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF0F172A),
+                      fontFamily: 'OpenSans',
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  if (_farePerKm != null)
+                    Text(
+                      '₹${_farePerKm!.toStringAsFixed(0)}/km',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF64748B),
+                        fontFamily: 'OpenSans',
+                      ),
+                    ),
+                ],
               ),
-              const SizedBox(height: 2),
-              Text(
-                'Customer',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: Colors.white.withValues(alpha: 0.5),
-                  fontFamily: 'OpenSans',
-                ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  if (_orderTypeLabel.isNotEmpty)
+                    _buildTag(_orderTypeLabel, const Color(0xFF0F172A)),
+                  _buildTag(
+                    _paymentMethod.toLowerCase() == 'prepaid'
+                        ? 'Paid online'
+                        : 'Collect cash',
+                    _paymentMethod.toLowerCase() == 'prepaid'
+                        ? const Color(0xFF0284C7)
+                        : const Color(0xFF00A65A),
+                  ),
+                  if (_distance > 0)
+                    _buildTag(
+                      '${_distance.toStringAsFixed(1)} km trip',
+                      const Color(0xFF64748B),
+                    ),
+                ],
               ),
             ],
           ),
@@ -620,351 +877,276 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
     );
   }
 
+  Widget _buildTag(String label, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: color,
+          fontFamily: 'OpenSans',
+        ),
+      ),
+    );
+  }
+
+  /// Pickup above drop, joined by a rail — the standard reading order, so the
+  /// rider scans "where do I go first" without parsing labels.
+  Widget _buildRouteRows() {
+    return Column(
+      children: [
+        _buildStopRow(
+          color: const Color(0xFF00A65A),
+          label: 'PICKUP',
+          address: _pickupAddress,
+          trailing: _pickupDistanceLabel,
+        ),
+        Padding(
+          padding: const EdgeInsets.only(left: 5),
+          child: Row(
+            children: [
+              Container(width: 2, height: 22, color: const Color(0xFFE2E8F0)),
+            ],
+          ),
+        ),
+        _buildStopRow(
+          color: const Color(0xFFEA4335),
+          label: 'DROP',
+          address: _dropAddress,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStopRow({
+    required Color color,
+    required String label,
+    required String address,
+    String? trailing,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.6,
+                      color: color,
+                      fontFamily: 'OpenSans',
+                    ),
+                  ),
+                  if (trailing != null) ...[
+                    const SizedBox(width: 8),
+                    Text(
+                      trailing,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFF64748B),
+                        fontFamily: 'OpenSans',
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 2),
+              Text(
+                address,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  height: 1.35,
+                  color: Color(0xFF0F172A),
+                  fontFamily: 'OpenSans',
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCustomerRow() {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          _buildAvatar(38),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _customerName,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF0F172A),
+                    fontFamily: 'OpenSans',
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (_riderTask.isNotEmpty)
+                  Text(
+                    _riderTask,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF64748B),
+                      fontFamily: 'OpenSans',
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Light-theme avatar. The call-room phase keeps its own dark
+  /// [_buildCallRoomAvatar]; this one sits on the white details sheet.
   Widget _buildAvatar(double size) {
     return Container(
       width: size,
       height: size,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: const Color(0xFF2A3942),
-        border: Border.all(
-          color: const Color(0xFF00C853).withValues(alpha: 0.4),
-          width: 2,
-        ),
+        color: const Color(0xFFE2E8F0),
+        border: Border.all(color: const Color(0xFF00A65A), width: 1.6),
       ),
       child: _customerImage.isNotEmpty
           ? ClipOval(
               child: Image.network(
                 _customerImage,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Icon(
-                    Icons.person_rounded,
-                    color: const Color(0xFF8696A0),
-                    size: size * 0.56),
+                errorBuilder: (_, __, ___) => Icon(Icons.person_rounded,
+                    color: const Color(0xFF94A3B8), size: size * 0.56),
               ),
             )
           : Icon(Icons.person_rounded,
-              color: const Color(0xFF8696A0), size: size * 0.56),
+              color: const Color(0xFF94A3B8), size: size * 0.56),
     );
   }
 
-  Widget _buildFareDistanceHeader() {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              children: [
-                Icon(Icons.currency_rupee_rounded,
-                    color: const Color(0xFF00C853).withValues(alpha: 0.7),
-                    size: 20),
-                const SizedBox(height: 6),
-                Text(
-                  '₹${_fare.toStringAsFixed(0)}',
-                  style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF00C853),
-                    fontFamily: 'OpenSans',
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Estimated Fare',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.white.withValues(alpha: 0.45),
-                    fontFamily: 'OpenSans',
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            width: 1,
-            height: 60,
-            color: Colors.white.withValues(alpha: 0.08),
-          ),
-          Expanded(
-            child: Column(
-              children: [
-                Icon(Icons.route_rounded,
-                    color: const Color(0xFF42A5F5).withValues(alpha: 0.7),
-                    size: 20),
-                const SizedBox(height: 6),
-                Text(
-                  '${_distance.toStringAsFixed(1)} km',
-                  style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF42A5F5),
-                    fontFamily: 'OpenSans',
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Total Distance',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.white.withValues(alpha: 0.45),
-                    fontFamily: 'OpenSans',
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRouteTimeline() {
-    return Padding(
-      padding: const EdgeInsets.all(20),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Column(
-            children: [
-              const SizedBox(height: 3),
-              Container(
-                width: 14,
-                height: 14,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: const Color(0xFF00C853),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF00C853).withValues(alpha: 0.4),
-                      blurRadius: 8,
-                    ),
-                  ],
-                ),
-              ),
-              ...List.generate(
-                4,
-                (_) => Container(
-                  width: 2,
-                  height: 8,
-                  margin: const EdgeInsets.symmetric(vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(1),
-                  ),
-                ),
-              ),
-              Container(
-                width: 14,
-                height: 14,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: const Color(0xFFFF7043),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFFF7043).withValues(alpha: 0.4),
-                      blurRadius: 8,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'PICKUP',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFF00C853).withValues(alpha: 0.8),
-                    fontFamily: 'OpenSans',
-                    letterSpacing: 1.2,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  _pickupAddress,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white,
-                    fontFamily: 'OpenSans',
-                    height: 1.3,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  'DROP-OFF',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFFFF7043).withValues(alpha: 0.8),
-                    fontFamily: 'OpenSans',
-                    letterSpacing: 1.2,
-                  ),
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  _dropAddress,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white,
-                    fontFamily: 'OpenSans',
-                    height: 1.3,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPaymentChip() {
-    return _buildInfoChip(
-      icon: _paymentMethod.toLowerCase() == 'prepaid'
-          ? Icons.account_balance_wallet_rounded
-          : Icons.money_rounded,
-      label: _paymentMethod,
-      color: const Color(0xFFFFC107),
-    );
-  }
-
-  Widget _buildInfoChip({
-    required IconData icon,
-    required String label,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: Colors.white.withValues(alpha: 0.08),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: color, size: 18),
-          const SizedBox(width: 8),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: Colors.white.withValues(alpha: 0.7),
-              fontFamily: 'OpenSans',
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // ---------------------------------------------------------------- actions
 
   Widget _buildBottomActions() {
     if (_isAccepting) {
-      return Column(
-        children: [
-          const SizedBox(
-            width: 48,
-            height: 48,
-            child: CircularProgressIndicator(
-              color: Color(0xFF00C853),
-              strokeWidth: 2.5,
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(16, 18, 16, 16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                color: Color(0xFF00A65A),
+                strokeWidth: 2.4,
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Accepting ride...',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.6),
-              fontSize: 14,
-              fontFamily: 'OpenSans',
+            const SizedBox(width: 12),
+            Text(
+              _isBroadcast ? 'Claiming ride…' : 'Connecting…',
+              style: const TextStyle(
+                color: Color(0xFF64748B),
+                fontSize: 14,
+                fontFamily: 'OpenSans',
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       );
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 30),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _buildActionButton(
-            icon: Icons.close_rounded,
-            color: const Color(0xFFEA4335),
-            label: 'Reject',
-            onTap: _onRejectRide,
-          ),
-          _buildActionButton(
-            icon: Icons.check_rounded,
-            color: const Color(0xFF00C853),
-            label: 'Accept',
-            isAccept: true,
-            onTap: _onAcceptRide,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionButton({
-    required IconData icon,
-    required Color color,
-    required String label,
-    required VoidCallback onTap,
-    bool isAccept = false,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          AnimatedBuilder(
-            animation: _slideController,
-            builder: (context, child) {
-              if (!isAccept) return child!;
-              final scale = 1.0 + (_slideController.value * 0.08);
-              return Transform.scale(scale: scale, child: child);
-            },
-            child: Container(
-              width: 72,
-              height: 72,
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: color.withValues(alpha: 0.45),
-                    blurRadius: 20,
-                    spreadRadius: 2,
+          Expanded(
+            flex: 4,
+            child: SizedBox(
+              height: 52,
+              child: OutlinedButton(
+                onPressed: _onRejectRide,
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: Color(0xFFE2E8F0)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                ],
+                ),
+                child: const Text(
+                  'Cancel',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFFEA4335),
+                    fontFamily: 'OpenSans',
+                  ),
+                ),
               ),
-              child: Icon(icon, color: Colors.white, size: 34),
             ),
           ),
-          const SizedBox(height: 10),
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.7),
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              fontFamily: 'OpenSans',
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 6,
+            child: SizedBox(
+              height: 52,
+              child: ElevatedButton(
+                onPressed: _onAcceptRide,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00A65A),
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  // Broadcast is a race — "Accept" understates it; the rider is
+                  // claiming a job several others are being offered right now.
+                  _isBroadcast ? 'Accept ride' : 'Accept & talk',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                    fontFamily: 'OpenSans',
+                  ),
+                ),
+              ),
             ),
           ),
         ],

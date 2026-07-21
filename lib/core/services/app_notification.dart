@@ -47,6 +47,7 @@ import 'package:http/http.dart' as http;
 import 'package:permission_handler/permission_handler.dart';
 
 import '../../features/chat/auth/controller/call_controller.dart';
+import 'ride_notification_router.dart';
 import 'ride_ring_notification.dart';
 import '../../features/common/Discover/controller/discover_controller.dart';
 import '../../features/chat/view/ai_chat/view/ai_chat_screen.dart';
@@ -99,6 +100,7 @@ const Set<String> _orderNotificationOperations = {
   'tiffin_pickup_order_ready',
   'medical_pickup_order',
   'medical_pickup_order_ready',
+  'broadcast_ride_request'
 };
 
 /// Top-level handler for background notification actions (inline reply, mark as read, etc.)
@@ -153,13 +155,24 @@ void onForegroundNotificationResponse(NotificationResponse response) {
       return;
     }
 
-    // Fare ride: Decline — just dismiss the notification
-    if (actionId == 'fare_ride_decline') {
+    // Fare ride / broadcast: Decline.
+    //
+    // Used to only dismiss the banner, which left the server still waiting on
+    // this rider — for a broadcast that means the wave holds a slot for someone
+    // who has already said no. Now it rejects over the API, without opening the
+    // app (`showsUserInterface: false`).
+    if (isRideDeclineAction(actionId)) {
+      final orderId = orderIdFromRideActionId(
+              actionId, kRideDeclineActionPrefixes) ??
+          orderIdFromRidePayload(data);
+      rideNotifLog('action: DECLINE orderId=${orderId ?? "(none)"}');
+      AppNotificationHandler()._declineRideFromNotification(orderId);
       return;
     }
 
-    // Fare ride: View — open the rider order screen
-    if (actionId == 'fare_ride_view') {
+    // Fare ride / broadcast: View — open the rider order screen
+    if (isRideViewAction(actionId)) {
+      rideNotifLog('action: VIEW → IncomingRiderOrderScreen');
       AppNotificationHandler()._showRiderOrderScreen(data);
       return;
     }
@@ -210,16 +223,53 @@ Future<void> _handleBackgroundNotificationResponse(
     ),
   );
 
-  // --- Fare ride: Decline — just cancel the notification ---
-  if (actionId == 'fare_ride_decline') {
-    await plugin.cancel(response.id ?? 0);
+  // --- Fare ride / broadcast: Decline ---
+  // Cancels the ring AND rejects server-side. Cancelling alone left the wave
+  // holding a slot for a rider who had already said no, so the customer waited
+  // out the full window for nothing. No GetX/navigation in this isolate — a
+  // direct REST call, same shape as the incoming-call decline below.
+  if (isRideDeclineAction(actionId)) {
+    final orderId =
+        orderIdFromRideActionId(actionId, kRideDeclineActionPrefixes) ??
+            orderIdFromRidePayload(data);
+    rideNotifLog('bg action: DECLINE orderId=${orderId ?? "(none)"}');
+    await plugin.cancel(ringNotificationIdFor(orderId));
+    if (orderId == null || orderId.isEmpty) {
+      rideNotifLog('bg action: DECLINE has no orderId — cancelled ring only');
+      return;
+    }
+    try {
+      const storage = FlutterSecureStorage();
+      final token = await storage.read(key: SharedPreferenceUtils.authToken);
+      if (token != null && token.isNotEmpty) {
+        // `baseUrl` is not initialised in the FCM background isolate
+        // (projectKeys() runs in main()), so fall back to the prod gateway —
+        // same reason the call-decline path hardcodes its base.
+        final api = (baseUrl ?? 'https://be.beapp.in/api/') +
+            'rider-service/fare/orders/$orderId/ride-action';
+        await dio.Dio().post(
+          api,
+          data: {'action': 'reject'},
+          options: dio.Options(
+            headers: {
+              'Authorization': 'Bearer $token',
+              'Content-Type': 'application/json',
+              'X-Device-Type': 'mobile',
+            },
+          ),
+        );
+        rideNotifLog('bg action: DECLINE posted for $orderId');
+      }
+    } catch (e) {
+      rideNotifLog('bg action: DECLINE API failed for $orderId: $e');
+    }
     return;
   }
 
   // --- Fare ride: View — showsUserInterface: true brings the app to foreground,
   // the default tap handler (_onTapNotificationFromStatusBar) will route it ---
-  if (actionId == 'fare_ride_view') {
-    // App opens via showsUserInterface: true — tap routing handles navigation
+  if (isRideViewAction(actionId)) {
+    rideNotifLog('bg action: VIEW — app opening, tap routing takes over');
     return;
   }
 
@@ -348,11 +398,17 @@ Future<void> _handleBackgroundNotificationResponse(
   }
 
   // --- Ride actions ---
-  if (actionId.startsWith('track_ride_') ||
-      actionId.startsWith('view_order_') ||
-      actionId.startsWith('accept_order_') ||
-      actionId.startsWith('contact_rider_')) {
-    Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
+  // The order id is the suffix of the action id, and the router re-checks the
+  // order's live status before deciding where to go — a notification tapped
+  // hours later must not open a tracking map for a finished ride.
+  final rideActionOrderId =
+      RideNotificationRouter.orderIdFromActionId(actionId);
+  if (rideActionOrderId != null) {
+    RideNotificationRouter.open(
+      rideActionOrderId,
+      data: data,
+      fallback: () => Get.toNamed(RouteHelper.getRiderServiceScreenRoute()),
+    );
     return;
   }
 
@@ -955,18 +1011,24 @@ class AppNotificationHandler {
       sound: RawResourceAndroidNotificationSound('hangouts_call'),
       audioAttributesUsage: AudioAttributesUsage.notificationRingtone,
     );
-    const AndroidNotificationChannel fareRideRingtoneV2 =
+    // Ride requests ring with the ORDER chime (`new_order_mu`), not the call
+    // tone — see [kRideRingChannelId] for why the id is versioned.
+    const AndroidNotificationChannel fareRideRingtone =
         AndroidNotificationChannel(
-      'fare_ride_incoming_ringtone_v2',
-      'Ride Requests',
-      description: 'Incoming ride request alerts',
+      kRideRingChannelId,
+      kRideRingChannelName,
+      description: kRideRingChannelDescription,
       importance: Importance.max,
       playSound: true,
-      sound: RawResourceAndroidNotificationSound('hangouts_call'),
+      sound: RawResourceAndroidNotificationSound(kRideRingSound),
       audioAttributesUsage: AudioAttributesUsage.notificationRingtone,
     );
     await androidPlugin?.createNotificationChannel(incomingCallsRingtoneV2);
-    await androidPlugin?.createNotificationChannel(fareRideRingtoneV2);
+    await androidPlugin?.createNotificationChannel(fareRideRingtone);
+    // Drop the superseded channel so it stops showing as a stale, silent
+    // "Ride Requests" entry in Android's per-app notification settings.
+    await androidPlugin
+        ?.deleteNotificationChannel('fare_ride_incoming_ringtone_v2');
 
     // Order alerts: dedicated channel carrying the order chime as a raw
     // resource. This is what makes the sound play in BACKGROUND/TERMINATED —
@@ -1441,12 +1503,16 @@ class AppNotificationHandler {
       return;
     }
 
-    // Ride actions
-    if (actionId.startsWith('track_ride_') ||
-        actionId.startsWith('view_order_') ||
-        actionId.startsWith('accept_order_') ||
-        actionId.startsWith('contact_rider_')) {
-      Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
+    // Ride actions — status-checked before navigating. See the matching block
+    // in the background/launch handler above.
+    final rideActionOrderId =
+        RideNotificationRouter.orderIdFromActionId(actionId);
+    if (rideActionOrderId != null) {
+      RideNotificationRouter.open(
+        rideActionOrderId,
+        data: data,
+        fallback: () => Get.toNamed(RouteHelper.getRiderServiceScreenRoute()),
+      );
       return;
     }
 
@@ -1556,9 +1622,15 @@ class AppNotificationHandler {
     // with ride details. Regular calls are handled by socket `call:incoming` in
     // CallController.
     if (kRingingRideOperations.contains(operation)) {
+      rideNotifLog('foreground: RING op=$operation → IncomingRiderOrderScreen');
+      rideNotifDumpPayload('foreground', message.data);
       try {
         _showRiderOrderScreen(message.data);
-      } catch (_) {}
+      } catch (e, st) {
+        // Was swallowed silently, which made a foreground ride request that
+        // never opened the screen impossible to diagnose.
+        rideNotifLog('foreground: RING FAILED op=$operation: $e\n$st');
+      }
       return;
     }
 
@@ -1732,23 +1804,66 @@ class AppNotificationHandler {
                   payload['riderTask'])
               ?.toString();
 
+      // The broadcast push carries the richest copy of the trip at the payload
+      // ROOT — `pickup`/`drop` with lat+lng, `distanceKm`, `orderFor`, `fare`,
+      // `orderType`, `expiresAt`, `ttl_seconds`. The legacy `metadata` branch
+      // above only has `Pickup address` / `ridefare`, so distance came out 0
+      // and orderFor empty even though both were sitting in the payload.
+      final rootPickup = payload['pickup'];
+      final rootDrop = payload['drop'];
+      final double rootDistanceKm = _parseDouble(payload['distanceKm']);
+      final String orderType = (payload['orderType'] ?? '').toString();
+      final int ttlSeconds = _parseDouble(payload['ttl_seconds']).round();
+
+      double pickLat = pickupLat, pickLng = pickupLng;
+      double dropLatV = dropLat, dropLngV = dropLng;
+      String pickAddr = pickupAddress, dropAddr = dropAddress;
+      if (rootPickup is Map) {
+        pickLat = _parseDouble(rootPickup['lat']) != 0
+            ? _parseDouble(rootPickup['lat'])
+            : pickLat;
+        pickLng = _parseDouble(rootPickup['lng']) != 0
+            ? _parseDouble(rootPickup['lng'])
+            : pickLng;
+        final a = (rootPickup['address'] ?? '').toString();
+        if (a.isNotEmpty) pickAddr = a;
+      }
+      if (rootDrop is Map) {
+        dropLatV = _parseDouble(rootDrop['lat']) != 0
+            ? _parseDouble(rootDrop['lat'])
+            : dropLatV;
+        dropLngV = _parseDouble(rootDrop['lng']) != 0
+            ? _parseDouble(rootDrop['lng'])
+            : dropLngV;
+        final a = (rootDrop['address'] ?? '').toString();
+        if (a.isNotEmpty) dropAddr = a;
+      }
+
       // Set fare-call ride details (initStateFromCallKitExtra doesn't handle these)
       callController.fareCallRideDetails.value = {
         'pickup': {
-          'address':
-              pickupAddress.isNotEmpty ? pickupAddress : 'Pickup location',
-          'lat': pickupLat,
-          'lng': pickupLng,
+          'address': pickAddr.isNotEmpty ? pickAddr : 'Pickup location',
+          'lat': pickLat,
+          'lng': pickLng,
         },
         'drop': {
-          'address': dropAddress.isNotEmpty ? dropAddress : 'Drop location',
-          'lat': dropLat,
-          'lng': dropLng,
+          'address': dropAddr.isNotEmpty ? dropAddr : 'Drop location',
+          'lat': dropLatV,
+          'lng': dropLngV,
         },
-        'fare': fare,
-        'distance': distance,
-        'modeOfPayment': modeOfPayment,
-        'orderFor': orderFor,
+        'fare': fare > 0 ? fare : _parseDouble(payload['fare']),
+        'distance': distance > 0 ? distance : rootDistanceKm,
+        'modeOfPayment': modeOfPayment.isNotEmpty
+            ? modeOfPayment
+            : (payload['modeOfPayment'] ?? 'postpaid').toString(),
+        'orderFor':
+            orderFor.isNotEmpty ? orderFor : (payload['orderFor'] ?? '').toString(),
+        // Drives whether Accept opens a call room (fare-call) or confirms the
+        // order outright (broadcast — there is no VoIP call behind it).
+        if (orderType.isNotEmpty) 'orderType': orderType,
+        if (ttlSeconds > 0) 'ttlSeconds': ttlSeconds,
+        if (payload['expiresAt'] != null)
+          'expiresAt': payload['expiresAt'].toString(),
         if (jobType != null && jobType.isNotEmpty) 'jobType': jobType,
         if (jobLabel != null && jobLabel.isNotEmpty) 'jobLabel': jobLabel,
         if (callTitle != null && callTitle.isNotEmpty) 'callTitle': callTitle,
@@ -1794,27 +1909,44 @@ class AppNotificationHandler {
     }
 
     final orderId = orderIdFromRidePayload(data, metadata: metadata);
+    final notifId = ringNotificationIdFor(orderId);
+    rideNotifLog(
+      'dismiss: orderId=${orderId ?? "(none)"} notifId=$notifId '
+      'route=${Get.currentRoute}',
+    );
 
     // 1. Kill the ringing notification (FLAG_INSISTENT repeats until cancelled).
     try {
-      await flutterLocalNotificationsPlugin.cancel(
-        ringNotificationIdFor(orderId),
-      );
-    } catch (_) {}
+      await flutterLocalNotificationsPlugin.cancel(notifId);
+      rideNotifLog('dismiss: ring cancelled (id=$notifId)');
+    } catch (e) {
+      rideNotifLog('dismiss: ring cancel FAILED (id=$notifId): $e');
+    }
 
     // 2. Close the incoming screen, but ONLY if it's showing this order — a
     //    rider can be re-rung for a different ride while this push lands, and
     //    dismissing that one would cost them the job.
     try {
-      if (Get.currentRoute != '/IncomingRiderOrderScreen') return;
+      if (Get.currentRoute != '/IncomingRiderOrderScreen') {
+        rideNotifLog('dismiss: incoming screen not open — nothing to close');
+        return;
+      }
       if (orderId != null && orderId.isNotEmpty) {
         final openOrderId = Get.isRegistered<CallController>()
             ? Get.find<CallController>().fareCallOrderId.value
             : '';
-        if (openOrderId.isNotEmpty && openOrderId != orderId) return;
+        if (openOrderId.isNotEmpty && openOrderId != orderId) {
+          rideNotifLog(
+            'dismiss: screen shows a DIFFERENT order ($openOrderId) — kept open',
+          );
+          return;
+        }
       }
       Get.back();
-    } catch (_) {}
+      rideNotifLog('dismiss: incoming screen closed');
+    } catch (e) {
+      rideNotifLog('dismiss: close FAILED: $e');
+    }
   }
 
   double _parseDouble(dynamic value) {
@@ -2677,26 +2809,54 @@ class AppNotificationHandler {
       // Fare ride / broadcast incoming — open the rider order screen
       case 'fare_ride_incoming_call':
       case 'broadcast_ride_request':
+        rideNotifLog(
+          'tap: op=$operation orderId='
+          '${RideNotificationRouter.orderIdFromPayload(data, metadata: _rideMetadataOf(data)) ?? "(none)"}'
+          ' → IncomingRiderOrderScreen',
+        );
+        rideNotifDumpPayload('tap', data);
         AppNotificationHandler()._showRiderOrderScreen(data);
         break;
 
       // Broadcast race lost/expired — dismiss quietly, never surface anything.
       case 'broadcast_ride_closed':
+        rideNotifLog('tap: op=$operation → dismissBroadcastRide');
+        rideNotifDumpPayload('tap', data);
         AppNotificationHandler().dismissBroadcastRide(data);
+        break;
+
+      // Live-ride operations — the passenger wants the tracking map, the rider
+      // wants their job screen, and either may be tapping this hours after the
+      // ride ended. `RideNotificationRouter` re-reads the order status and
+      // decides; it falls back to the rider screen when there's no order id.
+      case 'ride_order_accepted':
+      case 'ride_order_picked_up':
+      case 'ride_started':
+        rideNotifLog('tap: op=$operation');
+        rideNotifDumpPayload('tap', data);
+        RideNotificationRouter.open(
+          RideNotificationRouter.orderIdFromPayload(data,
+              metadata: _rideMetadataOf(data)),
+          data: data,
+          fallback: () => Get.toNamed(RouteHelper.getRiderServiceScreenRoute()),
+        );
+        break;
+
+      // Terminal ride operations — nothing to track. Clear the floating
+      // mini-map so it stops advertising an order that is over.
+      case 'ride_order_completed':
+      case 'ride_completed':
+      case 'ride_order_cancelled':
+      case 'ride_cancelled_by_rider':
+        RideNotificationRouter.clearOngoingRideOverlay();
+        Get.toNamed(RouteHelper.getRiderServiceScreenRoute());
         break;
 
       // Ride operations
       case 'ride_order_created':
       case 'ride_order_received':
-      case 'ride_order_accepted':
-      case 'ride_order_picked_up':
-      case 'ride_started':
-      case 'ride_order_completed':
-      case 'ride_completed':
       case 'ride_order_rejected':
       case 'ride_order_all_rejected':
-      case 'ride_order_cancelled':
-      case 'ride_cancelled_by_rider':
       case 'ride_payment_confirmed':
       case 'rider_onboarding_complete':
       // A new order surfaced on the rider's active route — open the rider
@@ -3109,6 +3269,58 @@ class AppNotificationHandler {
 
   /// Opens the chat that received a `rider_otp` handoff card. Chat opens are
   /// keyed on the other party's userId (which resolves the conversation
+  /// Reject a ringing ride from the notification's Decline button.
+  ///
+  /// Goes through [CallController] so the ring teardown, the open incoming
+  /// screen and the reject POST all stay in one place. Falls back to cancelling
+  /// the ring alone when the push carried no order id — better a silent banner
+  /// than a reject aimed at the wrong order.
+  Future<void> _declineRideFromNotification(String? orderId) async {
+    try {
+      await flutterLocalNotificationsPlugin.cancel(
+        ringNotificationIdFor(orderId),
+      );
+    } catch (_) {}
+
+    if (orderId == null || orderId.isEmpty) {
+      rideNotifLog('action: DECLINE without orderId — ring cancelled only');
+      return;
+    }
+    try {
+      if (!Get.isRegistered<CallController>()) {
+        rideNotifLog('action: DECLINE — no CallController; ring cancelled only');
+        return;
+      }
+      final controller = Get.find<CallController>();
+      // The button can fire for a ride other than the one the controller is
+      // holding (a second request rang while the first banner sat in the
+      // shade), so point it at the order the button names.
+      controller.fareCallOrderId.value = orderId;
+      await controller.rejectFareCallRide();
+      rideNotifLog('action: DECLINE rejected $orderId');
+    } catch (e) {
+      rideNotifLog('action: DECLINE failed for $orderId: $e');
+    }
+  }
+
+  /// The `metadata` block inside a ride push's `payload`, which is where the
+  /// order id usually lives. `payload` arrives as either a JSON string or an
+  /// already-decoded map depending on the producer.
+  static Map? _rideMetadataOf(Map<String, dynamic> data) {
+    final raw = data['payload'];
+    try {
+      if (raw is String && raw.isNotEmpty) {
+        final decoded = jsonDecode(raw);
+        if (decoded is Map) return decoded['metadata'] as Map?;
+      } else if (raw is Map) {
+        return raw['metadata'] as Map?;
+      }
+    } catch (_) {
+      // Malformed payload — the caller still tries the top-level keys.
+    }
+    return null;
+  }
+
   /// server-side), so we prefer a user id from the payload and fall back to
   /// the chat contacts list when the push only carries a conversationId.
   static void _openChatFromRiderOtp(Map<String, dynamic> data) {

@@ -45,17 +45,24 @@ class _RideSearchingScreenState extends State<RideSearchingScreen> {
     super.dispose();
   }
 
+  /// Guards the one-way exit. The worker fires on every 3s status poll, and
+  /// `Get.off` does not dispose this state synchronously — a second tick
+  /// landing in that window would push a duplicate tracking screen.
+  bool _navigated = false;
+
   void _onBookingChanged(RideBooking? booking) {
-    if (booking == null || !mounted) return;
+    if (booking == null || !mounted || _navigated) return;
 
     if (booking.status.hasCaptain) {
       // `off` replaces this route: once a captain is assigned there is nothing
       // to come back to here.
+      _navigated = true;
       Get.off(() => const RideTrackingScreen());
       return;
     }
 
     if (!booking.status.isActive) {
+      _navigated = true;
       _handleSearchFailed(booking.status);
     }
   }

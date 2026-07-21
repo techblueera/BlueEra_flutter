@@ -202,7 +202,22 @@ class CallController extends GetxController {
     }
   }
 
+  /// True while an incoming ringtone is playing.
+  ///
+  /// Lets a screen assert "this should be ringing" without having to know
+  /// whether some earlier path already started it — see [startRingtone].
+  bool get isRingtonePlaying => _ringtonePlaying;
+  bool _ringtonePlaying = false;
+
   void startRingtone() async {
+    // Idempotent on purpose. A broadcast ride request has no VoIP call behind
+    // it, so `_handleIncomingCall` never runs and nothing starts the ring —
+    // IncomingRiderOrderScreen therefore starts it itself. For a fare-call the
+    // call path already did, and restarting would clip the tone back to zero
+    // every time the screen rebuilt.
+    if (_ringtonePlaying) return;
+    _ringtonePlaying = true;
+
     // Native ringer first (Android): plays on the RING stream so it follows
     // the phone's ringer volume and silent/vibrate modes, loops, and VIBRATES
     // — none of which the audioplayers path did (it rode the MEDIA stream:
@@ -248,6 +263,7 @@ class CallController extends GetxController {
   /// teardown path (decline / cancel / end / answered-elsewhere / cleanup)
   /// stops the caller's tone without needing per-site changes.
   void stopRingtone() {
+    _ringtonePlaying = false;
     _ringtonePlayer.stop();
     stopOutgoingRingback();
     // DefaultRingtone.stop() is async — a sync try/catch misses the

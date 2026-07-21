@@ -185,6 +185,13 @@ enum RideStatus {
       case 'IN_PROGRESS':
       case 'ON_TRIP':
       case 'STARTED':
+      // `picked-up` is listed as an active-ride status by
+      // RIDER_LOCATION_POLLING_GUIDE.md but is absent from the broadcast
+      // guide's §3 table. Unmapped it fell to the `searching` default, which
+      // reads as "no captain yet" while the passenger is already in the
+      // vehicle — the ETA banner would say "Pickup in —" mid-ride and the
+      // hand-off to live tracking would never fire.
+      case 'PICKED_UP':
         return RideStatus.onTrip;
       case 'COMPLETED':
         return RideStatus.completed;
@@ -218,6 +225,12 @@ enum RideStatus {
 }
 
 /// The assigned captain, shown on the tracking card.
+///
+/// Hydrated from three different producers — the status poll's
+/// `metadata.assignedRider`, the socket's `ride:queue:accepted.riderInfo`, and
+/// the rider-location poll — which do not agree on spelling. [fromJson] accepts
+/// all of them so no call site has to hand-pick keys, and [merge] lets a later,
+/// thinner payload fill gaps without erasing what an earlier one already knew.
 class RideCaptain {
   final String id;
   final String name;
@@ -225,7 +238,14 @@ class RideCaptain {
   final String? photoUrl;
   final String? vehicleNumber;
   final String? vehicleModel;
+
+  /// Backend `vehicleType` enum (`twoWheelerRider`, `carMini`, …). Sent on
+  /// `assignedRider`; lets the card name the category the customer booked.
+  final String? vehicleType;
   final double? rating;
+
+  /// Lifetime completed rides, shown as social proof next to the rating.
+  final int? totalOrders;
   final double? latitude;
   final double? longitude;
 
@@ -236,22 +256,88 @@ class RideCaptain {
     this.photoUrl,
     this.vehicleNumber,
     this.vehicleModel,
+    this.vehicleType,
     this.rating,
+    this.totalOrders,
     this.latitude,
     this.longitude,
   });
 
+  /// The user service degrades to `"N/A"` when it is briefly unavailable
+  /// (contract: fail-soft). That is a placeholder, not a name — treat it as
+  /// absent so the UI shows its own fallback instead of a rider called "N/A".
+  bool get hasName => name.isNotEmpty && name != 'N/A';
+
+  /// First name for "Message Ramesh"-style copy; empty when unknown.
+  String get firstName => hasName ? name.split(' ').first : '';
+
   factory RideCaptain.fromJson(Map<dynamic, dynamic> json) {
+    // Vehicle details arrive nested under `vehicleInformation` in the rider
+    // shape the fare/rider APIs return, and flat in the older payloads.
+    final vehicle =
+        json['vehicleInformation'] is Map ? json['vehicleInformation'] as Map : const {};
+
+    // Coordinates are flat, nested under `location`, or GeoJSON [lng, lat].
+    double? lat = _toDouble(json['latitude']);
+    double? lng = _toDouble(json['longitude']);
+    final location = json['location'];
+    if (location is Map) {
+      lat ??= _toDouble(location['latitude']);
+      lng ??= _toDouble(location['longitude']);
+      final coords = location['coordinates'];
+      if (coords is List && coords.length >= 2) {
+        lng ??= _toDouble(coords[0]);
+        lat ??= _toDouble(coords[1]);
+      }
+    }
+
     return RideCaptain(
-      id: (json['id'] ?? json['riderId'] ?? '').toString(),
+      // `userId` is what the rider-location poll calls it; the status poll and
+      // the socket use `riderId`/`id`.
+      id: (json['id'] ?? json['riderId'] ?? json['userId'] ?? json['_id'] ?? '')
+          .toString(),
       name: (json['name'] ?? '').toString(),
-      phone: json['phone']?.toString(),
-      photoUrl: json['photoUrl']?.toString() ?? json['profileImage']?.toString(),
-      vehicleNumber: json['vehicleNumber']?.toString(),
-      vehicleModel: json['vehicleModel']?.toString(),
+      phone: (json['phone'] ?? json['contact'] ?? json['contact_no'])?.toString(),
+      // `profile_image` is the snake_case spelling the rider APIs actually use.
+      photoUrl: (json['photoUrl'] ??
+              json['profileImage'] ??
+              json['profile_image'])
+          ?.toString(),
+      vehicleNumber: (json['vehicleNumber'] ??
+              vehicle['registrationNo'] ??
+              vehicle['registration_no'])
+          ?.toString(),
+      vehicleModel:
+          (json['vehicleModel'] ?? vehicle['vehicleName'] ?? vehicle['model'])
+              ?.toString(),
+      vehicleType:
+          (json['vehicleType'] ?? vehicle['vehicleType'])?.toString(),
       rating: _toDouble(json['rating']),
-      latitude: _toDouble(json['latitude']),
-      longitude: _toDouble(json['longitude']),
+      totalOrders: _toDouble(json['totalOrders'])?.toInt(),
+      latitude: lat,
+      longitude: lng,
+    );
+  }
+
+  /// Overlay [other] onto this captain, keeping existing values where the newer
+  /// payload is silent.
+  ///
+  /// The location poll carries position but rarely the plate; the socket winner
+  /// carries the name but no position. Plain replacement makes the card flicker
+  /// between them — details appearing, then vanishing on the next tick.
+  RideCaptain merge(RideCaptain other) {
+    return RideCaptain(
+      id: other.id.isNotEmpty ? other.id : id,
+      name: other.hasName ? other.name : name,
+      phone: other.phone ?? phone,
+      photoUrl: other.photoUrl ?? photoUrl,
+      vehicleNumber: other.vehicleNumber ?? vehicleNumber,
+      vehicleModel: other.vehicleModel ?? vehicleModel,
+      vehicleType: other.vehicleType ?? vehicleType,
+      rating: other.rating ?? rating,
+      totalOrders: other.totalOrders ?? totalOrders,
+      latitude: other.latitude ?? latitude,
+      longitude: other.longitude ?? longitude,
     );
   }
 }
