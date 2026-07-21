@@ -5,6 +5,7 @@ import 'package:BlueEra/features/ride_booking/view/ride_vehicle_select_screen.da
 import 'package:BlueEra/features/ride_booking/widget/ride_booking_style.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -32,6 +33,15 @@ class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen> {
   RidePlace? _resolved;
   bool _isResolving = false;
 
+  /// Monotonic id for the in-flight reverse geocode. A drag fires several
+  /// lookups and they don't come back in order — without this, a slow response
+  /// for an old pin lands last and overwrites the address for where the user
+  /// actually stopped.
+  int _resolveSeq = 0;
+
+  /// Stops listening for a late device fix once the screen goes away.
+  Worker? _locationWorker;
+
   @override
   void initState() {
     super.initState();
@@ -46,11 +56,35 @@ class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen> {
                 ? 77.4126
                 : controller.currentLng.value,
           );
-    _resolved = existing;
+    // Only adopt the seeded pickup if it carries a real address. The
+    // controller seeds `{title: 'Current location', subtitle: ''}` from the GPS
+    // fix alone, which would otherwise sit in the card as a blank second line
+    // and never update as the map moves.
+    _resolved = (existing != null && existing.subtitle.isNotEmpty)
+        ? existing
+        : null;
+
+    // The device fix is resolved asynchronously in the controller, so on a cold
+    // open this screen is often built before it lands and frames the fallback
+    // city instead of the user. Follow the first real fix in.
+    if (existing == null || !existing.hasCoordinates) {
+      _locationWorker = ever<double>(controller.currentLat, (lat) {
+        if (lat == 0 || !mounted) return;
+        _locationWorker?.dispose();
+        _locationWorker = null;
+        final target = LatLng(lat, controller.currentLng.value);
+        _pinPosition = target;
+        // Camera-idle then fires and resolves the address for it.
+        _mapController?.animateCamera(
+          CameraUpdate.newLatLngZoom(target, 17),
+        );
+      });
+    }
   }
 
   @override
   void dispose() {
+    _locationWorker?.dispose();
     _mapController?.dispose();
     super.dispose();
   }
@@ -58,33 +92,81 @@ class _RideConfirmPickupScreenState extends State<RideConfirmPickupScreen> {
   /// Resolve the address under the pin once the camera settles. Reverse
   /// geocoding on every frame of a drag would be both janky and expensive.
   Future<void> _onCameraIdle() async {
+    final position = _pinPosition;
+    final seq = ++_resolveSeq;
     setState(() => _isResolving = true);
     try {
-      // The pickup-points endpoint doubles as reverse geocoding: it returns
-      // the snapped address plus nearby suggested points.
-      final place = await _resolvePin(_pinPosition);
-      if (!mounted) return;
+      final place = await _resolvePin(position);
+      // A newer idle already started — its answer is the one that counts.
+      if (!mounted || seq != _resolveSeq) return;
       setState(() => _resolved = place);
     } finally {
-      if (mounted) setState(() => _isResolving = false);
+      if (mounted && seq == _resolveSeq) {
+        setState(() => _isResolving = false);
+      }
     }
   }
 
-  /// While the controller runs in stub mode this returns a synthetic address;
-  /// once the backend is live it will come from `places/pickup-points`.
+  /// Reverse-geocode the coordinate under the pin.
+  ///
+  /// Broadcast dispatch has no pickup-points endpoint (guide §6), so this uses
+  /// the on-device geocoder — the same one the old booking screens use for
+  /// pincode lookup. It must key off [position], not the seeded pickup:
+  /// echoing `controller.pickup` back is why the card used to freeze on
+  /// "Current location" no matter where the map was dragged.
   Future<RidePlace> _resolvePin(LatLng position) async {
-    await Future.delayed(const Duration(milliseconds: 250));
-    final existing = controller.pickup.value;
+    try {
+      final placemarks = await placemarkFromCoordinates(
+        position.latitude,
+        position.longitude,
+      );
+      if (placemarks.isNotEmpty) {
+        final p = placemarks.first;
+
+        // Nearest thing to a name, falling back down to the street.
+        final title = _firstNonEmpty([p.name, p.street, p.subLocality]) ??
+            'Selected pickup point';
+        // Everything else, de-duped against the title so we don't render
+        // "Jodhpur, Jodhpur, Rajasthan".
+        final subtitle = <String?>[
+          p.street,
+          p.subLocality,
+          p.locality,
+          p.administrativeArea,
+          p.postalCode,
+        ]
+            .whereType<String>()
+            .where((s) => s.isNotEmpty && s != title)
+            .toSet()
+            .join(', ');
+
+        return RidePlace(
+          title: title,
+          subtitle: subtitle,
+          latitude: position.latitude,
+          longitude: position.longitude,
+        );
+      }
+    } catch (_) {
+      // Geocoder unavailable / offline — fall through to coordinates.
+    }
+
+    // Never leave the card empty: coordinates are a poor address but they are
+    // honest, and `hasCoordinates` still lets the user confirm.
     return RidePlace(
-      title: existing?.title.isNotEmpty == true && existing!.hasCoordinates
-          ? existing.title
-          : 'Selected pickup point',
-      subtitle: existing?.subtitle ??
-          '${position.latitude.toStringAsFixed(5)}, '
-              '${position.longitude.toStringAsFixed(5)}',
+      title: 'Selected pickup point',
+      subtitle: '${position.latitude.toStringAsFixed(5)}, '
+          '${position.longitude.toStringAsFixed(5)}',
       latitude: position.latitude,
       longitude: position.longitude,
     );
+  }
+
+  static String? _firstNonEmpty(List<String?> values) {
+    for (final v in values) {
+      if (v != null && v.isNotEmpty) return v;
+    }
+    return null;
   }
 
   void _confirm() {
