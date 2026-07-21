@@ -42,6 +42,10 @@ class RouteConstant {
   static const String InterviewInvitesScreen = "/InterviewInvitesScreen";
   static const String FollowerFollowingScreen = "/FollowerFollowingScreen";
   static const String ChatContactsScreen = "/ChatContactsScreen";
+
+  /// "Contacts on BlueEra" — contact-service matches (separate from the
+  /// chat-service-backed [ChatContactsScreen]).
+  static const String BlueEraContactsScreen = "/BlueEraContactsScreen";
   static const String CreateJobPostScreen = "/CreateJobPostScreen";
   static const String CreateJobPostStep2 = "/CreateJobPostStep2";
   static const String CreateJobPostStep3 = "/CreateJobPostStep3";

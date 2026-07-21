@@ -123,6 +123,9 @@ class Metadata {
   // `notification_type`, so a notification without a `notification_type` can
   // still route to the right screen.
   String? originalOperation;
+  // CONTACT_JOINED (contact-service): the BlueEra user id of the phonebook
+  // contact who just joined, so the row can open their profile.
+  String? contactUserId;
 
   Metadata({
     this.jobId,
@@ -133,6 +136,7 @@ class Metadata {
     this.title,
     this.body,
     this.originalOperation,
+    this.contactUserId,
   });
 
   Metadata.fromJson(Map<String, dynamic> json) {
@@ -144,6 +148,7 @@ class Metadata {
     title = json['title'];
     body = json['body'];
     originalOperation = json['originalOperation'];
+    contactUserId = json['contactUserId'] ?? json['contact_user_id'];
   }
 
   Map<String, dynamic> toJson() {
@@ -156,6 +161,7 @@ class Metadata {
     data['title'] = this.title;
     data['body'] = this.body;
     data['originalOperation'] = this.originalOperation;
+    data['contactUserId'] = this.contactUserId;
     return data;
   }
 }

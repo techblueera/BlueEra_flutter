@@ -2671,6 +2671,9 @@ class AppNotificationHandler {
       case 'accepted_connection_request':
       case 'followed_profile':
       case 'user_enrolled':
+      // Someone in this user's phonebook completed their BlueEra account
+      // (contact-service). Same destination as the other connection pushes.
+      case 'contact_joined':
         Get.toNamed(RouteHelper.getNotificationScreenRoute());
         break;
 
