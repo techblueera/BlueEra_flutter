@@ -72,7 +72,9 @@ Future<bool?> _showCaptainConfirmSheet(RideCaptain captain) {
               const SizedBox(width: 16),
               Expanded(
                 child: CustomText(
-                  '${captain.name} is already on the way to you',
+                  captain.hasName
+                      ? '${captain.name} is already on the way to you'
+                      : 'Your captain is already on the way to you',
                   fontSize: 20,
                   fontWeight: FontWeight.w700,
                   color: RideStyle.ink,

@@ -22,12 +22,25 @@ class RideBookingRepo extends BaseService {
   /// `GET fare/riders/dynamic` — riders grouped by vehicle type with a
   /// dynamic fare per type. Prices the vehicle list; the customer does NOT
   /// pick a rider from it.
+  ///
+  /// Takes the same trip-context params as the old hand-picked
+  /// `GET fare/riders` (`DiscoverController.getBookingRidersApi`) — they sit on
+  /// the same service and the fare/serviceability inputs are the same. Sending
+  /// only the four coordinates leaves the server to guess the trip type and
+  /// re-derive the distance, which is how a quote ends up disagreeing with the
+  /// order created from it.
+  ///
+  /// [distanceInKm] is ROAD distance, not straight-line — the old flow measures
+  /// it off the driving polyline and the fare slabs are built for that number.
   Future<ResponseModel> getDynamicFare({
     required double pickupLat,
     required double pickupLng,
     required double dropLat,
     required double dropLng,
     String? orderFor,
+    int? rangeInKm,
+    String? pincode,
+    double? distanceInKm,
   }) {
     return ApiBaseHelper().getHTTP(
       getBookingRidersDynamic,
@@ -37,6 +50,10 @@ class RideBookingRepo extends BaseService {
         'dropLatitude': dropLat,
         'dropLongitude': dropLng,
         if (orderFor != null) 'orderFor': orderFor,
+        if (rangeInKm != null) 'range_in_km': rangeInKm,
+        if (pincode != null && pincode.isNotEmpty) 'pincode': pincode,
+        if (distanceInKm != null && distanceInKm > 0)
+          'distance_in_km': distanceInKm,
       },
       showProgress: false,
     );

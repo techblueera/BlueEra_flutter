@@ -1,7 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/environment_config.dart';
+import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../../../../core/constants/app_strings.dart';
@@ -19,6 +22,9 @@ class LiveLocationService {
   static final LiveLocationService _instance = LiveLocationService._();
   factory LiveLocationService() => _instance;
 
+  static const MethodChannel _nativeLocationChannel =
+      MethodChannel('ai.bluecs.app/rider_location');
+
   Timer? _timer;
   bool _isRunning = false;
 
@@ -32,10 +38,19 @@ class LiveLocationService {
     // 5 minutes of silence, and "go live" silently turns itself off.
     SocketKeepAliveService.setRiderLiveHold(true);
 
-    // Ping immediately, then every 30s — no 30s gap between going live and
-    // the first lastSeen stamp (discovery filters on fresh lastSeen).
+    // Android KILL-mode coverage: hand the native foreground-location service
+    // the creds so it can POST location every 60s even after the app process
+    // is swipe/OS-killed (a Dart Timer dies with the engine). The Dart timer
+    // below still covers foreground/background and sends a FRESH GPS fix; the
+    // native service is the killed-state fallback (last-known fix).
+    _startNativeKillModePinger();
+
+    // Ping immediately, then every 60s while the rider is live — no gap between
+    // going live and the first lastSeen stamp (discovery filters on fresh
+    // lastSeen; map-service auto-closes after 5 min of silence, so 60s leaves
+    // ample margin even if a couple of pings are missed).
     _updateLocation();
-    _timer = Timer.periodic(const Duration(seconds: 30), (_) async {
+    _timer = Timer.periodic(const Duration(seconds: 60), (_) async {
       await _updateLocation();
     });
   }
@@ -45,6 +60,32 @@ class LiveLocationService {
     _timer = null;
     _isRunning = false;
     SocketKeepAliveService.setRiderLiveHold(false);
+    _stopNativeKillModePinger();
+  }
+
+  // iOS cannot run a 1-min timer in a killed app (platform limit) — this is an
+  // Android-only foreground-location service. No-op elsewhere / on error.
+  Future<void> _startNativeKillModePinger() async {
+    if (!Platform.isAndroid) return;
+    final token = authTokenGlobal ?? '';
+    final base = baseUrl ?? '';
+    if (userId.isEmpty || token.isEmpty || base.isEmpty) return;
+    try {
+      await _nativeLocationChannel.invokeMethod('start', {
+        'token': token,
+        'userId': userId,
+        'baseUrl': base,
+      });
+    } catch (_) {
+      // Native side unavailable — the Dart timer still covers fg/bg.
+    }
+  }
+
+  Future<void> _stopNativeKillModePinger() async {
+    if (!Platform.isAndroid) return;
+    try {
+      await _nativeLocationChannel.invokeMethod('stop');
+    } catch (_) {}
   }
 
   /// Publish a single live-location ping to the map-service provider

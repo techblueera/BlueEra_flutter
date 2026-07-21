@@ -44,6 +44,9 @@
     <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
+    <!-- Android 14+ requires a typed foreground-service permission; the rider
+         live-location service runs as a `location` foreground service. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" />
     <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.VIBRATE" />
@@ -257,6 +260,12 @@
         <meta-data
             android:name="firebase_messaging_auto_init_enabled"
             android:value="true" />
+        <!-- Rider live-location foreground service: pings location every 60s
+             (foreground/background/killed) so a live rider stays discoverable. -->
+        <service
+            android:name=".RiderLocationForegroundService"
+            android:exported="false"
+            android:foregroundServiceType="location" />
         <!-- Incoming call notification button receiver -->
         <receiver
             android:name=".CallActionReceiver"

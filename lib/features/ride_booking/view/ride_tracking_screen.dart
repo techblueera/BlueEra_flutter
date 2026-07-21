@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/chat/view/business_chat/widgets/track_rider_live_location_page.dart';
 import 'package:BlueEra/features/ride_booking/controller/ride_booking_controller.dart';
 import 'package:BlueEra/features/ride_booking/model/ride_booking_models.dart';
 import 'package:BlueEra/features/ride_booking/widget/ride_booking_style.dart';
@@ -26,19 +27,66 @@ class RideTrackingScreen extends StatefulWidget {
 class _RideTrackingScreenState extends State<RideTrackingScreen> {
   final RideBookingController controller = Get.find<RideBookingController>();
   late final Worker _terminalWorker;
+  late final Worker _rideStartedWorker;
   GoogleMapController? _mapController;
+
+  /// Set once the live-tracking page has been opened for this booking.
+  ///
+  /// Never reset: the status poll reassigns `activeBooking` every 3s, and the
+  /// page's back gesture minimises it to the floating mini-map rather than
+  /// ending the session. Re-pushing on the next tick would trap the user on a
+  /// screen they just chose to leave — the mini-map is how they get back.
+  bool _liveTrackingOpened = false;
 
   @override
   void initState() {
     super.initState();
     _terminalWorker = ever(controller.terminalStatus, _onTerminalStatus);
+    _rideStartedWorker = ever(controller.activeBooking, _onBookingChanged);
+    // The ride can already be in progress when this screen is built — e.g.
+    // re-entering after a background kill — so don't wait for a change.
+    _onBookingChanged(controller.activeBooking.value);
   }
 
   @override
   void dispose() {
     _terminalWorker.dispose();
+    _rideStartedWorker.dispose();
     _mapController?.dispose();
     super.dispose();
+  }
+
+  /// Hand over to the shared live-tracking page once the rider actually starts
+  /// the trip (`in-progress`).
+  ///
+  /// Up to this point the interesting question is "where is my captain, and
+  /// when does he reach me" — which this screen answers. Once moving, it
+  /// becomes "where am I, and when do I arrive", which is what the old flow's
+  /// [TrackRiderLiveLocationPage] was built for: rider→drop route, distance to
+  /// drop, and a minimise-to-floating-map so the ride keeps updating while the
+  /// user does something else. Reused rather than rebuilt.
+  void _onBookingChanged(RideBooking? booking) {
+    if (booking == null || _liveTrackingOpened || !mounted) return;
+    if (booking.status != RideStatus.onTrip) return;
+    if (!booking.drop.hasCoordinates) return;
+    _openLiveTracking(booking);
+  }
+
+  Future<void> _openLiveTracking(RideBooking booking) async {
+    _liveTrackingOpened = true;
+    controller.pauseCaptainPolling();
+    await Get.to(
+      () => TrackRiderLiveLocationPage(
+        riderId: booking.captain?.id ?? '',
+        dropLat: booking.drop.latitude,
+        dropLng: booking.drop.longitude,
+        // Keyed on the order, not the rider — the backend resolves
+        // `assignedRider` itself, which survives a reassignment.
+        orderId: booking.rideId,
+      ),
+    );
+    if (!mounted) return;
+    controller.resumeCaptainPolling();
   }
 
   void _onTerminalStatus(RideStatus? status) {
@@ -135,7 +183,9 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
                   icon: BitmapDescriptor.defaultMarkerWithHue(
                     BitmapDescriptor.hueAzure,
                   ),
-                  infoWindow: InfoWindow(title: captain?.name ?? 'Captain'),
+                  infoWindow: InfoWindow(
+                    title: captain?.hasName == true ? captain!.name : 'Captain',
+                  ),
                 ),
             },
             polylines: {
@@ -208,6 +258,35 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
           children: [
             const RideSheetHandle(),
             _etaBanner(booking),
+            // Once moving, the live map is the main event — and minimising it
+            // pops back here, so there has to be a way in that doesn't depend
+            // on finding the floating mini-map.
+            if (booking.status == RideStatus.onTrip &&
+                booking.drop.hasCoordinates) ...[
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                height: 46,
+                child: OutlinedButton.icon(
+                  onPressed: () => _openLiveTracking(booking),
+                  icon: const Icon(Icons.my_location,
+                      size: 20, color: RideStyle.ink),
+                  label: CustomText(
+                    'Track ride live',
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: RideStyle.ink,
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: AppColors.white,
+                    side: const BorderSide(color: RideStyle.hairline),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+            ],
             if (booking.startOtp != null) ...[
               const SizedBox(height: 18),
               _otpRow(booking.startOtp!),
@@ -269,6 +348,21 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
     );
   }
 
+  /// "Bike · Splendor" — category then model, dropping whichever is absent.
+  ///
+  /// `assignedRider` sends the raw enum (`twoWheelerRider`), which is not
+  /// something to show a customer, so it goes through the same display-name
+  /// map the vehicle list uses.
+  String? _vehicleLine(RideCaptain captain) {
+    final type = captain.vehicleType;
+    final parts = <String>[
+      if (type != null && type.isNotEmpty)
+        RideBookingController.kVehicleTypeNames[type] ?? type,
+      if (captain.vehicleModel?.isNotEmpty == true) captain.vehicleModel!,
+    ];
+    return parts.isEmpty ? null : parts.join(' · ');
+  }
+
   String _formatDistance(int metres) =>
       metres >= 1000 ? '${(metres / 1000).toStringAsFixed(1)} km' : '$metres m';
 
@@ -324,25 +418,46 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // The plate is the biggest thing on the card — it is what
+                    // the customer matches against the vehicle pulling up. Say
+                    // so explicitly while it is still loading, rather than
+                    // leaving a 21pt blank where it belongs.
                     CustomText(
-                      captain.vehicleNumber ?? '',
-                      fontSize: 21,
+                      captain.vehicleNumber?.isNotEmpty == true
+                          ? captain.vehicleNumber!
+                          : 'Vehicle details coming…',
+                      fontSize: captain.vehicleNumber?.isNotEmpty == true
+                          ? 21
+                          : 15,
                       fontWeight: FontWeight.w700,
-                      color: RideStyle.ink,
+                      color: captain.vehicleNumber?.isNotEmpty == true
+                          ? RideStyle.ink
+                          : RideStyle.inkMuted,
                     ),
-                    if (captain.vehicleModel != null)
+                    if (_vehicleLine(captain) != null)
                       CustomText(
-                        captain.vehicleModel!,
+                        _vehicleLine(captain)!,
                         fontSize: 15,
                         color: RideStyle.inkMuted,
                       ),
                     const SizedBox(height: 2),
                     CustomText(
-                      captain.name.toUpperCase(),
+                      captain.hasName
+                          ? captain.name.toUpperCase()
+                          : 'Your captain',
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
                       color: RideStyle.ink,
                     ),
+                    if (captain.totalOrders != null &&
+                        captain.totalOrders! > 0) ...[
+                      const SizedBox(height: 2),
+                      CustomText(
+                        '${captain.totalOrders} rides completed',
+                        fontSize: 13,
+                        color: RideStyle.inkMuted,
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -399,7 +514,9 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
               icon: const Icon(Icons.phone_in_talk_outlined,
                   size: 20, color: RideStyle.ink),
               label: CustomText(
-                'Message ${captain.name.split(' ').first}',
+                captain.firstName.isNotEmpty
+                    ? 'Message ${captain.firstName}'
+                    : 'Message captain',
                 fontSize: 15,
                 fontWeight: FontWeight.w600,
                 color: RideStyle.ink,

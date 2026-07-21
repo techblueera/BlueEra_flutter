@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/pip_service.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:flutter/material.dart';
@@ -522,7 +523,18 @@ class _RiderPickupNavigationScreenState
         'orderId': widget.orderId,
       },
     );
-    Navigator.of(context).pop();
+
+    // Popping is only safe when something is underneath. Accepting a ride from
+    // a notification replaces the incoming screen (`Get.off`), so when the app
+    // was launched BY that notification this is the only route on the stack —
+    // an unguarded pop then empties the navigator and the app goes black with
+    // the floating mini-map its sole surviving UI. Land on the rider dashboard
+    // instead, which is where minimising is meant to leave the rider anyway.
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+    } else {
+      Get.offAllNamed(RouteHelper.getRiderServiceScreenRoute());
+    }
   }
 
   void _startRide() {

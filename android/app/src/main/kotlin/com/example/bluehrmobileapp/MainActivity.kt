@@ -47,6 +47,7 @@ class MainActivity: FlutterActivity() {
     private val MEDIA_SCANNER_CHANNEL = "ai.bluecs.app/media_scanner"
     private val APP_SHARE_CHANNEL = "ai.bluecs.app/app_share"
     private val CALL_VOLUME_CHANNEL = "com.bluehr.call/volume"
+    private val RIDER_LOCATION_CHANNEL = "ai.bluecs.app/rider_location"
 
     // Target size for the downsampled chat-shortcut launcher icon (px). Adaptive
     // launcher icons top out around 108dp; 256px covers xxxhdpi with headroom.
@@ -87,6 +88,49 @@ class MainActivity: FlutterActivity() {
                         } else {
                             result.error("INVALID", "Path is empty", null)
                         }
+                    }
+                    else -> result.notImplemented()
+                }
+            }
+
+        // ------------------------------
+        // RIDER LIVE-LOCATION CHANNEL — starts/stops the native foreground
+        // service that pings the rider's location every 60s in
+        // foreground/background/killed state (a Dart timer dies on kill).
+        // ------------------------------
+        MethodChannel(flutterEngine.dartExecutor.binaryMessenger, RIDER_LOCATION_CHANNEL)
+            .setMethodCallHandler { call, result ->
+                when (call.method) {
+                    "start" -> {
+                        val token = call.argument<String>("token")
+                        val userId = call.argument<String>("userId")
+                        val baseUrl = call.argument<String>("baseUrl")
+                        if (token.isNullOrEmpty() || userId.isNullOrEmpty() || baseUrl.isNullOrEmpty()) {
+                            result.error("INVALID", "token, userId and baseUrl are required", null)
+                        } else {
+                            val intent = Intent(this, RiderLocationForegroundService::class.java)
+                                .putExtra("token", token)
+                                .putExtra("userId", userId)
+                                .putExtra("baseUrl", baseUrl)
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                startForegroundService(intent)
+                            } else {
+                                startService(intent)
+                            }
+                            result.success(true)
+                        }
+                    }
+                    "stop" -> {
+                        // Clear the active flag so a START_STICKY restart won't
+                        // resurrect pinging, then stop the service.
+                        getSharedPreferences(
+                            RiderLocationForegroundService.PREFS,
+                            Context.MODE_PRIVATE
+                        ).edit()
+                            .putBoolean(RiderLocationForegroundService.KEY_ACTIVE, false)
+                            .apply()
+                        stopService(Intent(this, RiderLocationForegroundService::class.java))
+                        result.success(true)
                     }
                     else -> result.notImplemented()
                 }

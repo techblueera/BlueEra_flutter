@@ -262,6 +262,8 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // Deliberately not a second implementation: see
   // docs/backend/RIDER_BROADCAST_DISPATCH_FRONTEND_GUIDE.md §7.1.
   if (kRingingRideOperations.contains(operation)) {
+    rideNotifLog('bg isolate: RING op=$operation msgId=${message.messageId}');
+    rideNotifDumpPayload('bg isolate', message.data);
     try {
       final data = message.data;
       final callerName = (data['senderName'] ?? 'Unknown').toString();
@@ -325,8 +327,15 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       // the orderId, so the id has to be recomputable to cancel the ring.
       // It also collapses a re-delivered FCM onto the same notification
       // instead of starting a second ringing copy.
-      final notifId = ringNotificationIdFor(
-        orderIdFromRidePayload(data, metadata: metadata is Map ? metadata : null),
+      final ringOrderId =
+          orderIdFromRidePayload(data, metadata: metadata is Map ? metadata : null);
+      final notifId = ringNotificationIdFor(ringOrderId);
+      // orderId null here means the dismiss push can't target this ring — it
+      // falls back to the shared constant id, so two concurrent requests would
+      // collide. Worth seeing in the log if a ring ever fails to clear.
+      rideNotifLog(
+        'bg isolate: orderId=${ringOrderId ?? "(none)"} notifId=$notifId '
+        'title="$notifTitle"',
       );
 
       // Call-style presentation, mirroring showIncomingCallLocalNotification:
@@ -344,14 +353,15 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         notifBody,
         NotificationDetails(
           android: AndroidNotificationDetails(
-            // v2 — a deleted/recreated channel id keeps its OLD settings on
-            // Android, so devices whose previous channel lacked the ringtone
-            // can only be fixed by a fresh id (pre-created with sound in
-            // AppNotificationHandler.init; also auto-created here with the
-            // same config for the killed-state FCM isolate).
-            'fare_ride_incoming_ringtone_v2',
-            'Ride Requests',
-            channelDescription: 'Incoming ride request alerts',
+            // Channel id and sound come from one place shared with
+            // AppNotificationHandler.init — this isolate never runs init, so
+            // passing `sound` here also creates the channel on demand from a
+            // killed state. Both sides MUST agree, or the killed-state ring
+            // creates the channel with one tone and the warm path expects
+            // another (Android keeps whichever was created first, forever).
+            kRideRingChannelId,
+            kRideRingChannelName,
+            channelDescription: kRideRingChannelDescription,
             importance: Importance.max,
             priority: Priority.max,
             category: AndroidNotificationCategory.call,
@@ -360,7 +370,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
             ongoing: true,
             autoCancel: false,
             playSound: true,
-            sound: const RawResourceAndroidNotificationSound('hangouts_call'),
+            sound: const RawResourceAndroidNotificationSound(kRideRingSound),
             enableVibration: true,
             vibrationPattern: Int64List.fromList([0, 1000, 500, 1000]),
             icon: '@drawable/ic_stat',
@@ -370,18 +380,24 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
             // FLAG_INSISTENT (4): ringtone repeats until the rider acts
             additionalFlags: Int32List.fromList([4]),
             timeoutAfter: 45000,
+            // Order id is baked into each action id — the background isolate
+            // has no screen or controller to ask "which ride?", so without it
+            // Decline can only dismiss the banner while the server keeps
+            // waiting for an answer.
             actions: <AndroidNotificationAction>[
-              const AndroidNotificationAction(
-                'fare_ride_decline',
+              AndroidNotificationAction(
+                rideDeclineActionId(ringOrderId),
                 'Decline',
-                titleColor: Color(0xFFF44336),
+                titleColor: const Color(0xFFF44336),
+                // Rejects over the API in the background — must NOT bring the
+                // app to the front.
                 showsUserInterface: false,
                 cancelNotification: true,
               ),
-              const AndroidNotificationAction(
-                'fare_ride_view',
+              AndroidNotificationAction(
+                rideViewActionId(ringOrderId),
                 'View',
-                titleColor: Color(0xFF4CAF50),
+                titleColor: const Color(0xFF4CAF50),
                 showsUserInterface: true,
                 cancelNotification: true,
               ),
@@ -396,8 +412,11 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         ),
         payload: jsonEncode(data),
       );
+      rideNotifLog('bg isolate: ring notification posted (id=$notifId)');
     } catch (e, st) {
-      logs('[CALL_DEBUG] bg handler incoming_call error: $e\n$st');
+      // Was mislabelled 'incoming_call' — this is the RIDE ring branch, and a
+      // failure here means the rider's phone never rang.
+      rideNotifLog('bg isolate: RING FAILED op=$operation: $e\n$st');
     }
     return; // Don't play sound or show notification for calls
   }
