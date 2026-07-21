@@ -30,6 +30,8 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../../../core/constants/app_icon_assets.dart';
+import '../../../../../../widgets/local_assets.dart';
 import '../../category/acadamics/school_quick_info_form_screen.dart';
 import '../../category/acadamics/widgets/school_quick_info_view.dart';
 
@@ -63,7 +65,10 @@ class _SchoolOverviewTabV2State extends State<SchoolOverviewTabV2> {
   double get _hInset => SizeConfig.size12;
 
   Widget _hPad({required Widget child}) => Padding(
-        padding: EdgeInsets.symmetric(horizontal: _hInset),
+        padding: EdgeInsets.only(left: _hInset, right: _hInset
+            // bottom: kBottomNavigationBarHeight + 30,
+            // top: SizeConfig.size10,
+            ),
         child: child,
       );
 
@@ -108,7 +113,7 @@ class _SchoolOverviewTabV2State extends State<SchoolOverviewTabV2> {
           // ── Joined date + identity + cover (self-pads at _hInset) ──
           BusinessJoinedProfileCard(businessController: _businessController),
 
-          // SizedBox(height: SizeConfig.size10),
+          SizedBox(height: SizeConfig.size10),
 
           // ── Director / Principal Message ──
           // _hPad(
@@ -118,27 +123,27 @@ class _SchoolOverviewTabV2State extends State<SchoolOverviewTabV2> {
                   schoolAboutUsController: widget.controller,
                   isEdit: true,
                 )
-              : _SectionEmptyCard(
-                  title: AppStrings.principalDirectorMessage.tr,
-                  ctaLabel: AppStrings.principalDirectorMessage.tr,
-                  ctaIcon: Icons.person_outline,
+              : _SplitEmptyCard(
+                  message: 'You Have Not Add Any Principal / Director Message',
+                  icon: Icons.person_outline,
                   onTap: () => Get.to(PrincipalMessageScreen())?.then(
                       (_) => widget.controller.getSchoolByIdController()),
                 ),
           // ),
 
-          // SizedBox(height: SizeConfig.size10),
+          SizedBox(height: SizeConfig.size10),
 
           // ── School Quick Info (Class range / Ratio / Medium) ──
-          _hPad(
-            child: SchoolQuickInfoCard(
-              controller: widget.controller,
-              onEditTap: () => Get.to(const SchoolQuickInfoFormScreen())
-                  ?.then((_) => widget.controller.getSchoolByIdController()),
-            ),
+          // _hPad(
+          //   child:
+          SchoolQuickInfoCard(
+            controller: widget.controller,
+            onEditTap: () => Get.to(const SchoolQuickInfoFormScreen())
+                ?.then((_) => widget.controller.getSchoolByIdController()),
           ),
+          // ),
 
-          // SizedBox(height: SizeConfig.size10),
+          SizedBox(height: SizeConfig.size10),
 
           // ── Management ──
           // _hPad(
@@ -148,26 +153,27 @@ class _SchoolOverviewTabV2State extends State<SchoolOverviewTabV2> {
                   managementData: management,
                   isEdit: true,
                 )
-              : _SectionEmptyCard(
-                  title: AppStrings.managementTrust.tr,
-                  ctaLabel: AppStrings.managementTrust.tr,
-                  ctaIcon: Icons.groups_outlined,
+              : _SplitEmptyCard(
+                  message: 'You Have Not Add Any Management / Trust Info',
+                  icon: Icons.groups_outlined,
+                  showIconPanel: false,
                   onTap: () => Get.to(ManagementTrustFormScreen(isEdit: false))
                       ?.then(
                           (_) => widget.controller.getSchoolByIdController()),
                 ),
           // ),
 
-          // SizedBox(height: SizeConfig.size10),
+          SizedBox(height: SizeConfig.size10),
 
           // ── Availability ──
-          _hPad(
-            child: SchoolAvailabilityCard(
-              controller: widget.controller,
-              onEditTap: () => Get.to(const AvailabilityFormScreen())
-                  ?.then((_) => widget.controller.getSchoolByIdController()),
-            ),
+          // _hPad(
+          //   child:
+          SchoolAvailabilityCard(
+            controller: widget.controller,
+            onEditTap: () => Get.to(const AvailabilityFormScreen())
+                ?.then((_) => widget.controller.getSchoolByIdController()),
           ),
+          // ),
 
           // SizedBox(height: SizeConfig.size10),
 
@@ -193,7 +199,7 @@ class _SchoolOverviewTabV2State extends State<SchoolOverviewTabV2> {
                   ),
           ),
 
-          // SizedBox(height: SizeConfig.size10),
+          SizedBox(height: SizeConfig.size10),
 
           // ── Contact Us ──
           _hPad(
@@ -309,6 +315,121 @@ class _SectionEmptyCard extends StatelessWidget {
             onTap: onTap,
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Compact empty-state card for the principal-message and management
+/// sections. Left panel is a light-grey square with a section icon; right
+/// panel shows the "not yet added" line plus a primary "Add Now" pill.
+class _SplitEmptyCard extends StatelessWidget {
+  final String message;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  // When false, the left grey icon panel is omitted and the right content
+  // (illustration + message + CTA) fills the whole card. Used by the
+  // management empty state, which doesn't want the greyscale sidebar.
+  final bool showIconPanel;
+
+  const _SplitEmptyCard({
+    required this.message,
+    required this.icon,
+    required this.onTap,
+    this.showIconPanel = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+      child: Container(
+        padding: EdgeInsets.all(8.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (showIconPanel)
+                Container(
+                  width: 120,
+                  height: 120,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(8),
+                        bottomLeft: Radius.circular(8),
+                        bottomRight: Radius.circular(8),
+                        topRight: Radius.circular(8)),
+                  ),
+                  child: Center(
+                    child: Icon(icon, size: 32, color: Colors.grey.shade400),
+                  ),
+                ),
+              Expanded(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: SizeConfig.size12,
+                    vertical: SizeConfig.size16,
+                  ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      LocalAssets(
+                        imagePath: AppIconAssets.emptyIcon,
+                        height: 50,
+                        width: 50,
+                      ),
+                      SizedBox(height: SizeConfig.size16),
+                      CustomText(
+                        message,
+                        fontSize: 13,
+                        color: AppColors.secondaryTextColor,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                      ),
+                      SizedBox(height: SizeConfig.size16),
+                      InkWell(
+                        onTap: onTap,
+                        borderRadius: BorderRadius.circular(6),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: SizeConfig.size14,
+                            vertical: SizeConfig.size8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryColor,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.add,
+                                  color: Colors.white, size: 16),
+                              const SizedBox(width: 4),
+                              CustomText(
+                                'Add Now',
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

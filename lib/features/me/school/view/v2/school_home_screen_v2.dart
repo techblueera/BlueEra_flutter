@@ -14,6 +14,7 @@ import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_h
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/features/me/school/view/v2/tabs/school_academics_tab_v2.dart';
+import 'package:BlueEra/features/me/school/view/v2/tabs/school_jobs_tab_v2.dart';
 import 'package:BlueEra/features/me/school/view/v2/tabs/school_overview_tab_v2.dart';
 import 'package:BlueEra/features/me/school/view/v2/tabs/school_posts_tab_v2.dart';
 import 'package:BlueEra/features/me/school/view/v2/tabs/school_stats_tab_v2.dart';
@@ -45,6 +46,7 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2>
   List<String> get _tabs => [
         AppStrings.academics.tr,
         AppStrings.overview.tr,
+        AppStrings.jobs.tr,
         AppStrings.posts.tr,
         AppStrings.stats.tr,
       ];
@@ -91,16 +93,28 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2>
     super.dispose();
   }
 
-  Widget _tabScroll(Widget child) {
+  Widget _tabScroll(Widget child, {double? horizontalPadding}) {
+    // When [horizontalPadding] is provided we apply it symmetrically on
+    // both edges (used by Academics, which wants a 10/10 gutter around
+    // the course list). Otherwise fall back to the default `left: 20`,
+    // matching the other tabs.
+    final padding = horizontalPadding != null
+        ? EdgeInsets.fromLTRB(
+            horizontalPadding,
+            SizeConfig.size10,
+            horizontalPadding,
+            kBottomNavigationBarHeight + 30,
+          )
+        : EdgeInsets.only(
+            top: SizeConfig.size10,
+            left: 20,
+            bottom: kBottomNavigationBarHeight + 30,
+          );
     return RefreshIndicator(
       onRefresh: _schoolController.getSchoolByIdController,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.only(
-          top: SizeConfig.size10,
-          left: 20,
-          bottom: kBottomNavigationBarHeight + 30,
-        ),
+        padding: padding,
         child: child,
       ),
     );
@@ -246,7 +260,6 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFEAF2FB),
       body: SafeArea(
         top: false,
         child: Stack(
@@ -262,8 +275,16 @@ class _SchoolHomeScreenV2State extends State<SchoolHomeScreenV2>
               // ),
               topBarHeight: MediaQuery.of(context).padding.top + 56,
               tabViews: [
-                _tabScroll(SchoolAcademicsTabV2(controller: _schoolController)),
+                _tabScroll(
+                  SchoolAcademicsTabV2(controller: _schoolController),
+                  horizontalPadding: 10,
+                ),
                 _tabScroll(SchoolOverviewTabV2(controller: _schoolController)),
+                // Jobs tab is *not* wrapped in _tabScroll — its embedded
+                // AllJobPostScreen manages its own scroll controller and
+                // fetch, so it needs full tab height (Expanded inside a
+                // Column) rather than nesting inside a SingleChildScrollView.
+                const SchoolJobsTabV2(),
                 _tabScroll(const SchoolPostsTabV2()),
                 _tabScroll(const SchoolStatsTabV2()),
               ],

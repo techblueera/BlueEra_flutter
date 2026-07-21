@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/api/model/school_details_res_model.dart';
+import 'package:BlueEra/core/api/model/school_quick_info_field.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
@@ -257,20 +258,19 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
         ? service.location!.name!
         : na;
     final String distance = _distanceFromUser(service);
-    final String classRange =
-        (service.classRange?.isNotEmpty ?? false) ? service.classRange! : na;
-    final String ratio = (service.studentTeacherRatio?.isNotEmpty ?? false)
-        ? service.studentTeacherRatio!
-        : na;
-    final String medium = (service.mediumOfInstruction?.isNotEmpty ?? false)
-        ? service.mediumOfInstruction!.join(', ')
-        : na;
-    final String feeLabel = _buildFeeLabel(service);
-    final String feeRange = _buildFeeRange(service);
+    final String numberOfStudents =
+        (service.numberOfStudents != null && service.numberOfStudents! > 0)
+            ? '${service.numberOfStudents}'
+            : na;
     final double? ratingValue = service.avgRating;
     final String rating = (ratingValue != null && ratingValue > 0)
         ? ratingValue.toStringAsFixed(1)
         : na;
+
+    // Three category-appropriate highlight cells for the stats row. For
+    // a School listing this yields Class Range / Board / Medium; for a
+    // Sports listing → Sports Offered / Facilities / Achievements; etc.
+    final highlights = _buildHighlightCells(service);
 
     return InkWell(
       onTap: () {
@@ -305,13 +305,24 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
                     address: address,
                   ),
                   SizedBox(height: SizeConfig.size12),
-                  _buildStatsRow(
-                    classRange: classRange,
-                    ratio: "${ratio} Ratio",
-                    medium: "${medium} Medium",
-                  ),
+                  if (highlights.isNotEmpty)
+                    Row(
+                      children: [
+                        for (int i = 0; i < highlights.length; i++) ...[
+                          Expanded(
+                            child: _statCell(
+                                highlights[i].icon, highlights[i].label),
+                          ),
+                          if (i != highlights.length - 1)
+                            SizedBox(width: SizeConfig.size8),
+                        ],
+                      ],
+                    ),
                   SizedBox(height: SizeConfig.size12),
-                  _buildFeeRow(label: feeLabel, value: feeRange),
+                  _buildFeeRow(
+                    label: 'No Of Student',
+                    value: numberOfStudents,
+                  ),
                 ],
               ),
             ),
@@ -319,6 +330,113 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
         ),
       ),
     );
+  }
+
+  /// Pick up to 3 highlight cells for the stats row based on the
+  /// listing's category. Draws keys from
+  /// [kQuickInfoFieldsByCategory] (skipping `numberOfStudents`, which
+  /// gets its own dedicated row) and reads each value from
+  /// `service.quickInfoRaw`. Falls back to school-flavoured defaults
+  /// when the category isn't resolvable — that's what the old card
+  /// showed, so this keeps behaviour identical for the historical
+  /// case.
+  List<_HighlightCell> _buildHighlightCells(SchoolDetailsData service) {
+    const na = 'N/A';
+    final resolvedKey =
+        resolveQuickInfoCategoryKey(service.quickInfoCategory ?? service.type);
+    final schema = resolvedKey != null
+        ? kQuickInfoFieldsByCategory[resolvedKey]!
+        : const <String>['classRange', 'board', 'mediumOfInstruction'];
+
+    final raw = service.quickInfoRaw ?? const <String, dynamic>{};
+    final cells = <_HighlightCell>[];
+    for (final key in schema) {
+      if (key == 'numberOfStudents') continue; // rendered in the fee row
+      if (cells.length >= 3) break;
+      final value = raw[key] ?? _typedFallback(service, key);
+      cells.add(_HighlightCell(
+        icon: _iconForKey(key),
+        label: _formatCellLabel(key, value, na),
+      ));
+    }
+    return cells;
+  }
+
+  /// Fall back to the typed mirror on [SchoolDetailsData] when
+  /// `quickInfoRaw` doesn't have the key — e.g. records that came in
+  /// via the school-home flow before we started preserving the raw
+  /// map.
+  dynamic _typedFallback(SchoolDetailsData s, String key) {
+    switch (key) {
+      case 'classRange':
+        return s.classRange;
+      case 'studentTeacherRatio':
+        return s.studentTeacherRatio;
+      case 'board':
+        return s.boards;
+      case 'mediumOfInstruction':
+        return s.mediumOfInstruction;
+      default:
+        return null;
+    }
+  }
+
+  /// Compact suffix rendering per field, matching the previous card's
+  /// "CBSE Board" / "English Medium" style but generalised to any
+  /// list/string/number value.
+  String _formatCellLabel(String key, dynamic value, String na) {
+    final suffix = _suffixForKey(key);
+    if (value is List) {
+      if (value.isEmpty) return _labelForKey(key, na);
+      final head = value.first.toString();
+      if (value.length == 1) return suffix.isEmpty ? head : '$head $suffix';
+      return suffix.isEmpty
+          ? '${value.length} ${_labelForKey(key, '').trim()}'
+          : '${value.length} ${suffix}s';
+    }
+    if (value is num) return '$value ${_labelForKey(key, '').trim()}'.trim();
+    final str = value?.toString().trim() ?? '';
+    if (str.isEmpty) return _labelForKey(key, na);
+    return suffix.isEmpty ? str : '$str $suffix';
+  }
+
+  /// Human suffix appended to a value, e.g. "Board" → "CBSE Board".
+  /// Empty when the value is self-describing (course names, sports).
+  String _suffixForKey(String key) {
+    switch (key) {
+      case 'board':
+        return 'Board';
+      case 'mediumOfInstruction':
+        return 'Medium';
+      case 'studentTeacherRatio':
+        return 'Ratio';
+      default:
+        return '';
+    }
+  }
+
+  /// Placeholder label when a field is empty ("N/A Board", "N/A Medium").
+  String _labelForKey(String key, String na) {
+    final suffix = _suffixForKey(key);
+    return suffix.isEmpty ? na : '$na $suffix';
+  }
+
+  String _iconForKey(String key) {
+    switch (key) {
+      case 'classRange':
+        return AppIconAssets.classIcon;
+      case 'board':
+        return AppIconAssets.personProfileIcon;
+      case 'mediumOfInstruction':
+        return AppIconAssets.mediumIcon;
+      case 'studentTeacherRatio':
+        return AppIconAssets.personProfileIcon;
+      default:
+        // Unknown / category-specific keys (coursesOffered, sportsOffered,
+        // skillPrograms, …) — use the generic classes icon; swap once we
+        // ship per-key icons.
+        return AppIconAssets.classIcon;
+    }
   }
 
   Future<void> _shareSchool(SchoolDetailsData service) async {
@@ -357,29 +475,6 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
     if (km < 1) return '${(km * 1000).toStringAsFixed(0)}m Away';
     if (km < 10) return '${km.toStringAsFixed(1)}KM Away';
     return '${km.toStringAsFixed(0)}KM Away';
-  }
-
-  String _buildFeeLabel(SchoolDetailsData service) {
-    if (service.fees != null) return 'Annual fee · varies by class';
-    final courses = service.courses;
-    if (courses == null || courses.isEmpty) return 'Annual fee';
-    return 'Annual fee · varies by class';
-  }
-
-  String _buildFeeRange(SchoolDetailsData service) {
-    if (service.fees != null) return '${_formatFee(service.fees!)}/Year';
-    final courses = service.courses;
-    if (courses == null || courses.isEmpty) return 'N/A';
-    final yearly = courses
-        .map((c) => c.courseFees?.yearly)
-        .whereType<int>()
-        .toList()
-      ..sort();
-    if (yearly.isEmpty) return 'N/A';
-    final min = yearly.first;
-    final max = yearly.last;
-    if (min == max) return '${_formatFee(min)}/Year';
-    return '${_formatFee(min)} - ${_formatFee(max)}/Year';
   }
 
   String? _operatingWindow(SchoolDetailsData service) {
@@ -441,19 +536,6 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
 
     if (allSame) return '$dayRange | $firstOpen - $firstClose';
     return '$dayRange | varies';
-  }
-
-  String _formatFee(int value) {
-    if (value >= 100000) {
-      final lakhs = value / 100000;
-      final txt =
-          lakhs % 1 == 0 ? lakhs.toStringAsFixed(0) : lakhs.toStringAsFixed(1);
-      return '₹${txt}L';
-    }
-    if (value >= 1000) {
-      return '₹${(value / 1000).toStringAsFixed(0)},000';
-    }
-    return '₹$value';
   }
 
   Widget _buildCoverSection({
@@ -657,22 +739,6 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
     );
   }
 
-  Widget _buildStatsRow({
-    required String classRange,
-    required String ratio,
-    required String medium,
-  }) {
-    return Row(
-      children: [
-        Expanded(child: _statCell(AppIconAssets.classIcon, classRange)),
-        SizedBox(width: SizeConfig.size8),
-        Expanded(child: _statCell(AppIconAssets.personProfileIcon, ratio)),
-        SizedBox(width: SizeConfig.size8),
-        Expanded(child: _statCell(AppIconAssets.mediumIcon, medium)),
-      ],
-    );
-  }
-
   Widget _statCell(String icon, String label) {
     return Container(
       padding: EdgeInsets.symmetric(
@@ -853,6 +919,15 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
           color: AppColors.secondaryTextColor,
         ),
       );
+}
+
+/// Value class for one stat cell rendered in the education card's
+/// stats row. Just a bundle of icon + preformatted label — kept
+/// private since only [selfProfessionCard] emits these.
+class _HighlightCell {
+  final String icon;
+  final String label;
+  const _HighlightCell({required this.icon, required this.label});
 }
 
 class _NoSchoolsFound extends StatelessWidget {

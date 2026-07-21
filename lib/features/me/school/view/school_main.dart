@@ -1,5 +1,4 @@
 import 'package:BlueEra/core/api/apiService/response_model.dart';
-import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/me/school/view/v2/school_home_screen_v2.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
@@ -58,10 +57,12 @@ class _SchoolMainState extends State<SchoolMain> with RouteAware {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        backgroundColor: AppColors.white,
-        body: SafeArea(
-            child: SchoolHomeScreenV2()/*NestedScrollView(
+    // Return the home screen directly (no wrapper Scaffold), mirroring
+    // `grocery_screen.dart`. A wrapper Scaffold with an opaque
+    // `backgroundColor` would opt this screen out of the app-wide themed
+    // background painted by `AppHomeBackground` in `GetMaterialApp.builder`
+    // — that's exactly the "white background everywhere" bug this fixes.
+    return SchoolHomeScreenV2() /*NestedScrollView(
                 headerSliverBuilder: (context, _) => [
                   SliverToBoxAdapter(
                     child: SizedBox(
@@ -124,6 +125,6 @@ class _SchoolMainState extends State<SchoolMain> with RouteAware {
                   ],
                 ),
               ),*/
-          ));
+        ;
   }
 }

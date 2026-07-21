@@ -8,14 +8,12 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
-import 'package:BlueEra/features/me/school/view/category/acadamics/school_academics_page.dart';
+import 'package:BlueEra/features/me/school/view/category/acadamics/widgets/school_quick_info_view.dart';
 import 'package:BlueEra/features/me/school/view/category/career_jobs/school_job_listing_screen.dart';
-import 'package:BlueEra/features/me/school/view/category/notice_news/notice_news_screen.dart';
-import 'package:BlueEra/features/me/school/view/category/school_home/school_course_view.dart';
 import 'package:BlueEra/features/me/school/view/category/school_home/school_director_card_view.dart';
 import 'package:BlueEra/features/me/school/view/category/school_home/school_management_view.dart';
-import 'package:BlueEra/features/me/school/view/category/school_student_corner.dart';
 import 'package:BlueEra/features/me/school/widget/education_enquiry_sheet.dart';
+import 'package:BlueEra/features/me/school/widget/school_course_list_item_card.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -95,7 +93,12 @@ class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
                       schoolAboutUsController: schoolAboutUsController,
                     ),
 
-                    // SizedBox(height: SizeConfig.size10),
+                    /// HIGHLIGHTS (category-driven quick info — reuses the
+                    /// same card as the owner overview tab, in read-only
+                    /// mode).
+                    SchoolQuickInfoCard(controller: schoolAboutUsController),
+
+                    SizedBox(height: SizeConfig.size10),
 
                     /// MANAGEMENT
                     _ManagementSection(data: data),
@@ -105,6 +108,7 @@ class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
                     // 10px margin on every side. The former spacer stacked
                     // on top of those two margins, producing a ~30px gap
                     // between the cards instead of the intended ~10px.
+                    SizedBox(height: SizeConfig.size10),
 
                     /// COURSES
                     _CoursesSection(data: data),
@@ -116,8 +120,9 @@ class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
 
                     SizedBox(height: SizeConfig.size10),
 
-                    /// QUICK LINKS (Job Vacancy, Academics, Student Corner, Notices)
-                    _QuickLinksSection(),
+                    /// QUICK LINKS — Job Vacancy only (Academics /
+                    /// Student Corner / Notices removed per product ask).
+                    _JobVacancyLink(),
 
                     SizedBox(height: SizeConfig.size10),
 
@@ -464,7 +469,48 @@ class _CoursesSection extends StatelessWidget {
         AppStrings.noCoursesAvailable.tr,
       );
     }
-    return SchoolCourseSection(courses: courses, isEdit: false);
+    // Reuse the same card the owner Academics tab uses, in read-only
+    // mode (no edit/delete callbacks → the overflow menu is hidden).
+    // On the public detail screen the list scrolls horizontally inside
+    // a single white surface — keeps the section compact even for
+    // schools with many courses.
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingXSL),
+      child: CommonCardWidget(
+        cardMargin: 0,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _sectionHeader(
+                Icons.menu_book_outlined, AppStrings.coursesLabel.tr),
+            SizedBox(height: SizeConfig.paddingXS),
+            // Horizontal scroller. Each card is width-capped so the row
+            // reads as a rail; IntrinsicHeight lets the row size to the
+            // tallest card without a hard-coded pixel height that would
+            // clip long descriptions/admission buttons.
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              child: IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (int i = 0; i < courses.length; i++) ...[
+                      SizedBox(
+                        width: 320,
+                        child: SchoolCourseListItemCard(course: courses[i]),
+                      ),
+                      if (i != courses.length - 1)
+                        SizedBox(width: SizeConfig.size10),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
@@ -511,9 +557,10 @@ class _GallerySection extends StatelessWidget {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// QUICK LINKS SECTION (Job, Academics, Student Corner, Notices)
+// JOB VACANCY LINK — the only quick-link kept for the public detail view.
+// Academics / Student Corner / Notices were dropped per product ask.
 // ─────────────────────────────────────────────────────────────────────────────
-class _QuickLinksSection extends StatelessWidget {
+class _JobVacancyLink extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -523,60 +570,32 @@ class _QuickLinksSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _sectionHeader(Icons.link_outlined, AppStrings.quickLinksLabel.tr),
+            _sectionHeader(Icons.work_outline, AppStrings.jobVacancy.tr),
             SizedBox(height: SizeConfig.paddingXS),
-            _quickLinkTile(
-              icon: Icons.work_outline,
-              title: AppStrings.jobVacancy.tr,
+            InkWell(
               onTap: () => Get.to(SchoolJobListingScreen(isEdit: false)),
-            ),
-            Divider(color: Colors.grey.shade200, height: 1),
-            _quickLinkTile(
-              icon: Icons.school_outlined,
-              title: AppStrings.academics.tr,
-              onTap: () => Get.to(SchoolAcademicsPage(isEdit: false)),
-            ),
-            Divider(color: Colors.grey.shade200, height: 1),
-            _quickLinkTile(
-              icon: Icons.groups_outlined,
-              title: AppStrings.studentCorner.tr,
-              onTap: () => Get.to(SchoolStudentCorner(isEdit: false)),
-            ),
-            Divider(color: Colors.grey.shade200, height: 1),
-            _quickLinkTile(
-              icon: Icons.campaign_outlined,
-              title: AppStrings.noticesNews.tr,
-              onTap: () => Get.to(NoticeNewsScreen(isEdit: false)),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _quickLinkTile({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        padding: EdgeInsets.symmetric(vertical: SizeConfig.paddingS),
-        child: Row(
-          children: [
-            Icon(icon, size: SizeConfig.size20, color: AppColors.primaryColor),
-            SizedBox(width: SizeConfig.paddingXS),
-            Expanded(
-              child: CustomText(
-                title,
-                fontSize: SizeConfig.size14,
-                fontWeight: FontWeight.w500,
-                color: AppColors.mainTextColor,
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: SizeConfig.paddingS),
+                child: Row(
+                  children: [
+                    Icon(Icons.work_outline,
+                        size: SizeConfig.size20, color: AppColors.primaryColor),
+                    SizedBox(width: SizeConfig.paddingXS),
+                    Expanded(
+                      child: CustomText(
+                        AppStrings.jobVacancy.tr,
+                        fontSize: SizeConfig.size14,
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.mainTextColor,
+                      ),
+                    ),
+                    Icon(Icons.arrow_forward_ios_rounded,
+                        size: SizeConfig.size16,
+                        color: AppColors.secondaryTextColor),
+                  ],
+                ),
               ),
             ),
-            Icon(Icons.arrow_forward_ios_rounded,
-                size: SizeConfig.size16, color: AppColors.secondaryTextColor),
           ],
         ),
       ),

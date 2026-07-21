@@ -548,6 +548,36 @@ class SchoolRepo extends BaseService {
     return response;
   }
 
+  ///GET SCHOOL OPTIONS (boards & mediums of instruction) REPO....
+  ///
+  ///Public endpoint — returns dropdown suggestions for the school
+  ///quick-info form. See lib/docs/SCHOOL_OPTIONS_UI_INTEGRATION.md.
+  Future<ResponseModel> getSchoolOptionsRepo() async {
+    final response = await ApiBaseHelper().getHTTP(schoolOptions,
+        showProgress: false, onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
+  ///GET SCHOOL OPTIONS FOR A SPECIFIC CATEGORY REPO....
+  ///
+  ///Public endpoint — returns the ordered `fields` descriptor list for
+  ///the given category (School Education, College/University, Sports &
+  ///Hobby, Professional Learn, Skill Training, Coaching/Institute).
+  ///Used as the authoritative source of *what to render* in the Quick
+  ///Info form; the per-listing endpoint carries only the saved values.
+  ///Doc §4.
+  Future<ResponseModel> getSchoolOptionsByCategoryRepo(
+      {required String category}) async {
+    final response = await ApiBaseHelper().getHTTP(
+      schoolOptions,
+      params: {'category': category},
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   ///GET SCHOOL QUICK INFO REPO....
   Future<ResponseModel> getSchoolQuickInfoRepo({String? schoolID}) async {
     final response = await ApiBaseHelper().getHTTP(

@@ -24,6 +24,11 @@ mixin EducationServiceApi {
   final String campusLife = 'education-service/campus-life';
   final String schoolUserID = 'education-service/schools/';
 
+  /// GET dropdown options (boards & mediums of instruction) for the
+  /// school create/edit forms. Public endpoint — see
+  /// lib/docs/SCHOOL_OPTIONS_UI_INTEGRATION.md.
+  final String schoolOptions = 'education-service/schools/options';
+
   /// Education enquiry — `POST` raises an enquiry against an education
   /// listing (creates the in-chat `education_enquiry` card + emits
   /// `newEducationEnquiryReceived`); `PUT` status lets the owner accept /

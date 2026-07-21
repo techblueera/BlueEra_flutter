@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:BlueEra/core/api/model/school_details_res_model.dart';
+import 'package:BlueEra/core/api/model/school_quick_info_field.dart';
 
 /// Response model for `GET user-service/business/filter`.
 ///
@@ -275,6 +276,9 @@ class QuickInfo {
     this.studentTeacherRatio,
     this.mediumOfInstruction,
     this.fees,
+    this.boards,
+    this.numberOfStudents,
+    this.raw,
   });
 
   QuickInfo.fromJson(dynamic json) {
@@ -288,18 +292,37 @@ class QuickInfo {
     }
     final feesVal = json['fees'];
     fees = feesVal is num ? feesVal.toInt() : null;
+    // API sends `board` (singular key, list value); tolerate a lone string too.
+    final boardVal = json['board'];
+    if (boardVal is List) {
+      boards = boardVal.map((e) => e.toString()).toList();
+    } else if (boardVal is String && boardVal.isNotEmpty) {
+      boards = [boardVal];
+    }
+    final studentsVal = json['numberOfStudents'];
+    numberOfStudents = studentsVal is num ? studentsVal.toInt() : null;
+    // Preserve the whole payload so category-specific fields
+    // (coursesOffered, sportsOffered, skillPrograms, …) survive the
+    // conversion into [SchoolDetailsData] without a typed field per key.
+    if (json is Map) raw = Map<String, dynamic>.from(json);
   }
 
   String? classRange;
   String? studentTeacherRatio;
   List<String>? mediumOfInstruction;
   int? fees;
+  List<String>? boards;
+  int? numberOfStudents;
+  Map<String, dynamic>? raw;
 
   Map<String, dynamic> toJson() => {
         'classRange': classRange,
         'studentTeacherRatio': studentTeacherRatio,
         'mediumOfInstruction': mediumOfInstruction,
         'fees': fees,
+        'board': boards,
+        'numberOfStudents': numberOfStudents,
+        if (raw != null) 'raw': raw,
       };
 }
 
@@ -524,8 +547,38 @@ extension BusinessFilterDataMappers on BusinessFilterData {
       studentTeacherRatio: quickInfo?.studentTeacherRatio,
       mediumOfInstruction: quickInfo?.mediumOfInstruction,
       fees: quickInfo?.fees,
+      boards: quickInfo?.boards,
+      numberOfStudents: quickInfo?.numberOfStudents,
+      // Carry the full polymorphic quick-info bag + a resolved category
+      // through so the card can render category-specific stat cells
+      // (coursesOffered, sportsOffered, skillPrograms, …) without a
+      // typed field per key.
+      quickInfoRaw: quickInfo?.raw,
+      quickInfoCategory: _resolveCategoryFromChain(
+        subCategoryDetails?.name,
+        categoryDetails?.name,
+        typeOfBusiness,
+      ),
       availability: schoolTimings,
       avgRating: avgRating?.toDouble(),
     );
+  }
+
+  /// Walk sub-category → category → typeOfBusiness and return the first
+  /// value that resolves to one of the doc's six categories. Falls back
+  /// to the most-specific non-empty value so the receiver still has
+  /// *something* to display. Mirrors the resolution done inside the
+  /// school controller so both flows agree on the category.
+  static String? _resolveCategoryFromChain(
+      String? sub, String? cat, String? type) {
+    final chain = <String>[
+      if ((sub ?? '').trim().isNotEmpty) sub!.trim(),
+      if ((cat ?? '').trim().isNotEmpty) cat!.trim(),
+      if ((type ?? '').trim().isNotEmpty) type!.trim(),
+    ];
+    for (final c in chain) {
+      if (resolveQuickInfoCategoryKey(c) != null) return c;
+    }
+    return chain.isEmpty ? null : chain.first;
   }
 }

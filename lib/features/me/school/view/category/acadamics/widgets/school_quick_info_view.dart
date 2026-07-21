@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/api/model/school_quick_info_field.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -10,108 +11,162 @@ import 'package:get/get.dart';
 import '../../../../../../../core/constants/app_icon_assets.dart';
 import '../../../../../../../widgets/local_assets.dart';
 
+/// Quick Info summary card shown on the school Overview tab.
+///
+/// Fully category-agnostic — the field list and their labels come from
+/// `controller.quickInfoFields` (loaded by `GET /schools/:id/quick-info`),
+/// and each field is rendered from `controller.quickInfoValues[field.key]`.
+/// The same widget handles School Education, College/University, Sports &
+/// Hobby, Professional Learn, etc. See
+/// lib/docs/SCHOOL_QUICK_INFO_UI_INTEGRATION.md.
 class SchoolQuickInfoCard extends StatelessWidget {
   final SchoolAboutUsController controller;
-  final VoidCallback onEditTap;
+
+  /// Owner tap-target that opens the edit form. When null the card
+  /// renders in read-only mode: the pencil icon disappears and the
+  /// empty state collapses to a plain "no info" line instead of the
+  /// per-field "Add" list.
+  final VoidCallback? onEditTap;
 
   const SchoolQuickInfoCard({
     super.key,
     required this.controller,
-    required this.onEditTap,
+    this.onEditTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final data = controller.schoolDetailsData?.value;
-    final classRange = (data?.classRange ?? '').trim();
-    final boards = data?.boards ?? const <String>[];
-    final mediums = data?.mediumOfInstruction ?? const <String>[];
-    // final fees = data?.fees;
-    final numberOfStudents = data?.numberOfStudents;
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+      child: CommonCardWidget(
+        padding: 12,
+        cardMargin: 0,
+        child: Obx(() {
+          final fields = controller.quickInfoFields;
+          final values = controller.quickInfoValues;
 
-    final isEmpty = classRange.isEmpty &&
-        boards.isEmpty &&
-        mediums.isEmpty &&
-        numberOfStudents == null;
+          final hasAnyValue = fields.any((f) => _hasValue(values[f.key]));
 
-    final boardLabel = boards.isEmpty
-        ? 'Board'
-        : boards.length == 1
-            ? '${boards.first} Board'
-            : '${boards.length} Boards';
-
-    final mediumLabel = mediums.isEmpty
-        ? 'English Medium'
-        : mediums.length == 1
-            ? '${mediums.first} Medium'
-            : '${mediums.length} Mediums';
-
-    return CommonCardWidget(
-      padding: 12,
-      cardMargin: 0,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CustomText(
-                "School Highlights",
-                fontWeight: FontWeight.w700,
-                fontSize: 15,
-              ),
-              if (!isEmpty) _EditIconBtn(onTap: onEditTap),
-            ],
-          ),
-          SizedBox(height: SizeConfig.size12),
-          if (isEmpty)
-            _EmptyHighlightsList(onAdd: onEditTap)
-          else
-            Row(
-              children: [
-                Expanded(
-                  child: _InfoChip(
-                    icon: AppIconAssets.classIcon,
-                    label: classRange.isNotEmpty ? classRange : 'Class 1-12',
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  CustomText(
+                    _headingFor(controller.quickInfoCategory.value),
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
                   ),
-                ),
-                SizedBox(width: SizeConfig.size8),
-                Expanded(
-                  child: _InfoChip(
-                    icon: AppIconAssets.outlinedDocument,
-                    label: boardLabel,
-                  ),
-                ),
-                SizedBox(width: SizeConfig.size8),
-                Expanded(
-                  child: _InfoChip(
-                    icon: AppIconAssets.mediumIcon,
-                    label: mediumLabel,
-                  ),
-                ),
-                // if (fees != null) ...[
-                //   SizedBox(width: SizeConfig.size8),
-                //   Expanded(
-                //     child: _InfoChip(
-                //       icon: Icons.currency_rupee,
-                //       label: '$fees Fees',
-                //     ),
-                //   ),
-                // ],
-                if (numberOfStudents != null) ...[
-                  SizedBox(width: SizeConfig.size8),
-                  Expanded(
-                    child: _InfoChip(
-                      icon: AppIconAssets.multiPersonsIcon,
-                      label: '$numberOfStudents Students',
-                    ),
-                  ),
+                  if (hasAnyValue && onEditTap != null)
+                    _EditIconBtn(onTap: onEditTap!),
                 ],
-              ],
-            ),
-        ],
+              ),
+              SizedBox(height: SizeConfig.size12),
+              if (fields.isEmpty)
+                _LoadingPlaceholder()
+              else if (!hasAnyValue)
+                onEditTap != null
+                    ? _EmptyHighlightsList(fields: fields, onAdd: onEditTap!)
+                    : _ReadOnlyEmpty()
+              else
+                _FilledChipsGrid(fields: fields, values: values),
+            ],
+          );
+        }),
       ),
     );
+  }
+
+  /// Category name is optional per the API; when absent we fall back to a
+  /// generic label so the card doesn't render "null Highlights".
+  String _headingFor(String? category) {
+    if (category == null || category.trim().isEmpty) return 'Highlights';
+    return '$category Highlights';
+  }
+
+  static bool _hasValue(dynamic v) {
+    if (v == null) return false;
+    if (v is String) return v.trim().isNotEmpty;
+    if (v is List) return v.isNotEmpty;
+    if (v is num) return true;
+    if (v is Map) return v.isNotEmpty;
+    return false;
+  }
+}
+
+/// Renders each populated field as a compact icon+label chip in a Wrap so
+/// varying field counts (3 for school, 4 for sports, 6 for college…) all
+/// lay out cleanly.
+class _FilledChipsGrid extends StatelessWidget {
+  final List<QuickInfoField> fields;
+  final Map<String, dynamic> values;
+
+  const _FilledChipsGrid({required this.fields, required this.values});
+
+  @override
+  Widget build(BuildContext context) {
+    final populated = fields
+        .where((f) => SchoolQuickInfoCard._hasValue(values[f.key]))
+        .toList();
+    if (populated.isEmpty) return const SizedBox.shrink();
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // 3-per-row grid to match the previous school layout when there
+        // are 3 chips; wraps naturally beyond that.
+        const spacing = 8.0;
+        final chipWidth = (constraints.maxWidth - spacing * 2) / 3;
+        return Wrap(
+          spacing: spacing,
+          runSpacing: spacing,
+          children: [
+            for (final field in populated)
+              SizedBox(
+                width: chipWidth,
+                child: _InfoChip(
+                  icon: _iconFor(field.key),
+                  label: _labelFor(field, values[field.key]),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Best-effort icon per known field key. Everything unknown falls back to
+  /// the generic `outlinedDocument` glyph so new backend fields render
+  /// without a frontend change.
+  static String _iconFor(String key) {
+    switch (key) {
+      case 'classRange':
+        return AppIconAssets.classIcon;
+      case 'board':
+        return AppIconAssets.outlinedDocument;
+      case 'mediumOfInstruction':
+        return AppIconAssets.mediumIcon;
+      case 'numberOfStudents':
+        return AppIconAssets.multiPersonsIcon;
+      case 'studentTeacherRatio':
+        return AppIconAssets.personProfileIcon;
+      default:
+        return AppIconAssets.outlinedDocument;
+    }
+  }
+
+  /// Compresses list values ("CBSE" / "3 Boards") and appends the field
+  /// label to give the chip meaning without a separate row of headings.
+  static String _labelFor(QuickInfoField field, dynamic value) {
+    if (value is List) {
+      if (value.isEmpty) return field.label;
+      if (value.length == 1) return '${value.first} ${field.label}';
+      return '${value.length} ${field.label}';
+    }
+    if (value is num) return '$value ${field.label}';
+    final str = value?.toString() ?? '';
+    if (str.trim().isEmpty) return field.label;
+    return str;
   }
 }
 
@@ -128,7 +183,7 @@ class _InfoChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Color(0xffDDE2EE), width: 0.5),
+        border: Border.all(color: Color(0xffDDE2EE), width: 1),
       ),
       child: Column(
         children: [
@@ -151,61 +206,32 @@ class _InfoChip extends StatelessWidget {
   }
 }
 
+/// Empty-state list — one row per descriptor with an "Add" pill. Uses
+/// descriptor `label` and `placeholder` so it stays honest for every
+/// category without a lookup table.
 class _EmptyHighlightsList extends StatelessWidget {
+  final List<QuickInfoField> fields;
   final VoidCallback onAdd;
-  const _EmptyHighlightsList({required this.onAdd});
+
+  const _EmptyHighlightsList({required this.fields, required this.onAdd});
 
   @override
   Widget build(BuildContext context) {
-    const items = <_EmptyRowData>[
-      _EmptyRowData(
-        icon: Icons.menu_book_outlined,
-        title: 'Total Classes',
-        subtitle: 'Add Total classes',
-      ),
-      _EmptyRowData(
-        icon: Icons.account_balance_outlined,
-        title: 'School Board',
-        subtitle: 'Add your school board name',
-      ),
-      _EmptyRowData(
-        icon: Icons.translate,
-        title: 'Medium Of Instruction',
-        subtitle: 'Add the medium of instruction',
-      ),
-      _EmptyRowData(
-        icon: Icons.groups_outlined,
-        title: 'Student Strength',
-        subtitle: 'Add the total number of students',
-      ),
-    ];
-
     return Column(
       children: [
-        for (int i = 0; i < items.length; i++) ...[
-          _EmptyRow(data: items[i], onAdd: onAdd),
-          if (i != items.length - 1) SizedBox(height: SizeConfig.size10),
+        for (int i = 0; i < fields.length; i++) ...[
+          _EmptyRow(field: fields[i], onAdd: onAdd),
+          if (i != fields.length - 1) SizedBox(height: SizeConfig.size10),
         ],
       ],
     );
   }
 }
 
-class _EmptyRowData {
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  const _EmptyRowData({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-  });
-}
-
 class _EmptyRow extends StatelessWidget {
-  final _EmptyRowData data;
+  final QuickInfoField field;
   final VoidCallback onAdd;
-  const _EmptyRow({required this.data, required this.onAdd});
+  const _EmptyRow({required this.field, required this.onAdd});
 
   @override
   Widget build(BuildContext context) {
@@ -215,18 +241,25 @@ class _EmptyRow extends StatelessWidget {
         vertical: SizeConfig.size10,
       ),
       decoration: BoxDecoration(
-        color: AppColors.primaryColor.withValues(alpha: 0.05),
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Color(0xffDDE2EE), width: 0.5),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.white,
-              borderRadius: BorderRadius.circular(8),
+              color: AppColors.primaryColor.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Color(0xffDDE2EE), width: 1),
             ),
-            child: Icon(data.icon, color: AppColors.primaryColor, size: 20),
+            child: LocalAssets(
+              imagePath: _FilledChipsGrid._iconFor(field.key),
+              imgColor: AppColors.primaryColor,
+              height: 20,
+              width: 20,
+            ),
           ),
           SizedBox(width: SizeConfig.size10),
           Expanded(
@@ -234,14 +267,14 @@ class _EmptyRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 CustomText(
-                  data.title,
+                  field.label,
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
                   color: AppColors.mainTextColor,
                 ),
                 SizedBox(height: 2),
                 CustomText(
-                  data.subtitle,
+                  field.placeholder ?? 'Add ${field.label.toLowerCase()}',
                   fontSize: 11,
                   color: AppColors.mainTextColor.withValues(alpha: 0.6),
                 ),
@@ -250,6 +283,38 @@ class _EmptyRow extends StatelessWidget {
           ),
           _AddPill(onTap: onAdd),
         ],
+      ),
+    );
+  }
+}
+
+/// Read-only stand-in for the "Add" list — used when the viewer can't
+/// edit (public discover view).
+class _ReadOnlyEmpty extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: SizeConfig.size12),
+      child: CustomText(
+        'No highlights added yet.',
+        fontSize: 12,
+        color: AppColors.secondaryTextColor,
+      ),
+    );
+  }
+}
+
+class _LoadingPlaceholder extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: SizeConfig.size16),
+      child: Center(
+        child: SizedBox(
+          height: 20,
+          width: 20,
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
       ),
     );
   }

@@ -72,6 +72,8 @@ class SchoolDetailsData {
     this.fees,
     this.numberOfStudents,
     this.avgRating,
+    this.quickInfoRaw,
+    this.quickInfoCategory,
   });
 
   SchoolDetailsData.fromJson(dynamic json) {
@@ -155,6 +157,14 @@ class SchoolDetailsData {
     fees = feesVal is num ? feesVal.toInt() : null;
     numberOfStudents = studentsVal is num ? studentsVal.toInt() : null;
 
+    // Preserve the whole quickInfo payload so category-specific fields
+    // (coursesOffered, sportsOffered, skillPrograms, …) survive parsing
+    // without a typed field per key. The listing card looks these up by
+    // string key based on the resolved category.
+    if (quickInfo is Map) {
+      quickInfoRaw = Map<String, dynamic>.from(quickInfo);
+    }
+
     final ratingVal = json['avg_rating'] ?? json['avgRating'];
     avgRating = ratingVal is num ? ratingVal.toDouble() : null;
   }
@@ -184,6 +194,17 @@ class SchoolDetailsData {
   List<String>? mediumOfInstruction;
   int? fees;
   int? numberOfStudents;
+
+  // Polymorphic quick-info bag — carries every key the backend sent under
+  // `quickInfo` (schools, colleges, sports, professional). The typed
+  // fields above are still populated for the school flow; other flows
+  // read from this map by key.
+  Map<String, dynamic>? quickInfoRaw;
+
+  // Canonical category string (e.g. "School Education",
+  // "Sports & Hobby"). Populated when the source stream can resolve one
+  // of the doc's six categories from the business chain; otherwise null.
+  String? quickInfoCategory;
   double? avgRating;
 
   Map<String, dynamic> toJson() {

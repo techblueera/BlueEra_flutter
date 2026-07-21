@@ -5,11 +5,13 @@ import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/school_about_us_model.dart';
 import 'package:BlueEra/core/api/model/school_details_res_model.dart';
+import 'package:BlueEra/core/api/model/school_quick_info_field.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/regular_expression.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/reel/models/upload_init_response.dart';
 import 'package:BlueEra/features/common/reel/repo/channel_repo.dart';
 import 'package:BlueEra/features/me/school/repo/school_repo.dart';
@@ -47,6 +49,22 @@ class SchoolAboutUsController extends GetxController {
   final isQuickInfoSaving = false.obs;
   final isTimingsLoading = false.obs;
   final isTimingsSaving = false.obs;
+
+  // Dropdown suggestions served by GET /schools/options — cached in memory
+  // for the lifetime of the controller.
+  final RxList<String> boardOptions = <String>[].obs;
+  final RxList<String> mediumOptions = <String>[].obs;
+  final isSchoolOptionsLoading = false.obs;
+
+  // Polymorphic Quick Info state — populated by GET /schools/:id/quick-info.
+  // `quickInfoFields` and `quickInfoCategory` drive which inputs render;
+  // `quickInfoValues` is the raw saved payload keyed by field.key (so it can
+  // hold `boards: [...]`, `coursesOffered: [...]`, `numberOfStudents: 900`
+  // etc. without a per-category typed model).
+  // See lib/docs/SCHOOL_QUICK_INFO_UI_INTEGRATION.md.
+  final RxList<QuickInfoField> quickInfoFields = <QuickInfoField>[].obs;
+  final Rxn<String> quickInfoCategory = Rxn<String>();
+  final RxMap<String, dynamic> quickInfoValues = <String, dynamic>{}.obs;
 
   // Initial values (to check if data changed)
   String initialDirectText = "";
@@ -781,15 +799,249 @@ class SchoolAboutUsController extends GetxController {
     await schoolAboutUsController.getSchoolByIdController();
   }
 
+  ///FETCH SCHOOL DROPDOWN OPTIONS (boards & mediums of instruction)....
+  ///
+  ///Backed by `GET /schools/options`. Cached in memory — subsequent calls
+  ///return immediately unless [forceRefresh] is passed.
+  Future<void> fetchSchoolOptions({bool forceRefresh = false}) async {
+    if (!forceRefresh && boardOptions.isNotEmpty && mediumOptions.isNotEmpty) {
+      return;
+    }
+    try {
+      isSchoolOptionsLoading.value = true;
+      final res = await SchoolRepo().getSchoolOptionsRepo();
+      if (res.isSuccess) {
+        final data = res.response?.data['data'];
+        final boards = data?['boards'];
+        final mediums = data?['mediumsOfInstruction'];
+        if (boards is List) {
+          boardOptions.assignAll(boards.map((e) => e.toString()));
+        }
+        if (mediums is List) {
+          mediumOptions.assignAll(mediums.map((e) => e.toString()));
+        }
+      }
+    } catch (e) {
+      logs("ERROR fetchSchoolOptions: $e");
+    } finally {
+      isSchoolOptionsLoading.value = false;
+    }
+  }
+
+  // In-memory cache for `GET /schools/options?category=<X>`. The response
+  // is static reference data so we hold it for the controller's lifetime.
+  final Map<String, List<QuickInfoField>> _fieldsByCategoryCache = {};
+
+  /// Fetch the ordered descriptor list for a category from
+  /// `GET /schools/options?category=<X>` (doc §4). Cached per-category
+  /// on first call. Returns `null` when the endpoint fails or the
+  /// response shape is unexpected; caller falls back to whatever the
+  /// per-listing endpoint returned.
+  Future<List<QuickInfoField>?> _fetchFieldsForCategory(String category) async {
+    final cached = _fieldsByCategoryCache[category];
+    if (cached != null) {
+      logs("_fetchFieldsForCategory: cache hit for '$category' "
+          "(${cached.length} fields)");
+      return cached;
+    }
+    try {
+      logs("_fetchFieldsForCategory: GET /schools/options?category='$category'");
+      final res =
+          await SchoolRepo().getSchoolOptionsByCategoryRepo(category: category);
+      if (!res.isSuccess) {
+        logs("_fetchFieldsForCategory: HTTP failed for '$category'");
+        return null;
+      }
+      final data = res.response?.data['data'];
+      final fieldsRaw = data is Map ? data['fields'] : null;
+      if (fieldsRaw is! List) {
+        logs("_fetchFieldsForCategory: '$category' returned no `data.fields`"
+            " list; body=${res.response?.data}");
+        return null;
+      }
+      final list = fieldsRaw
+          .map((e) => QuickInfoField.fromJson(e))
+          .where((f) => f.key.isNotEmpty)
+          .toList(growable: false);
+      _fieldsByCategoryCache[category] = list;
+      logs("_fetchFieldsForCategory: '$category' → ${list.length} fields "
+          "${list.map((f) => f.key).toList()}");
+      return list;
+    } catch (e) {
+      logs("ERROR _fetchFieldsForCategory('$category'): $e");
+      return null;
+    }
+  }
+
+  /// Read the listing's category from the permanently-registered business
+  /// profile controller. Business categories are nested three levels deep
+  /// (type_of_business → category_details → sub_category_details) and only
+  /// **one** of those three levels lines up with the six categories in the
+  /// education-service doc — which one varies per listing. `Convent
+  /// School`, for example, sits in `sub_category_details.name` but the
+  /// education service expects `School Education` (its parent).
+  ///
+  /// So instead of picking a fixed level, we walk all three candidates
+  /// from most-specific to least and return the first one that resolves
+  /// to a known whitelist key. If none resolve, we still return the most
+  /// specific non-empty value so the backend gets *something* to match
+  /// against tolerantly (doc §4).
+  String? _businessCategoryFallback() {
+    if (!Get.isRegistered<ViewBusinessDetailsController>()) return null;
+    final data = Get.find<ViewBusinessDetailsController>()
+        .businessProfileDetails
+        .value
+        ?.data;
+    if (data == null) return null;
+
+    final candidates = <String>[
+      if ((data.subCategoryDetails?.name ?? '').trim().isNotEmpty)
+        data.subCategoryDetails!.name!.trim(),
+      if ((data.categoryDetails?.name ?? '').trim().isNotEmpty)
+        data.categoryDetails!.name!.trim(),
+      if ((data.typeOfBusiness ?? '').trim().isNotEmpty)
+        data.typeOfBusiness!.trim(),
+    ];
+
+    // Prefer the first candidate that resolves to one of the doc's six
+    // canonical categories — that's the one the education-service will
+    // actually recognise.
+    for (final c in candidates) {
+      if (resolveQuickInfoCategoryKey(c) != null) return c;
+    }
+    // Nothing resolves — fall back to the most-specific value so at least
+    // we're sending real data the backend can attempt to match.
+    return candidates.isEmpty ? null : candidates.first;
+  }
+
   ///GET SCHOOL QUICK INFO....
+  ///
+  ///Response carries three things: `data` (the saved values, polymorphic by
+  ///category), `category` (the listing's category string), and `fields` (an
+  ///ordered list of [QuickInfoField] descriptors telling us what to render).
+  ///The typed mirrors on [schoolDetailsData] are still populated for anywhere
+  ///reading `.boards` / `.mediumOfInstruction` / `.numberOfStudents` etc. —
+  ///new UI should read [quickInfoValues] instead.
   Future<void> fetchSchoolQuickInfo({String? schoolID}) async {
     try {
       isQuickInfoLoading.value = true;
       final res = await SchoolRepo().getSchoolQuickInfoRepo(schoolID: schoolID);
       if (res.isSuccess) {
-        final data = res.response?.data['data'];
-        if (data != null && schoolDetailsData?.value != null) {
-          schoolDetailsData!.value.classRange = data['classRange'];
+        final body = res.response?.data;
+        final data = body?['data'];
+        final category = body?['category']?.toString();
+        final fieldsRaw = body?['fields'];
+
+        // Category source order: the per-listing API's own `category`
+        // field first, then the business profile's own category tree.
+        // Both sources can carry a value the education-service can't
+        // recognise (e.g. `"Convent School"` — a school sub-type that's
+        // not one of the doc's six categories), so we prefer whichever
+        // candidate actually resolves against the whitelist before
+        // falling back to raw strings.
+        final apiCategory =
+            (category != null && category.isNotEmpty) ? category : null;
+        final businessCategory = _businessCategoryFallback();
+        final candidates = <String>[
+          if (apiCategory != null) apiCategory,
+          if (businessCategory != null) businessCategory,
+        ];
+        String? effectiveCategory;
+        for (final c in candidates) {
+          if (resolveQuickInfoCategoryKey(c) != null) {
+            effectiveCategory = c;
+            break;
+          }
+        }
+        // Nothing resolved — keep whatever the sources gave us so the
+        // backend can attempt its own tolerant match.
+        effectiveCategory ??= candidates.isEmpty ? null : candidates.first;
+        quickInfoCategory.value = effectiveCategory;
+
+        // Field descriptors: prefer the dedicated per-category options
+        // endpoint (`GET /schools/options?category=<X>`, doc §4) because
+        // it always returns the *correct* field set for the category.
+        // The `fields` array embedded in this response is a nice-to-have
+        // but is documented (doc §6) to return **every** field when the
+        // listing has no category — that's the "extra Sports/Professional
+        // fields on a School" bug we keep hitting.
+        //
+        // We always attempt the options endpoint whenever we have *any*
+        // category string, even one we don't recognise locally, because
+        // the backend does tolerant matching on its side (doc §4: casing,
+        // spacing and punctuation ignored + short aliases). If it comes
+        // back with a smaller field set than the per-listing response,
+        // we prefer it; otherwise we fall back to the whitelist filter.
+        final resolvedKey = resolveQuickInfoCategoryKey(effectiveCategory);
+        List<QuickInfoField>? categoryFields;
+        if (effectiveCategory != null && effectiveCategory.isNotEmpty) {
+          // Prefer the canonical whitelist key when we have one (avoids
+          // pinging the endpoint with slight variations like "college"
+          // and getting a cache miss each time); fall back to the raw
+          // category otherwise.
+          final query = resolvedKey ?? effectiveCategory;
+          categoryFields = await _fetchFieldsForCategory(query);
+        }
+
+        if (categoryFields != null && categoryFields.isNotEmpty) {
+          // Options endpoint answered — use its descriptors as-is. If we
+          // also have a whitelist for this category, re-filter to guard
+          // against a future backend regression that returns extras.
+          if (resolvedKey != null) {
+            final allowed = kQuickInfoFieldsByCategory[resolvedKey]!;
+            final byKey = {for (final f in categoryFields) f.key: f};
+            final ordered = <QuickInfoField>[
+              for (final key in allowed)
+                if (byKey.containsKey(key)) byKey[key]!,
+            ];
+            // If the whitelist filter yielded nothing (backend/whitelist
+            // disagreement) keep the backend's list rather than emptying
+            // the form.
+            quickInfoFields.assignAll(
+                ordered.isNotEmpty ? ordered : categoryFields);
+          } else {
+            quickInfoFields.assignAll(categoryFields);
+          }
+        } else {
+          // Fallback 1: use whatever the per-listing endpoint sent…
+          final parsed = fieldsRaw is List
+              ? fieldsRaw
+                  .map((e) => QuickInfoField.fromJson(e))
+                  .where((f) => f.key.isNotEmpty)
+                  .toList()
+              : <QuickInfoField>[];
+          // Fallback 2: filter that by the hardcoded whitelist so a
+          // known-category listing never renders another category's
+          // inputs even if both API paths misbehaved.
+          if (resolvedKey != null) {
+            final allowed = kQuickInfoFieldsByCategory[resolvedKey]!;
+            final byKey = {for (final f in parsed) f.key: f};
+            quickInfoFields.assignAll([
+              for (final key in allowed)
+                if (byKey.containsKey(key)) byKey[key]!,
+            ]);
+          } else {
+            quickInfoFields.assignAll(parsed);
+          }
+        }
+
+        logs("QuickInfo fields resolved: category='$effectiveCategory' "
+            "resolvedKey='$resolvedKey' "
+            "fromOptionsEndpoint=${categoryFields != null} "
+            "count=${quickInfoFields.length} "
+            "keys=${quickInfoFields.map((f) => f.key).toList()}");
+
+        if (data is Map) {
+          quickInfoValues.assignAll(Map<String, dynamic>.from(data));
+        } else {
+          quickInfoValues.clear();
+        }
+
+        // Legacy typed mirrors — kept for compatibility with existing readers
+        // on [schoolDetailsData]. Safe to drop once every consumer has moved
+        // to [quickInfoValues].
+        if (data is Map && schoolDetailsData?.value != null) {
+          schoolDetailsData!.value.classRange = data['classRange']?.toString();
           final boardVal = data['board'];
           schoolDetailsData!.value.boards = boardVal is List
               ? boardVal.map((e) => e.toString()).toList()
@@ -802,9 +1054,10 @@ class SchoolAboutUsController extends GetxController {
               : (medium is String && medium.isNotEmpty ? [medium] : <String>[]);
           schoolDetailsData!.value.fees =
               data['fees'] is num ? (data['fees'] as num).toInt() : null;
-          schoolDetailsData!.value.numberOfStudents = data['numberOfStudents'] is num
-              ? (data['numberOfStudents'] as num).toInt()
-              : null;
+          schoolDetailsData!.value.numberOfStudents =
+              data['numberOfStudents'] is num
+                  ? (data['numberOfStudents'] as num).toInt()
+                  : null;
           schoolDetailsData?.refresh();
         }
       }
@@ -816,22 +1069,13 @@ class SchoolAboutUsController extends GetxController {
   }
 
   ///UPDATE SCHOOL QUICK INFO....
-  Future<bool> updateSchoolQuickInfo({
-    required String classRange,
-    required List<String> boards,
-    required List<String> mediumOfInstruction,
-    int? fees,
-    int? numberOfStudents,
-  }) async {
+  ///
+  ///Dynamic partial save — send whichever field.key/value pairs the form
+  ///produced. Backend merges onto stored `quickInfo` (see doc §7).
+  Future<bool> updateSchoolQuickInfoValues(Map<String, dynamic> values) async {
     try {
       isQuickInfoSaving.value = true;
-      final res = await SchoolRepo().updateSchoolQuickInfoRepo(reqBODY: {
-        'classRange': classRange,
-        'board': boards,
-        'mediumOfInstruction': mediumOfInstruction,
-        if (fees != null) 'fees': fees,
-        if (numberOfStudents != null) 'numberOfStudents': numberOfStudents,
-      });
+      final res = await SchoolRepo().updateSchoolQuickInfoRepo(reqBODY: values);
       if (res.isSuccess) {
         commonSnackBar(
             message: res.response?.data['message'] ?? AppStrings.successful);
@@ -841,7 +1085,7 @@ class SchoolAboutUsController extends GetxController {
       commonSnackBar(message: AppStrings.somethingWentWrong);
       return false;
     } catch (e) {
-      logs("ERROR updateSchoolQuickInfo: $e");
+      logs("ERROR updateSchoolQuickInfoValues: $e");
       commonSnackBar(message: AppStrings.somethingWentWrong);
       return false;
     } finally {
