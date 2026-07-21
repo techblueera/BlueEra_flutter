@@ -15,6 +15,7 @@ import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 /// Drives the whole Rapido-style ride-booking flow: home → destination search
 /// → confirm pickup → vehicle select → searching → tracking → cancel.
@@ -167,10 +168,21 @@ class RideBookingController extends GetxController {
   /// `CASH` | `ONLINE`. Shown on the fare bar and the trip-details sheet.
   final paymentMode = 'CASH'.obs;
 
-  /// Road distance for the current pickup→drop pair, measured off the driving
-  /// polyline. Sent to the quote as `distance_in_km` and safe for the UI to
-  /// show. 0 until [fetchQuotes] resolves it.
+  /// Road distance for the current pickup→drop pair. Sent to the quote as
+  /// `distance_in_km` and safe for the UI to show. 0 until the route resolves.
   final tripDistanceKm = 0.0.obs;
+
+  /// Traffic-aware travel time in minutes, when the Routes API answered.
+  /// 0 on the legacy Directions fallback, which reports no traffic duration.
+  final tripDurationMinutes = 0.obs;
+
+  /// Road geometry of the pickup→drop route, for the map polyline. Empty until
+  /// resolved — the vehicle screen draws a straight placeholder until then.
+  final RxList<LatLng> routePoints = <LatLng>[].obs;
+
+  /// Endpoints the cached [routePoints] belong to, so a re-quote for an
+  /// unchanged trip doesn't re-fetch the route.
+  String? _routeCacheKey;
 
   // --------------------------------------------------------------- booking
 
@@ -521,7 +533,7 @@ class RideBookingController extends GetxController {
       // quote, not an empty vehicle list, so they resolve in parallel and
       // either may come back null.
       final context = await Future.wait([
-        _roadDistanceKm(from, to),
+        _resolveRoute(from, to),
         _pincodeFor(from),
       ]);
       final distanceKm = context[0] as double?;
@@ -559,40 +571,105 @@ class RideBookingController extends GetxController {
     }
   }
 
-  /// Driving distance between the two ends, summed along the Directions
-  /// polyline — the same measurement the old flow feeds to `fare/riders`.
+  /// Resolve the driving route between the two ends and publish it.
   ///
-  /// Straight-line distance is NOT a substitute: it under-reads real road
-  /// distance badly enough to land the quote in the wrong fare slab.
+  /// Serves two consumers off ONE network call: `distance_in_km` on the fare
+  /// quote, and the polyline the vehicle screen draws. Straight-line distance
+  /// is not a substitute for either — it under-reads real road distance badly
+  /// enough to land the quote in the wrong fare slab, and it draws a line
+  /// through buildings.
   ///
-  /// Returns null when the route can't be fetched, in which case the quote goes
-  /// out without `distance_in_km` and the server derives its own.
-  Future<double?> _roadDistanceKm(RidePlace from, RidePlace to) async {
+  /// Prefers the **Routes API with `TRAFFIC_AWARE`**, so the geometry is the
+  /// route a driver would actually take right now, and `distanceMeters` /
+  /// `duration` come back measured by Google rather than summed off the
+  /// polyline. Falls back to the legacy Directions call the old flow uses when
+  /// Routes is unavailable — it is a separately-enabled API on the Cloud
+  /// project, so this must not become a hard dependency.
+  ///
+  /// Returns the road distance in km, or null when neither API answers; the
+  /// quote then goes out without `distance_in_km` and the server derives it.
+  Future<double?> _resolveRoute(RidePlace from, RidePlace to) async {
+    // Selecting Parcel re-quotes, and the route for an unchanged pickup/drop
+    // pair is the same route — don't pay for it twice.
+    final key = '${from.latitude},${from.longitude}'
+        '>${to.latitude},${to.longitude}';
+    if (key == _routeCacheKey && routePoints.isNotEmpty) {
+      return tripDistanceKm.value > 0 ? tripDistanceKm.value : null;
+    }
+
+    final origin = PointLatLng(from.latitude, from.longitude);
+    final destination = PointLatLng(to.latitude, to.longitude);
+    final polylinePoints = PolylinePoints(apiKey: googleMapKey);
+
     try {
-      final result = await PolylinePoints(apiKey: googleMapKey)
-          .getRouteBetweenCoordinates(
+      final response = await polylinePoints.getRouteBetweenCoordinatesV2(
+        request: RoutesApiRequest(
+          origin: origin,
+          destination: destination,
+          travelMode: TravelMode.driving,
+          // The whole point of this call: pick the road geometry by current
+          // traffic, not by raw distance.
+          routingPreference: RoutingPreference.trafficAware,
+          // Detail matters here — OVERVIEW simplifies enough that the line
+          // visibly cuts corners at junctions on a city-scale zoom.
+          polylineQuality: PolylineQuality.highQuality,
+        ),
+      );
+      final route =
+          response.routes.isNotEmpty ? response.routes.first : null;
+      final points = route?.polylinePoints;
+      if (route != null && points != null && points.length >= 2) {
+        _publishRoute(key, points);
+        // Traffic-aware ETA — `duration` includes traffic, `staticDuration`
+        // does not. Surfaced so the vehicle rows can show a real drop time.
+        tripDurationMinutes.value = route.durationMinutes?.round() ?? 0;
+        final km = route.distanceKm ?? _sumKm(points);
+        return km > 0 ? km : null;
+      }
+    } catch (_) {
+      // Routes API not enabled on the key, quota, or offline — fall through.
+    }
+
+    try {
+      final result = await polylinePoints.getRouteBetweenCoordinates(
         request: PolylineRequest(
-          origin: PointLatLng(from.latitude, from.longitude),
-          destination: PointLatLng(to.latitude, to.longitude),
+          origin: origin,
+          destination: destination,
           mode: TravelMode.driving,
         ),
       );
       final points = result.points;
       if (points.length < 2) return null;
-
-      var total = 0.0;
-      for (var i = 0; i < points.length - 1; i++) {
-        total += calculateDistanceKm(
-          points[i].latitude,
-          points[i].longitude,
-          points[i + 1].latitude,
-          points[i + 1].longitude,
-        );
-      }
-      return total > 0 ? total : null;
+      _publishRoute(key, points);
+      // Legacy Directions gives no traffic duration.
+      tripDurationMinutes.value = 0;
+      final km = _sumKm(points);
+      return km > 0 ? km : null;
     } catch (_) {
       return null;
     }
+  }
+
+  void _publishRoute(String key, List<PointLatLng> points) {
+    _routeCacheKey = key;
+    routePoints.assignAll(
+      points.map((p) => LatLng(p.latitude, p.longitude)),
+    );
+  }
+
+  /// Road distance summed along the polyline — only needed on the legacy path,
+  /// where the response carries no measured distance.
+  static double _sumKm(List<PointLatLng> points) {
+    var total = 0.0;
+    for (var i = 0; i < points.length - 1; i++) {
+      total += calculateDistanceKm(
+        points[i].latitude,
+        points[i].longitude,
+        points[i + 1].latitude,
+        points[i + 1].longitude,
+      );
+    }
+    return total;
   }
 
   /// Postal code of the pickup, used by the server's serviceability check.
@@ -973,6 +1050,9 @@ class RideBookingController extends GetxController {
     preselectedVehicleCode.value = null;
     orderFor.value = _defaultOrderFor;
     tripDistanceKm.value = 0;
+    tripDurationMinutes.value = 0;
+    routePoints.clear();
+    _routeCacheKey = null;
     activeBooking.value = null;
     terminalStatus.value = null;
     searchProgress.value = 0;

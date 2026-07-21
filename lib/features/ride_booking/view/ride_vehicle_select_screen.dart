@@ -25,38 +25,65 @@ class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen> {
   final RideBookingController controller = Get.find<RideBookingController>();
   GoogleMapController? _mapController;
 
+  /// Re-frames the camera when the road route lands, so the view fits the
+  /// actual path rather than the straight line between the endpoints.
+  Worker? _routeWorker;
+
   @override
   void initState() {
     super.initState();
     controller.fetchQuotes();
     // Frame both endpoints once the map is laid out.
     WidgetsBinding.instance.addPostFrameCallback((_) => _fitBounds());
+    _routeWorker = ever<List<LatLng>>(controller.routePoints, (_) {
+      if (mounted) _fitBounds();
+    });
   }
 
   @override
   void dispose() {
+    _routeWorker?.dispose();
     _mapController?.dispose();
     super.dispose();
   }
 
-  /// Zoom the camera so pickup and drop are both visible with padding.
+  /// Zoom the camera so the whole trip is visible with padding.
+  ///
+  /// Frames the route geometry when we have it: a road route routinely bows
+  /// well outside the box drawn around its two endpoints, and fitting only the
+  /// endpoints crops the middle of the path off-screen.
   Future<void> _fitBounds() async {
-    final from = controller.pickup.value;
-    final to = controller.drop.value;
     final map = _mapController;
-    if (from == null || to == null || map == null) return;
+    if (map == null) return;
 
-    final bounds = LatLngBounds(
-      southwest: LatLng(
-        from.latitude < to.latitude ? from.latitude : to.latitude,
-        from.longitude < to.longitude ? from.longitude : to.longitude,
-      ),
-      northeast: LatLng(
-        from.latitude > to.latitude ? from.latitude : to.latitude,
-        from.longitude > to.longitude ? from.longitude : to.longitude,
+    final points = <LatLng>[
+      ...controller.routePoints,
+      // Always include the endpoints — they must stay visible even if the
+      // route failed to resolve.
+      for (final place in [controller.pickup.value, controller.drop.value])
+        if (place != null && place.hasCoordinates)
+          LatLng(place.latitude, place.longitude),
+    ];
+    if (points.length < 2) return;
+
+    var minLat = points.first.latitude, maxLat = points.first.latitude;
+    var minLng = points.first.longitude, maxLng = points.first.longitude;
+    for (final p in points) {
+      if (p.latitude < minLat) minLat = p.latitude;
+      if (p.latitude > maxLat) maxLat = p.latitude;
+      if (p.longitude < minLng) minLng = p.longitude;
+      if (p.longitude > maxLng) maxLng = p.longitude;
+    }
+
+    await map.animateCamera(
+      CameraUpdate.newLatLngBounds(
+        LatLngBounds(
+          southwest: LatLng(minLat, minLng),
+          northeast: LatLng(maxLat, maxLng),
+        ),
+        70,
       ),
     );
-    await map.animateCamera(CameraUpdate.newLatLngBounds(bounds, 70));
   }
 
   Future<void> _book() async {
@@ -123,20 +150,7 @@ class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen> {
                   ),
                 ),
             },
-            polylines: {
-              if (from != null && to != null)
-                Polyline(
-                  polylineId: const PolylineId('route'),
-                  // Straight segment: the real road geometry comes from the
-                  // Directions response once the backend returns it.
-                  points: [
-                    LatLng(from.latitude, from.longitude),
-                    LatLng(to.latitude, to.longitude),
-                  ],
-                  color: RideStyle.ink,
-                  width: 4,
-                ),
-            },
+            polylines: _routePolylines(from, to),
           ),
           _addressChips(from, to),
           Positioned(
@@ -152,6 +166,54 @@ class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen> {
         ],
       );
     });
+  }
+
+  /// The road route once the controller has it, else a straight placeholder.
+  ///
+  /// The placeholder is drawn dashed-thin and muted on purpose — a solid line
+  /// straight through the city reads as "this is your route", which it isn't.
+  ///
+  /// Two overlapping lines make the real route: a wide light casing under a
+  /// narrower dark stroke, so the path stays legible over dense map tiles.
+  Set<Polyline> _routePolylines(RidePlace? from, RidePlace? to) {
+    final route = controller.routePoints;
+    if (route.length >= 2) {
+      final points = route.toList(growable: false);
+      return {
+        Polyline(
+          polylineId: const PolylineId('route_casing'),
+          points: points,
+          color: AppColors.white,
+          width: 9,
+          startCap: Cap.roundCap,
+          endCap: Cap.roundCap,
+          jointType: JointType.round,
+        ),
+        Polyline(
+          polylineId: const PolylineId('route'),
+          points: points,
+          color: RideStyle.ink,
+          width: 5,
+          startCap: Cap.roundCap,
+          endCap: Cap.roundCap,
+          jointType: JointType.round,
+        ),
+      };
+    }
+
+    if (from == null || to == null) return const {};
+    return {
+      Polyline(
+        polylineId: const PolylineId('route_pending'),
+        points: [
+          LatLng(from.latitude, from.longitude),
+          LatLng(to.latitude, to.longitude),
+        ],
+        color: RideStyle.inkMuted,
+        width: 3,
+        patterns: [PatternItem.dash(18), PatternItem.gap(10)],
+      ),
+    };
   }
 
   Widget _addressChips(RidePlace? from, RidePlace? to) {
