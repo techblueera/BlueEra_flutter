@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math' as math;
 
+import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/api/model/place_details.dart';
 import 'package:BlueEra/core/api/model/place_prediction.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
@@ -554,13 +555,7 @@ class RideBookingController extends GetxController {
             response.message?.toString() ?? 'Could not fetch fares right now.';
         return;
       }
-      // `ResponseModel.data` is hard-coded to `body['data']`. This endpoint
-      // returns `{pricingSignals, riders}` — if that IS the body rather than a
-      // wrapped payload, `.data` is null and the list silently empties. Accept
-      // both by falling back to the raw body.
-      vehicleOptions.assignAll(
-        _parseDynamicFare(response.data ?? response.response?.data),
-      );
+      vehicleOptions.assignAll(_parseDynamicFare(_payload(response)));
       if (vehicleOptions.isEmpty) return; // shape B `{}` — genuinely no riders
 
       final preferred = preselectedVehicleCode.value;
@@ -830,6 +825,21 @@ class RideBookingController extends GetxController {
     return num.tryParse(v.toString());
   }
 
+  /// Body of a response, whether or not it is wrapped in a `data` envelope.
+  ///
+  /// `ResponseModel.data` is hard-coded to `body['data']`, which suits the
+  /// services that wrap their payloads. `rider-service/fare/*` does not — the
+  /// create call returns the order object at the top level:
+  ///
+  /// ```jsonc
+  /// { "orderId": "ORD-1784621292731", "status": "pending", … }
+  /// ```
+  ///
+  /// so `.data` is null and a perfectly successful 201 parses as a failure.
+  /// Every read of a response in this flow goes through here.
+  static dynamic _payload(ResponseModel response) =>
+      response.data ?? response.response?.data;
+
   /// Pick a vehicle row.
   ///
   /// A plain selection — no re-quote. `orderFor` is a property of the TRIP
@@ -872,7 +882,7 @@ class RideBookingController extends GetxController {
       );
       if (!response.isSuccess) return false;
 
-      final data = response.data;
+      final data = _payload(response);
       if (data is! Map) return false;
       final order = data['order'] is Map ? data['order'] as Map : data;
       final rideId =
@@ -883,6 +893,11 @@ class RideBookingController extends GetxController {
       // create response — the order payload is the backend's own shape, and
       // the screens only need pickup/drop/fare/vehicle until the first status
       // poll lands (which is authoritative from then on).
+      //
+      // The OTP is the exception: `pickupOTP` is already in the create response
+      // and the status poll only re-sends it later, so taking it here means the
+      // tracking card is never briefly missing it.
+      final otp = order['pickupOTP']?.toString();
       activeBooking.value = RideBooking(
         rideId: rideId,
         status: RideStatus.fromString(order['status']?.toString()),
@@ -892,6 +907,7 @@ class RideBookingController extends GetxController {
         vehicleName: option.name,
         fare: option.fare,
         paymentMode: paymentMode.value,
+        startOtp: (otp != null && otp.isNotEmpty) ? otp : null,
       );
       _startSearching();
       return true;
@@ -945,7 +961,7 @@ class RideBookingController extends GetxController {
     try {
       final response = await _repo.getBookingStatus(booking.rideId);
       if (!response.isSuccess) return; // transient — the next tick retries
-      final data = response.data;
+      final data = _payload(response);
       if (data is! Map) return;
 
       // `{ status, pickupOTP?, metadata }` (guide §3). Merge onto the booking
@@ -1015,7 +1031,7 @@ class RideBookingController extends GetxController {
     try {
       final response = await _repo.getCaptainLocation(booking.rideId);
       if (!response.isSuccess) return;
-      final payload = response.data;
+      final payload = _payload(response);
       if (payload is! Map) return;
 
       // `{ rideActive, rider: { location, ... } }` (guide §1). A false
