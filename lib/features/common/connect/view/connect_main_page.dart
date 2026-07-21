@@ -30,6 +30,7 @@ import 'package:BlueEra/features/chat/view/symbol_view/symbol_view_images.dart';
 import 'package:BlueEra/features/chat/view/wallet_chat/wallet_chat_screen.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
+import 'package:BlueEra/features/contacts/controller/contact_sync_controller.dart';
 import 'package:BlueEra/features/me/product/view/admin/widget/orders_tab_body.dart';
 import 'package:BlueEra/features/common/home/controller/symbol_feed_controller.dart';
 import 'package:BlueEra/features/common/order_history/view/local_orders_list_screen.dart';
@@ -114,6 +115,11 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
   final ChatLockController chatLockController = getOrPut(() => ChatLockController());
   final LanguageListController langController = getOrPut(() => LanguageListController());
 
+  /// Owns the additive `contact-service` sync (see [_syncContactsIfNeeded]).
+  /// Separate from [chatViewController]'s `chat-service/connections/sync`.
+  final ContactSyncController contactSyncController =
+      getOrPut(() => ContactSyncController());
+
   late TabController _tabController;
 
   /// Single global subscription so the share-handler stream is never listened
@@ -192,9 +198,13 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
   }
 
   Future<void> _syncContactsIfNeeded() async {
-    // Already synced (memory or Hive)? Nothing to do.
+    // Already synced (memory or Hive)? The chat-service side is done, but the
+    // contact service has its own 24h/digest cadence — let it decide.
     final hydrated = await chatViewController.hydrateContactsFromCache();
-    if (hydrated) return;
+    if (hydrated) {
+      unawaited(_syncContactServiceIfDue());
+      return;
+    }
 
     // First-time sync needs internet. Offline → skip; ContactsPage will
     // render from cache (empty if none yet).
@@ -205,7 +215,12 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
     PermissionStatus status = await Permission.contacts.status;
     if (!status.isGranted) {
       status = await Permission.contacts.request();
-      if (!status.isGranted) return;
+      if (!status.isGranted) {
+        // Consent withdrawn — drop the phonebook the contact service is
+        // holding. Soft-delete, so re-granting restores the match history.
+        unawaited(_withdrawContactConsentIfNeeded(status));
+        return;
+      }
     }
 
     // Mirror ContactsPage._loadContactsFromCache: hydrate from cache or
@@ -227,6 +242,57 @@ class _ConnectMainPageState extends State<ConnectMainPage> with SingleTickerProv
         .toList();
     if (formatted.isEmpty) return;
     await chatViewController.uploadContacts(formatted);
+
+    // ADDITIVE: mirror the same phonebook to the contact service, which powers
+    // "Contacts on BlueEra" and the `contact_joined` push. Independent of the
+    // chat-service upload above — a failure here must not affect the Connect
+    // tab, so it's fire-and-forget and never throws.
+    unawaited(contactSyncController.syncPhonebook(formatted));
+  }
+
+  /// The user revoked (or permanently denied) contacts permission after we had
+  /// already uploaded their phonebook — tell the contact service to drop it.
+  /// One-shot: `deleteAllContacts` clears the local sync bookkeeping, so this
+  /// won't re-fire on every Connect-tab entry.
+  Future<void> _withdrawContactConsentIfNeeded(PermissionStatus status) async {
+    if (!status.isPermanentlyDenied && !status.isDenied) return;
+    if (!await contactSyncController.hasSyncedLocally()) return;
+    await contactSyncController.deleteAllContacts();
+  }
+
+  /// Contact-service-only pass, for entries where the chat-service contacts
+  /// are already cached so the block above returns early. Re-reads the
+  /// phonebook only when a sync is actually due (never synced, or > 24h) and
+  /// only when permission is ALREADY granted — this path never prompts.
+  Future<void> _syncContactServiceIfDue() async {
+    if (contactSyncController.isSyncing.value) return;
+
+    final status = await Permission.contacts.status;
+    if (!status.isGranted) {
+      await _withdrawContactConsentIfNeeded(status);
+      return;
+    }
+
+    // Cheap check first — reading thousands of device contacts on every
+    // Connect entry is not free.
+    if (!await contactSyncController.isTimeBasedSyncDue()) return;
+    if (!await checkInternetStatus()) return;
+
+    final contacts = await FlutterContacts.getContacts(
+      withProperties: true,
+      withAccounts: true,
+    );
+    final formatted = contacts
+        .where((c) => c.phones.isNotEmpty)
+        .map<Map<String, dynamic>>((c) => {
+              ApiKeys.contact_no: c.phones.first.number,
+              ApiKeys.name: c.displayName,
+            })
+        .toList();
+    if (formatted.isEmpty) return;
+    // syncPhonebook itself no-ops when the digest is unchanged and the last
+    // upload is younger than 24h.
+    await contactSyncController.syncPhonebook(formatted);
   }
 
   Future<void> _loadContactsFromCache() async {

@@ -11,6 +11,12 @@ class AppStrings {
   static const tokenIsNull = "Token is null";
   static const storagePermissionDenied = "Storage permission is denied";
 
+  /// CONTACTS ON BLUEERA (contact-service). Literal English — these keys have
+  /// no translation entry yet, so `.tr` would render the key itself.
+  static const contactsOnBlueEra = "Contacts on BlueEra";
+  static const noContactsOnBlueEra = "None of your contacts are on BlueEra yet";
+  static const messageAction = "Message";
+
   ///SCREEN NAME====..
   static const changeLanguage = "changeLanguage";
 

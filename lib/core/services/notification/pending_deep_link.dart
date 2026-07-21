@@ -118,6 +118,7 @@ class PendingDeepLink {
       case 'accepted_connection_request':
       case 'followed_profile':
       case 'user_enrolled':
+      case 'contact_joined':
         return DeepLinkTarget.connection;
 
       default:

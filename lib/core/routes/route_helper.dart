@@ -195,6 +195,7 @@ import 'package:BlueEra/permissionCentralize/permission_gate.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import '../../features/chat/view/contacts/view/contact_list_page.dart';
+import '../../features/contacts/view/blue_era_contacts_screen.dart';
 import '../../features/common/store/add_update_product/add_update_product_screen.dart';
 import '../../features/common/store/models/get_channel_product_model.dart';
 import '../../features/personal/personal_profile/view/booking_enquiries_screen/appointment_booking_form.dart';
@@ -1019,6 +1020,10 @@ class RouteHelper {
       case RouteConstant.ChatContactsScreen:
         return MaterialPageRoute(
           builder: (_) => ContactsPage(),
+        );
+      case RouteConstant.BlueEraContactsScreen:
+        return MaterialPageRoute(
+          builder: (_) => const BlueEraContactsScreen(),
         );
       case RouteConstant.CreateJobPostScreen:
         final args = settings.arguments as Map<String, dynamic>?;

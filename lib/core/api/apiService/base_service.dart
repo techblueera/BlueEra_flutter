@@ -5,6 +5,7 @@ import 'package:BlueEra/core/api/apiService/booking_enquiry_service_api.dart';
 import 'package:BlueEra/core/api/apiService/channel_product_service_api.dart';
 import 'package:BlueEra/core/api/apiService/channel_service_api.dart';
 import 'package:BlueEra/core/api/apiService/chat_service_api.dart';
+import 'package:BlueEra/core/api/apiService/contact_service_api.dart';
 import 'package:BlueEra/core/api/apiService/document_service_api.dart';
 import 'package:BlueEra/core/api/apiService/earn_service_api.dart';
 import 'package:BlueEra/core/api/apiService/education_service_api.dart';
@@ -107,6 +108,7 @@ abstract class BaseService
         OtherServiceApi,
         HealthServiceApi,
         SubscriptionServiceApi,
+        ContactServiceApi,
         VehicleServiceApi {
 
   /// Polling endpoint (no service prefix in the source URL).

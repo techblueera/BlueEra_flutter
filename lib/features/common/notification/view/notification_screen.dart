@@ -398,6 +398,12 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       else if (data.type == "SYMBOL_CREATED") {
                         _openSymbol(data);
                       }
+                      else if (data.type == "CONTACT_JOINED" ||
+                          operation.toLowerCase() == "contact_joined") {
+                        // A phonebook contact completed their BlueEra account
+                        // (contact-service) — go straight to their profile.
+                        _openJoinedContactProfile(data);
+                      }
                       else if (_isCallNotification(data)) {
                         // incoming_call / missed_call / call_cancelled share
                         // notification_type "chat" with messages, so branch on
@@ -587,6 +593,22 @@ class _NotificationScreenState extends State<NotificationScreen> {
     } catch (e) {
       commonSnackBar(message: AppStrings.somethingWentWrong);
     }
+  }
+
+  /// CONTACT_JOINED row tap → open the contact's profile. The contact id comes
+  /// from the push payload's `contactUserId`; falls back to the sender profile
+  /// when the backend only fills that in.
+  void _openJoinedContactProfile(NotificationDataList data) {
+    final profileId = (data.metadata?.contactUserId ??
+            data.senderProfile?.id ??
+            data.sentBy ??
+            '')
+        .trim();
+    if (profileId.isEmpty) return;
+    redirectToProfileScreen(
+      accountType: data.senderProfile?.account_type ?? AppConstants.individual,
+      profileId: profileId,
+    );
   }
 
   // Call notifications (incoming/missed/cancelled) are delivered under the

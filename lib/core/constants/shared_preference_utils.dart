@@ -187,6 +187,15 @@ class SharedPreferenceUtils {
   /// mount / bottom-nav re-entry).
   static const qrPromoLastShownKey = 'qr_promo_last_shown';
 
+  /// Fingerprint of the phonebook last uploaded to `contact-service`, so an
+  /// unchanged phonebook never re-uploads. Separate from the chat-service
+  /// contacts cache — see `ContactSyncController`.
+  static const contactServiceDigestKey = 'contact_service_digest';
+
+  /// `millisecondsSinceEpoch` of the last successful `contact-service` sync,
+  /// used for the ">24h" cadence check without a network round-trip.
+  static const contactServiceLastSyncKey = 'contact_service_last_sync';
+
   /// Persist a referral code that arrived via deeplink before the user
   /// completed onboarding. No-op for empty / whitespace-only input so
   /// a malformed query param can't overwrite a previously-valid one.
