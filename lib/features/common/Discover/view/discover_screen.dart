@@ -565,7 +565,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
         _circleIconButton(
           boxShadow: _kTopViewShadow,
           child: LocalAssets(
-            imagePath: AppIconAssets.riderIconColorful,
+            imagePath: AppIconAssets.transport_bike,
             width: 24,
             height: 24,
           ),

@@ -52,7 +52,13 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
   }
 
   /// Destination chosen → confirm the pickup point on the map next.
-  Future<void> _openDestinationSearch() async {
+  ///
+  /// [vehicleCode] is the Explore tile that started the flow, or null when the
+  /// user came in through the search field. It sets the trip type (`orderFor`)
+  /// the same way the old flow's horizontal tab does, and pre-selects that row
+  /// on the vehicle screen.
+  Future<void> _openDestinationSearch({String? vehicleCode}) async {
+    controller.setTripTypeForVehicle(vehicleCode);
     final RidePlace? chosen = await Get.to<RidePlace>(
       () => const RideDestinationSearchScreen(),
     );
@@ -62,6 +68,9 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
   }
 
   void _selectRecent(RidePlace place) {
+    // No vehicle was chosen on the way in, so this is a plain city ride until
+    // the user picks otherwise on the vehicle screen.
+    controller.setTripTypeForVehicle(null);
     controller.setDrop(place);
     Get.to(() => const RideConfirmPickupScreen());
   }
@@ -256,10 +265,10 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
   /// rail matches the vehicle imagery already used across the transport
   /// screens.
   static const List<_ExploreItem> _exploreItems = [
-    _ExploreItem('Parcel on Bike', 'PARCEL', AppIconAssets.carbon_delivery),
+    _ExploreItem('Bike', 'BIKE', AppIconAssets.transport_bike),
+    _ExploreItem('Parcel on Bike', 'PARCEL', AppIconAssets.riderIconColorful),
     _ExploreItem('Auto', 'AUTO', AppIconAssets.transport_auto),
     _ExploreItem('Cab Economy', 'CAB_ECONOMY', AppIconAssets.transport_taxi),
-    _ExploreItem('Bike', 'BIKE', AppIconAssets.transport_bike),
   ];
 
   Widget _exploreSection() {
@@ -305,7 +314,8 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
                 Expanded(
                   child: _ExploreTile(
                     item: item,
-                    onTap: _openDestinationSearch,
+                    onTap: () =>
+                        _openDestinationSearch(vehicleCode: item.code),
                   ),
                 ),
             ],
@@ -445,6 +455,10 @@ class _ExploreTile extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 5),
         child: Column(
+          // Stretch, otherwise the tinted box shrink-wraps its artwork and
+          // tiles end up different widths (the rider SVG is near-square while
+          // the vehicle SVGs are wide).
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Container(
               height: 74,

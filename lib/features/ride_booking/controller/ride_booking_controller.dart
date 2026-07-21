@@ -5,10 +5,14 @@ import 'dart:math' as math;
 import 'package:BlueEra/core/api/model/place_details.dart';
 import 'package:BlueEra/core/api/model/place_prediction.dart';
 import 'package:BlueEra/core/common_bloc/place/repo/place_repo.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/services/get_current_location.dart';
+import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/ride_booking/model/ride_booking_models.dart';
 import 'package:BlueEra/features/ride_booking/repo/ride_booking_repo.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 
@@ -37,6 +41,43 @@ class RideBookingController extends GetxController {
   /// must not ship until one exists, or the user pays more for nothing.
   /// Guide §6. Flip when the backend lands.
   static const bool kFareRaiseEnabled = false;
+
+  /// How far out the server should look for riders when pricing — mirrors the
+  /// old flow's `range_in_km: 20`.
+  static const int kRiderSearchRangeKm = 20;
+
+  /// Trip type per vehicle code — the new flow's answer to the old flow's tab
+  /// index (`DiscoverController.getOrderTypeString()`).
+  ///
+  /// The old screens pick `orderFor` from a horizontal tab the user taps before
+  /// searching; there is no tab here, so the Explore tile (and then the vehicle
+  /// row) is the equivalent explicit choice. Backend accepts
+  /// `InCity | OutStation | HourlyRental | Parcel` — only two are reachable from
+  /// this flow today, the other two are listed so adding an entry point is a
+  /// one-line change.
+  static const String _defaultOrderFor = 'InCity';
+  static const Map<String, String> _orderForByCode = {
+    'PARCEL': 'Parcel',
+    'BIKE': 'InCity',
+    'AUTO': 'InCity',
+    'CAB_ECONOMY': 'InCity',
+    'CAB_DAILY': 'InCity',
+    'CAB_PREMIUM': 'InCity',
+  };
+
+  static String _orderForCode(String? code) =>
+      _orderForByCode[code] ?? _defaultOrderFor;
+
+  /// Trip type sent to BOTH the quote and the create call.
+  ///
+  /// Deliberately one value read by both: quoting under one `orderFor` while
+  /// ordering under another is how the price on the button stops matching the
+  /// price on the order.
+  final orderFor = _defaultOrderFor.obs;
+
+  /// Vehicle the user picked on the Explore rail, if any. Pre-selects that row
+  /// once the quote lands instead of falling back to the first option.
+  final RxnString preselectedVehicleCode = RxnString();
 
   /// Maps this flow's vehicle codes onto the backend's `vehicleType` values.
   /// Kept in one place so the quote response and the create body can't drift.
@@ -125,6 +166,11 @@ class RideBookingController extends GetxController {
 
   /// `CASH` | `ONLINE`. Shown on the fare bar and the trip-details sheet.
   final paymentMode = 'CASH'.obs;
+
+  /// Road distance for the current pickup→drop pair, measured off the driving
+  /// polyline. Sent to the quote as `distance_in_km` and safe for the UI to
+  /// show. 0 until [fetchQuotes] resolves it.
+  final tripDistanceKm = 0.0.obs;
 
   // --------------------------------------------------------------- booking
 
@@ -446,33 +492,121 @@ class RideBookingController extends GetxController {
 
   // --------------------------------------------------------------- quoting
 
-  /// Fetch fares for every vehicle category. Pre-selects the first option so
-  /// the Book button is immediately actionable, matching Rapido.
+  /// Record the vehicle the user tapped on the Explore rail and derive the
+  /// trip type from it, the way the old flow derives `orderFor` from its tab.
+  /// Call before navigating into the flow; [fetchQuotes] picks both up.
+  void setTripTypeForVehicle(String? vehicleCode) {
+    preselectedVehicleCode.value = vehicleCode;
+    orderFor.value = _orderForCode(vehicleCode);
+  }
+
+  /// Fetch fares for every vehicle category.
+  ///
+  /// Pre-selects the Explore choice when the quote contains it, else the first
+  /// option, so the Book button is immediately actionable.
   Future<void> fetchQuotes() async {
     final from = pickup.value;
     final to = drop.value;
     if (from == null || to == null) return;
     if (!from.hasCoordinates || !to.hasCoordinates) return;
 
+    final trip = orderFor.value;
+
     isQuoting.value = true;
     vehicleOptions.clear();
     selectedVehicle.value = null;
     try {
+      // Trip context the fare depends on. Both are best-effort — a failed
+      // geocode or a Directions hiccup must degrade to a coordinates-only
+      // quote, not an empty vehicle list, so they resolve in parallel and
+      // either may come back null.
+      final context = await Future.wait([
+        _roadDistanceKm(from, to),
+        _pincodeFor(from),
+      ]);
+      final distanceKm = context[0] as double?;
+      // Pincode rides along only for the trip types the old flow sends it for
+      // (tabs 0/1 = InCity/OutStation) — it is a serviceability check on the
+      // pickup city, which parcel/rental pricing doesn't run.
+      final pincode = (trip == 'InCity' || trip == 'OutStation')
+          ? context[1] as String?
+          : null;
+      tripDistanceKm.value = distanceKm ?? 0;
+
       final response = await _repo.getDynamicFare(
         pickupLat: from.latitude,
         pickupLng: from.longitude,
         dropLat: to.latitude,
         dropLng: to.longitude,
+        orderFor: trip,
+        rangeInKm: kRiderSearchRangeKm,
+        pincode: pincode,
+        distanceInKm: distanceKm,
       );
       if (!response.isSuccess) return;
       vehicleOptions.assignAll(_parseDynamicFare(response.data));
-      if (vehicleOptions.isNotEmpty) {
-        selectedVehicle.value = vehicleOptions.first;
-      }
+      if (vehicleOptions.isEmpty) return;
+
+      final preferred = preselectedVehicleCode.value;
+      selectedVehicle.value = vehicleOptions.firstWhere(
+        (o) => o.code == preferred,
+        orElse: () => vehicleOptions.first,
+      );
     } catch (_) {
       vehicleOptions.clear();
     } finally {
       isQuoting.value = false;
+    }
+  }
+
+  /// Driving distance between the two ends, summed along the Directions
+  /// polyline — the same measurement the old flow feeds to `fare/riders`.
+  ///
+  /// Straight-line distance is NOT a substitute: it under-reads real road
+  /// distance badly enough to land the quote in the wrong fare slab.
+  ///
+  /// Returns null when the route can't be fetched, in which case the quote goes
+  /// out without `distance_in_km` and the server derives its own.
+  Future<double?> _roadDistanceKm(RidePlace from, RidePlace to) async {
+    try {
+      final result = await PolylinePoints(apiKey: googleMapKey)
+          .getRouteBetweenCoordinates(
+        request: PolylineRequest(
+          origin: PointLatLng(from.latitude, from.longitude),
+          destination: PointLatLng(to.latitude, to.longitude),
+          mode: TravelMode.driving,
+        ),
+      );
+      final points = result.points;
+      if (points.length < 2) return null;
+
+      var total = 0.0;
+      for (var i = 0; i < points.length - 1; i++) {
+        total += calculateDistanceKm(
+          points[i].latitude,
+          points[i].longitude,
+          points[i + 1].latitude,
+          points[i + 1].longitude,
+        );
+      }
+      return total > 0 ? total : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Postal code of the pickup, used by the server's serviceability check.
+  /// Null on failure — the quote still goes out without it.
+  Future<String?> _pincodeFor(RidePlace place) async {
+    try {
+      final placemarks = await placemarkFromCoordinates(
+        place.latitude,
+        place.longitude,
+      );
+      final code = placemarks.isNotEmpty ? placemarks.first.postalCode : null;
+      return (code != null && code.isNotEmpty) ? code : null;
+    } catch (_) {
+      return null;
     }
   }
 
@@ -523,8 +657,21 @@ class RideBookingController extends GetxController {
     return num.tryParse(v.toString());
   }
 
-  void selectVehicle(RideVehicleOption option) =>
-      selectedVehicle.value = option;
+  /// Pick a vehicle row.
+  ///
+  /// Switching between a passenger vehicle and Parcel changes `orderFor`, and a
+  /// fare quoted as InCity is not the fare for a Parcel run — so that case
+  /// re-quotes rather than silently repricing on the server at create time.
+  /// Same-trip-type switches are just a local selection.
+  void selectVehicle(RideVehicleOption option) {
+    selectedVehicle.value = option;
+    preselectedVehicleCode.value = option.code;
+
+    final trip = _orderForCode(option.code);
+    if (trip == orderFor.value) return;
+    orderFor.value = trip;
+    fetchQuotes();
+  }
 
   void setPaymentMode(String mode) => paymentMode.value = mode;
 
@@ -550,6 +697,8 @@ class RideBookingController extends GetxController {
         fare: option.fare,
         // CASH → postpaid, ONLINE → prepaid (guide §2).
         modeOfPayment: paymentMode.value == 'CASH' ? 'postpaid' : 'prepaid',
+        // Same value the quote used — see [orderFor].
+        orderFor: orderFor.value,
         vehicleType: _vehicleTypeByCode[option.code],
       );
       if (!response.isSuccess) return false;
@@ -821,6 +970,9 @@ class RideBookingController extends GetxController {
     stops.clear();
     vehicleOptions.clear();
     selectedVehicle.value = null;
+    preselectedVehicleCode.value = null;
+    orderFor.value = _defaultOrderFor;
+    tripDistanceKm.value = 0;
     activeBooking.value = null;
     terminalStatus.value = null;
     searchProgress.value = 0;
