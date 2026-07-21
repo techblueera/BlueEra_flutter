@@ -53,12 +53,15 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
 
   /// Destination chosen → confirm the pickup point on the map next.
   ///
-  /// [vehicleCode] is the Explore tile that started the flow, or null when the
-  /// user came in through the search field. It sets the trip type (`orderFor`)
-  /// the same way the old flow's horizontal tab does, and pre-selects that row
+  /// [item] is the Explore tile that started the flow, or null when the user
+  /// came in through the search field. It sets the trip type (`orderFor`) the
+  /// same way the old flow's horizontal tab does, and pre-selects its vehicle
   /// on the vehicle screen.
-  Future<void> _openDestinationSearch({String? vehicleCode}) async {
-    controller.setTripTypeForVehicle(vehicleCode);
+  Future<void> _openDestinationSearch({_ExploreItem? item}) async {
+    controller.setTripType(
+      vehicleType: item?.vehicleType,
+      orderFor: item?.orderFor ?? 'InCity',
+    );
     final RidePlace? chosen = await Get.to<RidePlace>(
       () => const RideDestinationSearchScreen(),
     );
@@ -68,9 +71,9 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
   }
 
   void _selectRecent(RidePlace place) {
-    // No vehicle was chosen on the way in, so this is a plain city ride until
-    // the user picks otherwise on the vehicle screen.
-    controller.setTripTypeForVehicle(null);
+    // No tile was tapped on the way in, so this is a plain city ride with no
+    // pre-selected vehicle.
+    controller.setTripType();
     controller.setDrop(place);
     Get.to(() => const RideConfirmPickupScreen());
   }
@@ -264,11 +267,16 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
   /// Uses the app's own transport artwork rather than Material glyphs, so this
   /// rail matches the vehicle imagery already used across the transport
   /// screens.
+  /// Codes are the backend `vehicleType` enum verbatim. "Parcel on Bike" is the
+  /// same vehicle as "Bike" — what differs is `orderFor`, which is a property
+  /// of the trip, not the vehicle.
   static const List<_ExploreItem> _exploreItems = [
-    _ExploreItem('Bike', 'BIKE', AppIconAssets.transport_bike),
-    _ExploreItem('Parcel on Bike', 'PARCEL', AppIconAssets.riderIconColorful),
-    _ExploreItem('Auto', 'AUTO', AppIconAssets.transport_auto),
-    _ExploreItem('Cab Economy', 'CAB_ECONOMY', AppIconAssets.transport_taxi),
+    _ExploreItem('Bike', 'twoWheelerRider', 'InCity',
+        AppIconAssets.transport_bike),
+    _ExploreItem('Parcel on Bike', 'twoWheelerRider', 'Parcel',
+        AppIconAssets.riderIconColorful),
+    _ExploreItem('Auto', 'autoTempo', 'InCity', AppIconAssets.transport_auto),
+    _ExploreItem('Cab Mini', 'carMini', 'InCity', AppIconAssets.transport_taxi),
   ];
 
   Widget _exploreSection() {
@@ -314,8 +322,7 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
                 Expanded(
                   child: _ExploreTile(
                     item: item,
-                    onTap: () =>
-                        _openDestinationSearch(vehicleCode: item.code),
+                    onTap: () => _openDestinationSearch(item: item),
                   ),
                 ),
             ],
@@ -433,9 +440,15 @@ class _DashedDivider extends StatelessWidget {
 }
 
 class _ExploreItem {
-  const _ExploreItem(this.label, this.code, this.assetPath);
+  const _ExploreItem(this.label, this.vehicleType, this.orderFor,
+      this.assetPath);
   final String label;
-  final String code;
+
+  /// Backend `vehicleType` enum value to pre-select on the vehicle screen.
+  final String vehicleType;
+
+  /// Trip type this tile books: `InCity | OutStation | HourlyRental | Parcel`.
+  final String orderFor;
 
   /// SVG under `assets/svg/` — see [AppIconAssets].
   final String assetPath;

@@ -294,14 +294,34 @@ class _RideVehicleSelectScreenState extends State<RideVehicleSelectScreen> {
           );
         }
         if (controller.vehicleOptions.isEmpty) {
+          // A failed request and an empty city are different problems — saying
+          // "no vehicles" for a 400 sends you looking in the wrong place.
+          final error = controller.quoteError.value;
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(24),
-              child: CustomText(
-                'No vehicles available for this route right now.',
-                fontSize: 14,
-                color: RideStyle.inkMuted,
-                textAlign: TextAlign.center,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CustomText(
+                    error ?? 'No riders available near your pickup right now.',
+                    fontSize: 14,
+                    color: RideStyle.inkMuted,
+                    textAlign: TextAlign.center,
+                  ),
+                  if (error != null) ...[
+                    const SizedBox(height: 14),
+                    TextButton(
+                      onPressed: controller.fetchQuotes,
+                      child: CustomText(
+                        'Retry',
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: RideStyle.ink,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
           );
@@ -472,14 +492,23 @@ class _VehicleRow extends StatelessWidget {
     return 'Drop $hour12:$minute $period';
   }
 
+  /// Keyed on the backend `vehicleType` enum.
   IconData get _icon {
     switch (option.code) {
-      case 'BIKE':
+      case 'twoWheelerRider':
         return Icons.two_wheeler;
-      case 'AUTO':
+      case 'autoTempo':
+      case 'eRickshaw':
+      case 'goods3Wheeler':
         return Icons.electric_rickshaw;
-      case 'PARCEL':
-        return Icons.inventory_2_outlined;
+      case 'miniBus':
+        return Icons.airport_shuttle;
+      case 'pickupGoods':
+      case 'goods4Wheeler':
+        return Icons.local_shipping_outlined;
+      case 'miniTruckGoods':
+      case 'largeTruckGoods':
+        return Icons.local_shipping;
       default:
         return Icons.local_taxi;
     }

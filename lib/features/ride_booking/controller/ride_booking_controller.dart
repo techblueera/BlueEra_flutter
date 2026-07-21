@@ -47,77 +47,57 @@ class RideBookingController extends GetxController {
   /// old flow's `range_in_km: 20`.
   static const int kRiderSearchRangeKm = 20;
 
-  /// Trip type per vehicle code — the new flow's answer to the old flow's tab
-  /// index (`DiscoverController.getOrderTypeString()`).
+  /// Trip type. `InCity | OutStation | HourlyRental | Parcel`.
   ///
-  /// The old screens pick `orderFor` from a horizontal tab the user taps before
-  /// searching; there is no tab here, so the Explore tile (and then the vehicle
-  /// row) is the equivalent explicit choice. Backend accepts
-  /// `InCity | OutStation | HourlyRental | Parcel` — only two are reachable from
-  /// this flow today, the other two are listed so adding an entry point is a
-  /// one-line change.
+  /// The old screens pick this from a horizontal tab the user taps before
+  /// searching (`DiscoverController.getOrderTypeString()`); there is no tab
+  /// here, so the Explore tile is the equivalent explicit choice.
+  ///
+  /// Sent to BOTH the quote and the create call, deliberately from one value:
+  /// quoting under one `orderFor` while ordering under another is how the price
+  /// on the button stops matching the price on the order.
   static const String _defaultOrderFor = 'InCity';
-  static const Map<String, String> _orderForByCode = {
-    'PARCEL': 'Parcel',
-    'BIKE': 'InCity',
-    'AUTO': 'InCity',
-    'CAB_ECONOMY': 'InCity',
-    'CAB_DAILY': 'InCity',
-    'CAB_PREMIUM': 'InCity',
-  };
-
-  static String _orderForCode(String? code) =>
-      _orderForByCode[code] ?? _defaultOrderFor;
-
-  /// Trip type sent to BOTH the quote and the create call.
-  ///
-  /// Deliberately one value read by both: quoting under one `orderFor` while
-  /// ordering under another is how the price on the button stops matching the
-  /// price on the order.
   final orderFor = _defaultOrderFor.obs;
 
-  /// Vehicle the user picked on the Explore rail, if any. Pre-selects that row
-  /// once the quote lands instead of falling back to the first option.
-  final RxnString preselectedVehicleCode = RxnString();
+  /// Trip types the server requires a `pincode` for.
+  static const Set<String> _pincodeRequiredFor = {'InCity', 'Parcel'};
 
-  /// Maps this flow's vehicle codes onto the backend's `vehicleType` values.
-  /// Kept in one place so the quote response and the create body can't drift.
-  static const Map<String, String> _vehicleTypeByCode = {
-    'BIKE': 'twoWheelerRider',
-    'AUTO': 'autoRider',
-    'CAB_ECONOMY': 'carHatchback',
-    'CAB_DAILY': 'carSedan',
-    'CAB_PREMIUM': 'carSuv',
-    'PARCEL': 'twoWheelerRider',
+  /// `vehicleType` is the ONLY vehicle vocabulary in this flow —
+  /// [RideVehicleOption.code] holds the backend enum verbatim.
+  ///
+  /// An earlier version carried its own codes (`BIKE`, `CAB_ECONOMY`, …) mapped
+  /// onto guessed backend values. Three of those guesses (`autoRider`,
+  /// `carHatchback`, `carSuv`) are not in the enum at all, so those rows came
+  /// back unmatched and the create call sent a `vehicleType` the server does
+  /// not accept. A translation layer between two vocabularies can only ever
+  /// drift — there is now just the one.
+  static const Map<String, String> kVehicleTypeNames = {
+    'twoWheelerRider': 'Bike',
+    'autoTempo': 'Auto',
+    'eRickshaw': 'E-Rickshaw',
+    'carMini': 'Cab Mini',
+    'carSedan': 'Cab Sedan',
+    'suvCar': 'Cab SUV',
+    'miniBus': 'Mini Bus',
+    'pickupGoods': 'Pickup',
+    'miniTruckGoods': 'Mini Truck',
+    'largeTruckGoods': 'Large Truck',
+    'goods3Wheeler': 'Goods 3-Wheeler',
+    'goods4Wheeler': 'Goods 4-Wheeler',
   };
 
-  /// Reverse of [_vehicleTypeByCode], for reading the quote response.
-  static String _codeForVehicleType(String vehicleType) {
-    for (final entry in _vehicleTypeByCode.entries) {
-      if (entry.value == vehicleType) return entry.key;
-    }
-    return vehicleType.toUpperCase();
-  }
+  /// Display name for a vehicle type, used when the response omits a label.
+  static String _nameForVehicleType(String vehicleType) =>
+      kVehicleTypeNames[vehicleType] ?? vehicleType;
 
-  /// Display name for a vehicle code, used when the quote response omits one.
-  static String _nameForCode(String code) {
-    switch (code) {
-      case 'BIKE':
-        return 'Bike';
-      case 'AUTO':
-        return 'Auto';
-      case 'CAB_ECONOMY':
-        return 'Cab Economy';
-      case 'CAB_DAILY':
-        return 'Cab Daily';
-      case 'CAB_PREMIUM':
-        return 'Cab Premium';
-      case 'PARCEL':
-        return 'Parcel';
-      default:
-        return code;
-    }
-  }
+  /// Vehicle the user picked on the Explore rail, if any — a `vehicleType`.
+  /// Pre-selects that row once the quote lands instead of the first option.
+  final RxnString preselectedVehicleCode = RxnString();
+
+  /// Message from a failed quote (400 missing pincode, 500, …), so the sheet
+  /// can say what went wrong instead of showing "no vehicles" for everything.
+  /// Null when the request succeeded — including the legitimate no-riders case.
+  final RxnString quoteError = RxnString();
 
   final RideBookingRepo _repo = RideBookingRepo();
 
@@ -172,9 +152,16 @@ class RideBookingController extends GetxController {
   /// `distance_in_km` and safe for the UI to show. 0 until the route resolves.
   final tripDistanceKm = 0.0.obs;
 
-  /// Traffic-aware travel time in minutes, when the Routes API answered.
-  /// 0 on the legacy Directions fallback, which reports no traffic duration.
+  /// Traffic-aware travel time in minutes. Overwritten by the server's
+  /// `pricingSignals.durationMin` once a quote lands.
   final tripDurationMinutes = 0.obs;
+
+  /// `pricingSignals.supplyCount` — nearby available riders across all types.
+  final supplyCount = 0.obs;
+
+  /// `pricingSignals.weather` — `clear | rain | snow | storm`. Drives the
+  /// weather multiplier server-side; surfaced so the UI can explain a surge.
+  final weather = 'clear'.obs;
 
   /// Road geometry of the pickup→drop route, for the map polyline. Empty until
   /// resolved — the vehicle screen draws a straight placeholder until then.
@@ -504,12 +491,15 @@ class RideBookingController extends GetxController {
 
   // --------------------------------------------------------------- quoting
 
-  /// Record the vehicle the user tapped on the Explore rail and derive the
-  /// trip type from it, the way the old flow derives `orderFor` from its tab.
-  /// Call before navigating into the flow; [fetchQuotes] picks both up.
-  void setTripTypeForVehicle(String? vehicleCode) {
-    preselectedVehicleCode.value = vehicleCode;
-    orderFor.value = _orderForCode(vehicleCode);
+  /// Record what the user chose on the Explore rail.
+  ///
+  /// The two are independent: a tile carries a `vehicleType` to pre-select AND
+  /// an `orderFor` for the trip. "Parcel on Bike" is `twoWheelerRider` +
+  /// `Parcel`; "Bike" is the same vehicle with `InCity`. Call before navigating
+  /// into the flow — [fetchQuotes] picks both up.
+  void setTripType({String? vehicleType, String orderFor = _defaultOrderFor}) {
+    preselectedVehicleCode.value = vehicleType;
+    this.orderFor.value = orderFor;
   }
 
   /// Fetch fares for every vehicle category.
@@ -527,6 +517,7 @@ class RideBookingController extends GetxController {
     isQuoting.value = true;
     vehicleOptions.clear();
     selectedVehicle.value = null;
+    quoteError.value = null;
     try {
       // Trip context the fare depends on. Both are best-effort — a failed
       // geocode or a Directions hiccup must degrade to a coordinates-only
@@ -537,12 +528,12 @@ class RideBookingController extends GetxController {
         _pincodeFor(from),
       ]);
       final distanceKm = context[0] as double?;
-      // Pincode rides along only for the trip types the old flow sends it for
-      // (tabs 0/1 = InCity/OutStation) — it is a serviceability check on the
-      // pickup city, which parcel/rental pricing doesn't run.
-      final pincode = (trip == 'InCity' || trip == 'OutStation')
-          ? context[1] as String?
-          : null;
+      // Required for InCity and Parcel — the server 400s without it. The
+      // reverse geocode is the only source we have, so when it fails the
+      // request is knowingly sent short rather than silently dropped; the 400
+      // message then surfaces through [quoteError].
+      final pincode =
+          _pincodeRequiredFor.contains(trip) ? context[1] as String? : null;
       tripDistanceKm.value = distanceKm ?? 0;
 
       final response = await _repo.getDynamicFare(
@@ -555,9 +546,22 @@ class RideBookingController extends GetxController {
         pincode: pincode,
         distanceInKm: distanceKm,
       );
-      if (!response.isSuccess) return;
-      vehicleOptions.assignAll(_parseDynamicFare(response.data));
-      if (vehicleOptions.isEmpty) return;
+      if (!response.isSuccess) {
+        // 400 (missing param/pincode) or 500 — distinct from "no riders", and
+        // the user should not be told the city is empty when we sent a bad
+        // request.
+        quoteError.value =
+            response.message?.toString() ?? 'Could not fetch fares right now.';
+        return;
+      }
+      // `ResponseModel.data` is hard-coded to `body['data']`. This endpoint
+      // returns `{pricingSignals, riders}` — if that IS the body rather than a
+      // wrapped payload, `.data` is null and the list silently empties. Accept
+      // both by falling back to the raw body.
+      vehicleOptions.assignAll(
+        _parseDynamicFare(response.data ?? response.response?.data),
+      );
+      if (vehicleOptions.isEmpty) return; // shape B `{}` — genuinely no riders
 
       final preferred = preselectedVehicleCode.value;
       selectedVehicle.value = vehicleOptions.firstWhere(
@@ -566,6 +570,7 @@ class RideBookingController extends GetxController {
       );
     } catch (_) {
       vehicleOptions.clear();
+      quoteError.value = 'Could not fetch fares right now.';
     } finally {
       isQuoting.value = false;
     }
@@ -689,43 +694,134 @@ class RideBookingController extends GetxController {
 
   /// Read the dynamic-fare response into vehicle options.
   ///
-  /// The payload groups riders by vehicle type with a fare per group; the
-  /// exact envelope isn't pinned down in the guide, so this accepts the
-  /// plausible shapes (`vehicles` / `options` / `data` / a bare list) rather
-  /// than hard-failing on one.
+  /// The live shape is a **map keyed by vehicle type**, not a list:
+  ///
+  /// ```jsonc
+  /// {
+  ///   "pricingSignals": { "tripDistanceKm": 2, "durationMin": 4, … },
+  ///   "riders": {
+  ///     "twoWheelerRider": {
+  ///       "users": [ { riderId, name, distance: "2.77 km", … } ],
+  ///       "fare": 50,
+  ///       "fareBreakdown": { baseFare, distanceCharge, multipliers, … }
+  ///     }
+  ///   }
+  /// }
+  /// ```
+  ///
+  /// A vehicle type with an empty `users` list is a type nobody is online for —
+  /// it is dropped, because the fare is real but nothing can serve it.
+  ///
+  /// Also accepts a plain list of `{vehicleType, fare}` objects: the guide
+  /// never pinned the envelope down, and the list form is what the stub was
+  /// written against.
   ///
   /// There is no `quoteId` in this API (guide §1) — [RideVehicleOption.quoteId]
   /// is synthesised from the vehicle type purely so the UI can identify the
   /// selected row. Booking sends `{vehicleType, fare}`, not a quote token.
   List<RideVehicleOption> _parseDynamicFare(dynamic data) {
-    final list = data is Map
-        ? (data['vehicles'] ?? data['options'] ?? data['riders'] ?? data['data'])
+    // Trip-level signals sit beside the riders, not inside them. Shape B is a
+    // bare `{}` with neither key, so absence is expected, not an error.
+    if (data is Map) {
+      final signals = data['pricingSignals'];
+      if (signals is Map) {
+        // The server measured the same trip — prefer its numbers over the ones
+        // derived from the Directions polyline.
+        final km = _toNum(signals['tripDistanceKm'])?.toDouble();
+        if (km != null && km > 0) tripDistanceKm.value = km;
+        final min = _toNum(signals['durationMin'])?.toInt();
+        if (min != null && min > 0) tripDurationMinutes.value = min;
+        supplyCount.value = _toNum(signals['supplyCount'])?.toInt() ?? 0;
+        weather.value = signals['weather']?.toString() ?? 'clear';
+      } else {
+        // Don't leave the previous trip's ETA and supply on screen.
+        tripDurationMinutes.value = 0;
+        supplyCount.value = 0;
+        weather.value = 'clear';
+      }
+    }
+
+    final raw = data is Map
+        ? (data['riders'] ?? data['vehicles'] ?? data['options'] ?? data['data'])
         : data;
-    if (list is! List) return const [];
+
+    // Normalise both envelopes to (vehicleType, payload) pairs.
+    final Iterable<MapEntry<String, Map>> entries;
+    if (raw is Map) {
+      entries = raw.entries
+          .where((e) => e.value is Map)
+          .map((e) => MapEntry(e.key.toString(), e.value as Map));
+    } else if (raw is List) {
+      entries = raw.whereType<Map>().map((m) => MapEntry(
+            (m['vehicleType'] ?? m['type'] ?? '').toString(),
+            m,
+          ));
+    } else {
+      return const [];
+    }
 
     final options = <RideVehicleOption>[];
-    for (final entry in list.whereType<Map>()) {
-      final vehicleType =
-          (entry['vehicleType'] ?? entry['type'] ?? '').toString();
+    for (final entry in entries) {
+      final vehicleType = entry.key;
       if (vehicleType.isEmpty) continue;
-      final code = _codeForVehicleType(vehicleType);
-      final fare = _toNum(entry['fare'] ?? entry['dynamicFare'] ?? entry['price']);
-      if (fare == null) continue;
+      final group = entry.value;
+
+      // `fare` is 0 when pricing could not compute — `fareBreakdown.reason` is
+      // then `no-fare-policy` / `no-matching-rate`. A ₹0 row is not bookable,
+      // so it is dropped rather than offered.
+      final fare =
+          _toNum(group['fare'] ?? group['dynamicFare'] ?? group['price']);
+      if (fare == null || fare <= 0) continue;
+
+      // Only types with ≥1 rider are supposed to appear at all, but an empty
+      // `users` list would be a bookable-looking row nobody can accept.
+      final users = group['users'];
+      final riderCount = users is List ? users.length : null;
+      if (riderCount == 0) continue;
 
       options.add(RideVehicleOption(
-        code: code,
-        name: (entry['label'] ?? entry['name'] ?? _nameForCode(code)).toString(),
-        description: entry['description']?.toString(),
+        // The backend enum IS the code — no translation layer.
+        code: vehicleType,
+        name: (group['label'] ?? group['name'] ?? _nameForVehicleType(vehicleType))
+            .toString(),
+        // Nothing else useful to say under the name, and how far the nearest
+        // rider is answers the question the user actually has.
+        description: group['description']?.toString() ??
+            () {
+              final away = _nearestRiderDistance(group);
+              return away == null ? null : '$away away';
+            }(),
         fare: fare.toDouble(),
-        seats: _toNum(entry['seats'])?.toInt(),
-        pickupEtaMinutes: _toNum(entry['etaMinutes'] ?? entry['pickupEtaMinutes'])
-            ?.toInt(),
-        dropEtaMinutes: _toNum(entry['dropEtaMinutes'])?.toInt(),
+        seats: _toNum(group['seats'])?.toInt(),
+        // `riders[type].users[].distance` is rider→pickup as a STRING
+        // ("3.10 km"), not a duration, so it cannot fill a pickup ETA. Left
+        // null rather than inventing minutes from a distance.
+        pickupEtaMinutes:
+            _toNum(group['etaMinutes'] ?? group['pickupEtaMinutes'])?.toInt(),
+        // No per-vehicle drop ETA in the response; `pricingSignals.durationMin`
+        // is the driving ETA for the trip and applies to every type, so the row
+        // can render a real drop time instead of nothing.
+        dropEtaMinutes: _toNum(group['dropEtaMinutes'])?.toInt() ??
+            (tripDurationMinutes.value > 0
+                ? tripDurationMinutes.value
+                : null),
         // Not a server token — see the doc comment above.
         quoteId: vehicleType,
       ));
     }
     return options;
+  }
+
+  /// Nearest rider distance for a vehicle type, e.g. `"3.10 km"`. The API sends
+  /// this as a formatted STRING per rider, not a number — kept verbatim rather
+  /// than parsed, since it is only ever displayed.
+  static String? _nearestRiderDistance(Map group) {
+    final users = group['users'];
+    if (users is! List || users.isEmpty) return null;
+    final first = users.first;
+    if (first is! Map) return null;
+    final distance = first['distance']?.toString();
+    return (distance != null && distance.isNotEmpty) ? distance : null;
   }
 
   static num? _toNum(dynamic v) {
@@ -736,18 +832,13 @@ class RideBookingController extends GetxController {
 
   /// Pick a vehicle row.
   ///
-  /// Switching between a passenger vehicle and Parcel changes `orderFor`, and a
-  /// fare quoted as InCity is not the fare for a Parcel run — so that case
-  /// re-quotes rather than silently repricing on the server at create time.
-  /// Same-trip-type switches are just a local selection.
+  /// A plain selection — no re-quote. `orderFor` is a property of the TRIP
+  /// (parcel run vs. city ride), chosen on the Explore rail, not of the
+  /// vehicle: the same `twoWheelerRider` serves both, and every type in the
+  /// response was already priced under the current `orderFor`.
   void selectVehicle(RideVehicleOption option) {
     selectedVehicle.value = option;
     preselectedVehicleCode.value = option.code;
-
-    final trip = _orderForCode(option.code);
-    if (trip == orderFor.value) return;
-    orderFor.value = trip;
-    fetchQuotes();
   }
 
   void setPaymentMode(String mode) => paymentMode.value = mode;
@@ -776,7 +867,8 @@ class RideBookingController extends GetxController {
         modeOfPayment: paymentMode.value == 'CASH' ? 'postpaid' : 'prepaid',
         // Same value the quote used — see [orderFor].
         orderFor: orderFor.value,
-        vehicleType: _vehicleTypeByCode[option.code],
+        // `code` is already the backend enum.
+        vehicleType: option.code,
       );
       if (!response.isSuccess) return false;
 
@@ -1049,8 +1141,11 @@ class RideBookingController extends GetxController {
     selectedVehicle.value = null;
     preselectedVehicleCode.value = null;
     orderFor.value = _defaultOrderFor;
+    quoteError.value = null;
     tripDistanceKm.value = 0;
     tripDurationMinutes.value = 0;
+    supplyCount.value = 0;
+    weather.value = 'clear';
     routePoints.clear();
     _routeCacheKey = null;
     activeBooking.value = null;
