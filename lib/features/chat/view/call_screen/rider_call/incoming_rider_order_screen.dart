@@ -65,14 +65,6 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
   late final String _riderTask;
   late final double _etaDistanceKm;
   late final double _etaDurationMin;
-  // Whether this fare-call is a goods/shop pickup (grocery / food / medical /
-  // generic goods) rather than a passenger ride or a parcel. Goods orders are
-  // driven entirely by the in-list order card (MultiShopOrderCard / OrderCard),
-  // which shows the per-shop pickup OTP and the customer delivery OTP — so after
-  // accepting them we must NOT push the passenger pickup/OTP navigation screen;
-  // we just return to the orders dashboard where the card takes over.
-  late final bool _isGoodsOrder;
-
   /// True when this arrived via broadcast dispatch (`orderType: "broadcast"`).
   ///
   /// The difference is not cosmetic: a broadcast has **no VoIP call behind it**
@@ -189,14 +181,6 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
     // Friendly job descriptor — fall back to raw orderFor / sensible defaults
     // for legacy payloads that don't carry the new fields.
     _jobType = ride?['jobType'] ?? 'ride'; // ride | goods | parcel
-    // Prefer the explicit jobType; fall back to orderFor for legacy payloads
-    // that omit it (mirrors JobInfo.fromOrderFor's goods bucket).
-    final rawJobType = (ride?['jobType'] ?? '').toString().toLowerCase();
-    final rawOrderFor = (ride?['orderFor'] ?? '').toString().toLowerCase();
-    _isGoodsOrder = rawJobType.isNotEmpty
-        ? rawJobType == 'goods'
-        : const {'grocery', 'food', 'medical', 'goods', 'product'}
-            .contains(rawOrderFor);
     _jobLabel = ride?['jobLabel'] ?? ride?['orderFor'] ?? 'Ride';
     _callTitle = ride?['callTitle'] ?? 'Incoming Ride Request';
     _riderTask = ride?['riderTask'] ?? '';
@@ -487,15 +471,16 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
   /// to the job.
   ///
   /// Broadcast reaches here straight from the sheet with no call to end;
-  /// fare-call reaches it after the conversation. Keeping one implementation
-  /// means the goods-vs-passenger branch can't drift between them.
+  /// fare-call reaches it after the conversation.
+  ///
+  /// EVERY order type lands on the orders dashboard — goods and passenger
+  /// rides alike. The accepted job appears there as a card, and its "Navigate
+  /// to Pickup" button opens [RiderPickupNavigationScreen]. Pushing that screen
+  /// from here as well gave the same destination two entry points that had to
+  /// be kept in step: this one built it from the CALL payload, the card builds
+  /// it from the ORDER, so the two could disagree about ids and addresses for
+  /// the same ride.
   Future<void> _proceedAfterRideAccepted() async {
-    // Capture orderMongoId and the customer user id before endCall() clears
-    // them via _resetState() — the rider pickup screen needs the customer id
-    // so the "call customer" button can initiate a fresh audio call.
-    final orderMongoId = _callController.fareCallOrderMongoId.value;
-    final customerUserId = _callController.remoteUserId ?? '';
-
     // End the WebRTC call only if it's actually active (connected/connecting).
     // Fire-and-forget so navigation isn't blocked by the API roundtrip.
     if (_callController.callStatus.value != CallStatus.idle) {
@@ -503,31 +488,7 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
     }
     _callTimer?.cancel();
     if (!mounted) return;
-    // Goods/shop orders are handled entirely inside the orders-list card (the
-    // rider reads out each shop's pickup OTP and enters the customer delivery
-    // OTP there). They have no passenger pickup/OTP/PiP leg — so send the rider
-    // straight back to the orders dashboard instead of the pickup navigation
-    // screen. Only passenger rides & parcels use RiderPickupNavigationScreen.
-    if (_isGoodsOrder) {
-      Get.offNamed(RouteHelper.getRiderServiceScreenRoute());
-      return;
-    }
-    Get.off(() => RiderPickupNavigationScreen(
-          pickupLocation: _pickupAddress,
-          dropLocation: _dropAddress,
-          pickupLat: _pickupLat,
-          pickupLng: _pickupLng,
-          dropLat: _dropLat,
-          dropLng: _dropLng,
-          fareAmount: _fare,
-          distanceKm: _distance,
-          customerName: _customerName,
-          customerImage: _customerImage,
-          otp: '',
-          paymentMethod: _paymentMethod,
-          orderId: orderMongoId,
-          customerUserId: customerUserId,
-        ));
+    Get.offNamed(RouteHelper.getRiderServiceScreenRoute());
   }
 
   /// End call without navigating (rider hangs up during call room)
