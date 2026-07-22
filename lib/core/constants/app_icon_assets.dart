@@ -207,6 +207,7 @@ class AppIconAssets {
   static String storeWatch = "${iconPath}store_watch.svg";
   static String ai_generative =
       "${AppConstants.baseIconAssetsPath}ai_generative.png";
+  static String testTabBg = "${AppConstants.baseIconAssetsPath}test_tab.png";
   static String location_track = "${iconPath}location_track.svg";
   static String homeServiceIcon = "${iconPath}home_service_icon.svg";
   static String rentalServiceIcon = "${iconPath}rental_service_icon.svg";
@@ -416,4 +417,27 @@ class AppIconAssets {
   static const String thyroidPackageIcon = "${iconPath}thyroid_package.svg";
   static const String emptyIcon = "${iconPath}Object.svg";
   static const String standardIcon = "${iconPath}standard.svg";
+  static const String discountIcon = "${iconPath}discount.svg";
+  static const String laboratoryIcon = "${iconPath}laboratory.svg";
+
+  // ── Discover education-service quick-info icons ─────────────────
+  // College/University
+  static const String affiliatedUniversityIcon =
+      "${iconPath}affiliated_university.svg";
+  static const String streamsIcon =
+      "${AppConstants.baseIconAssetsPath}stream.png";
+  // Sports & Hobby
+  static const String sportsOfferedIcon =
+      "${AppConstants.baseIconAssetsPath}sports_offered.png";
+  static const String sportsFacilitiesIcon =
+      "${AppConstants.baseIconAssetsPath}sports_facilities.png";
+  static const String achievementsIcon =
+      "${AppConstants.baseIconAssetsPath}achievements.png";
+  // Skill Training / Professional Learn
+  static const String industryPartnershipsIcon =
+      "${AppConstants.baseIconAssetsPath}industry_partnerships.png";
+  static const String skillsIcon =
+      "${AppConstants.baseIconAssetsPath}Skills.png";
+  static const String certificationsIcon =
+      "${AppConstants.baseIconAssetsPath}certifications.png";
 }

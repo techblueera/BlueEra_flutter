@@ -117,16 +117,16 @@ class DirectorCard extends StatelessWidget {
               if (photo.isNotEmpty) const SizedBox(width: 12),
               Expanded(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  // crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     ExpandableText(
                       text: message,
-                      trimLines: 3,
+                      trimLines: 4,
                       isReadMoreNewLine: false,
                       expandMode: ExpandMode.dialog,
                       style: TextStyle(
                         color: AppColors.secondaryTextColor,
-                        fontSize: 13,
+                        fontSize: 14,
                         fontStyle: FontStyle.italic,
                       ),
                     ),

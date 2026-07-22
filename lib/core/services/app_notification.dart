@@ -1442,6 +1442,22 @@ class AppNotificationHandler {
     );
   }
 
+  /// Open the user's own "Me" → Overview tab, which hosts the profile /
+  /// Go Live surface for individuals (GIG_WORKER / SELF_EMPLOYED).
+  /// Reuses the live bottom-nav shell when present (pop any pushed screens,
+  /// then switch tab); otherwise routes to it fresh.
+  static void _openMeOverview() {
+    if (Get.isRegistered<BottomBarController>()) {
+      Get.until((route) => route.isFirst);
+      Get.find<BottomBarController>().openMeOverviewTab();
+    } else {
+      Get.offAllNamed(
+        RouteHelper.getBottomNavigationBarScreenRoute(),
+        arguments: {ApiKeys.initialIndex: BottomBarController.meTabIndex},
+      );
+    }
+  }
+
   /// Handle action button taps from notification
   static void _handleActionButtonTap(String actionId, Map<String, dynamic> data,
       {String? replyText}) {
@@ -1480,6 +1496,14 @@ class AppNotificationHandler {
         actionId.startsWith('view_profile_') ||
         actionId.startsWith('message_')) {
       Get.toNamed(RouteHelper.getNotificationScreenRoute());
+      return;
+    }
+
+    // Individual go-live CTA (daily 08:00 reminder for GIG_WORKER /
+    // SELF_EMPLOYED). Distinct from 'go_live' below, which is the business
+    // reminder and deep-links using a business_id an individual does not have.
+    if (actionId == 'go_live_now') {
+      _openMeOverview();
       return;
     }
 
@@ -3040,15 +3064,15 @@ class AppNotificationHandler {
       // hosts the completion card. Reuse the live bottom-nav shell when present
       // (pop any pushed screens, then switch tab); otherwise route to it fresh.
       case 'profile_completion_reminder':
-        if (Get.isRegistered<BottomBarController>()) {
-          Get.until((route) => route.isFirst);
-          Get.find<BottomBarController>().openMeOverviewTab();
-        } else {
-          Get.offAllNamed(
-            RouteHelper.getBottomNavigationBarScreenRoute(),
-            arguments: {ApiKeys.initialIndex: BottomBarController.meTabIndex},
-          );
-        }
+        _openMeOverview();
+        break;
+
+      // Daily 08:00 go-live nudge for GIG_WORKER / SELF_EMPLOYED individuals →
+      // their own profile (Me → Overview), which hosts the Go Live control.
+      // These users have no business_id, so this must NOT reuse the business
+      // go-live route.
+      case 'go_live_daily_reminder':
+        _openMeOverview();
         break;
 
       // Reports

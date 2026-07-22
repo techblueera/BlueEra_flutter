@@ -332,8 +332,22 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
     );
   }
 
+  /// Card-only field override — the full `kQuickInfoFieldsByCategory`
+  /// schema is what the About-Us controller consumes, but the listing
+  /// card only has room for three highlight cells and sometimes wants
+  /// a different subset. Categories that appear here bypass the schema
+  /// for cell selection; everything else falls through to the schema.
+  static const Map<String, List<String>> _cardFieldsByCategory = {
+    'College/University': [
+      'coursesOffered',
+      'affiliatedUniversity',
+      'streams',
+    ],
+  };
+
   /// Pick up to 3 highlight cells for the stats row based on the
-  /// listing's category. Draws keys from
+  /// listing's category. Draws keys from [_cardFieldsByCategory] when a
+  /// card-specific list is defined, otherwise from
   /// [kQuickInfoFieldsByCategory] (skipping `numberOfStudents`, which
   /// gets its own dedicated row) and reads each value from
   /// `service.quickInfoRaw`. Falls back to school-flavoured defaults
@@ -345,7 +359,8 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
     final resolvedKey =
         resolveQuickInfoCategoryKey(service.quickInfoCategory ?? service.type);
     final schema = resolvedKey != null
-        ? kQuickInfoFieldsByCategory[resolvedKey]!
+        ? (_cardFieldsByCategory[resolvedKey] ??
+            kQuickInfoFieldsByCategory[resolvedKey]!)
         : const <String>['classRange', 'board', 'mediumOfInstruction'];
 
     final raw = service.quickInfoRaw ?? const <String, dynamic>{};
@@ -423,6 +438,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
 
   String _iconForKey(String key) {
     switch (key) {
+      // School Education / Coaching — unchanged per request.
       case 'classRange':
         return AppIconAssets.classIcon;
       case 'board':
@@ -431,10 +447,30 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
         return AppIconAssets.mediumIcon;
       case 'studentTeacherRatio':
         return AppIconAssets.personProfileIcon;
+      // College/University-specific fields (per kQuickInfoFieldsByCategory).
+      case 'coursesOffered':
+        return AppIconAssets.standardIcon;
+      case 'affiliatedUniversity':
+        return AppIconAssets.affiliatedUniversityIcon;
+      case 'streams':
+        return AppIconAssets.streamsIcon;
+      // Sports & Hobby fields.
+      case 'sportsOffered':
+        return AppIconAssets.sportsOfferedIcon;
+      case 'sportsFacilities':
+        return AppIconAssets.sportsFacilitiesIcon;
+      case 'achievements':
+        return AppIconAssets.achievementsIcon;
+      // Skill Training / Professional Learn fields.
+      case 'skillPrograms':
+        return AppIconAssets.skillsIcon;
+      case 'industryPartnerships':
+        return AppIconAssets.industryPartnershipsIcon;
+      case 'certifications':
+        return AppIconAssets.certificationsIcon;
       default:
-        // Unknown / category-specific keys (coursesOffered, sportsOffered,
-        // skillPrograms, …) — use the generic classes icon; swap once we
-        // ship per-key icons.
+        // Any key we haven't mapped yet (e.g. coursesOffered) still falls
+        // back to the generic classes icon.
         return AppIconAssets.classIcon;
     }
   }
@@ -753,7 +789,20 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          LocalAssets(imagePath: icon, imgColor: AppColors.primaryColor),
+          // Fixed box so mixed-source assets (small SVGs like standard.svg
+          // vs. large rasters like stream.png) all read at the same visual
+          // weight across cells.
+          SizedBox(
+            height: 28,
+            width: 28,
+            child: LocalAssets(
+              imagePath: icon,
+              height: 28,
+              width: 28,
+              imgColor: AppColors.primaryColor,
+              boxFix: BoxFit.contain,
+            ),
+          ),
           const SizedBox(height: 6),
           CustomText(
             label,
