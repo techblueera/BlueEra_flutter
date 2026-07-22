@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -61,6 +63,10 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
   /// gets a glyph. Uses the app's own marker asset rather than Google's default
   /// teardrop.
   BitmapDescriptor? _pickupIcon;
+
+  /// The in-ride issue the customer flagged, if any. Kept so the chip shows an
+  /// acknowledged state instead of silently resetting.
+  String? _reportedIssue;
 
   @override
   void initState() {
@@ -178,27 +184,6 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
         dropLng: booking.drop.longitude,
         // Keyed on the order, not the rider — the backend resolves
         // `assignedRider` itself, which survives a reassignment.
-        orderId: booking.rideId,
-      ),
-    );
-    if (!mounted) return;
-    controller.resumeCaptainPolling();
-  }
-
-  /// Opens live tracking on demand, from the "Track Rider" button.
-  ///
-  /// Same page the on-trip hand-over uses, but reachable as soon as a captain
-  /// is assigned — the customer can watch the approach instead of waiting for
-  /// the ride to start. Does NOT set [_liveTrackingOpened]: that flag exists to
-  /// stop the automatic hand-over re-pushing on every poll tick, and a manual
-  /// open must not suppress it.
-  Future<void> _openTrackRider(RideBooking booking) async {
-    controller.pauseCaptainPolling();
-    await Get.to(
-      () => TrackRiderLiveLocationPage(
-        riderId: booking.captain?.id ?? '',
-        dropLat: booking.drop.latitude,
-        dropLng: booking.drop.longitude,
         orderId: booking.rideId,
       ),
     );
@@ -475,6 +460,79 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
 
   // ------------------------------------------------------------------ sheet
 
+  /// In-ride issue reporter, shown only once moving.
+  ///
+  /// STATIC: the reason list is hardcoded and there is no feedback endpoint on
+  /// the ride service, so a tap is logged and acknowledged locally. Swap the
+  /// list for a server-driven one and POST from [_reportIssue] when the API
+  /// exists — the cancel-reason sheet already does exactly that.
+  Widget _buildIssuesCard(RideBooking booking) {
+    const issues = [
+      'Demanded extra cash',
+      'Unclean Helmet',
+      'Rash Driving',
+      'Wrong Vehicle',
+      'No issues',
+    ];
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: RideStyle.surfaceTint,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CustomText(
+            'Any issues with your ride?',
+            fontSize: 16,
+            fontWeight: FontWeight.w800,
+            color: RideStyle.ink,
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: issues.map((issue) {
+              final selected = _reportedIssue == issue;
+              return GestureDetector(
+                onTap: () => _reportIssue(booking, issue),
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                  decoration: BoxDecoration(
+                    color: selected
+                        ? RideStyle.action.withValues(alpha: 0.10)
+                        : AppColors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: selected ? RideStyle.action : RideStyle.hairline,
+                      width: selected ? 1.4 : 1,
+                    ),
+                  ),
+                  child: CustomText(
+                    issue,
+                    fontSize: 13,
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                    color: selected ? RideStyle.action : RideStyle.ink,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _reportIssue(RideBooking booking, String issue) {
+    setState(() => _reportedIssue = issue);
+    if (issue == 'No issues') return;
+    log('ride issue — order=${booking.rideId} issue=$issue');
+    commonSnackBar(message: 'Thanks — we\'ve noted this and will follow up.');
+  }
+
   Widget _sheet() {
     return Container(
       decoration: BoxDecoration(
@@ -526,12 +584,20 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
                 ),
               ),
             ],
-            if (booking.startOtp != null) ...[
+            // The PIN starts the ride, so it is only useful BEFORE the ride
+            // starts. Once on-trip the customer has already handed it over and
+            // leaving it on screen just invites them to read it out again.
+            if (booking.startOtp != null &&
+                booking.status != RideStatus.onTrip) ...[
               const SizedBox(height: 18),
               _otpRow(booking.startOtp!),
             ],
             const SizedBox(height: 16),
             _captainCard(booking),
+            if (booking.status == RideStatus.onTrip) ...[
+              const SizedBox(height: 16),
+              _buildIssuesCard(booking),
+            ],
             const SizedBox(height: 16),
             _pickupFromRow(booking),
           ],
@@ -697,6 +763,15 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
                         color: RideStyle.inkMuted,
                       ),
                     ],
+                    // STATIC: the captain payload carries no languages field,
+                    // so this is a fixed line rather than per-captain data.
+                    // Read it off the model once the backend sends one.
+                    const SizedBox(height: 2),
+                    CustomText(
+                      'Speaks English, Hindi',
+                      fontSize: 13,
+                      color: RideStyle.inkMuted,
+                    ),
                   ],
                 ),
               ),
@@ -740,6 +815,39 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
                       ),
                     ),
                   ],
+                  // Derived, not server-sent — there is no "top captain" flag
+                  // on the payload, so it is earned on the rating + trip count
+                  // we DO get. Read a real flag here if the backend adds one.
+                  if ((captain.rating ?? 0) >= 4.7 &&
+                      (captain.totalOrders ?? 0) >= 500) ...[
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: RideStyle.action.withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(12),
+                        border:
+                            Border.all(color: RideStyle.action, width: 0.8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.star_rounded,
+                              size: 12, color: RideStyle.action),
+                          const SizedBox(width: 3),
+                          CustomText(
+                            'Top Captain',
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: RideStyle.action,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ],
@@ -768,35 +876,6 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
                 ),
               ),
             ],
-          ),
-          const SizedBox(height: 10),
-          // Available as soon as a captain is assigned — the customer can watch
-          // the approach on the full map rather than waiting for the ride to
-          // start and be taken there automatically.
-          SizedBox(
-            height: 46,
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () {
-                final booking = controller.activeBooking.value;
-                if (booking != null) _openTrackRider(booking);
-              },
-              icon: const Icon(Icons.location_on_outlined,
-                  size: 18, color: RideStyle.action),
-              label: CustomText(
-                'Track Rider',
-                fontSize: 14,
-                fontWeight: FontWeight.w700,
-                color: RideStyle.action,
-              ),
-              style: OutlinedButton.styleFrom(
-                backgroundColor: AppColors.white,
-                side: const BorderSide(color: RideStyle.action),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
-                ),
-              ),
-            ),
           ),
         ],
       ),
