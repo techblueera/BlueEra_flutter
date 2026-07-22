@@ -104,11 +104,6 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
   RidePlace _routeTargetPlace(RideBooking booking) =>
       booking.status == RideStatus.onTrip ? booking.drop : booking.pickup;
 
-  LatLng _routeTargetLatLng(RideBooking booking) {
-    final place = _routeTargetPlace(booking);
-    return LatLng(place.latitude, place.longitude);
-  }
-
   void _maybeRefreshCaptainRoute(RideBooking booking) {
     final captain = booking.captain;
     if (captain?.latitude == null || captain?.longitude == null) return;
@@ -381,12 +376,14 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
   Widget _mapArea() {
     return Obx(() {
       final booking = controller.activeBooking.value;
-      final pickup = booking?.pickup;
       final captain = booking?.captain;
 
-      final pickupLatLng = pickup != null && pickup.hasCoordinates
-          ? LatLng(pickup.latitude, pickup.longitude)
+      // End of the leg being driven — pickup before the ride, drop once moving.
+      final target = booking == null ? null : _routeTargetPlace(booking);
+      final targetLatLng = (target != null && target.hasCoordinates)
+          ? LatLng(target.latitude, target.longitude)
           : const LatLng(23.2599, 77.4126);
+      final onTrip = booking?.status == RideStatus.onTrip;
       final captainLatLng =
           (captain?.latitude != null && captain?.longitude != null)
               ? LatLng(captain!.latitude!, captain.longitude!)
@@ -396,7 +393,7 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
         children: [
           GoogleMap(
             initialCameraPosition:
-                CameraPosition(target: pickupLatLng, zoom: 15),
+                CameraPosition(target: targetLatLng, zoom: 15),
             myLocationEnabled: true,
             myLocationButtonEnabled: false,
             zoomControlsEnabled: false,
@@ -411,7 +408,7 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
               // unconnected beside it.
               Marker(
                 markerId: const MarkerId('route-target'),
-                position: _routeTargetLatLng(booking),
+                position: targetLatLng,
                 icon: _pickupIcon ??
                     BitmapDescriptor.defaultMarkerWithHue(
                       BitmapDescriptor.hueGreen,
@@ -419,11 +416,7 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
                 // A pin points AT its coordinate — anchor the tip, not the
                 // middle (which is right for the centred vehicle glyph).
                 anchor: const Offset(0.5, 1.0),
-                infoWindow: InfoWindow(
-                  title: booking.status == RideStatus.onTrip
-                      ? 'Drop'
-                      : 'Pickup',
-                ),
+                infoWindow: InfoWindow(title: onTrip ? 'Drop' : 'Pickup'),
               ),
               if (captainLatLng != null)
                 Marker(
@@ -461,7 +454,7 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
                     polylineId: const PolylineId('captain-route-pending'),
                     // Same end the real route uses, so the hint doesn't point
                     // somewhere else for the second before it lands.
-                    points: [captainLatLng, _routeTargetLatLng(booking)],
+                    points: [captainLatLng, targetLatLng],
                     color: AppColors.primaryColor.withValues(alpha: 0.45),
                     width: 3,
                     patterns: [PatternItem.dash(18), PatternItem.gap(10)],
