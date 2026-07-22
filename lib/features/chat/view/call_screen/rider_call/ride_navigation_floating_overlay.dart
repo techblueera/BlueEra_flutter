@@ -1,3 +1,5 @@
+import 'package:BlueEra/features/ride_booking/controller/ride_booking_controller.dart';
+import 'package:BlueEra/features/ride_booking/view/ride_tracking_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -118,6 +120,22 @@ class _DraggableMiniMapState extends State<_DraggableMiniMap> {
       Get.to(() => FareCallQueueScreen(
             orderId: p['orderId'] ?? '',
           ));
+    } else if (type == 'ride_booking') {
+      // Customer minimised their own booked ride → back to the ride screen,
+      // which carries its own live map. Never the chat flow's tracking page:
+      // that is a second full-screen map for the same ride.
+      //
+      // It reads the booking off RideBookingController, which is permanent for
+      // exactly this reason. If the ride is genuinely gone (cold start with no
+      // booking restored) there is nothing to show, so drop the stale overlay
+      // instead of opening an empty screen.
+      final hasBooking = Get.isRegistered<RideBookingController>() &&
+          Get.find<RideBookingController>().activeBooking.value != null;
+      if (hasBooking) {
+        Get.to(() => const RideTrackingScreen());
+      } else {
+        ctrl.clearRideData();
+      }
     } else if (type == 'track_rider') {
       // Customer tapped the floating mini-map for a chat-initiated rider
       // tracking session — re-open the full live-tracking page.

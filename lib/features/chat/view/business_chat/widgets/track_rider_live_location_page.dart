@@ -20,12 +20,22 @@ class TrackRiderLiveLocationPage extends StatefulWidget {
       required this.riderId,
       required this.dropLat,
       required this.dropLng,
-      this.orderId});
+      this.orderId,
+      this.minimiseToPip = true});
 
   final double dropLat;
   final double dropLng;
   final String riderId;
   final String? orderId;
+
+  /// Whether backing out of this page raises the floating mini-map.
+  ///
+  /// True for the chat/orders flow, where this page is the top of its stack and
+  /// there is nothing underneath to fall back to. False when pushed from the
+  /// ride-booking flow's tracking screen: there IS a screen underneath, so back
+  /// should simply return to it — raising a PiP over a full-screen ride detail
+  /// is noise, and the PiP belongs to backing out of THAT screen.
+  final bool minimiseToPip;
 
   @override
   State<TrackRiderLiveLocationPage> createState() =>
@@ -79,6 +89,12 @@ class _TrackRiderLiveLocationPageState
   /// navigation screens), so the user can move around the app while the ride
   /// keeps updating. Tapping the mini-map re-opens this page.
   void _minimiseToOverlay() {
+    // Pushed over a screen that already owns this ride — just go back to it.
+    // The PiP is raised by backing out of THAT screen, not this one.
+    if (!widget.minimiseToPip) {
+      if (Navigator.of(context).canPop()) Navigator.of(context).pop();
+      return;
+    }
     final overlayCtrl = Get.put(RideNavigationOverlayController());
     overlayCtrl.showOverlay(
       riderLatVal: orderController.liveLat.value,
@@ -316,7 +332,7 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
   /// starts. Falls back to the default pin if the SVG can't be rendered.
   Future<void> _loadRiderIcon() async {
     try {
-      final bytes = await getBytesFromSvgAsset('assets/svg/2_wheeler.svg', 90);
+      final bytes = await getBytesFromSvgAsset('assets/svg/2_wheeler.svg', kVehicleMarkerSize);
       if (!mounted || bytes.isEmpty) return;
       setState(() {
         _riderIcon = BitmapDescriptor.bytes(bytes);

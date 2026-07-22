@@ -559,6 +559,12 @@ double? calculateDistance(double targetLat, double targetLng) {
 String? calculateDistanceInt(double targetLat, double targetLng) =>
     calculateDistance(targetLat, targetLng)?.toStringAsFixed(0);
 
+/// Render size for the two-wheeler map marker, shared by every map that shows
+/// a rider so the vehicle is the same size on all of them. Kept below the
+/// pin markers' scale — the glyph is wider than a pin and swamps the route at
+/// the size a pin needs.
+const double kVehicleMarkerSize = 70;
+
 Future<Uint8List> getBytesFromSvgAsset(
   String assetName,
   double size,

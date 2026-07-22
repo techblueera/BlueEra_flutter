@@ -185,7 +185,7 @@ class _PassengerDestinationScreenState
 
   Future<void> _loadRiderIcon() async {
     try {
-      final bytes = await getBytesFromSvgAsset('assets/svg/2_wheeler.svg', 90);
+      final bytes = await getBytesFromSvgAsset('assets/svg/2_wheeler.svg', kVehicleMarkerSize);
       if (!mounted || bytes.isEmpty) return;
       setState(() {
         _riderIcon = BitmapDescriptor.bytes(bytes);

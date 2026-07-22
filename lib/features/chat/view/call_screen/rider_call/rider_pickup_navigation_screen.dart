@@ -160,7 +160,7 @@ class _RiderPickupNavigationScreenState
     try {
       // Both from the app's own assets: a vehicle glyph for the rider (which
       // moves and has a heading), a plain pin for the pickup (which doesn't).
-      final rider = await getBytesFromSvgAsset('assets/svg/2_wheeler.svg', 90);
+      final rider = await getBytesFromSvgAsset('assets/svg/2_wheeler.svg', kVehicleMarkerSize);
       final pickup = await BitmapDescriptor.asset(
         const ImageConfiguration(size: Size(30, 40)),
         AppImageAssets.locationMarkerIcon,

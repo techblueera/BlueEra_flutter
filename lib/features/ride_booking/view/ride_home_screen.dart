@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/features/ride_booking/controller/ride_booking_controller.dart';
@@ -35,8 +36,15 @@ class _RideHomeScreenState extends State<RideHomeScreen> {
   void initState() {
     super.initState();
     // The whole flow shares one controller instance; later screens reuse it
-    // via Get.find(), and it is disposed when the flow is popped.
-    controller = Get.put(RideBookingController());
+    // via Get.find().
+    //
+    // Permanent, and reused rather than replaced, because an active ride now
+    // outlives the flow's screens: minimising to the floating mini-map unwinds
+    // to the first route, which popped this screen and disposed the controller
+    // — after which tapping the mini-map threw "RideBookingController not
+    // found". State is cleared by resetTrip() at the end of a ride, not by
+    // disposal, so nothing leaks between bookings.
+    controller = getOrPut(() => RideBookingController(), permanent: true);
   }
 
   @override

@@ -2,11 +2,12 @@ import 'dart:developer';
 
 import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/features/chat/view/call_screen/rider_call/ride_navigation_overlay_controller.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/environment_config.dart';
 import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
-import 'package:BlueEra/features/chat/view/business_chat/widgets/track_rider_live_location_page.dart';
 import 'package:BlueEra/features/ride_booking/controller/ride_booking_controller.dart';
 import 'package:BlueEra/features/ride_booking/model/ride_booking_models.dart';
 import 'package:BlueEra/features/ride_booking/view/ride_completed_screen.dart';
@@ -38,14 +39,6 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
   late final Worker _rideStartedWorker;
   GoogleMapController? _mapController;
 
-  /// Set once the live-tracking page has been opened for this booking.
-  ///
-  /// Never reset: the status poll reassigns `activeBooking` every 3s, and the
-  /// page's back gesture minimises it to the floating mini-map rather than
-  /// ending the session. Re-pushing on the next tick would trap the user on a
-  /// screen they just chose to leave — the mini-map is how they get back.
-  bool _liveTrackingOpened = false;
-
   /// Road route from the captain to the pickup. Empty until the Directions call
   /// lands — the map falls back to a dashed straight hint so it never reads as
   /// a real route.
@@ -68,6 +61,10 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
   /// acknowledged state instead of silently resetting.
   String? _reportedIssue;
 
+  /// Minutes along [_captainRoute], measured from the Directions reply. Used
+  /// for the drop ETA once moving — the payload only ever sends a pickup ETA.
+  int? _routeEtaMinutes;
+
   @override
   void initState() {
     super.initState();
@@ -83,7 +80,7 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
   /// moving captain, a pin for the pickup.
   Future<void> _loadCaptainIcon() async {
     try {
-      final captain = await getBytesFromSvgAsset('assets/svg/2_wheeler.svg', 90);
+      final captain = await getBytesFromSvgAsset('assets/svg/2_wheeler.svg', kVehicleMarkerSize);
       final pickup = await BitmapDescriptor.asset(
         const ImageConfiguration(size: Size(30, 40)),
         AppImageAssets.locationMarkerIcon,
@@ -98,17 +95,30 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
     }
   }
 
+  /// The end of the leg the captain is currently driving.
+  ///
+  /// The line answers a different question either side of the OTP: before the
+  /// ride it is "how does the captain reach ME", after it is "how do WE reach
+  /// the drop". The marker, the route and the dashed hint all read this, so
+  /// they can never disagree about which end is being drawn.
+  RidePlace _routeTargetPlace(RideBooking booking) =>
+      booking.status == RideStatus.onTrip ? booking.drop : booking.pickup;
+
+  LatLng _routeTargetLatLng(RideBooking booking) {
+    final place = _routeTargetPlace(booking);
+    return LatLng(place.latitude, place.longitude);
+  }
+
   void _maybeRefreshCaptainRoute(RideBooking booking) {
     final captain = booking.captain;
-    final pickup = booking.pickup;
-    if (captain?.latitude == null ||
-        captain?.longitude == null ||
-        !pickup.hasCoordinates) {
-      return;
-    }
+    if (captain?.latitude == null || captain?.longitude == null) return;
+
+    final target = _routeTargetPlace(booking);
+    if (!target.hasCoordinates) return;
+
     _refreshCaptainRoute(
       LatLng(captain!.latitude!, captain.longitude!),
-      LatLng(pickup.latitude, pickup.longitude),
+      LatLng(target.latitude, target.longitude),
     );
   }
 
@@ -134,10 +144,17 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
         ),
       );
       if (!mounted || result.points.length < 2) return;
+      final seconds = result.totalDurationValue;
       setState(() {
         _captainRoute = result.points
             .map((p) => LatLng(p.latitude, p.longitude))
             .toList(growable: false);
+        // Drives the on-trip "Reaching drop location in N mins" line. The
+        // booking payload carries a PICKUP eta only, so once moving the ETA has
+        // to come off the route we just measured.
+        if (seconds != null && seconds > 0) {
+          _routeEtaMinutes = (seconds / 60).round();
+        }
       });
     } catch (_) {
       // Allow a retry on the next position change.
@@ -153,42 +170,15 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
     super.dispose();
   }
 
-  /// Hand over to the shared live-tracking page once the rider actually starts
-  /// the trip (`in-progress`).
-  ///
-  /// Up to this point the interesting question is "where is my captain, and
-  /// when does he reach me" — which this screen answers. Once moving, it
-  /// becomes "where am I, and when do I arrive", which is what
-  /// [TrackRiderLiveLocationPage] was built for: rider→drop route, distance to
-  /// drop, and a minimise-to-floating-map so the ride keeps updating while the
-  /// user does something else. Reused rather than rebuilt.
+  /// This screen IS the live tracking — its own map shows the captain moving
+  /// and the route ahead, before and after the ride starts. There is no
+  /// hand-over to a second full-screen map: that was a duplicate surface for
+  /// the same information, and the chat/orders flow keeps its own page.
   void _onBookingChanged(RideBooking? booking) {
     if (booking == null || !mounted) return;
-    // Runs on every poll tick (not just the on-trip transition) so the route
-    // re-draws as the captain moves; _refreshCaptainRoute itself no-ops until
-    // the position actually changes.
+    // Runs on every poll tick so the route re-draws as the captain moves;
+    // _refreshCaptainRoute itself no-ops until the position actually changes.
     _maybeRefreshCaptainRoute(booking);
-    if (_liveTrackingOpened) return;
-    if (booking.status != RideStatus.onTrip) return;
-    if (!booking.drop.hasCoordinates) return;
-    _openLiveTracking(booking);
-  }
-
-  Future<void> _openLiveTracking(RideBooking booking) async {
-    _liveTrackingOpened = true;
-    controller.pauseCaptainPolling();
-    await Get.to(
-      () => TrackRiderLiveLocationPage(
-        riderId: booking.captain?.id ?? '',
-        dropLat: booking.drop.latitude,
-        dropLng: booking.drop.longitude,
-        // Keyed on the order, not the rider — the backend resolves
-        // `assignedRider` itself, which survives a reassignment.
-        orderId: booking.rideId,
-      ),
-    );
-    if (!mounted) return;
-    controller.resumeCaptainPolling();
   }
 
   void _onTerminalStatus(RideStatus? status) {
@@ -249,6 +239,51 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
       return 'Your ride was cancelled.';
     }
     return 'This ride was cancelled.';
+  }
+
+  /// Leaving means different things either side of the OTP.
+  ///
+  /// BEFORE the ride starts, backing out is abandoning a booking, so it goes
+  /// through the cancel confirmation. AFTER the OTP is handed over the ride is
+  /// running and cannot be cancelled — asking "cancel your ride?" there is
+  /// wrong, and offering it at all is worse. Minimise into the floating
+  /// mini-map instead, so the customer can use the rest of the app while the
+  /// ride carries on; tapping the mini-map re-opens live tracking.
+  void _handleLeave() {
+    final booking = controller.activeBooking.value;
+    if (booking != null && booking.status == RideStatus.onTrip) {
+      _minimiseToOverlay(booking);
+      return;
+    }
+    _openCancelFlow();
+  }
+
+  /// Publishes the floating mini-map and unwinds to the home screen.
+  ///
+  /// Typed `ride_booking` rather than `track_rider`: tapping the PiP must come
+  /// back to THIS details screen — the one the customer minimised — and live
+  /// tracking is a button away from here. `track_rider` jumps straight to the
+  /// map, which is the chat flow's behaviour, not this one's.
+  void _minimiseToOverlay(RideBooking booking) {
+    final overlay = Get.put(RideNavigationOverlayController());
+    overlay.showOverlay(
+      riderLatVal: booking.captain?.latitude ?? 0,
+      riderLngVal: booking.captain?.longitude ?? 0,
+      destLatVal: booking.drop.latitude,
+      destLngVal: booking.drop.longitude,
+      destLabelVal: booking.drop.title,
+      customerNameVal: AppStrings.trackYourRider.tr,
+      fareAmountVal: booking.fare,
+      routePoints: const [],
+      type: 'ride_booking',
+      params: {
+        'riderId': booking.captain?.id ?? '',
+        'dropLat': booking.drop.latitude,
+        'dropLng': booking.drop.longitude,
+        'orderId': booking.rideId,
+      },
+    );
+    Get.until((route) => route.isFirst);
   }
 
   Future<void> _openCancelFlow() async {
@@ -325,10 +360,9 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      // Leaving tracking must go through the cancel flow, never a silent pop.
       canPop: false,
       onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) _openCancelFlow();
+        if (!didPop) _handleLeave();
       },
       child: Scaffold(
         backgroundColor: AppColors.white,
@@ -369,9 +403,15 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
             mapToolbarEnabled: false,
             onMapCreated: (c) => _mapController = c,
             markers: {
+              // The pin marks whichever end the captain is currently driving
+              // to. Before the ride that is the pickup; once moving it is the
+              // drop — and it MUST switch, because the route line switches
+              // with it. Leaving a pickup pin up mid-ride left the line running
+              // from the bike to an unmarked point while a stale pin sat
+              // unconnected beside it.
               Marker(
-                markerId: const MarkerId('pickup'),
-                position: pickupLatLng,
+                markerId: const MarkerId('route-target'),
+                position: _routeTargetLatLng(booking),
                 icon: _pickupIcon ??
                     BitmapDescriptor.defaultMarkerWithHue(
                       BitmapDescriptor.hueGreen,
@@ -379,7 +419,11 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
                 // A pin points AT its coordinate — anchor the tip, not the
                 // middle (which is right for the centred vehicle glyph).
                 anchor: const Offset(0.5, 1.0),
-                infoWindow: const InfoWindow(title: 'Pickup'),
+                infoWindow: InfoWindow(
+                  title: booking.status == RideStatus.onTrip
+                      ? 'Drop'
+                      : 'Pickup',
+                ),
               ),
               if (captainLatLng != null)
                 Marker(
@@ -415,7 +459,9 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
                   // it can't be mistaken for the road route.
                   Polyline(
                     polylineId: const PolylineId('captain-route-pending'),
-                    points: [captainLatLng, pickupLatLng],
+                    // Same end the real route uses, so the hint doesn't point
+                    // somewhere else for the second before it lands.
+                    points: [captainLatLng, _routeTargetLatLng(booking)],
                     color: AppColors.primaryColor.withValues(alpha: 0.45),
                     width: 3,
                     patterns: [PatternItem.dash(18), PatternItem.gap(10)],
@@ -426,8 +472,12 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
             top: MediaQuery.of(context).padding.top + 10,
             left: 16,
             child: RideCircleButton(
-              icon: Icons.arrow_back,
-              onTap: _openCancelFlow,
+              // Chevron-down once moving: the action is "minimise", not "go
+              // back" — a back arrow there implies the ride can be abandoned.
+              icon: controller.activeBooking.value?.status == RideStatus.onTrip
+                  ? Icons.keyboard_arrow_down_rounded
+                  : Icons.arrow_back,
+              onTap: _handleLeave,
             ),
           ),
           Positioned(
@@ -555,35 +605,6 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
           children: [
             const RideSheetHandle(),
             _etaBanner(booking),
-            // Once moving, the live map is the main event — and minimising it
-            // pops back here, so there has to be a way in that doesn't depend
-            // on finding the floating mini-map.
-            if (booking.status == RideStatus.onTrip &&
-                booking.drop.hasCoordinates) ...[
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                height: 46,
-                child: OutlinedButton.icon(
-                  onPressed: () => _openLiveTracking(booking),
-                  icon: const Icon(Icons.my_location,
-                      size: 20, color: RideStyle.ink),
-                  label: CustomText(
-                    'Track ride live',
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                    color: RideStyle.ink,
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: AppColors.white,
-                    side: const BorderSide(color: RideStyle.hairline),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ),
-            ],
             // The PIN starts the ride, so it is only useful BEFORE the ride
             // starts. Once on-trip the customer has already handed it over and
             // leaving it on screen just invites them to read it out again.
@@ -609,6 +630,7 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
   Widget _etaBanner(RideBooking booking) {
     final minutes = booking.pickupEtaMinutes;
     final metres = booking.captainDistanceMeters;
+    final onTrip = booking.status == RideStatus.onTrip;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -626,27 +648,39 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
                 fontWeight: FontWeight.w700,
                 color: RideStyle.ink,
               ),
-              children: [
-                TextSpan(
-                  text: booking.status == RideStatus.onTrip
-                      ? 'On the way to drop'
-                      : 'Pickup in ',
-                ),
-                if (booking.status != RideStatus.onTrip)
-                  TextSpan(
-                    text: minutes == null ? '—' : '$minutes mins',
-                    style: const TextStyle(color: RideStyle.pickup),
-                  ),
-              ],
+              children: onTrip
+                  ? [
+                      const TextSpan(text: 'Reaching drop location'),
+                      if (_routeEtaMinutes != null)
+                        TextSpan(
+                          text: ' in $_routeEtaMinutes'
+                              ' min${_routeEtaMinutes == 1 ? '' : 's'}',
+                          style: const TextStyle(color: RideStyle.pickup),
+                        ),
+                    ]
+                  : [
+                      const TextSpan(text: 'Pickup in '),
+                      TextSpan(
+                        text: minutes == null ? '—' : '$minutes mins',
+                        style: const TextStyle(color: RideStyle.pickup),
+                      ),
+                    ],
             ),
           ),
           const SizedBox(height: 3),
           CustomText(
-            metres == null
-                ? 'Captain is on the way'
-                : 'Captain ${_formatDistance(metres)} away',
+            // Once moving, where the captain is relative to the PICKUP is no
+            // longer the question — where the ride ends up is.
+            onTrip
+                ? (booking.drop.title.isNotEmpty
+                    ? 'Reaching ${booking.drop.title}'
+                    : 'On the way to your drop')
+                : metres == null
+                    ? 'Captain is on the way'
+                    : 'Captain ${_formatDistance(metres)} away',
             fontSize: 15,
             color: RideStyle.inkMuted,
+            maxLines: 2,
           ),
         ],
       ),
@@ -852,31 +886,36 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 14),
-          // Two ways to reach the captain, side by side. The single button that
-          // used to sit here said "Message" but placed a phone call, and gave
-          // no way to use the in-app call at all.
-          Row(
-            children: [
-              Expanded(
-                child: _contactButton(
-                  icon: Icons.call_outlined,
-                  label: captain.firstName.isNotEmpty
-                      ? 'Call ${captain.firstName}'
-                      : 'Call captain',
-                  onPressed: _dialCaptain,
+          // Contact buttons are for BEFORE the ride: finding each other at the
+          // pickup is what a call is for. Once the customer is in the vehicle
+          // the captain is right there, so the card drops to identity only.
+          if (booking.status != RideStatus.onTrip) ...[
+            const SizedBox(height: 14),
+            // Two ways to reach the captain, side by side. The single button
+            // that used to sit here said "Message" but placed a phone call, and
+            // gave no way to use the in-app call at all.
+            Row(
+              children: [
+                Expanded(
+                  child: _contactButton(
+                    icon: Icons.call_outlined,
+                    label: captain.firstName.isNotEmpty
+                        ? 'Call ${captain.firstName}'
+                        : 'Call captain',
+                    onPressed: _dialCaptain,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _contactButton(
-                  icon: Icons.phone_in_talk_outlined,
-                  label: 'App call',
-                  onPressed: _callCaptainInApp,
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _contactButton(
+                    icon: Icons.phone_in_talk_outlined,
+                    label: 'App call',
+                    onPressed: _callCaptainInApp,
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -890,14 +929,18 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Before the ride the useful address is where the captain is
+              // coming to; once moving it is where the customer is going.
               CustomText(
-                'Pickup From',
+                booking.status == RideStatus.onTrip ? 'Drop to' : 'Pickup From',
                 fontSize: 14,
                 color: RideStyle.inkMuted,
               ),
               const SizedBox(height: 2),
               CustomText(
-                booking.pickup.fullAddress,
+                booking.status == RideStatus.onTrip
+                    ? booking.drop.fullAddress
+                    : booking.pickup.fullAddress,
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: RideStyle.ink,
