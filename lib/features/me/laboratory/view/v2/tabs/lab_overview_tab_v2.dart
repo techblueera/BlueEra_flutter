@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
+import 'package:BlueEra/features/business/widgets/business_joined_profile_card.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/profile_share_banner.dart';
 import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
@@ -18,7 +19,6 @@ import 'package:BlueEra/features/me/laboratory/model/new_lab_full_details_res_mo
 import 'package:BlueEra/features/me/laboratory/view/lab_contact_us_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_service_gallery/lab_service_photos_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/testimonials/lab_testimonials_screen.dart';
-import 'package:BlueEra/features/me/laboratory/view/v2/widgets/lab_banner_widget.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -43,7 +43,8 @@ class LabOverviewTabV2 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final businessController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+    final businessController =
+        getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
     return Obx(() {
       final d = controller.details.value;
@@ -59,9 +60,19 @@ class LabOverviewTabV2 extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Joined-date pill + identity + cover card at the very top, in
+          // parity with grocery_home_screen_v2's `_buildOverviewSlivers`.
+          // Rendered edge-to-edge (no outer Padding) so its own internal
+          // insets drive the visual rhythm, matching the grocery layout.
+          Padding(
+            padding: EdgeInsets.only(
+                left: SizeConfig.size20, top: SizeConfig.size10),
+            child: BusinessJoinedProfileCard(
+                businessController: businessController),
+          ),
           SizedBox(height: SizeConfig.size12),
-          LabBannerWidget(controller: controller),
-          SizedBox(height: SizeConfig.size12),
+          // LabBannerWidget(controller: controller),
+          // SizedBox(height: SizeConfig.size12),
 
           // ── Description ──
           // Padding(
@@ -75,23 +86,29 @@ class LabOverviewTabV2 extends StatelessWidget {
 
           // SizedBox(height: SizeConfig.size12),
           Padding(
-            padding: EdgeInsets.only(right: SizeConfig.size12, left: SizeConfig.size25),
+            padding: EdgeInsets.only(
+                right: SizeConfig.size12, left: SizeConfig.size25),
             child: CategorySelector(),
           ),
 
           SizedBox(height: SizeConfig.size12),
           Padding(
-            padding: EdgeInsets.only(right: SizeConfig.size12, left: SizeConfig.size25),
+            padding: EdgeInsets.only(
+                right: SizeConfig.size12, left: SizeConfig.size25),
             child: EmptyHealthCampWidget(),
           ),
           SizedBox(height: SizeConfig.size12),
           // ── Gallery ──
           Padding(
-            padding: EdgeInsets.only(right: SizeConfig.size12, left: SizeConfig.size25),
+            padding: EdgeInsets.only(
+                right: SizeConfig.size12, left: SizeConfig.size25),
             child: _GallerySection(
               galleries: galleries,
-              onEdit: () =>
-                  Get.to(() => LabServicePhotosPhotoScreen())?.then((_) => controller.fetchFullDetails()),
+              // Section headers below mirror the `_SectionHeader` +
+              // `_ChipCta` pattern used on the Tests tab so both surfaces
+              // read as one language.
+              onEdit: () => Get.to(() => LabServicePhotosPhotoScreen())
+                  ?.then((_) => controller.fetchFullDetails()),
             ),
           ),
 
@@ -102,7 +119,8 @@ class LabOverviewTabV2 extends StatelessWidget {
           // the form sheet for that testimonial; the section header's
           // Edit button opens the full owner-side manager screen.
           Padding(
-            padding: EdgeInsets.only(right: SizeConfig.size12, left: SizeConfig.size25),
+            padding: EdgeInsets.only(
+                right: SizeConfig.size12, left: SizeConfig.size25),
             child: const _TestimonialsSection(),
           ),
 
@@ -110,21 +128,26 @@ class LabOverviewTabV2 extends StatelessWidget {
 
           // ── Contact ──
           Padding(
-            padding: EdgeInsets.only(right: SizeConfig.size12, left: SizeConfig.size25),
+            padding: EdgeInsets.only(
+                right: SizeConfig.size12, left: SizeConfig.size25),
             child: _ContactCard(
               contact: contact,
               profile: profile,
-              onEdit: () => Get.to(() => LabContactUsScreen())?.then((_) => controller.fetchFullDetails()),
+              onEdit: () => Get.to(() => LabContactUsScreen())
+                  ?.then((_) => controller.fetchFullDetails()),
             ),
           ),
 
           SizedBox(height: SizeConfig.size12),
 
           Padding(
-            padding: EdgeInsets.only(right: SizeConfig.size12, left: SizeConfig.size25),
+            padding: EdgeInsets.only(
+                right: SizeConfig.size12, left: SizeConfig.size25),
             child: WebsiteOverviewCard(
-              websiteUrl: businessController.businessProfileDetails.value?.data?.websiteUrl,
-              onSave: (url) => businessController.updateBusinessProfileDetails({ApiKeys.websiteUrl: url}),
+              websiteUrl: businessController
+                  .businessProfileDetails.value?.data?.websiteUrl,
+              onSave: (url) => businessController
+                  .updateBusinessProfileDetails({ApiKeys.websiteUrl: url}),
             ),
           ),
 
@@ -133,7 +156,8 @@ class LabOverviewTabV2 extends StatelessWidget {
           if (hasCoords) SizedBox(height: SizeConfig.size12),
           if (hasCoords)
             Padding(
-              padding: EdgeInsets.only(right: SizeConfig.size12, left: SizeConfig.size25),
+              padding: EdgeInsets.only(
+                  right: SizeConfig.size12, left: SizeConfig.size25),
               child: BusinessLocationWidget(
                 locationText: loc.name,
                 latitude: double.parse(loc.coordinates![1].toString()),
@@ -145,17 +169,20 @@ class LabOverviewTabV2 extends StatelessWidget {
             ),
 
           Padding(
-            padding: EdgeInsets.only(right: SizeConfig.size12, left: SizeConfig.size25),
+            padding: EdgeInsets.only(
+                right: SizeConfig.size12, left: SizeConfig.size25),
             child: const ProfileShareBanner(),
           ),
           // SizedBox(height: SizeConfig.size10),
 
           // ── QR Code (mirrors the hospital/food QR card) ──
           Obx(() {
-            final details = businessController.businessProfileDetails.value?.data;
+            final details =
+                businessController.businessProfileDetails.value?.data;
             if (details == null) return const SizedBox.shrink();
             return Padding(
-              padding: EdgeInsets.only(right: SizeConfig.size12, left: SizeConfig.size25),
+              padding: EdgeInsets.only(
+                  right: SizeConfig.size12, left: SizeConfig.size25),
               child: BusinessQrCodeWidget(data: details),
             );
           }),
@@ -185,7 +212,8 @@ class _DescriptionCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              CustomText(AppStrings.description.tr, fontWeight: FontWeight.w700),
+              CustomText(AppStrings.description.tr,
+                  fontWeight: FontWeight.w700),
               _EditButton(onTap: onEdit),
             ],
           ),
@@ -217,21 +245,26 @@ class _GallerySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final allImages = galleries.expand((p) => p.imageUrls ?? const <String>[]).toList(growable: false);
+    final allImages = galleries
+        .expand((p) => p.imageUrls ?? const <String>[])
+        .toList(growable: false);
     return CommonCardWidget(
       padding: 10,
       cardMargin: 0,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              CustomText(AppStrings.gallery.tr, fontWeight: FontWeight.w700),
-              _EditButton(onTap: onEdit),
-            ],
+          _SectionHeader(
+            title: AppStrings.gallery.tr,
+            subtitle: 'Photos of your lab',
+            trailing: _ChipCta(
+              label: AppStrings.edit.tr,
+              icon: Icons.edit_outlined,
+              iconAtStart: true,
+              onTap: onEdit,
+            ),
           ),
-          SizedBox(height: SizeConfig.size8),
+          SizedBox(height: SizeConfig.size12),
           if (allImages.isEmpty)
             EmptySectionPlaceholder(
               imageAsset: 'assets/images/other_gallery.png',
@@ -289,7 +322,10 @@ class _GalleryGrid extends StatelessWidget {
                     alignment: Alignment.center,
                     child: Text(
                       '+$extra',
-                      style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold),
                     ),
                   ),
               ],
@@ -370,12 +406,15 @@ class _ContactCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              CustomText(AppStrings.contactUs.tr, fontWeight: FontWeight.w700),
-              _EditButton(onTap: onEdit),
-            ],
+          _SectionHeader(
+            title: AppStrings.contactUs.tr,
+            subtitle: 'How customers can reach you',
+            trailing: _ChipCta(
+              label: AppStrings.edit.tr,
+              icon: Icons.edit_outlined,
+              iconAtStart: true,
+              onTap: onEdit,
+            ),
           ),
           SizedBox(height: SizeConfig.size12),
           if (contact == null)
@@ -409,13 +448,15 @@ class _ContactCard extends StatelessWidget {
                               fit: BoxFit.cover,
                             )
                           : DecorationImage(
-                              image: AssetImage(AppIconAssets.place_holder_image),
+                              image:
+                                  AssetImage(AppIconAssets.place_holder_image),
                               fit: BoxFit.cover,
                             ),
                     ),
                   ),
                   const SizedBox(height: 10),
-                  CustomText(profile?.name ?? '', fontSize: 18, fontWeight: FontWeight.bold),
+                  CustomText(profile?.name ?? '',
+                      fontSize: 18, fontWeight: FontWeight.bold),
                   const SizedBox(height: 5),
                   CustomText(
                     profile?.description ?? '',
@@ -424,15 +465,19 @@ class _ContactCard extends StatelessWidget {
                   ),
                   const Divider(height: 30),
                   if ((contact?.websiteUrl ?? '').isNotEmpty)
-                    _contactItem(AppIconAssets.website_click, contact!.websiteUrl!, AppColors.primaryColor),
-                  _contactItem(AppIconAssets.principal, AppStrings.reception.tr, Colors.grey[700]!),
+                    _contactItem(AppIconAssets.website_click,
+                        contact!.websiteUrl!, AppColors.primaryColor),
+                  _contactItem(AppIconAssets.principal, AppStrings.reception.tr,
+                      Colors.grey[700]!),
                   if ((contact?.email ?? '').isNotEmpty)
-                    _contactItem(AppIconAssets.email, contact!.email!, AppColors.secondaryTextColor),
+                    _contactItem(AppIconAssets.email, contact!.email!,
+                        AppColors.secondaryTextColor),
                   if ((contact?.phoneNo ?? '').isNotEmpty)
-                    _contactItem(
-                        AppIconAssets.phone_outline, contact!.phoneNo!, AppColors.secondaryTextColor),
+                    _contactItem(AppIconAssets.phone_outline, contact!.phoneNo!,
+                        AppColors.secondaryTextColor),
                   if ((contact?.location?.name ?? '').isNotEmpty)
-                    _contactItem(AppIconAssets.location_new, contact!.location!.name!, Colors.grey[700]!),
+                    _contactItem(AppIconAssets.location_new,
+                        contact!.location!.name!, Colors.grey[700]!),
                 ],
               ),
             ),
@@ -448,7 +493,8 @@ class _ContactCard extends StatelessWidget {
         children: [
           LocalAssets(imagePath: icon, imgColor: iconColor),
           const SizedBox(width: 12),
-          Expanded(child: CustomText(label, fontSize: 14, color: Colors.black87)),
+          Expanded(
+              child: CustomText(label, fontSize: 14, color: Colors.black87)),
         ],
       ),
     );
@@ -470,7 +516,8 @@ class _TestimonialsSection extends StatefulWidget {
 }
 
 class _TestimonialsSectionState extends State<_TestimonialsSection> {
-  final LabTestimonialController _ctrl = getOrPut(() => LabTestimonialController());
+  final LabTestimonialController _ctrl =
+      getOrPut(() => LabTestimonialController());
   final PageController _pageController = PageController(viewportFraction: 0.94);
   int _page = 0;
 
@@ -516,12 +563,15 @@ class _TestimonialsSectionState extends State<_TestimonialsSection> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              CustomText('Testimonials', fontWeight: FontWeight.w700),
-              _EditButton(onTap: _openManager),
-            ],
+          _SectionHeader(
+            title: 'Testimonials',
+            subtitle: 'What customers say about you',
+            trailing: _ChipCta(
+              label: AppStrings.edit.tr,
+              icon: Icons.edit_outlined,
+              iconAtStart: true,
+              onTap: _openManager,
+            ),
           ),
           SizedBox(height: SizeConfig.size12),
           Obx(() {
@@ -577,7 +627,9 @@ class _TestimonialsSectionState extends State<_TestimonialsSection> {
             width: i == _page ? 18 : 6,
             height: 6,
             decoration: BoxDecoration(
-              color: i == _page ? AppColors.primaryColor : AppColors.primaryColor.withValues(alpha: 0.28),
+              color: i == _page
+                  ? AppColors.primaryColor
+                  : AppColors.primaryColor.withValues(alpha: 0.28),
               borderRadius: BorderRadius.circular(999),
             ),
           ),
@@ -610,7 +662,8 @@ class _TestimonialQuoteCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: const Color(0xFFE5E7EB)),
         boxShadow: const [
-          BoxShadow(color: Color(0x0F001120), blurRadius: 8, offset: Offset(0, 2)),
+          BoxShadow(
+              color: Color(0x0F001120), blurRadius: 8, offset: Offset(0, 2)),
         ],
       ),
       child: Column(
@@ -673,7 +726,8 @@ class _TestimonialQuoteCard extends StatelessWidget {
                 onTap: onEdit,
                 borderRadius: BorderRadius.circular(999),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
                     color: AppColors.primaryColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(999),
@@ -689,6 +743,127 @@ class _TestimonialQuoteCard extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ─── Shared header + chip primitives (mirrors lab_tests_tab_v2.dart) ────
+
+/// Vertical brand bar + bold title + one-line helper + trailing chip.
+/// Copied verbatim from `lab_tests_tab_v2.dart` so the Overview + Tests
+/// tabs share the same section-header language without exposing a
+/// widget through a shared file.
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final Widget trailing;
+
+  const _SectionHeader({
+    required this.title,
+    required this.subtitle,
+    required this.trailing,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+          width: 3,
+          height: 26,
+          decoration: BoxDecoration(
+            color: AppColors.primaryColor,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
+        SizedBox(width: SizeConfig.size10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CustomText(
+                title,
+                fontSize: 18,
+                fontWeight: FontWeight.w800,
+                color: AppColors.mainTextColor,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 2),
+              CustomText(
+                subtitle,
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: AppColors.secondaryTextColor,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+        SizedBox(width: SizeConfig.size8),
+        trailing,
+      ],
+    );
+  }
+}
+
+/// Brand-outlined chip with a solid circular icon badge — used for both
+/// leading-icon CTAs ("+ Add …") and trailing-icon ones ("View All →").
+class _ChipCta extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final bool iconAtStart;
+  final VoidCallback onTap;
+
+  const _ChipCta({
+    required this.label,
+    required this.icon,
+    required this.iconAtStart,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final iconBadge = Container(
+      width: 26,
+      height: 26,
+      decoration: BoxDecoration(
+        color: AppColors.primaryColor,
+        shape: BoxShape.circle,
+      ),
+      child: Icon(icon, size: 16, color: Colors.white),
+    );
+    final labelWidget = CustomText(
+      label,
+      fontSize: 12,
+      fontWeight: FontWeight.w700,
+      color: AppColors.primaryColor,
+    );
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: iconAtStart
+            ? const EdgeInsets.fromLTRB(4, 4, 12, 4)
+            : const EdgeInsets.fromLTRB(12, 4, 4, 4),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: AppColors.primaryColor.withValues(alpha: 0.25),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: iconAtStart
+              ? [iconBadge, SizedBox(width: SizeConfig.size6), labelWidget]
+              : [labelWidget, SizedBox(width: SizeConfig.size6), iconBadge],
+        ),
       ),
     );
   }

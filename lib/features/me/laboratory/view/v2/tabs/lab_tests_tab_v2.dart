@@ -1,13 +1,19 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_full_details_controller.dart';
+import 'package:BlueEra/features/me/laboratory/controller/lab_package_controller.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_test_controller.dart';
 import 'package:BlueEra/features/me/laboratory/model/lab_test_models.dart';
+import 'package:BlueEra/features/me/laboratory/repo/lab_test_repo.dart';
 import 'package:BlueEra/features/me/laboratory/view/add_lab_test_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_test_list_screen.dart';
+import 'package:BlueEra/features/me/laboratory/view/packages/create_your_own_packages_screen.dart';
+import 'package:BlueEra/features/me/laboratory/view/packages/my_lab_packages_screen.dart';
 import 'package:BlueEra/features/me/laboratory/widget/lab_soft_card_color.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -29,6 +35,16 @@ class _LabTestsTabV2State extends State<LabTestsTabV2> {
   final PageController _pageController = PageController(viewportFraction: 0.92);
   int _pageIndex = 0;
   late final LabTestController _testController;
+  late final LabPackageController _packageController;
+
+  /// Full lab-scoped test list — used purely to derive which of the six
+  /// categories have any tests, so we can hide the empty ones. Kept
+  /// separate from [LabTestController.tests] (which gets overwritten by
+  /// per-category screens) and from [LabTestController.popularTests]
+  /// (which is capped at 5).
+  final LabTestRepo _testRepo = LabTestRepo();
+  List<PathologyTest> _allTests = const <PathologyTest>[];
+  bool _loadedAllTests = false;
 
   @override
   void initState() {
@@ -36,8 +52,42 @@ class _LabTestsTabV2State extends State<LabTestsTabV2> {
     _testController = Get.isRegistered<LabTestController>()
         ? Get.find<LabTestController>()
         : Get.put(LabTestController(), permanent: true);
+    _packageController = Get.isRegistered<LabPackageController>()
+        ? Get.find<LabPackageController>()
+        : Get.put(LabPackageController(), permanent: true);
     _testController.fetchPopularTests();
+    _packageController.fetchMyPackages();
+    _fetchAllTestsForFilter();
   }
+
+  Future<void> _fetchAllTestsForFilter() async {
+    try {
+      final res = await _testRepo.getPathologyTests('');
+      if (!mounted) return;
+      if (res.isSuccess) {
+        final List data = res.response?.data['data'] ?? [];
+        setState(() {
+          _allTests = data
+              .whereType<Map<String, dynamic>>()
+              .map(PathologyTest.fromJson)
+              .toList();
+          _loadedAllTests = true;
+        });
+      } else {
+        setState(() => _loadedAllTests = true);
+      }
+    } catch (_) {
+      if (mounted) setState(() => _loadedAllTests = true);
+    }
+  }
+
+  /// Which of the six `groupCategory` values actually have at least one
+  /// test in this lab. Empty until the fetch resolves — callers should
+  /// treat "not yet loaded" as "show everything" so nothing flashes off.
+  Set<String> get _categoriesWithTests => _allTests
+      .map((t) => t.groupCategory ?? '')
+      .where((s) => s.isNotEmpty)
+      .toSet();
 
   /// Six category tiles — same collection strings the previous
   /// [CategorySelector] used, so backend filtering stays identical.
@@ -82,24 +132,164 @@ class _LabTestsTabV2State extends State<LabTestsTabV2> {
 
   @override
   Widget build(BuildContext context) {
+    // Until the tests fetch resolves, show every category so tiles don't
+    // flash off after the initial paint. Once loaded, hide categories
+    // with zero tests.
+    final visibleCategories = !_loadedAllTests
+        ? _categories
+        : _categories
+            .where((c) => _categoriesWithTests.contains(c.collection))
+            .toList();
     return Padding(
-      padding: EdgeInsets.only(left: SizeConfig.size25, right: SizeConfig.size12),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(height: SizeConfig.size12),
-          _PopularTestsSection(
-            testController: _testController,
-            pageController: _pageController,
-            currentPage: _pageIndex,
-            onPageChanged: (i) => setState(() => _pageIndex = i),
+
+          // Single Obx wraps the data-driven region so we can collapse the
+          // whole thing to a single empty-state card (matches
+          // assets/img_1.png) once both fetches resolve and both come back
+          // empty — otherwise render the normal three-section stack.
+          Obx(() {
+            final packagesLoaded = !_packageController.isLoading.value;
+            final everythingEmpty = _loadedAllTests &&
+                packagesLoaded &&
+                _allTests.isEmpty &&
+                _packageController.myPackages.isEmpty;
+            if (everythingEmpty) {
+              return _emptyStateCard();
+            }
+
+            // Same preset filtering the packages section used to do inline —
+            // matches on `packageType` with a legacy `name` fallback so
+            // pre-migration rows still surface.
+            final withPackages = _packageController.myPackages
+                .map((p) => ((p.packageType ?? '').trim().isNotEmpty
+                        ? p.packageType!
+                        : p.name ?? '')
+                    .trim())
+                .where((s) => s.isNotEmpty)
+                .toSet();
+            final visiblePresets = LabPackageController.presetNames
+                .where(withPackages.contains)
+                .toList();
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _productsBanner(
+                  onAddTests: () => Get.to(
+                      () => LabCategoryScreen(controller: widget.controller)),
+                ),
+                SizedBox(height: SizeConfig.size12),
+                _PopularTestsSection(
+                  testController: _testController,
+                  pageController: _pageController,
+                  currentPage: _pageIndex,
+                  onPageChanged: (i) => setState(() => _pageIndex = i),
+                ),
+                SizedBox(height: SizeConfig.size12),
+                if (visibleCategories.isNotEmpty) ...[
+                  _OurTestsSection(
+                    categories: visibleCategories,
+                    controller: widget.controller,
+                  ),
+                  SizedBox(height: SizeConfig.size12),
+                ],
+                if (visiblePresets.isNotEmpty) ...[
+                  _OurTestsPackagesSection(
+                    presets: visiblePresets,
+                    onAddMore: () =>
+                        Get.to(() => const CreateYourOwnPackagesScreen()),
+                    // Route by the preset value so the listing screen can
+                    // apply the `/packages/me?packageType=...` filter (with
+                    // a legacy `name` match fallback baked into the screen).
+                    onTapPreset: (preset) => Get.to(
+                      () => MyLabPackagesScreen(
+                        title: preset,
+                        packageType: preset,
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: SizeConfig.size12),
+                ],
+              ],
+            );
+          }),
+          SizedBox(height: kBottomNavigationBarHeight + 20),
+        ],
+      ),
+    );
+  }
+
+  /// Empty-state card shown when the tab has no tests AND no packages
+  /// (matches assets/img_1.png). Tapping "+ Add Now" opens the same add-
+  /// tests flow as the top banner's chip.
+  Widget _emptyStateCard() {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size20,
+        vertical: SizeConfig.size28,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE6E8EE)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          LocalAssets(
+            imagePath: AppIconAssets.emptyIcon,
+            height: 100,
+            width: 100,
           ),
           SizedBox(height: SizeConfig.size12),
-          _OurTestsSection(
-            categories: _categories,
-            controller: widget.controller,
+          CustomText(
+            'No Tests Added Yet',
+            fontSize: 15,
+            fontWeight: FontWeight.w800,
+            color: AppColors.mainTextColor,
           ),
-          SizedBox(height: kBottomNavigationBarHeight + 20),
+          SizedBox(height: SizeConfig.size6),
+          CustomText(
+            'Add diagnostic tests to Laboratry.',
+            fontSize: 12.5,
+            fontWeight: FontWeight.w500,
+            color: AppColors.secondaryTextColor,
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: SizeConfig.size16),
+          GestureDetector(
+            onTap: () =>
+                Get.to(() => LabCategoryScreen(controller: widget.controller)),
+            child: Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: SizeConfig.size20,
+                vertical: SizeConfig.size10,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.primaryColor,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.add_rounded, size: 20, color: Colors.white),
+                  SizedBox(width: SizeConfig.size4),
+                  CustomText(
+                    'Add Now',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -214,8 +404,9 @@ class _ChipCta extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: Container(
-        padding:
-            iconAtStart ? const EdgeInsets.fromLTRB(4, 4, 12, 4) : const EdgeInsets.fromLTRB(12, 4, 4, 4),
+        padding: iconAtStart
+            ? const EdgeInsets.fromLTRB(4, 4, 12, 4)
+            : const EdgeInsets.fromLTRB(12, 4, 4, 4),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(22),
@@ -366,7 +557,8 @@ class _PopularTestCard extends StatelessWidget {
         .map((p) => p.name ?? '')
         .where((s) => s.isNotEmpty)
         .join(', ');
-    final subtitle = paramNames.isNotEmpty ? paramNames : (test.description ?? '');
+    final subtitle =
+        paramNames.isNotEmpty ? paramNames : (test.description ?? '');
 
     return Container(
       decoration: BoxDecoration(
@@ -426,19 +618,22 @@ class _PopularTestCard extends StatelessWidget {
                 ),
               ),
               Padding(
-                padding: EdgeInsets.fromLTRB(SizeConfig.size16, 0, SizeConfig.size16, SizeConfig.size16),
+                padding: EdgeInsets.fromLTRB(
+                    SizeConfig.size16, 0, SizeConfig.size16, SizeConfig.size16),
                 child: Row(
                   children: [
                     Expanded(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 10),
                         decoration: BoxDecoration(
                           color: Colors.black.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.circle, size: 8, color: Colors.grey.shade600),
+                            Icon(Icons.circle,
+                                size: 8, color: Colors.grey.shade600),
                             const SizedBox(width: 8),
                             CustomText(
                               AppStrings.labHomeSampleAvailable.tr,
@@ -454,7 +649,8 @@ class _PopularTestCard extends StatelessWidget {
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        border: Border.all(color: Colors.blue.shade400, width: 1.5),
+                        border:
+                            Border.all(color: Colors.blue.shade400, width: 1.5),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Icon(
@@ -489,7 +685,8 @@ class _PopularTestCard extends StatelessWidget {
           children: [
             TextSpan(text: "${AppStrings.labReportsWithinPrefix.tr} "),
             TextSpan(
-              text: "${test.estimatedReportHours ?? 0} ${AppStrings.labHoursWord.tr}",
+              text:
+                  "${test.estimatedReportHours ?? 0} ${AppStrings.labHoursWord.tr}",
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ],
@@ -575,6 +772,241 @@ class _OurTestsSection extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+Widget _productsBanner({required VoidCallback onAddTests}) {
+  // Faded test-tubes illustration (test_tab.png) as the card background,
+  // with dark text + tinted icon badge + "+ Add Tests" CTA on top —
+  // matches assets/img_1.png. The bg image is anchored to the right so
+  // the illustration fills behind the CTA without crowding the title.
+  return Container(
+    // margin: EdgeInsets.only(right: SizeConfig.size20, top: SizeConfig.size4),
+    clipBehavior: Clip.antiAlias,
+    decoration: BoxDecoration(
+      color: const Color(0xFFF4F9FF),
+      borderRadius: BorderRadius.circular(14),
+      border: Border.all(color: const Color(0xFFE6EEF7)),
+      gradient: const LinearGradient(
+        begin: Alignment.centerLeft,
+        end: Alignment.centerRight,
+        colors: [Color(0xFF2E8BE0), Color(0xFF7FD6CE)],
+      ),
+      image: DecorationImage(
+        image: AssetImage(AppIconAssets.testTabBg),
+        alignment: Alignment.centerRight,
+        fit: BoxFit.cover,
+        // Soften the illustration so it never fights the text on top.
+        colorFilter: ColorFilter.mode(
+          Colors.white.withValues(alpha: 0.35),
+          BlendMode.lighten,
+        ),
+      ),
+    ),
+    padding: EdgeInsets.symmetric(
+      horizontal: SizeConfig.size12,
+      vertical: SizeConfig.size10,
+    ),
+    child: Row(
+      children: [
+        Container(
+          width: SizeConfig.size36,
+          height: SizeConfig.size36,
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(SizeConfig.size8),
+            child: LocalAssets(
+              imagePath: AppIconAssets.laboratoryIcon,
+              imgColor: AppColors.primaryColor,
+              boxFix: BoxFit.contain,
+            ),
+          ),
+        ),
+        SizedBox(width: SizeConfig.size10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CustomText(
+                "Lab Tests",
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
+                color: AppColors.mainTextColor,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 1),
+              CustomText(
+                "Manage your lab Tests",
+                fontSize: 10.5,
+                fontWeight: FontWeight.w500,
+                color: AppColors.secondaryTextColor,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+        SizedBox(width: SizeConfig.size8),
+        _ChipCta(
+          label: 'Add Tests',
+          icon: Icons.add,
+          iconAtStart: true,
+          onTap: onAddTests,
+        ),
+      ],
+    ),
+  );
+}
+
+// ─── Section 3: Our Tests Packages (preset grid) ────────────────────────
+
+/// "Our Tests Packages" — mirrors the "Our Tests" tile layout but shows
+/// [LabPackageController.presetNames] filtered to the ones the current
+/// lab actually has packages under. Taps open [MyLabPackagesScreen]
+/// scoped by preset name; the "+ Add More" chip opens the create flow.
+class _OurTestsPackagesSection extends StatelessWidget {
+  final List<String> presets;
+  final VoidCallback onAddMore;
+  final void Function(String preset) onTapPreset;
+
+  const _OurTestsPackagesSection({
+    required this.presets,
+    required this.onAddMore,
+    required this.onTapPreset,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12.0),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE6E8EE)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _SectionHeader(
+            title: 'Our Tests Packages',
+            subtitle: 'Tap a category to view tests',
+            trailing: _ChipCta(
+              label: 'Add More',
+              icon: Icons.add,
+              iconAtStart: true,
+              onTap: onAddMore,
+            ),
+          ),
+          SizedBox(height: SizeConfig.size12),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final crossAxisCount = constraints.maxWidth > 600 ? 4 : 3;
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: EdgeInsets.zero,
+                itemCount: presets.length,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  crossAxisSpacing: SizeConfig.size10,
+                  mainAxisSpacing: SizeConfig.size10,
+                  childAspectRatio: 0.9,
+                ),
+                itemBuilder: (_, i) => _PackagePresetTile(
+                  preset: presets[i],
+                  onTap: () => onTapPreset(presets[i]),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Preset tile — soft-blue hero with a tinted icon badge, label below.
+/// Matches [_CategoryTile]'s shape so the two grids read as siblings.
+class _PackagePresetTile extends StatelessWidget {
+  final String preset;
+  final VoidCallback onTap;
+
+  const _PackagePresetTile({required this.preset, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FBFF),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+        ),
+        child: Column(
+          children: [
+            Expanded(
+              flex: 3,
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Center(
+                  child: LocalAssets(
+                    imagePath: _iconForPreset(preset),
+                    height: 50,
+                    width: 50,
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 2,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                child: CustomText(
+                  preset,
+                  fontSize: SizeConfig.size13,
+                  fontWeight: FontWeight.w500,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  color: Colors.blueGrey.shade800,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// SVG asset path for each preset in [LabPackageController.presetNames],
+/// mirroring the mapping used by [CreateYourOwnPackagesScreen] so both
+/// surfaces share the same iconography.
+String _iconForPreset(String preset) {
+  switch (preset) {
+    case 'Basic Health Checkup':
+      return AppIconAssets.basicHealthCampIcon;
+    case 'Full Body Checkup':
+      return AppIconAssets.fullBodycheckupIcon;
+    case 'Executive Health Package':
+      return AppIconAssets.healthPackageIcon;
+    case 'Diabetes Package':
+      return AppIconAssets.diabetesPackageIcon;
+    case 'Thyroid Package':
+      return AppIconAssets.thyroidPackageIcon;
+    case 'Heart Check-up Package':
+      return AppIconAssets.heartPacakgeIcon;
+    case 'Senior Citizen Package':
+      return AppIconAssets.seniorPackageIcon;
+    case 'Men Health Package':
+      return AppIconAssets.menhealthPackageIcon;
+    default:
+      return AppIconAssets.healthPackageIcon;
   }
 }
 
