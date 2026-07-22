@@ -61,8 +61,15 @@ class CommonImageUploadTile extends StatelessWidget {
           decoration: BoxDecoration(
             color: AppColors.white,
             borderRadius: BorderRadius.circular(10.0),
-            border: Border.all(color: AppColors.greyE5),
             boxShadow: [AppShadows.textFieldShadow],
+          ),
+          // Foreground, not part of [decoration]: a background border is
+          // painted *under* the child, so the picked photo (which fills the
+          // tile edge-to-edge) would hide it. Drawn on top, the frame stays
+          // visible both before and after the upload.
+          foregroundDecoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10.0),
+            border: Border.all(color: AppColors.greyE5),
           ),
           child: file == null
               ? Padding(
@@ -92,7 +99,9 @@ class CommonImageUploadTile extends StatelessWidget {
                     clipBehavior: Clip.none,
                     children: [
                       ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
+                        // Same radius as the tile so the photo's corners sit
+                        // flush inside the border instead of cutting in.
+                        borderRadius: BorderRadius.circular(10.0),
                         child: Image.file(file,
                             fit: BoxFit.cover, width: double.infinity),
                       ),

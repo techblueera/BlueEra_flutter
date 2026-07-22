@@ -98,8 +98,21 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   //   user picked another option). When selection == submitted, Update
   //   is disabled/not clickable.
   // _pickup/_dropController + lat/lng → Google-backed address fields.
-  RiderServicePreference? _servicePreference;
+  /// Pre-selected so the card never opens with nothing chosen. "Both" is the
+  /// widest option (a rider who takes everything gets the most orders), and it
+  /// is only a DEFAULT — [_hydratePreference] overwrites it the moment the
+  /// rider's saved `vehicleUsesType` arrives. Falls back to the sole allowed
+  /// option for professions that can't take both.
+  late RiderServicePreference? _servicePreference = _defaultPreference;
+
+  /// Stays null until something is actually committed — the CTA reads this to
+  /// decide "Submit" vs "Update", so the default above must not seed it.
   RiderServicePreference? _submittedPreference;
+
+  RiderServicePreference get _defaultPreference =>
+      _allowedPreferences.contains(RiderServicePreference.both)
+          ? RiderServicePreference.both
+          : _allowedPreferences.first;
   // Hydrates _servicePreference/_submittedPreference from the rider's saved
   // vehicleUsesType once the onboarding status arrives. Guarded so a manual
   // edit isn't clobbered by a later status refresh.
@@ -335,6 +348,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   // and from the L3 filter (white form field with chevron).
   // Commented out — Inquiry sub-tab removed, so this segmented toggle and its
   // button builder below are unused.
+
   /*
   Widget _buildOrderSubTabs(bool hasActiveOrders) {
     return Padding(
@@ -519,6 +533,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
   // This surface only REPLACES the visual of the old orders list for
   // this sub-tab â€” it never mutates the existing orders flow, which is
   // preserved (commented) in _buildOrderTab.
+
   Widget _buildPreferenceTab() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 14),
@@ -728,7 +743,7 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
         duration: const Duration(milliseconds: 200),
         padding: EdgeInsets.symmetric(
           horizontal: SizeConfig.size8,
-          vertical: SizeConfig.size12,
+          vertical: SizeConfig.size8,
         ),
         decoration: BoxDecoration(
           color: selected
@@ -743,14 +758,16 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            if (showCheck) ...[
-              const Icon(
-                Icons.check_circle_rounded,
-                size: 15,
-                color: AppColors.primaryColor,
-              ),
-              SizedBox(width: SizeConfig.size4),
-            ],
+            // One icon slot, not two: three segments share a phone width, so a
+            // check AND a type glyph would squeeze the label to an ellipsis on
+            // small screens. The committed option shows the tick (the label
+            // still says which type it is); every other option shows its glyph.
+            Icon(
+              showCheck ? Icons.check_circle_rounded : value.icon,
+              size: 15,
+              color: selected ? AppColors.primaryColor : AppColors.grey9B,
+            ),
+            SizedBox(width: SizeConfig.size6),
             Flexible(
               child: CustomText(
                 label,
@@ -2160,17 +2177,22 @@ Future<void> handleGoLiveTap() async {
 // `labelKey` is an AppStrings key resolved with `.tr` so the radio labels
 // and submit confirmation stay localized.
 enum RiderServicePreference {
-  passenger('passenger', AppStrings.servicePassenger),
-  goods('delivery', AppStrings.serviceGoods),
-  both('passenger&delivery', AppStrings.serviceBoth);
+  passenger('passenger', AppStrings.servicePassenger, Icons.person_rounded),
+  goods('delivery', AppStrings.serviceGoods, Icons.inventory_2_rounded),
+  both('passenger&delivery', AppStrings.serviceBoth,
+      Icons.all_inclusive_rounded);
 
-  const RiderServicePreference(this.slugId, this.labelKey);
+  const RiderServicePreference(this.slugId, this.labelKey, this.icon);
 
   /// Backend `vehicleUsesType` value persisted for this preference.
   final String slugId;
 
   /// AppStrings key for the human-readable label.
   final String labelKey;
+
+  /// Glyph shown beside the label — carried here so the icon can never drift
+  /// from the option it describes.
+  final IconData icon;
 
   String get label => labelKey.tr;
 

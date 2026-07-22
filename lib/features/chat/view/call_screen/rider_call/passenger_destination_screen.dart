@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
@@ -130,6 +131,7 @@ class _PassengerDestinationScreenState
     _recomputeRemaining();
     _setupStaticMarkers();
     _updateRiderMarker(heading: 0);
+    _loadRiderIcon();
     _fetchRoute(_currentRiderPosition!);
     // Publish the rider's live position to the customer's tracking stream for
     // the duration of the ride (heartbeat + retry handled by the publisher).
@@ -141,6 +143,19 @@ class _PassengerDestinationScreenState
       RideLocationPublisher().updatePosition(seed.latitude, seed.longitude);
     }
     _startLocationTracking();
+    // The floating mini-map is the stand-in for THIS screen — leaving it up
+    // once the full map is open puts the same ride on screen twice, with the
+    // PiP sitting over the controls. Dismissed after the first frame to avoid
+    // mutating an observable during build.
+    //
+    // dismissOverlay (not hideOverlay): it only hides the overlay and keeps the
+    // ride data, so the ongoing-ride card in the orders tab survives and
+    // minimising from here can raise the PiP again.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (Get.isRegistered<RideNavigationOverlayController>()) {
+        Get.find<RideNavigationOverlayController>().dismissOverlay();
+      }
+    });
   }
 
   @override
@@ -163,16 +178,39 @@ class _PassengerDestinationScreenState
     );
   }
 
+  /// Vehicle glyph for the rider's own marker, built once. Same asset the
+  /// customer sees, so both sides of the ride show the same vehicle.
+  BitmapDescriptor? _riderIcon;
+  double _lastHeading = 0;
+
+  Future<void> _loadRiderIcon() async {
+    try {
+      final bytes = await getBytesFromSvgAsset('assets/svg/2_wheeler.svg', 90);
+      if (!mounted || bytes.isEmpty) return;
+      setState(() {
+        _riderIcon = BitmapDescriptor.bytes(bytes);
+        _updateRiderMarker(heading: _lastHeading);
+      });
+    } catch (_) {
+      // Keep the default marker.
+    }
+  }
+
   void _updateRiderMarker({required double heading}) {
     final pos = _currentRiderPosition;
     if (pos == null) return;
+    _lastHeading = heading;
     _markers.removeWhere((m) => m.markerId.value == 'rider_live');
     _markers.add(
       Marker(
         markerId: const MarkerId('rider_live'),
         position: pos,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+        icon: _riderIcon ??
+            BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
         infoWindow: const InfoWindow(title: 'You'),
+        // flat so the glyph lies on the road and `rotation` points it along the
+        // direction of travel instead of spinning a pin.
+        flat: true,
         rotation: heading,
         anchor: const Offset(0.5, 0.5),
       ),
@@ -346,13 +384,24 @@ class _PassengerDestinationScreenState
                   size: 20, color: Color(0xFFB26A00)),
               const SizedBox(width: 10),
               Expanded(
-                child: Text(
-                  'Collect ₹${widget.fareAmount.toStringAsFixed(0)} in cash',
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFFB26A00),
-                    fontFamily: 'OpenSans',
+                // Same treatment as the earnings line on this sheet: the amount
+                // is the number being handed over, so it outweighs the wording.
+                child: Text.rich(
+                  TextSpan(
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFFB26A00),
+                      fontFamily: 'OpenSans',
+                    ),
+                    children: [
+                      const TextSpan(text: 'Collect '),
+                      TextSpan(
+                        text: '₹${widget.fareAmount.toStringAsFixed(0)}',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const TextSpan(text: ' in cash'),
+                    ],
                   ),
                 ),
               ),
@@ -927,13 +976,29 @@ class _PassengerDestinationScreenState
             ),
           ),
           const SizedBox(height: 6),
-          Text(
-            'You earned ₹${widget.fareAmount.toStringAsFixed(0)} for this trip',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade600,
-              fontFamily: 'OpenSans',
+          // The amount carries the weight — it's the number the rider checks
+          // against what the passenger hands over (or scans below), so it is
+          // bold against the surrounding grey rather than uniform with it.
+          Text.rich(
+            TextSpan(
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey.shade600,
+                fontFamily: 'OpenSans',
+              ),
+              children: [
+                const TextSpan(text: 'You earned '),
+                TextSpan(
+                  text: '₹${widget.fareAmount.toStringAsFixed(0)}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1A1A2E),
+                  ),
+                ),
+                const TextSpan(text: ' for this trip'),
+              ],
             ),
+            textAlign: TextAlign.center,
           ),
           if (_collectsPayment) ...[
             const SizedBox(height: 18),

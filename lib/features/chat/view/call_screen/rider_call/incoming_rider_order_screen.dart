@@ -91,14 +91,45 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
   GoogleMapController? _mapController;
   List<LatLng> _routePoints = const [];
 
+  /// Road distance/duration of the pickup→drop leg, from the same Directions
+  /// call that draws the polyline. The reply already carries both; they used to
+  /// be discarded along with everything but `points`.
+  double? _routeDistanceKm;
+  double? _routeDurationMin;
+
   bool get _hasRouteCoordinates =>
       (_pickupLat != 0 || _pickupLng != 0) && (_dropLat != 0 || _dropLng != 0);
+
+  /// Trip distance to show and to derive the per-km rate from.
+  ///
+  /// The payload's `distance` wins — that is what the fare was actually
+  /// computed against. The measured route is a fallback for the payloads that
+  /// omit it, which previously left the rider with no trip distance at all.
+  double? get _effectiveDistanceKm {
+    if (_distance > 0) return _distance;
+    if ((_routeDistanceKm ?? 0) > 0) return _routeDistanceKm;
+    return null;
+  }
+
+  /// The journey leg itself — "12.4 km · 28 min" — shown on the rail between
+  /// PICKUP and DROP, which is where "how long is this trip" is actually asked.
+  String? get _journeyLabel {
+    final km = _effectiveDistanceKm;
+    final minutes = _routeDurationMin;
+    final parts = <String>[
+      if (km != null) '${km.toStringAsFixed(1)} km',
+      if (minutes != null && minutes > 0) '${minutes.round()} min',
+    ];
+    return parts.isEmpty ? null : parts.join(' · ');
+  }
 
   /// Rate behind the fare — the number a rider actually judges a job by, and
   /// the one thing the payload never sends. Null when distance is unknown, so
   /// the row is hidden rather than showing a misleading ₹0/km.
-  double? get _farePerKm =>
-      (_distance > 0 && _fare > 0) ? _fare / _distance : null;
+  double? get _farePerKm {
+    final km = _effectiveDistanceKm;
+    return (km != null && km > 0 && _fare > 0) ? _fare / km : null;
+  }
 
   String get _orderTypeLabel {
     switch (_orderFor.toLowerCase()) {
@@ -286,6 +317,11 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
         _routePoints = result.points
             .map((p) => LatLng(p.latitude, p.longitude))
             .toList(growable: false);
+        // Metres / seconds → the units the sheet displays.
+        final metres = result.totalDistanceValue;
+        final seconds = result.totalDurationValue;
+        if (metres != null && metres > 0) _routeDistanceKm = metres / 1000;
+        if (seconds != null && seconds > 0) _routeDurationMin = seconds / 60;
       });
       _fitRouteBounds();
     } catch (_) {
@@ -863,9 +899,9 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
                         ? const Color(0xFF0284C7)
                         : const Color(0xFF00A65A),
                   ),
-                  if (_distance > 0)
+                  if (_effectiveDistanceKm != null)
                     _buildTag(
-                      '${_distance.toStringAsFixed(1)} km trip',
+                      '${_effectiveDistanceKm!.toStringAsFixed(1)} km trip',
                       const Color(0xFF64748B),
                     ),
                 ],
@@ -907,11 +943,29 @@ class _IncomingRiderOrderScreenState extends State<IncomingRiderOrderScreen>
           address: _pickupAddress,
           trailing: _pickupDistanceLabel,
         ),
+        // The leg between the two stops, labelled on the connector itself so
+        // the trip length reads as "pickup → 12.4 km → drop" rather than as
+        // another loose field somewhere else in the sheet.
         Padding(
           padding: const EdgeInsets.only(left: 5),
           child: Row(
             children: [
               Container(width: 2, height: 22, color: const Color(0xFFE2E8F0)),
+              if (_journeyLabel != null) ...[
+                const SizedBox(width: 17),
+                const Icon(Icons.straighten_rounded,
+                    size: 13, color: Color(0xFF64748B)),
+                const SizedBox(width: 5),
+                Text(
+                  _journeyLabel!,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF64748B),
+                    fontFamily: 'OpenSans',
+                  ),
+                ),
+              ],
             ],
           ),
         ),

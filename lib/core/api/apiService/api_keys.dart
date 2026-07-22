@@ -798,6 +798,11 @@ class ApiKeys {
   static const accountNumber = 'accountNumber';
   static const upiDetails = 'upiDetails';
   static const upiId = 'upiId';
+
+  /// URL of the uploaded UPI QR photo, sent inside `upiDetails`. The backend
+  /// reads the UPI details off the QR itself, so this is sent INSTEAD of
+  /// [upiId] when the user picks the "Upload UPI QR" option.
+  static const qrImage = 'qrImage';
   static const mobileNumber = 'mobileNumber';
   static const group_cover_image = 'group_cover_image';
   static const call_type = 'call_type';

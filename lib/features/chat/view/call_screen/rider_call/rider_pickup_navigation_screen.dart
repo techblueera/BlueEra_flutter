@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -95,6 +97,7 @@ class _RiderPickupNavigationScreenState
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     _setupMarkers();
+    _loadMarkerIcons();
     _fetchRoute();
     // Publish the rider's live position to the customer's tracking stream while
     // heading to pickup (heartbeat + retry handled by the publisher).
@@ -145,18 +148,63 @@ class _RiderPickupNavigationScreenState
     }
   }
 
+  /// Vehicle glyph for the rider's own marker — the same asset the customer
+  /// sees tracking this ride, so the vehicle looks identical on both sides.
+  BitmapDescriptor? _riderIcon;
+
+  /// Pin for the pickup marker — a place, so a pin, not a glyph. The app's own
+  /// marker asset rather than Google's default teardrop.
+  BitmapDescriptor? _customerIcon;
+
+  Future<void> _loadMarkerIcons() async {
+    try {
+      // Both from the app's own assets: a vehicle glyph for the rider (which
+      // moves and has a heading), a plain pin for the pickup (which doesn't).
+      final rider = await getBytesFromSvgAsset('assets/svg/2_wheeler.svg', 90);
+      final pickup = await BitmapDescriptor.asset(
+        const ImageConfiguration(size: Size(30, 40)),
+        AppImageAssets.locationMarkerIcon,
+      );
+      if (!mounted) return;
+      setState(() {
+        if (rider.isNotEmpty) _riderIcon = BitmapDescriptor.bytes(rider);
+        _customerIcon = pickup;
+        // Re-stamp the markers already on the map with their icons.
+        _restampMarker('rider', _riderIcon, flat: true);
+        _restampMarker('pickup', _customerIcon);
+      });
+    } catch (_) {
+      // Keep the default markers — a missing glyph must not blank the map.
+    }
+  }
+
+  void _restampMarker(String id, BitmapDescriptor? icon, {bool flat = false}) {
+    if (icon == null) return;
+    final existing = _markers
+        .where((m) => m.markerId.value == id)
+        .cast<Marker?>()
+        .firstWhere((_) => true, orElse: () => null);
+    if (existing == null) return;
+    _markers.remove(existing);
+    _markers.add(existing.copyWith(iconParam: icon, flatParam: flat));
+  }
+
   void _setupMarkers() {
     _markers.addAll([
       Marker(
         markerId: const MarkerId('rider'),
         position: _riderLatLng,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+        icon: _riderIcon ??
+            BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+        flat: true,
+        anchor: const Offset(0.5, 0.5),
         infoWindow: const InfoWindow(title: 'Your Location'),
       ),
       Marker(
         markerId: const MarkerId('pickup'),
         position: _pickupLatLng,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+        icon: _customerIcon ??
+            BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
         infoWindow: InfoWindow(title: 'Pickup', snippet: widget.pickupLocation),
       ),
     ]);
@@ -181,9 +229,12 @@ class _RiderPickupNavigationScreenState
           Marker(
             markerId: const MarkerId('rider'),
             position: newPos,
-            icon:
+            icon: _riderIcon ??
                 BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
             infoWindow: const InfoWindow(title: 'Your Location'),
+            // flat so `rotation` points the vehicle along the heading rather
+            // than tipping a pin over.
+            flat: true,
             rotation: position.heading,
             anchor: const Offset(0.5, 0.5),
           ),

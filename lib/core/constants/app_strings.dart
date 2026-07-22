@@ -153,6 +153,24 @@ class AppStrings {
   static const invalidUpiId = "invalidUpiId";
   static const linkMobileNumberToUpi = "Link Mobile Number to UPI";
   static const linkMobileNumberHint = "Enter mobile number linked to UPI";
+
+  /// UPI QR upload — literal English (not `.tr` keys) to match the two strings
+  /// above; adding keys here without translation entries would surface the raw
+  /// key to the user.
+  /// Rider ongoing-ride card journey readout.
+  static const travelTime = "Travel time";
+  static const travelDistance = "Travel distance";
+
+  static const enterUpiIdOption = "Enter UPI ID";
+  static const uploadUpiQrOption = "Upload UPI QR";
+  static const uploadUpiQrRequired = "Upload your UPI QR to continue.";
+  static const upiQrUploadFailed =
+      "Couldn't upload your QR image. Please try again.";
+  static const uploadUpiQrTitle = "Upload UPI QR";
+  static const uploadUpiQrSubtitle =
+      "Upload a clear photo of the QR from your UPI app.";
+  static const uploadUpiQrCta = "Upload QR photo";
+  static const changeUpiQr = "Change QR photo";
   static const pleaseSelectAccountType = "pleaseSelectAccountType";
   static const bankAddedSuccessfully = "bankAddedSuccessfully";
   static const failedToAddAccount = "failedToAddAccount";

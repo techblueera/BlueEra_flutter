@@ -1,13 +1,19 @@
+import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/environment_config.dart';
+import 'package:BlueEra/features/chat/auth/controller/call_controller.dart';
 import 'package:BlueEra/features/chat/view/business_chat/widgets/track_rider_live_location_page.dart';
 import 'package:BlueEra/features/ride_booking/controller/ride_booking_controller.dart';
 import 'package:BlueEra/features/ride_booking/model/ride_booking_models.dart';
+import 'package:BlueEra/features/ride_booking/view/ride_completed_screen.dart';
 import 'package:BlueEra/features/ride_booking/widget/ride_booking_style.dart';
 import 'package:BlueEra/features/ride_booking/widget/ride_cancel_sheets.dart';
 import 'package:BlueEra/features/ride_booking/widget/ride_trip_details_sheet.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -38,6 +44,24 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
   /// screen they just chose to leave — the mini-map is how they get back.
   bool _liveTrackingOpened = false;
 
+  /// Road route from the captain to the pickup. Empty until the Directions call
+  /// lands — the map falls back to a dashed straight hint so it never reads as
+  /// a real route.
+  List<LatLng> _captainRoute = const [];
+
+  /// The captain leg the [_captainRoute] was fetched for, rounded to ~11 m.
+  /// The captain's position is re-polled every 5 s; without this the screen
+  /// would fire a Directions request on every tick.
+  String? _routeKey;
+
+  /// Two-wheeler glyph for the captain marker, built once.
+  BitmapDescriptor? _captainIcon;
+
+  /// Pin for the pickup marker. A place gets a pin — only the moving vehicle
+  /// gets a glyph. Uses the app's own marker asset rather than Google's default
+  /// teardrop.
+  BitmapDescriptor? _pickupIcon;
+
   @override
   void initState() {
     super.initState();
@@ -46,6 +70,73 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
     // The ride can already be in progress when this screen is built — e.g.
     // re-entering after a background kill — so don't wait for a change.
     _onBookingChanged(controller.activeBooking.value);
+    _loadCaptainIcon();
+  }
+
+  /// Builds both markers from the app's own assets: a vehicle glyph for the
+  /// moving captain, a pin for the pickup.
+  Future<void> _loadCaptainIcon() async {
+    try {
+      final captain = await getBytesFromSvgAsset('assets/svg/2_wheeler.svg', 90);
+      final pickup = await BitmapDescriptor.asset(
+        const ImageConfiguration(size: Size(30, 40)),
+        AppImageAssets.locationMarkerIcon,
+      );
+      if (!mounted) return;
+      setState(() {
+        if (captain.isNotEmpty) _captainIcon = BitmapDescriptor.bytes(captain);
+        _pickupIcon = pickup;
+      });
+    } catch (_) {
+      // Keep the default markers — a missing glyph must not blank the map.
+    }
+  }
+
+  void _maybeRefreshCaptainRoute(RideBooking booking) {
+    final captain = booking.captain;
+    final pickup = booking.pickup;
+    if (captain?.latitude == null ||
+        captain?.longitude == null ||
+        !pickup.hasCoordinates) {
+      return;
+    }
+    _refreshCaptainRoute(
+      LatLng(captain!.latitude!, captain.longitude!),
+      LatLng(pickup.latitude, pickup.longitude),
+    );
+  }
+
+  /// Fetches the driving route captain → pickup so the line follows roads.
+  ///
+  /// Best-effort: a failure leaves the dashed hint in place. Skipped when the
+  /// captain hasn't moved enough to change the route.
+  Future<void> _refreshCaptainRoute(LatLng captain, LatLng pickup) async {
+    final key = '${captain.latitude.toStringAsFixed(4)},'
+        '${captain.longitude.toStringAsFixed(4)}>'
+        '${pickup.latitude.toStringAsFixed(4)},'
+        '${pickup.longitude.toStringAsFixed(4)}';
+    if (key == _routeKey) return;
+    _routeKey = key;
+
+    try {
+      final result =
+          await PolylinePoints(apiKey: googleMapKey).getRouteBetweenCoordinates(
+        request: PolylineRequest(
+          origin: PointLatLng(captain.latitude, captain.longitude),
+          destination: PointLatLng(pickup.latitude, pickup.longitude),
+          mode: TravelMode.driving,
+        ),
+      );
+      if (!mounted || result.points.length < 2) return;
+      setState(() {
+        _captainRoute = result.points
+            .map((p) => LatLng(p.latitude, p.longitude))
+            .toList(growable: false);
+      });
+    } catch (_) {
+      // Allow a retry on the next position change.
+      _routeKey = null;
+    }
   }
 
   @override
@@ -61,12 +152,17 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
   ///
   /// Up to this point the interesting question is "where is my captain, and
   /// when does he reach me" — which this screen answers. Once moving, it
-  /// becomes "where am I, and when do I arrive", which is what the old flow's
+  /// becomes "where am I, and when do I arrive", which is what
   /// [TrackRiderLiveLocationPage] was built for: rider→drop route, distance to
   /// drop, and a minimise-to-floating-map so the ride keeps updating while the
   /// user does something else. Reused rather than rebuilt.
   void _onBookingChanged(RideBooking? booking) {
-    if (booking == null || _liveTrackingOpened || !mounted) return;
+    if (booking == null || !mounted) return;
+    // Runs on every poll tick (not just the on-trip transition) so the route
+    // re-draws as the captain moves; _refreshCaptainRoute itself no-ops until
+    // the position actually changes.
+    _maybeRefreshCaptainRoute(booking);
+    if (_liveTrackingOpened) return;
     if (booking.status != RideStatus.onTrip) return;
     if (!booking.drop.hasCoordinates) return;
     _openLiveTracking(booking);
@@ -89,16 +185,85 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
     controller.resumeCaptainPolling();
   }
 
+  /// Opens live tracking on demand, from the "Track Rider" button.
+  ///
+  /// Same page the on-trip hand-over uses, but reachable as soon as a captain
+  /// is assigned — the customer can watch the approach instead of waiting for
+  /// the ride to start. Does NOT set [_liveTrackingOpened]: that flag exists to
+  /// stop the automatic hand-over re-pushing on every poll tick, and a manual
+  /// open must not suppress it.
+  Future<void> _openTrackRider(RideBooking booking) async {
+    controller.pauseCaptainPolling();
+    await Get.to(
+      () => TrackRiderLiveLocationPage(
+        riderId: booking.captain?.id ?? '',
+        dropLat: booking.drop.latitude,
+        dropLng: booking.drop.longitude,
+        orderId: booking.rideId,
+      ),
+    );
+    if (!mounted) return;
+    controller.resumeCaptainPolling();
+  }
+
   void _onTerminalStatus(RideStatus? status) {
     if (status == null || !mounted) return;
+
+    // A completed ride gets a screen, not a toast: it's the only moment the
+    // customer has a receipt to check and something to say about the trip.
+    if (status == RideStatus.completed) {
+      final booking = controller.activeBooking.value;
+      if (booking != null) {
+        _openRideCompleted(booking);
+        return;
+      }
+    }
+
     final message = switch (status) {
       RideStatus.completed => 'Ride completed. Thanks for riding with us!',
-      RideStatus.cancelled => 'This ride was cancelled.',
+      // Read BEFORE resetTrip() clears activeBooking.
+      RideStatus.cancelled => _cancellationMessage(),
       _ => 'This ride has ended.',
     };
     controller.resetTrip();
     Get.until((route) => route.isFirst);
     Get.snackbar('Ride', message, snackPosition: SnackPosition.BOTTOM);
+  }
+
+  /// Shows the summary, then unwinds the whole booking flow once dismissed.
+  ///
+  /// The booking is passed by value because `resetTrip()` clears
+  /// `activeBooking` — it runs on dismissal so the fare and captain stay
+  /// readable while the screen is up.
+  void _openRideCompleted(RideBooking booking) {
+    Get.off(
+      () => RideCompletedScreen(
+        booking: booking,
+        onDone: () {
+          controller.resetTrip();
+          Get.until((route) => route.isFirst);
+        },
+      ),
+    );
+  }
+
+  /// Names who cancelled, because the two cases need opposite things from the
+  /// customer: their own cancellation just needs confirming, while a captain's
+  /// leaves them stranded and needing to rebook.
+  String _cancellationMessage() {
+    final booking = controller.activeBooking.value;
+    if (booking == null) return 'This ride was cancelled.';
+    final reason = booking.cancellationReasonLabel;
+
+    if (booking.isCancelledByCaptain) {
+      return reason == null
+          ? 'Your captain cancelled this ride. Please book again.'
+          : 'Your captain cancelled this ride ($reason). Please book again.';
+    }
+    if (booking.isCancelledByCustomer) {
+      return 'Your ride was cancelled.';
+    }
+    return 'This ride was cancelled.';
   }
 
   Future<void> _openCancelFlow() async {
@@ -109,7 +274,8 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
     }
   }
 
-  Future<void> _callCaptain() async {
+  /// Hands off to the phone's dialler.
+  Future<void> _dialCaptain() async {
     final phone = controller.activeBooking.value?.captain?.phone;
     if (phone == null || phone.isEmpty) {
       commonSnackBar(message: 'Captain phone number is unavailable');
@@ -119,6 +285,56 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     }
+  }
+
+  /// Places the in-app (WebRTC) audio call, so neither side's real number is
+  /// exposed. Keyed on the captain's user id rather than the phone number.
+  Future<void> _callCaptainInApp() async {
+    final captain = controller.activeBooking.value?.captain;
+    if (captain == null || captain.id.isEmpty) {
+      commonSnackBar(message: 'Captain is not available for an in-app call');
+      return;
+    }
+    if (!Get.isRegistered<CallController>()) {
+      commonSnackBar(message: 'Calling is unavailable right now');
+      return;
+    }
+    await Get.find<CallController>().initiateCall(
+      type: CallType.audio,
+      otherUserId: captain.id,
+      userName: captain.hasName ? captain.name : 'Captain',
+      userImage: captain.photoUrl ?? '',
+    );
+  }
+
+  Widget _contactButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+  }) {
+    return SizedBox(
+      height: 46,
+      child: OutlinedButton.icon(
+        onPressed: onPressed,
+        icon: Icon(icon, size: 18, color: RideStyle.ink),
+        label: CustomText(
+          label,
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: RideStyle.ink,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        style: OutlinedButton.styleFrom(
+          backgroundColor: AppColors.white,
+          side: const BorderSide(color: RideStyle.hairline),
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -171,18 +387,27 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
               Marker(
                 markerId: const MarkerId('pickup'),
                 position: pickupLatLng,
-                icon: BitmapDescriptor.defaultMarkerWithHue(
-                  BitmapDescriptor.hueGreen,
-                ),
+                icon: _pickupIcon ??
+                    BitmapDescriptor.defaultMarkerWithHue(
+                      BitmapDescriptor.hueGreen,
+                    ),
+                // A pin points AT its coordinate — anchor the tip, not the
+                // middle (which is right for the centred vehicle glyph).
+                anchor: const Offset(0.5, 1.0),
                 infoWindow: const InfoWindow(title: 'Pickup'),
               ),
               if (captainLatLng != null)
                 Marker(
                   markerId: const MarkerId('captain'),
                   position: captainLatLng,
-                  icon: BitmapDescriptor.defaultMarkerWithHue(
-                    BitmapDescriptor.hueAzure,
-                  ),
+                  // Vehicle glyph, not a map pin — a pin reads as a place, and
+                  // this is the thing that's moving.
+                  icon: _captainIcon ??
+                      BitmapDescriptor.defaultMarkerWithHue(
+                        BitmapDescriptor.hueAzure,
+                      ),
+                  anchor: const Offset(0.5, 0.5),
+                  flat: true,
                   infoWindow: InfoWindow(
                     title: captain?.hasName == true ? captain!.name : 'Captain',
                   ),
@@ -190,12 +415,26 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
             },
             polylines: {
               if (captainLatLng != null)
-                Polyline(
-                  polylineId: const PolylineId('captain-route'),
-                  points: [captainLatLng, pickupLatLng],
-                  color: AppColors.primaryColor,
-                  width: 5,
-                ),
+                if (_captainRoute.length >= 2)
+                  Polyline(
+                    polylineId: const PolylineId('captain-route'),
+                    points: _captainRoute,
+                    color: AppColors.primaryColor,
+                    width: 5,
+                    startCap: Cap.roundCap,
+                    endCap: Cap.roundCap,
+                    jointType: JointType.round,
+                  )
+                else
+                  // Straight hint until the Directions call lands — dashed so
+                  // it can't be mistaken for the road route.
+                  Polyline(
+                    polylineId: const PolylineId('captain-route-pending'),
+                    points: [captainLatLng, pickupLatLng],
+                    color: AppColors.primaryColor.withValues(alpha: 0.45),
+                    width: 3,
+                    patterns: [PatternItem.dash(18), PatternItem.gap(10)],
+                  ),
             },
           ),
           Positioned(
@@ -496,7 +735,7 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
                           ),
                           const SizedBox(width: 3),
                           const Icon(Icons.star,
-                              size: 14, color: RideStyle.action),
+                              size: 14, color: RideStyle.star),
                         ],
                       ),
                     ),
@@ -506,24 +745,53 @@ class _RideTrackingScreenState extends State<RideTrackingScreen> {
             ],
           ),
           const SizedBox(height: 14),
+          // Two ways to reach the captain, side by side. The single button that
+          // used to sit here said "Message" but placed a phone call, and gave
+          // no way to use the in-app call at all.
+          Row(
+            children: [
+              Expanded(
+                child: _contactButton(
+                  icon: Icons.call_outlined,
+                  label: captain.firstName.isNotEmpty
+                      ? 'Call ${captain.firstName}'
+                      : 'Call captain',
+                  onPressed: _dialCaptain,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _contactButton(
+                  icon: Icons.phone_in_talk_outlined,
+                  label: 'App call',
+                  onPressed: _callCaptainInApp,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          // Available as soon as a captain is assigned — the customer can watch
+          // the approach on the full map rather than waiting for the ride to
+          // start and be taken there automatically.
           SizedBox(
-            width: double.infinity,
             height: 46,
+            width: double.infinity,
             child: OutlinedButton.icon(
-              onPressed: _callCaptain,
-              icon: const Icon(Icons.phone_in_talk_outlined,
-                  size: 20, color: RideStyle.ink),
+              onPressed: () {
+                final booking = controller.activeBooking.value;
+                if (booking != null) _openTrackRider(booking);
+              },
+              icon: const Icon(Icons.location_on_outlined,
+                  size: 18, color: RideStyle.action),
               label: CustomText(
-                captain.firstName.isNotEmpty
-                    ? 'Message ${captain.firstName}'
-                    : 'Message captain',
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: RideStyle.ink,
+                'Track Rider',
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: RideStyle.action,
               ),
               style: OutlinedButton.styleFrom(
                 backgroundColor: AppColors.white,
-                side: const BorderSide(color: RideStyle.hairline),
+                side: const BorderSide(color: RideStyle.action),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(24),
                 ),

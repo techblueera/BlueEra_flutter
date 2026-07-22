@@ -1,14 +1,10 @@
 import 'dart:developer';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
-import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/delivery_partner/controller/delivery_partner_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/earn_service_controller.dart';
 import 'package:BlueEra/features/common/delivery_partner/view/rider_service_screen.dart';
 import 'package:flutter/material.dart';
-
-import '../../cab_and_transport_partner/view/cab_and_transport_partner.dart';
 
 
 class GigWorkOptionsScreen extends StatefulWidget {
@@ -19,9 +15,7 @@ class GigWorkOptionsScreen extends StatefulWidget {
   State<GigWorkOptionsScreen> createState() => _GigWorkOptionsScreenState();
 }
 
-class _GigWorkOptionsScreenState extends State<GigWorkOptionsScreen>
-    with SingleTickerProviderStateMixin, RouteAware {
-
+class _GigWorkOptionsScreenState extends State<GigWorkOptionsScreen> {
   final controller = getOrPut(() => EarnServiceController());
   final deliveryPartnerController = getOrPut(() => DeliveryPartnerController());
 
@@ -33,43 +27,19 @@ class _GigWorkOptionsScreenState extends State<GigWorkOptionsScreen>
   }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final route = ModalRoute.of(context);
-    if (route is PageRoute) {
-      RouteHelper.routeObserver.subscribe(this, route);
-    }
-  }
-
-  @override
-  void didPopNext() {
-  }
-
-
-  @override
-  void dispose() {
-    RouteHelper.routeObserver.unsubscribe(this);
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final Widget body;
-    if (userProfessionGlobal == BIKE_RIDER ||
-        userProfessionGlobal == GOODS_TAXI ||
-        userProfessionGlobal == AUTO_TAXI ||
-        userProfessionGlobal == CAR_TAXI_DRIVER) {
-      // body = RiderMeScreen(fromBottomNavBar: widget.fromBottomNavBar);
-      body = RiderServiceScreen(fromBottomNavBar: widget.fromBottomNavBar);
-    } else {
-      body = CabAndTransportPartner(fromBottomNavBar: widget.fromBottomNavBar);
-    }
-
-    // The glassmorphic header now lives inside each child screen's
-    // cover section (matches the self-employee / professionals layout),
-    // so this wrapper just hosts the body.
+    // GigWork is exactly the four rider professions the professions API returns
+    // (BIKE_RIDER, CAR_TAXI_DRIVER, GOODS_SUPPLY, AUTO_ERICKSHAW), so every gig
+    // worker gets the rider dashboard. The old profession `if` plus its
+    // CabAndTransportPartner fallback were dropped: two of its constants
+    // ("GOODS_TAXI"/"AUTO_TAXI") never matched the real slugs, so goods and
+    // auto drivers were wrongly routed to that fallback.
+    //
+    // The glassmorphic header now lives inside the child screen's cover
+    // section (matches the self-employee / professionals layout), so this
+    // wrapper just hosts the body.
     return Scaffold(
-      body: body,
+      body: RiderServiceScreen(fromBottomNavBar: widget.fromBottomNavBar),
     );
   }
 }

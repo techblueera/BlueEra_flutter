@@ -366,6 +366,17 @@ class RideBooking {
   /// 0–1 progress of the search fan-out, for the searching screen's bar.
   final double searchProgress;
 
+  /// Who ended the ride — `customer`, `rider`, `system`… Present only once
+  /// [status] is cancelled. Without it the customer is told "this ride was
+  /// cancelled" even when the captain dropped it, which reads like their own
+  /// action failed.
+  final String? cancelledBy;
+
+  /// Server reason code behind the cancellation, e.g. `TAKING_LONGER`.
+  final String? cancellationReason;
+
+  final DateTime? cancelledAt;
+
   const RideBooking({
     required this.rideId,
     required this.status,
@@ -380,7 +391,30 @@ class RideBooking {
     this.pickupEtaMinutes,
     this.captainDistanceMeters,
     this.searchProgress = 0,
+    this.cancelledBy,
+    this.cancellationReason,
+    this.cancelledAt,
   });
+
+  /// True when the CAPTAIN ended the ride — the case that needs explaining,
+  /// because the customer didn't do it and is left waiting otherwise.
+  bool get isCancelledByCaptain {
+    final by = cancelledBy?.toLowerCase().trim();
+    return by == 'rider' || by == 'captain' || by == 'driver';
+  }
+
+  bool get isCancelledByCustomer =>
+      cancelledBy?.toLowerCase().trim() == 'customer';
+
+  /// `TAKING_LONGER` → `Taking longer`. Null when the server sent no reason,
+  /// so callers can omit the clause rather than print an empty one.
+  String? get cancellationReasonLabel {
+    final raw = cancellationReason?.trim();
+    if (raw == null || raw.isEmpty) return null;
+    final words = raw.toLowerCase().replaceAll('_', ' ').trim();
+    if (words.isEmpty) return null;
+    return words[0].toUpperCase() + words.substring(1);
+  }
 
   factory RideBooking.fromJson(Map<dynamic, dynamic> json) {
     final captain = json['captain'] ?? json['rider'];
@@ -402,6 +436,9 @@ class RideBooking {
       pickupEtaMinutes: _toInt(json['pickupEtaMinutes']),
       captainDistanceMeters: _toInt(json['captainDistanceMeters']),
       searchProgress: _toDouble(json['searchProgress']) ?? 0,
+      cancelledBy: json['cancelledBy']?.toString(),
+      cancellationReason: json['cancellationReason']?.toString(),
+      cancelledAt: DateTime.tryParse(json['cancelledAt']?.toString() ?? ''),
     );
   }
 
@@ -413,6 +450,9 @@ class RideBooking {
     double? searchProgress,
     double? fare,
     String? startOtp,
+    String? cancelledBy,
+    String? cancellationReason,
+    DateTime? cancelledAt,
   }) {
     return RideBooking(
       rideId: rideId,
@@ -429,6 +469,9 @@ class RideBooking {
       captainDistanceMeters:
           captainDistanceMeters ?? this.captainDistanceMeters,
       searchProgress: searchProgress ?? this.searchProgress,
+      cancelledBy: cancelledBy ?? this.cancelledBy,
+      cancellationReason: cancellationReason ?? this.cancellationReason,
+      cancelledAt: cancelledAt ?? this.cancelledAt,
     );
   }
 }

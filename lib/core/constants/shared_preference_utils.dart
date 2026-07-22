@@ -605,7 +605,14 @@ getUserLoginData() async {
   userNameAtGlobal = values[14] ?? "";
   businessCategoryGlobal = values[15] ?? "";
   businessSubCategoryGlobal = values[16] ?? "";
-  businessTypeGlobal = values[17] ?? "OTHER";
+  // Default to EMPTY, never a sentinel like "OTHER". The key is absent between
+  // login and the first business-profile write (logout deleteAll()s storage),
+  // and resolveBusinessScreen() distinguishes the two cases purely by
+  // emptiness: empty → "still loading, show the shimmer", non-empty → "this is
+  // the real type, route on it (or fall back if unrecognised)". A non-empty
+  // sentinel here reads as a real-but-unknown type and flashes
+  // _UnknownBusinessFallback on every login before the profile lands.
+  businessTypeGlobal = values[17] ?? "";
 
   Get.find<AuthController>().imgPath.value = userProfileGlobal;
 }

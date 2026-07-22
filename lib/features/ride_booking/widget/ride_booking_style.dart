@@ -9,8 +9,15 @@ import 'package:flutter/material.dart';
 class RideStyle {
   RideStyle._();
 
-  /// Primary action colour — the yellow "Confirm pickup" / "Book" buttons.
-  static const Color action = Color(0xFFFFC300);
+  /// Primary action colour — the "Confirm pickup" / "Book" / "Search rider"
+  /// buttons. The brand primary, not the flow's old yellow: these are the same
+  /// commit actions the rest of the app paints primary, and a one-off accent
+  /// here read as a different product.
+  static const Color action = AppColors.primaryColor;
+
+  /// Rating stars. Deliberately NOT [action] — a star is amber everywhere, and
+  /// tying it to the CTA colour would repaint it whenever that changes.
+  static const Color star = Color(0xFFFFC300);
 
   /// Pickup marker / origin dot.
   static const Color pickup = Color(0xFF00A651);
@@ -107,7 +114,7 @@ class RideCircleButton extends StatelessWidget {
   }
 }
 
-/// The flow's primary CTA — full-width yellow pill.
+/// The flow's primary CTA — full-width pill in [RideStyle.action].
 class RidePrimaryButton extends StatelessWidget {
   const RidePrimaryButton({
     super.key,
@@ -135,21 +142,22 @@ class RidePrimaryButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(28),
           onTap: active ? onTap : null,
           child: Center(
+            // White, not ink: navy on the yellow this button used to be was
+            // readable, on the primary blue it is not.
             child: isLoading
                 ? const SizedBox(
                     width: 22,
                     height: 22,
                     child: CircularProgressIndicator(
                       strokeWidth: 2.4,
-                      valueColor:
-                          AlwaysStoppedAnimation<Color>(RideStyle.ink),
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     ),
                   )
                 : CustomText(
                     label,
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: RideStyle.ink,
+                    color: AppColors.white,
                   ),
           ),
         ),

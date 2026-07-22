@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -156,12 +157,35 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
   GoogleMapController? mapController;
   Marker? startMarker;
   Marker? endMarker;
+
+  /// Vehicle glyph for [startMarker], built once from the shared SVG.
+  BitmapDescriptor? _riderIcon;
   Set<Polyline> _polylines = {};
   Circle? liveLocationCircle;
   final riderController = Get.find<RiderLocationPollController>();
 
   StreamSubscription<Position>? positionStream;
   LatLng? currentPosition;
+
+  /// The road route currently drawn, rider → drop. Held as coordinates (rather
+  /// than only as a [Polyline]) so the passed-behind portion can be trimmed as
+  /// the rider advances without going back to the network.
+  List<LatLng> _routeCoords = const [];
+
+  /// Guards against re-entering the Directions call while one is in flight —
+  /// the poll ticks every 10 s and a slow response would otherwise stack up.
+  bool _fetchingRoute = false;
+
+  /// Whether the camera should keep following the rider.
+  ///
+  /// Turns off the moment the user pans the map: yanking the viewport back
+  /// every 10 s makes it impossible to look ahead down the route. The recenter
+  /// button turns it back on.
+  bool _followRider = true;
+
+  /// True while WE are animating the camera, so [_followRider] isn't cancelled
+  /// by our own move — `onCameraMoveStarted` can't tell the two apart.
+  bool _programmaticCamera = false;
 
   @override
   void initState() {
@@ -184,41 +208,98 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
 
     if (riderLat == 0 || riderLng == 0) return;
     if (!_hasDestination) return;
+    if (_fetchingRoute) return;
+    _fetchingRoute = true;
 
-    PolylinePoints polylinePoints =
-    PolylinePoints(apiKey: googleMapKey);
+    try {
+      PolylinePoints polylinePoints = PolylinePoints(apiKey: googleMapKey);
 
-    PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
-      request: PolylineRequest(
-        origin: PointLatLng(riderLat, riderLng), // 🔥 LIVE rider location
-        destination: PointLatLng(widget.endLat, widget.endLng),
-        mode: TravelMode.driving,
-      ),
-    );
+      PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
+        request: PolylineRequest(
+          origin: PointLatLng(riderLat, riderLng), // 🔥 LIVE rider location
+          destination: PointLatLng(widget.endLat, widget.endLng),
+          mode: TravelMode.driving,
+        ),
+      );
 
-    if (result.points.isNotEmpty) {
-      final List<LatLng> routeCoords = result.points
-          .map((point) => LatLng(point.latitude, point.longitude))
-          .toList();
-
-      setState(() {
-        _polylines = {
-          Polyline(
-            polylineId: const PolylineId("route"),
-            points: routeCoords,
-            width: 6,
-            color: Colors.blue,
-            geodesic: true,
-            jointType: JointType.round,
-            startCap: Cap.roundCap,
-            endCap: Cap.roundCap,
-          ),
-        };
-      });
-    } else {
-      print("NO ROUTE FOUND: ${result.errorMessage}");
+      if (result.points.isNotEmpty) {
+        _setRoute(result.points
+            .map((point) => LatLng(point.latitude, point.longitude))
+            .toList());
+      } else {
+        print("NO ROUTE FOUND: ${result.errorMessage}");
+      }
+    } finally {
+      _fetchingRoute = false;
     }
   }
+
+  void _setRoute(List<LatLng> coords) {
+    if (!mounted) return;
+    setState(() {
+      _routeCoords = coords;
+      _polylines = {
+        Polyline(
+          polylineId: const PolylineId("route"),
+          points: coords,
+          width: 6,
+          color: Colors.blue,
+          geodesic: true,
+          jointType: JointType.round,
+          startCap: Cap.roundCap,
+          endCap: Cap.roundCap,
+        ),
+      };
+    });
+  }
+
+  /// Keeps the drawn route in step with the rider WITHOUT a network call.
+  ///
+  /// The route only becomes wrong when the rider leaves it; while they're
+  /// following it, the only change needed is dropping the stretch already
+  /// driven. So this trims the polyline to the nearest remaining point and
+  /// re-fetches only on a real deviation — turning a Directions request every
+  /// 10 s (for the whole trip) into one per wrong turn.
+  void _syncRouteToRider(LatLng rider) {
+    if (!_hasDestination) return;
+    if (_routeCoords.length < 2) {
+      _getRoutePolyline();
+      return;
+    }
+
+    var nearestIndex = 0;
+    var nearestMetres = double.infinity;
+    for (var i = 0; i < _routeCoords.length; i++) {
+      final metres = Geolocator.distanceBetween(
+        rider.latitude,
+        rider.longitude,
+        _routeCoords[i].latitude,
+        _routeCoords[i].longitude,
+      );
+      if (metres < nearestMetres) {
+        nearestMetres = metres;
+        nearestIndex = i;
+      }
+    }
+
+    // Off-route (wrong turn, diversion, or a GPS jump) → the drawn line no
+    // longer describes the journey, so get a fresh one.
+    if (nearestMetres > _routeDeviationMetres) {
+      _getRoutePolyline();
+      return;
+    }
+
+    // On route — drop what's already been driven so the line shortens ahead of
+    // the rider instead of trailing behind them.
+    if (nearestIndex > 0) {
+      _setRoute(_routeCoords.sublist(nearestIndex));
+    }
+  }
+
+  /// How far off the drawn route the rider may stray before it is re-fetched.
+  /// Wide enough to absorb GPS scatter and dual-carriageway offsets, tight
+  /// enough to catch an actual wrong turn.
+  static const double _routeDeviationMetres = 80;
 
 
 
@@ -226,7 +307,24 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
   void _onMapCreated(GoogleMapController controller) {
     mapController = controller;
     _getRoutePolyline(); // Call the road-fetching function here
+    _loadRiderIcon();
     _addInitialMarkers();
+  }
+
+  /// Two-wheeler glyph for the rider marker — matches the customer's pre-pickup
+  /// tracking screen, so the same vehicle doesn't change shape when the ride
+  /// starts. Falls back to the default pin if the SVG can't be rendered.
+  Future<void> _loadRiderIcon() async {
+    try {
+      final bytes = await getBytesFromSvgAsset('assets/svg/2_wheeler.svg', 90);
+      if (!mounted || bytes.isEmpty) return;
+      setState(() {
+        _riderIcon = BitmapDescriptor.bytes(bytes);
+        startMarker = startMarker?.copyWith(iconParam: _riderIcon);
+      });
+    } catch (_) {
+      // Keep the default marker.
+    }
   }
 
   void _addInitialMarkers() {
@@ -234,7 +332,12 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
       startMarker = Marker(
         markerId: const MarkerId('rider_marker'),
         position: LatLng(widget.startLat, widget.startLng),
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+        icon: _riderIcon ??
+            BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+        // Centred + flat: a vehicle sits ON the road, it doesn't hang above a
+        // point like a pin.
+        anchor: const Offset(0.5, 0.5),
+        flat: true,
       );
       endMarker = _hasDestination
           ? Marker(
@@ -256,13 +359,28 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
       startMarker = startMarker?.copyWith(positionParam: newPosition);
     });
 
-    // 🔥 REFRESH ROAD ROUTE FROM LIVE RIDER
-    await _getRoutePolyline();
+    // Trim the drawn route to what's left; only re-fetches when the rider has
+    // actually left it.
+    _syncRouteToRider(newPosition);
 
-    // Optional smooth camera follow
-    mapController?.animateCamera(
-      CameraUpdate.newLatLng(newPosition),
-    );
+    // Follow only while the user hasn't taken the map over.
+    if (_followRider) _moveCamera(newPosition);
+  }
+
+  Future<void> _moveCamera(LatLng target) async {
+    final controller = mapController;
+    if (controller == null) return;
+    _programmaticCamera = true;
+    await controller.animateCamera(CameraUpdate.newLatLng(target));
+  }
+
+  /// Re-attaches the camera to the rider after the user has panned away.
+  void _recenterOnRider() {
+    final lat = riderController.liveLat.value;
+    final lng = riderController.liveLng.value;
+    setState(() => _followRider = true);
+    if (lat == 0 || lng == 0) return;
+    _moveCamera(LatLng(lat, lng));
   }
 
 
@@ -367,6 +485,13 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
           ),
           myLocationEnabled: true,
           myLocationButtonEnabled: true,
+          // A user pan releases the camera from the rider; our own animations
+          // are flagged so they don't count as one.
+          onCameraMoveStarted: () {
+            if (_programmaticCamera) return;
+            if (_followRider) setState(() => _followRider = false);
+          },
+          onCameraIdle: () => _programmaticCamera = false,
           markers: {
             if (startMarker != null) startMarker!,
             if (endMarker != null) endMarker!,
@@ -376,6 +501,20 @@ class _SimpleGoogleMapsTrackingState extends State<SimpleGoogleMapsTracking> {
             if (liveLocationCircle != null) liveLocationCircle!,
           },
         ),
+        // Only offered once the camera has been released — while following, it
+        // would do nothing.
+        if (!_followRider)
+          Positioned(
+            right: 16,
+            bottom: 110,
+            child: FloatingActionButton.small(
+              heroTag: 'recenter_rider',
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.blue,
+              onPressed: _recenterOnRider,
+              child: const Icon(Icons.my_location_rounded),
+            ),
+          ),
         Positioned(
           top: 20,
           left: 20,

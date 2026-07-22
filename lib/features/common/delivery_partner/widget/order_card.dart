@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'dart:developer';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -48,6 +50,91 @@ class OrderCard extends StatefulWidget {
 }
 
 class _OrderCardState extends State<OrderCard> {
+  /// Drives the live travel-time readout on an in-progress ride. Only ever
+  /// running for that one case, so idle cards in the list cost nothing.
+  Timer? _travelTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _syncTravelTimer();
+  }
+
+  @override
+  void didUpdateWidget(covariant OrderCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // A status change (accepted → in-progress → completed) arrives as a new
+    // order object on the same card, so re-evaluate rather than leaving a timer
+    // ticking on a finished ride.
+    _syncTravelTimer();
+  }
+
+  @override
+  void dispose() {
+    _travelTimer?.cancel();
+    super.dispose();
+  }
+
+  void _syncTravelTimer() {
+    final needed = _isRideInProgress && _rideStartedAt != null;
+    if (needed && _travelTimer == null) {
+      _travelTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+        if (mounted) setState(() {});
+      });
+    } else if (!needed) {
+      _travelTimer?.cancel();
+      _travelTimer = null;
+    }
+  }
+
+  /// True for the ride-type orders whose pickup leg is done — the case that
+  /// used to carry the slide-to-complete.
+  bool get _isRideInProgress =>
+      (widget.order.orderFor == AppConstants.InCity ||
+          widget.order.orderFor == AppConstants.OutStation ||
+          widget.order.orderFor == AppConstants.HourlyRental ||
+          widget.order.orderFor == AppConstants.Parcel) &&
+      widget.order.status == 'in-progress';
+
+  /// When the ride actually started, read out of the order's `timestamps` map.
+  ///
+  /// That map is untyped and its key names aren't documented anywhere in the
+  /// app, so this tries the plausible spellings. If none match, the travel-time
+  /// readout is hidden (never guessed from `createdAt`/`updatedAt`, which track
+  /// the order, not the journey) and the available keys are logged once so the
+  /// right one can be pinned down.
+  DateTime? get _rideStartedAt {
+    final stamps = widget.order.timestamps;
+    if (stamps == null || stamps.isEmpty) return null;
+
+    const candidates = [
+      'pickedUpAt',
+      'picked_up_at',
+      'inProgressAt',
+      'in_progress_at',
+      'rideStartedAt',
+      'ride_started_at',
+      'tripStartedAt',
+      'startedAt',
+      'started_at',
+      'pickupCompletedAt',
+      'pickupVerifiedAt',
+      'otpVerifiedAt',
+    ];
+
+    for (final key in candidates) {
+      for (final entry in stamps.entries) {
+        if (entry.key.toString().toLowerCase() != key.toLowerCase()) continue;
+        final parsed = DateTime.tryParse(entry.value?.toString() ?? '');
+        if (parsed != null) return parsed.toLocal();
+      }
+    }
+
+    log('⏱ order.timestamps has no known ride-start key. Available: '
+        '${stamps.keys.toList()}');
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final controller = getOrPut(() => DeliverPartnerOrdersController());
@@ -960,6 +1047,61 @@ class _OrderCardState extends State<OrderCard> {
     }
   }
 
+  /// Customer identity block for the ongoing ride card: photo, name, contact
+  /// and a call button.
+  ///
+  /// The order payload's `user` carries only id / name / profile_image /
+  /// contact_no — there is no designation field — so the second line is the
+  /// phone number, which is what the rider actually needs at the kerb.
+  Widget _buildCustomerInfoRow() {
+    final user = widget.order.user;
+    final name = (user?.name ?? '').trim();
+    final contact = (user?.contactNo ?? '').trim();
+    if (name.isEmpty && contact.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      padding: EdgeInsets.all(SizeConfig.size10),
+      decoration: BoxDecoration(
+        color: AppColors.primaryColor.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.greyE5),
+      ),
+      child: Row(
+        children: [
+          _buildUserAvatar(context),
+          SizedBox(width: SizeConfig.size10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CustomText(
+                  name.isNotEmpty ? name : 'Customer',
+                  fontSize: SizeConfig.medium,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.mainTextColor,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (contact.isNotEmpty) ...[
+                  SizedBox(height: SizeConfig.size2),
+                  CustomText(
+                    contact,
+                    fontSize: SizeConfig.small,
+                    color: AppColors.secondaryTextColor,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ],
+            ),
+          ),
+          if (contact.isNotEmpty) _buildCallButton(contact),
+        ],
+      ),
+    );
+  }
+
   Widget _buildViewRideOnMapButton() {
     // 'in-progress' (ride) / 'picked-up' (parcel) / 'completed' all mean the
     // pickup OTP is done, so the CTA reads "View Ride on Map".
@@ -1017,15 +1159,23 @@ class _OrderCardState extends State<OrderCard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // "View Ride on Map" button for ride orders
+        // Who the rider is going to meet, directly above the navigate CTA —
+        // the rider needs the name and a way to call before setting off, and
+        // the ongoing card showed neither.
         if (widget.order.orderFor == AppConstants.InCity ||
             widget.order.orderFor == AppConstants.OutStation ||
             widget.order.orderFor == AppConstants.HourlyRental ||
-            widget.order.orderFor == AppConstants.Parcel)
+            widget.order.orderFor == AppConstants.Parcel) ...[
+          if (widget.isPipModeOn == false)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _buildCustomerInfoRow(),
+            ),
           Padding(
             padding: const EdgeInsets.only(bottom: 10),
             child: _buildViewRideOnMapButton(),
           ),
+        ],
 
         if(!(widget.order.orderFor==AppConstants.InCity
             ||widget.order.orderFor==AppConstants.OutStation
@@ -1040,46 +1190,148 @@ class _OrderCardState extends State<OrderCard> {
         if(widget.isPipModeOn==false)
         SizedBox(height:SizeConfig.size8),
 
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            if((widget.order.orderFor==AppConstants.InCity
-                ||widget.order.orderFor==AppConstants.OutStation
-                ||widget.order.orderFor==AppConstants.HourlyRental
-                ||widget.order.orderFor==AppConstants.Parcel)&& widget.order.status=='in-progress')
-              Expanded(
-                child: SlideToCompleteButton(
-                  onComplete: () =>
-                      controller.completePickupRiderApi(widget.order.id ?? ''),
-                ),
-              )
-
-            // CustomBtn(
-              //   width: 160,
-              //     height: 40,
-              //     isValidate: true,
-              //     onTap: ()async{
-              //    await controller.completePickupRiderApi(order.id??'');
-              // }, title: "Complete")
-            else
-            Flexible(
-              fit: FlexFit.loose,
-              child: _buildOtpInputSection(controller),
+        // In-progress rides used to carry a slide-to-complete here. It was a
+        // second way to finish the ride — PassengerDestinationScreen (one tap
+        // away via "View Ride on Map") owns that action — so the space now
+        // reports the journey instead.
+        //
+        // Its own row, because the travel box is two lines tall and the fare
+        // beside it has to match: IntrinsicHeight measures the tallest child
+        // and `stretch` pulls the fare box up to it. The OTP row below keeps
+        // centre alignment, where both children are a single line.
+        if (_isRideInProgress)
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(child: _buildTravelSummary()),
+                if (widget.isPipModeOn == false) ...[
+                  SizedBox(width: SizeConfig.size8),
+                  _buildFareWidget(fillHeight: true),
+                ],
+              ],
             ),
-            if(widget.isPipModeOn==false)
-            Padding(
-              padding: const EdgeInsets.only(left: 8.0),
-              child: _buildFareWidget(),
-            ),
-          ],
-        ),
+          )
+        else
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Flexible(
+                fit: FlexFit.loose,
+                child: _buildOtpInputSection(controller),
+              ),
+              if(widget.isPipModeOn==false)
+              Padding(
+                padding: const EdgeInsets.only(left: 8.0),
+                child: _buildFareWidget(),
+              ),
+            ],
+          ),
       ],
     );
   }
 
 
 
+
+  /// Journey readout shown in place of the retired slide-to-complete: how long
+  /// the rider has been travelling, and how far the trip is.
+  ///
+  /// The time half is omitted when the ride's start time isn't known (see
+  /// [_rideStartedAt]) rather than showing a zero that would tick up from the
+  /// moment the card was built.
+  Widget _buildTravelSummary() {
+    final startedAt = _rideStartedAt;
+    final distance = widget.order.distancePickupToDrop;
+    final hasDistance = distance != null &&
+        distance.isNotEmpty &&
+        distance != 'N/A' &&
+        distance != 'null';
+
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size12,
+        vertical: SizeConfig.size10,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.primaryColor.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        children: [
+          if (startedAt != null)
+            Expanded(
+              child: _buildTravelStat(
+                icon: Icons.timer_outlined,
+                value: _formatElapsed(DateTime.now().difference(startedAt)),
+                label: AppStrings.travelTime,
+              ),
+            ),
+          if (startedAt != null && hasDistance)
+            Container(
+              width: 1,
+              height: SizeConfig.size24,
+              color: AppColors.primaryColor.withValues(alpha: 0.18),
+            ),
+          if (hasDistance)
+            Expanded(
+              child: _buildTravelStat(
+                icon: Icons.straighten_rounded,
+                value: distance,
+                label: AppStrings.travelDistance,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTravelStat({
+    required IconData icon,
+    required String value,
+    required String label,
+  }) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: SizeConfig.size14, color: AppColors.primaryColor),
+            SizedBox(width: SizeConfig.size6),
+            Flexible(
+              child: CustomText(
+                value,
+                fontSize: SizeConfig.medium,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primaryColor,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: SizeConfig.size2),
+        CustomText(
+          label,
+          fontSize: SizeConfig.extraSmall,
+          color: AppColors.secondaryTextColor,
+          maxLines: 1,
+        ),
+      ],
+    );
+  }
+
+  /// `H:MM:SS` once past an hour, `MM:SS` before that — a ride rarely runs long
+  /// enough for the hour slot to be worth reserving up front.
+  String _formatElapsed(Duration elapsed) {
+    final total = elapsed.isNegative ? Duration.zero : elapsed;
+    final hours = total.inHours;
+    final minutes = total.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final seconds = total.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return hours > 0 ? '$hours:$minutes:$seconds' : '$minutes:$seconds';
+  }
 
   Widget _buildOtpInputSection(DeliverPartnerOrdersController controller) {
     return Obx(() {
@@ -1176,12 +1428,17 @@ class _OrderCardState extends State<OrderCard> {
     );
   }
 
-  Widget _buildFareWidget() {
+  /// [fillHeight] centres the label so the box reads correctly when a parent
+  /// stretches it to a taller neighbour (the in-progress travel row). Left off
+  /// elsewhere, where the box hugs its text — setting an alignment there would
+  /// make it expand to the row's full height.
+  Widget _buildFareWidget({bool fillHeight = false}) {
     return Container(
       padding: EdgeInsets.symmetric(
         horizontal: SizeConfig.size12,
         vertical: SizeConfig.size8,
       ),
+      alignment: fillHeight ? Alignment.center : null,
       decoration: BoxDecoration(
         color: AppColors.primaryColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(10.0),

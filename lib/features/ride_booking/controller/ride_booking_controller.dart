@@ -992,6 +992,12 @@ class RideBookingController extends GetxController {
       var updated = booking.copyWith(
         status: status,
         startOtp: (otp != null && otp.isNotEmpty) ? otp : null,
+        // Only set on a cancelled order. Carried through so the terminal
+        // message can say WHO cancelled — a captain-cancelled ride otherwise
+        // reads to the customer like their own booking silently failed.
+        cancelledBy: data['cancelledBy']?.toString(),
+        cancellationReason: data['cancellationReason']?.toString(),
+        cancelledAt: DateTime.tryParse(data['cancelledAt']?.toString() ?? ''),
       );
 
       // metadata.assignedRider names the winning rider; hydrate the captain
@@ -1244,7 +1250,13 @@ class RideBookingController extends GetxController {
       );
       if (!response.isSuccess) return false;
       _stopAllPolling();
-      activeBooking.value = booking.copyWith(status: RideStatus.cancelled);
+      // Stamp who cancelled locally — the response body isn't parsed here, and
+      // without this a self-cancel is indistinguishable from a captain's.
+      activeBooking.value = booking.copyWith(
+        status: RideStatus.cancelled,
+        cancelledBy: 'customer',
+        cancellationReason: reasonCode,
+      );
       terminalStatus.value = RideStatus.cancelled;
       return true;
     } catch (_) {

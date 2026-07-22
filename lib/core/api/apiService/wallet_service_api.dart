@@ -8,10 +8,10 @@
 mixin WalletServiceApi {
   // Payment Setting;
   final String addAccountApi = "wallet-service/withdrawal-methods";
-  final String getAccountApi = "/wallet-service/payment/getAccounts";
-  final String updateAccountIdApi = "/wallet-service/payment/updateAccount/";
-  final String accountDeleteApi = "/wallet-service/payment/deleteAccount/";
-  final String setDefaultBankApi = "/wallet-service/payment/setDefaultBank/";
+  final String getAccountApi = "wallet-service/payment/getAccounts";
+  final String updateAccountIdApi = "wallet-service/payment/updateAccount/";
+  final String accountDeleteApi = "wallet-service/payment/deleteAccount/";
+  final String setDefaultBankApi = "wallet-service/payment/setDefaultBank/";
 
   // Wallet
   final String WithdrawalApi = "wallet-service/withdrawals";

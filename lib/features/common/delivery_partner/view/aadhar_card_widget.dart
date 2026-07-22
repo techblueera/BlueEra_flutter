@@ -192,7 +192,7 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
           ),
         SizedBox(height: SizeConfig.size4),
         CustomText(
-          'Upload clear photos of the front and back of your Aadhaar card.',
+          'Upload a clear photo of the front of your Aadhaar card. The back is optional.',
           fontSize: SizeConfig.small,
           color: AppColors.coloGreyText,
           maxLines: 2,
@@ -207,7 +207,7 @@ class _AadharCardWidgetState extends State<AadharCardWidget> {
         ),
         SizedBox(height: SizeConfig.paddingS),
         CommonImageUploadTile(
-          title: 'Upload Aadhaar Back',
+          title: 'Upload Aadhaar Back (Optional)',
           imageFile: controller.aadharBackImage,
           context: context,
           onImageSelected: () =>

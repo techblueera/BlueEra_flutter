@@ -13,6 +13,7 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
+import 'package:BlueEra/core/services/ai_document_verification_service.dart';
 import 'package:BlueEra/core/services/keyed_json_cache.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/chat/auth/model/GetBlueeraPiolotModel.dart';
@@ -1028,12 +1029,14 @@ class DeliveryPartnerController extends GetxController {
   }
 
   /// Alternative to the OTP flow: submit the Aadhaar number together with the
-  /// front & back images (the "verify by image" option). Mirrors the old
-  /// image-based identification payload — uploads both images to S3 and POSTs
-  /// `{ aadharNo, aadharImages: { front, back } }` to the same personal-
+  /// card images (the "verify by image" option). Mirrors the old image-based
+  /// identification payload — uploads the images to S3 and POSTs
+  /// `{ aadharNo, aadharImages: { front, back? } }` to the same personal-
   /// identification endpoint the number-only path uses. Shown when OTP isn't
-  /// working for the rider. On success the sheet closes and the onboarding
-  /// status refreshes so the "aadhar" step reflects the submission.
+  /// working for the rider. Only the front is required — the number lives on
+  /// that side, so the back is optional and simply omitted when not picked.
+  /// On success the sheet closes and the onboarding status refreshes so the
+  /// "aadhar" step reflects the submission.
   Future<void> submitAadhaarImages() async {
     // This runs from the OTP screen, where the entry-stage Form is no longer
     // mounted (so aadharFormKey.currentState is null). Validate the already-
@@ -1043,19 +1046,38 @@ class DeliveryPartnerController extends GetxController {
       commonSnackBar(message: 'Please enter a valid 12-digit Aadhaar number.');
       return;
     }
-    if (aadharFrontImage.value == null) {
+    final front = aadharFrontImage.value;
+    if (front == null) {
       commonSnackBar(message: 'Please select the Aadhaar front image.');
       return;
     }
-    if (aadharBackImage.value == null) {
-      commonSnackBar(message: 'Please select the Aadhaar back image.');
-      return;
-    }
+    // Optional — the Aadhaar number is printed on the front, so the back adds
+    // nothing the verifier needs.
+    final back = aadharBackImage.value;
     try {
       isAadhaarImageSubmitting.value = true;
-      final frontUrl = await _uploadToS3(aadharFrontImage.value!);
-      final backUrl = await _uploadToS3(aadharBackImage.value!);
-      if ((frontUrl ?? '').isEmpty || (backUrl ?? '').isEmpty) {
+
+      // Gate the upload on the AI document check: the images must actually be
+      // an Aadhaar card and carry the number typed above. Anything short of a
+      // clean pass (type mismatch, unreadable/mismatched number, is_verified
+      // false, or a check that couldn't complete) stops here — nothing reaches
+      // S3 or the onboarding endpoint.
+      final verification = await AiDocumentVerificationService().verify(
+        documentName: AiDocumentVerificationService.aadhaar,
+        documentNumber: aadhaar,
+        images: [front, if (back != null) back],
+      );
+      if (!verification.isValid) {
+        commonSnackBar(message: verification.failureMessage!);
+        return;
+      }
+
+      final frontUrl = await _uploadToS3(front);
+      final backUrl = back != null ? await _uploadToS3(back) : null;
+      // A picked back image that fails to upload is still an error — only a
+      // back that was never picked is allowed to be absent.
+      if ((frontUrl ?? '').isEmpty ||
+          (back != null && (backUrl ?? '').isEmpty)) {
         commonSnackBar(message: AppStrings.somethingWentWrong);
         return;
       }
@@ -1063,7 +1085,7 @@ class DeliveryPartnerController extends GetxController {
         ApiKeys.aadharNo: aadhaar,
         ApiKeys.aadharImages: {
           ApiKeys.front: frontUrl,
-          ApiKeys.back: backUrl,
+          if (backUrl != null) ApiKeys.back: backUrl,
         },
       };
       final response = await DeliveryPartnerRepo()

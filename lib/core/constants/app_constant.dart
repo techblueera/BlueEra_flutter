@@ -733,8 +733,13 @@ const String CLEANER = "CLEANER";
 const String CARPENTER = "CARPENTER";
 const String BIKE_RIDER = "BIKE_RIDER";
 const String CAR_TAXI = "CAR_DRIVER_TAXI";
-const String GOODS_TAXI = "GOODS_TAXI";
-const String AUTO_TAXI = "AUTO_TAXI";
+// Values must match the `tag_id` the professions API returns for the GigWork
+// bucket — the app compares them against `userProfessionGlobal`, which is that
+// same tagId (see personal_profile_setup_new_screen.dart's profession submit).
+// These two used to read "GOODS_TAXI"/"AUTO_TAXI", which the backend never
+// sends, so every check against them silently failed.
+const String GOODS_TAXI = "GOODS_SUPPLY";
+const String AUTO_TAXI = "AUTO_ERICKSHAW";
 const String MECHANIC = "MECHANIC";
 const String CAR_TAXI_DRIVER = "CAR_TAXI_DRIVER";
 const String TAILOR = "TAILOR";

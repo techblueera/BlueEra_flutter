@@ -6733,7 +6733,7 @@
   "chooseWhatToDeliver": "Choose what you want to deliver",
   "servicePassenger": "Passenger",
   "serviceGoods": "Goods",
-  "serviceBoth": "Both Passenger and Goods",
+  "serviceBoth": "Both",
   "pleaseSelectServicePreference": "Please select a service preference",
   "servicePreferenceSavedTo": "Service preference saved:",
   "servicePreferenceUpdatedTo": "Service preference updated:",
