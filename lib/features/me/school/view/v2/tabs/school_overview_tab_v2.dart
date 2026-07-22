@@ -113,7 +113,11 @@ class _SchoolOverviewTabV2State extends State<SchoolOverviewTabV2> {
           // ── Joined date + identity + cover (self-pads at _hInset) ──
           BusinessJoinedProfileCard(businessController: _businessController),
 
-          SizedBox(height: SizeConfig.size10),
+          // DirectorCard uses `Card(margin: EdgeInsets.all(10))`, which adds
+          // 10px above and below itself; the empty _SplitEmptyCard has no
+          // such margin. Skip the outer spacers when data is present so
+          // both states show the same 10px gap on either side.
+          if (!hasDirector) SizedBox(height: SizeConfig.size10),
 
           // ── Director / Principal Message ──
           // _hPad(
@@ -131,7 +135,7 @@ class _SchoolOverviewTabV2State extends State<SchoolOverviewTabV2> {
                 ),
           // ),
 
-          SizedBox(height: SizeConfig.size10),
+          if (!hasDirector) SizedBox(height: SizeConfig.size10),
 
           // ── School Quick Info (Class range / Ratio / Medium) ──
           // _hPad(
@@ -143,7 +147,13 @@ class _SchoolOverviewTabV2State extends State<SchoolOverviewTabV2> {
           ),
           // ),
 
-          SizedBox(height: SizeConfig.size10),
+          // SchoolManagementSection wraps in `CommonCardWidget(padding: 0)`
+          // without overriding cardMargin, so it inherits the default 10px
+          // margin on top and bottom. The empty _SplitEmptyCard has no
+          // such margin, so its outer spacer alone drives the visible gap.
+          // Skip this outer spacer above Management when data is present
+          // (the top card-margin fills in) so both states show 10px.
+          if (management.isEmpty) SizedBox(height: SizeConfig.size10),
 
           // ── Management ──
           // _hPad(
@@ -163,7 +173,10 @@ class _SchoolOverviewTabV2State extends State<SchoolOverviewTabV2> {
                 ),
           // ),
 
-          SizedBox(height: SizeConfig.size10),
+          // Same rationale below the card: the CommonCardWidget's default
+          // bottom margin covers the 10px gap in the data state, so we
+          // only emit the outer spacer for the empty state.
+          if (management.isEmpty) SizedBox(height: SizeConfig.size10),
 
           // ── Availability ──
           // _hPad(
@@ -199,7 +212,12 @@ class _SchoolOverviewTabV2State extends State<SchoolOverviewTabV2> {
                   ),
           ),
 
-          SizedBox(height: SizeConfig.size10),
+          // ContactUsSection wraps its content in
+          // `CustomFormCard(margin: EdgeInsets.only(top: 10))`, so it adds
+          // 10px above itself; the empty _SectionEmptyCard has no such
+          // margin. Skip the outer spacer when data is present so both
+          // states show the same 10px gap above Contact Us.
+          if (contacts.isEmpty) SizedBox(height: SizeConfig.size10),
 
           // ── Contact Us ──
           _hPad(

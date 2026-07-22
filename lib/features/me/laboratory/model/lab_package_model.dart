@@ -16,6 +16,14 @@ class LabPackage {
   int? packageMrp;
   int? customerPrice;
 
+  /// One of the 26 backend preset values (see
+  /// FLUTTER_CATALOGUE_INTEGRATION.md PART 3B §`packageType` vs `name`).
+  /// Drives the icon switch and the `/packages/me?packageType=...` filter
+  /// — distinct from [name], which is the lab's own display title.
+  /// Optional; may be null on legacy rows created before this field
+  /// existed.
+  String? packageType;
+
   /// "Male" | "Female" | "All" (default "All"). See doc §1 create body.
   String? gender;
 
@@ -39,6 +47,7 @@ class LabPackage {
     this.imageUrl,
     this.packageMrp,
     this.customerPrice,
+    this.packageType,
     this.gender,
     this.tests,
     List<String>? testIds,
@@ -73,6 +82,7 @@ class LabPackage {
       imageUrl: json['imageUrl']?.toString(),
       packageMrp: _asInt(json['packageMrp']),
       customerPrice: _asInt(json['customerPrice']),
+      packageType: json['packageType']?.toString(),
       gender: json['gender']?.toString(),
       tests: populated,
       testIds: ids,
@@ -93,6 +103,7 @@ class LabPackage {
         'tests': testIds,
         if (packageMrp != null) 'packageMrp': packageMrp,
         if (customerPrice != null) 'customerPrice': customerPrice,
+        if ((packageType ?? '').isNotEmpty) 'packageType': packageType,
         'gender': gender ?? 'All',
       };
 

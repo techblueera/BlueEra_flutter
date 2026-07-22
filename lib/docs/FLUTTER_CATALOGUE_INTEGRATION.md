@@ -30,7 +30,7 @@ minimum 1) — it depends on Tests but is otherwise unrelated.
 | **Add Test** | Needs 3 dropdown sources first, then `POST /pathology-tests`. |
 | **Add Package** | Needs the lab's Tests first, then `POST /packages`. |
 | **Edit Test** | `PUT /pathology-tests/{id}` — ownership-scoped, ownership fields stripped. |
-| **Edit Package** | `PUT /packages/{id}` — scoped by `{_id, userId}`. |
+| **Edit Package** | `PUT /packages/{id}` — scoped to the caller's own; `userId`/`laboratoryId`/`_id` stripped server-side. |
 | **View Test** | `GET /pathology-tests/{id}` — populated refs. |
 | **View Package** | `GET /packages/{id}` — `tests` populated (subset of fields). |
 | **Delete Test/Package** | `DELETE /{entity}/{id}` — scoped; 404 if not the caller's; hard delete. |
@@ -79,6 +79,25 @@ existing UI's separate Add-Test and Add-Package screens; do not fold them.
   (`_id, testName, groupCategory, estimatedReportHours, customerPrice, testFees, specimenCollectionMethod`),
   so you can show `name`, `customerPrice`, and the bundled test names/count
   directly. No second call needed for the list.
+- **Filters (all optional, AND together):**
+
+| Param | Values | Notes |
+|---|---|---|
+| `packageType` | one of the 26 presets | Not in the list → **400** with the allowed values |
+| `gender` | `Male` \| `Female` \| `All` | |
+| `isActive` | `true` \| `false` | anything else → 400 |
+| `search` | string | case-insensitive match on `name` |
+
+```
+GET /packages/me?packageType=Full%20Body%20Checkup&isActive=true
+```
+
+Encode the value — several presets contain `&` (`Ophthalmology & ENT`,
+`Fertility & Pregnancy Package`, `Allergy & Immunology Package`). Use
+`URLSearchParams` / `Uri(queryParameters:)` and it is handled for you.
+
+The same filters work on `GET /packages/laboratory/{labId}` for the public view.
+
 - **Do NOT use `GET /packages`** (unscoped — returns every lab's packages) or
   `GET /packages/laboratory/{labId}` (needs a labId and returns raw, unpopulated
   test ids). `GET /packages/me` is the correct owner list.
@@ -139,6 +158,7 @@ existing UI's separate Add-Test and Add-Package screens; do not fold them.
 | Field | Widget | Backend field | Req? | Validation | Default | Options API | Payload key |
 |---|---|---|---|---|---|---|---|
 | Package Name | `TextFormField` | `name` | ✅ | non-empty | — | — | `name` |
+| Preset / Type | `DropdownButtonFormField` | `packageType` | ⚪ | one of 26 | — | `GET /test-catalog/enums` → `packageType` | `packageType` |
 | Tests | Searchable multi-select `BottomSheet` | `tests` | ✅ | **≥ 1** selected | — | `GET /pathology-tests` (token) | `tests` = `[testId]` |
 | Package MRP | `TextFormField` (number) | `packageMrp` | ✅ | number ≥ 0 | — | — | `packageMrp` |
 | Customer Price | `TextFormField` (number) | `customerPrice` | ✅ | number ≥ 0, ≤ MRP (advisable) | — | — | `customerPrice` |
@@ -146,6 +166,39 @@ existing UI's separate Add-Test and Add-Package screens; do not fold them.
 | Image | `ImagePicker` → upload → URL | `imageUrl` | ⚪ | valid URL | — | `GET /upload/init` + PUT to S3 | `imageUrl` (publicUrl) |
 | Gender | `DropdownButtonFormField` | `gender` | ⚪ | one of 3 | `All` | `enums.gender` (reuse) | `gender` |
 | Active | `Switch` | `isActive` | ⚪ | bool | `true` | — | `isActive` |
+
+### ⚠️ `packageType` vs `name` — do not conflate them
+
+`packageType` is the **preset** the package is built on — one of the same 26
+values a test's `packageType` uses (`Basic Health Checkup`, `Full Body Checkup`,
+`Thyroid Package`, …). `name` is the lab's **own display title**.
+
+```jsonc
+// RIGHT
+"name": "Monsoon Wellness Offer",     // the lab's title, shown to customers
+"packageType": "Full Body Checkup"    // the preset — drives the icon + filter
+
+// WRONG (what clients did before packageType existed)
+"name": "Basic Health Checkup"        // preset written into name -> every package
+                                      // ends up with the same title
+```
+
+**Drive the icon switch off `packageType`, not `name`:**
+
+```dart
+switch (package.packageType) {          // NOT package.name
+  case 'Basic Health Checkup':  return AppIconAssets.basicHealthCampIcon;
+  case 'Full Body Checkup':     return AppIconAssets.fullBodycheckupIcon;
+  // …
+  default:                      return AppIconAssets.healthPackageIcon;
+}
+```
+
+`packageType` is **optional**, so `null` is possible on very old records — the
+`default:` branch already covers that.
+
+Options come from `GET /test-catalog/enums` → `data.packageType` (the same call
+the Test form already makes; cache it once and reuse).
 
 **Never send from the Package form:** `userId`, `laboratoryId` (both from token).
 Also do not send any Test-only field (`groupCategory`, `packageType`, `specimen`,
@@ -309,22 +362,64 @@ Show new package in Packages List
 
 ## PART 9 — Edit flow
 
-Same as create, with two differences:
+Both entities have a full Update API. Same screen as create, prefilled.
 
-1. **Prefill:** open with the existing document.
-    - Test: use the row you already have, or `GET /pathology-tests/{id}`. The refs
-      come populated — map `testCategory._id` and `testParameters[]._id` back into
-      the dropdown/multi-select selections.
-    - Package: `GET /packages/{id}` (tests populated) → preselect `tests[]._id`.
-2. **Submit:** `PUT /{entity}/{id}` with **only changed fields** (or the full
-   editable set — both work).
-    - Test PUT strips `_id`/`userId`/`laboratoryId` server-side; if you change
-      `testCategory`/`testParameters` they must belong to the lab (else 400).
-    - Package PUT is scoped by `{_id, userId}` and re-runs validators (so `tests`
-      must still be ≥ 1).
-3. **Response:** 200 with updated `data`. **404** means the item isn't the
-   caller's — treat as "not found / not yours".
-4. After success → pop + refresh the list.
+### 9A. Update Test
+
+```
+PUT /pathology-tests/{id}
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+- **Prefill:** reuse the row you already have, or `GET /pathology-tests/{id}`.
+  Refs come **populated** — map `testCategory._id` and `testParameters[]._id`
+  back into the dropdown / multi-select selections.
+- **Body:** any editable test field (see PART 3A). Send only what changed, or the
+  full editable set — both work.
+- **Stripped server-side:** `_id`, `userId`, `laboratoryId`. You cannot move a
+  test to another lab.
+- **Validated:** if you change `testCategory` / `testParameters`, they must
+  belong to this test's laboratory → else `400`. Enum fields are re-validated.
+- **Response:** `200 { success, data }`.
+- **404** = the test is not yours (deliberately 404, not 403).
+
+### 9B. Update Package
+
+```
+PUT /packages/{id}
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+
+- **Prefill:** `GET /packages/{id}` — `tests` come **populated**, so preselect
+  `tests[]._id` in the picker.
+- **Body — the editable fields:**
+
+```json
+{
+  "name": "Full Body Wellness Package",
+  "description": "Updated bundle",
+  "tests": ["6a4c…875", "6a4c…878"],
+  "packageMrp": 1500,
+  "customerPrice": 999,
+  "gender": "All",
+  "imageUrl": "https://…",
+  "isActive": true
+}
+```
+
+- **NEVER send:** `userId`, `laboratoryId`, `_id` — all three are stripped
+  server-side. Ownership cannot be transferred.
+- **Validators re-run:** `tests` must still contain **≥ 1** id → else
+  `400 "A package must include at least 1 test."`; `packageMrp` /
+  `customerPrice` still ≥ 0.
+- **Response:** `200 { success, data, message: "Updated successfully." }`.
+- **404 "Not found or unauthorized."** = not your package.
+
+### 9C. After success (both)
+
+Pop back and refresh the list — `GET /pathology-tests` or `GET /packages/me`.
 
 ---
 
@@ -342,10 +437,33 @@ DELETE /pathology-tests/{id}   or   DELETE /packages/{id}   (Bearer)
 404  →  "Not found or not yours" — the scope did not match
 ```
 
-- Both deletes are **hard deletes**, scoped to the caller. A test that is part of
-  a package can still be deleted — the package keeps the now-dangling id.
-  **ASSUMPTION:** the backend does not block deleting a test referenced by a
-  package; warn the user if you want to prevent orphaned package references.
+### Both delete APIs exist and are needed
+
+| | Endpoint | Auth | On success | If not yours |
+|---|---|---|---|---|
+| Test | `DELETE /pathology-tests/{id}` | Bearer | `200 { success, message }` | `404` |
+| Package | `DELETE /packages/{id}` | Bearer | `200 { success, message: "Deleted successfully." }` | `404 "Not found or unauthorized."` |
+
+Both are **hard deletes** (no soft-delete / `isActive=false` fallback), scoped to
+the caller. Keep the Delete action in the UI — without it a lab owner has no way
+to remove a test or package they created.
+
+> A Package does have an `isActive` boolean, so you *could* offer "Deactivate"
+> (via `PUT` with `isActive:false`) as a softer alternative alongside Delete.
+> A Test has **no** such flag — for tests, delete is the only removal path.
+
+### ⚠️ Deleting a test that is inside a package
+
+The backend does **not** block it. The package keeps the now-dangling id, and
+`GET /packages/me` / `GET /packages/{id}` simply drop it from the populated
+`tests` array — so a package can show **fewer tests than `tests.length`**.
+
+Two things for the UI:
+- Render the populated `tests` defensively (don't assume the count matches).
+- Optionally warn before deleting a test: *"This test is part of N package(s)."*
+  You'd need to check client-side — there is no backend endpoint for
+  "which packages use this test". **ASSUMPTION:** confirmed by reading the
+  delete controller; no reference check exists.
 
 ---
 
@@ -491,6 +609,7 @@ with a `message` naming the field; always surface that too.
 | Flutter widget | Backend field | Payload key | Required | Type |
 |---|---|---|---|---|
 | TextFormField | name | `name` | ✅ | String |
+| Dropdown (enums.packageType) | packageType | `packageType` | ⚪ | String enum (preset) |
 | Multiselect sheet | tests | `tests` | ✅ (≥1) | [ObjectId] |
 | Number field | packageMrp | `packageMrp` | ✅ | num |
 | Number field | customerPrice | `customerPrice` | ✅ | num |

@@ -104,7 +104,11 @@ class SchoolManagementSection extends StatelessWidget {
           ),
 
           Container(
-            height: 220,
+            // Tight fit: image 130 + footer (padding 10 + title ~19 + gap 4
+            // + position ~16 + padding 10) ≈ 189. Anything taller was
+            // inflating the section relative to the empty-state Column,
+            // widening the gap to the next section on the page.
+            height: 200,
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
@@ -143,11 +147,11 @@ class SchoolManagementSection extends StatelessWidget {
               child: (person.photo?.isNotEmpty ?? false)
                   ? Image.network(
                       person.photo ?? "",
-                      height: 140,
+                      height: 130,
                       width: double.infinity,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stack) => Container(
-                        height: 140,
+                        height: 130,
                         width: double.infinity,
                         color: Colors.grey.shade200,
                         child: LocalAssets(
@@ -155,7 +159,9 @@ class SchoolManagementSection extends StatelessWidget {
                       ),
                     )
                   : Container(
-                      height: 140,
+                      // Match the network-image branch (130) so the footer
+                      // sits at the same vertical position for both states.
+                      height: 130,
                       width: double.infinity,
                       color: Colors.grey.shade200,
                       child: LocalAssets(
@@ -164,29 +170,31 @@ class SchoolManagementSection extends StatelessWidget {
             ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 10, vertical: 10),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CustomText(
-                      person.name ?? "",
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14,
-                      color: Colors.black,
-                    ),
-                    const SizedBox(height: 4),
-                    CustomText(
-                      person.position ?? "",
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      color: AppColors.secondaryTextColor,
-                      fontSize: 12,
-                    ),
-                  ],
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+                child: Center(
+                  child: Column(
+                    // crossAxisAlignment: CrossAxisAlignment.start,
+                    // mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CustomText(
+                        person.name ?? "",
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                        color: Colors.black,
+                      ),
+                      const SizedBox(height: 4),
+                      CustomText(
+                        person.position ?? "",
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        color: AppColors.secondaryTextColor,
+                        fontSize: 12,
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

@@ -113,10 +113,9 @@ class _FilledChipsGrid extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // 3-per-row grid to match the previous school layout when there
-        // are 3 chips; wraps naturally beyond that.
+        // 2-per-row grid; extra chips wrap onto subsequent rows.
         const spacing = 8.0;
-        final chipWidth = (constraints.maxWidth - spacing * 2) / 3;
+        final chipWidth = (constraints.maxWidth - spacing) / 2;
         return Wrap(
           spacing: spacing,
           runSpacing: spacing,
