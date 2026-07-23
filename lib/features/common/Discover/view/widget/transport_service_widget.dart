@@ -3,7 +3,6 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
-import 'package:BlueEra/features/common/Discover/view/book_your_transport/parcel_pickup_drop_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_category_section.dart';
 import 'package:BlueEra/features/ride_booking/view/ride_home_screen.dart';
@@ -65,11 +64,6 @@ class TransportServiceWidget extends StatelessWidget {
                           iconPath: item.icon ?? "",
                           diameter: itemWidth * 0.9,
                           onTap: () => Get.to(() => const RideHomeScreen()),
-                          // onTap: () => Get.to(
-                          //   () => ParcelPickupDropScreen(
-                          //     vehicleType: item.slugId,
-                          //   ),
-                          // ),
                         ),
                       );
                     }).toList(),
@@ -87,7 +81,6 @@ class TransportServiceWidget extends StatelessWidget {
     return InkWell(
       borderRadius: BorderRadius.circular(12),
       onTap: () => Get.to(() => const RideHomeScreen()),
-      // onTap: () => Get.to(() => const ParcelPickupDropScreen()),
       child: Container(
         padding: EdgeInsets.all(SizeConfig.size12),
         decoration: BoxDecoration(

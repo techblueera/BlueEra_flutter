@@ -351,6 +351,69 @@ class DeliverPartnerOrdersController extends GetxController {
     }
   }
 
+  /// Orders this rider has already rated the customer on, so the completion
+  /// panel doesn't re-offer a vote the server would reject. Server-side is
+  /// still the authority — this only keeps the UI honest within a session.
+  final RxSet<String> ratedCustomerOrderIds = <String>{}.obs;
+
+  /// Rider → customer rating for a completed order.
+  ///
+  /// The backend allows exactly one vote per order and answers a duplicate
+  /// with `alreadyRated` rather than an error, so both outcomes are treated as
+  /// "done" here — re-prompting after a network retry that actually landed
+  /// would be the more confusing failure.
+  Future<bool> rateCustomer({
+    required String userId,
+    required String orderId,
+    required int rating,
+  }) async {
+    if (userId.isEmpty || orderId.isEmpty) return false;
+    if (rating < 1 || rating > 5) return false;
+    try {
+      final response = await MakeOrderRepo()
+          .rateCustomerApi(userId: userId, orderId: orderId, rating: rating);
+      final data = response.response?.data;
+      final alreadyRated = (data is Map && data['alreadyRated'] == true) ||
+          (response.message ?? '').toLowerCase().contains('already');
+      if (response.isSuccess || alreadyRated) {
+        ratedCustomerOrderIds.add(orderId);
+        commonSnackBar(
+            message: alreadyRated
+                ? 'You have already rated this customer'
+                : 'Thanks for rating the customer');
+        return true;
+      }
+      commonSnackBar(message: response.message ?? AppStrings.somethingWentWrong);
+      return false;
+    } catch (e) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
+    }
+  }
+
+  /// The customer's user id for [orderId], looked up across every list the
+  /// rider has loaded. The ride screens are reached from several entry points
+  /// (order card, PiP, notification) and not all of them carry the customer id
+  /// in their arguments — this covers the ones that don't.
+  String customerIdForOrder(String orderId) {
+    if (orderId.isEmpty) return '';
+    for (final list in [
+      onGoingOrders,
+      newOrders,
+      completedOrders,
+      riderOrdersList,
+      riderOrdersDetailsModel,
+    ]) {
+      for (final order in list) {
+        if (order.id == orderId || order.orderId == orderId) {
+          final id = order.user?.id ?? order.receiverUser?.id ?? '';
+          if (id.isNotEmpty) return id;
+        }
+      }
+    }
+    return '';
+  }
+
   /// Guards against overlapping network fetches (e.g. screen re-entry /
   /// pull-to-refresh firing while a previous request is still in flight).
   bool _ordersInFlight = false;

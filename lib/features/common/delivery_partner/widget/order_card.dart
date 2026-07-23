@@ -2,6 +2,9 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
+// Aliased: this file declares its own `User`, which collides with the order
+// payload's `User` from rider_orders_details_model.
+import 'package:BlueEra/core/api/model/user_profile_res.dart' as profile_res;
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -12,6 +15,9 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/features/business/auth/model/viewBusinessProfileModel.dart';
+import 'package:BlueEra/features/business/auth/repo/business_profile_repo.dart';
+import 'package:BlueEra/features/personal/personal_profile/repo/user_repo.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_box_shadow.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -31,6 +37,7 @@ import '../controller/delivery_partner_orders_controller.dart';
 import '../model/grocery_order_details.dart';
 import '../../../chat/view/call_screen/rider_call/rider_pickup_navigation_screen.dart';
 import '../../../chat/view/call_screen/rider_call/passenger_destination_screen.dart';
+import 'customer_rating_badge.dart';
 import 'delivery_pickup_shops_list.dart';
 
 class OrderCard extends StatefulWidget {
@@ -54,10 +61,17 @@ class _OrderCardState extends State<OrderCard> {
   /// running for that one case, so idle cards in the list cost nothing.
   Timer? _travelTimer;
 
+  /// Who the customer is beyond their name — profession for an individual,
+  /// category/sub-category for a business. Null until resolved, and stays null
+  /// when the lookup fails: the card degrades to name + number rather than
+  /// showing a gap where a line was promised.
+  _CustomerIdentity? _identity;
+
   @override
   void initState() {
     super.initState();
     _syncTravelTimer();
+    _loadCustomerIdentity();
   }
 
   @override
@@ -67,6 +81,10 @@ class _OrderCardState extends State<OrderCard> {
     // order object on the same card, so re-evaluate rather than leaving a timer
     // ticking on a finished ride.
     _syncTravelTimer();
+    if (oldWidget.order.user?.id != widget.order.user?.id) {
+      _identity = null;
+      _loadCustomerIdentity();
+    }
   }
 
   @override
@@ -87,14 +105,38 @@ class _OrderCardState extends State<OrderCard> {
     }
   }
 
+  /// Passenger / parcel orders — the ones that navigate rather than deliver.
+  bool get _isRideOrParcelOrder =>
+      widget.order.orderFor == AppConstants.InCity ||
+      widget.order.orderFor == AppConstants.OutStation ||
+      widget.order.orderFor == AppConstants.HourlyRental ||
+      widget.order.orderFor == AppConstants.Parcel;
+
+  /// True once the pickup leg is done. `in-progress` (ride) / `picked-up`
+  /// (parcel) / `completed` all mean the pickup OTP has been verified.
+  bool get _isPickedUp =>
+      widget.order.status == 'in-progress' ||
+      widget.order.status == 'picked-up' ||
+      widget.order.status == 'completed';
+
+  /// An ongoing ride/parcel job — the rider is working it right now, either
+  /// heading to the pickup or carrying to the drop.
+  ///
+  /// A working job is about GETTING THERE, so its location rows carry distance
+  /// + a map shortcut instead of a call button. Nothing is lost: the one call
+  /// button the rider needs sits on the customer row, where the name is.
+  bool get _isOngoingRideCard =>
+      widget.selectedPickUp == PickUpTab.onGoing && _isRideOrParcelOrder;
+
+  /// The "Navigate to Pickup" leg of that job: accepted (`payment-pending` /
+  /// `confirmed`) but the passenger isn't aboard yet. The pickup row only
+  /// exists during this leg — once picked up it's hidden entirely.
+  bool get _isNavigateToPickup => _isOngoingRideCard && !_isPickedUp;
+
   /// True for the ride-type orders whose pickup leg is done — the case that
   /// used to carry the slide-to-complete.
   bool get _isRideInProgress =>
-      (widget.order.orderFor == AppConstants.InCity ||
-          widget.order.orderFor == AppConstants.OutStation ||
-          widget.order.orderFor == AppConstants.HourlyRental ||
-          widget.order.orderFor == AppConstants.Parcel) &&
-      widget.order.status == 'in-progress';
+      _isRideOrParcelOrder && widget.order.status == 'in-progress';
 
   /// When the ride actually started, read out of the order's `timestamps` map.
   ///
@@ -134,6 +176,83 @@ class _OrderCardState extends State<OrderCard> {
         '${stamps.keys.toList()}');
     return null;
   }
+
+  /// Resolve the customer's profession / business category for the customer row.
+  ///
+  /// The order payload's `user` carries only id / name / profile_image /
+  /// contact_no, so this has to be looked up. Two guards keep a list of cards
+  /// from turning into a burst of requests: it only runs for the ride/parcel
+  /// cards that actually show the row, and results are cached per user id for
+  /// the process lifetime (a customer's profession does not change mid-ride).
+  Future<void> _loadCustomerIdentity() async {
+    if (!_isRideOrParcelOrder) return;
+    final userId = widget.order.user?.id;
+    if (userId == null || userId.isEmpty) return;
+
+    final cached = _identityCache[userId];
+    if (cached != null) {
+      _identity = cached;
+      return; // already have it — no setState needed, build() reads it
+    }
+
+    final identity = await _fetchCustomerIdentity(userId);
+    if (identity == null || !mounted) return;
+    // The card may have been recycled onto a different order while in flight.
+    if (widget.order.user?.id != userId) return;
+    setState(() => _identity = identity);
+  }
+
+  static Future<_CustomerIdentity?> _fetchCustomerIdentity(String userId) {
+    // De-dupe concurrent lookups: several cards in one list can belong to the
+    // same customer, and they all build at once.
+    return _identityInFlight.putIfAbsent(userId, () async {
+      try {
+        final response = await UserRepo().getUserById(userId: userId);
+        if (!response.isSuccess || response.response?.data == null) return null;
+
+        final user = profile_res.UserProfileRes
+            .fromJson(response.response?.data)
+            .user;
+        final isBusiness =
+            (user?.accountType ?? '').toUpperCase().contains('BUSINESS');
+
+        final identity = isBusiness
+            ? await _fetchBusinessIdentity(userId)
+            // Individual: profession is the headline; designation is the
+            // fallback for profiles that only filled the job title in.
+            : _CustomerIdentity.of(user?.profession ?? user?.designation);
+
+        if (identity != null) _identityCache[userId] = identity;
+        return identity;
+      } catch (_) {
+        // Fail soft — the row still has the name and number, which is what the
+        // rider actually needs at the kerb.
+        return null;
+      } finally {
+        _identityInFlight.remove(userId);
+      }
+    });
+  }
+
+  /// Business customers: category, narrowed by sub-category when both are set.
+  /// Only the resolved `*_details.name` values are used — the bare
+  /// `category_Of_Business` fields are ids, which would render as a hash.
+  static Future<_CustomerIdentity?> _fetchBusinessIdentity(String userId) async {
+    final response = await BusinessProfileRepo().viewBusinessProfileById(userId);
+    if (!response.isSuccess || response.response?.data == null) return null;
+
+    final details =
+        ViewBusinessProfileModel.fromJson(response.response?.data).data;
+    return _CustomerIdentity.of(
+      details?.categoryDetails?.name,
+      secondary: details?.subCategoryDetails?.name,
+      isBusiness: true,
+    );
+  }
+
+  /// Keyed by user id, shared across every card in the list.
+  static final Map<String, _CustomerIdentity> _identityCache = {};
+  static final Map<String, Future<_CustomerIdentity?>> _identityInFlight = {};
 
   @override
   Widget build(BuildContext context) {
@@ -241,13 +360,26 @@ class _OrderCardState extends State<OrderCard> {
   }
 
   Widget _buildUserName() {
-    return CustomText(
-      widget.order.user?.name,
-      fontSize: SizeConfig.large,
-      fontWeight: FontWeight.w600,
-      color: AppColors.mainTextColor,
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
+    // The rating sits with the name, not off in the meta row: on the
+    // new-order card this is the moment the rider decides whether to accept,
+    // and who they'd be picking up is the deciding fact.
+    return Row(
+      children: [
+        Flexible(
+          child: CustomText(
+            widget.order.user?.name,
+            fontSize: SizeConfig.large,
+            fontWeight: FontWeight.w600,
+            color: AppColors.mainTextColor,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        if (widget.order.user?.rating != null) ...[
+          SizedBox(width: SizeConfig.size6),
+          CustomerRatingBadge(rating: widget.order.user!.rating),
+        ],
+      ],
     );
   }
 
@@ -434,7 +566,12 @@ class _OrderCardState extends State<OrderCard> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Expanded(child: _buildPickupLocationInfo()),
-                    if (widget.selectedPickUp == PickUpTab.onGoing)
+                    if (_isNavigateToPickup)
+                      _buildDistanceMapAction(
+                        distance: widget.order.distanceToPickup,
+                        onTap: _handleOpenPickupLocation,
+                      )
+                    else if (widget.selectedPickUp == PickUpTab.onGoing)
                       _buildCallButton(widget.order.receiverUser?.contactNo),
                   ],
                 ),
@@ -467,21 +604,71 @@ class _OrderCardState extends State<OrderCard> {
             fontWeight: FontWeight.w400,
             color: AppColors.secondaryTextColor,
           ),
-          CustomText(
-            '${widget.order.distanceToPickup}',
-            fontSize: SizeConfig.small11,
-            fontWeight: FontWeight.w400,
-            color: AppColors.primaryColor,
-          ),
-          SizedBox(width: SizeConfig.size2),
-          Icon(
-            Icons.location_on_outlined,
-            size: SizeConfig.size12,
-            color: AppColors.primaryColor,
-          ),
+          // Before pickup the distance moves to the end of the row, beside the
+          // map shortcut — printing it in both places just repeats it.
+          if (!_isNavigateToPickup) ...[
+            CustomText(
+              '${widget.order.distanceToPickup}',
+              fontSize: SizeConfig.small11,
+              fontWeight: FontWeight.w400,
+              color: AppColors.primaryColor,
+            ),
+            SizedBox(width: SizeConfig.size2),
+            Icon(
+              Icons.location_on_outlined,
+              size: SizeConfig.size12,
+              color: AppColors.primaryColor,
+            ),
+          ],
         ],
       ),
     );
+  }
+
+  /// Trailing distance + map shortcut, in place of the call button while the
+  /// rider is still heading to the pickup.
+  ///
+  /// [distance] is dropped when the server sends nothing usable (it spells the
+  /// blank three different ways), leaving the map icon on its own rather than a
+  /// stray "N/A".
+  Widget _buildDistanceMapAction({
+    required String? distance,
+    required VoidCallback onTap,
+  }) {
+    final text = _cleanDistance(distance);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(100.0),
+      child: Padding(
+        padding: EdgeInsets.only(left: SizeConfig.size6),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (text != null) ...[
+              CustomText(
+                text,
+                fontSize: SizeConfig.small11,
+                fontWeight: FontWeight.w600,
+                color: AppColors.primaryColor,
+              ),
+              SizedBox(width: SizeConfig.size4),
+            ],
+            Icon(
+              Icons.map_outlined,
+              size: SizeConfig.size16,
+              color: AppColors.primaryColor,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// The API sends an absent distance as `N/A`, `null` (the string) or empty.
+  static String? _cleanDistance(String? raw) {
+    final value = raw?.trim() ?? '';
+    if (value.isEmpty || value == 'N/A' || value == 'null') return null;
+    return value;
   }
 
   Widget _buildGroceryShopList(BuildContext context) {
@@ -775,7 +962,15 @@ class _OrderCardState extends State<OrderCard> {
             children: [
               Expanded(child: _buildDropLocationInfo()),
 
-              if ((widget.selectedPickUp == PickUpTab.onGoing)?widget.isPipModeOn==false:true)
+              // Both legs, not just the pickup one: after pickup this row is the
+              // only location on the card, and "how far to the drop + open it
+              // in maps" is what the rider is asking it.
+              if (_isOngoingRideCard)
+                _buildDistanceMapAction(
+                  distance: widget.order.distancePickupToDrop,
+                  onTap: _handleOpenDropLocation,
+                )
+              else if ((widget.selectedPickUp == PickUpTab.onGoing)?widget.isPipModeOn==false:true)
                 _buildCallButton(widget.order.user?.contactNo),
             ],
           ),
@@ -798,21 +993,23 @@ class _OrderCardState extends State<OrderCard> {
             fontWeight: FontWeight.w400,
             color: AppColors.secondaryTextColor,
           ),
-          CustomText(
-            ' ${(widget.order.distancePickupToDrop=="N/A"||widget.order.distancePickupToDrop==''||widget.order.distancePickupToDrop=="null")?"":widget.order.distancePickupToDrop}',
-            fontSize: SizeConfig.small11,
-            fontWeight: FontWeight.w400,
-            color: AppColors.primaryColor,
-          ),
-          SizedBox(width: SizeConfig.size2),
-          if((widget.order.distancePickupToDrop=="N/A"||widget.order.distancePickupToDrop==''||widget.order.distancePickupToDrop=="null"))
-            SizedBox()
-          else
-            Icon(
-            Icons.location_on_outlined,
-            size: SizeConfig.size12,
-            color: AppColors.primaryColor,
-          ),
+          // As on the pickup row: on a working job this pair moves to the end
+          // of the row, next to the map shortcut.
+          if (!_isOngoingRideCard) ...[
+            CustomText(
+              ' ${_cleanDistance(widget.order.distancePickupToDrop) ?? ''}',
+              fontSize: SizeConfig.small11,
+              fontWeight: FontWeight.w400,
+              color: AppColors.primaryColor,
+            ),
+            SizedBox(width: SizeConfig.size2),
+            if (_cleanDistance(widget.order.distancePickupToDrop) != null)
+              Icon(
+                Icons.location_on_outlined,
+                size: SizeConfig.size12,
+                color: AppColors.primaryColor,
+              ),
+          ],
         ],
       ),
     );
@@ -992,9 +1189,7 @@ class _OrderCardState extends State<OrderCard> {
     // Past-pickup = OTP already verified. After the pickup OTP the ride order
     // becomes 'in-progress' (parcel/goods may report 'picked-up'); both, plus
     // 'completed', mean the pickup leg is done → go to the destination screen.
-    final isPickedUp = order.status == 'in-progress' ||
-        order.status == 'picked-up' ||
-        order.status == 'completed';
+    final isPickedUp = _isPickedUp;
 
     if (isPickedUp) {
       // OTP verified / past pickup — open the rider destination screen (live
@@ -1014,6 +1209,7 @@ class _OrderCardState extends State<OrderCard> {
             customerImage: customerImage,
             paymentMethod: paymentMethod,
             orderId: order.id ?? '',
+            customerUserId: order.user?.id ?? '',
           ),
         ),
       );
@@ -1047,12 +1243,14 @@ class _OrderCardState extends State<OrderCard> {
     }
   }
 
-  /// Customer identity block for the ongoing ride card: photo, name, contact
-  /// and a call button.
+  /// Customer identity block for the ongoing ride card: photo, name, what they
+  /// do, and a call button.
   ///
-  /// The order payload's `user` carries only id / name / profile_image /
-  /// contact_no — there is no designation field — so the second line is the
-  /// phone number, which is what the rider actually needs at the kerb.
+  /// "What they do" is a profession for an individual and a category (narrowed
+  /// by sub-category) for a business. Neither travels on the order payload, so
+  /// both come from [_loadCustomerIdentity] and the line simply doesn't render
+  /// until it resolves — it replaces the phone number, which was only ever a
+  /// stand-in for it and is still one tap away on the call button.
   Widget _buildCustomerInfoRow() {
     final user = widget.order.user;
     final name = (user?.name ?? '').trim();
@@ -1083,15 +1281,9 @@ class _OrderCardState extends State<OrderCard> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                if (contact.isNotEmpty) ...[
+                if (_identity != null) ...[
                   SizedBox(height: SizeConfig.size2),
-                  CustomText(
-                    contact,
-                    fontSize: SizeConfig.small,
-                    color: AppColors.secondaryTextColor,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  _buildCustomerIdentityLine(_identity!),
                 ],
               ],
             ),
@@ -1102,12 +1294,35 @@ class _OrderCardState extends State<OrderCard> {
     );
   }
 
+  /// The profession / category line, tinted to read as an attribute of the
+  /// customer rather than a second name.
+  Widget _buildCustomerIdentityLine(_CustomerIdentity identity) {
+    return Row(
+      children: [
+        Icon(
+          identity.isBusiness ? Icons.storefront_outlined : Icons.work_outline,
+          size: SizeConfig.size12,
+          color: AppColors.primaryColor,
+        ),
+        SizedBox(width: SizeConfig.size4),
+        Expanded(
+          child: CustomText(
+            identity.label,
+            fontSize: SizeConfig.small11,
+            fontWeight: FontWeight.w600,
+            color: AppColors.primaryColor,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildViewRideOnMapButton() {
     // 'in-progress' (ride) / 'picked-up' (parcel) / 'completed' all mean the
     // pickup OTP is done, so the CTA reads "View Ride on Map".
-    final isPickedUp = widget.order.status == 'in-progress' ||
-        widget.order.status == 'picked-up' ||
-        widget.order.status == 'completed';
+    final isPickedUp = _isPickedUp;
     return GestureDetector(
       onTap: _navigateToRideMap,
       child: Container(
@@ -1231,9 +1446,6 @@ class _OrderCardState extends State<OrderCard> {
       ],
     );
   }
-
-
-
 
   /// Journey readout shown in place of the retired slide-to-complete: how long
   /// the rider has been travelling, and how far the trip is.
@@ -1618,6 +1830,45 @@ class _OrderCardState extends State<OrderCard> {
   String _formatTime(String isoString) {
     final dateTime = DateTime.parse(isoString).toLocal();
     return DateFormat('hh:mm a').format(dateTime);
+  }
+}
+
+/// What the customer does, for the ongoing ride card's customer row.
+///
+/// One type for both account kinds because the row renders them identically —
+/// only the icon differs — and the card should not have to know which lookup
+/// produced the text.
+class _CustomerIdentity {
+  /// `Plumber`, or `Restaurant · Bakery` for a business with a sub-category.
+  final String label;
+  final bool isBusiness;
+
+  const _CustomerIdentity({required this.label, required this.isBusiness});
+
+  /// Builds an identity from values that are routinely null or blank, returning
+  /// null when there is nothing worth showing. [secondary] narrows [primary]
+  /// (sub-category under category) and is dropped when it merely repeats it.
+  ///
+  /// [isBusiness] is passed explicitly rather than inferred from [secondary]
+  /// being present: a business that never set a sub-category still has to read
+  /// as a business.
+  static _CustomerIdentity? of(
+    String? primary, {
+    String? secondary,
+    bool isBusiness = false,
+  }) {
+    final head = primary?.trim() ?? '';
+    final tail = secondary?.trim() ?? '';
+    if (head.isEmpty) {
+      return tail.isEmpty
+          ? null
+          : _CustomerIdentity(label: tail, isBusiness: isBusiness);
+    }
+    final sameThing = tail.isEmpty || tail.toLowerCase() == head.toLowerCase();
+    return _CustomerIdentity(
+      label: sameThing ? head : '$head · $tail',
+      isBusiness: isBusiness,
+    );
   }
 }
 

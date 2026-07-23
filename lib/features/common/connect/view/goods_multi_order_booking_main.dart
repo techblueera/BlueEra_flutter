@@ -9,6 +9,7 @@ import 'package:BlueEra/features/chat/auth/model/saved_address_model.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/multi_shop_rider_model.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/fare_call_queue_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/book_your_transport/goods_multi_broadcast_searching_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/goods_multi_call_tracking_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/book_your_transport/passenger_booking_main.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -81,6 +82,23 @@ class _GoodsMultiOrderBookingMainState
     );
   }
 
+  /// Broadcast (wave race) booking — no rider is picked. Creates the order on
+  /// `/fare/multi-shop/orders/broadcast`, then hands over to the searching
+  /// screen, which switches itself to tracking when a rider wins.
+  Future<void> _onBroadcastToNearbyRiders() async {
+    // Register the listeners BEFORE creating the order so a wave that starts
+    // immediately isn't missed. `ride:queue:accepted` (the full winner
+    // payload) lives on the fare-call listeners, which broadcast reuses.
+    discoverController.setupFareCallQueueListeners();
+    discoverController.setupMultiShopBroadcastListeners();
+    final success = await discoverController.makeMultiShopBroadcastOrder();
+    if (success) {
+      Get.to(() => GoodsMultiBroadcastSearchingScreen(
+            orderId: discoverController.fareCallOrderId.value,
+          ));
+    }
+  }
+
   Future<void> _onCallToRider() async {
     // Setup queue listeners BEFORE the API call so we don't miss
     // ride:queue:calling if the server fires it immediately after creation.
@@ -104,13 +122,40 @@ class _GoodsMultiOrderBookingMainState
         child: Padding(
           padding: const EdgeInsets.all(14.0),
           child: Obx(
-            () => CustomBtn(
-              height: 44,
-              isLoading: discoverController.bookRiderBtnLoading.value,
-              isValidate: discoverController.selectedRiders.isNotEmpty,
-              onTap: _onCallToRider,
-              title: AppStrings.callToRider.tr,
-            ),
+            () {
+              final loading = discoverController.bookRiderBtnLoading.value;
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Broadcast needs no selection — it's the one-tap path, so it
+                  // leads.
+                  CustomBtn(
+                    height: 44,
+                    isLoading: loading,
+                    isValidate: true,
+                    onTap: _onBroadcastToNearbyRiders,
+                    title: 'Book any nearby rider',
+                  ),
+                  const SizedBox(height: 10),
+                  // Hand-picked fare-call queue — unchanged, still requires a
+                  // rider selection.
+                  CustomBtn(
+                    height: 44,
+                    isLoading: loading,
+                    isValidate: discoverController.selectedRiders.isNotEmpty,
+                    bgColor: AppColors.white,
+                    borderColor: discoverController.selectedRiders.isNotEmpty
+                        ? AppColors.primaryColor
+                        : AppColors.whiteE5,
+                    textColor: discoverController.selectedRiders.isNotEmpty
+                        ? AppColors.primaryColor
+                        : AppColors.secondaryTextColor,
+                    onTap: _onCallToRider,
+                    title: AppStrings.callToRider.tr,
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ),

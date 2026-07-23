@@ -607,6 +607,7 @@ class _RiderPickupNavigationScreenState
           customerImage: widget.customerImage,
           paymentMethod: widget.paymentMethod,
           orderId: widget.orderId,
+          customerUserId: widget.customerUserId,
         ),
       ),
     );

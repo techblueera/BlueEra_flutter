@@ -139,6 +139,13 @@ mixin RiderServiceApi {
   final String multiShopRiders = 'rider-service/fare/multi-shop/riders';
   // 2) Create the multi-stop order (book a rider).
   final String multiShopOrders = 'rider-service/fare/multi-shop/orders';
+  // 2b) Create the multi-stop order as a Rapido-style BROADCAST — no rider is
+  // picked; the server discovers nearby riders in expanding waves and the
+  // first to accept wins. Same body as [multiShopOrders] with `selectedRiders`
+  // OMITTED and an optional `vehicleType` to restrict the race to one type.
+  // Sending selectedRiders here would put it back on the hand-picked path.
+  final String multiShopOrdersBroadcast =
+      'rider-service/fare/multi-shop/orders/broadcast';
   // Per-stop progress (rider-side): arrive / pickup at each shop.
   String multiShopStopArrive(String orderId, String businessId) =>
       'rider-service/fare/multi-shop/orders/$orderId/stops/$businessId/arrive';
@@ -152,6 +159,17 @@ mixin RiderServiceApi {
       'rider-service/medical/orders/available-items';
   final String myMedicalOrders = 'rider-service/medical/orders/business';
   final String ridersMedicalOrders = 'rider-service/riders/orders/medical/';
+
+  /// Rider → customer rating. POST `{ rating: 1-5, orderId }`; the server only
+  /// accepts it from the order's assigned rider, on a completed order, once
+  /// per order (a duplicate comes back as `alreadyRated`).
+  String rateCustomer(String userId) =>
+      'rider-service/riders/customers/$userId/rate';
+
+  /// The customer's aggregate `{ average, count }`. The order lists already
+  /// embed this per customer — this is for looking one up on its own.
+  String customerRating(String userId) =>
+      'rider-service/riders/customers/$userId/rating';
 
   /// Emergency contacts (user-facing endpoint hosted on rider-service).
   final String emergencyContacts = 'rider-service/emergency-contacts';

@@ -164,6 +164,30 @@ class MakeOrderRepo extends BaseService {
      onError: (error) {}, onSuccess: (data) {});
     return response;
   }
+  /// Rider rates the customer of a completed order. One vote per order —
+  /// a repeat comes back as `alreadyRated` rather than a hard failure.
+  Future<ResponseModel> rateCustomerApi({
+    required String userId,
+    required String orderId,
+    required int rating,
+  }) async {
+    final response = await ApiBaseHelper().postHTTP(
+        rateCustomer(userId),
+        showProgress: false,
+        params: {'rating': rating, 'orderId': orderId},
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
+  /// Read a customer's rider-given rating aggregate `{ average, count }`.
+  Future<ResponseModel> getCustomerRatingApi(String userId) async {
+    final response = await ApiBaseHelper().getHTTP(
+        customerRating(userId),
+        showProgress: false,
+        onError: (error) {}, onSuccess: (data) {});
+    return response;
+  }
+
   Future<ResponseModel> rideActionApi(Map<String, dynamic> params, String orderId) async {
     final response = await ApiBaseHelper().postHTTP(
         rideAction(orderId),

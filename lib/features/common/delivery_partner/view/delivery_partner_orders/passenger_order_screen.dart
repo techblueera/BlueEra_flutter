@@ -422,6 +422,7 @@ class _PassengerOrderScreenState extends State<PassengerOrderScreen> {
                       customerImage: p['customerImage'] ?? '',
                       paymentMethod: paymentMethod,
                       orderId: p['orderId'] ?? '',
+                      customerUserId: p['customerUserId'] ?? '',
                     ));
               }
             },

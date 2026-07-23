@@ -404,14 +404,40 @@ class RideStop {
 
 /* ---------------- SUB MODELS ---------------- */
 
+/// Aggregate of the ratings RIDERS have given a customer — `{ average, count }`
+/// on every customer object the rider-side order endpoints return.
+///
+/// A customer nobody has rated yet comes back as `0 / 0`, which is not a bad
+/// score but an absent one: [hasRatings] is what the UI branches on so a new
+/// customer reads as "New", never as one star.
+class RatingSummary {
+  RatingSummary({this.average = 0, this.count = 0});
+
+  RatingSummary.fromJson(dynamic json)
+      : average = json is Map
+            ? (double.tryParse('${json['average'] ?? 0}') ?? 0)
+            : 0,
+        count = json is Map ? (int.tryParse('${json['count'] ?? 0}') ?? 0) : 0;
+
+  final double average;
+  final int count;
+
+  bool get hasRatings => count > 0 && average > 0;
+
+  Map<String, dynamic> toJson() => {'average': average, 'count': count};
+}
+
 class ReceiverUser {
-  ReceiverUser({this.id, this.name, this.profileImage, this.contactNo});
+  ReceiverUser(
+      {this.id, this.name, this.profileImage, this.contactNo, this.rating});
 
   ReceiverUser.fromJson(dynamic json) {
     id = json['id'];
     name = json['name'];
     profileImage = json['profile_image'];
     contactNo = json['contact_no'];
+    rating =
+        json['rating'] != null ? RatingSummary.fromJson(json['rating']) : null;
   }
 
   String? id;
@@ -419,22 +445,28 @@ class ReceiverUser {
   String? profileImage;
   String? contactNo;
 
+  /// Rider-given rating aggregate. Null on older payloads that predate it.
+  RatingSummary? rating;
+
   Map<String, dynamic> toJson() => {
     'id': id,
     'name': name,
     'profile_image': profileImage,
     'contact_no': contactNo,
+    if (rating != null) 'rating': rating!.toJson(),
   };
 }
 
 class User {
-  User({this.id, this.name, this.profileImage, this.contactNo});
+  User({this.id, this.name, this.profileImage, this.contactNo, this.rating});
 
   User.fromJson(dynamic json) {
     id = json['id'];
     name = json['name'];
     profileImage = json['profile_image'];
     contactNo = json['contact_no'];
+    rating =
+        json['rating'] != null ? RatingSummary.fromJson(json['rating']) : null;
   }
 
   String? id;
@@ -442,11 +474,15 @@ class User {
   String? profileImage;
   String? contactNo;
 
+  /// Rider-given rating aggregate. Null on older payloads that predate it.
+  RatingSummary? rating;
+
   Map<String, dynamic> toJson() => {
     'id': id,
     'name': name,
     'profile_image': profileImage,
     'contact_no': contactNo,
+    if (rating != null) 'rating': rating!.toJson(),
   };
 }
 

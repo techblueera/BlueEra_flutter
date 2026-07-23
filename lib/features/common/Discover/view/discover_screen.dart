@@ -7,16 +7,15 @@ import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
+import 'package:BlueEra/core/services/ongoing_ride_restorer.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/nearby_stores_controller.dart';
 import 'package:BlueEra/features/common/Discover/controller/recent_shops_controller.dart';
-// Retained for the commented-out parcel entry point in _searchRow — see the
-// note there. Uncomment alongside it if that route is restored.
-// import 'package:BlueEra/features/common/Discover/view/book_your_transport/parcel_pickup_drop_screen.dart';
 import 'package:BlueEra/features/ride_booking/view/ride_home_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_categories_data.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_category_section.dart';
 import 'package:BlueEra/features/common/Discover/widget/nearest_stores_section.dart';
+import 'package:BlueEra/features/common/Discover/widget/ongoing_booking_chip.dart';
 import 'package:BlueEra/features/common/Discover/widget/recently_visited_stores_section.dart';
 import 'package:BlueEra/features/common/Discover/widget/share_promo_sheet.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/automotive_service_card_widget.dart';
@@ -190,6 +189,12 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     _locationResolved = LocationService.hasUsableLocation;
     if (!_locationResolved) _ensureLocationThenBuild();
 
+    // Put a ride that was running when the app was killed back on screen, so
+    // the ongoing chip below the search bar is there on a cold start too. The
+    // Connect tab does the same — the first tab to mount wins, the other call
+    // returns immediately.
+    OngoingRideRestorer.restoreIfNeeded();
+
     _maybeShowSharePromo();
   }
 
@@ -275,6 +280,12 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               /// quick-access tabs collapse away on scroll while the search bar
               /// stays pinned below the status bar.
               _buildHeaderSliver(context),
+
+              /// "Your Ongoing Ride/Booking" chip — the re-entry point into a
+              /// ride the customer minimised, plus the receipt/rating for one
+              /// that finished while they were elsewhere in the app. Shown on
+              /// every tab and collapses to nothing when there is no ride.
+              const SliverToBoxAdapter(child: OngoingBookingChip()),
 
               SliverToBoxAdapter(child: SizedBox(height: SizeConfig.size12)),
 
@@ -569,11 +580,6 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
             width: 24,
             height: 24,
           ),
-          // Previous entry point — the parcel pickup/drop form. Kept here (and
-          // still reachable from the parcel/GOODS flows) while the new
-          // Rapido-style booking flow under lib/features/ride_booking/ takes
-          // over this icon.
-          // onTap: () => Get.to(ParcelPickupDropScreen()),
           onTap: () => Get.to(() => const RideHomeScreen()),
         ),
         SizedBox(width: SizeConfig.size10),

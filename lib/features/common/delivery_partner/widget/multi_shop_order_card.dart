@@ -18,6 +18,7 @@ import '../../../chat/auth/controller/call_controller.dart';
 import '../../../chat/auth/model/rider_orders_details_model.dart';
 import '../controller/delivery_partner_orders_controller.dart';
 import '../model/grocery_order_details.dart';
+import 'customer_rating_badge.dart';
 
 /// Order card for **multi-shop goods orders** booked from
 /// `GoodsMultiOrderBookingMain` (`POST /fare/multi-shop/orders`).
@@ -308,6 +309,11 @@ class _MultiShopOrderCardState extends State<MultiShopOrderCard> {
                 children: [
                   _multiStopChip(),
                   SizedBox(width: SizeConfig.size6),
+                  if (_order.user?.rating != null) ...[
+                    CustomerRatingBadge(
+                        rating: _order.user!.rating, compact: true),
+                    SizedBox(width: SizeConfig.size6),
+                  ],
                   if ((_order.orderNo ?? '').isNotEmpty)
                     Flexible(
                       child: CustomText(
