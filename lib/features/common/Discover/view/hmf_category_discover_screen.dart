@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/common/Discover/controller/hmf_cart_controller.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/common/Discover/controller/hmf_consumer_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/consumer_tiffin_response_model.dart';
 import 'package:BlueEra/features/common/Discover/view/hmf_cart_screen.dart';
@@ -501,6 +502,7 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
       address: meal.address,
       lat: meal.lat ?? meal.storeLat,
       lng: meal.lng ?? meal.storeLng,
+      sellerUserId: meal.userId,
     );
   }
 
@@ -539,6 +541,7 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
       address: kitchen?.address ?? '',
       lat: item.lat ?? kitchen?.latitude,
       lng: item.lng ?? kitchen?.longitude,
+      sellerUserId: item.userId,
     );
   }
 
@@ -562,6 +565,7 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
     String address = '',
     double? lat,
     double? lng,
+    String? sellerUserId,
   }) {
     final hasTime = (startTime?.isNotEmpty ?? false) && (endTime?.isNotEmpty ?? false);
     final showDiscount = discount.isNotEmpty && !discount.startsWith('0');
@@ -673,6 +677,7 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
               storeLogo: storeLogo,
               lat: lat,
               lng: lng,
+              sellerUserId: sellerUserId,
             ),
           ),
         ],
@@ -688,23 +693,35 @@ class _HmfCategoryDiscoverScreenState extends State<HmfCategoryDiscoverScreen> {
     String? storeLogo,
     double? lat,
     double? lng,
+    String? sellerUserId,
   }) {
     return Row(
       children: [
-        _kitchenAvatar(storeLogo, size: 34),
+        // Kitchen avatar / name open the cook's personal profile — home
+        // made food is always sold by individual accounts. "View
+        // Profile" on the right still opens the store itself.
+        DiscoverProfileTap(
+          accountType: AppConstants.individual,
+          userId: sellerUserId,
+          child: _kitchenAvatar(storeLogo, size: 34),
+        ),
         const SizedBox(width: 8),
         Expanded(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CustomText(
-                storeName.isNotEmpty ? storeName : AppStrings.kitchenLabel.tr,
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: AppColors.mainTextColor,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              DiscoverProfileTap(
+                accountType: AppConstants.individual,
+                userId: sellerUserId,
+                child: CustomText(
+                  storeName.isNotEmpty ? storeName : AppStrings.kitchenLabel.tr,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.mainTextColor,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
               const SizedBox(height: 2),
               _distanceLine(lat, lng),

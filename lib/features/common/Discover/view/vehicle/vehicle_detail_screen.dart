@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/vehicle/controller/vehicle_controller.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/me/vehicle/model/vehicle_models.dart';
 import 'package:BlueEra/features/me/vehicle/view/booking/vehicle_bookings_screen.dart';
 import 'package:BlueEra/features/me/vehicle/widget/vehicle_enquiry_sheet.dart';
@@ -382,11 +383,21 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
                         ),
                       ],
                     ),
-                    child: CachedAvatarWidget(
-                      imageUrl: ownerImage,
-                      size: SizeConfig.size80,
-                      borderColor: Colors.transparent,
-                      borderRadius: SizeConfig.size40,
+                    // Owner avatar → that owner's profile. A vehicle can
+                    // be listed by either account type, so hand both ids
+                    // over and let the account type pick.
+                    child: DiscoverProfileTap(
+                      accountType: v.business != null
+                          ? AppConstants.business
+                          : AppConstants.individual,
+                      userId: v.userId,
+                      businessId: v.businessId,
+                      child: CachedAvatarWidget(
+                        imageUrl: ownerImage,
+                        size: SizeConfig.size80,
+                        borderColor: Colors.transparent,
+                        borderRadius: SizeConfig.size40,
+                      ),
                     ),
                   ),
                 ),
@@ -694,26 +705,38 @@ class _VehicleDetailScreenState extends State<VehicleDetailScreen> {
     final ownerName = (v.user?['name'] ?? v.business?['business_name'] ?? '').toString();
     final ownerImage = (v.user?['profile_image'] ?? v.business?['logo_image'] ?? '').toString();
     final ownerPhone = (v.user?['contact_no'] ?? '').toString();
+    final ownerAccountType =
+        v.business != null ? AppConstants.business : AppConstants.individual;
     return Row(
       children: [
-        CachedAvatarWidget(
-          imageUrl: ownerImage,
-          size: SizeConfig.size48,
-          borderColor: Colors.transparent,
-          borderRadius: SizeConfig.size24,
+        DiscoverProfileTap(
+          accountType: ownerAccountType,
+          userId: v.userId,
+          businessId: v.businessId,
+          child: CachedAvatarWidget(
+            imageUrl: ownerImage,
+            size: SizeConfig.size48,
+            borderColor: Colors.transparent,
+            borderRadius: SizeConfig.size24,
+          ),
         ),
         SizedBox(width: SizeConfig.size12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CustomText(
-                ownerName.isEmpty ? AppStrings.listedByTitle.tr : ownerName,
-                fontSize: SizeConfig.medium,
-                fontWeight: FontWeight.w700,
-                color: AppColors.mainTextColor,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              DiscoverProfileTap(
+                accountType: ownerAccountType,
+                userId: v.userId,
+                businessId: v.businessId,
+                child: CustomText(
+                  ownerName.isEmpty ? AppStrings.listedByTitle.tr : ownerName,
+                  fontSize: SizeConfig.medium,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.mainTextColor,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
               SizedBox(height: SizeConfig.size3),
               CustomText(

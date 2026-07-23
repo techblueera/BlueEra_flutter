@@ -9,6 +9,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/model/rental_service_response.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_rating_row.dart';
@@ -120,16 +121,12 @@ class _AllRentalServiceScreenState extends State<AllRentalServiceScreen> {
 
   Widget _buildServiceCard(RentalServiceData serviceData) {
     return InkWell(
-      onTap: () {
-        // if (userId == serviceData.id) {
-        //   Get.to(() => PersonalProfileSetupNewScreen());
-        // } else {
-        //   Get.to(() => NewVisitProfileScreen(
-        //         authorId: serviceData.id ?? '',
-        //         screenFromName: AppConstants.feedScreen,
-        //       ));
-        // }
-      },
+      // Rentals are listed by individuals, so the card opens the host's
+      // personal profile (their own profile when it's their listing).
+      onTap: () => openDiscoverProfile(
+        accountType: AppConstants.individual,
+        userId: serviceData.userId,
+      ),
       child: Container(
         width: Get.width,
         margin: EdgeInsets.only(bottom: 15),

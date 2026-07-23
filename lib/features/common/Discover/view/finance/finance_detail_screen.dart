@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -8,6 +9,7 @@ import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/common/Discover/controller/finance_discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/finance_search_res_model.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/common/Discover/view/finance/finance_job_listing_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/finance/widget/finance_enquiry_sheet.dart';
 import 'package:BlueEra/features/me/others/controller/other_enquiry_controller.dart';
@@ -256,24 +258,30 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
                         BoxShadow(color: Colors.black12, blurRadius: 10),
                       ],
                     ),
-                    child: ClipOval(
-                      child: (data.logoUrl?.isNotEmpty ?? false)
-                          ? CachedNetworkImage(
-                              imageUrl: data.logoUrl ?? '',
-                              fit: BoxFit.cover,
-                              placeholder: (ctx, _) => LocalAssets(
+                    // Logo opens the owning business profile.
+                    child: DiscoverProfileTap(
+                      accountType: AppConstants.business,
+                      businessId: data.businessProfileId,
+                      userId: data.userId,
+                      child: ClipOval(
+                        child: (data.logoUrl?.isNotEmpty ?? false)
+                            ? CachedNetworkImage(
+                                imageUrl: data.logoUrl ?? '',
+                                fit: BoxFit.cover,
+                                placeholder: (ctx, _) => LocalAssets(
+                                  imagePath: AppIconAssets.place_holder_image,
+                                  boxFix: BoxFit.cover,
+                                ),
+                                errorWidget: (ctx, _, __) => LocalAssets(
+                                  imagePath: AppIconAssets.place_holder_image,
+                                  boxFix: BoxFit.cover,
+                                ),
+                              )
+                            : LocalAssets(
                                 imagePath: AppIconAssets.place_holder_image,
                                 boxFix: BoxFit.cover,
                               ),
-                              errorWidget: (ctx, _, __) => LocalAssets(
-                                imagePath: AppIconAssets.place_holder_image,
-                                boxFix: BoxFit.cover,
-                              ),
-                            )
-                          : LocalAssets(
-                              imagePath: AppIconAssets.place_holder_image,
-                              boxFix: BoxFit.cover,
-                            ),
+                      ),
                     ),
                   ),
                 ),
@@ -287,12 +295,17 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CustomText(
-                  data.profileName ?? AppStrings.unknown.tr,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                DiscoverProfileTap(
+                  accountType: AppConstants.business,
+                  businessId: data.businessProfileId,
+                  userId: data.userId,
+                  child: CustomText(
+                    data.profileName ?? AppStrings.unknown.tr,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
                 if (data.category?.isNotEmpty ?? false) ...[
                   const SizedBox(height: 6),

@@ -7,6 +7,7 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart';
 import 'package:BlueEra/features/common/Discover/view/healthcare/hospital_list_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
@@ -204,10 +205,12 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  InkWell(
-                    onTap: () {
-                      // Navigate to details
-                    },
+                  // Avatar / name open the provider's own profile —
+                  // business visiting card or personal profile depending
+                  // on the account that published the listing.
+                  DiscoverProfileTap(
+                    accountType: service.userDetails?.accountType,
+                    userId: service.userDetails?.id,
                     child: CachedAvatarWidget(
                       imageUrl: service.basicDetails?.profilePhotoUrl ?? '',
                       size: SizeConfig.size40,
@@ -221,10 +224,14 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      CustomText(service.basicDetails?.fullName ?? 'User',
-                          // fontSize: SizeConfig.small,
-                          color: AppColors.mainTextColor,
-                          fontWeight: FontWeight.w600),
+                      DiscoverProfileTap(
+                        accountType: service.userDetails?.accountType,
+                        userId: service.userDetails?.id,
+                        child: CustomText(service.basicDetails?.fullName ?? 'User',
+                            // fontSize: SizeConfig.small,
+                            color: AppColors.mainTextColor,
+                            fontWeight: FontWeight.w600),
+                      ),
                       // SizedBox(height: SizeConfig.size6),
                       CustomText(
                         service.basicDetails?.shortTagline ?? 'User',
@@ -367,13 +374,18 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
                                   decoration: BoxDecoration(
                                       color: AppColors.white,
                                       shape: BoxShape.circle),
-                                  child: CachedAvatarWidget(
-                                    imageUrl:
-                                        service.basicDetails?.profilePhotoUrl ??
-                                            '',
-                                    size: SizeConfig.size65,
-                                    borderColor: Colors.white,
-                                    borderRadius: SizeConfig.size40,
+                                  child: DiscoverProfileTap(
+                                    accountType:
+                                        service.userDetails?.accountType,
+                                    userId: service.userDetails?.id,
+                                    child: CachedAvatarWidget(
+                                      imageUrl: service
+                                              .basicDetails?.profilePhotoUrl ??
+                                          '',
+                                      size: SizeConfig.size65,
+                                      borderColor: Colors.white,
+                                      borderRadius: SizeConfig.size40,
+                                    ),
                                   ),
                                 ))
                           ],
@@ -389,11 +401,15 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Flexible(
-                              child: CustomText(
-                                  service.basicDetails?.fullName ?? ' User',
-                                  fontSize: SizeConfig.large,
-                                  color: AppColors.mainTextColor,
-                                  fontWeight: FontWeight.w700),
+                              child: DiscoverProfileTap(
+                                accountType: service.userDetails?.accountType,
+                                userId: service.userDetails?.id,
+                                child: CustomText(
+                                    service.basicDetails?.fullName ?? ' User',
+                                    fontSize: SizeConfig.large,
+                                    color: AppColors.mainTextColor,
+                                    fontWeight: FontWeight.w700),
+                              ),
                             ),
                             SizedBox(
                               width: SizeConfig.size8,

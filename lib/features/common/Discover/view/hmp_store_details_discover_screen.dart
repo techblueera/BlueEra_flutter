@@ -11,6 +11,7 @@ import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/features/common/Discover/controller/hmp_cart_controller.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/common/Discover/controller/hmp_store_details_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/hmp_cart_screen.dart';
 import 'package:BlueEra/features/me/product/model/get_product_model.dart';
@@ -253,13 +254,17 @@ class _HmpStoreDetailsDiscoverScreenState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CustomText(
-                store.serviceName ?? AppStrings.na,
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: AppColors.mainTextColor,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+              DiscoverProfileTap(
+                accountType: AppConstants.individual,
+                userId: store.userId,
+                child: CustomText(
+                  store.serviceName ?? AppStrings.na,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.mainTextColor,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
               const SizedBox(height: 10),
               Wrap(
@@ -297,11 +302,17 @@ class _HmpStoreDetailsDiscoverScreenState
                 ),
               ],
             ),
-            child: CachedAvatarWidget(
-              imageUrl: store.serviceLogo ?? '',
-              size: 62,
-              borderColor: Colors.transparent,
-              borderRadius: 31,
+            // Home-made-product stores are run by individuals, so the
+            // logo leads to the seller's personal profile.
+            child: DiscoverProfileTap(
+              accountType: AppConstants.individual,
+              userId: store.userId,
+              child: CachedAvatarWidget(
+                imageUrl: store.serviceLogo ?? '',
+                size: 62,
+                borderColor: Colors.transparent,
+                borderRadius: 31,
+              ),
             ),
           ),
         ),

@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -7,6 +8,7 @@ import 'package:BlueEra/core/services/ads/native_ad_list_inserter.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/me/food/view/customer/visit_food_store_details_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/common_generic_left_side_category_list.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
@@ -218,11 +220,17 @@ class _AllFoodServiceScreenState extends State<AllFoodServiceScreen> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CachedAvatarWidget(
-                    imageUrl: service.businessProfile?.logo ?? '',
-                    size: SizeConfig.size40,
-                    borderColor: Colors.white,
-                    borderRadius: SizeConfig.size20,
+                  // Logo / name open the restaurant's business profile;
+                  // the rest of the card opens the store details.
+                  DiscoverProfileTap(
+                    accountType: AppConstants.business,
+                    businessId: service.businessProfile?.id,
+                    child: CachedAvatarWidget(
+                      imageUrl: service.businessProfile?.logo ?? '',
+                      size: SizeConfig.size40,
+                      borderColor: Colors.white,
+                      borderRadius: SizeConfig.size20,
+                    ),
                   ),
                   SizedBox(width: SizeConfig.size6),
                   Expanded(
@@ -230,10 +238,15 @@ class _AllFoodServiceScreenState extends State<AllFoodServiceScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      CustomText( service.businessProfile?.businessName ?? 'N/A',
-                          // fontSize: SizeConfig.small,
-                          color: AppColors.mainTextColor,
-                          fontWeight: FontWeight.w600),
+                      DiscoverProfileTap(
+                        accountType: AppConstants.business,
+                        businessId: service.businessProfile?.id,
+                        child: CustomText(
+                            service.businessProfile?.businessName ?? 'N/A',
+                            // fontSize: SizeConfig.small,
+                            color: AppColors.mainTextColor,
+                            fontWeight: FontWeight.w600),
+                      ),
                       // SizedBox(height: SizeConfig.size6),
                       CustomText(
                         service.businessProfile?.typeOfBusiness ?? 'N/A',

@@ -8,6 +8,7 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/common/Discover/widget/service_enquiry_sheet.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_rating_row.dart';
@@ -457,11 +458,15 @@ class _SelfEmployeeContent extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: CachedAvatarWidget(
-                    imageUrl: profileImage,
-                    size: SizeConfig.size80,
-                    borderColor: Colors.transparent,
-                    borderRadius: SizeConfig.size40,
+                  child: DiscoverProfileTap(
+                    accountType: service.accountType,
+                    userId: service.id,
+                    child: CachedAvatarWidget(
+                      imageUrl: profileImage,
+                      size: SizeConfig.size80,
+                      borderColor: Colors.transparent,
+                      borderRadius: SizeConfig.size40,
+                    ),
                   ),
                 ),
                 Positioned(
@@ -560,18 +565,22 @@ class _SelfEmployeeContent extends StatelessWidget {
             children: [
               if (name.isNotEmpty)
                 Expanded(
-                  child: Text(
-                    name,
-                    style: TextStyle(
-                      fontFamily: AppConstants.OpenSans,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.mainTextColor,
-                      letterSpacing: -0.4,
-                      height: 1.1,
+                  child: DiscoverProfileTap(
+                    accountType: service.accountType,
+                    userId: service.id,
+                    child: Text(
+                      name,
+                      style: TextStyle(
+                        fontFamily: AppConstants.OpenSans,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.mainTextColor,
+                        letterSpacing: -0.4,
+                        height: 1.1,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               if (profession.isNotEmpty) ...[

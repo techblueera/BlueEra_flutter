@@ -19,6 +19,7 @@ import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
 import 'package:BlueEra/features/common/Discover/view/hotel_discover_home_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/book_via_blueera_partner_banner.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_map_widgets.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/common/Discover/widget/home_stay_details_widget.dart';
 import 'package:BlueEra/features/common/Discover/widget/hotel_stay_details_widget.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
@@ -826,10 +827,10 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   (profile?.coverUrl?.isNotEmpty ?? false)
-                      ? InkWell(
-                          onTap: () {
-                            // Navigate to details
-                          },
+                      ? DiscoverProfileTap(
+                          accountType: AppConstants.business,
+                          businessId:
+                              service.businessId ?? profile?.businessId,
                           child: CachedAvatarWidget(
                             imageUrl: profile?.coverUrl,
                             size: SizeConfig.size40,
@@ -852,10 +853,14 @@ class _AllStayServiceScreenState extends State<AllStayServiceScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
-                      CustomText(service.profile?.name ?? AppStrings.na,
-                          fontSize: SizeConfig.small,
-                          color: AppColors.mainTextColor,
-                          fontWeight: FontWeight.w600),
+                      DiscoverProfileTap(
+                        accountType: AppConstants.business,
+                        businessId: service.businessId ?? profile?.businessId,
+                        child: CustomText(service.profile?.name ?? AppStrings.na,
+                            fontSize: SizeConfig.small,
+                            color: AppColors.mainTextColor,
+                            fontWeight: FontWeight.w600),
+                      ),
                       SizedBox(height: SizeConfig.size6),
                       CommonRatingRow(
                         rating: double.tryParse(
@@ -1207,7 +1212,13 @@ class _PropertyCardState extends State<PropertyCard> {
                     padding: const EdgeInsets.fromLTRB(14, 8, 14, 0),
                     child: Row(
                       children: [
-                        _logoAvatar(logoSize),
+                        // Logo / hotel name open the hotel's business
+                        // profile; the rest of the card books the stay.
+                        DiscoverProfileTap(
+                          accountType: AppConstants.business,
+                          businessId: widget.businessId,
+                          child: _logoAvatar(logoSize),
+                        ),
                         SizedBox(
                           width: 10,
                         ),
@@ -1215,13 +1226,17 @@ class _PropertyCardState extends State<PropertyCard> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              CustomText(
-                                widget.hotelName,
-                                fontWeight: FontWeight.w600,
-                                fontSize: SizeConfig.large18,
-                                color: AppColors.black22,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                              DiscoverProfileTap(
+                                accountType: AppConstants.business,
+                                businessId: widget.businessId,
+                                child: CustomText(
+                                  widget.hotelName,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: SizeConfig.large18,
+                                  color: AppColors.black22,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
                               // Always show the location row — missing
                               // pieces fall back to 'N/A' so the layout
