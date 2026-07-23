@@ -754,8 +754,11 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
               SizedBox(height: SizeConfig.size2),
               Row(
                 children: [
-                  Icon(Icons.location_on,
-                      size: 14, color: AppColors.primaryColor),
+                  LocalAssets(
+                      imagePath: AppIconAssets.location_outline,
+                      imgColor: AppColors.primaryColor,
+                      height: 14,
+                      width: 14),
                   const SizedBox(width: 4),
                   Expanded(
                     child: CustomText(

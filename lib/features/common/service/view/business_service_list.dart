@@ -31,12 +31,18 @@ class BusinessServiceList extends StatefulWidget {
   final bool isShowGrid;
   final bool showScaffold;
 
+  /// Forwarded to [ServiceUploadScreen] when the "+ Add Service" CTA fires.
+  /// Off by default so channel-screen / automotive / other callers keep the
+  /// generic hint — only the Others-tab entry point opts in.
+  final bool enableBankingHints;
+
   const BusinessServiceList({
     super.key,
     required this.providerType,
     this.channelId,
     this.isShowGrid = true,
     this.showScaffold = false,
+    this.enableBankingHints = false,
   });
 
   @override
@@ -101,6 +107,7 @@ class _BusinessServiceListState extends State<BusinessServiceList> {
     Get.to(() => ServiceUploadScreen(
           providerType: widget.providerType,
           channelId: widget.channelId,
+          enableBankingHints: widget.enableBankingHints,
         ));
   }
 

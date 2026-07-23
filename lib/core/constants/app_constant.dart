@@ -2,6 +2,7 @@
 
 import 'dart:core';
 import 'dart:math' hide log;
+
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_image_assets.dart';
@@ -22,6 +23,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import '../../features/business/visit_business_profile/view/visit_business_profile_new.dart';
 
 class AppConstants {
@@ -664,13 +666,15 @@ openPersonalProfile({required String? userID}) {
 // Popup menu builders moved to PopupMenuBuilders class in popup_menu_builders.dart
 
 bool isIndividual() {
-  logs("isIndividual accountTypeGlobal.toUpperCase() ${accountTypeGlobal.toUpperCase()}");
+  logs(
+      "isIndividual accountTypeGlobal.toUpperCase() ${accountTypeGlobal.toUpperCase()}");
 
   return (accountTypeGlobal.toUpperCase() == AppConstants.individual);
 }
 
 bool isBusiness() {
-  logs("isBusiness accountTypeGlobal.toUpperCase() ${accountTypeGlobal.toUpperCase()}");
+  logs(
+      "isBusiness accountTypeGlobal.toUpperCase() ${accountTypeGlobal.toUpperCase()}");
   return (accountTypeGlobal.toUpperCase() == AppConstants.business);
 }
 
@@ -1148,8 +1152,7 @@ class ChatEmitEvents {
   static const newTiffinPickupOrderReceived = "newTiffinPickupOrderReceived";
   static const tiffinPickupOrderReady = "tiffinPickupOrderReady";
   static const tiffinPickupOrderCancelled = "tiffinPickupOrderCancelled";
-  static const newMedicalPickupOrderReceived =
-      "newMedicalPickupOrderReceived";
+  static const newMedicalPickupOrderReceived = "newMedicalPickupOrderReceived";
   static const medicalPickupOrderReady = "medicalPickupOrderReady";
 
   // Service enquiry (Discover self-profession → chat). `new…Received` delivers
@@ -1203,8 +1206,7 @@ class ChatEmitEvents {
   // Education enquiry (school/college listing → chat). See
   // lib/docs/enquiry-flows-ui-integration.md §3.
   static const newEducationEnquiryReceived = "newEducationEnquiryReceived";
-  static const educationEnquiryStatusUpdated =
-      "educationEnquiryStatusUpdated";
+  static const educationEnquiryStatusUpdated = "educationEnquiryStatusUpdated";
 
   // "Other" business enquiry — banking / insurance / loans / capital-market
   // / data (`be_other_service` → `/other-enquiries` → message_type
@@ -2390,7 +2392,8 @@ final Map<String, String> individualProfessionIcons = {
   EVENT_PLANNER_DETECTIVE: OnboardingIndividualAssets.eventPlanDetective,
   PROPERTY_BROKER_ARCHITECT: OnboardingIndividualAssets.propertyBrokerArchitect,
   BUSINESS_HR_CONSULTANT: OnboardingIndividualAssets.businessHrConsultant,
-  INDUSTRY_QUALITY_CONSULTANT: OnboardingIndividualAssets.industryQualityConsultant,
+  INDUSTRY_QUALITY_CONSULTANT:
+      OnboardingIndividualAssets.industryQualityConsultant,
   TECH_DIGITAL_FREELANCER: OnboardingIndividualAssets.techDigitalFreelancer,
 };
 
@@ -2704,7 +2707,7 @@ final List<OnboardingCategoryModel> financeCategories = [
   ),
   OnboardingCategoryModel(
     name: 'Finance',
-    slugId: 'finance',
+    slugId: 'FINANCIAL_SERVICES',
     icon: AppImageAssets.capitalMarket,
     subtitle: "Stocks, mutual\nfunds, trading",
     accountType: AppConstants.business,

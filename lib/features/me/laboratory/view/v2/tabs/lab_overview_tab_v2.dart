@@ -19,6 +19,7 @@ import 'package:BlueEra/features/me/laboratory/model/new_lab_full_details_res_mo
 import 'package:BlueEra/features/me/laboratory/view/lab_contact_us_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_service_gallery/lab_service_photos_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/testimonials/lab_testimonials_screen.dart';
+import 'package:BlueEra/features/me/laboratory/view/v2/widgets/lab_availability_view.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -110,6 +111,16 @@ class LabOverviewTabV2 extends StatelessWidget {
               onEdit: () => Get.to(() => LabServicePhotosPhotoScreen())
                   ?.then((_) => controller.fetchFullDetails()),
             ),
+          ),
+
+          SizedBox(height: SizeConfig.size12),
+
+          // ── Weekly hours ── same shape as SchoolAvailabilityCard; reads
+          // from the shared business availability endpoint.
+          Padding(
+            padding: EdgeInsets.only(
+                right: SizeConfig.size12, left: SizeConfig.size25),
+            child: LabAvailabilityCard(businessController: businessController),
           ),
 
           SizedBox(height: SizeConfig.size12),

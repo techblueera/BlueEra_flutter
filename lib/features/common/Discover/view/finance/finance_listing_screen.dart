@@ -60,8 +60,7 @@ class _FinanceListingScreenState extends State<FinanceListingScreen> {
                 images: _bannerImages,
                 onBack: () => Navigator.pop(context),
                 statusBarHeight: statusBarHeight,
-                backgroundColor:
-                    AppColors.blue5CAF.withValues(alpha: 0.1),
+                backgroundColor: AppColors.blue5CAF.withValues(alpha: 0.1),
                 bottomBorderSide: const BorderSide(
                   color: AppColors.white,
                   width: 2,
@@ -75,8 +74,8 @@ class _FinanceListingScreenState extends State<FinanceListingScreen> {
                 categories: stickyCategories,
                 selectedId: _selectedCategory.value?.slugId,
                 onCategoryTap: (item) {
-                  _selectedCategory.value = financeCategories
-                      .firstWhere((c) => c.slugId == item.id);
+                  _selectedCategory.value =
+                      financeCategories.firstWhere((c) => c.slugId == item.id);
                   setState(() {});
                 },
                 onBack: () => Navigator.pop(context),

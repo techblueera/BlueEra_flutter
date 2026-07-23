@@ -10,6 +10,7 @@ import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -171,7 +172,13 @@ class _MyLabPackagesScreenState extends State<MyLabPackagesScreen> {
   }
 }
 
-class _PackageTile extends StatefulWidget {
+/// Package tile — mirrors the school course card
+/// ([SchoolCourseListItemCard]) visual language: 165×165 image, radius-20
+/// shell with a soft shadow, header row (name + overflow menu), price row
+/// (₹price + strikethrough MRP + discount pill), 2-line description with
+/// Read More, optional mini chip for packageType, and a small green pill
+/// for the tests-available count. Data + actions are unchanged.
+class _PackageTile extends StatelessWidget {
   final LabPackage pkg;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
@@ -182,108 +189,118 @@ class _PackageTile extends StatefulWidget {
     required this.onDelete,
   });
 
-  @override
-  State<_PackageTile> createState() => _PackageTileState();
-}
-
-class _PackageTileState extends State<_PackageTile> {
-  static const Color _line = Color(0xFFE5E7EB);
-  static const Color _green = Color(0xff008000);
-  static const Color _muted = Color(0xFF7A8290);
-
-  bool _descExpanded = false;
-
   int get _testCount {
-    // Prefer populated list; fall back to id list.
-    if ((widget.pkg.tests?.isNotEmpty ?? false))
-      return widget.pkg.tests!.length;
-    return widget.pkg.testIds.length;
+    if ((pkg.tests?.isNotEmpty ?? false)) return pkg.tests!.length;
+    return pkg.testIds.length;
   }
 
   int? get _discountPercent {
-    final mrp = widget.pkg.packageMrp;
-    final price = widget.pkg.customerPrice;
+    final mrp = pkg.packageMrp;
+    final price = pkg.customerPrice;
     if (mrp == null || price == null || mrp <= 0 || price >= mrp) return null;
     return (((mrp - price) / mrp) * 100).round();
   }
 
   @override
   Widget build(BuildContext context) {
-    final pkg = widget.pkg;
     final img = (pkg.imageUrl ?? '').trim();
     return Container(
-      padding: EdgeInsets.all(SizeConfig.size10),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: _line),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      // No IntrinsicHeight: it walks children for intrinsic sizing, which
-      // breaks the LayoutBuilder used to detect description overflow. The
-      // cover carries an explicit height; the right column drives the rest.
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
             child: SizedBox(
-              width: 140,
-              height: 150,
+              width: 165,
+              height: 165,
               child: img.isNotEmpty
                   ? CachedNetworkImage(
                       imageUrl: img,
                       fit: BoxFit.cover,
-                      errorWidget: (_, __, ___) => _placeholder(),
-                      placeholder: (_, __) => _placeholder(),
+                      errorWidget: (_, __, ___) => _bannerFallback(),
+                      placeholder: (_, __) => _bannerFallback(),
                     )
-                  : _placeholder(),
+                  : _bannerFallback(),
             ),
           ),
+          SizedBox(width: SizeConfig.size10),
           Expanded(
-            child: Padding(
-              padding: EdgeInsets.fromLTRB(
-                SizeConfig.size12,
-                SizeConfig.size2,
-                SizeConfig.size2,
-                SizeConfig.size2,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: CustomText(
-                          pkg.name ?? 'Untitled package',
-                          fontSize: 14,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.mainTextColor,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Title + overflow menu — allow 2 lines so wrapping names
+                // ("Basic Health Check - Up") read cleanly, matching the
+                // mock.
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: CustomText(
+                        pkg.name ?? 'N/A',
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                        color: AppColors.black22,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      _actionsMenu(),
-                    ],
+                    ),
+                    _CardMenu(onEdit: onEdit, onDelete: onDelete),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                _priceRow(),
+                const SizedBox(height: 10),
+                // Description occupies the mid-section of the right column —
+                // three lines with an inline "Read More" per the mock.
+                _CardDescription(text: pkg.description ?? ''),
+                const SizedBox(height: 30),
+                Divider(height: 0.5, thickness: 1, color: Colors.grey.shade200),
+                const SizedBox(height: 10),
+                // Fit-content pill (not full-width) so it hugs the "N Tests
+                // Available" copy the way the mock does.
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 6, horizontal: 14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xff2E7D32),
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        LocalAssets(
+                          imagePath: AppIconAssets.laboratoryIcon,
+                          imgColor: AppColors.white,
+                          width: 16,
+                          height: 16,
+                        ),
+                        SizedBox(width: SizeConfig.size6),
+                        CustomText(
+                          '$_testCount ${_testCount == 1 ? 'Test' : 'Tests'} Available',
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
+                      ],
+                    ),
                   ),
-                  SizedBox(height: SizeConfig.size4),
-                  _priceRow(),
-                  SizedBox(height: SizeConfig.size4),
-                  _descriptionRow(),
-                  // Mockup has no divider between the description and the
-                  // tests pill — just whitespace, so the pill reads as its
-                  // own primary CTA.
-                  SizedBox(height: SizeConfig.size10),
-                  _testsPill(),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ],
@@ -291,17 +308,21 @@ class _PackageTileState extends State<_PackageTile> {
     );
   }
 
-  Widget _placeholder() => Container(
-        color: const Color(0xFFF4F6FA),
+  Widget _bannerFallback() => Container(
+        color: Colors.grey.shade200,
         alignment: Alignment.center,
-        child: Icon(Icons.inventory_2_outlined,
-            size: 26, color: Colors.grey.shade400),
+        child:
+            Icon(Icons.image_outlined, color: Colors.grey.shade400, size: 32),
       );
 
+  /// Price row kept from the previous tile so pricing stays legible:
+  /// ₹price + strikethrough MRP + discount chip. Slotted in where the
+  /// school card renders its fee label.
   Widget _priceRow() {
-    final price = widget.pkg.customerPrice;
-    final mrp = widget.pkg.packageMrp;
+    final price = pkg.customerPrice;
+    final mrp = pkg.packageMrp;
     final discount = _discountPercent;
+    if (price == null && mrp == null) return const SizedBox.shrink();
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -309,15 +330,15 @@ class _PackageTileState extends State<_PackageTile> {
           CustomText(
             '₹$price',
             fontSize: 14,
-            fontWeight: FontWeight.w800,
-            color: AppColors.mainTextColor,
+            fontWeight: FontWeight.w700,
+            color: AppColors.black22,
           )
         else if (mrp != null)
           CustomText(
             '₹$mrp',
             fontSize: 14,
-            fontWeight: FontWeight.w800,
-            color: AppColors.mainTextColor,
+            fontWeight: FontWeight.w700,
+            color: AppColors.black22,
           ),
         if (mrp != null && price != null && mrp > price) ...[
           SizedBox(width: SizeConfig.size6),
@@ -325,26 +346,18 @@ class _PackageTileState extends State<_PackageTile> {
             '₹$mrp',
             fontSize: 11,
             fontWeight: FontWeight.w500,
-            color: _muted,
+            color: AppColors.grey7E,
             decoration: TextDecoration.lineThrough,
           ),
         ],
         if (discount != null) ...[
           SizedBox(width: SizeConfig.size10),
-          // Container(
-          //   width: 6,
-          //   height: 6,
-          //   decoration: const BoxDecoration(
-          //     color: _green,
-          //     shape: BoxShape.circle,
-          //   ),
-          // ),
-          // SizedBox(width: SizeConfig.size4),
           Container(
-            padding: EdgeInsets.all(5),
+            padding: const EdgeInsets.all(5),
             decoration: BoxDecoration(
-                color: AppColors.green7F.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(12)),
+              color: AppColors.green7F.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Row(
               children: [
                 LocalAssets(
@@ -357,7 +370,7 @@ class _PackageTileState extends State<_PackageTile> {
                   '$discount% Off',
                   fontSize: 11,
                   fontWeight: FontWeight.w800,
-                  color: _green,
+                  color: const Color(0xff008000),
                 ),
               ],
             ),
@@ -366,110 +379,130 @@ class _PackageTileState extends State<_PackageTile> {
       ],
     );
   }
+}
 
-  Widget _descriptionRow() {
-    final desc = (widget.pkg.description ?? '').trim();
-    if (desc.isEmpty) {
-      return const SizedBox.shrink();
-    }
-    final baseStyle = TextStyle(
-      fontSize: 11.5,
-      fontWeight: FontWeight.w500,
-      color: _muted,
-      height: 1.35,
-    );
-    const linkStyle = TextStyle(
-      fontSize: 11.5,
-      fontWeight: FontWeight.w700,
+/// Two-line description with an inline "Read More" tap target when the
+/// text overflows. Uses [LayoutBuilder] (not screen-width guesses) to get
+/// the row's actual available width, then measures the "Read More" label
+/// with a second [TextPainter] so the cut always reserves room for it —
+/// without that reservation the link gets clipped off the last line.
+class _CardDescription extends StatelessWidget {
+  final String text;
+  const _CardDescription({required this.text});
+
+  static const _style = TextStyle(color: AppColors.grey7E, fontSize: 12);
+  static const _maxLines = 2;
+  static const _readMoreLabel = ' Read More';
+
+  @override
+  Widget build(BuildContext context) {
+    if (text.trim().isEmpty) return const SizedBox.shrink();
+
+    final readMoreStyle = _style.copyWith(
       color: AppColors.primaryColor,
+      fontWeight: FontWeight.w700,
     );
-    // Only surface the "…Read More" toggle when the description actually
-    // overflows 2 lines at the current row width — short descriptions
-    // render plain, matching the mockup.
+
+    void openFull() {
+      showDialog<void>(
+        context: context,
+        builder: (_) => AlertDialog(
+          content: SingleChildScrollView(
+            child: Text(text, style: _style),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      );
+    }
+
     return LayoutBuilder(
       builder: (context, constraints) {
+        final availableWidth = constraints.maxWidth;
+
         final tp = TextPainter(
-          text: TextSpan(text: desc, style: baseStyle),
-          maxLines: 2,
+          text: TextSpan(text: text, style: _style),
+          maxLines: _maxLines,
           textDirection: TextDirection.ltr,
-        )..layout(maxWidth: constraints.maxWidth);
-        final overflows = tp.didExceedMaxLines;
-        if (!overflows) {
-          return Text(desc, style: baseStyle);
+        )..layout(maxWidth: availableWidth);
+
+        if (!tp.didExceedMaxLines) {
+          return Text(text, style: _style, maxLines: _maxLines);
         }
-        return GestureDetector(
-          onTap: () => setState(() => _descExpanded = !_descExpanded),
-          child: RichText(
-            maxLines: _descExpanded ? null : 2,
-            overflow:
-                _descExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
-            text: TextSpan(
-              style: baseStyle,
-              children: [
-                TextSpan(text: desc),
-                TextSpan(
-                  text: _descExpanded ? '  Show Less' : '  …Read More',
-                  style: linkStyle,
-                ),
-              ],
+
+        // Measure the link so we know how much room to reserve for it on
+        // the last line — this is what keeps "Read More" from getting
+        // clipped away.
+        final rmPainter = TextPainter(
+          text: TextSpan(text: _readMoreLabel, style: readMoreStyle),
+          maxLines: 1,
+          textDirection: TextDirection.ltr,
+        )..layout();
+
+        // Character index at the position just before where "Read More"
+        // must start on the final line.
+        final cutOffset = tp
+            .getPositionForOffset(
+              Offset(availableWidth - rmPainter.width, tp.height - 1),
+            )
+            .offset;
+
+        int cut = cutOffset.clamp(0, text.length);
+        // Small buffer so the ellipsis + link isn't jammed against the
+        // preceding word.
+        if (cut > 3) cut -= 3;
+        final truncated = text.substring(0, cut).trimRight();
+
+        return Text.rich(
+          TextSpan(children: [
+            TextSpan(text: '$truncated...', style: _style),
+            TextSpan(
+              text: _readMoreLabel,
+              style: readMoreStyle,
+              recognizer: TapGestureRecognizer()..onTap = openFull,
             ),
-          ),
+          ]),
+          maxLines: _maxLines,
+          overflow: TextOverflow.clip,
         );
       },
     );
   }
+}
 
-  Widget _testsPill() {
-    // Solid green pill matching the mockup: laboratory glyph on the left,
-    // "N Tests Available" on the right, centered inside a moderately tall
-    // (~size8 vertical) rounded container so it reads as a primary CTA.
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(vertical: SizeConfig.size8),
-      decoration: BoxDecoration(
-        color: _green,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          LocalAssets(
-            imagePath: AppIconAssets.laboratoryIcon,
-            imgColor: AppColors.white,
-            width: 18,
-            height: 18,
-          ),
-          SizedBox(width: SizeConfig.size6),
-          CustomText(
-            '$_testCount ${_testCount == 1 ? 'Test' : 'Tests'} Available',
-            fontSize: 12.5,
-            fontWeight: FontWeight.w800,
-            color: Colors.white,
-          ),
-        ],
-      ),
-    );
-  }
+/// Overflow menu — same shape [SchoolCourseListItemCard] uses.
+class _CardMenu extends StatelessWidget {
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
+  const _CardMenu({required this.onEdit, required this.onDelete});
 
-  Widget _actionsMenu() {
+  @override
+  Widget build(BuildContext context) {
+    final items = <PopupMenuEntry<String>>[
+      if (onEdit != null)
+        const PopupMenuItem(value: 'edit', child: Text('Edit')),
+      if (onDelete != null)
+        PopupMenuItem(
+          value: 'delete',
+          child: Text('Delete', style: TextStyle(color: Colors.red.shade600)),
+        ),
+    ];
+    if (items.isEmpty) return const SizedBox.shrink();
     return SizedBox(
-      width: 28,
-      height: 24,
+      width: 20,
+      height: 20,
       child: PopupMenuButton<String>(
-        icon: Icon(Icons.more_vert,
-            size: 18, color: AppColors.secondaryTextColor),
+        icon: Icon(Icons.more_vert, size: 18, color: AppColors.grey7E),
         padding: EdgeInsets.zero,
         onSelected: (v) {
-          if (v == 'edit') widget.onEdit();
-          if (v == 'delete') widget.onDelete();
+          if (v == 'edit') onEdit?.call();
+          if (v == 'delete') onDelete?.call();
         },
-        itemBuilder: (_) => [
-          const PopupMenuItem(value: 'edit', child: Text('Edit')),
-          PopupMenuItem(
-            value: 'delete',
-            child: Text('Delete', style: TextStyle(color: Colors.red.shade600)),
-          ),
-        ],
+        itemBuilder: (_) => items,
       ),
     );
   }

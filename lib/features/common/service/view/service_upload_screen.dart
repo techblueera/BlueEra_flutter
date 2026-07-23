@@ -1,4 +1,5 @@
 import 'dart:io';
+
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
@@ -8,7 +9,6 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/common/service/controller/service_controller.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/widget/common_service_card.dart';
@@ -22,8 +22,20 @@ class ServiceUploadScreen extends StatefulWidget {
   final ProviderType providerType;
   final String? channelId;
 
-  ServiceUploadScreen({Key? key, required this.providerType, this.channelId})
-      : super(key: key);
+  /// Opt-in flag that swaps the name / short-description hints to
+  /// banking-flavoured copy when the current business is Banking. Off by
+  /// default so every existing caller (Others tab, Automotive tab, channel
+  /// screen, deep-link routes, [RentalServiceUploadScreen], etc.) keeps
+  /// the generic hint it always had — only the caller that explicitly
+  /// passes `enableBankingHints: true` gets the swap.
+  final bool enableBankingHints;
+
+  ServiceUploadScreen({
+    Key? key,
+    required this.providerType,
+    this.channelId,
+    this.enableBankingHints = false,
+  }) : super(key: key);
 
   @override
   State<ServiceUploadScreen> createState() => _ServiceUploadScreenState();
@@ -31,8 +43,8 @@ class ServiceUploadScreen extends StatefulWidget {
 
 class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
   final ServiceController controller = Get.put(ServiceController());
-  final viewBusinessDetailsController =
-      Get.find<ViewBusinessDetailsController>();
+  // final viewBusinessDetailsController =
+  //     Get.find<ViewBusinessDetailsController>();
 
   static const _accent = LinearGradient(
     colors: [AppColors.blue5CAF, AppColors.primaryColor],
@@ -40,9 +52,35 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
 
   bool get _isIndividual => accountTypeGlobal == AppConstants.individual;
 
+  /// True when the current business account is Banking AND the caller has
+  /// opted in via [ServiceUploadScreen.enableBankingHints]. The opt-in is
+  /// what protects the other flows that share this screen (Others,
+  /// Automotive, channel-screen, deep-link routes, etc.) — without it,
+  /// every caller keeps the generic default hint no matter what the user's
+  /// category global happens to say. Case-insensitive because
+  /// [businessCategoryGlobal] can carry either the slug (`BANKING_SECTOR`)
+  /// or a legacy display-string ("Banking").
+  bool get _isBanking {
+    if (!widget.enableBankingHints) return false;
+    if (_isIndividual) return false;
+    final cat = businessCategoryGlobal.trim().toUpperCase();
+    return cat == 'BANKING SECTOR' ||
+        cat == 'LOANS SECTOR' ||
+        cat == 'INSURANCE SECTOR' ||
+        cat == 'FINANCIAL SERVICES' ||
+        cat == 'BANKING';
+  }
+
+  String get _serviceNameHint =>
+      _isBanking ? 'e.g., Savings Account Opening' : AppStrings.hintServiceName;
+
+  String get _shortDescriptionHint => _isBanking
+      ? 'e.g., Zero-balance savings account with debit card, net banking & instant UPI'
+      : AppStrings.hintShortDescription;
+
   @override
   void initState() {
-    viewBusinessDetailsController.getAllCategories();
+    // viewBusinessDetailsController.getAllCategories();
     controller.providerType = widget.providerType;
     if (widget.channelId != null) controller.channelId = widget.channelId;
     super.initState();
@@ -204,8 +242,8 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                   color: amber.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(9),
                 ),
-                child:
-                    const Icon(Icons.info_outline_rounded, size: 17, color: amber),
+                child: const Icon(Icons.info_outline_rounded,
+                    size: 17, color: amber),
               ),
               SizedBox(width: SizeConfig.size10),
               Expanded(
@@ -309,12 +347,13 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
           SizedBox(height: SizeConfig.size10),
           _buildImageTile(context),
           SizedBox(height: SizeConfig.size20),
-          _sectionHeader(Icons.design_services_outlined, AppStrings.serviceName),
+          _sectionHeader(
+              Icons.design_services_outlined, AppStrings.serviceName),
           SizedBox(height: SizeConfig.size10),
           CommonTextField(
             title: '',
             textEditController: controller.serviceNameController,
-            hintText: AppStrings.hintServiceName,
+            hintText: _serviceNameHint,
             onChange: (value) => controller.serviceName.value = value,
           ),
           SizedBox(height: SizeConfig.size20),
@@ -330,7 +369,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
           CommonTextField(
             title: '',
             textEditController: controller.serviceShortDescriptionController,
-            hintText: AppStrings.hintShortDescription,
+            hintText: _shortDescriptionHint,
             maxLine: 3,
             validator: validateServiceDescription,
             onChange: (value) => controller.shortDescriptionName.value = value,
@@ -350,8 +389,8 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
           decoration: BoxDecoration(
             color: AppColors.primaryColor.withValues(alpha: 0.10),
             borderRadius: BorderRadius.circular(10),
-            border:
-                Border.all(color: AppColors.primaryColor.withValues(alpha: 0.18)),
+            border: Border.all(
+                color: AppColors.primaryColor.withValues(alpha: 0.18)),
           ),
           child: Icon(icon, size: 17, color: AppColors.primaryColor),
         ),
@@ -495,8 +534,8 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
               child: GestureDetector(
                 onTap: () => _pickImage(context),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.55),
                     borderRadius: BorderRadius.circular(20),
@@ -590,8 +629,7 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
                             height: 24,
                             child: CircularProgressIndicator(
                               strokeWidth: 2.4,
-                              valueColor:
-                                  AlwaysStoppedAnimation(Colors.white),
+                              valueColor: AlwaysStoppedAnimation(Colors.white),
                             ),
                           )
                         : Row(
@@ -622,7 +660,8 @@ class _ServiceUploadScreenState extends State<ServiceUploadScreen> {
     if (_isIndividual) {
       if (!isPersonalServiceValidate()) return;
       controller.serviceSubType = 'homeService';
-      controller.category = controller.selectedServiceCategory.value?.tagId ?? '';
+      controller.category =
+          controller.selectedServiceCategory.value?.tagId ?? '';
       await controller.generateServiceAiController(
         serviceDetailsReq: {
           ApiKeys.service_name: controller.serviceName.value,

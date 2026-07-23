@@ -3,12 +3,13 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/expandable_text.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+import '../../../../core/constants/size_config.dart';
+import '../../../../widgets/local_assets.dart';
 
 /// Shared course card — same visual used by the owner's Academics tab
 /// (`SchoolAcademicsTabV2`) and by the public-facing discover screen
@@ -39,7 +40,7 @@ class SchoolCourseListItemCard extends StatelessWidget {
     final showMenu = onEdit != null || onDelete != null;
 
     return Container(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -51,74 +52,56 @@ class SchoolCourseListItemCard extends StatelessWidget {
           ),
         ],
       ),
-      // IntrinsicHeight + stretch lets the image fill the card's true
-      // content height instead of forcing a fixed card height. Card grows
-      // with its text; image grows with the card.
-      child: IntrinsicHeight(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(14),
-              child: SizedBox(
-                width: 152,
-                child: img.isNotEmpty
-                    ? Image.network(
-                        img,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _bannerFallback(),
-                      )
-                    : _bannerFallback(),
-              ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(14),
+            child: SizedBox(
+              width: 165,
+              height: 165,
+              child: img.isNotEmpty
+                  ? Image.network(
+                      img,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _bannerFallback(),
+                    )
+                  : _bannerFallback(),
             ),
-            SizedBox(width: SizeConfig.size12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            CustomText(
-                              course.name ?? 'N/A',
-                              fontWeight: FontWeight.w700,
-                              fontSize: 16,
-                              color: AppColors.black22,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 4),
-                            CustomText(
-                              feeLabel,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14,
-                              color: AppColors.black22,
-                            ),
-                          ],
-                        ),
+          ),
+          SizedBox(width: SizeConfig.size10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: CustomText(
+                        course.name ?? 'N/A',
+                        fontWeight: FontWeight.w700,
+                        fontSize: 16,
+                        color: AppColors.black22,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      if (showMenu)
-                        _CardMenu(onEdit: onEdit, onDelete: onDelete),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  ExpandableText(
-                    text: course.description ?? '',
-                    trimLines: 2,
-                    isReadMoreNewLine: false,
-                    expandMode: ExpandMode.dialog,
-                    style: TextStyle(
-                      color: AppColors.grey7E,
-                      fontSize: 12,
                     ),
-                  ),
-                  const SizedBox(height: 4),
+                    if (showMenu) _CardMenu(onEdit: onEdit, onDelete: onDelete),
+                  ],
+                ),
+                CustomText(
+                  feeLabel,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                  color: AppColors.black22,
+                ),
+                const SizedBox(height: 2),
+                _CardDescription(text: course.description ?? ''),
+                if ((course.eligibility ?? '').trim().isNotEmpty ||
+                    (course.duration ?? '').trim().isNotEmpty) ...[
+                  const SizedBox(height: 8),
                   Wrap(
                     spacing: 6,
                     runSpacing: 6,
@@ -131,37 +114,34 @@ class SchoolCourseListItemCard extends StatelessWidget {
                       if ((course.duration ?? '').trim().isNotEmpty)
                         _MiniChip(
                           icon: AppIconAssets.academic_calendar,
-                          label: course.duration!,
+                          label: "${course.duration!} Years",
                         ),
                     ],
                   ),
-                  if ((course.admissionProcess ?? '').trim().isNotEmpty) ...[
-                    const SizedBox(height: 10),
-                    Divider(height: 1, color: Colors.grey.shade200),
-                    const SizedBox(height: 10),
-                    Align(
-                      alignment: Alignment.centerLeft,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xff2E7D32),
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        child: CustomText(
-                          course.admissionProcess!,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                  ],
                 ],
-              ),
+                if ((course.admissionProcess ?? '').trim().isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Divider(height: 1, thickness: 1, color: Colors.grey.shade200),
+                  const SizedBox(height: 10),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xff2E7D32),
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: CustomText(
+                      course.admissionProcess!,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -210,6 +190,76 @@ class _MiniChip extends StatelessWidget {
   }
 }
 
+/// Two-line description with an inline "Read more" tap target when
+/// the text would overflow.
+class _CardDescription extends StatelessWidget {
+  final String text;
+  const _CardDescription({required this.text});
+
+  static const _style = TextStyle(color: AppColors.grey7E, fontSize: 12);
+
+  @override
+  Widget build(BuildContext context) {
+    if (text.trim().isEmpty) return const SizedBox.shrink();
+
+    // Estimate available width for overflow detection: screen -
+    // outer screen padding (20) - card padding (20) - image (160) - gap (10).
+    final screenWidth = MediaQuery.of(context).size.width;
+    final availableWidth =
+        (screenWidth - 20 - 20 - 160 - 10).clamp(80.0, double.infinity);
+
+    final tp = TextPainter(
+      text: TextSpan(text: text, style: _style),
+      maxLines: 2,
+      textDirection: TextDirection.ltr,
+    )..layout(maxWidth: availableWidth);
+
+    void openFull() {
+      showDialog<void>(
+        context: context,
+        builder: (_) => AlertDialog(
+          content: SingleChildScrollView(
+            child: Text(text, style: _style),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Get.back(),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final readMore = TextSpan(
+      text: AppStrings.read_more.tr,
+      style: _style.copyWith(
+        color: AppColors.primaryColor,
+        fontWeight: FontWeight.w600,
+      ),
+      recognizer: TapGestureRecognizer()..onTap = openFull,
+    );
+
+    if (!tp.didExceedMaxLines) {
+      return Text(text, style: _style);
+    }
+
+    final endOffset =
+        tp.getPositionForOffset(Offset(tp.size.width, tp.size.height)).offset;
+    final cutIndex = (endOffset - 12).clamp(0, text.length);
+    final truncated = text.substring(0, cutIndex);
+
+    return Text.rich(
+      TextSpan(children: [
+        TextSpan(text: '$truncated... ', style: _style),
+        readMore,
+      ]),
+      maxLines: 2,
+      overflow: TextOverflow.clip,
+    );
+  }
+}
+
 class _CardMenu extends StatelessWidget {
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
@@ -226,14 +276,18 @@ class _CardMenu extends StatelessWidget {
         const PopupMenuItem(value: 'delete', child: Text('Delete')),
     ];
     if (items.isEmpty) return const SizedBox.shrink();
-    return PopupMenuButton<String>(
-      icon: Icon(Icons.more_vert, size: 18, color: AppColors.grey7E),
-      padding: EdgeInsets.zero,
-      onSelected: (v) {
-        if (v == 'edit') onEdit?.call();
-        if (v == 'delete') onDelete?.call();
-      },
-      itemBuilder: (_) => items,
+    return SizedBox(
+      width: 20,
+      height: 20,
+      child: PopupMenuButton<String>(
+        icon: Icon(Icons.more_vert, size: 18, color: AppColors.grey7E),
+        padding: EdgeInsets.zero,
+        onSelected: (v) {
+          if (v == 'edit') onEdit?.call();
+          if (v == 'delete') onDelete?.call();
+        },
+        itemBuilder: (_) => items,
+      ),
     );
   }
 }
