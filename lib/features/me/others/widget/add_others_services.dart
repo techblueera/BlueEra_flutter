@@ -40,7 +40,13 @@ class _AddOthersServicesState extends State<AddOthersServices> {
     ServiceMenuItem(
       title: "Services",
       icon: AppIconAssets.other_services,
-      page: () => ServiceUploadScreen(providerType: ProviderType.business),
+      // Opt-in to banking hints in the Others flow — the screen itself gates
+      // on `businessCategoryGlobal`, so non-banking Others users still see
+      // the generic default.
+      page: () => ServiceUploadScreen(
+        providerType: ProviderType.business,
+        enableBankingHints: true,
+      ),
     ),
     ServiceMenuItem(
       title: "Announcements",

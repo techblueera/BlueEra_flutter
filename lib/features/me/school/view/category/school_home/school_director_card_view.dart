@@ -3,8 +3,8 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/features/me/school/view/category/about_school/principal_message_screen.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -92,59 +92,67 @@ class DirectorCard extends StatelessWidget {
     return Card(
       elevation: 0,
       margin: const EdgeInsets.all(10),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(color: Colors.grey.shade200),
+      ),
       color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(12.0),
-        child: IntrinsicHeight(
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (photo.isNotEmpty)
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (photo.isNotEmpty)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: SizedBox(
+                  width: 150,
+                  height: 150,
                   child: Image.network(
                     photo,
-                    width: 105,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) => Container(
-                      width: 105,
                       color: Colors.grey[300],
-                      child: const Icon(Icons.person),
+                      child: const Icon(Icons.person, size: 40),
                     ),
                   ),
                 ),
-              if (photo.isNotEmpty) const SizedBox(width: 12),
-              Expanded(
+              ),
+            if (photo.isNotEmpty) const SizedBox(width: 14),
+            Expanded(
+              child: SizedBox(
+                height: 150,
                 child: Column(
-                  // crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ExpandableText(
-                      text: message,
-                      trimLines: 4,
-                      isReadMoreNewLine: false,
-                      expandMode: ExpandMode.dialog,
-                      style: TextStyle(
-                        color: AppColors.secondaryTextColor,
-                        fontSize: 14,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
+                    _DirectorMessage(text: message),
                     const Spacer(),
-                    const SizedBox(height: 8),
+                    // Divider(
+                    //     height: 1, thickness: 1, color: Colors.grey.shade200),
+                    const SizedBox(height: 10),
                     Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
+                        Container(
+                          width: 3,
+                          height: 34,
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryColor,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               CustomText(
                                 name,
                                 fontWeight: FontWeight.w700,
-                                fontSize: 14,
+                                fontSize: 15,
                                 color: Colors.black,
-                                maxLines: 2,
+                                maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
                               CustomText(
@@ -152,7 +160,7 @@ class DirectorCard extends StatelessWidget {
                                 fontSize: 12,
                                 color: AppColors.secondaryTextColor,
                                 overflow: TextOverflow.ellipsis,
-                                maxLines: 2,
+                                maxLines: 1,
                               ),
                             ],
                           ),
@@ -162,7 +170,7 @@ class DirectorCard extends StatelessWidget {
                             onTap: () => Get.to(PrincipalMessageScreen()),
                             borderRadius: BorderRadius.circular(8),
                             child: Container(
-                              padding: const EdgeInsets.all(6),
+                              padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
                                 color: AppColors.primaryColor
                                     .withValues(alpha: 0.1),
@@ -171,8 +179,8 @@ class DirectorCard extends StatelessWidget {
                               child: LocalAssets(
                                 imagePath: AppIconAssets.editIcon,
                                 imgColor: AppColors.primaryColor,
-                                height: 14,
-                                width: 14,
+                                height: 16,
+                                width: 16,
                               ),
                             ),
                           ),
@@ -181,10 +189,81 @@ class DirectorCard extends StatelessWidget {
                   ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
+    );
+  }
+}
+
+class _DirectorMessage extends StatelessWidget {
+  final String text;
+  const _DirectorMessage({required this.text});
+
+  static const _style = TextStyle(
+    color: AppColors.secondaryTextColor,
+    fontSize: 15,
+    fontStyle: FontStyle.italic,
+    height: 1.5,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    if (text.trim().isEmpty) return const SizedBox.shrink();
+
+    // Estimate available width: screen - screen padding (20) - card margin (20)
+    // - card padding (24) - image (150) - gap (14).
+    final screenWidth = MediaQuery.of(context).size.width;
+    final availableWidth =
+        (screenWidth - 20 - 20 - 24 - 150 - 14).clamp(80.0, double.infinity);
+
+    final tp = TextPainter(
+      text: TextSpan(text: text, style: _style),
+      maxLines: 4,
+      textDirection: TextDirection.ltr,
+    )..layout(maxWidth: availableWidth);
+
+    if (!tp.didExceedMaxLines) {
+      return Text(text, style: _style);
+    }
+
+    final endOffset =
+        tp.getPositionForOffset(Offset(tp.size.width, tp.size.height)).offset;
+    final cutIndex = (endOffset - 14).clamp(0, text.length);
+    final truncated = text.substring(0, cutIndex);
+
+    return Text.rich(
+      TextSpan(children: [
+        TextSpan(text: '$truncated... ', style: _style),
+        TextSpan(
+          text: AppStrings.read_more.tr,
+          style: _style.copyWith(
+            color: AppColors.primaryColor,
+            fontWeight: FontWeight.w600,
+            fontStyle: FontStyle.normal,
+          ),
+          recognizer: TapGestureRecognizer()
+            ..onTap = () {
+              showDialog<void>(
+                context: context,
+                builder: (_) => AlertDialog(
+                  content: SingleChildScrollView(
+                    child: Text(text, style: _style),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Get.back(),
+                      child: const Text('Close'),
+                    ),
+                  ],
+                ),
+              );
+            },
+        ),
+      ]),
+      maxLines: 4,
+      overflow: TextOverflow.clip,
     );
   }
 }

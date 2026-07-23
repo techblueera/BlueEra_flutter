@@ -10,7 +10,7 @@ import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
-import 'package:BlueEra/features/me/laboratory/view/lab_profiles_list_screen.dart';
+import 'package:BlueEra/features/me/laboratory/view/lab_discover_list_screen.dart';
 import 'package:BlueEra/features/me/medical/view/pharmacy_stores_screen.dart';
 import 'package:BlueEra/features/me/school/view/coming_soon.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
@@ -135,10 +135,13 @@ class _HealthCareListingScreenState extends State<HealthCareListingScreen> {
       // `PharmacyStoresScreen` in `onCategoryTap` above and never becomes the
       // selected category here.
       if (slug == LABTEST) {
-        return LabProfilesListScreen(
+        // Lab category uses the new course-style card (square image + details
+        // + green pill CTA) — see [LabDiscoverListScreen]. The old
+        // [LabProfilesListScreen] is intentionally kept unchanged in case
+        // other flows want the vertical banner card.
+        return LabDiscoverListScreen(
           key: ValueKey('lab_$v'),
           category: "DIAGNOSTIC",
-          // category: "LABTEST",
         );
       } else if (slug == HOSPITAL) {
         return HospitalListScreen(

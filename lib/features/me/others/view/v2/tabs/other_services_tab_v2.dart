@@ -9,9 +9,9 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/service/controller/service_controller.dart';
 import 'package:BlueEra/features/common/service/model/get_service_model.dart';
+import 'package:BlueEra/features/common/service/view/business_service_list.dart';
 import 'package:BlueEra/features/common/service/view/service_details_view_screen.dart';
 import 'package:BlueEra/features/common/service/view/service_upload_screen.dart';
-import 'package:BlueEra/features/common/service/view/business_service_list.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/widgets/empty_section_placeholder.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -60,7 +60,10 @@ class _OtherServicesTabV2State extends State<OtherServicesTabV2> {
         return;
       }
     }
-    Get.to(() => ServiceUploadScreen(providerType: ProviderType.business));
+    Get.to(() => ServiceUploadScreen(
+          providerType: ProviderType.business,
+          enableBankingHints: true,
+        ));
   }
 
   @override
@@ -89,6 +92,10 @@ class _OtherServicesTabV2State extends State<OtherServicesTabV2> {
                           () => BusinessServiceList(
                             providerType: ProviderType.business,
                             showScaffold: true,
+                            // Opt-in so the "+ Add Service" CTA inside the
+                            // manage screen also swaps to banking hints for
+                            // Financial-Services businesses.
+                            enableBankingHints: true,
                           ),
                         ),
                         child: CustomText(
@@ -158,8 +165,8 @@ class _ServicesList extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(10)),
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(10)),
                     child: SizedBox(
                       height: 100,
                       width: 160,
@@ -176,8 +183,8 @@ class _ServicesList extends StatelessWidget {
                     ),
                   ),
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
