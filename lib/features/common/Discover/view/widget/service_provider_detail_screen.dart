@@ -5,6 +5,7 @@ import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -193,16 +194,20 @@ class _HeaderSection extends StatelessWidget {
                       color: Colors.white,
                       shape: BoxShape.circle,
                     ),
-                    child: CircleAvatar(
-                      radius: 36,
-                      backgroundColor: Colors.grey[200],
-                      backgroundImage: profileImage.isNotEmpty
-                          ? NetworkImage(profileImage)
-                          : null,
-                      child: profileImage.isEmpty
-                          ? Icon(Icons.person,
-                              size: 36, color: Colors.grey[400])
-                          : null,
+                    child: DiscoverProfileTap(
+                      accountType: service.accountType,
+                      userId: service.id,
+                      child: CircleAvatar(
+                        radius: 36,
+                        backgroundColor: Colors.grey[200],
+                        backgroundImage: profileImage.isNotEmpty
+                            ? NetworkImage(profileImage)
+                            : null,
+                        child: profileImage.isEmpty
+                            ? Icon(Icons.person,
+                                size: 36, color: Colors.grey[400])
+                            : null,
+                      ),
                     ),
                   ),
                 ),
@@ -219,11 +224,15 @@ class _HeaderSection extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: CustomText(
-                        service.name ?? AppStrings.unknown.tr,
-                        fontSize: SizeConfig.size18,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.mainTextColor,
+                      child: DiscoverProfileTap(
+                        accountType: service.accountType,
+                        userId: service.id,
+                        child: CustomText(
+                          service.name ?? AppStrings.unknown.tr,
+                          fontSize: SizeConfig.size18,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.mainTextColor,
+                        ),
                       ),
                     ),
                     if ((service.profession ?? '').isNotEmpty)

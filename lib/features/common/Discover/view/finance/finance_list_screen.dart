@@ -11,6 +11,7 @@ import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart'
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/common/Discover/controller/finance_discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/finance_search_res_model.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/common/Discover/view/finance/finance_detail_screen.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -424,22 +425,29 @@ class _FinanceCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              ClipOval(
-                child: Container(
-                  width: 50,
-                  height: 50,
-                  color: AppColors.liteWhite,
-                  child: (item.logoUrl?.isNotEmpty ?? false)
-                      ? CachedNetworkImage(
-                          imageUrl: item.logoUrl!,
-                          fit: BoxFit.cover,
-                          placeholder: (_, __) => LocalAssets(
-                              imagePath: AppIconAssets.place_holder_image),
-                          errorWidget: (_, __, ___) => LocalAssets(
-                              imagePath: AppIconAssets.place_holder_image),
-                        )
-                      : LocalAssets(
-                          imagePath: AppIconAssets.place_holder_image),
+              // Logo / name open the owning business profile; the rest
+              // of the card still opens the finance listing detail.
+              DiscoverProfileTap(
+                accountType: AppConstants.business,
+                businessId: item.businessProfileId,
+                userId: item.userId,
+                child: ClipOval(
+                  child: Container(
+                    width: 50,
+                    height: 50,
+                    color: AppColors.liteWhite,
+                    child: (item.logoUrl?.isNotEmpty ?? false)
+                        ? CachedNetworkImage(
+                            imageUrl: item.logoUrl!,
+                            fit: BoxFit.cover,
+                            placeholder: (_, __) => LocalAssets(
+                                imagePath: AppIconAssets.place_holder_image),
+                            errorWidget: (_, __, ___) => LocalAssets(
+                                imagePath: AppIconAssets.place_holder_image),
+                          )
+                        : LocalAssets(
+                            imagePath: AppIconAssets.place_holder_image),
+                  ),
                 ),
               ),
               SizedBox(width: SizeConfig.size10),
@@ -447,15 +455,20 @@ class _FinanceCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CustomText(
-                      (item.profileName?.isNotEmpty ?? false)
-                          ? item.profileName
-                          : 'Unknown',
-                      fontSize: SizeConfig.large18,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.black22,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    DiscoverProfileTap(
+                      accountType: AppConstants.business,
+                      businessId: item.businessProfileId,
+                      userId: item.userId,
+                      child: CustomText(
+                        (item.profileName?.isNotEmpty ?? false)
+                            ? item.profileName
+                            : 'Unknown',
+                        fontSize: SizeConfig.large18,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.black22,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                     if (hasLocation) ...[
                       SizedBox(height: SizeConfig.size2),

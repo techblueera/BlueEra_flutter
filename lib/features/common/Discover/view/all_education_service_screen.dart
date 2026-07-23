@@ -14,6 +14,7 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/view/discover_school_home_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/banner_carousel.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
@@ -303,6 +304,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
                     name: name,
                     distance: distance,
                     address: address,
+                    service: service,
                   ),
                   SizedBox(height: SizeConfig.size12),
                   if (highlights.isNotEmpty)
@@ -728,6 +730,7 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
     required String name,
     required String distance,
     required String address,
+    required SchoolDetailsData service,
   }) {
     final String location = [
       if (distance.isNotEmpty) distance,
@@ -737,19 +740,31 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        _schoolLogo(logoUrl),
+        // Logo / name open the school's business profile; the rest of
+        // the card still opens the school detail page.
+        DiscoverProfileTap(
+          accountType: AppConstants.business,
+          businessId: service.id,
+          userId: service.ownerId,
+          child: _schoolLogo(logoUrl),
+        ),
         SizedBox(width: SizeConfig.size10),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CustomText(
-                name,
-                fontSize: SizeConfig.medium,
-                fontWeight: FontWeight.w700,
-                color: AppColors.mainTextColor,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              DiscoverProfileTap(
+                accountType: AppConstants.business,
+                businessId: service.id,
+                userId: service.ownerId,
+                child: CustomText(
+                  name,
+                  fontSize: SizeConfig.medium,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.mainTextColor,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
               SizedBox(height: SizeConfig.size2),
               Row(

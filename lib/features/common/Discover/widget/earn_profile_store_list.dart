@@ -8,6 +8,7 @@ import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/common/Discover/controller/earn_profiles_discover_controller.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/earn_with_blueera/model/earn_profile_model.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -259,11 +260,17 @@ class EarnProfileStoreCard extends StatelessWidget {
             shape: BoxShape.circle,
             border: Border.all(color: AppColors.greyE5, width: 1.5),
           ),
-          child: CachedAvatarWidget(
-            imageUrl: store.serviceLogo ?? '',
-            size: 42,
-            borderColor: Colors.transparent,
-            borderRadius: 21,
+          // Logo / store name open the seller's personal profile —
+          // earn-with-BlueEra stores are always individual accounts.
+          child: DiscoverProfileTap(
+            accountType: AppConstants.individual,
+            userId: store.userId,
+            child: CachedAvatarWidget(
+              imageUrl: store.serviceLogo ?? '',
+              size: 42,
+              borderColor: Colors.transparent,
+              borderRadius: 21,
+            ),
           ),
         ),
         const SizedBox(width: 10),
@@ -271,13 +278,17 @@ class EarnProfileStoreCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CustomText(
-                store.serviceName ?? AppStrings.na,
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-                color: AppColors.mainTextColor,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+              DiscoverProfileTap(
+                accountType: AppConstants.individual,
+                userId: store.userId,
+                child: CustomText(
+                  store.serviceName ?? AppStrings.na,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.mainTextColor,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
               const SizedBox(height: 3),
               GestureDetector(

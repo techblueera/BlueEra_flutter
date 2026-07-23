@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/api/model/school_details_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -7,6 +8,7 @@ import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/features/me/school/view/category/acadamics/widgets/school_quick_info_view.dart';
 import 'package:BlueEra/features/me/school/view/category/career_jobs/school_job_listing_screen.dart';
@@ -301,22 +303,28 @@ class _SchoolHeader extends StatelessWidget {
                         BoxShadow(color: Colors.black12, blurRadius: 8)
                       ],
                     ),
-                    child: ClipOval(
-                      child: logoUrl.isNotEmpty
-                          ? CachedNetworkImage(
-                              imageUrl: logoUrl,
-                              fit: BoxFit.cover,
-                              errorWidget: (_, __, ___) => Icon(
+                    // Logo opens the school's business profile.
+                    child: DiscoverProfileTap(
+                      accountType: AppConstants.business,
+                      businessId: data?.id,
+                      userId: data?.ownerId,
+                      child: ClipOval(
+                        child: logoUrl.isNotEmpty
+                            ? CachedNetworkImage(
+                                imageUrl: logoUrl,
+                                fit: BoxFit.cover,
+                                errorWidget: (_, __, ___) => Icon(
+                                  Icons.school,
+                                  size: 40,
+                                  color: Colors.grey[400],
+                                ),
+                              )
+                            : Icon(
                                 Icons.school,
                                 size: 40,
                                 color: Colors.grey[400],
                               ),
-                            )
-                          : Icon(
-                              Icons.school,
-                              size: 40,
-                              color: Colors.grey[400],
-                            ),
+                      ),
                     ),
                   ),
                 ),
@@ -330,13 +338,18 @@ class _SchoolHeader extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                CustomText(
-                  name,
-                  fontSize: SizeConfig.size18,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.mainTextColor,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
+                DiscoverProfileTap(
+                  accountType: AppConstants.business,
+                  businessId: data?.id,
+                  userId: data?.ownerId,
+                  child: CustomText(
+                    name,
+                    fontSize: SizeConfig.size18,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.mainTextColor,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
                 if (address.isNotEmpty) ...[
                   SizedBox(height: SizeConfig.size4),

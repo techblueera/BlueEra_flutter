@@ -1,10 +1,12 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/rental/model/rental_service_response.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
@@ -80,21 +82,27 @@ class VehicleDetailsWidget extends StatelessWidget {
                               decoration: BoxDecoration(
                                   color: AppColors.white,
                                   shape: BoxShape.circle),
-                              child: (service.images?.isNotEmpty ?? false)
-                                  ? CachedAvatarWidget(
-                                imageUrl: service.images![0],
-                                size: SizeConfig.size80,
-                                borderColor: Colors.white,
-                                borderRadius: SizeConfig.size40,
-                              )
-                                  : ClipRRect(
-                                borderRadius: BorderRadius.circular(
-                                    SizeConfig.size40),
-                                child: LocalAssets(
-                                  imagePath:
-                                  AppIconAssets.place_holder_image,
-                                  height: SizeConfig.size80,
-                                  width: SizeConfig.size80,
+                              // Opens the owner's personal profile —
+                              // rental vehicles are listed by individuals.
+                              child: DiscoverProfileTap(
+                                accountType: AppConstants.individual,
+                                userId: service.userId,
+                                child: (service.images?.isNotEmpty ?? false)
+                                    ? CachedAvatarWidget(
+                                  imageUrl: service.images![0],
+                                  size: SizeConfig.size80,
+                                  borderColor: Colors.white,
+                                  borderRadius: SizeConfig.size40,
+                                )
+                                    : ClipRRect(
+                                  borderRadius: BorderRadius.circular(
+                                      SizeConfig.size40),
+                                  child: LocalAssets(
+                                    imagePath:
+                                    AppIconAssets.place_holder_image,
+                                    height: SizeConfig.size80,
+                                    width: SizeConfig.size80,
+                                  ),
                                 ),
                               ),
                             ))

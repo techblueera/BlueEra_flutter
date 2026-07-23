@@ -10,6 +10,7 @@ import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/common/Discover/widget/service_enquiry_sheet.dart';
 import 'package:BlueEra/features/chat/auth/service/profile_click_tracker.dart';
 import 'package:BlueEra/features/common/service/model/get_service_model.dart';
@@ -58,6 +59,16 @@ class _HomeServiceDiscoverDetailsScreenV2State
           service.userId ??
           '')
       .trim();
+
+  /// Account type behind [_userId]. `serviceProvider.type` is the only
+  /// signal the service payload carries ("user" / "business" / "channel");
+  /// anything that isn't explicitly a business is treated as an
+  /// individual, which is what home-service listings normally are.
+  String get _providerAccountType =>
+      (service.serviceProvider?.type ?? '').toUpperCase() ==
+              AppConstants.business
+          ? AppConstants.business
+          : AppConstants.individual;
 
   @override
   void initState() {
@@ -256,25 +267,33 @@ class _HomeServiceDiscoverDetailsScreenV2State
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CustomText(
-                storeName,
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: AppColors.mainTextColor,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+              DiscoverProfileTap(
+                accountType: _providerAccountType,
+                userId: _userId,
+                child: CustomText(
+                  storeName,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.mainTextColor,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
               if (providerName.isNotEmpty || profession.isNotEmpty) ...[
                 const SizedBox(height: 6),
-                CustomText(
-                  [providerName, profession]
-                      .where((e) => e.isNotEmpty)
-                      .join('  •  '),
-                  fontSize: 12.5,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.secondaryTextColor,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                DiscoverProfileTap(
+                  accountType: _providerAccountType,
+                  userId: _userId,
+                  child: CustomText(
+                    [providerName, profession]
+                        .where((e) => e.isNotEmpty)
+                        .join('  •  '),
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.secondaryTextColor,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
               const SizedBox(height: 10),
@@ -310,11 +329,17 @@ class _HomeServiceDiscoverDetailsScreenV2State
                 ),
               ],
             ),
-            child: CachedAvatarWidget(
-              imageUrl: logo,
-              size: 62,
-              borderColor: Colors.transparent,
-              borderRadius: 31,
+            // Logo opens the provider's own profile — personal or
+            // business depending on the account that listed the service.
+            child: DiscoverProfileTap(
+              accountType: _providerAccountType,
+              userId: _userId,
+              child: CachedAvatarWidget(
+                imageUrl: logo,
+                size: 62,
+                borderColor: Colors.transparent,
+                borderRadius: 31,
+              ),
             ),
           ),
         ),

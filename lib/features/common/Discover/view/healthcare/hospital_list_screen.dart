@@ -12,6 +12,7 @@ import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/common/Discover/view/healthcare/discover_hospital_home_screen.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_controller.dart';
 import 'package:BlueEra/features/me/hospital/model/hospital_full_details_res_model.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -469,7 +470,14 @@ class _HospitalCard extends StatelessWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _logo(),
+            // Logo / name open the hospital's business profile; the
+            // rest of the card keeps opening the hospital detail page.
+            DiscoverProfileTap(
+              accountType: AppConstants.business,
+              businessId: item.id,
+              userId: item.userId,
+              child: _logo(),
+            ),
             const SizedBox(width: 10),
             Expanded(
               child: Padding(
@@ -477,13 +485,18 @@ class _HospitalCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    CustomText(
-                      _valueOr(item.name, fallback: "Unknown Hospital"),
-                      fontSize: SizeConfig.large18,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.black22,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    DiscoverProfileTap(
+                      accountType: AppConstants.business,
+                      businessId: item.id,
+                      userId: item.userId,
+                      child: CustomText(
+                        _valueOr(item.name, fallback: "Unknown Hospital"),
+                        fontSize: SizeConfig.large18,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.black22,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     GestureDetector(

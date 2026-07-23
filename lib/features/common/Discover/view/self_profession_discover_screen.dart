@@ -13,6 +13,7 @@ import 'package:BlueEra/features/common/Discover/controller/discover_controller.
 import 'package:BlueEra/features/common/Discover/model/service_model_response.dart';
 import 'package:BlueEra/features/common/Discover/view/self_employee_view_discover_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_map_widgets.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/common/Discover/widget/filter_capsule.dart';
 import 'package:BlueEra/features/common/Discover/widget/sticky_category_header_delegate.dart';
 import 'package:BlueEra/features/common/auth/model/onboarding_category_model.dart';
@@ -636,32 +637,43 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // ─── Avatar + name + location ─────────────────
+                  // Avatar and name open the poster's profile (personal
+                  // or business, per account type); the rest of the card
+                  // still opens the service detail.
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      CachedAvatarWidget(
-                        imageUrl: profileImage,
-                        size: SizeConfig.size40,
-                        borderColor: Colors.white,
-                        borderRadius: SizeConfig.size20,
+                      DiscoverProfileTap(
+                        accountType: service.accountType,
+                        userId: service.id,
+                        child: CachedAvatarWidget(
+                          imageUrl: profileImage,
+                          size: SizeConfig.size40,
+                          borderColor: Colors.white,
+                          borderRadius: SizeConfig.size20,
+                        ),
                       ),
                       SizedBox(width: SizeConfig.size10),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              name,
-                              style: TextStyle(
-                                fontFamily: AppConstants.OpenSans,
-                                fontSize: 17,
-                                fontWeight: FontWeight.w800,
-                                color: AppColors.mainTextColor,
-                                letterSpacing: -0.2,
-                                height: 1.15,
+                            DiscoverProfileTap(
+                              accountType: service.accountType,
+                              userId: service.id,
+                              child: Text(
+                                name,
+                                style: TextStyle(
+                                  fontFamily: AppConstants.OpenSans,
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.mainTextColor,
+                                  letterSpacing: -0.2,
+                                  height: 1.15,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
                             if (distStr != null || address.isNotEmpty) ...[
                               const SizedBox(height: 4),

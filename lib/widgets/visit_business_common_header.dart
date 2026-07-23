@@ -89,6 +89,20 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
     }
   }
 
+  /// Logo / business-name tap → the owning business's profile page.
+  /// Store screens (food, grocery, pharmacy, "other services", …) show
+  /// this header for a listing, so the identity block has to lead back
+  /// to the account that published it. [redirectToProfileScreen] routes
+  /// to the owner's own profile when it's their listing.
+  void _openBusinessProfile() {
+    final id = (details?.id ?? '').trim();
+    if (id.isEmpty) return;
+    redirectToProfileScreen(
+      accountType: AppConstants.business,
+      profileId: id,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final hasCover = details?.coverimage != null && details!.coverimage!.isNotEmpty;
@@ -165,12 +179,16 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
                         ),
                       ],
                     ),
-                    child: CircleAvatar(
-                      radius: 38,
-                      backgroundColor: AppColors.white,
-                      child: details?.logo?.isNotEmpty == true
-                          ? ClipOval(child: NetWorkOcToAssets(imgUrl: details?.logo ?? ""))
-                          : LocalAssets(imagePath: AppIconAssets.user_out_line),
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: _openBusinessProfile,
+                      child: CircleAvatar(
+                        radius: 38,
+                        backgroundColor: AppColors.white,
+                        child: details?.logo?.isNotEmpty == true
+                            ? ClipOval(child: NetWorkOcToAssets(imgUrl: details?.logo ?? ""))
+                            : LocalAssets(imagePath: AppIconAssets.user_out_line),
+                      ),
                     ),
                   ),
                 ),
@@ -220,13 +238,17 @@ class _VisitBusinessCommonHeaderState extends State<VisitBusinessCommonHeader> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Business Name
-                CustomText(
-                  details?.businessName,
-                  fontSize: 20,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.mainTextColor,
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: _openBusinessProfile,
+                  child: CustomText(
+                    details?.businessName,
+                    fontSize: 20,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.mainTextColor,
+                  ),
                 ),
                 const SizedBox(height: 8),
 

@@ -9,6 +9,7 @@ import 'package:BlueEra/core/widgets/custom_form_card.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/hotel_search_model.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/me/hotel/view/widget/hotel_home_gallery_widget.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -87,20 +88,29 @@ final discoverController = Get.find<DiscoverController>();
                               color: AppColors.white,
                               shape: BoxShape.circle
                           ),
-                          child: (profile!=null && (profile.logoUrl?.isNotEmpty ?? false))
-                              ? CachedAvatarWidget(
-                            imageUrl: profile.logoUrl!,
-                            size: SizeConfig.size65,
-                            borderColor: Colors.white,
-                            borderRadius: SizeConfig.size40,
-                          )
-                              : ClipRRect(
-                            borderRadius: BorderRadius.circular(SizeConfig.size40),
-                            child: LocalAssets(
-                              imagePath: AppIconAssets.place_holder_image,
-                              height: SizeConfig.size65,
-                              width: SizeConfig.size65,
-                            ),
+                          // Logo opens the hotel's business profile.
+                          child: DiscoverProfileTap(
+                            accountType: AppConstants.business,
+                            businessId: hotelServiceData.businessId ??
+                                profile?.businessId,
+                            child: (profile != null &&
+                                    (profile.logoUrl?.isNotEmpty ?? false))
+                                ? CachedAvatarWidget(
+                                    imageUrl: profile.logoUrl!,
+                                    size: SizeConfig.size65,
+                                    borderColor: Colors.white,
+                                    borderRadius: SizeConfig.size40,
+                                  )
+                                : ClipRRect(
+                                    borderRadius: BorderRadius.circular(
+                                        SizeConfig.size40),
+                                    child: LocalAssets(
+                                      imagePath:
+                                          AppIconAssets.place_holder_image,
+                                      height: SizeConfig.size65,
+                                      width: SizeConfig.size65,
+                                    ),
+                                  ),
                           ),
                         )
                     )
@@ -119,11 +129,16 @@ final discoverController = Get.find<DiscoverController>();
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     Flexible(
-                      child: CustomText(
-                          profile?.name ?? 'Unknown User',
-                          fontSize: SizeConfig.large,
-                          color: AppColors.mainTextColor,
-                          fontWeight: FontWeight.w700
+                      child: DiscoverProfileTap(
+                        accountType: AppConstants.business,
+                        businessId:
+                            hotelServiceData.businessId ?? profile?.businessId,
+                        child: CustomText(
+                            profile?.name ?? 'Unknown User',
+                            fontSize: SizeConfig.large,
+                            color: AppColors.mainTextColor,
+                            fontWeight: FontWeight.w700
+                        ),
                       ),
                     ),
                     SizedBox(

@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/common/Discover/controller/discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/profe_cons_res_model.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/common/Discover/widget/profession_enquiry_sheet.dart';
 import 'package:BlueEra/features/me/professionals_consultant/view/portfolio_project_card_widget.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
@@ -296,11 +297,15 @@ class _HeaderSection extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: CachedAvatarWidget(
-                      imageUrl: profileImage,
-                      size: SizeConfig.size80,
-                      borderColor: Colors.transparent,
-                      borderRadius: SizeConfig.size40,
+                    child: DiscoverProfileTap(
+                      accountType: data.userDetails?.accountType,
+                      userId: data.userDetails?.id,
+                      child: CachedAvatarWidget(
+                        imageUrl: profileImage,
+                        size: SizeConfig.size80,
+                        borderColor: Colors.transparent,
+                        borderRadius: SizeConfig.size40,
+                      ),
                     ),
                   ),
                 ),
@@ -339,11 +344,15 @@ class _HeaderSection extends StatelessWidget {
             children: [
               if (hasName)
                 Expanded(
-                  child: CustomText(
-                    _capitalize(name),
-                    fontSize: SizeConfig.extraLarge,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.mainTextColor,
+                  child: DiscoverProfileTap(
+                    accountType: data.userDetails?.accountType,
+                    userId: data.userDetails?.id,
+                    child: CustomText(
+                      _capitalize(name),
+                      fontSize: SizeConfig.extraLarge,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.mainTextColor,
+                    ),
                   ),
                 ),
               if (hasName && hasTitle) SizedBox(width: SizeConfig.size8),
