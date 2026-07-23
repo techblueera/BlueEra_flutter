@@ -16,6 +16,7 @@ import 'package:BlueEra/features/common/Discover/widget/discover_categories_data
 import 'package:BlueEra/features/common/Discover/widget/discover_category_section.dart';
 import 'package:BlueEra/features/common/Discover/widget/nearest_stores_section.dart';
 import 'package:BlueEra/features/common/Discover/widget/ongoing_booking_chip.dart';
+import 'package:BlueEra/features/common/Discover/widget/recent_orders_section.dart';
 import 'package:BlueEra/features/common/Discover/widget/recently_visited_stores_section.dart';
 import 'package:BlueEra/features/common/Discover/widget/share_promo_sheet.dart';
 import 'package:BlueEra/features/common/Discover/view/widget/automotive_service_card_widget.dart';
@@ -288,6 +289,13 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
               const SliverToBoxAdapter(child: OngoingBookingChip()),
 
               SliverToBoxAdapter(child: SizedBox(height: SizeConfig.size12)),
+
+              /// "Orders in 12 Hrs." — the user's own recent orders, read from
+              /// the Inquiry chat lane (ordering here means a chat with the
+              /// shop). Sits directly under the ongoing ride because both
+              /// answer the same question: what of mine is in flight right
+              /// now. Collapses to nothing when no order is recent.
+              const SliverToBoxAdapter(child: RecentOrdersSection()),
 
               /// Category content — gated behind the shimmer while location and
               /// the initial fetch are still in flight.

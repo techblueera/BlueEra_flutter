@@ -367,8 +367,16 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
             category: AndroidNotificationCategory.call,
             fullScreenIntent: true,
             // visibility: NotificationVisibility.public,
-            ongoing: true,
-            autoCancel: false,
+            //
+            // NOT `ongoing` and DOES `autoCancel`, both deliberately: with
+            // FLAG_INSISTENT the sound loops until this notification is
+            // cancelled, and `ongoing: true` also made it unswipeable — so a
+            // ring that outlived its stop path (tap that didn't dismiss it,
+            // ROM ignoring `timeoutAfter`) could not be silenced by the rider
+            // at all. Now the tap dismisses it natively, a swipe is a last
+            // resort, and the Decline/View actions still answer the server.
+            ongoing: false,
+            autoCancel: true,
             playSound: true,
             sound: const RawResourceAndroidNotificationSound(kRideRingSound),
             enableVibration: true,

@@ -47,27 +47,11 @@ class _InquiryRideOrderSelectionScreenState
   final Set<String> _selectedIds = {};
 
   /// Inquiry chats whose last message is within the last 12 hours, newest
-  /// first. Mirrors the Inquiry-tab routing (`bucketChat == chats`).
-  List<ChatList> get _recentInquiries {
-    final all = chatViewController.getBusinessChatListModel?.value.chatList ?? [];
-    final cutoff = DateTime.now().subtract(const Duration(hours: 12));
-    final result = <ChatList>[];
-    for (final c in all) {
-      if (c == null) continue;
-      if (bucketChat(c) != ChatBucket.chats) continue;
-      final raw = (c.updatedAt?.isNotEmpty ?? false) ? c.updatedAt : c.createdAt;
-      if (raw == null || raw.isEmpty) continue;
-      DateTime dt;
-      try {
-        dt = DateTime.parse(raw).toLocal();
-      } catch (_) {
-        continue;
-      }
-      if (dt.isAfter(cutoff)) result.add(c);
-    }
-    result.sort((a, b) => (b.updatedAt ?? '').compareTo(a.updatedAt ?? ''));
-    return result;
-  }
+  /// first. Shared with the Discover "Orders in 12 Hrs." rail so the two can't
+  /// drift on what counts as a recent order.
+  List<ChatList> get _recentInquiries => recentInquiryChats(
+        chatViewController.getBusinessChatListModel?.value.chatList,
+      );
 
   void _toggle(String? id) {
     if (id == null || id.isEmpty) return;

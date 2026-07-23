@@ -92,6 +92,99 @@ class RideBookingController extends GetxController {
   static String _nameForVehicleType(String vehicleType) =>
       kVehicleTypeNames[vehicleType] ?? vehicleType;
 
+  // ------------------------------------------------------ vehicle catalogue
+
+  /// The backend's vehicle catalogue, from `GET riders/onboarding/vehicle-enums`.
+  ///
+  /// The home screen's service tiles are built from this rather than from a
+  /// list compiled into the app: the enum is the backend's to change, and a
+  /// hardcoded copy means a vehicle added server-side is invisible here while
+  /// one removed there is still bookable — and the create call would carry a
+  /// `vehicleType` the server rejects.
+  ///
+  /// [kVehicleTypeNames] stays as the offline fallback and the source of
+  /// display names when a payload omits `slug_value`.
+  final RxList<RideVehicleType> vehicleTypes = <RideVehicleType>[].obs;
+  final isLoadingVehicleTypes = false.obs;
+
+  /// Everything that carries goods rather than people. Used to split the flat
+  /// catalogue into the home screen's Passenger / Parcel sections — the
+  /// backend returns one list and the grouping is a product decision.
+  static const Set<String> kGoodsVehicleTypes = {
+    'pickupGoods',
+    'miniTruckGoods',
+    'largeTruckGoods',
+    'goods3Wheeler',
+    'goods4Wheeler',
+  };
+
+  /// Fetch the catalogue once per app run. [force] re-fetches (pull to refresh).
+  Future<void> fetchVehicleTypes({bool force = false}) async {
+    if (isLoadingVehicleTypes.value) return;
+    if (!force && vehicleTypes.isNotEmpty) return;
+
+    isLoadingVehicleTypes.value = true;
+    try {
+      final response = await _repo.getVehicleEnums();
+      final parsed = _parseVehicleTypes(response);
+      // An empty/failed response must not blank the tiles — a customer with a
+      // flaky connection still gets a bookable screen from the known enum.
+      vehicleTypes.assignAll(parsed.isNotEmpty ? parsed : _fallbackVehicleTypes);
+    } catch (_) {
+      if (vehicleTypes.isEmpty) vehicleTypes.assignAll(_fallbackVehicleTypes);
+    } finally {
+      isLoadingVehicleTypes.value = false;
+    }
+  }
+
+  /// `{ vehicleType: [{slug_id, slug_value}] }`, tolerating the older shape
+  /// where the list held plain strings, and a body wrapped in `data`.
+  List<RideVehicleType> _parseVehicleTypes(ResponseModel response) {
+    if (!response.isSuccess) return const [];
+    final body = response.response?.data;
+    final map = body is Map ? body : null;
+    if (map == null) return const [];
+    final inner = map['data'] is Map ? map['data'] as Map : map;
+    final raw = inner['vehicleType'];
+    if (raw is! List) return const [];
+
+    final out = <RideVehicleType>[];
+    for (final entry in raw) {
+      String code;
+      String label;
+      if (entry is Map) {
+        code = (entry['slug_id'] ?? entry['id'] ?? '').toString();
+        label = (entry['slug_value'] ?? entry['label'] ?? '').toString();
+      } else {
+        code = entry?.toString() ?? '';
+        label = '';
+      }
+      if (code.isEmpty) continue;
+      out.add(RideVehicleType(
+        code: code,
+        label: label.isNotEmpty ? label : _nameForVehicleType(code),
+      ));
+    }
+    return out;
+  }
+
+  static List<RideVehicleType> get _fallbackVehicleTypes => [
+        for (final entry in kVehicleTypeNames.entries)
+          RideVehicleType(code: entry.key, label: entry.value),
+      ];
+
+  /// The catalogue entries for [codes], in the order given — the section
+  /// decides the order it wants to show, the catalogue decides what exists.
+  /// Unknown codes are dropped, so a type the backend has retired disappears
+  /// from the screen without a release.
+  List<RideVehicleType> vehicleTypesFor(List<String> codes) {
+    final byCode = {for (final v in vehicleTypes) v.code: v};
+    return [
+      for (final code in codes)
+        if (byCode[code] != null) byCode[code]!,
+    ];
+  }
+
   /// Vehicle the user picked on the Explore rail, if any — a `vehicleType`.
   /// Pre-selects that row once the quote lands instead of the first option.
   final RxnString preselectedVehicleCode = RxnString();
