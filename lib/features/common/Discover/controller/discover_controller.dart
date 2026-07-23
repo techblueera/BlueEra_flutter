@@ -146,6 +146,19 @@ class DiscoverController extends GetxController {
   final List<SortedShop> _multiShopOrderShops = [];
   SavedAddress? _multiShopDropAddress;
 
+  /// Multi-shop BROADCAST (wave race) state — the Rapido-style alternative to
+  /// picking riders by hand. Created by [makeMultiShopBroadcastOrder], driven
+  /// by the `ride:broadcast:*` socket events plus a status poll that is the
+  /// source of truth when those events are missed.
+  RxBool isMultiShopBroadcastActive = false.obs;
+  RxBool isMultiShopBroadcastSearching = false.obs;
+  RxBool isMultiShopBroadcastExhausted = false.obs;
+  RxInt multiShopBroadcastWave = 0.obs;
+  RxInt multiShopBroadcastTotalWaves = 0.obs;
+  RxDouble multiShopBroadcastRadiusKm = 0.0.obs;
+  RxInt multiShopBroadcastRidersNotified = 0.obs;
+  Timer? _multiShopBroadcastPollTimer;
+
   bool hasMoreEarnServiceData = true;
   bool hasMoreProfConServiceData = true;
   bool hasMoreEducationServiceData = true;
@@ -1532,6 +1545,10 @@ class DiscoverController extends GetxController {
     }
 
     bookRiderBtnLoading.value = true;
+    // This order is hand-picked, not a broadcast — see the guard in
+    // `ride:queue:calling`, which a stale flag would keep suppressing.
+    isMultiShopBroadcastActive.value = false;
+    stopMultiShopBroadcastPoll();
 
     final params = {
       ApiKeys.selectedRiders: selectedRiders.map((r) => r.riderId).toList(),
@@ -1568,6 +1585,306 @@ class DiscoverController extends GetxController {
       commonSnackBar(message: response.message ?? 'Unable to Book a Rider');
       return false;
     }
+  }
+
+  /// Backend `vehicleType` enum for the In-City vehicle tab [index], mirroring
+  /// [selectedInCityFare]. Sent on a broadcast order to restrict the race to
+  /// one vehicle type — without it any nearby rider of any type can win a
+  /// booking the customer priced as a bike.
+  ///
+  /// Tab 1 ("Taxi") covers two backend types and the quoted fare is the
+  /// cheaper of `carMini` / `carSedan`; the race is restricted to whichever
+  /// type produced that fare so the customer is charged what they were shown.
+  /// Returns null when the tab has no priced vehicle (broadcast then goes out
+  /// unrestricted, which is the server default).
+  String? multiShopBroadcastVehicleType(int index) {
+    final r = ridersDetailsList.value;
+    switch (index) {
+      case 0:
+        return r.twoWheelerRider != null ? 'twoWheelerRider' : null;
+      case 1:
+        final mini = r.carMini?.fare;
+        final sedan = r.carSedan?.fare;
+        if (mini != null && sedan != null) {
+          return mini <= sedan ? 'carMini' : 'carSedan';
+        }
+        if (mini != null) return 'carMini';
+        if (sedan != null) return 'carSedan';
+        return null;
+      case 2:
+        return r.autoTempo != null ? 'autoTempo' : null;
+      case 3:
+        return r.eRickshaw != null ? 'eRickshaw' : null;
+    }
+    return null;
+  }
+
+  /// Book the multi-shop order as a BROADCAST via
+  /// `POST /fare/multi-shop/orders/broadcast`: no riders are selected, the
+  /// server rings nearby riders in expanding waves and the first to accept
+  /// wins. Same route/fare inputs as [makeMultiShopOrderApi]; `selectedRiders`
+  /// is deliberately absent (sending it puts the order back on the hand-picked
+  /// path) and `vehicleType` restricts the race to the chosen vehicle.
+  ///
+  /// Returns true on success, having seeded [fareCallOrderId] and started the
+  /// search state the broadcast searching screen renders.
+  Future<bool> makeMultiShopBroadcastOrder() async {
+    final drop = _multiShopDropAddress;
+    if (drop == null || _multiShopOrderShops.isEmpty) {
+      commonSnackBar(message: AppStrings.somethingWentWrong);
+      return false;
+    }
+
+    bookRiderBtnLoading.value = true;
+
+    final vehicleType =
+        multiShopBroadcastVehicleType(selectedVehicleOptionIndex.value);
+    final params = {
+      'userLocation': {
+        ApiKeys.address: drop.fullAddress,
+        ApiKeys.latitude: drop.lat ?? 0.0,
+        ApiKeys.longitude: drop.lng ?? 0.0,
+      },
+      'shops': _multiShopOrderShops.map((s) => s.toRequestJson()).toList(),
+      ApiKeys.orderFor: 'grocery',
+      ApiKeys.modeOfPayment: 'prepaid',
+      ApiKeys.fare: selectedInCityFare(selectedVehicleOptionIndex.value),
+      ApiKeys.orderType: 'broadcast',
+      ApiKeys.orderForWhom: 'myself',
+      if (vehicleType != null) ApiKeys.vehicleType: vehicleType,
+    };
+
+    final response =
+        await DiscoverRepo().makeMultiShopBroadcastOrderApi(params: params);
+    bookRiderBtnLoading.value = false;
+
+    if (!response.isSuccess) {
+      commonSnackBar(message: response.message ?? 'Unable to Book a Rider');
+      return false;
+    }
+
+    // A fresh search must never inherit the previous order's rider/OTP state —
+    // a stale accepted-rider would make the searching screen jump straight to
+    // tracking, and a stale OTP is the one the customer reads out.
+    fareCallAcceptedRiderInfo.value = null;
+    fareCallAcceptedRiderId.value = '';
+    fareCallPickupOtp.value = '';
+    fareCallDeliveryOtp.value = '';
+    fareCallOtpOrderId = '';
+    isFareCallRideStarted.value = false;
+    isFareCallRideCompleted.value = false;
+
+    final data = response.response?.data;
+    if (data is Map) {
+      // The order can come back either bare or nested under `order`/`data`.
+      final order = (data['order'] is Map)
+          ? data['order'] as Map
+          : (data['data'] is Map ? data['data'] as Map : data);
+      fareCallOrderId.value =
+          (order['orderId'] ?? order['_id'] ?? data['orderId'] ?? '')
+              .toString();
+      final pickupOtp = (order['pickupOTP'] ?? '').toString();
+      final deliveryOtp = (order['deliveryOTP'] ?? '').toString();
+      if (pickupOtp.isNotEmpty) fareCallPickupOtp.value = pickupOtp;
+      if (deliveryOtp.isNotEmpty) fareCallDeliveryOtp.value = deliveryOtp;
+      if (pickupOtp.isNotEmpty || deliveryOtp.isNotEmpty) {
+        fareCallOtpOrderId = fareCallOrderId.value;
+      }
+    }
+
+    if (fareCallOrderId.value.isEmpty) {
+      commonSnackBar(message: 'Unable to Book a Rider');
+      return false;
+    }
+
+    isMultiShopBroadcastActive.value = true;
+    isMultiShopBroadcastSearching.value = true;
+    isMultiShopBroadcastExhausted.value = false;
+    multiShopBroadcastWave.value = 0;
+    multiShopBroadcastTotalWaves.value = 0;
+    multiShopBroadcastRadiusKm.value = 0.0;
+    multiShopBroadcastRidersNotified.value = 0;
+    fareCallOrderFor.value = 'grocery';
+    // The searching screen's "no rider found" state keys off this, the same
+    // way the fare-call queue screen does.
+    isFareCallInProgress.value = true;
+    fareCallTotalRiders.value = 0;
+    fareCallCurrentRiderIndex.value = 0;
+
+    // Poll is the source of truth (per the broadcast guide); the sockets just
+    // remove the poll lag.
+    _startMultiShopBroadcastPoll(fareCallOrderId.value);
+    return true;
+  }
+
+  /// Socket listeners for the broadcast wave race. Registered in addition to
+  /// [setupFareCallQueueListeners], which owns `ride:queue:accepted` (the full
+  /// winner payload broadcast also emits) plus `ride:started` / `ride:completed`.
+  void setupMultiShopBroadcastListeners() {
+    final socket = ChatSocketService();
+
+    socket.listenEvent('ride:broadcast:searching', (data) {
+      print('[BROADCAST] ride:broadcast:searching → $data');
+      if (_isStaleFareCallEvent(data)) return;
+      if (data is! Map) return;
+      multiShopBroadcastWave.value =
+          int.tryParse('${data['wave'] ?? ''}') ?? multiShopBroadcastWave.value;
+      multiShopBroadcastTotalWaves.value =
+          int.tryParse('${data['totalWaves'] ?? ''}') ??
+              multiShopBroadcastTotalWaves.value;
+      multiShopBroadcastRadiusKm.value =
+          double.tryParse('${data['radiusKm'] ?? ''}') ??
+              multiShopBroadcastRadiusKm.value;
+      multiShopBroadcastRidersNotified.value =
+          int.tryParse('${data['ridersNotified'] ?? ''}') ??
+              multiShopBroadcastRidersNotified.value;
+    });
+
+    // Thin winner payload — `ride:queue:accepted` carries the full rider info
+    // and may arrive alongside it. Don't write a placeholder rider here: the
+    // poll hydrates the real one, and a placeholder would be what the tracking
+    // card renders if the full payload never lands.
+    socket.listenEvent('ride:broadcast:accepted', (data) {
+      print('[BROADCAST] ride:broadcast:accepted → $data');
+      if (_isStaleFareCallEvent(data)) return;
+      final riderId = (data is Map ? data['riderId'] : null)?.toString() ?? '';
+      if (riderId.isNotEmpty) fareCallAcceptedRiderId.value = riderId;
+      isMultiShopBroadcastSearching.value = false;
+      // Pull the winner's details + OTPs immediately instead of waiting for
+      // the next poll tick.
+      unawaited(_applyMultiShopBroadcastStatus(fareCallOrderId.value));
+    });
+
+    socket.listenEvent('ride:broadcast:exhausted', (data) {
+      print('[BROADCAST] ride:broadcast:exhausted → $data');
+      if (_isStaleFareCallEvent(data)) return;
+      _markMultiShopBroadcastExhausted();
+    });
+  }
+
+  /// 3s status poll for a broadcast order — flips the search to "assigned"
+  /// (hydrating the winning rider + OTPs) or to "exhausted", whichever the
+  /// server reports, independently of the socket.
+  void _startMultiShopBroadcastPoll(String orderId) {
+    if (orderId.isEmpty) return;
+    stopMultiShopBroadcastPoll();
+    _multiShopBroadcastPollTimer =
+        Timer.periodic(const Duration(seconds: 3), (_) async {
+      // Rebooked / cancelled out from under this poll.
+      if (fareCallOrderId.value.isNotEmpty &&
+          fareCallOrderId.value != orderId) {
+        stopMultiShopBroadcastPoll();
+        return;
+      }
+      if (!isMultiShopBroadcastSearching.value &&
+          fareCallAcceptedRiderInfo.value != null) {
+        stopMultiShopBroadcastPoll();
+        return;
+      }
+      await _applyMultiShopBroadcastStatus(orderId);
+    });
+  }
+
+  /// One status read for a broadcast order. `pending` = still racing;
+  /// anything with a rider attached hydrates the captain card and ends the
+  /// search; `rejected`/`cancelled` = no winner.
+  Future<void> _applyMultiShopBroadcastStatus(String orderId) async {
+    if (orderId.isEmpty) return;
+    const assignedStatuses = {
+      'payment-pending',
+      'confirmed',
+      'assigned',
+      'accepted',
+      'in-progress',
+      'picked-up',
+      'completed',
+    };
+    const abortedStatuses = {'rejected', 'cancelled'};
+    try {
+      final res = await ChatViewRepo().checkTrackOrderStatusSilentApi(orderId);
+      if (!res.isSuccess) return;
+      final data = res.response?.data;
+      if (data is! Map) return;
+
+      final status =
+          (data['status'] ?? '').toString().toLowerCase().replaceAll('_', '-');
+      if (abortedStatuses.contains(status)) {
+        _markMultiShopBroadcastExhausted();
+        return;
+      }
+      if (!assignedStatuses.contains(status)) return; // still `pending`
+
+      final metadata = data['metadata'];
+      final assigned = (metadata is Map) ? metadata['assignedRider'] : null;
+      Map<String, dynamic>? riderInfo;
+      if (assigned is Map) {
+        riderInfo = Map<String, dynamic>.from(assigned);
+      } else if (assigned != null && assigned.toString().isNotEmpty) {
+        riderInfo = {'riderId': assigned.toString()};
+      } else if (fareCallAcceptedRiderId.value.isNotEmpty) {
+        // Socket gave us the winner id but the status payload doesn't repeat
+        // it — enough for the tracking screen, which fills the rest from the
+        // rider-location poll.
+        riderInfo = {'riderId': fareCallAcceptedRiderId.value};
+      }
+      if (riderInfo == null) return;
+
+      final riderId =
+          (riderInfo['riderId'] ?? riderInfo['_id'] ?? '').toString();
+      if (riderId.isNotEmpty) fareCallAcceptedRiderId.value = riderId;
+
+      final pickupOtp = (data['pickupOTP'] ?? '').toString();
+      final deliveryOtp = (data['deliveryOTP'] ?? '').toString();
+      if (pickupOtp.isNotEmpty) fareCallPickupOtp.value = pickupOtp;
+      if (deliveryOtp.isNotEmpty) fareCallDeliveryOtp.value = deliveryOtp;
+      if (pickupOtp.isNotEmpty || deliveryOtp.isNotEmpty) {
+        fareCallOtpOrderId = orderId;
+      }
+
+      isMultiShopBroadcastSearching.value = false;
+      stopMultiShopBroadcastPoll();
+      // Set the rider LAST: the searching + tracking screens both treat a
+      // non-null accepted rider as "we have a winner", so everything it needs
+      // must already be in place.
+      if (fareCallAcceptedRiderInfo.value == null) {
+        fareCallAcceptedRiderInfo.value = riderInfo;
+      }
+      isFareCallInProgress.value = false;
+    } catch (_) {
+      // Best-effort — the socket path and the next tick both remain.
+    }
+  }
+
+  void _markMultiShopBroadcastExhausted() {
+    if (fareCallAcceptedRiderInfo.value != null) return; // a rider already won
+    stopMultiShopBroadcastPoll();
+    isMultiShopBroadcastSearching.value = false;
+    isMultiShopBroadcastExhausted.value = true;
+    isFareCallInProgress.value = false;
+  }
+
+  void stopMultiShopBroadcastPoll() {
+    _multiShopBroadcastPollTimer?.cancel();
+    _multiShopBroadcastPollTimer = null;
+  }
+
+  /// Cancel an in-flight broadcast search. Broadcast has no fare-call queue,
+  /// so this hits `/fare/orders/{orderId}/cancel`, not `/cancel-queue`.
+  Future<bool> cancelMultiShopBroadcast({String? reason}) async {
+    final orderId = fareCallOrderId.value;
+    if (orderId.isEmpty) return false;
+    final response =
+        await DiscoverRepo().cancelFareOrderApi(orderId, reason: reason);
+    if (response.isSuccess) {
+      stopMultiShopBroadcastPoll();
+      isMultiShopBroadcastSearching.value = false;
+      isMultiShopBroadcastActive.value = false;
+      isFareCallInProgress.value = false;
+      commonSnackBar(message: 'Ride request cancelled');
+      return true;
+    }
+    commonSnackBar(message: response.message ?? 'Failed to cancel');
+    return false;
   }
 
   String getTabName(int index) {
@@ -1674,6 +1991,9 @@ class DiscoverController extends GetxController {
 
   Future<bool> makeTransportBookOrderApi() async {
     bookRiderBtnLoading.value = true;
+    // Leaving a finished broadcast marked active would keep the fare-call
+    // guard in `ride:queue:calling` swallowing this order's rider calls.
+    isMultiShopBroadcastActive.value = false;
     Map<String, dynamic> params = {
       ApiKeys.selectedRiders: selectedRiders.map((r) => r.riderId).toList(),
       ApiKeys.pickupLocation: {
@@ -1762,6 +2082,10 @@ class DiscoverController extends GetxController {
 
     socket.listenEvent('ride:queue:calling', (data) {
       print('[FARE_CALL_QUEUE] ride:queue:calling → $data');
+      // A broadcast order is a silent wave race — there is no rider-by-rider
+      // WebRTC call to join. Auto-joining one here would open a call room for
+      // a ride the customer never dialled.
+      if (isMultiShopBroadcastActive.value) return;
       fareCallCurrentRiderIndex.value = (data['riderIndex'] ?? 0) + 1;
       fareCallTotalRiders.value = data['totalRiders'] ?? selectedRiders.length;
       fareCallCurrentRiderId.value = data['riderId'] ?? '';
@@ -1819,11 +2143,22 @@ class DiscoverController extends GetxController {
       // IMPORTANT: Set riderInfo BEFORE setting isFareCallInProgress=false.
       // The exhausted worker triggers on isFareCallInProgress change and checks
       // fareCallAcceptedRiderInfo — if riderInfo is still null, it pops the screen.
-      fareCallAcceptedRiderInfo.value = data['riderInfo'] != null
-          ? Map<String, dynamic>.from(data['riderInfo'])
-          : null;
-      fareCallAcceptedRiderId.value =
-          data['riderId'] ?? data['riderInfo']?['riderId'] ?? '';
+      final evRiderId =
+          (data['riderId'] ?? data['riderInfo']?['riderId'] ?? '').toString();
+      if (data['riderInfo'] != null) {
+        fareCallAcceptedRiderInfo.value =
+            Map<String, dynamic>.from(data['riderInfo']);
+      } else if (evRiderId.isNotEmpty) {
+        // A broadcast winner can arrive as a bare id (`ride:broadcast:accepted`
+        // shape). Never blank a rider we already hydrated from the status poll
+        // just because this payload omitted the details — riderInfo == null is
+        // what the tracking screens read as "no rider won", and they pop.
+        fareCallAcceptedRiderInfo.value =
+            fareCallAcceptedRiderInfo.value ?? {'riderId': evRiderId};
+      } else {
+        fareCallAcceptedRiderInfo.value = null;
+      }
+      fareCallAcceptedRiderId.value = evRiderId;
       // Never wipe an OTP already captured from the order-creation response —
       // older backends omit deliveryOTP on this event, and overwriting with ''
       // blanked the delivery OTP card for the rest of the ride.
@@ -2077,6 +2412,14 @@ class DiscoverController extends GetxController {
     isFareCallRideCompleted.value = false;
     fareCallRideCompletedData.value = null;
     stopRideStartedFallbackPoll();
+    isMultiShopBroadcastActive.value = false;
+    isMultiShopBroadcastSearching.value = false;
+    isMultiShopBroadcastExhausted.value = false;
+    multiShopBroadcastWave.value = 0;
+    multiShopBroadcastTotalWaves.value = 0;
+    multiShopBroadcastRadiusKm.value = 0.0;
+    multiShopBroadcastRidersNotified.value = 0;
+    stopMultiShopBroadcastPoll();
 
     // Clean up live tracking (location poll) controller if registered
     if (Get.isRegistered<RiderLocationPollController>()) {

@@ -130,6 +130,7 @@ class AppImageAssets {
   static String goodsMiniBus = "${imgPath}goods_mini_bus.png";
   static String car_rental = "${imgPath}car_rental.png";
   static String logistics = "${imgPath}logistics.png";
+  static const String miniBus = "${imgPath}mini_bus.png";
 
   // Automotive
   static String vehicleShowroom = "${imgPath}vehicle_showroom.png";

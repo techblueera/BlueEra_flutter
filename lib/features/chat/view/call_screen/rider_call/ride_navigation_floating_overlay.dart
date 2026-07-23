@@ -159,6 +159,7 @@ class _DraggableMiniMapState extends State<_DraggableMiniMap> {
             customerImage: p['customerImage'] ?? '',
             paymentMethod: p['paymentMethod'] ?? 'Cash',
             orderId: p['orderId'] ?? '',
+            customerUserId: p['customerUserId'] ?? '',
           ));
     }
   }

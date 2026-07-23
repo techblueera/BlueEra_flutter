@@ -97,6 +97,33 @@ class RidePlace {
       };
 }
 
+/// One entry of the backend vehicle catalogue
+/// (`GET riders/onboarding/vehicle-enums` → `vehicleType[]`).
+///
+/// [code] is the `vehicleType` enum verbatim — the same value the fare quote
+/// groups by and the broadcast create call sends, so a tile built from this
+/// can never book a type the server doesn't know.
+class RideVehicleType {
+  const RideVehicleType({required this.code, required this.label});
+
+  /// `slug_id`, e.g. `twoWheelerRider`, `goods3Wheeler`.
+  final String code;
+
+  /// `slug_value` — the server's own display name, falling back to the app's
+  /// name table when the payload omits it.
+  final String label;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is RideVehicleType &&
+          runtimeType == other.runtimeType &&
+          code == other.code;
+
+  @override
+  int get hashCode => code.hashCode;
+}
+
 /// One bookable vehicle category with its quoted fare — a row on the
 /// vehicle-selection sheet.
 class RideVehicleOption {

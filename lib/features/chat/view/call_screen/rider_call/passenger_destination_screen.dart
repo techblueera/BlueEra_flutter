@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/constants/snackbar_helper.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/chat/auth/controller/upi_payment_controller.dart';
@@ -30,6 +31,31 @@ import 'ride_navigation_overlay_controller.dart';
 /// [DeliverPartnerOrdersController.completePickupRiderApi], which only reports
 /// the rider's location + marks the ride complete. The customer side is
 /// untouched.
+/// Route colours.
+///
+/// Blue, not the screen's green: Google's own basemap paints trunk roads and
+/// highways green, so a green route vanished into exactly the roads a ride
+/// spends most of its time on. Blue is the one hue the basemap reserves for
+/// water, which a route never runs along for long enough to be confusing.
+///
+/// It also matches [RiderPickupNavigationScreen], so the line the rider follows
+/// to the pickup and the line they follow to the drop are the same colour.
+const Color _kRouteColor = Color(0xFF4285F4);
+
+/// Darker edge drawn under the route so it keeps its shape against pale roads
+/// and against satellite imagery.
+const Color _kRouteCasingColor = Color(0xFF0B57D0);
+
+/// Zoom for the driving view — close enough to read the road being ridden and
+/// the next turn on it.
+///
+/// The map deliberately opens here rather than fitted to the whole trip: on
+/// anything longer than a couple of kilometres a whole-route fit scales the
+/// road under the wheels down to a hairline, which is the one thing the rider
+/// is actually looking at. The whole route is one tap away on the
+/// show-whole-route button for when they want to place the trip.
+const double _kNavZoom = 16.5;
+
 class PassengerDestinationScreen extends StatefulWidget {
   final String pickupLocation;
   final String dropLocation;
@@ -49,6 +75,12 @@ class PassengerDestinationScreen extends StatefulWidget {
   final String paymentMethod;
   final String orderId;
 
+  /// The customer's user id, for the rider→customer rating on the completion
+  /// panel. Optional: the entry points that don't carry it (PiP, notification
+  /// resume) fall back to
+  /// [DeliverPartnerOrdersController.customerIdForOrder].
+  final String customerUserId;
+
   const PassengerDestinationScreen({
     super.key,
     required this.pickupLocation,
@@ -63,6 +95,7 @@ class PassengerDestinationScreen extends StatefulWidget {
     this.customerImage = '',
     this.paymentMethod = 'Cash',
     this.orderId = '',
+    this.customerUserId = '',
   });
 
   @override
@@ -90,6 +123,33 @@ class _PassengerDestinationScreenState
   bool _rideCompleted = false;
   bool _isEndingRide = false;
   double _dragX = 0;
+
+  /// Stars the rider has given the customer on the completion panel, 0 = not
+  /// rated yet. Submitted on tap — a rider standing at the drop shouldn't have
+  /// to pick a score AND press a second button.
+  int _customerRating = 0;
+  bool _ratingSubmitting = false;
+  bool _ratingSubmitted = false;
+
+  // ------------------------------------------------------------- map controls
+
+  /// Camera follows the rider. Turned OFF the moment the rider touches the map,
+  /// because the old behaviour animated the camera back on every GPS tick —
+  /// panning ahead to check a turn was undone a second later, which made the
+  /// map feel broken rather than helpful.
+  bool _followRider = true;
+
+  MapType _mapType = MapType.normal;
+
+  /// On by default: this is a working navigation map, and the traffic layer is
+  /// the single most useful thing on it for choosing a lane or a turn.
+  bool _trafficEnabled = true;
+
+  /// True when the position stream can't run (permission denied, location
+  /// services off) or has errored. Surfaced in the status bar because the
+  /// consequence is invisible otherwise: the rider drives on while the
+  /// customer's map shows them parked at the pickup point.
+  bool _gpsUnavailable = false;
 
   /// Rider's own UPI id (VPA), for the collection QR on the completion sheet.
   /// Null while loading, or when the rider has no UPI configured.
@@ -249,58 +309,121 @@ class _PassengerDestinationScreenState
             result.points.map((p) => LatLng(p.latitude, p.longitude)).toList();
         setState(() {
           _polylines
-            ..removeWhere((p) => p.polylineId.value == 'ride_route')
+            ..removeWhere((p) =>
+                p.polylineId.value == 'ride_route' ||
+                p.polylineId.value == 'ride_route_casing')
+            // Drawn as two stacked lines: a dark casing under a brighter core.
+            // A single flat line disappears into whatever it crosses — that is
+            // what a green route did over green trunk roads — whereas the
+            // casing gives the route its own edge on any basemap, including the
+            // satellite/hybrid view.
             ..add(
               Polyline(
-                polylineId: const PolylineId('ride_route'),
+                polylineId: const PolylineId('ride_route_casing'),
                 points: _routeCoords,
-                width: 5,
-                color: const Color(0xFF00C853),
+                width: 10,
+                color: _kRouteCasingColor,
                 geodesic: true,
                 jointType: JointType.round,
                 startCap: Cap.roundCap,
                 endCap: Cap.roundCap,
+                zIndex: 0,
+              ),
+            )
+            ..add(
+              Polyline(
+                polylineId: const PolylineId('ride_route'),
+                points: _routeCoords,
+                width: 6,
+                color: _kRouteColor,
+                geodesic: true,
+                jointType: JointType.round,
+                startCap: Cap.roundCap,
+                endCap: Cap.roundCap,
+                zIndex: 1,
               ),
             );
         });
-        _fitBounds(origin, _dropLatLng);
+        // Redrawing the line must not move the camera. This runs again every
+        // ~150 m of travel, and refitting the whole trip each time dragged the
+        // view off the road ahead every few seconds — the exact opposite of
+        // what a driving rider needs. Only the rider asks for the wide view,
+        // via the show-whole-route button, and when they have they keep it.
+        if (!_followRider) _fitBounds(origin, _dropLatLng);
       }
     } catch (_) {
       // Route drawing is best-effort — the ride still works without a polyline.
     }
   }
 
-  void _startLocationTracking() {
+  Future<void> _startLocationTracking() async {
+    // Without this the stream just errors and dies on a device where location
+    // is off or was never granted, and the ride runs to completion with the
+    // customer watching a stationary marker. Checked rather than assumed: the
+    // rider may have reached this screen from a notification, without ever
+    // passing a screen that asks.
+    if (!await _ensureLocationPermission()) {
+      if (mounted) setState(() => _gpsUnavailable = true);
+      return;
+    }
+
     const locationSettings = LocationSettings(
       accuracy: LocationAccuracy.high,
       distanceFilter: 10,
     );
     _locationSubscription =
-        Geolocator.getPositionStream(locationSettings: locationSettings)
-            .listen((position) {
-      if (!mounted || _rideCompleted) return;
-      final newPos = LatLng(position.latitude, position.longitude);
-      setState(() {
-        _currentRiderPosition = newPos;
-        _updateRiderMarker(heading: position.heading);
-        _recomputeRemaining();
-      });
-      // Push the position to the map-service so the customer's live-tracking
-      // map follows the rider. Throttling/heartbeat/retry live in the publisher.
-      RideLocationPublisher().updatePosition(newPos.latitude, newPos.longitude);
-      // Keep the camera gently following the rider.
-      _mapController?.animateCamera(CameraUpdate.newLatLng(newPos));
-      // Refresh the drawn route once the rider has moved ~150 m from the
-      // origin it was last computed for, so the polyline stays on-road without
-      // hammering the directions API on every GPS tick.
-      final origin = _routeOrigin;
-      if (origin == null ||
-          Geolocator.distanceBetween(origin.latitude, origin.longitude,
-                  newPos.latitude, newPos.longitude) >
-              150) {
-        _fetchRoute(newPos);
+        Geolocator.getPositionStream(locationSettings: locationSettings).listen(
+      (position) {
+        if (!mounted || _rideCompleted) return;
+        final newPos = LatLng(position.latitude, position.longitude);
+        setState(() {
+          _gpsUnavailable = false;
+          _currentRiderPosition = newPos;
+          _updateRiderMarker(heading: position.heading);
+          _recomputeRemaining();
+        });
+        // Push the position to the map-service so the customer's live-tracking
+        // map follows the rider. Throttling/heartbeat/retry live in the
+        // publisher.
+        RideLocationPublisher()
+            .updatePosition(newPos.latitude, newPos.longitude);
+        // Follow the rider — unless they've taken manual control of the camera.
+        if (_followRider) {
+          _mapController?.animateCamera(CameraUpdate.newLatLng(newPos));
+        }
+        // Refresh the drawn route once the rider has moved ~150 m from the
+        // origin it was last computed for, so the polyline stays on-road without
+        // hammering the directions API on every GPS tick.
+        final origin = _routeOrigin;
+        if (origin == null ||
+            Geolocator.distanceBetween(origin.latitude, origin.longitude,
+                    newPos.latitude, newPos.longitude) >
+                150) {
+          _fetchRoute(newPos);
+        }
+      },
+      // A stream error (services switched off mid-ride, platform hiccup) used
+      // to kill the subscription silently. Say so, and keep the last known
+      // position publishing on the heartbeat.
+      onError: (_) {
+        if (mounted) setState(() => _gpsUnavailable = true);
+      },
+      cancelOnError: false,
+    );
+  }
+
+  Future<bool> _ensureLocationPermission() async {
+    try {
+      if (!await Geolocator.isLocationServiceEnabled()) return false;
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
       }
-    });
+      return permission == LocationPermission.always ||
+          permission == LocationPermission.whileInUse;
+    } catch (_) {
+      return false;
+    }
   }
 
   void _fitBounds(LatLng a, LatLng b) {
@@ -483,6 +606,8 @@ class _PassengerDestinationScreenState
         'customerImage': widget.customerImage,
         'paymentMethod': widget.paymentMethod,
         'orderId': widget.orderId,
+        // Carried so re-entering from the mini-map can still rate the customer.
+        'customerUserId': widget.customerUserId,
       },
     );
     // Guarded: this screen is reached by `pushReplacement` from the pickup
@@ -512,24 +637,40 @@ class _PassengerDestinationScreenState
       child: Scaffold(
         body: Stack(
           children: [
-            GoogleMap(
-              initialCameraPosition: CameraPosition(
-                target: _currentRiderPosition ?? _dropLatLng,
-                zoom: 14,
-              ),
-              markers: _markers,
-              polylines: _polylines,
-              myLocationEnabled: true,
-              myLocationButtonEnabled: false,
-              zoomControlsEnabled: false,
-              mapToolbarEnabled: false,
-              onMapCreated: (controller) {
-                _mapController = controller;
-                Future.delayed(const Duration(milliseconds: 500), () {
-                  _fitBounds(
-                      _currentRiderPosition ?? _dropLatLng, _dropLatLng);
-                });
+            // Any touch on the map hands the camera to the rider. Detecting it
+            // here rather than via onCameraMoveStarted, which can't tell a
+            // gesture from our own follow animation.
+            Listener(
+              onPointerDown: (_) {
+                if (_followRider) setState(() => _followRider = false);
               },
+              child: GoogleMap(
+                initialCameraPosition: CameraPosition(
+                  target: _currentRiderPosition ?? _dropLatLng,
+                  zoom: _kNavZoom,
+                ),
+                markers: _markers,
+                polylines: _polylines,
+                mapType: _mapType,
+                trafficEnabled: _trafficEnabled,
+                myLocationEnabled: true,
+                myLocationButtonEnabled: false,
+                zoomControlsEnabled: false,
+                mapToolbarEnabled: false,
+                onMapCreated: (controller) {
+                  _mapController = controller;
+                  // Settle on the rider once the controller is ready. The
+                  // initial camera is already there, so this only corrects for
+                  // a GPS fix that landed between build and map creation.
+                  Future.delayed(const Duration(milliseconds: 500), () {
+                    if (!mounted || !_followRider) return;
+                    final pos = _currentRiderPosition;
+                    if (pos == null) return;
+                    _mapController
+                        ?.animateCamera(CameraUpdate.newLatLngZoom(pos, _kNavZoom));
+                  });
+                },
+              ),
             ),
             Positioned(
               top: 0,
@@ -537,11 +678,14 @@ class _PassengerDestinationScreenState
               right: 0,
               child: _buildTopStatusBar(),
             ),
-            Positioned(
-              right: 16,
-              bottom: 300,
-              child: _buildRecenterButton(),
-            ),
+            // Hidden once the ride is over — the completion panel is about
+            // payment, and steering a map you're no longer driving is noise.
+            if (!_rideCompleted)
+              Positioned(
+                right: 16,
+                bottom: 300,
+                child: _buildMapControls(),
+              ),
             Positioned(
               bottom: 0,
               left: 0,
@@ -595,16 +739,39 @@ class _PassengerDestinationScreenState
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: Text(
-                    _rideCompleted ? 'Ride Completed' : 'Heading to destination',
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      fontFamily: 'OpenSans',
-                      color: Color(0xFF1A1A2E),
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        _rideCompleted
+                            ? 'Ride Completed'
+                            : 'Heading to destination',
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          fontFamily: 'OpenSans',
+                          color: Color(0xFF1A1A2E),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      // The rider is the only one who can fix this, and without
+                      // saying it the failure is invisible: they drive on while
+                      // the customer's map shows them parked at the pickup.
+                      if (_gpsUnavailable && !_rideCompleted)
+                        Text(
+                          'Location off — customer can’t see you move',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            fontFamily: 'OpenSans',
+                            color: Colors.orange.shade800,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                    ],
                   ),
                 ),
                 if (!_rideCompleted)
@@ -641,27 +808,173 @@ class _PassengerDestinationScreenState
     );
   }
 
-  Widget _buildRecenterButton() {
-    return GestureDetector(
-      onTap: () => _fitBounds(
-          _currentRiderPosition ?? _dropLatLng, _dropLatLng),
-      child: Container(
-        width: 46,
-        height: 46,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.12),
-              blurRadius: 10,
-              offset: const Offset(0, 3),
-            ),
-          ],
+  /// The map controls, bottom-up in order of how often a riding rider reaches
+  /// for them: recenter first (thumb-closest), then the wider-view and layer
+  /// controls, with hand-off to Google Maps at the top.
+  Widget _buildMapControls() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        _mapButton(
+          icon: Icons.assistant_direction_rounded,
+          tooltip: 'Navigate in Google Maps',
+          onTap: _openInGoogleMaps,
+          // The one control that leaves the app, so it's coloured as an action
+          // rather than a map toggle.
+          foreground: Colors.white,
+          background: const Color(0xFF00C853),
         ),
-        child: const Icon(Icons.my_location_rounded,
-            color: Color(0xFF4285F4), size: 22),
+        const SizedBox(height: 8),
+        _mapButton(
+          icon: _mapType == MapType.normal
+              ? Icons.layers_outlined
+              : Icons.layers_rounded,
+          tooltip: 'Map type',
+          onTap: _toggleMapType,
+          active: _mapType != MapType.normal,
+        ),
+        const SizedBox(height: 8),
+        _mapButton(
+          icon: Icons.traffic_rounded,
+          tooltip: 'Traffic',
+          onTap: () => setState(() => _trafficEnabled = !_trafficEnabled),
+          active: _trafficEnabled,
+        ),
+        const SizedBox(height: 8),
+        _buildZoomPill(),
+        const SizedBox(height: 8),
+        _mapButton(
+          icon: Icons.zoom_out_map_rounded,
+          tooltip: 'Show whole route',
+          onTap: _fitWholeRoute,
+        ),
+        const SizedBox(height: 8),
+        _mapButton(
+          // Filled while following, hollow once the rider has taken over — the
+          // icon IS the state, so there's no separate indicator to read.
+          icon: _followRider
+              ? Icons.my_location_rounded
+              : Icons.location_searching_rounded,
+          tooltip: _followRider ? 'Following you' : 'Recenter on you',
+          onTap: _recenterOnRider,
+          active: _followRider,
+        ),
+      ],
+    );
+  }
+
+  /// Zoom in/out as one stacked pill — two related controls reading as one
+  /// object, and half the vertical space of two separate buttons.
+  Widget _buildZoomPill() {
+    return Container(
+      width: 46,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _zoomHalf(Icons.add_rounded, () => _zoom(zoomIn: true)),
+          Container(width: 24, height: 1, color: Colors.grey.shade300),
+          _zoomHalf(Icons.remove_rounded, () => _zoom(zoomIn: false)),
+        ],
+      ),
+    );
+  }
+
+  Widget _zoomHalf(IconData icon, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: SizedBox(
+        width: 46,
+        height: 42,
+        child: Icon(icon, color: const Color(0xFF1A1A2E), size: 22),
+      ),
+    );
+  }
+
+  Widget _mapButton({
+    required IconData icon,
+    required String tooltip,
+    required VoidCallback onTap,
+    bool active = false,
+    Color? foreground,
+    Color? background,
+  }) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: background ?? Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        elevation: 3,
+        shadowColor: Colors.black.withValues(alpha: 0.2),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(14),
+          child: SizedBox(
+            width: 46,
+            height: 46,
+            child: Icon(
+              icon,
+              size: 22,
+              color: foreground ??
+                  (active ? const Color(0xFF4285F4) : const Color(0xFF5F6875)),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Snap back to the rider and resume following.
+  void _recenterOnRider() {
+    final pos = _currentRiderPosition;
+    setState(() => _followRider = true);
+    if (pos == null) return;
+    // Zoom in as well as centre: the rider taps this to see the road they're
+    // on, and leaving them at a whole-route zoom answers a different question.
+    _mapController?.animateCamera(CameraUpdate.newLatLngZoom(pos, _kNavZoom));
+  }
+
+  /// Whole-trip view. Leaves follow OFF — re-enabling it would animate straight
+  /// back to the rider and undo the tap.
+  void _fitWholeRoute() {
+    setState(() => _followRider = false);
+    _fitBounds(_currentRiderPosition ?? _dropLatLng, _dropLatLng);
+  }
+
+  void _zoom({required bool zoomIn}) {
+    // Manual zoom is manual control; following would fight the next GPS tick.
+    if (_followRider) setState(() => _followRider = false);
+    _mapController
+        ?.animateCamera(zoomIn ? CameraUpdate.zoomIn() : CameraUpdate.zoomOut());
+  }
+
+  /// normal → hybrid → normal. Satellite without labels is skipped: street
+  /// names are the reason a rider switches to imagery in the first place.
+  void _toggleMapType() {
+    setState(() {
+      _mapType = _mapType == MapType.normal ? MapType.hybrid : MapType.normal;
+    });
+  }
+
+  /// Hand off to Google Maps for turn-by-turn. The in-app map shows the route
+  /// but gives no spoken directions, which is what a rider on an unfamiliar
+  /// road actually needs. Publishing continues — the ride is unaffected.
+  void _openInGoogleMaps() {
+    openGoogleMaps(
+      latitude: _dropLatLng.latitude,
+      longitude: _dropLatLng.longitude,
     );
   }
 
@@ -929,6 +1242,107 @@ class _PassengerDestinationScreenState
     );
   }
 
+  /// The customer's id for the rating call. Entry points that pass it win;
+  /// the rest are resolved from the rider's loaded orders by order id.
+  String get _customerUserId {
+    if (widget.customerUserId.isNotEmpty) return widget.customerUserId;
+    if (widget.orderId.isEmpty) return '';
+    return Get.put(DeliverPartnerOrdersController())
+        .customerIdForOrder(widget.orderId);
+  }
+
+  Future<void> _submitCustomerRating(int stars) async {
+    if (_ratingSubmitting || _ratingSubmitted) return;
+    final userId = _customerUserId;
+    if (userId.isEmpty) {
+      commonSnackBar(message: 'Customer details not available to rate');
+      return;
+    }
+    setState(() {
+      _customerRating = stars;
+      _ratingSubmitting = true;
+    });
+    final ok = await Get.put(DeliverPartnerOrdersController()).rateCustomer(
+      userId: userId,
+      orderId: widget.orderId,
+      rating: stars,
+    );
+    if (!mounted) return;
+    setState(() {
+      _ratingSubmitting = false;
+      _ratingSubmitted = ok;
+      // A failed submit rolls the stars back so the row doesn't read as saved.
+      if (!ok) _customerRating = 0;
+    });
+  }
+
+  /// Rider → customer rating. Hidden once there is no customer to attribute it
+  /// to, since a vote the server would reject is worse than no prompt.
+  Widget _buildRateCustomer() {
+    if (widget.orderId.isEmpty) return const SizedBox.shrink();
+    final rated = _ratingSubmitted ||
+        Get.put(DeliverPartnerOrdersController())
+            .ratedCustomerOrderIds
+            .contains(widget.orderId);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8F9FA),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Column(
+          children: [
+            Text(
+              rated
+                  ? 'Thanks for rating ${widget.customerName}'
+                  : 'How was ${widget.customerName}?',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                fontFamily: 'OpenSans',
+                color: Color(0xFF1A1A2E),
+              ),
+            ),
+            const SizedBox(height: 8),
+            if (_ratingSubmitting)
+              const SizedBox(
+                height: 32,
+                width: 32,
+                child: Padding(
+                  padding: EdgeInsets.all(6),
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              )
+            else
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(5, (i) {
+                  final star = i + 1;
+                  final filled = star <= _customerRating;
+                  return IconButton(
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    constraints: const BoxConstraints(),
+                    onPressed: rated ? null : () => _submitCustomerRating(star),
+                    icon: Icon(
+                      filled ? Icons.star_rounded : Icons.star_outline_rounded,
+                      size: 30,
+                      color: filled
+                          ? const Color(0xFFFFA000)
+                          : Colors.grey.shade400,
+                    ),
+                  );
+                }),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildCompletedPanel() {
     return Container(
       decoration: BoxDecoration(
@@ -1004,6 +1418,8 @@ class _PassengerDestinationScreenState
             const SizedBox(height: 18),
             _buildCollectionQr(),
           ],
+          const SizedBox(height: 18),
+          _buildRateCustomer(),
           const SizedBox(height: 22),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),

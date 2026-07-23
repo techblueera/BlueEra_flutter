@@ -139,6 +139,7 @@ void enablePip()async{
             customerImage: customerImage,
             paymentMethod: paymentMethod,
             orderId: order.id ?? '',
+            customerUserId: order.user?.id ?? '',
           ),
         ),
       );

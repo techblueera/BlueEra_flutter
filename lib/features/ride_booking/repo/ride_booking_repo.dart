@@ -59,6 +59,18 @@ class RideBookingRepo extends BaseService {
     );
   }
 
+  /// `GET riders/onboarding/vehicle-enums` — the backend's vehicle catalogue,
+  /// `{ vehicleType: [{slug_id, slug_value}], … }`.
+  ///
+  /// No `type=` filter: that param narrows the list to one rider PROFESSION,
+  /// which is the onboarding case. A customer choosing a service needs the
+  /// full catalogue. `slug_id` is the same `vehicleType` enum the fare quote
+  /// and the broadcast create call speak, so what the customer taps is what
+  /// the order carries — no local table to drift out of sync.
+  Future<ResponseModel> getVehicleEnums() {
+    return ApiBaseHelper().getHTTP(vehicleEnums, showProgress: false);
+  }
+
   /// `POST fare/orders` with `orderType: "broadcast"`.
   ///
   /// [selectedRiders] is deliberately absent — sending it would turn this back

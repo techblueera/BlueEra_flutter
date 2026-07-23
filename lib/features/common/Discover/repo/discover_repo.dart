@@ -181,6 +181,39 @@ class DiscoverRepo extends BaseService {
     return response;
   }
 
+  /// Create the multi-stop order as a BROADCAST (wave race, no rider picked).
+  /// POST `/fare/multi-shop/orders/broadcast`. Body is the same as
+  /// [makeMultiShopOrderApi] minus `selectedRiders`, plus an optional
+  /// `vehicleType`. See docs/backend/RIDER_BROADCAST_DISPATCH_FRONTEND_GUIDE.md.
+  Future<ResponseModel> makeMultiShopBroadcastOrderApi(
+      {required Map<String, dynamic> params}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      multiShopOrdersBroadcast,
+      params: params,
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
+  /// Customer-side cancel of a fare order — used by the multi-shop broadcast
+  /// search, which has no fare-call queue to cancel (`/cancel-queue` is the
+  /// hand-picked flow's endpoint). POST `/fare/orders/{orderId}/cancel`.
+  Future<ResponseModel> cancelFareOrderApi(String orderId,
+      {String? reason}) async {
+    final response = await ApiBaseHelper().postHTTP(
+      cancelFareOrder(orderId),
+      params: {
+        if (reason != null && reason.isNotEmpty) 'reason': reason,
+      },
+      showProgress: false,
+      onError: (error) {},
+      onSuccess: (data) {},
+    );
+    return response;
+  }
+
   /// GET EARN SERVICES
   Future<ResponseModel> fetchProfessionalConsServices({required Map<String, dynamic> queryParams}) async {
     final response = await ApiBaseHelper().getHTTP(

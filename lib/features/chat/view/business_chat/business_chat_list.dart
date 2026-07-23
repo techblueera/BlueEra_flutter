@@ -64,6 +64,43 @@ ChatBucket bucketChat(ChatList chat) {
   return iAmReceiver ? ChatBucket.me : ChatBucket.chats;
 }
 
+/// Inquiry chats whose LAST MESSAGE landed inside [window], newest first.
+///
+/// "Ordering something" in this app is a conversation: the order/enquiry card
+/// is posted into a chat, so a recent order is exactly a recent inquiry chat.
+/// [bucketChat] keeps it to the ones the user PLACED ([ChatBucket.chats]) —
+/// orders they received as a seller belong to the Me section and are not the
+/// user's own shopping.
+///
+/// Shared so the Discover "Orders in N Hrs." rail and the multi-shop pickup
+/// selection screen can never disagree about which orders are recent.
+List<ChatList> recentInquiryChats(
+  List<ChatList?>? all, {
+  Duration window = const Duration(hours: 12),
+}) {
+  if (all == null || all.isEmpty) return const [];
+  final cutoff = DateTime.now().subtract(window);
+  final result = <ChatList>[];
+  for (final chat in all) {
+    if (chat == null) continue;
+    if (bucketChat(chat) != ChatBucket.chats) continue;
+    // `updatedAt` is the last-message time; `createdAt` only covers rows the
+    // server sent before the conversation had one.
+    final raw =
+        (chat.updatedAt?.isNotEmpty ?? false) ? chat.updatedAt : chat.createdAt;
+    if (raw == null || raw.isEmpty) continue;
+    final DateTime at;
+    try {
+      at = DateTime.parse(raw).toLocal();
+    } catch (_) {
+      continue; // unparseable timestamp — can't claim it's recent
+    }
+    if (at.isAfter(cutoff)) result.add(chat);
+  }
+  result.sort((a, b) => (b.updatedAt ?? '').compareTo(a.updatedAt ?? ''));
+  return result;
+}
+
 /// Date-range presets surfaced as filter chips above the list when
 /// [BusinessChatsList.showDateFilter] is set (the provider/seller "order"
 /// tabs that absorbed the old `OrdersTabView`). Resolved against

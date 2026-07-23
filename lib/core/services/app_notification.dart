@@ -690,6 +690,31 @@ Future<void> cancelIncomingCallLocalNotification(String callId) async {
   } catch (_) {}
 }
 
+/// Cancel the RINGING ride-request notification.
+///
+/// That notification carries `FLAG_INSISTENT`, which loops its sound until the
+/// notification itself is cancelled — `timeoutAfter` is the only other stop and
+/// plenty of OEM ROMs ignore it. So every path that ends a ride offer (the
+/// in-app screen taking over, accept, decline, expiry, losing a broadcast race)
+/// must call this, or the phone keeps ringing with nothing on screen to explain
+/// why.
+///
+/// Cancels the id derived from [orderId] AND the shared fallback id used when a
+/// push arrives without one — a stuck ring is worth two cheap cancels.
+Future<void> cancelRideRingNotification(String? orderId) async {
+  final plugin = FlutterLocalNotificationsPlugin();
+  for (final id in {
+    ringNotificationIdFor(orderId),
+    ringNotificationIdFor(null),
+  }) {
+    try {
+      await plugin.cancel(id);
+    } catch (_) {
+      // Best-effort: a missing/duplicate cancel must never break teardown.
+    }
+  }
+}
+
 /// Send reply message via direct REST API call.
 /// Works in both foreground and background isolate contexts.
 Future<void> _sendReplyViaApi({
@@ -1899,6 +1924,13 @@ class AppNotificationHandler {
             'durationMin': etaDurationMin,
           },
       };
+
+      // The in-app screen is now the thing ringing (and the thing that can be
+      // answered), so the notification's own INSISTENT loop has done its job.
+      // It is NOT auto-dismissed by the tap that got us here, and its sound
+      // repeats until cancelled — leaving it running is what kept phones
+      // ringing after the rider had already accepted.
+      unawaited(cancelRideRingNotification(orderId));
 
       // Navigate to IncomingRiderOrderScreen
       if (Get.currentRoute != '/IncomingRiderOrderScreen') {

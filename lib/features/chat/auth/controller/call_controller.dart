@@ -209,6 +209,18 @@ class CallController extends GetxController {
   bool get isRingtonePlaying => _ringtonePlaying;
   bool _ringtonePlaying = false;
 
+  /// Bumped by every [stopRingtone]. [startRingtone] captures it and re-checks
+  /// after each await: without this, a stop landing while the native-ringer
+  /// call is still in flight is followed by the fallback player STARTING, and
+  /// nothing is left to stop it — the phone then rings until it is killed.
+  int _ringGeneration = 0;
+
+  /// Hard stop for any ring, however it was started and whatever went wrong
+  /// with the path that should have stopped it. Longer than every offer window
+  /// (ride requests expire in ~45s) so it only ever fires on a leak.
+  static const Duration _kMaxRingDuration = Duration(seconds: 75);
+  Timer? _ringWatchdog;
+
   void startRingtone() async {
     // Idempotent on purpose. A broadcast ride request has no VoIP call behind
     // it, so `_handleIncomingCall` never runs and nothing starts the ring —
@@ -217,6 +229,16 @@ class CallController extends GetxController {
     // every time the screen rebuilt.
     if (_ringtonePlaying) return;
     _ringtonePlaying = true;
+    final generation = _ringGeneration;
+
+    // Nothing may ring forever. Every explicit stop cancels this; if none of
+    // them run (screen never disposed, timer starved in the background, push
+    // missed) this is what ends it.
+    _ringWatchdog?.cancel();
+    _ringWatchdog = Timer(_kMaxRingDuration, () {
+      print('[CALL_DEBUG] ring watchdog fired — force-stopping ringtone');
+      stopRingtone();
+    });
 
     // Native ringer first (Android): plays on the RING stream so it follows
     // the phone's ringer volume and silent/vibrate modes, loops, and VIBRATES
@@ -224,14 +246,18 @@ class CallController extends GetxController {
     // silent whenever media volume was down, and never vibrated).
     try {
       await DefaultRingtone.play();
+      // A stop that arrived mid-flight was applied before this play landed.
+      if (generation != _ringGeneration) DefaultRingtone.stop().catchError((_) {});
       return;
     } catch (e) {
       // iOS / engines without the channel — fall back to the in-app player.
       print('[CALL_DEBUG] native ringtone unavailable, falling back: $e');
     }
     await _ensureRingtoneAudioContext();
+    if (generation != _ringGeneration) return; // stopped while we were setting up
     _ringtonePlayer.setReleaseMode(ReleaseMode.loop);
-    _ringtonePlayer.play(AssetSource('sound/hangouts_call.mp3'));
+    await _ringtonePlayer.play(AssetSource('sound/hangouts_call.mp3'));
+    if (generation != _ringGeneration) _ringtonePlayer.stop();
   }
 
   /// Start the outgoing-call ringback for the caller (loops until stopped).
@@ -264,6 +290,10 @@ class CallController extends GetxController {
   /// stops the caller's tone without needing per-site changes.
   void stopRingtone() {
     _ringtonePlaying = false;
+    // Invalidates any startRingtone still working through its awaits.
+    _ringGeneration++;
+    _ringWatchdog?.cancel();
+    _ringWatchdog = null;
     _ringtonePlayer.stop();
     stopOutgoingRingback();
     // DefaultRingtone.stop() is async — a sync try/catch misses the
@@ -272,6 +302,11 @@ class CallController extends GetxController {
     // .catchError the rejection escapes to runZonedGuarded and prints as
     // "CALL ENGINE CRASH".
     DefaultRingtone.stop().catchError((_) {});
+    // The ride request may also be ringing from its own INSISTENT notification
+    // (posted by the background isolate). That sound loops until the
+    // notification is cancelled — stopping only the in-app player left the
+    // phone ringing on every ROM that ignores `timeoutAfter`.
+    cancelRideRingNotification(fareCallOrderId.value).catchError((_) {});
   }
 
   // WebRTC
