@@ -55,29 +55,16 @@ class _AutomotiveProductHomeScreenState extends State<AutomotiveProductHomeScree
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         BusinessJoinedProfileCard(businessController: _businessController),
-        SizedBox(height: SizeConfig.size12),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
           child: CommonBusinessLivePhoto(
             controller: _businessController,
           ),
         ),
-        SizedBox(height: SizeConfig.size12),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
           child: const BusinessDescriptionCard(),
         ),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-          child: Obx(() {
-            final details =
-                _businessController.businessProfileDetails.value?.data;
-            return BusinessContactMapCard(
-              businessProfileDetails: details,
-            );
-          }),
-        ),
-        SizedBox(height: SizeConfig.size12),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
           child: Obx(() {
@@ -91,9 +78,18 @@ class _AutomotiveProductHomeScreenState extends State<AutomotiveProductHomeScree
             );
           }),
         ),
-        SizedBox(height: SizeConfig.size12),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+          child: Obx(() {
+            final details =
+                _businessController.businessProfileDetails.value?.data;
+            return BusinessContactMapCard(
+              businessProfileDetails: details,
+            );
+          }),
+        ),
+
         _buildQrCodeSection(),
-        SizedBox(height: SizeConfig.size12),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
           child: const ProfileShareBanner(),

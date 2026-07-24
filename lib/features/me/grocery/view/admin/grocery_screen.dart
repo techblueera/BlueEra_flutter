@@ -2,7 +2,6 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
-import 'package:BlueEra/features/me/grocery/controller/grocery_controller.dart';
 import 'package:BlueEra/features/me/grocery/controller/grocery_selfpickup_consumer_controller.dart';
 import 'package:BlueEra/features/me/grocery/view/admin/grocery_home_screen_v2.dart';
 import 'package:BlueEra/widgets/business_live_photo_bottom_sheet.dart';
@@ -44,7 +43,20 @@ class _GroceryScreenState extends State<GroceryScreen> {
 
   @override
   void dispose() {
-    deleteIfRegistered<GroceryController>();
+    // GroceryController deliberately NOT deleted here.
+    //
+    // The bottom nav swaps its child rather than stacking the tabs, so leaving
+    // Me for Discover / Chat / Social disposes this screen. Tearing the
+    // controller down with it threw away the Products tab's lists AND their
+    // FetchCache stamp, so every return to Me → Grocery refetched categories +
+    // top-selling from scratch, however recently they had loaded. It also
+    // raced the post-publish refresh: publishing pops back through here, and a
+    // deleted controller refetches into an instance nobody reads.
+    //
+    // Cost of keeping it: the grocery lists stay in memory for the session.
+    // The cache is keyed per store (`grocery|<userId>|<otherStore>`), so
+    // opening another store still fetches, and the 5-min TTL forces a refetch
+    // once the data is actually stale. Mirrors MedicalScreen.
     deleteIfRegistered<GrocerySelfPickupConsumerController>();
     super.dispose();
   }

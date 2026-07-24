@@ -41,6 +41,7 @@ class BusinessJoinedProfileCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            SizedBox(height: SizeConfig.size8),
             _section1JoinedDate(details),
             SizedBox(height: SizeConfig.size12),
             IntrinsicWidth(

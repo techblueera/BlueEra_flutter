@@ -93,6 +93,12 @@ class ServiceData {
   num? distance;
   num? rating;
   int? reviewCount;
+
+  /// Whether the provider is available right now — the merchant's Go-Live /
+  /// schedule state, computed server-side and returned by the earn-services
+  /// map/list endpoint. Null when the backend didn't send it (treated as
+  /// "unknown", so the card shows nothing rather than claiming offline).
+  bool? isLive;
   ServiceMedia? serviceMedia;
   PriceData? priceData;
   ServiceInfo? service;
@@ -146,6 +152,7 @@ class ServiceData {
         this.distance,
         this.rating,
         this.reviewCount,
+        this.isLive,
         this.serviceMedia,
         this.priceData,
         this.service,
@@ -201,9 +208,13 @@ class ServiceData {
         : null;
     emailVerified = json['email_verified'];
     objective = json['objective'];
-    distance = json['distance'];
+    // `distanceKm` is what the earn-services endpoint returns once the request
+    // carries lat/lng; `distance` is the legacy/other-endpoint spelling. Either
+    // way it lands in the one field the UI reads.
+    distance = json['distance'] ?? json['distanceKm'];
     rating = json['rating'];
     reviewCount = json['reviewCount'];
+    isLive = json['isLive'];
     category = json['category'];
     serviceMedia = json['serviceMedia'] != null
         ? new ServiceMedia.fromJson(json['serviceMedia'])
@@ -277,6 +288,7 @@ class ServiceData {
     data['distance'] = this.distance;
     data['rating'] = this.rating;
     data['reviewCount'] = this.reviewCount;
+    data['isLive'] = this.isLive;
     data['category'] = this.category;
     if (this.serviceMedia != null) {
       data['serviceMedia'] = this.serviceMedia!.toJson();

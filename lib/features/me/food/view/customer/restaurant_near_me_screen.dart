@@ -77,7 +77,17 @@ class RestaurantNearMeScreen extends StatefulWidget {
 class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
   final storeController = getOrPut(() => StoreController());
   final AuthController _authController = Get.find<AuthController>();
-  final RxInt selectedCategoryIndex = 0.obs;
+
+  /// Sentinel tag id for the leading "All Food" tab. Selecting it clears the
+  /// category filter, so the store API returns restaurants across every food
+  /// category instead of one. Mirrors the All tab on the grocery screen.
+  static const String _allFoodTagId = 'ALL_FOOD';
+  static const String _allFoodLabel = 'All Food';
+
+  /// Tag id of the selected category — null while "All Food" is active.
+  /// Selection is tracked by id rather than list index because the All tab has
+  /// no backing onboarding category to index into.
+  String? _selectedCategoryTagId;
 
   final FoodSelfPickupController foodCartController =
       getOrPut<FoodSelfPickupController>(() => FoodSelfPickupController());
@@ -110,10 +120,9 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchStores(
-      categoryId: _categories.isNotEmpty ? _categories.first.tagId : null,
-      ifNeeded: true,
-    );
+    // Lands on "All Food": no category filter, so every restaurant nearby is
+    // listed. (It used to land on the first onboarding category.)
+    _fetchStores(ifNeeded: true);
   }
 
   /// [ifNeeded] = true (the default, used by both screen entry and category
@@ -276,23 +285,36 @@ class _RestaurantNearMeScreenState extends State<RestaurantNearMeScreen> {
                     pinned: true,
                     delegate: StickyCategoryHeaderDelegate(
                       topPadding: statusBarHeight,
-                      categories: _categories.map((c) {
-                        debugPrint('FoodCategory tagId=${c.tagId} name=${c.name}');
-                        return StickyCategory(
-                        id: c.tagId ?? '',
-                        name: c.name ?? '',
-                        imageUrl: _getCategoryIcon(c),
-                      );
-                      }).toList(),
-                      selectedId: _categories.isNotEmpty &&
-                              selectedCategoryIndex.value < _categories.length
-                          ? _categories[selectedCategoryIndex.value].tagId
-                          : null,
+                      categories: [
+                        // Leading "All Food" tab — every restaurant, no
+                        // category filter.
+                        StickyCategory(
+                          id: _allFoodTagId,
+                          name: _allFoodLabel,
+                        ),
+                        ..._categories.map((c) {
+                          debugPrint(
+                              'FoodCategory tagId=${c.tagId} name=${c.name}');
+                          return StickyCategory(
+                            id: c.tagId ?? '',
+                            name: c.name ?? '',
+                            imageUrl: _getCategoryIcon(c),
+                          );
+                        }),
+                      ],
+                      selectedId: _selectedCategoryTagId ?? _allFoodTagId,
                       onCategoryTap: (item) {
-                        final idx = _categories.indexWhere((c) => c.tagId == item.id);
-                        if (idx >= 0) {
-                          selectedCategoryIndex.value = idx;
-                          _fetchStores(categoryId: item.id);
+                        if (item.id == _allFoodTagId) {
+                          // "Show all" — clear the category filter.
+                          _selectedCategoryTagId = null;
+                          _fetchStores();
+                        } else {
+                          final idx = _categories
+                              .indexWhere((c) => c.tagId == item.id);
+                          if (idx >= 0) {
+                            _selectedCategoryTagId = item.id;
+                            _fetchStores(categoryId: item.id);
+                          }
                         }
                         setState(() {});
                       },

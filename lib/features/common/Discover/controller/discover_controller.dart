@@ -13,7 +13,6 @@ import 'package:BlueEra/core/services/hive_services.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/core/services/ongoing_ride_store.dart';
 import 'package:BlueEra/core/utils/fetch_cache.dart';
-import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/repo/chat_view_repo.dart';
 import 'package:BlueEra/features/common/Discover/model/business_filter_res_model.dart';
 import 'package:BlueEra/features/common/Discover/model/food_restaurant_service_model.dart';
@@ -29,6 +28,7 @@ import 'package:BlueEra/features/personal/personal_profile/view/rental/model/ren
 import 'package:BlueEra/widgets/app_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import '../../../../core/api/model/new_food_home_res_model.dart';
@@ -742,8 +742,34 @@ class DiscoverController extends GetxController {
   final FetchCache _profConCache = FetchCache();
   final FetchCache _rentalCache = FetchCache();
 
+  /// Radius (km) the earn-services search is scoped to. Wide enough that a
+  /// city-sized area is covered while still letting the backend rank by
+  /// proximity.
+  static final int _earnServiceRadiusKm = kmRadius1500;
+
+
+  /// Adds `lat` / `lng` / `radius` to an earn-services request — but only with
+  /// a real fix. `LocationService` reports 0,0 before the first fix resolves
+  /// (or when permission is denied), and sending that would scope the search
+  /// to the middle of the ocean and return nothing; omitting the params lets
+  /// the backend fall back to its unscoped behaviour instead.
+  void _addLocationParams(Map<String, dynamic> queryParams) {
+    final lat = LocationService.lat;
+    final lng = LocationService.lng;
+    if (lat == 0 && lng == 0) return;
+    queryParams[ApiKeys.lat] = lat;
+    queryParams[ApiKeys.lng] = lng;
+    queryParams[ApiKeys.radius] = _earnServiceRadiusKm;
+  }
+
+  /// Includes the coarse location: the results are now radius-scoped, so a
+  /// re-entry from a materially different place must refetch rather than reuse
+  /// the previous area's list. Rounded to ~1 km (2 dp) so ordinary GPS jitter
+  /// doesn't invalidate the cache on every screen open.
   String get _earnServiceSignature =>
-      'earn|${selectedEarnServiceData.value?.slugId ?? ''}';
+      'earn|${selectedEarnServiceData.value?.slugId ?? ''}'
+      '|${LocationService.lat.toStringAsFixed(2)}'
+      ',${LocationService.lng.toStringAsFixed(2)}';
   String get _profConSignature =>
       'profCon|${selectedProfessionalConsultantData.value?.slugId ?? ''}';
 
@@ -794,18 +820,17 @@ class DiscoverController extends GetxController {
       hasMoreEarnServiceData = true;
     }
 
-    // double lat = LocationService.lat;
-    // double lng = LocationService.lng;
-
     final Map<String, dynamic> queryParams = {
       ApiKeys.type: earnServiceType,
       ApiKeys.subType: subType,
-      // ApiKeys.lat: lat,
-      // ApiKeys.lng: lng,
-      // ApiKeys.radius: kmRadius1500,
       ApiKeys.page: earnServicePage,
       ApiKeys.limit: limit,
     };
+    // Location-scope the search so the list is providers near the user rather
+    // than every provider in the country. Sent only when we actually have a
+    // fix — posting 0,0 would scope the search to the Gulf of Guinea and come
+    // back empty.
+    _addLocationParams(queryParams);
     if (selectedEarnServiceData.value != null) {
       queryParams[ApiKeys.category] = selectedEarnServiceData.value?.slugId;
     }
@@ -817,8 +842,18 @@ class DiscoverController extends GetxController {
       prefetchEnquiryOptions(selectedEarnServiceData.value?.slugId);
     }
 
+    // Response-time trace for the earn-services list — uncomment to measure
+    // again. Wraps the repo call only, so it reports the network round-trip +
+    // decode, NOT the distance pass below. See
+    // docs/backend/EARN_SERVICES_MAP_PERFORMANCE_GUIDE.md.
+    // final sw = Stopwatch()..start();
     ResponseModel response =
     await DiscoverRepo().fetchSelfWorkServices(queryParams: queryParams);
+    // sw.stop();
+    // log('EARN_SERVICES_API: list took ${sw.elapsedMilliseconds}ms '
+    //     '(page=$earnServicePage, category=${selectedEarnServiceData.value?.slugId ?? '-'}, '
+    //     'lat=${queryParams[ApiKeys.lat] ?? '-'}, lng=${queryParams[ApiKeys.lng] ?? '-'}, '
+    //     'radius=${queryParams[ApiKeys.radius] ?? '-'}, success=${response.isSuccess})');
 
     try {
       if (response.isSuccess) {
@@ -832,22 +867,22 @@ class DiscoverController extends GetxController {
         for (var service in responseModel.services ?? []) {
           if (service.data != null && service.data!.isNotEmpty) {
             for (ServiceData item in service.data!) {
-              // Distance Calculation Logic
-              double itemLat =
-                  double.tryParse(item.userLocation?.lat.toString() ?? "0") ??
-                      0.0;
-              double itemLng =
-                  double.tryParse(item.userLocation?.lon.toString() ?? "0") ??
-                      0.0;
-
-              double? tempDistance;
-              if (itemLat != 0 && itemLng != 0) {
-                tempDistance = await getDistanceInKm(itemLat, itemLng);
-              } else {
-                tempDistance = 0.0;
+              // Distance comes from the server (`distanceKm`) now that the
+              // request carries lat/lng. Only fall back to the shared
+              // [calculateDistance] when it didn't — that reads the fix
+              // LocationService already holds.
+              //
+              // This used to `await getDistanceInKm(...)` per item, and that
+              // helper asks the platform for a FRESH best-accuracy GPS fix on
+              // every call: 20 serial fixes ran AFTER the response landed, so
+              // the list kept spinning long after the data was in memory.
+              if (item.distance == null) {
+                final lat = item.userLocation?.lat?.toDouble();
+                final lng = item.userLocation?.lon?.toDouble();
+                if (lat != null && lng != null && !(lat == 0 && lng == 0)) {
+                  item.distance = calculateDistance(lat, lng);
+                }
               }
-              item.distance = tempDistance?.toInt();
-
               tempNewItems.add(item);
             }
           }
@@ -905,13 +940,22 @@ class DiscoverController extends GetxController {
       ApiKeys.page: 1,
       ApiKeys.limit: 1000,
     };
+    _addLocationParams(queryParams);
     if (selectedEarnServiceData.value != null) {
       queryParams[ApiKeys.category] = selectedEarnServiceData.value?.slugId;
     }
 
     try {
+      // Response-time trace — uncomment alongside the one in
+      // [fetchEarnServices] when profiling this endpoint.
+      // final sw = Stopwatch()..start();
       final response =
       await DiscoverRepo().fetchSelfWorkServices(queryParams: queryParams);
+      // sw.stop();
+      // log('EARN_SERVICES_API: map took ${sw.elapsedMilliseconds}ms '
+      //     '(limit=1000, category=${selectedEarnServiceData.value?.slugId ?? '-'}, '
+      //     'lat=${queryParams[ApiKeys.lat] ?? '-'}, lng=${queryParams[ApiKeys.lng] ?? '-'}, '
+      //     'radius=${queryParams[ApiKeys.radius] ?? '-'}, success=${response.isSuccess})');
       if (!response.isSuccess) {
         earnServiceMapResponse.value =
             ApiResponse.error(response.message ?? 'error');
