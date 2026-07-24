@@ -811,12 +811,12 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
           // vs. large rasters like stream.png) all read at the same visual
           // weight across cells.
           SizedBox(
-            height: 28,
-            width: 28,
+            height: 20,
+            width: 20,
             child: LocalAssets(
               imagePath: icon,
-              height: 28,
-              width: 28,
+              height: 20,
+              width: 20,
               imgColor: AppColors.primaryColor,
               boxFix: BoxFit.contain,
             ),
