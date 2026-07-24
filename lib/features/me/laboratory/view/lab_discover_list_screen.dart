@@ -139,11 +139,22 @@ class _LabDiscoverCard extends StatelessWidget {
     return item.pincode;
   }
 
-  String get _timings {
-    if (item.openFrom.isEmpty) return '';
-    return item.openTill.isNotEmpty
-        ? '${item.openFrom} - ${item.openTill}'
-        : item.openFrom;
+  /// Today's opening hours block from the new `timing` payload
+  /// (see `lib/docs/BUSINESS_FILTER_TIMING.md`). Returns `null` when the
+  /// business has never set its hours — callers must render a "Timing not
+  /// set" state rather than falling back to a default.
+  Map? get _todayTiming {
+    final timing = item.raw['timing'];
+    if (timing is! Map) return null;
+    final today = timing['today'];
+    return today is Map ? today : null;
+  }
+
+  /// `liveState.isLive` — true only when the current clock is inside today's
+  /// window. Used to distinguish "Open now" from "Open today".
+  bool get _isLiveNow {
+    final live = item.raw['liveState'];
+    return live is Map && live['isLive'] == true;
   }
 
   /// Distance from the device to the lab, formatted with the same three-tier
@@ -188,7 +199,7 @@ class _LabDiscoverCard extends StatelessWidget {
   /// `availableTestCount`; falls back to the length of [_testCategories]
   /// when the field is missing.
   int get _availableTestCount {
-    final count = item.raw['availableTestCount'];
+    final count = item.raw['testCategoryCount'];
     if (count is num) return count.toInt();
     return _testCategories.length;
   }
@@ -287,12 +298,11 @@ class _LabDiscoverCard extends StatelessWidget {
                 ],
               ),
             ),
-            if (_timings.isNotEmpty)
-              Positioned(
-                bottom: 10,
-                right: 10,
-                child: _timingPill(),
-              ),
+            Positioned(
+              bottom: 10,
+              right: 10,
+              child: _timingPill(),
+            ),
           ],
         ),
       ),
@@ -352,30 +362,74 @@ class _LabDiscoverCard extends StatelessWidget {
     );
   }
 
-  /// Bottom-right hero pill mirroring the school card's operating-window
-  /// chip, minus the day names — user asked for just the time range.
+  /// Bottom-right hero pill driven by the new `timing` payload. Three states:
+  /// - `timing == null` → "Timing not set" (neutral chip)
+  /// - `today.isOpen == false` → "Closed today" (red chip)
+  /// - `today.isOpen == true` → "Open · HH:MM - HH:MM" (green); prefixed with
+  ///   "Open now" when `liveState.isLive` confirms the current clock is inside
+  ///   today's window, otherwise "Open today" — `today.isOpen` alone only
+  ///   means "open sometime today".
   Widget _timingPill() {
+    final today = _todayTiming;
+
+    if (today == null) {
+      return _timingChip(
+        label: 'Timing not set',
+        background: const Color(0xffF5F5F5),
+        foreground: AppColors.grey7E,
+      );
+    }
+
+    final bool isOpen = today['isOpen'] == true;
+    final String open = today['shopOpenTime']?.toString() ?? '';
+    final String close = today['shopCloseTime']?.toString() ?? '';
+
+    if (!isOpen || (open.isEmpty && close.isEmpty)) {
+      return _timingChip(
+        label: 'Closed today',
+        background: const Color(0xffFFF2F2),
+        foreground: AppColors.red,
+      );
+    }
+
+    final String range = (open.isNotEmpty && close.isNotEmpty)
+        ? '$open - $close'
+        : (open.isNotEmpty ? open : close);
+    final String label =
+        _isLiveNow ? 'Open now · $range' : 'Open today · $range';
+
+    return _timingChip(
+      label: label,
+      background: const Color(0xffF2FFF2),
+      foreground: AppColors.greenShade,
+    );
+  }
+
+  Widget _timingChip({
+    required String label,
+    required Color background,
+    required Color foreground,
+  }) {
     return ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 220),
+      constraints: const BoxConstraints(maxWidth: 240),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: const Color(0xffF2FFF2),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: AppColors.greenShade, width: 1),
+          color: background,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: foreground, width: 1),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.access_time,
-                size: 12, color: AppColors.greenShade),
+            Icon(Icons.access_time, size: 12, color: foreground),
             const SizedBox(width: 4),
             Flexible(
               child: CustomText(
-                _timings,
+                label,
                 fontSize: 11,
                 fontWeight: FontWeight.w600,
-                color: AppColors.greenShade,
+                color: foreground,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -562,29 +616,35 @@ class _LabDiscoverCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 2),
-                CustomText(
-                  inline.isNotEmpty ? inline : 'No tests listed yet',
-                  fontSize: 12,
-                  fontWeight: FontWeight.w400,
-                  color: AppColors.grey7E,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                Row(
+                  children: [
+                    Flexible(
+                      child: CustomText(
+                        inline.isNotEmpty ? inline : 'No tests listed yet',
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                        color: AppColors.grey7E,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (more > 0) ...[
+                      SizedBox(width: SizeConfig.size6),
+                      GestureDetector(
+                        onTap: onTap,
+                        child: CustomText(
+                          '$more More',
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.primaryColor,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ],
             ),
           ),
-          if (more > 0) ...[
-            SizedBox(width: SizeConfig.size6),
-            GestureDetector(
-              onTap: onTap,
-              child: CustomText(
-                '$more More',
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: AppColors.primaryColor,
-              ),
-            ),
-          ],
         ],
       ),
     );

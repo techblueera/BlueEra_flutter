@@ -7,21 +7,19 @@ import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
-import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/profile_share_banner.dart';
 import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
 import 'package:BlueEra/features/me/hospital/view/v2/widgets/empty_section_placeholder.dart';
 import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
-import 'package:BlueEra/features/me/others/model/business_profile_full_model.dart' hide Location;
+import 'package:BlueEra/features/me/others/model/business_profile_full_model.dart'
+    hide Location;
 import 'package:BlueEra/features/me/others/view/management/management_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_career_jobs/other_job_listing_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_contact_us/other_branch_details_form_screen.dart';
 import 'package:BlueEra/features/me/others/view/other_contact_us/other_branch_only_screen.dart';
-import 'package:BlueEra/features/me/others/view/other_contact_us/other_contact_us.dart';
 import 'package:BlueEra/features/me/others/view/other_service_gallery/other_service_photos_screen.dart';
 import 'package:BlueEra/features/me/others/view/timing_screen.dart';
-import 'package:BlueEra/features/me/others/view/v2/widgets/other_banner_widget.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -34,6 +32,8 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../../../core/constants/app_enum.dart';
 import '../../../../../../core/constants/shared_preference_utils.dart';
+import '../../../../../business/widgets/business_contact_map_card.dart';
+import '../../../../../business/widgets/business_joined_profile_card.dart';
 
 /// Overview tab for the redesigned other-business "me" profile.
 ///
@@ -47,11 +47,13 @@ class OtherOverviewTabV2 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final businessController = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+    final businessController =
+        getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
     return Obx(() {
       final data = controller.businessProfile.value;
-      final coordinates = data?.contactUs?.firstOrNull?.branch?.location?.coordinates;
+      final coordinates =
+          data?.contactUs?.firstOrNull?.branch?.location?.coordinates;
       final hasCoords = coordinates != null &&
           coordinates.length >= 2 &&
           (double.tryParse(coordinates[0].toString()) ?? 0.0) != 0.0 &&
@@ -60,13 +62,19 @@ class OtherOverviewTabV2 extends StatelessWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(height: SizeConfig.size12),
-          OtherBannerWidget(controller: controller),
+          // SizedBox(height: SizeConfig.size12),
+          Padding(
+            padding: EdgeInsets.only(
+                left: SizeConfig.size16, top: SizeConfig.size10),
+            child: BusinessJoinedProfileCard(
+                businessController: businessController),
+          ),
           SizedBox(height: SizeConfig.size12),
 
           // ── Management ──
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+            padding: EdgeInsets.only(
+                right: SizeConfig.size12, left: SizeConfig.size25),
             child: CommonCardWidget(
               padding: 10,
               cardMargin: 0,
@@ -99,7 +107,8 @@ class OtherOverviewTabV2 extends StatelessWidget {
 
           // ── Career / Jobs ──
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+            padding: EdgeInsets.only(
+                right: SizeConfig.size12, left: SizeConfig.size25),
             child: CommonCardWidget(
               padding: 10,
               cardMargin: 0,
@@ -129,7 +138,8 @@ class OtherOverviewTabV2 extends StatelessWidget {
 
           // ── Gallery ──
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+            padding: EdgeInsets.only(
+                right: SizeConfig.size12, left: SizeConfig.size25),
             child: CommonCardWidget(
               padding: 10,
               cardMargin: 0,
@@ -160,9 +170,11 @@ class OtherOverviewTabV2 extends StatelessWidget {
           SizedBox(height: SizeConfig.size10),
 
           // ── Banking Information (RBI registered + Account types) ──
-          if (businessTypeGlobal.toUpperCase() == BusinessType.Finance.name.toUpperCase())
+          if (businessTypeGlobal.toUpperCase() ==
+              BusinessType.Finance.name.toUpperCase())
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+              padding: EdgeInsets.only(
+                  right: SizeConfig.size12, left: SizeConfig.size25),
               child: _BankingCard(
                 initialRbi: data?.rbiRegistered,
                 initialAccountTypes: data?.accountType ?? const [],
@@ -172,86 +184,93 @@ class OtherOverviewTabV2 extends StatelessWidget {
                 ),
               ),
             ),
-          if (businessTypeGlobal.toUpperCase() == BusinessType.Finance.name.toUpperCase())
+          if (businessTypeGlobal.toUpperCase() ==
+              BusinessType.Finance.name.toUpperCase())
             SizedBox(height: SizeConfig.size10),
 
           // ── Timings ──
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+            padding: EdgeInsets.only(
+                right: SizeConfig.size12, left: SizeConfig.size25),
             child: _TimingCard(
               timings: data?.timings,
-              onEditTap: () => Get.to(() => TimingScreen())?.then((_) => controller.getBusinessProfileFull()),
+              onEditTap: () => Get.to(() => TimingScreen())
+                  ?.then((_) => controller.getBusinessProfileFull()),
             ),
           ),
 
-          SizedBox(height: SizeConfig.size10),
+          // SizedBox(height: SizeConfig.size10),
 
           // ── Contact Us ──
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
-            child: CommonCardWidget(
-              padding: 10,
-              cardMargin: 0,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _SectionHeader(
-                    title: AppStrings.contactUs.tr,
-                    actionLabel: AppStrings.otherAddEdit.tr,
-                    onAction: () =>
-                        Get.to(OtherContactUs())?.then((_) => controller.getBusinessProfileFull()),
-                  ),
-                  const SizedBox(height: 10),
-                  if ((data?.contactUs?.isNotEmpty ?? false))
-                    _ContactUs(
-                      contacts: data!.contactUs!.first,
-                    )
-                  else
-                    EmptySectionPlaceholder(
-                      imageAsset: 'assets/images/other_gallery.png',
-                      ctaLabel: AppStrings.contactUs.tr,
-                      ctaIcon: Icons.contact_phone_outlined,
-                      onTap: () => Get.to(OtherContactUs())?.then((_) => controller.getBusinessProfileFull()),
-                    ),
-                ],
-              ),
+            padding: EdgeInsets.only(
+                right: SizeConfig.size12, left: SizeConfig.size25),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // const SizedBox(height: 10),
+                // if ((data?.contactUs?.isNotEmpty ?? false))
+                Obx(() {
+                  final details =
+                      businessController.businessProfileDetails.value?.data;
+                  return BusinessContactMapCard(
+                      businessProfileDetails: details);
+                })
+                // else
+                //   EmptySectionPlaceholder(
+                //     imageAsset: 'assets/images/other_gallery.png',
+                //     ctaLabel: AppStrings.contactUs.tr,
+                //     ctaIcon: Icons.contact_phone_outlined,
+                //     onTap: () => Get.to(OtherContactUs())
+                //         ?.then((_) => controller.getBusinessProfileFull()),
+                //   ),
+              ],
             ),
           ),
 
           SizedBox(height: SizeConfig.size10),
 
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+            padding: EdgeInsets.only(
+                right: SizeConfig.size12, left: SizeConfig.size25),
             child: WebsiteOverviewCard(
-              websiteUrl: businessController.businessProfileDetails.value?.data?.websiteUrl,
-              onSave: (url) => businessController.updateBusinessProfileDetails({ApiKeys.websiteUrl: url}),
+              websiteUrl: businessController
+                  .businessProfileDetails.value?.data?.websiteUrl,
+              onSave: (url) => businessController
+                  .updateBusinessProfileDetails({ApiKeys.websiteUrl: url}),
             ),
           ),
 
-          SizedBox(height: SizeConfig.size10),
+          // SizedBox(height: SizeConfig.size10),
 
-          if (hasCoords)
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: BusinessLocationWidget(
-                  locationText: data?.contactUs?.firstOrNull?.branch?.location?.name,
-                  latitude: double.parse(coordinates[0].toString()),
-                  longitude: double.parse(coordinates[1].toString()),
-                  businessName: data?.profile?.profileName ?? '',
-                  padding: 10,
-                  isTitleShow: true,
-                ),
-              ),
-            ),
+          // if (hasCoords)
+          //   Padding(
+          //     padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+          //     child: ClipRRect(
+          //       borderRadius: BorderRadius.circular(12),
+          //       child: BusinessLocationWidget(
+          //         locationText:
+          //             data?.contactUs?.firstOrNull?.branch?.location?.name,
+          //         latitude: double.parse(coordinates[0].toString()),
+          //         longitude: double.parse(coordinates[1].toString()),
+          //         businessName: data?.profile?.profileName ?? '',
+          //         padding: 10,
+          //         isTitleShow: true,
+          //       ),
+          //     ),
+          //   ),
 
-          const ProfileShareBanner(),
-          SizedBox(height: SizeConfig.size10),
+          Padding(
+            padding: EdgeInsets.only(
+                right: SizeConfig.size12, left: SizeConfig.size25),
+            child: const ProfileShareBanner(),
+          ),
+          // SizedBox(height: SizeConfig.size10),
 
           // ── QR Code (mirrors the hospital QR card) ──
           Obx(() {
-            final details = businessController.businessProfileDetails.value?.data;
+            final details =
+                businessController.businessProfileDetails.value?.data;
             if (details == null) return const SizedBox.shrink();
             // For finance ("Banking Sector") businesses, encode the finance
             // deep link so scanning opens the finance detail screen directly
@@ -263,7 +282,8 @@ class OtherOverviewTabV2 extends StatelessWidget {
             final isFinance = businessTypeGlobal.toUpperCase() ==
                 BusinessType.Finance.name.toUpperCase();
             return Padding(
-              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
+              padding: EdgeInsets.only(
+                  right: SizeConfig.size12, left: SizeConfig.size25),
               child: BusinessQrCodeWidget(
                 data: details,
                 deepLinkOverride: isFinance
@@ -342,7 +362,8 @@ class _ManagementList extends StatelessWidget {
                       errorWidget: (_, __, ___) => Container(
                         color: Colors.grey[300],
                         child: const Center(
-                          child: Icon(Icons.person, size: 50, color: Colors.white),
+                          child:
+                              Icon(Icons.person, size: 50, color: Colors.white),
                         ),
                       ),
                     ),
@@ -455,8 +476,10 @@ class _GalleryLayout extends StatelessWidget {
                     color: Colors.black.withValues(alpha: 0.5),
                     alignment: Alignment.center,
                     child: Text('+$extra',
-                        style:
-                            const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold)),
                   ),
               ],
             ),
@@ -637,7 +660,9 @@ class _TimingStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = isOpen ? AppColors.greenShade.withValues(alpha: 0.12) : AppColors.greyE6;
+    final bg = isOpen
+        ? AppColors.greenShade.withValues(alpha: 0.12)
+        : AppColors.greyE6;
     final fg = isOpen ? AppColors.greenShade : AppColors.grey83;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -720,7 +745,9 @@ class _ContactUs extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final branch = contacts.branch;
-    final firstDept = (contacts.departments?.isNotEmpty ?? false) ? contacts.departments!.first : null;
+    final firstDept = (contacts.departments?.isNotEmpty ?? false)
+        ? contacts.departments!.first
+        : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -738,7 +765,8 @@ class _ContactUs extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.business_outlined, size: 16, color: AppColors.secondaryTextColor),
+                  const Icon(Icons.business_outlined,
+                      size: 16, color: AppColors.secondaryTextColor),
                   const SizedBox(width: 6),
                   Expanded(
                     child: CustomText(
@@ -756,7 +784,8 @@ class _ContactUs extends StatelessWidget {
                           name: contacts.branch?.name,
                           location: SchoolLocation(
                             name: contacts.branch?.location?.name,
-                            coordinates: contacts.branch?.location?.coordinates ?? [],
+                            coordinates:
+                                contacts.branch?.location?.coordinates ?? [],
                           ),
                           website: contacts.branch?.website,
                         ),
@@ -766,7 +795,8 @@ class _ContactUs extends StatelessWidget {
                       ),
                     )),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         border: Border.all(color: AppColors.primaryColor),
                         borderRadius: BorderRadius.circular(6),
@@ -774,9 +804,11 @@ class _ContactUs extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: const [
-                          Icon(Icons.edit_outlined, size: 14, color: AppColors.primaryColor),
+                          Icon(Icons.edit_outlined,
+                              size: 14, color: AppColors.primaryColor),
                           SizedBox(width: 4),
-                          CustomText(AppStrings.edit, fontSize: 12, color: AppColors.primaryColor),
+                          CustomText(AppStrings.edit,
+                              fontSize: 12, color: AppColors.primaryColor),
                         ],
                       ),
                     ),
@@ -785,12 +817,16 @@ class _ContactUs extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               if (branch?.website != null && branch!.website!.isNotEmpty)
-                _row(AppIconAssets.website_click, branch.website!, AppColors.primaryColor, isLink: true),
+                _row(AppIconAssets.website_click, branch.website!,
+                    AppColors.primaryColor,
+                    isLink: true),
               if (firstDept != null) ...[
                 if (firstDept.phone != null && firstDept.phone!.isNotEmpty)
-                  _row(AppIconAssets.phone_outline, firstDept.phone!, AppColors.mainTextColor),
+                  _row(AppIconAssets.phone_outline, firstDept.phone!,
+                      AppColors.mainTextColor),
                 if (firstDept.email != null && firstDept.email!.isNotEmpty)
-                  _row(AppIconAssets.email, firstDept.email!, AppColors.mainTextColor),
+                  _row(AppIconAssets.email, firstDept.email!,
+                      AppColors.mainTextColor),
               ],
             ],
           ),
@@ -804,7 +840,8 @@ class _ContactUs extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.primaryColor.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.3)),
+              border: Border.all(
+                  color: AppColors.primaryColor.withValues(alpha: 0.3)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -812,7 +849,9 @@ class _ContactUs extends StatelessWidget {
                 Icon(Icons.add, size: 16, color: AppColors.primaryColor),
                 SizedBox(width: 6),
                 CustomText(AppStrings.addMore,
-                    fontSize: 13, color: AppColors.primaryColor, fontWeight: FontWeight.w600),
+                    fontSize: 13,
+                    color: AppColors.primaryColor,
+                    fontWeight: FontWeight.w600),
               ],
             ),
           ),
@@ -821,7 +860,8 @@ class _ContactUs extends StatelessWidget {
     );
   }
 
-  Widget _row(String icon, String text, Color textColor, {bool isLink = false}) {
+  Widget _row(String icon, String text, Color textColor,
+      {bool isLink = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
@@ -883,7 +923,8 @@ class _BankingCard extends StatelessWidget {
     required this.onSave,
   });
 
-  bool get _hasSavedData => initialRbi != null || initialAccountTypes.isNotEmpty;
+  bool get _hasSavedData =>
+      initialRbi != null || initialAccountTypes.isNotEmpty;
 
   @override
   Widget build(BuildContext context) {
@@ -906,7 +947,8 @@ class _BankingCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.account_balance_outlined, size: 18, color: AppColors.primaryColor),
+              Icon(Icons.account_balance_outlined,
+                  size: 18, color: AppColors.primaryColor),
               SizedBox(width: SizeConfig.size8),
               Expanded(
                 child: CustomText(
@@ -984,14 +1026,18 @@ class _BankingCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: initialRbi == true ? AppColors.greenShade.withValues(alpha: 0.12) : AppColors.greyE6,
+                color: initialRbi == true
+                    ? AppColors.greenShade.withValues(alpha: 0.12)
+                    : AppColors.greyE6,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: CustomText(
                 rbiText,
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: initialRbi == true ? AppColors.greenShade : AppColors.grey83,
+                color: initialRbi == true
+                    ? AppColors.greenShade
+                    : AppColors.grey83,
               ),
             ),
           ],
@@ -1016,7 +1062,8 @@ class _BankingCard extends StatelessWidget {
             runSpacing: 8,
             children: types
                 .map((t) => Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
                         color: AppColors.primaryColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
@@ -1025,7 +1072,8 @@ class _BankingCard extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.check_circle, size: 14, color: AppColors.primaryColor),
+                          Icon(Icons.check_circle,
+                              size: 14, color: AppColors.primaryColor),
                           const SizedBox(width: 6),
                           CustomText(
                             t,
@@ -1133,7 +1181,8 @@ class _BankingEditSheetState extends State<_BankingEditSheet> {
               SizedBox(height: SizeConfig.size16),
               Row(
                 children: [
-                  Icon(Icons.account_balance_outlined, size: 18, color: AppColors.primaryColor),
+                  Icon(Icons.account_balance_outlined,
+                      size: 18, color: AppColors.primaryColor),
                   const SizedBox(width: 8),
                   CustomText(
                     'Banking Information',
@@ -1184,31 +1233,44 @@ class _BankingEditSheetState extends State<_BankingEditSheet> {
                     onTap: _saving
                         ? null
                         : () => setState(() {
-                              selected ? _selected.remove(type) : _selected.add(type);
+                              selected
+                                  ? _selected.remove(type)
+                                  : _selected.add(type);
                             }),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        color: selected ? AppColors.primaryColor.withValues(alpha: 0.1) : Colors.white,
+                        color: selected
+                            ? AppColors.primaryColor.withValues(alpha: 0.1)
+                            : Colors.white,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: selected ? AppColors.primaryColor : AppColors.whiteE5,
+                          color: selected
+                              ? AppColors.primaryColor
+                              : AppColors.whiteE5,
                         ),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            selected ? Icons.check_circle : Icons.radio_button_unchecked,
+                            selected
+                                ? Icons.check_circle
+                                : Icons.radio_button_unchecked,
                             size: 14,
-                            color: selected ? AppColors.primaryColor : AppColors.grey99,
+                            color: selected
+                                ? AppColors.primaryColor
+                                : AppColors.grey99,
                           ),
                           const SizedBox(width: 6),
                           CustomText(
                             type,
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: selected ? AppColors.primaryColor : AppColors.mainTextColor,
+                            color: selected
+                                ? AppColors.primaryColor
+                                : AppColors.mainTextColor,
                           ),
                         ],
                       ),
@@ -1221,7 +1283,8 @@ class _BankingEditSheetState extends State<_BankingEditSheet> {
                 children: [
                   Expanded(
                     child: OutlinedButton(
-                      onPressed: _saving ? null : () => Navigator.of(context).pop(),
+                      onPressed:
+                          _saving ? null : () => Navigator.of(context).pop(),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         side: BorderSide(color: AppColors.whiteE5),
@@ -1243,7 +1306,8 @@ class _BankingEditSheetState extends State<_BankingEditSheet> {
                       onPressed: _saving ? null : _save,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primaryColor,
-                        disabledBackgroundColor: AppColors.primaryColor.withValues(alpha: 0.4),
+                        disabledBackgroundColor:
+                            AppColors.primaryColor.withValues(alpha: 0.4),
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -1255,7 +1319,8 @@ class _BankingEditSheetState extends State<_BankingEditSheet> {
                               width: 18,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
                               ),
                             )
                           : CustomText(

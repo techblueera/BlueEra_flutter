@@ -84,11 +84,16 @@ class FinanceBusinessItem {
         profile?['category_Of_Business'] ??
         json['sub_type'] ??
         profile?['sub_type'];
-    // Prefer an explicit GeoJSON `location`; otherwise derive the map location
-    // from the profile's `business_location` ("{\"lat\":..,\"lon\":..}").
-    location = json['location'] != null
-        ? FinanceLocation.fromJson(json['location'])
-        : FinanceLocation.fromBusinessLocation(profile?['business_location'] ?? json['business_location']);
+    // Prefer an explicit GeoJSON `location` (carries `address` +
+    // `coordinates`); check both the top level AND `profile.location` —
+    // the /search response nests it under profile. Fall back to the
+    // profile's `business_location` ("{\"lat\":..,\"lon\":..}") which
+    // only carries coordinates when neither is present.
+    final locationRaw = json['location'] ?? profile?['location'];
+    location = locationRaw is Map
+        ? FinanceLocation.fromJson(Map<String, dynamic>.from(locationRaw))
+        : FinanceLocation.fromBusinessLocation(
+            profile?['business_location'] ?? json['business_location']);
     if (json['contactUs'] != null) {
       contactUs = <FinanceContactUs>[];
       json['contactUs'].forEach((v) {
