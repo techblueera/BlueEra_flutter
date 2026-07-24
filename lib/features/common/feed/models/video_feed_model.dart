@@ -57,6 +57,10 @@ class VideoResponse {
                   isLiked: e['isLiked'] as bool? ?? false,
                   isFollowing: author?.isFollowing ?? false,
                 ),
+                // Ahead-of-time download hints ride along on the flat item too.
+                prefetch: e['prefetch'] is Map<String, dynamic>
+                    ? Prefetch.fromJson(e['prefetch'] as Map<String, dynamic>)
+                    : null,
               );
             })
             .toList() ??
@@ -160,6 +164,11 @@ class ShortFeedItem {
   final Interactions? interactions;
   final VideoItemMetadata? metadata;
 
+  /// Ahead-of-time download hints attached by the backend to every playback
+  /// feed item (see docs/backend/PREFETCH_INTEGRATION.md). Additive and always
+  /// nullable — a freshly uploaded video that is still transcoding has none.
+  final Prefetch? prefetch;
+
   final int? commentsCount;
   final int? likesCount;
   final int? repostCount;
@@ -181,6 +190,7 @@ class ShortFeedItem {
     this.channel,
     this.interactions,
     this.metadata,
+    this.prefetch,
   });
 
   factory ShortFeedItem.fromJson(Map<String, dynamic> json) {
@@ -199,6 +209,9 @@ class ShortFeedItem {
       metadata: json['metadata'] != null
           ? VideoItemMetadata.fromJson(json['metadata'])
           : null,
+      prefetch: json['prefetch'] is Map<String, dynamic>
+          ? Prefetch.fromJson(json['prefetch'] as Map<String, dynamic>)
+          : null,
     );
   }
 
@@ -212,6 +225,7 @@ class ShortFeedItem {
         'channel': channel?.toJson(),
         'interactions': interactions?.toJson(),
         'metadata': metadata?.toJson(),
+        'prefetch': prefetch?.toJson(),
       };
 
   ShortFeedItem copyWith({
@@ -224,6 +238,7 @@ class ShortFeedItem {
     Channel? channel,
     Interactions? interactions,
     VideoItemMetadata? metadata,
+    Prefetch? prefetch,
     int? commentsCount,
     int? likesCount,
     int? repostCount,
@@ -240,10 +255,98 @@ class ShortFeedItem {
       channel: channel ?? this.channel,
       interactions: interactions ?? this.interactions,
       metadata: metadata ?? this.metadata,
+      prefetch: prefetch ?? this.prefetch,
       likesCount: likesCount ?? this.likesCount,
       commentsCount: commentsCount ?? this.commentsCount,
     );
   }
+}
+
+/// Per-item prefetch hint from the backend. Everything here is nullable; always
+/// fall back down the chain `hlsUrl → lowVariantUrl → progressiveUrl` and, if
+/// all are null, just show the poster.
+class Prefetch {
+  /// Adaptive HLS master — primary playback + prefetch URL when [isHls].
+  final String? hlsUrl;
+
+  /// Lightest bitrate ladder. Prefetch *this* on cellular / data-saver.
+  final String? lowVariantUrl;
+
+  /// Original MP4. Fallback when [hlsUrl] is null or the player can't do HLS.
+  final String? progressiveUrl;
+
+  /// Thumbnail to paint instantly while bytes download.
+  final String? poster;
+
+  /// Video length in seconds — useful for cache budgeting / progress UI.
+  final int? duration;
+
+  /// `"hls"` or `"mp4"`.
+  final String? type;
+
+  const Prefetch({
+    this.hlsUrl,
+    this.lowVariantUrl,
+    this.progressiveUrl,
+    this.poster,
+    this.duration,
+    this.type,
+  });
+
+  factory Prefetch.fromJson(Map<String, dynamic> json) => Prefetch(
+        hlsUrl: json['hlsUrl'] as String?,
+        lowVariantUrl: json['lowVariantUrl'] as String?,
+        progressiveUrl: json['progressiveUrl'] as String?,
+        poster: json['poster'] as String?,
+        duration: (json['duration'] as num?)?.toInt(),
+        type: json['type'] as String?,
+      );
+
+  Map<String, dynamic> toJson() => {
+        'hlsUrl': hlsUrl,
+        'lowVariantUrl': lowVariantUrl,
+        'progressiveUrl': progressiveUrl,
+        'poster': poster,
+        'duration': duration,
+        'type': type,
+      };
+
+  bool get isHls => (type ?? '').toLowerCase() == 'hls';
+
+  /// Cheapest URL to warm ahead of time. On data-saver / cellular prefer the
+  /// low ladder; otherwise the adaptive master. Always falls back down the
+  /// chain so a partially-populated block still yields something playable.
+  String? prefetchUrl({bool dataSaver = false}) {
+    if (isHls) {
+      return dataSaver
+          ? (lowVariantUrl ?? hlsUrl ?? progressiveUrl)
+          : (hlsUrl ?? lowVariantUrl ?? progressiveUrl);
+    }
+    return progressiveUrl ?? hlsUrl ?? lowVariantUrl;
+  }
+
+  /// URL to actually hand the player: HLS master when present, else the MP4.
+  String? playbackUrl() {
+    if (isHls) return hlsUrl ?? lowVariantUrl ?? progressiveUrl;
+    return progressiveUrl ?? hlsUrl ?? lowVariantUrl;
+  }
+
+  Prefetch copyWith({
+    String? hlsUrl,
+    String? lowVariantUrl,
+    String? progressiveUrl,
+    String? poster,
+    int? duration,
+    String? type,
+  }) =>
+      Prefetch(
+        hlsUrl: hlsUrl ?? this.hlsUrl,
+        lowVariantUrl: lowVariantUrl ?? this.lowVariantUrl,
+        progressiveUrl: progressiveUrl ?? this.progressiveUrl,
+        poster: poster ?? this.poster,
+        duration: duration ?? this.duration,
+        type: type ?? this.type,
+      );
 }
 
 class VideoData {

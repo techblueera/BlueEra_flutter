@@ -767,6 +767,14 @@ class AppNotificationHandler {
   /// SplashScreen checks this to hold its UI instead of navigating to home.
   static bool launchedFromNotification = false;
 
+  /// iOS-only: set once firebaseNotificationSetup()'s cold-start block has
+  /// routed the launch notification. onMsgOpen()'s iOS getInitialMessage path
+  /// (which runs later, after the bottom nav mounts) checks this to avoid
+  /// routing the same terminated-state notification a second time. In-memory
+  /// (same isolate) so it works even when the payload carries no
+  /// `notificationId` to dedup on.
+  static bool _iosColdStartHandled = false;
+
   /// The in-flight [checkNotificationLaunch] future, set by main()'s
   /// `_initDeferred` the moment it kicks the check off. SplashScreen awaits
   /// this (bounded) before reading [launchedFromNotification] — without it,
@@ -925,6 +933,86 @@ class AppNotificationHandler {
               !notificationNavigationCompleter!.isCompleted) {
             notificationNavigationCompleter!.complete();
           }
+        }
+      }
+    }
+
+    // ── iOS cold-start (terminated) deep-link routing ─────────────────────
+    // On iOS a terminated-state FCM notification is delivered by APNs, NOT
+    // through flutter_local_notifications, so the Android
+    // getNotificationAppLaunchDetails() path above is a no-op here — it always
+    // reports didNotificationLaunchApp == false on iOS.
+    //
+    // This routing MUST run here (main()'s pre-bottom-nav deferred init),
+    // rather than in onMsgOpen() which is only registered AFTER the bottom-nav
+    // mounts. SplashScreen blocks on `notificationNavigationCompleter`, so the
+    // bottom nav never mounts until that completer is completed — a deadlock
+    // that left iOS stuck on the splash screen on a killed-app notification
+    // tap. Routing + completing the completer here breaks it, mirroring what
+    // the Android launch-details block above already does.
+    //
+    // Reuse `pendingDeepLink` (populated by checkNotificationLaunch(), which
+    // ran and was awaited in main() BEFORE this method) instead of calling
+    // FirebaseMessaging.getInitialMessage() again: the SDK returns the launch
+    // message only ONCE, and checkNotificationLaunch already consumed it.
+    if (Platform.isIOS &&
+        launchedFromNotification &&
+        pendingDeepLink != null) {
+      final data = Map<String, dynamic>.from(pendingDeepLink!.raw);
+      try {
+        // Dedup against onMsgOpen()'s iOS path so a still-cached initial
+        // message can't route the same notification a second time once the
+        // bottom nav mounts.
+        final currentId = data['notificationId']?.toString();
+        bool alreadyHandled = false;
+        if (currentId != null && currentId.isNotEmpty) {
+          final lastHandled = await SharedPreferenceUtils.getSecureValue(
+              _lastHandledLaunchNotificationIdKey);
+          if (lastHandled == currentId) {
+            alreadyHandled = true;
+          } else {
+            await SharedPreferenceUtils.setSecureValue(
+                _lastHandledLaunchNotificationIdKey, currentId);
+          }
+        }
+
+        if (!alreadyHandled) {
+          // Claim ownership of this cold-start launch so onMsgOpen()'s iOS
+          // path (running later, after the bottom nav mounts) does not route
+          // it again — reliable even when the payload has no notificationId.
+          _iosColdStartHandled = true;
+          final op = (data['operation'] ?? data['type'] ?? '')
+              .toString()
+              .toLowerCase();
+          if (op == 'incoming_call') {
+            // Body-tap cold start on an incoming-call notification. The VoIP/
+            // CallKit path already handles a real Accept; if CallController is
+            // still idle/ringing, open the in-app IncomingCallScreen so the
+            // user can accept or decline. Wait for the navigator to settle.
+            await Future.delayed(const Duration(milliseconds: 600));
+            final ctrl = getOrPut(() => CallController());
+            final activeStatus = ctrl.callStatus.value;
+            if (activeStatus == CallStatus.idle ||
+                activeStatus == CallStatus.ringing) {
+              _openIncomingCallScreen(data);
+            }
+          } else {
+            // Wait for the GetMaterialApp navigator to be ready, then route.
+            // fromColdStart pushes the home shell first so the target screen
+            // has a proper back stack (same as the Android launch path).
+            await Future.delayed(const Duration(milliseconds: 300));
+            _onTapNotificationFromStatusBar(data, fromColdStart: true);
+          }
+        }
+      } catch (e) {
+        print('[iOS-cold-start] deep-link routing error: $e');
+      } finally {
+        // Always unblock the splash screen, even if routing failed — otherwise
+        // it sits on the loader until its 5s safety timeout on every iOS
+        // notification cold-start.
+        if (notificationNavigationCompleter != null &&
+            !notificationNavigationCompleter!.isCompleted) {
+          notificationNavigationCompleter!.complete();
         }
       }
     }
@@ -2659,6 +2747,7 @@ class AppNotificationHandler {
 
     /// when app is in background and user tap on it.
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      print('[iOS-tap] data= in ${message.data}');
       // Tapping the auto-go-live banner (app was backgrounded but alive)
       // re-asserts live state + restarts the location pinger, same as the
       // foreground path. See RIDER_GO_LIVE_GUIDE.md.
@@ -2685,8 +2774,17 @@ class AppNotificationHandler {
       FirebaseMessaging.instance.getInitialMessage().then((initial) async {
         try {
           if (initial == null || initial.data.isEmpty) return;
+
+          // Dedup: firebaseNotificationSetup()'s iOS cold-start block already
+          // routes the launch notification BEFORE the bottom nav mounts (it has
+          // to, or the splash-screen completer deadlocks). If it claimed this
+          // launch, do not route it again here. The in-memory flag is reliable
+          // regardless of whether the payload carries a notificationId.
+          if (_iosColdStartHandled) return;
+
           final data = Map<String, dynamic>.from(initial.data);
-          final operation = (data['operation'] ?? '').toString().toLowerCase();
+          final operation =
+              (data['operation'] ?? data['type'] ?? '').toString().toLowerCase();
 
           // Wait for the navigator to be mounted before pushing. Splash is
           // blocked on `notificationNavigationCompleter` so this delay only

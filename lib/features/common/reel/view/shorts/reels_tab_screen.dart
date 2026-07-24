@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
@@ -13,8 +14,10 @@ import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show ScrollDirection;
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -52,7 +55,9 @@ class ReelsTabScreen extends StatefulWidget {
 class _ReelsTabScreenState extends State<ReelsTabScreen> {
   late final ShortsController _controller;
   final ScrollController _scrollController = ScrollController();
-  final _ReelGridPlaybackManager _playback = _ReelGridPlaybackManager();
+  final _ReelPrefetcher _prefetcher = _ReelPrefetcher();
+  late final _ReelGridPlaybackManager _playback =
+      _ReelGridPlaybackManager(prefetcher: _prefetcher);
 
   @override
   void initState() {
@@ -60,6 +65,14 @@ class _ReelsTabScreenState extends State<ReelsTabScreen> {
     _controller = Get.isRegistered<ShortsController>()
         ? Get.find<ShortsController>()
         : Get.put(ShortsController());
+    _prefetcher.init();
+    // When the grid settles on a preview, warm the next reels (N+1..N+2 in
+    // reading order) so tapping in / scrolling on starts instantly. See
+    // docs/backend/PREFETCH_INTEGRATION.md.
+    _playback.onActivated = (order) => _prefetcher.prefetchAround(
+          _controller.trendingVideoFeedPosts,
+          order,
+        );
     _scrollController.addListener(_onScroll);
     // Defer the first fetch past the first frame so the cache-first path
     // (which reassigns observable lists synchronously) never notifies an
@@ -77,6 +90,7 @@ class _ReelsTabScreenState extends State<ReelsTabScreen> {
       ..removeListener(_onScroll)
       ..dispose();
     _playback.dispose();
+    _prefetcher.dispose();
     super.dispose();
   }
 
@@ -250,7 +264,7 @@ class _ReelGridTileState extends State<_ReelGridTile> {
     if (!mounted) return;
     widget.playback.reportVisibility(
       _videoId,
-      widget.item.video?.videoUrl ?? '',
+      widget.item,
       info.visibleFraction,
       widget.order,
     );
@@ -394,6 +408,17 @@ class _ReelGridTileState extends State<_ReelGridTile> {
 /// looping once the list has settled. Lifecycle (init/dispose) is tied to the
 /// owning [State], so leaving the tab tears the controller down.
 class _ReelGridPlaybackManager extends ChangeNotifier {
+  _ReelGridPlaybackManager({_ReelPrefetcher? prefetcher})
+      : _prefetcher = prefetcher;
+
+  /// Shared prefetcher — used to prefer prefetched URLs and to play already
+  /// cached MP4s straight from disk (instant / offline).
+  final _ReelPrefetcher? _prefetcher;
+
+  /// Fired with the reading-order index of a tile the moment it starts playing,
+  /// so the screen can warm the reels just after it.
+  void Function(int order)? onActivated;
+
   VideoPlayerController? _controller;
   String? _activeId;
 
@@ -405,6 +430,10 @@ class _ReelGridPlaybackManager extends ChangeNotifier {
 
   /// videoId -> video url, for whatever is currently visible.
   final Map<String, String> _urls = {};
+
+  /// videoId -> prefetch hint, for whatever is currently visible (nullable per
+  /// item — old items or still-transcoding uploads carry none).
+  final Map<String, Prefetch?> _prefetch = {};
 
   /// videoId -> grid index (reading order), the horizontal/row tie-breaker.
   final Map<String, int> _order = {};
@@ -435,15 +464,20 @@ class _ReelGridPlaybackManager extends ChangeNotifier {
   static const Duration _playDelay = Duration(milliseconds: 140);
 
   void reportVisibility(
-      String videoId, String videoUrl, double fraction, int order) {
+      String videoId, ShortFeedItem item, double fraction, int order) {
     if (_disposed || videoId.isEmpty) return;
     if (fraction >= _visibilityThreshold) {
+      // Prefer the prefetch's playback URL (HLS master / low ladder), falling
+      // back to the legacy videoUrl when the item carries no prefetch block.
+      final url = item.prefetch?.playbackUrl() ?? item.video?.videoUrl ?? '';
       _visible[videoId] = fraction;
-      _urls[videoId] = videoUrl;
+      _urls[videoId] = url;
+      _prefetch[videoId] = item.prefetch;
       _order[videoId] = order;
     } else {
       _visible.remove(videoId);
       _urls.remove(videoId);
+      _prefetch.remove(videoId);
       _order.remove(videoId);
       // The active video scrolled out of focus — stop it immediately.
       if (_activeId == videoId) {
@@ -536,10 +570,27 @@ class _ReelGridPlaybackManager extends ChangeNotifier {
     }
     if (_playToken != token || _disposed) return;
 
-    final next = VideoPlayerController.networkUrl(
-      Uri.parse(url),
-      videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
-    );
+    // If this is a progressive MP4 we already prefetched, play the on-disk copy
+    // — instant start, and it keeps playing if the network drops. HLS keeps
+    // streaming from the network (the player caches segments itself).
+    final prefetch = _prefetch[videoId];
+    final isHls = prefetch?.isHls ?? url.contains('.m3u8');
+    File? localFile;
+    final prefetcher = _prefetcher;
+    if (!isHls && prefetcher != null) {
+      localFile = await prefetcher.cachedFile(url);
+      if (_playToken != token || _disposed) return;
+    }
+
+    final next = localFile != null
+        ? VideoPlayerController.file(
+            localFile,
+            videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+          )
+        : VideoPlayerController.networkUrl(
+            Uri.parse(url),
+            videoPlayerOptions: VideoPlayerOptions(mixWithOthers: true),
+          );
 
     try {
       await next.initialize().timeout(const Duration(seconds: 10));
@@ -560,6 +611,10 @@ class _ReelGridPlaybackManager extends ChangeNotifier {
     _activeId = videoId;
     await next.play();
     notifyListeners();
+
+    // Now that this tile is live, warm the reels just after it.
+    final order = _order[videoId];
+    if (order != null) onActivated?.call(order);
   }
 
   Future<void> _stop() async {
@@ -580,6 +635,7 @@ class _ReelGridPlaybackManager extends ChangeNotifier {
   void removeVideo(String videoId) {
     _visible.remove(videoId);
     _urls.remove(videoId);
+    _prefetch.remove(videoId);
     _order.remove(videoId);
     if (_activeId == videoId) {
       _stop();
@@ -598,6 +654,115 @@ class _ReelGridPlaybackManager extends ChangeNotifier {
     _controller?.dispose();
     _controller = null;
     super.dispose();
+  }
+}
+
+/// Warms upcoming reels into the on-disk cache so playback starts instantly and
+/// keeps working when the network drops — the strategy from
+/// docs/backend/PREFETCH_INTEGRATION.md, adapted to the discovery grid's
+/// reading order.
+///
+/// * Progressive **MP4** items are downloaded to the cache dir; the playback
+///   manager then plays them straight from that file (offline-capable).
+/// * **HLS** items are left to the player to stream/cache segment-by-segment —
+///   pre-downloading a whole master playlist would be wrong — but we still warm
+///   the poster so the first frame paints immediately.
+/// * On **cellular / data-saver** we prefetch only 1 ahead and prefer the low
+///   ladder; on Wi‑Fi we prefetch 2 ahead.
+class _ReelPrefetcher {
+  final BaseCacheManager _cache = DefaultCacheManager();
+
+  /// videoIds we've already kicked a prefetch off for, so a second pass over
+  /// the same window doesn't re-download.
+  final Set<String> _requested = {};
+
+  StreamSubscription<List<ConnectivityResult>>? _connSub;
+  bool _cellular = false;
+  bool _disposed = false;
+
+  void init() {
+    // Seed the current network state, then track changes so the ahead-count and
+    // variant choice follow the user onto / off Wi‑Fi mid-session.
+    Connectivity().checkConnectivity().then(_applyConnectivity).catchError(
+          (_) {},
+        );
+    _connSub =
+        Connectivity().onConnectivityChanged.listen(_applyConnectivity);
+  }
+
+  void _applyConnectivity(List<ConnectivityResult> result) {
+    if (_disposed) return;
+    // Treat "on mobile data with no Wi‑Fi/ethernet" as cellular; anything else
+    // (Wi‑Fi, ethernet, unknown) gets the generous Wi‑Fi budget.
+    _cellular = result.contains(ConnectivityResult.mobile) &&
+        !result.contains(ConnectivityResult.wifi) &&
+        !result.contains(ConnectivityResult.ethernet);
+  }
+
+  /// Prefetch the reels just after [fromIndex] in reading order.
+  void prefetchAround(List<ShortFeedItem> items, int fromIndex) {
+    if (_disposed) return;
+    final ahead = _cellular ? 1 : 2;
+    for (var i = fromIndex + 1;
+        i <= fromIndex + ahead && i < items.length;
+        i++) {
+      _prefetchItem(items[i]);
+    }
+  }
+
+  void _prefetchItem(ShortFeedItem item) {
+    final id = item.videoId ?? '';
+    if (id.isEmpty || _requested.contains(id)) return;
+    _requested.add(id);
+
+    final p = item.prefetch;
+
+    // Warm the poster (or cover) so the first frame is instant.
+    final poster = p?.poster ?? item.video?.coverUrl;
+    if (poster != null && poster.isNotEmpty && isNetworkImage(poster)) {
+      unawaited(_safeDownload(poster));
+    }
+
+    // Cheapest playable URL; fall back to the legacy videoUrl for items the
+    // backend hasn't attached a prefetch block to yet.
+    final url = p?.prefetchUrl(dataSaver: _cellular) ?? item.video?.videoUrl;
+    if (url == null || url.isEmpty) return;
+
+    // Only pre-download progressive MP4s. HLS master playlists are adaptive and
+    // tiny — the player streams and caches their segments on demand; grabbing
+    // the whole file here would defeat that.
+    final isHls = p?.isHls ?? url.contains('.m3u8');
+    if (isHls) return;
+
+    unawaited(_safeDownload(url));
+  }
+
+  Future<void> _safeDownload(String url) async {
+    try {
+      final existing = await _cache.getFileFromCache(url);
+      if (existing != null) return; // already on disk
+      await _cache.downloadFile(url);
+    } catch (_) {
+      // Best-effort: a failed prefetch just means we play from the network.
+    }
+  }
+
+  /// Return a cached on-disk copy of [url] (progressive MP4 only) if we already
+  /// prefetched it, else null → the caller streams from the network.
+  Future<File?> cachedFile(String url) async {
+    if (_disposed) return null;
+    try {
+      final info = await _cache.getFileFromCache(url);
+      if (info == null) return null;
+      return File(info.file.path);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  void dispose() {
+    _disposed = true;
+    _connSub?.cancel();
   }
 }
 
