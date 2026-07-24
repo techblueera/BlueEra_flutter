@@ -38,7 +38,17 @@ class ProductsStoreDiscoverScreen extends StatefulWidget {
 class _ProductsStoreDiscoverScreenState extends State<ProductsStoreDiscoverScreen> {
   final controller = getOrPut(() => StoreController());
   final AuthController _authController = Get.find<AuthController>();
-  final RxInt _selectedIndex = 0.obs;
+
+  /// Sentinel tag id for the leading "All Products" tab. Selecting it clears
+  /// the category filter, so the store API returns stores across every product
+  /// category instead of one. Mirrors the All tab on the grocery screen.
+  static const String _allProductsTagId = 'ALL_PRODUCTS';
+  static const String _allProductsLabel = 'All Products';
+
+  /// Tag id of the selected category — null while "All Products" is active.
+  /// Selection is tracked by id rather than list index because the All tab has
+  /// no backing onboarding category to index into.
+  String? _selectedCategoryTagId;
 
   final ProductSelfPickupController productCartController =
       getOrPut<ProductSelfPickupController>(
@@ -57,12 +67,14 @@ class _ProductsStoreDiscoverScreenState extends State<ProductsStoreDiscoverScree
     super.initState();
     controller.typeOfBusiness = BusinessType.Product.name;
 
-    if (widget.productCategory != null && _categories.isNotEmpty) {
+    if (widget.productCategory != null) {
+      // Opened from a category tile — land on that category.
       controller.businessCategoryId = widget.productCategory;
-      final idx = _categories.indexWhere((c) => c.tagId == widget.productCategory);
-      if (idx >= 0) _selectedIndex.value = idx;
-    } else if (_categories.isNotEmpty) {
-      controller.businessCategoryId = _categories.first.tagId;
+      _selectedCategoryTagId = widget.productCategory;
+    } else {
+      // Lands on "All Products": no category filter, so every store nearby is
+      // listed. (It used to land on the first onboarding category.)
+      controller.businessCategoryId = null;
     }
 
     // Skip the call on re-entry when the cached list is still fresh; category
@@ -171,12 +183,22 @@ class _ProductsStoreDiscoverScreenState extends State<ProductsStoreDiscoverScree
     );
   }
 
-  void _onCategoryTap(CategoryData item, int index) {
-    _selectedIndex.value = index;
-    controller.businessCategoryId = item.tagId;
+  /// [tagId] null selects the "All Products" tab, which clears the filter.
+  void _onCategoryTap(String? tagId) {
+    _selectedCategoryTagId = tagId;
+    controller.businessCategoryId = tagId;
     // Cache-aware: a recently-viewed category loads instantly from its own
     // cache entry; pull-to-refresh forces a fresh fetch.
     controller.getAllStoreNearByIfNeeded();
+  }
+
+  /// Label for the active tab. The "All Products" tab has no backing category,
+  /// so the empty-state copy falls back to its label.
+  String get _selectedCategoryLabel {
+    final id = _selectedCategoryTagId;
+    if (id == null) return _allProductsLabel;
+    final idx = _categories.indexWhere((c) => c.tagId == id);
+    return idx >= 0 ? (_categories[idx].name ?? '') : '';
   }
 
   void _openInventoryAiSearch() {
@@ -243,21 +265,33 @@ class _ProductsStoreDiscoverScreenState extends State<ProductsStoreDiscoverScree
                     pinned: true,
                     delegate: StickyCategoryHeaderDelegate(
                       topPadding: statusBarHeight,
-                      categories: _categories.map((c) {
-                        return StickyCategory(
-                        id: c.tagId ?? '',
-                        name: c.name ?? '',
-                        imageUrl: getProductCategoryIcon(c.tagId),
-                        // imageUrl: c.imageUrl,
-                      );
-                      }).toList(),
-                      selectedId: _categories.isNotEmpty &&
-                              _selectedIndex.value < _categories.length
-                          ? _categories[_selectedIndex.value].tagId
-                          : null,
+                      categories: [
+                        // Leading "All Products" tab — every store, no
+                        // category filter.
+                        StickyCategory(
+                          id: _allProductsTagId,
+                          name: _allProductsLabel,
+                        ),
+                        ..._categories.map((c) {
+                          return StickyCategory(
+                            id: c.tagId ?? '',
+                            name: c.name ?? '',
+                            imageUrl: getProductCategoryIcon(c.tagId),
+                            // imageUrl: c.imageUrl,
+                          );
+                        }),
+                      ],
+                      selectedId:
+                          _selectedCategoryTagId ?? _allProductsTagId,
                       onCategoryTap: (item) {
-                        final idx = _categories.indexWhere((c) => c.tagId == item.id);
-                        if (idx >= 0) _onCategoryTap(_categories[idx], idx);
+                        if (item.id == _allProductsTagId) {
+                          // "Show all" — clear the category filter.
+                          _onCategoryTap(null);
+                        } else {
+                          final idx = _categories
+                              .indexWhere((c) => c.tagId == item.id);
+                          if (idx >= 0) _onCategoryTap(_categories[idx].tagId);
+                        }
                         setState(() {});
                       },
                       onBack: _handleBackWithCartWarning,
@@ -302,12 +336,10 @@ class _ProductsStoreDiscoverScreenState extends State<ProductsStoreDiscoverScree
       }
 
       if (controller.allStore.isEmpty) {
-        final categoryName = (_selectedIndex.value >= 0 && _selectedIndex.value < _categories.length)
-            ? _categories[_selectedIndex.value].name ?? ''
-            : '';
         return Center(
           child: EmptyStateWidget(
-            message: AppStrings.noStoresFoundForCategory.trParams({'category': categoryName}),
+            message: AppStrings.noStoresFoundForCategory
+                .trParams({'category': _selectedCategoryLabel}),
           ),
         );
       }

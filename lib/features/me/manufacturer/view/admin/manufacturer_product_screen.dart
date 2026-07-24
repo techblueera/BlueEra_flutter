@@ -1,17 +1,13 @@
 ﻿import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
-import 'package:BlueEra/core/api/apiService/api_response.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
-import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/widgets/go_live_pill.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
@@ -19,21 +15,14 @@ import 'package:BlueEra/features/business/auth/controller/view_business_details_
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
-import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
 import 'package:BlueEra/features/common/home/widgets/drawer.dart';
 import 'package:BlueEra/features/common/statistics/view/profile_statistics_screen.dart';
 import 'package:BlueEra/features/me/manufacturer/controller/manufacturer_inventory_controller.dart';
-import 'package:BlueEra/features/me/product/model/product_category_with_inventory_model.dart';
-import 'package:BlueEra/features/me/manufacturer/view/admin/manufacturer_admin_all_top_selling_products_screen.dart';
 import 'package:BlueEra/features/me/manufacturer/view/admin/manufacturer_product_home_screen.dart';
-import 'package:BlueEra/features/me/manufacturer/view/admin/widget/manufacturer_admin_product_card.dart';
+import 'package:BlueEra/features/me/manufacturer/view/admin/tabs/manufacturer_post_tab.dart';
+import 'package:BlueEra/features/me/manufacturer/view/admin/tabs/manufacturer_products_tab.dart';
 import 'package:BlueEra/widgets/add_product_prompt_sheet.dart';
-import 'package:BlueEra/widgets/custom_text_cm.dart';
-import 'package:BlueEra/widgets/empty_state_widget.dart';
-import 'package:BlueEra/widgets/gradient_add_button.dart';
-import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -54,7 +43,6 @@ class _ProductScreenState extends State<ManufacturerProductScreen>
   bool _isLoading = true;
 
   late final List<String> _tabs;
-  late final List<Widget> _tabViews;
 
   final inventoryController = getOrPut(() => ManufacturerInventoryController());
   final viewBusinessDetailsController = Get.find<ViewBusinessDetailsController>();
@@ -92,17 +80,15 @@ class _ProductScreenState extends State<ManufacturerProductScreen>
   void _initializeData() {
     // Tabs mirror the grocery v2 home screen exactly so the merchant
     // sees a consistent layout across me-section services.
-    _tabs = const ['Products', 'Overview', 'Post', 'Statics'];
-
-    _tabViews = [
-      _ProductsTabBody(onAddProduct: _onAddProduct),
-      const ManufacturerProductHomeScreen(),
-      _PostTabBody(),
-      ProfileStatisticsScreen(userId: userId),
+    _tabs = [
+      AppStrings.productsTab.tr,
+      AppStrings.overviewTab.tr,
+      AppStrings.postTabLabel.tr,
+      AppStrings.staticsTab.tr,
     ];
 
     _tabController = TabController(
-      length: _tabViews.length,
+      length: _tabs.length,
       initialIndex: _selectedTab,
       vsync: this,
     )..addListener(_onTabChanged);
@@ -185,10 +171,15 @@ class _ProductScreenState extends State<ManufacturerProductScreen>
               tabLabels: _tabs,
               topBar: _buildTopBar(),
               topBarHeight: topBarHeight,
+              // One class per tab, each in `admin/tabs/` — this screen owns the
+              // chrome (top bar, tab controller, per-tab fetch/refresh) and
+              // nothing else. Overview (ManufacturerProductHomeScreen) and
+              // Statistics already are their own screens.
               tabViews: [
-                _tabScroll([_ProductsTabBody(onAddProduct: _onAddProduct)]),
-                _tabScroll(const [ManufacturerProductHomeScreen()]),
-                _tabScroll([_PostTabBody()]),
+                _tabScroll(
+                    ManufacturerProductsTab(onAddProduct: _onAddProduct)),
+                _tabScroll(const ManufacturerProductHomeScreen()),
+                _tabScroll(const ManufacturerPostTab()),
                 ProfileStatisticsScreen(userId: userId),
               ],
             ),
@@ -202,11 +193,11 @@ class _ProductScreenState extends State<ManufacturerProductScreen>
   // widgets the inner scroll content should host. Mirrors grocery's
   // _buildTabContent pattern so the outer CustomScrollView controls
   // the scroll for every tab.
-  /// Wraps a tab's content list in a refreshable, scrollable body for the
-  /// [TabBarView]. The per-tab bodies are content-only (designed for a parent
-  /// scroll), so SingleChildScrollView + Column reproduces the previous
-  /// CustomScrollView layout. Statistics is passed directly (owns its scroll).
-  Widget _tabScroll(List<Widget> children) {
+  /// Wraps a tab in the refreshable, scrollable body they all share. The tab
+  /// classes are content-only (each returns a bounded Column), and this is the
+  /// only place the `left: 20 / nothing on the right` padding contract they
+  /// build against is set. Statistics is passed directly (owns its scroll).
+  Widget _tabScroll(Widget tab) {
     return RefreshIndicator(
       onRefresh: _onRefreshCurrentTab,
       child: SingleChildScrollView(
@@ -216,10 +207,7 @@ class _ProductScreenState extends State<ManufacturerProductScreen>
           top: SizeConfig.size10,
           bottom: kBottomNavigationBarHeight + 30,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: children,
-        ),
+        child: tab,
       ),
     );
   }
@@ -382,498 +370,3 @@ class _ProductScreenState extends State<ManufacturerProductScreen>
   }
 
 }
-
-// POST TAB â€” embeds FeedScreen filtered to the current user's posts.
-class _PostTabBody extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    if (!Get.isRegistered<FeedController>()) {
-      Get.put(FeedController());
-    }
-    return FeedScreen(
-      key: const ValueKey('inventory_v2_my_posts'),
-      postFilterType: PostType.myPosts,
-      id: userId,
-      isInParentScroll: true,
-      horizontalPaddingChannel: SizeConfig.size12,
-    );
-  }
-}
-
-// PRODUCTS TAB â€” surfaces the merchant's top-selling preview and the
-// category-with-inventory grid. The Overview tab no longer carries
-// these sections; this dedicated lane makes catalog management the
-// primary action of the Products tab.
-class _ProductsTabBody extends StatefulWidget {
-  final VoidCallback onAddProduct;
-
-  const _ProductsTabBody({required this.onAddProduct});
-
-  @override
-  State<_ProductsTabBody> createState() => _ProductsTabBodyState();
-}
-
-class _ProductsTabBodyState extends State<_ProductsTabBody> {
-  final controller = getOrPut(() => ManufacturerInventoryController());
-
-  @override
-  Widget build(BuildContext context) {
-    // Content-only â€” outer CustomScrollView in InventoryScreen owns
-    // the scroll + RefreshIndicator. This widget just lays out its
-    // sections in a Column.
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        GradientAddButton(
-          label: AppStrings.addProduct.tr,
-          onTap: widget.onAddProduct,
-          margin: EdgeInsets.only(
-              top: SizeConfig.size10, right: SizeConfig.size12),
-        ),
-        SizedBox(height: SizeConfig.size12),
-        // --- Top Selling Products ---
-        Obx(() {
-          if (controller.ownDraftAndPublicProductResponse.value.status ==
-              Status.INITIAL) {
-            return Padding(
-              padding: const EdgeInsets.only(top: 10),
-              child: buildHorizontalListSkeleton(),
-            );
-          }
-          return controller.allProducts.isNotEmpty
-              ? _topSellingProduct()
-              : const SizedBox.shrink();
-        }),
-
-        SizedBox(height: SizeConfig.size12),
-
-        // --- Section header + category cards wrapped in one white
-        // shell — mirrors the grocery v2 home's category container.
-        Container(
-          margin: EdgeInsets.only(right: SizeConfig.size12),
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.white, width: 1),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // --- Section header — vertical brand-bar + 2-line title +
-              // refined "Add ManufacturerProduct" chip CTA.
-              _productsSectionHeader(),
-              SizedBox(height: SizeConfig.size16),
-
-              // --- Category — two-tone storefront cards.
-              Obx(() {
-                if (controller.fetchProductCategoryResponse.value.status ==
-                    Status.INITIAL) {
-                  return buildCategoryGridSkeleton();
-                }
-                return _categoryWithInventoryGrid();
-              }),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _productsSectionHeader() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Container(
-          width: 3,
-          height: 26,
-          decoration: BoxDecoration(
-            color: AppColors.primaryColor,
-            borderRadius: BorderRadius.circular(2),
-          ),
-        ),
-        SizedBox(width: SizeConfig.size10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CustomText(
-                'Our Products',
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: AppColors.mainTextColor,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 2),
-              CustomText(
-                'Tap a category to manage inventory',
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-                color: AppColors.secondaryTextColor,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
-        SizedBox(width: SizeConfig.size8),
-        _addProductCta(),
-      ],
-    );
-  }
-
-  // Refined CTA chip â€” solid primary circular `+` badge anchors the
-  // outlined chip. Same chip language used in food's products tab.
-  Widget _addProductCta() {
-    return GestureDetector(
-      onTap: widget.onAddProduct,
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(4, 4, 12, 4),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(
-            color: AppColors.primaryColor.withValues(alpha: 0.25),
-            width: 1,
-          ),
-          // boxShadow: const [
-          //   BoxShadow(
-          //     color: Color(0x42001120),
-          //     blurRadius: 10,
-          //     offset: Offset(0, 2),
-          //   ),
-          // ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 26,
-              height: 26,
-              decoration: BoxDecoration(
-                color: AppColors.primaryColor,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.add, size: 16, color: Colors.white),
-            ),
-            SizedBox(width: SizeConfig.size6),
-            CustomText(
-              AppStrings.addProduct.tr,
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: AppColors.primaryColor,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // Editorial "best-seller chart" shelf â€” vertical-bar header + chip
-  // CTA up top, horizontal scroller of ranked tiles below. Card uses
-  // a brand-tinted hero, orangeâ†’pink discount sticker, "#NN" rank
-  // pill, three-row info hierarchy, and a brand-blue gradient ribbon
-  // at the bottom edge so the entire shelf reads as one curated row.
-  Widget _topSellingProduct() {
-    return Container(
-      // White-bordered shell wrapping the whole top-selling section
-      // (header + cards rail) with a uniform 10-px inner padding —
-      // mirrors the grocery v2 home's top-selling container.
-      margin: EdgeInsets.only(top: 8, right: SizeConfig.size12),
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.white, width: 1),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _topSellingHeader(),
-          SizedBox(height: SizeConfig.size12),
-          SizedBox(
-            height: ManufacturerAdminProductCard.gridCardHeight,
-            child: Builder(builder: (context) {
-              final previewCount = controller.allProducts.length >
-                      ManufacturerInventoryController.ownProductsPreviewLimit
-                  ? ManufacturerInventoryController.ownProductsPreviewLimit
-                  : controller.allProducts.length;
-              return ListView.builder(
-                itemCount: previewCount,
-                scrollDirection: Axis.horizontal,
-                padding: EdgeInsets.zero,
-                itemBuilder: (context, index) => Padding(
-                  padding: EdgeInsets.only(right: SizeConfig.size12),
-                  child: SizedBox(
-                    width: 168,
-                    child: ManufacturerAdminProductCard(
-                      product: controller.allProducts[index],
-                      deleteProductApi: () {},
-                      width: 168,
-                      isGridShow: true,
-                      showAttributes: false,
-                    ),
-                  ),
-                ),
-              );
-            }),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _topSellingHeader() {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Container(
-          width: 3,
-          height: 26,
-          decoration: BoxDecoration(
-            color: AppColors.primaryColor,
-            borderRadius: BorderRadius.circular(2),
-          ),
-        ),
-        SizedBox(width: SizeConfig.size10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CustomText(
-                'Top Selling',
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                color: AppColors.mainTextColor,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 2),
-              CustomText(
-                "Customers' favorites this month",
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-                color: AppColors.secondaryTextColor,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
-        SizedBox(width: SizeConfig.size8),
-        _topSellingViewAllChip(),
-      ],
-    );
-  }
-
-  // "View All" chip â€” label on the left, solid primary circular
-  // arrow badge on the right. Mirrors the other chip CTAs on the page.
-  Widget _topSellingViewAllChip() {
-    return GestureDetector(
-      onTap: () => Get.to(() => const ManufacturerAdminAllTopSellingProductsScreen()),
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(12, 4, 4, 4),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(
-            color: AppColors.primaryColor.withValues(alpha: 0.25),
-            width: 1,
-          ),
-          // boxShadow: const [
-          //   BoxShadow(
-          //     color: Color(0x42001120),
-          //     blurRadius: 10,
-          //     offset: Offset(0, 2),
-          //   ),
-          // ],
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CustomText(
-              'View All',
-              fontSize: 12,
-              fontWeight: FontWeight.w700,
-              color: AppColors.primaryColor,
-            ),
-            SizedBox(width: SizeConfig.size6),
-            Container(
-              width: 26,
-              height: 26,
-              decoration: BoxDecoration(
-                color: AppColors.primaryColor,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(Icons.arrow_forward_rounded,
-                  size: 16, color: Colors.white),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-
-  Widget _categoryWithInventoryGrid() {
-    final List<ProductCategoryWithInventoryModel> categoryList =
-        controller.productNestedCategoryList;
-    if (categoryList.isEmpty) {
-      return Padding(
-        padding: EdgeInsets.symmetric(
-          vertical: SizeConfig.size20,
-        ),
-        child: EmptyStateWidget(
-          message: "You don't have product yet, Want to create one?",
-        ),
-      );
-    }
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final crossAxisCount = constraints.maxWidth > 600 ? 3 : 2;
-        return GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          padding: EdgeInsets.only(top: SizeConfig.size4),
-          itemCount: categoryList.length,
-          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: crossAxisCount,
-            crossAxisSpacing: SizeConfig.size12,
-            mainAxisSpacing: SizeConfig.size12,
-            childAspectRatio: 1.0,
-          ),
-          itemBuilder: (_, i) =>
-              _inventoryCategoryCard(categoryList[i], categoryList),
-        );
-      },
-    );
-  }
-
-  // Two-tone storefront card â€” tinted hero zone with the full image
-  // (BoxFit.contain so nothing crops), crisp white footer with the
-  // name + a small filled brand-blue chevron. Single tap target â€”
-  // no separate "View Products" CTA â€” for a clean silhouette.
-  Widget _inventoryCategoryCard(
-    ProductCategoryWithInventoryModel item,
-    List<ProductCategoryWithInventoryModel> categoryList,
-  ) {
-    final image = (item.image ?? '').toString();
-    final hasImage = image.isNotEmpty;
-    return InkWell(
-      onTap: () => Get.toNamed(
-        RouteHelper.getManufacturerNestedCategoryWithInventoryScreenRoute(),
-        arguments: {
-          ApiKeys.userId: businessId,
-          ApiKeys.argProductCategoryWithInventory: categoryList.toList(),
-          ApiKeys.argProductCatKey: item.key ?? '',
-          ApiKeys.argProductCatName: item.name ?? '',
-        },
-      ),
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.greyE5, width: 1),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Column(
-            children: [
-              Expanded(
-                flex: 7,
-                child: Container(
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        AppColors.primaryColor.withValues(alpha: 0.10),
-                        AppColors.primaryColor.withValues(alpha: 0.04),
-                      ],
-                    ),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: SizedBox.expand(
-                      child: !hasImage
-                          ? LocalAssets(
-                              imagePath: AppIconAssets.place_holder_image,
-                              boxFix: BoxFit.contain,
-                            )
-                          : isNetworkImage(image)
-                              ? CachedNetworkImage(
-                                  imageUrl: image,
-                                  fit: BoxFit.contain,
-                                  placeholder: (_, __) =>
-                                      const SizedBox.shrink(),
-                                  errorWidget: (_, __, ___) => Icon(
-                                    Icons.broken_image,
-                                    size: 28,
-                                    color: Colors.grey,
-                                  ),
-                                )
-                              : LocalAssets(
-                                  imagePath: image,
-                                  boxFix: BoxFit.contain,
-                                ),
-                    ),
-                  ),
-                ),
-              ),
-              Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  border: Border(
-                    top: BorderSide(color: Color(0xFFEEF1F4), width: 1),
-                  ),
-                ),
-                padding: EdgeInsets.symmetric(
-                  horizontal: SizeConfig.size10,
-                  vertical: SizeConfig.size10,
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: CustomText(
-                        item.name ?? '',
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.mainTextColor,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    SizedBox(width: SizeConfig.size6),
-                    Container(
-                      width: 22,
-                      height: 22,
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryColor,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.arrow_forward_rounded,
-                        size: 14,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
