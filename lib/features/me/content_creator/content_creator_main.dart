@@ -313,8 +313,8 @@ class _ContentCreatorMainScreenState extends State<ContentCreatorMainScreen>
         child: OrderActionsCarousel(
           onAddCatalog: () => _tabController.animateTo(2), // Channel tab
           catalogIcon: Icons.video_library_rounded,
-          catalogTitle: 'Set up channel',
-          catalogSubtitle: 'Build your creator channel',
+          catalogTitle: AppStrings.setUpChannel.tr,
+          catalogSubtitle: AppStrings.buildCreatorChannel.tr,
         ),
       ),
       SizedBox(height: SizeConfig.size16),
@@ -322,7 +322,7 @@ class _ContentCreatorMainScreenState extends State<ContentCreatorMainScreen>
         isForwardUI: false,
         excludeSenderId: userId,
         isInParentScroll: true,
-        listTitle: 'Inquiry',
+        listTitle: AppStrings.inquiry,
       ),
     ];
   }

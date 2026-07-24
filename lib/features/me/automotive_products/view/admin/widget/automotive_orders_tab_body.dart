@@ -30,7 +30,7 @@ class AutomotiveOrdersTabBody extends StatelessWidget {
             onAddCatalog: onAddProducts,
             catalogIcon: Icons.inventory_2_rounded,
             catalogTitle: AppStrings.addProduct.tr,
-            catalogSubtitle: 'List items customers can order',
+            catalogSubtitle: AppStrings.listItemsCustomersCanOrder.tr,
           ),
         ),
         SizedBox(height: SizeConfig.size12),

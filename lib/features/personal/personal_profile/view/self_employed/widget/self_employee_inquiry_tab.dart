@@ -24,7 +24,7 @@ class SelfEmployeeInquiryTab extends StatelessWidget {
             onAddCatalog: onAddServices,
             catalogIcon: Icons.design_services_rounded,
             catalogTitle: AppStrings.addService.tr,
-            catalogSubtitle: 'List the services you offer',
+            catalogSubtitle: AppStrings.listTheServicesYouOffer.tr,
           ),
         ),
         SizedBox(height: SizeConfig.size16),
@@ -32,7 +32,7 @@ class SelfEmployeeInquiryTab extends StatelessWidget {
           isForwardUI: false,
           excludeSenderId: userId,
           isInParentScroll: true,
-          listTitle: 'Inquiry',
+          listTitle: AppStrings.inquiry,
         ),
       ],
     );

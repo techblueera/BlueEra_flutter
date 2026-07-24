@@ -37,13 +37,13 @@ class SchoolInquiryTabV2 extends StatelessWidget {
           onAddCatalog: onAddAcademics,
           catalogIcon: Icons.menu_book_rounded,
           catalogTitle: AppStrings.academics.tr,
-          catalogSubtitle: 'Manage academics & calendar',
+          catalogSubtitle: AppStrings.manageAcademicsCalendar.tr,
         ),
         SizedBox(height: SizeConfig.size16),
         BusinessChatsList(
           excludeSenderId: userId,
           isInParentScroll: true,
-          listTitle: 'Inquiry',
+          listTitle: AppStrings.inquiry,
         ),
       ],
     );

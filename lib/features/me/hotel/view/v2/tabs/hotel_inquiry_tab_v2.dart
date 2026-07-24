@@ -36,13 +36,13 @@ class HotelInquiryTabV2 extends StatelessWidget {
           onAddCatalog: onAddRooms,
           catalogIcon: Icons.king_bed_rounded,
           catalogTitle: AppStrings.roomLabel.tr,
-          catalogSubtitle: 'Manage your rooms & availability',
+          catalogSubtitle: AppStrings.manageRoomsAvailability.tr,
         ),
         SizedBox(height: SizeConfig.size16),
         BusinessChatsList(
           excludeSenderId: userId,
           isInParentScroll: true,
-          listTitle: 'Inquiry',
+          listTitle: AppStrings.inquiry,
         ),
       ],
     );

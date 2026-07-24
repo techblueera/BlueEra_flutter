@@ -7351,4 +7351,16 @@ class AppStrings {
   static const String noHoursSetSubtitle = "noHoursSetSubtitle";
   static const String weeklyHoursTitle = "weeklyHoursTitle";
   static const String todayTag = "todayTag";
+
+  // ── Catalog / inquiry carousel subtitles ─────────────────────────
+  static const String listTheServicesYouOffer = "listTheServicesYouOffer";
+  static const String manageHospitalDepartments = "manageHospitalDepartments";
+  static const String manageLabTests = "manageLabTests";
+  static const String manageRoomsAvailability = "manageRoomsAvailability";
+  static const String manageVehicleListings = "manageVehicleListings";
+  static const String setUpChannel = "setUpChannel";
+  static const String buildCreatorChannel = "buildCreatorChannel";
+  static const String manageAcademicsCalendar = "manageAcademicsCalendar";
+  static const String listItemsCustomersCanOrder = "listItemsCustomersCanOrder";
+  static const String newMessage = "newMessage";
 }

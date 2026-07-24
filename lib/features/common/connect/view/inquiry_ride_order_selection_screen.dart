@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
@@ -304,27 +305,27 @@ class _InquiryRideOrderSelectionScreenState
     final msg = chat.lastMessage ?? '';
     if (msg.isNotEmpty) return msg;
     return _orderTypeLabel(chat.lastMessageType) == 'Inquiry'
-        ? 'New message'
+        ? AppStrings.newMessage.tr
         : '${_orderTypeLabel(chat.lastMessageType)} order';
   }
 
   String _orderTypeLabel(String? type) {
     switch (type) {
       case 'food_selfpickup':
-        return 'Food';
+        return AppStrings.food.tr;
       case 'homemade_food_selfpickup':
-        return 'Home-Made Food';
+        return AppStrings.homeMadeFood.tr;
       case 'product_selfpickup':
-        return 'Product';
+        return AppStrings.product.tr;
       case 'selfpickup':
-        return 'Grocery';
+        return AppStrings.grocery.tr;
       case 'order_request':
       case 'rider':
       case 'rider_map':
       case 'rider_association':
-        return 'Order';
+        return AppStrings.order.tr;
       default:
-        return 'Inquiry';
+        return AppStrings.inquiry.tr;
     }
   }
 

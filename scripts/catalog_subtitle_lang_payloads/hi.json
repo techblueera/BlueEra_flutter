@@ -1,0 +1,12 @@
+{
+  "listTheServicesYouOffer": "आप जो सेवाएँ देते हैं उन्हें सूचीबद्ध करें",
+  "manageHospitalDepartments": "अस्पताल विभाग प्रबंधित करें",
+  "manageLabTests": "लैब टेस्ट प्रबंधित करें",
+  "manageRoomsAvailability": "अपने कमरे और उपलब्धता प्रबंधित करें",
+  "manageVehicleListings": "अपनी वाहन सूची प्रबंधित करें",
+  "setUpChannel": "चैनल सेट करें",
+  "buildCreatorChannel": "अपना क्रिएटर चैनल बनाएं",
+  "manageAcademicsCalendar": "शैक्षणिक और कैलेंडर प्रबंधित करें",
+  "listItemsCustomersCanOrder": "ग्राहक जो ऑर्डर कर सकते हैं वे आइटम सूचीबद्ध करें",
+  "newMessage": "नया संदेश"
+}

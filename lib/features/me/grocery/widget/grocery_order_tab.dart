@@ -33,7 +33,7 @@ class GroceryOrderTab extends StatelessWidget {
             onAddCatalog: onAddProduct,
             catalogIcon: Icons.inventory_2_rounded,
             catalogTitle: AppStrings.addProduct.tr,
-            catalogSubtitle: 'List items customers can order',
+            catalogSubtitle: AppStrings.listItemsCustomersCanOrder.tr,
           ),
         ),
         SizedBox(height: SizeConfig.size16),

@@ -36,13 +36,13 @@ class VehicleInquiryTabV2 extends StatelessWidget {
           onAddCatalog: onAddVehicles,
           catalogIcon: Icons.directions_car_rounded,
           catalogTitle: AppStrings.vehiclesTab.tr,
-          catalogSubtitle: 'Manage your vehicle listings',
+          catalogSubtitle: AppStrings.manageVehicleListings.tr,
         ),
         SizedBox(height: SizeConfig.size16),
         BusinessChatsList(
           excludeSenderId: userId,
           isInParentScroll: true,
-          listTitle: 'Inquiry',
+          listTitle: AppStrings.inquiry,
         ),
       ],
     );

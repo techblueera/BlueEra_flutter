@@ -37,13 +37,13 @@ class LabInquiryTabV2 extends StatelessWidget {
           onAddCatalog: onAddTests,
           catalogIcon: Icons.biotech_rounded,
           catalogTitle: AppStrings.tests.tr,
-          catalogSubtitle: 'Manage lab tests',
+          catalogSubtitle: AppStrings.manageLabTests.tr,
         ),
         SizedBox(height: SizeConfig.size16),
         BusinessChatsList(
           excludeSenderId: userId,
           isInParentScroll: true,
-          listTitle: 'Inquiry',
+          listTitle: AppStrings.inquiry,
         ),
       ],
     );

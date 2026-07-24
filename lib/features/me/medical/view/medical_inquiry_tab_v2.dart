@@ -36,13 +36,13 @@ class MedicalInquiryTabV2 extends StatelessWidget {
           onAddCatalog: onAddProducts,
           catalogIcon: Icons.medication_rounded,
           catalogTitle: AppStrings.addProduct.tr,
-          catalogSubtitle: 'List items customers can order',
+          catalogSubtitle: AppStrings.listItemsCustomersCanOrder.tr,
         ),
         SizedBox(height: SizeConfig.size16),
         BusinessChatsList(
           excludeSenderId: userId,
           isInParentScroll: true,
-          listTitle: 'Inquiry',
+          listTitle: AppStrings.inquiry,
         ),
       ],
     );

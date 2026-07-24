@@ -37,13 +37,13 @@ class HospitalInquiryTabV2 extends StatelessWidget {
           onAddCatalog: onAddDepartments,
           catalogIcon: Icons.medical_services_rounded,
           catalogTitle: AppStrings.hospitalDepartments.tr,
-          catalogSubtitle: 'Manage hospital departments',
+          catalogSubtitle: AppStrings.manageHospitalDepartments.tr,
         ),
         SizedBox(height: SizeConfig.size16),
         BusinessChatsList(
           excludeSenderId: userId,
           isInParentScroll: true,
-          listTitle: 'Inquiry',
+          listTitle: AppStrings.inquiry,
         ),
       ],
     );

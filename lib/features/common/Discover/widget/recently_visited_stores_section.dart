@@ -346,9 +346,9 @@ class _StoreCard extends StatelessWidget {
                         ],
                       ),
                     ],
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                     const _DashedDivider(),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                     _StatRow(
                       iconAsset: AppIconAssets.staggeredIcon,
                       iconColor: const Color(0xFF9964F4),
