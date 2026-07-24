@@ -11,8 +11,8 @@ import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart'
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
 import 'package:BlueEra/features/common/Discover/controller/finance_discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/finance_search_res_model.dart';
-import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/common/Discover/view/finance/finance_detail_screen.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
@@ -209,14 +209,14 @@ class _FinanceCard extends StatelessWidget {
   }
 
   String _resolveAddress(FinanceBusinessItem item) {
-    final branchLoc = item.contactUs?.firstOrNull?.branch?.location;
-    final branchName = item.contactUs?.firstOrNull?.branch?.name;
+    // final branchLoc = item.contactUs?.firstOrNull?.branch?.location;
+    // final branchName = item.contactUs?.firstOrNull?.branch?.name;
     final candidates = <String?>[
       item.location?.address,
       item.location?.name,
-      branchLoc?.address,
-      branchLoc?.name,
-      branchName,
+      // branchLoc?.address,
+      // branchLoc?.name,
+      // branchName,
     ];
     for (final c in candidates) {
       final t = c?.trim() ?? '';

@@ -6,12 +6,13 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/common/Discover/controller/finance_discover_controller.dart';
 import 'package:BlueEra/features/common/Discover/model/finance_search_res_model.dart';
-import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/common/Discover/view/finance/finance_job_listing_screen.dart';
 import 'package:BlueEra/features/common/Discover/view/finance/widget/finance_enquiry_sheet.dart';
+import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/me/others/controller/other_enquiry_controller.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
@@ -27,6 +28,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../business/widgets/business_contact_map_card.dart';
+
 class FinanceDetailScreen extends StatefulWidget {
   const FinanceDetailScreen({super.key});
 
@@ -36,6 +39,11 @@ class FinanceDetailScreen extends StatefulWidget {
 
 class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
   final controller = Get.find<FinanceDiscoverController>();
+  // Shared business-profile controller. `permanent: true` matches how every
+  // other detail screen (lab / hospital / hotel) binds it — the QR / share
+  // banners keyed off the same instance would otherwise refetch on nav.
+  final viewBusinessDetailsController =
+      getOrPut(() => ViewBusinessDetailsController(), permanent: true);
   Worker? _prefetchWorker;
 
   @override
@@ -59,10 +67,24 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
       enquiryCtrl.loadPredefinedEnquiryOptions(c);
     }
 
+    // Hydrate the shared business-profile controller so the
+    // BusinessContactMapCard below has data. Uses `userId` — the key
+    // `viewBusinessProfileById` expects (same as LabDetailScreen).
+    void hydrateProfile(String? userIdVal) {
+      final uid = (userIdVal ?? '').trim();
+      if (uid.isEmpty) return;
+      // ignore: unawaited_futures
+      viewBusinessDetailsController.viewBusinessProfileById(uid);
+    }
+
     prefetch(controller.selectedDetail.value?.category);
+    hydrateProfile(controller.selectedDetail.value?.userId);
     _prefetchWorker = ever<FinanceBusinessItem?>(
       controller.selectedDetail,
-      (item) => prefetch(item?.category),
+      (item) {
+        prefetch(item?.category);
+        hydrateProfile(item?.userId);
+      },
     );
   }
 
@@ -86,7 +108,8 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: controller.selectedDetail.value?.profileName ?? AppStrings.financeService.tr,
+        title: controller.selectedDetail.value?.profileName ??
+            AppStrings.financeService.tr,
       ),
       bottomNavigationBar: Obx(() {
         final data = controller.selectedDetail.value;
@@ -98,7 +121,7 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
             padding: EdgeInsets.only(
               left: SizeConfig.paddingS,
               right: SizeConfig.paddingS,
-              bottom: 15,
+              bottom: 10,
               top: 10,
             ),
             child: Row(
@@ -143,42 +166,53 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
             children: [
               // ─── Header ───
               _buildHeader(data),
-              SizedBox(height: SizeConfig.size16),
+              SizedBox(height: SizeConfig.size10),
 
               // ─── Organisation ───
               if (data.aboutOrganisation?.isNotEmpty ?? false) ...[
                 _buildOrganisationSection(data.aboutOrganisation!),
-                SizedBox(height: SizeConfig.size16),
+                SizedBox(height: SizeConfig.size10),
               ],
 
               // ─── Management ───
               if (data.management?.isNotEmpty ?? false) ...[
                 _buildManagementSection(data.management!),
-                SizedBox(height: SizeConfig.size16),
+                SizedBox(height: SizeConfig.size10),
               ],
 
               // ─── Our Team / Staff ───
               if (data.staff?.isNotEmpty ?? false) ...[
                 _buildStaffSection(data.staff!),
-                SizedBox(height: SizeConfig.size16),
+                SizedBox(height: SizeConfig.size10),
               ],
 
               // ─── Jobs ───
               _buildJobsSection(),
-              SizedBox(height: SizeConfig.size16),
+              SizedBox(height: SizeConfig.size10),
 
               // ─── Blogs ───
               if (data.blogs?.isNotEmpty ?? false) ...[
                 _buildBlogsSection(data.blogs!),
-                SizedBox(height: SizeConfig.size16),
+                SizedBox(height: SizeConfig.size10),
               ],
 
               // ─── Gallery ───
               _buildGallerySection(data.gallery),
-              SizedBox(height: SizeConfig.size16),
+              // SizedBox(height: SizeConfig.size16),
 
               // ─── Contact Us ───
-              _buildContactSection(data),
+              // _buildContactSection(data),
+              Obx(() {
+                if (viewBusinessDetailsController.isProfileLoading.value) {
+                  return const SizedBox.shrink();
+                }
+                final details = viewBusinessDetailsController
+                    .visitedBusinessProfileDetails?.data;
+                return BusinessContactMapCard(
+                  businessProfileDetails: details,
+                  showEditButton: false,
+                );
+              }),
               SizedBox(height: SizeConfig.size16),
 
               // ─── Website preview ───
@@ -187,7 +221,7 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
               SizedBox(height: SizeConfig.size16),
 
               // ─── Location Map ───
-              _buildLocationSection(data),
+              // _buildLocationSection(data),
 
               SizedBox(height: kBottomNavigationBarHeight + 30),
             ],
@@ -233,15 +267,18 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
                             fit: BoxFit.cover,
                             width: double.infinity,
                             height: size.height * 0.17,
-                            placeholder: (ctx, _) => Container(color: Colors.blueGrey[100]),
+                            placeholder: (ctx, _) =>
+                                Container(color: Colors.blueGrey[100]),
                             errorWidget: (ctx, _, __) => Container(
                               color: Colors.blueGrey[100],
-                              child: Icon(Icons.business_outlined, color: Colors.blueGrey[300], size: 40),
+                              child: Icon(Icons.business_outlined,
+                                  color: Colors.blueGrey[300], size: 40),
                             ),
                           ),
                         )
                       : Center(
-                          child: Icon(Icons.business_outlined, color: Colors.blueGrey[300], size: 40),
+                          child: Icon(Icons.business_outlined,
+                              color: Colors.blueGrey[300], size: 40),
                         ),
                 ),
                 Positioned(
@@ -310,13 +347,15 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
                 if (data.category?.isNotEmpty ?? false) ...[
                   const SizedBox(height: 6),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
                       color: AppColors.primaryColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: CustomText(
-                      (data.category ?? '').replaceAll('_', ' ').capitalize ?? '',
+                      (data.category ?? '').replaceAll('_', ' ').capitalize ??
+                          '',
                       fontSize: 11,
                       color: AppColors.primaryColor,
                       fontWeight: FontWeight.w600,
@@ -327,7 +366,8 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      Icon(Icons.location_on_outlined, size: 14, color: AppColors.secondaryTextColor),
+                      Icon(Icons.location_on_outlined,
+                          size: 14, color: AppColors.secondaryTextColor),
                       const SizedBox(width: 4),
                       Expanded(
                         child: CustomText(
@@ -405,73 +445,77 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
             final isLast = entry.key == members.length - 1;
             final m = entry.value;
             return Container(
-                margin: EdgeInsets.only(bottom: isLast ? 0 : 10),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey[200]!),
-                  borderRadius: BorderRadius.circular(10),
-                  color: Colors.white,
-                ),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: CachedNetworkImage(
-                        imageUrl: m.imageUrl ?? '',
+              margin: EdgeInsets.only(bottom: isLast ? 0 : 10),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey[200]!),
+                borderRadius: BorderRadius.circular(10),
+                color: Colors.white,
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: CachedNetworkImage(
+                      imageUrl: m.imageUrl ?? '',
+                      height: 64,
+                      width: 64,
+                      fit: BoxFit.cover,
+                      errorWidget: (_, __, ___) => Container(
                         height: 64,
                         width: 64,
-                        fit: BoxFit.cover,
-                        errorWidget: (_, __, ___) => Container(
-                          height: 64,
-                          width: 64,
-                          color: Colors.grey[200],
-                          child: Icon(Icons.person, color: AppColors.secondaryTextColor),
+                        color: Colors.grey[200],
+                        child: Icon(Icons.person,
+                            color: AppColors.secondaryTextColor),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CustomText(
+                          m.name ?? '',
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          color: AppColors.mainTextColor,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          CustomText(
-                            m.name ?? '',
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                            color: AppColors.mainTextColor,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                        if ((m.position ?? '').isNotEmpty ||
+                            (m.qualification ?? '').isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: CustomText(
+                              [m.position, m.qualification]
+                                  .where((e) => (e ?? '').isNotEmpty)
+                                  .join(' • '),
+                              fontSize: 12,
+                              color: AppColors.primaryColor,
+                              fontWeight: FontWeight.w600,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                          if ((m.position ?? '').isNotEmpty || (m.qualification ?? '').isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 2),
-                              child: CustomText(
-                                [m.position, m.qualification].where((e) => (e ?? '').isNotEmpty).join(' • '),
-                                fontSize: 12,
-                                color: AppColors.primaryColor,
-                                fontWeight: FontWeight.w600,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
+                        if ((m.message ?? '').isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: CustomText(
+                              m.message ?? '',
+                              fontSize: 12,
+                              color: AppColors.secondaryTextColor,
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
                             ),
-                          if ((m.message ?? '').isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 4),
-                              child: CustomText(
-                                m.message ?? '',
-                                fontSize: 12,
-                                color: AppColors.secondaryTextColor,
-                                maxLines: 3,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                        ],
-                      ),
+                          ),
+                      ],
                     ),
-                  ],
-                ),
-              );
+                  ),
+                ],
+              ),
+            );
           }),
         ],
       ),
@@ -516,7 +560,9 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
                             fit: BoxFit.cover,
                             errorWidget: (_, __, ___) => Container(
                               color: Colors.grey[200],
-                              child: Icon(Icons.person, size: 40, color: AppColors.secondaryTextColor),
+                              child: Icon(Icons.person,
+                                  size: 40,
+                                  color: AppColors.secondaryTextColor),
                             ),
                           ),
                         ),
@@ -665,7 +711,9 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
     bool isLast = false,
   }) {
     final branch = contact.branch;
-    final firstDept = (contact.departments?.isNotEmpty ?? false) ? contact.departments!.first : null;
+    final firstDept = (contact.departments?.isNotEmpty ?? false)
+        ? contact.departments!.first
+        : null;
 
     return Container(
       margin: EdgeInsets.only(bottom: isLast ? 0 : 10),
@@ -712,7 +760,9 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
           // website_url so the row still appears when the branch has none.
           Builder(builder: (_) {
             final branchWebsite = branch?.website?.trim() ?? '';
-            final website = branchWebsite.isNotEmpty ? branchWebsite : (data.websiteUrl?.trim() ?? '');
+            final website = branchWebsite.isNotEmpty
+                ? branchWebsite
+                : (data.websiteUrl?.trim() ?? '');
             if (website.isEmpty) return const SizedBox.shrink();
             return _contactItemClickable(
               icon: AppIconAssets.website_click,
@@ -771,14 +821,17 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
               Expanded(
                 child: CustomText(
                   label,
-                  color: onTap != null ? AppColors.primaryColor : AppColors.mainTextColor,
+                  color: onTap != null
+                      ? AppColors.primaryColor
+                      : AppColors.mainTextColor,
                   fontSize: SizeConfig.medium,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               if (onTap != null)
-                Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.primaryColor),
+                Icon(Icons.arrow_forward_ios_rounded,
+                    size: 14, color: AppColors.primaryColor),
             ],
           ),
         ),
@@ -789,7 +842,9 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
   // ─── LOCATION ──────────────────────────────────────────────────────
   Widget _buildLocationSection(FinanceBusinessItem data) {
     final coords = data.location?.coordinates;
-    if (coords == null || coords.length < 2 || (coords[0] == 0.0 && coords[1] == 0.0)) {
+    if (coords == null ||
+        coords.length < 2 ||
+        (coords[0] == 0.0 && coords[1] == 0.0)) {
       return const SizedBox.shrink();
     }
     return BusinessLocationWidget(
@@ -893,7 +948,8 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
               padding: const EdgeInsets.symmetric(vertical: 6),
               child: Row(
                 children: [
-                  Icon(Icons.work_outline, size: 20, color: AppColors.primaryColor),
+                  Icon(Icons.work_outline,
+                      size: 20, color: AppColors.primaryColor),
                   const SizedBox(width: 12),
                   Expanded(
                     child: CustomText(
@@ -903,7 +959,8 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
-                  Icon(Icons.arrow_forward_ios_rounded, size: 14, color: AppColors.primaryColor),
+                  Icon(Icons.arrow_forward_ios_rounded,
+                      size: 14, color: AppColors.primaryColor),
                 ],
               ),
             ),

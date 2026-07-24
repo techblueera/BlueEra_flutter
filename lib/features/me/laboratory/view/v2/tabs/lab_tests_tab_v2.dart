@@ -372,7 +372,7 @@ class _SectionHeader extends StatelessWidget {
 /// "View All →" (icon at end) and "+ Add Test" (icon at start).
 class _ChipCta extends StatelessWidget {
   final String label;
-  final IconData icon;
+  final String icon;
   final bool iconAtStart;
   final VoidCallback onTap;
 
@@ -385,20 +385,13 @@ class _ChipCta extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final iconBadge = Container(
-      width: 26,
-      height: 26,
-      decoration: BoxDecoration(
-        color: AppColors.primaryColor,
-        shape: BoxShape.circle,
-      ),
-      child: Icon(icon, size: 16, color: Colors.white),
-    );
+    final iconBadge = LocalAssets(
+        imagePath: icon, imgColor: AppColors.white, height: 14, width: 14);
     final labelWidget = CustomText(
       label,
       fontSize: 12,
       fontWeight: FontWeight.w700,
-      color: AppColors.primaryColor,
+      color: AppColors.white,
     );
     return GestureDetector(
       onTap: onTap,
@@ -408,8 +401,8 @@ class _ChipCta extends StatelessWidget {
             ? const EdgeInsets.fromLTRB(4, 4, 12, 4)
             : const EdgeInsets.fromLTRB(12, 4, 4, 4),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(22),
+          color: AppColors.primaryColor,
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: AppColors.primaryColor.withValues(alpha: 0.25),
             width: 1,
@@ -458,20 +451,44 @@ class _PopularTestsSection extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _SectionHeader(
-              title: 'Popular Tests',
-              subtitle: 'Most Booked This Month',
-              trailing: _ChipCta(
-                label: 'View All',
-                icon: Icons.arrow_forward_rounded,
-                iconAtStart: false,
-                onTap: () => Get.to(
-                  () => const LabTestListScreen(
-                    collection: '',
-                    title: 'Popular Tests',
+                title: 'Popular Tests',
+                subtitle: 'Most Booked This Month',
+                trailing: Container(
+                  padding: EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppColors.primaryColor.withValues(alpha: 0.20),
+                      width: 0.5,
+                    ),
                   ),
+                  child: InkWell(
+                    onTap: () {
+                      LabTestListScreen(
+                        collection: '',
+                        title: 'Popular Tests',
+                      );
+                    },
+                    child: CustomText(
+                      "View All",
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primaryColor,
+                    ),
+                  ),
+                )
+                // _ChipCta(
+                //   label: 'View All',
+                //   iconAtStart: false,
+                //   onTap: () => Get.to(
+                //     () => const LabTestListScreen(
+                //       collection: '',
+                //       title: 'Popular Tests',
+                //     ),
+                //   ),
+                // ),
                 ),
-              ),
-            ),
             SizedBox(height: SizeConfig.size12),
             if (isLoading && popular.isEmpty)
               const SizedBox(
@@ -740,7 +757,7 @@ class _OurTestsSection extends StatelessWidget {
             subtitle: 'Tap a category to view tests',
             trailing: _ChipCta(
               label: 'Add Test',
-              icon: Icons.add,
+              icon: AppIconAssets.add,
               iconAtStart: true,
               // Opens the linear category-picker list. LabCategoryScreen
               // is a bare Column today, so wrap it in a Scaffold + app bar
@@ -852,12 +869,36 @@ Widget _productsBanner({required VoidCallback onAddTests}) {
           ),
         ),
         SizedBox(width: SizeConfig.size8),
-        _ChipCta(
-          label: 'Add Tests',
-          icon: Icons.add,
-          iconAtStart: true,
-          onTap: onAddTests,
-        ),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: AppColors.primaryColor.withValues(alpha: 0.25),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              LocalAssets(
+                  imagePath: AppIconAssets.add,
+                  imgColor: AppColors.primaryColor,
+                  height: 14,
+                  width: 14),
+              SizedBox(
+                width: 4,
+              ),
+              CustomText(
+                'Add Tests',
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: AppColors.primaryColor,
+              ),
+            ],
+          ),
+        )
       ],
     ),
   );
@@ -897,7 +938,7 @@ class _OurTestsPackagesSection extends StatelessWidget {
             subtitle: 'Tap a category to view tests',
             trailing: _ChipCta(
               label: 'Add More',
-              icon: Icons.add,
+              icon: AppIconAssets.add,
               iconAtStart: true,
               onTap: onAddMore,
             ),

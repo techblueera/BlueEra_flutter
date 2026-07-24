@@ -16,7 +16,6 @@ import 'package:BlueEra/features/me/laboratory/controller/lab_full_details_contr
 import 'package:BlueEra/features/me/laboratory/controller/lab_testimonial_controller.dart';
 import 'package:BlueEra/features/me/laboratory/model/lab_testimonial_model.dart';
 import 'package:BlueEra/features/me/laboratory/model/new_lab_full_details_res_model.dart';
-import 'package:BlueEra/features/me/laboratory/view/lab_contact_us_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_service_gallery/lab_service_photos_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/testimonials/lab_testimonials_screen.dart';
 import 'package:BlueEra/features/me/laboratory/view/v2/widgets/lab_availability_view.dart';
@@ -28,6 +27,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../../business/widgets/business_contact_map_card.dart';
 import '../../testimonials/lab_testimonial_form_sheet.dart';
 import '../../widgets/category_selector_widget.dart';
 import '../../widgets/empty_health_camp_widget.dart';
@@ -135,18 +135,20 @@ class LabOverviewTabV2 extends StatelessWidget {
             child: const _TestimonialsSection(),
           ),
 
-          SizedBox(height: SizeConfig.size12),
+          // SizedBox(height: SizeConfig.size12),
 
-          // ── Contact ──
+          // ── Contact ── mirrors hotel v2: feed the shared card from the
+          // business controller (its `data` is `BusinessProfileDetails`, which
+          // is what the widget expects) — the lab-model `profile` here is a
+          // different type and would fail to compile.
           Padding(
             padding: EdgeInsets.only(
                 right: SizeConfig.size12, left: SizeConfig.size25),
-            child: _ContactCard(
-              contact: contact,
-              profile: profile,
-              onEdit: () => Get.to(() => LabContactUsScreen())
-                  ?.then((_) => controller.fetchFullDetails()),
-            ),
+            child: Obx(() {
+              final details =
+                  businessController.businessProfileDetails.value?.data;
+              return BusinessContactMapCard(businessProfileDetails: details);
+            }),
           ),
 
           SizedBox(height: SizeConfig.size12),
