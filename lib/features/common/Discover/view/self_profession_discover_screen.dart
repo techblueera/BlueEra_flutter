@@ -193,19 +193,24 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
                           borderColor: Colors.white,
                           borderRadius: SizeConfig.size30,
                         ),
-                        Positioned(
-                          bottom: 2,
-                          right: 2,
-                          child: Container(
-                            width: 12,
-                            height: 12,
-                            decoration: BoxDecoration(
-                              color: Colors.green,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.white, width: 2),
+                        // Presence dot — only when the provider really is
+                        // live. It used to be hardcoded green, so every
+                        // provider looked available.
+                        if (service.isLive == true)
+                          Positioned(
+                            bottom: 2,
+                            right: 2,
+                            child: Container(
+                              width: 12,
+                              height: 12,
+                              decoration: BoxDecoration(
+                                color: Colors.green,
+                                shape: BoxShape.circle,
+                                border:
+                                    Border.all(color: Colors.white, width: 2),
+                              ),
                             ),
                           ),
-                        ),
                       ],
                     ),
                     SizedBox(width: SizeConfig.size12),
@@ -237,7 +242,8 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
                             children: [
                               _buildRatingBadge(ratingValue),
                               _buildDistanceBadge(distance),
-                              _buildOnlineBadge(),
+                              if (service.isLive != null)
+                                _buildLiveBadge(service.isLive!),
                             ],
                           ),
                         ],
@@ -588,6 +594,15 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
                     left: SizeConfig.size12,
                     top: SizeConfig.size12,
                     child: _buildRatingBadge(ratingValue),
+                  ),
+                // Availability, straight off the response's `isLive` (the
+                // provider's Go-Live / schedule state). Nothing renders when
+                // the backend omits the key — better silent than wrong.
+                if (service.isLive != null)
+                  Positioned(
+                    right: SizeConfig.size12,
+                    top: SizeConfig.size12,
+                    child: _buildLiveBadge(service.isLive!),
                   ),
                 if (hoursStr != null)
                   Positioned(
@@ -1015,13 +1030,28 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
     );
   }
 
-  Widget _buildOnlineBadge() {
+  /// Availability pill driven by the response's `isLive`: a green "Online" dot
+  /// when the provider is accepting work right now, a muted "Offline" when
+  /// they aren't. Sits on the card hero and in the map-marker sheet, so both
+  /// report the same state.
+  ///
+  /// Solid white fill (not a translucent tint) because on the card it overlays
+  /// a photo, where a see-through pill would be unreadable.
+  Widget _buildLiveBadge(bool isLive) {
+    final Color fg = isLive ? Colors.green.shade700 : AppColors.secondaryTextColor;
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 10),
+      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(999),
-        color: Colors.green.withValues(alpha: 0.10),
-        border: Border.all(color: Colors.green.withValues(alpha: 0.25), width: 1),
+        color: Colors.white,
+        border: Border.all(color: fg.withValues(alpha: 0.25), width: 1),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x1F001120),
+            blurRadius: 8,
+            offset: Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -1029,16 +1059,16 @@ class _SelfProfessionDiscoverScreenState extends State<SelfProfessionDiscoverScr
           Container(
             width: 6,
             height: 6,
-            decoration: const BoxDecoration(
-              color: Colors.green,
+            decoration: BoxDecoration(
+              color: isLive ? Colors.green : AppColors.grey9B,
               shape: BoxShape.circle,
             ),
           ),
           const SizedBox(width: 5),
           CustomText(
-            AppStrings.online.tr,
+            isLive ? AppStrings.online.tr : AppStrings.offline.tr,
             fontSize: 11,
-            color: Colors.green.shade700,
+            color: fg,
             fontWeight: FontWeight.w700,
           ),
         ],

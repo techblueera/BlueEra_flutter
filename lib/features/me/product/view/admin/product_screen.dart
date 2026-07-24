@@ -52,6 +52,11 @@ class _ProductScreenState extends State<ProductScreen>
   void initState() {
     super.initState();
     _initializeData();
+    // Fire the API backing the tab the screen lands on. [_onTabChanged] only
+    // runs when the index CHANGES, so without this the landing tab (Products)
+    // never fetched: its skeletons sat at Status.INITIAL forever until the
+    // merchant switched to another tab and came back.
+    _fetchForTab(_selectedTab);
     // Hydrate the order chat list so the Order tab's incoming-orders
     // list has data ready when the user switches to it. Mirrors what
     // ConnectMainPage does for its Order tab.
@@ -105,11 +110,20 @@ class _ProductScreenState extends State<ProductScreen>
     // the lazy product fetch fires for tap-driven changes too.
     if (_selectedTab != c.index) {
       setState(() => _selectedTab = c.index);
-      // Fetch product data lazily â€” only when the merchant actually
-      // opens the Products tab, not on every Me-tab landing.
-      if (c.index == 0) {
-        inventoryController.fetchAllProductData();
-      }
+      _fetchForTab(c.index);
+    }
+  }
+
+  /// Per-tab API dispatcher. Only Products has data this screen owns — Overview
+  /// reads the permanent business controller, Post and Statistics own their own
+  /// fetches — so the other tabs are deliberately no-ops.
+  ///
+  /// *IfNeeded* so re-opening the tab reuses what's already loaded and still
+  /// fresh; the unguarded call refetched catalog + categories on every single
+  /// switch. Pull-to-refresh and post-publish still force a real reload.
+  void _fetchForTab(int tab) {
+    if (tab == 0) {
+      inventoryController.fetchAllProductDataIfNeeded();
     }
   }
 

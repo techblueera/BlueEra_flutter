@@ -117,11 +117,17 @@ class _FoodMainScreenState extends State<FoodMainScreen>
   void _fetchForTab(int tab) {
     switch (tab) {
       case 0:
-        // Products â€” popular dishes + food menu grid.
+        // Products â€” popular dishes (Offer Dish) + food menu.
+        //
+        // *IfNeeded* so returning to this tab reuses data that's already
+        // loaded and still fresh. Every tab switch AND every swipe between
+        // tabs lands here, so calling the unguarded fetches refired both
+        // requests each time. Pull-to-refresh still forces a real reload, and
+        // publishing a dish refetches explicitly. Mirrors grocery's
+        // `fetchAllGroceryDataIfNeeded`.
         final id = businessId;
         if (id.isEmpty) return;
-        _foodController.fetchHomeData(businessId: id);
-        _foodController.fetchDiscountFoodProducts(businessId: id);
+        _foodController.fetchHomeAndDiscountIfNeeded(businessId: id);
         break;
       case 1:
         // Overview â€” the joined-profile / contact / QR / share-banner

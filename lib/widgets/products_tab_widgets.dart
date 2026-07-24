@@ -394,18 +394,32 @@ class ProductsRail extends StatelessWidget {
   }
 }
 
-/// Fixed-height loading state for a [ProductsRail], so the section holds its
-/// place instead of collapsing while the first fetch is in flight.
+/// Loading state for a [ProductsRail]: a shimmer of card-shaped blocks at the
+/// rail's real dimensions, so the section holds its place and the swap to real
+/// cards reads as a content load rather than a spinner giving way to a layout
+/// shift. Matches [ProductCategoryRailSkeleton] one section below it.
 class ProductsRailLoader extends StatelessWidget {
   final double height;
 
-  const ProductsRailLoader({super.key, required this.height});
+  /// Width of each shimmer block — pass the rail's real card width so the
+  /// skeleton lines up with what replaces it.
+  final double cardWidth;
+
+  const ProductsRailLoader({
+    super.key,
+    required this.height,
+    this.cardWidth = 160,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return ProductsRail(
       height: height,
-      child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      itemCount: 4,
+      spacing: SizeConfig.size12,
+      itemBuilder: (_, __) => buildLoadingShimmer(
+        child: shimmerContainer(width: cardWidth, height: height, radius: 12),
+      ),
     );
   }
 }

@@ -71,22 +71,21 @@ class _ProductHomeScreenState extends State<ProductHomeScreen> {
           child: Obx(() {
             final details =
                 _businessController.businessProfileDetails.value?.data;
-            return BusinessContactMapCard(
-              businessProfileDetails: details,
-            );
-          }),
-        ),
-        SizedBox(height: SizeConfig.size12),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-          child: Obx(() {
-            final details =
-                _businessController.businessProfileDetails.value?.data;
             return WebsiteOverviewCard(
               websiteUrl: details?.websiteUrl,
               onSave: (url) => _businessController.updateBusinessProfileDetails(
                 {ApiKeys.websiteUrl: url},
               ),
+            );
+          }),
+        ),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+          child: Obx(() {
+            final details =
+                _businessController.businessProfileDetails.value?.data;
+            return BusinessContactMapCard(
+              businessProfileDetails: details,
             );
           }),
         ),

@@ -80,10 +80,18 @@ class FoodProductsTab extends StatelessWidget {
     _refreshIfDirty(controller);
   }
 
+  /// Force-refreshes both rails after the merchant published something.
+  ///
+  /// Deliberately the UNGUARDED fetches: the host's tab dispatcher uses
+  /// `fetchHomeAndDiscountIfNeeded`, so without an explicit reload here a
+  /// newly published dish would sit invisible until the freshness TTL lapsed.
+  /// The discount call matters as much as the menu one — a dish published with
+  /// an offer belongs in the Offer Dish rail immediately.
   void _refreshIfDirty(RestaurantController controller) {
     if (controller.foodDataNeedsRefresh) {
       controller.foodDataNeedsRefresh = false;
       controller.fetchHomeData(businessId: businessId);
+      controller.fetchDiscountFoodProducts(businessId: businessId);
     }
   }
 
@@ -117,7 +125,10 @@ class FoodProductsTab extends StatelessWidget {
           ),
           SizedBox(height: SizeConfig.size12),
           if (isInitialLoading)
-            const ProductsRailLoader(height: _popularDishRailHeight)
+            const ProductsRailLoader(
+              height: _popularDishRailHeight,
+              cardWidth: _dishCardWidth,
+            )
           else
             ProductsRail(
               height: _popularDishRailHeight,

@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/api_response.dart';
+import 'package:BlueEra/core/utils/fetch_cache.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
@@ -175,6 +176,22 @@ class ManufacturerInventoryController extends GetxController {
   RxList<ProductCategoryWithInventoryModel> productNestedCategoryList = <ProductCategoryWithInventoryModel>[].obs;
   RxBool productNestedCategoryLoading = false.obs;
 
+  /// Freshness guard for [fetchAllProductData], keyed per store so visiting
+  /// another manufacturer's catalog never reuses this one's data.
+  final FetchCache _allProductCache = FetchCache();
+
+  /// Load category + products only when not already loaded & fresh for this
+  /// store. Use on tab open / screen (re)entry; call [fetchAllProductData] to
+  /// force (pull-to-refresh, post-publish). Mirrors the product and automotive
+  /// controllers.
+  Future<void> fetchAllProductDataIfNeeded({String? visitBusinessId}) async {
+    final sig = 'allProduct|${visitBusinessId ?? 'self'}';
+    final hasData =
+        productNestedCategoryList.isNotEmpty || allProducts.isNotEmpty;
+    if (_allProductCache.isFresh(sig, hasData: hasData)) return;
+    await fetchAllProductData(visitBusinessId: visitBusinessId);
+  }
+
   Future<void> fetchAllProductData({String? visitBusinessId}) async {
     try {
       myProductLoading.value = true;
@@ -182,6 +199,10 @@ class ManufacturerInventoryController extends GetxController {
         fetchProductCategoryWithInventory(visitBusinessId: visitBusinessId),
         fetchBusinessProducts(visitBusinessId: visitBusinessId),
       ]);
+      // Stamp freshness once the category list actually loaded.
+      if (fetchProductCategoryResponse.value.status == Status.COMPLETE) {
+        _allProductCache.mark('allProduct|${visitBusinessId ?? 'self'}');
+      }
     } catch (e) {
       log('Error fetching product data: $e');
     } finally {

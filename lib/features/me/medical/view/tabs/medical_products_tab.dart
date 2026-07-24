@@ -101,7 +101,10 @@ class MedicalProductsTab extends StatelessWidget {
           ),
           SizedBox(height: SizeConfig.size12),
           if (isLoading)
-            const ProductsRailLoader(height: _topSellingRailHeight)
+            const ProductsRailLoader(
+              height: _topSellingRailHeight,
+              cardWidth: _topSellingCardWidth,
+            )
           else
             ProductsRail(
               height: _topSellingRailHeight,

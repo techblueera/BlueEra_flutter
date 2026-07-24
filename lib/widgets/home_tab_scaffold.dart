@@ -184,8 +184,42 @@ class HomeTabScaffold extends StatelessWidget {
       },
       body: TabBarView(
         controller: controller,
-        children: tabViews,
+        children: [
+          for (final view in tabViews) _KeepAliveTab(child: view),
+        ],
       ),
     );
+  }
+}
+
+/// Keeps a tab's subtree alive while a different tab is on screen.
+///
+/// [TabBarView] disposes off-screen pages by default, so every switch back
+/// re-ran that tab's `initState` — refetching data the controller already held
+/// and, for the Post tab, resetting [FeedScreen] to page 1, throwing away the
+/// pages loaded so far along with the scroll position. Keeping the page alive
+/// makes a tab load once per screen visit; the explicit refresh paths
+/// (pull-to-refresh, post-publish) still reload it.
+///
+/// Cost: every tab the user has opened stays in memory until the screen is
+/// popped — the usual trade for not re-fetching.
+class _KeepAliveTab extends StatefulWidget {
+  final Widget child;
+
+  const _KeepAliveTab({required this.child});
+
+  @override
+  State<_KeepAliveTab> createState() => _KeepAliveTabState();
+}
+
+class _KeepAliveTabState extends State<_KeepAliveTab>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
   }
 }

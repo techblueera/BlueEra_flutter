@@ -86,7 +86,9 @@ class AutomotiveProductsTab extends StatelessWidget {
           SizedBox(height: SizeConfig.size12),
           if (isLoading)
             ProductsRailLoader(
-                height: AutomotiveAdminProductCard.gridCardHeight)
+              height: AutomotiveAdminProductCard.gridCardHeight,
+              cardWidth: _topSellingCardWidth,
+            )
           else
             ProductsRail(
               height: AutomotiveAdminProductCard.gridCardHeight,

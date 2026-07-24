@@ -86,7 +86,9 @@ class ManufacturerProductsTab extends StatelessWidget {
           SizedBox(height: SizeConfig.size12),
           if (isLoading)
             ProductsRailLoader(
-                height: ManufacturerAdminProductCard.gridCardHeight)
+              height: ManufacturerAdminProductCard.gridCardHeight,
+              cardWidth: _topSellingCardWidth,
+            )
           else
             ProductsRail(
               height: ManufacturerAdminProductCard.gridCardHeight,

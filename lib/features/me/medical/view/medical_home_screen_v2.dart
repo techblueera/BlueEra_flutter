@@ -48,9 +48,19 @@ class MedicalHomeScreenV2 extends StatefulWidget {
 
 class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
     with SingleTickerProviderStateMixin, MeTabBackHandlerMixin {
+  /// Medical profile powering the Overview tab. Null until that tab is opened
+  /// — see [_ensureProfileLoaded].
   MedicalHomeResponseModel? _data;
-  bool _isLoading = true;
-  // Lands on the first tab (Inquiry, index 0) on open.
+
+  /// True while the Overview profile fetch is in flight. Scoped to that tab:
+  /// it used to gate the WHOLE screen, so landing on Products showed a
+  /// full-screen spinner waiting on data the Products tab never reads.
+  bool _isProfileLoading = false;
+
+  /// Whether the profile fetch has already been dispatched for this mount.
+  bool _profileRequested = false;
+
+  // Lands on the first tab (Products, index 0) on open.
   late final TabController _tabController;
 
   late final MedicalGalleryController _galleryController;
@@ -97,7 +107,11 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
       ChatEmitEvents.ChatList,
       {ApiKeys.type: AppConstants.business_Chat_Type},
     );
-    _fetchData();
+    // Fire the API backing the tab the screen LANDS on — Products. The
+    // listener only dispatches when the index CHANGES, so without this the
+    // landing tab never fetched and its skeletons spun forever; meanwhile the
+    // Overview profile call fired here regardless of which tab was showing.
+    _fetchForTab(_dispatchedTab);
     // The once-a-day "add your medicines" nudge. Owner-only: this screen is
     // also reachable via RouteConstant.medicalHomeScreen with an arbitrary
     // businessId, and prompting someone to stock a pharmacy that isn't theirs
@@ -119,9 +133,9 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
     }
   }
 
-  /// Per-tab API dispatcher. Nothing but the profile fetch runs on landing —
-  /// every other tab's data is pulled the first time that tab is opened, and
-  /// each `*IfNeeded()` no-ops while its data is still loaded and fresh, so
+  /// Per-tab API dispatcher. Each tab's data is pulled the first time that tab
+  /// is opened — including the landing tab, dispatched from `initState` — and
+  /// the `*IfNeeded()` guards no-op while data is still loaded and fresh, so
   /// hopping between tabs (or leaving and coming back) doesn't refetch.
   ///
   /// Tabs: 0 Products, 1 Overview, 2 Posts, 3 Stats.
@@ -131,8 +145,7 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
         _ensureProductsLoaded();
         break;
       case 1:
-        // Overview — reads the profile fetched by _fetchData() plus the
-        // permanent ViewBusinessDetailsController. Nothing of its own.
+        _ensureProfileLoaded();
         break;
       case 2:
         // Post — FeedScreen owns its own fetch on mount.
@@ -151,7 +164,17 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
     );
   }
 
+  /// Overview tab: the medical profile (cover banner, gallery, testimonials,
+  /// contact card). Fired the first time Overview is opened rather than on
+  /// landing — the screen lands on Products, which reads none of it.
+  void _ensureProfileLoaded() {
+    if (_profileRequested) return;
+    _profileRequested = true;
+    _fetchData();
+  }
+
   Future<void> _fetchData() async {
+    if (mounted) setState(() => _isProfileLoading = true);
     try {
       final res = await MedicalRepo()
           .fetchMedicalProfileFd(businessId: widget.businessId);
@@ -165,7 +188,10 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
     } catch (e) {
       debugPrint("Error fetching medical profile: $e");
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      // Let a failed fetch retry the next time Overview is opened rather than
+      // leaving the tab permanently empty.
+      if (_data == null) _profileRequested = false;
+      if (mounted) setState(() => _isProfileLoading = false);
     }
   }
 
@@ -192,10 +218,19 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // BUILD
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  /// Index the dispatcher last fired for. A TabController notifies its
+  /// listeners on every animation frame — including throughout a drag, where
+  /// `indexIsChanging` stays false — so without this the swipe would dispatch
+  /// the same tab's fetch dozens of times, and the `*IfNeeded` guards can't
+  /// dedupe calls that all start before the first one has landed.
+  int _dispatchedTab = 0;
+
   /// Fires the newly-opened tab's fetch. Guarded on `indexIsChanging` so a
   /// swipe only dispatches once it settles, not for every tab it passes over.
   void _handleTabChange() {
     if (_tabController.indexIsChanging) return;
+    if (_dispatchedTab == _tabController.index) return;
+    _dispatchedTab = _tabController.index;
     _fetchForTab(_tabController.index);
   }
 
@@ -224,9 +259,10 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
     return Scaffold(
       body: SafeArea(
         top: false,
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
-            : Stack(
+        // No screen-wide loading gate: the tabs render immediately and each
+        // shows its own loading state. Blocking here meant the Products tab
+        // (the landing tab) sat behind a spinner for the Overview profile call.
+        child: Stack(
                 children: [
                   HomeTabScaffold(
                     controller: _tabController,
@@ -250,7 +286,20 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
                     tabViews: [
                       _tabScroll(
                           MedicalProductsTab(businessId: widget.businessId)),
-                      _tabScroll(MedicalOverviewTab(data: _data)),
+                      // Overview waits on its OWN fetch rather than the whole
+                      // screen doing so; once the profile lands the setState
+                      // in [_fetchData] swaps this for the real tab.
+                      _tabScroll(
+                        _data == null && _isProfileLoading
+                            ? const SizedBox(
+                                height: 320,
+                                child: Center(
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2),
+                                ),
+                              )
+                            : MedicalOverviewTab(data: _data),
+                      ),
                       _tabScroll(const MedicalPostTab()),
                       ProfileStatisticsScreen(userId: userId),
                     ],

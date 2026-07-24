@@ -44,15 +44,6 @@ class FoodOverviewTab extends StatelessWidget {
           padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
           child: const BusinessDescriptionCard(),
         ),
-        SizedBox(height: SizeConfig.size10),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-          child: Obx(() {
-            final details = businessController.businessProfileDetails.value?.data;
-            return BusinessContactMapCard(businessProfileDetails: details);
-          }),
-        ),
-        SizedBox(height: SizeConfig.size12),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
           child: Obx(() {
@@ -64,9 +55,14 @@ class FoodOverviewTab extends StatelessWidget {
             );
           }),
         ),
-        SizedBox(height: SizeConfig.size12),
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+          child: Obx(() {
+            final details = businessController.businessProfileDetails.value?.data;
+            return BusinessContactMapCard(businessProfileDetails: details);
+          }),
+        ),
         _qrCodeSection(businessController),
-        SizedBox(height: SizeConfig.size12),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
           child: const ProfileShareBanner(),

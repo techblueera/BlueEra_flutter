@@ -85,7 +85,10 @@ class ProductsTab extends StatelessWidget {
           ),
           SizedBox(height: SizeConfig.size12),
           if (isLoading)
-            ProductsRailLoader(height: AdminProductCard.gridCardHeight)
+            ProductsRailLoader(
+              height: AdminProductCard.gridCardHeight,
+              cardWidth: _topSellingCardWidth,
+            )
           else
             ProductsRail(
               height: AdminProductCard.gridCardHeight,
