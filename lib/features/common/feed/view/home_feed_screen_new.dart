@@ -98,8 +98,13 @@ class _HomeFeedScreenNewState extends State<HomeFeedScreenNew> {
       ever(Get.find<NavigationHelperController>().shouldRefreshBottomBar,
           (shouldRefresh) {
         if (shouldRefresh == true) {
-          _guardedFetchData(refreshFlag: true); // Guarded call
-          // fetchPostData(refreshFlag: true);
+          // A post (message / poll / photo / video) was just uploaded, so the
+          // freshest feed must show immediately. Bypass the 90s throttle in
+          // _guardedFetchData — an upload almost always lands inside that
+          // window, and the guard would otherwise swallow this refresh. Stamp
+          // lastHomeFetchTime so later time-based calls stay consistent.
+          lastHomeFetchTime = DateTime.now();
+          fetchPostData(refreshFlag: true);
           Get.find<NavigationHelperController>().shouldRefreshBottomBar.value =
               false;
         }

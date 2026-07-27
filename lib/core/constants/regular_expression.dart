@@ -362,14 +362,25 @@ class ValidationMethod {
 
   /// Delivery-partner vehicle number: first 2 characters must be letters,
   /// followed by 8 to 10 digits (e.g. MH1234567890).
+  /// This accepts:
+  /// ✅ GJ01AB1234
+  /// ✅ GJ 01 AB 1234
+  /// ✅ GJ-01-AB-1234
+  /// ✅ MH12A1234
+  /// ✅ DL1CAB1234
+  /// ✅ KA05MC1234
+  /// ✅ 22BH1234AA
+  /// ✅ 22 BH 1234 AA
   static String? validateDeliveryVehicleNumber(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'Vehicle number is required.';
     }
 
-    final regex = RegExp(r'^[A-Z]{2}[A-Z0-9]{8,10}$');
+    final regex = RegExp(r'^(?:[A-Z]{2}[- ]?\d{1,2}[- ]?[A-Z]{1,3}[- ]?\d{4}|\d{2}[- ]?BH[- ]?\d{4}[- ]?[A-Z]{1,2})$');
+    // final regex = RegExp(r'^[A-Z]{2}[A-Z0-9]{8,10}$');
 
     if (!regex.hasMatch(value.trim().toUpperCase())) {
+      return 'Please enter a valid vehicle number';
       return 'Please enter a valid vehicle number (2 letters followed by 8-10 digits).';
     }
 

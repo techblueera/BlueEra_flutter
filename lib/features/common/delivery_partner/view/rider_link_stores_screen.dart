@@ -91,7 +91,9 @@ class _RiderLinkStoresScreenState extends State<RiderLinkStoresScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonBackAppBar(
-        title: widget.isGroceryStore ? 'Grocery & Stationary' : 'Restaurant & Food',
+        title: widget.isGroceryStore
+            ? AppStrings.groceryNdStationary.tr
+            : AppStrings.restaurantFood.tr,
       ),
       body: SafeArea(
         child: Row(

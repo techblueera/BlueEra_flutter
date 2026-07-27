@@ -1,4 +1,5 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
@@ -168,7 +169,7 @@ class _NearestStoresSectionState extends State<NearestStoresSection> {
                 children: [
                   Expanded(
                     child: CustomText(
-                      'Nearest Stores',
+                      AppStrings.nearestStores.tr,
                       fontSize: SizeConfig.large18,
                       color: AppColors.mainTextColor,
                       fontWeight: FontWeight.w700,

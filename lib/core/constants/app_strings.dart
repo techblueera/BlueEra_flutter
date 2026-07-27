@@ -2556,6 +2556,13 @@ class AppStrings {
   static const grandTotalPayInINR = "grandTotalPayInINR";
   static const addMoreItems = "addMoreItems";
   static const groceryNdStationary = "groceryNdStationary";
+  // Discover section titles / rider store-link headers
+  static const nearestStores = "nearestStores";
+  static const groceryGeneralStore = "groceryGeneralStore";
+  static const restaurantFoodService = "restaurantFoodService";
+  static const restaurantFood = "restaurantFood";
+  static const recentlyVisitedStores = "recentlyVisitedStores";
+  static const shoppingSales = "shoppingSales";
   static const foodNearMe = "foodNearMe";
   static const cashOnDelivery = "cashOnDelivery";
   static const prePaid = "prePaid";

@@ -25,7 +25,7 @@ class _ShoppingCardWidgetState extends State<ShoppingCardWidget> {
         _showAll ? allCategories.toList() : allCategories.take(10).toList();
 
     return DiscoverGridSection(
-      title: "Shopping & Sales",
+      title: AppStrings.shoppingSales.tr,
       items: displayCategories,
       getName: (item) => item.name ?? '',
       getIcon: (item) => getProductCategoryIcon(item.tagId),

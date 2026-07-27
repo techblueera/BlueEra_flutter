@@ -609,7 +609,14 @@ enum Shorts {
   popular,
   oldest,
   underProgress,
-  draft
+  draft,
+
+  /// Home-feed tap buckets: opening a `short_video` / `long_video` card from the
+  /// home feed seeds one of these with the tapped video, then infinite-scrolls
+  /// via `/videos/hot/short` and `/videos/hot/long` respectively. Kept separate
+  /// from [trending] so the Reels tab's list/scroll position is never clobbered.
+  homeShort,
+  homeLong,
 }
 
 extension ShortsX on Shorts {
@@ -634,6 +641,10 @@ extension ShortsX on Shorts {
         return 'Under Progress';
       case Shorts.draft:
         return 'Draft';
+      case Shorts.homeShort:
+        return 'Short';
+      case Shorts.homeLong:
+        return 'Video';
     }
   }
 
@@ -658,6 +669,10 @@ extension ShortsX on Shorts {
         return 'under_progress';
       case Shorts.draft:
         return 'draft';
+      case Shorts.homeShort:
+        return 'short';
+      case Shorts.homeLong:
+        return 'long';
     }
   }
 }

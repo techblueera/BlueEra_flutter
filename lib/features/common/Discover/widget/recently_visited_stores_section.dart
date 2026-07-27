@@ -1,5 +1,6 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -87,7 +88,7 @@ class _RecentlyVisitedStoresSectionState
                 children: [
                   Expanded(
                     child: CustomText(
-                      'Recently Visited Stores',
+                      AppStrings.recentlyVisitedStores.tr,
                       fontSize: SizeConfig.large18,
                       color: AppColors.mainTextColor,
                       fontWeight: FontWeight.w700,

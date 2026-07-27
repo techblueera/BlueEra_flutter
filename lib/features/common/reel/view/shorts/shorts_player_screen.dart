@@ -60,6 +60,16 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _initializeFeedData();
+
+      // When the feed is seeded with only the tapped video (home-feed short/long
+      // tap), the PageView has a single page so _onPageChanged never fires and
+      // pagination would never start. Kick off the first page here whenever the
+      // current index is already within the load-more threshold of the end.
+      final seeded = _getCurrentFeedList(shortsFeedController!);
+      if (currentIndex >= (seeded?.length ?? 0) - 3) {
+        _onScrollToEnd(shortsFeedController!);
+      }
+
       _warmUpRange(currentIndex);
       // Hand the freshly-created controller to the first page and start it
       // (the page was built before this callback ran, so it currently has no
@@ -334,6 +344,12 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
       case Shorts.saved:
         shortsFeedController?.savedShorts.value = [...widget.initialShorts];
         break;
+      case Shorts.homeShort:
+        shortsFeedController?.homeShortPosts.value = [...widget.initialShorts];
+        break;
+      case Shorts.homeLong:
+        shortsFeedController?.homeLongPosts.value = [...widget.initialShorts];
+        break;
       default:
         break;
     }
@@ -356,6 +372,10 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
         return controller.oldestShortsPosts;
       case Shorts.saved:
         return controller.savedShorts;
+      case Shorts.homeShort:
+        return controller.homeShortPosts;
+      case Shorts.homeLong:
+        return controller.homeLongPosts;
       default:
         return null;
     }
@@ -372,6 +392,12 @@ class _ShortsPlayerScreenState extends State<ShortsPlayerScreen>
         break;
       case Shorts.personalized:
         controller.getAllFeedPersonalized();
+        break;
+      case Shorts.homeShort:
+        controller.getHomeShortFeed();
+        break;
+      case Shorts.homeLong:
+        controller.getHomeLongFeed();
         break;
       default:
         break;

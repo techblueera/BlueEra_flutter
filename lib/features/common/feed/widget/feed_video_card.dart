@@ -8,7 +8,6 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
-import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
 import 'package:BlueEra/features/common/reel/widget/auto_video_playback_manager.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -96,46 +95,32 @@ class _FeedVideoCardState extends State<FeedVideoCard> {
     );
   }
 
-  /// Opens the full-screen vertical reels player, seeded with every
-  /// `short_video` currently in the feed so the user can keep swiping — that is
-  /// exactly what [ShortsController.latestShortsPosts] already collects for the
-  /// home feed (see FeedController.getFeed). Falls back to this single item if
-  /// the shared list is unavailable or doesn't contain this video.
-  void _openShortsPlayer() {
+  /// Opens the full-screen vertical reels player seeded with just the tapped
+  /// video, then infinite-scrolls fresh content after it: `/videos/hot/short`
+  /// for a short, `/videos/hot/long` for a long video. The player is shared
+  /// with the Reels tab, so every action (like / comment / share / save /
+  /// follow / report / block / view-count) works unchanged — it keys off the
+  /// [Shorts] bucket we hand over here.
+  ///
+  /// We prime a dedicated home-feed bucket (`homeShort` / `homeLong`) rather
+  /// than the trending list so the Reels tab's own list and scroll position are
+  /// never disturbed.
+  void _openInfiniteVideoPlayer() {
     final item = getVideoData(post);
+    final controller = Get.isRegistered<ShortsController>()
+        ? Get.find<ShortsController>()
+        : Get.put(ShortsController());
 
-    List<ShortFeedItem> playlist = const [];
-    if (Get.isRegistered<ShortsController>()) {
-      playlist = List<ShortFeedItem>.from(
-          Get.find<ShortsController>().latestShortsPosts);
-    }
-
-    var index = playlist.indexWhere((e) => e.videoId == post.id);
-    if (index < 0) {
-      playlist = [item];
-      index = 0;
-    }
+    final shorts = _isShort ? Shorts.homeShort : Shorts.homeLong;
+    controller.primeHomeFeed(isLong: !_isShort, initial: [item]);
 
     Navigator.pushNamed(
       context,
       RouteHelper.getShortsPlayerScreenRoute(),
       arguments: {
-        // `Shorts.latest` is the bucket backed by `latestShortsPosts`, which is
-        // the list we just handed over — the player reads back the same bucket.
-        ApiKeys.shorts: Shorts.latest,
-        ApiKeys.videoItem: playlist,
-        ApiKeys.initialIndex: index,
-      },
-    );
-  }
-
-  void _openVideoPlayer() {
-    Navigator.pushNamed(
-      context,
-      RouteHelper.getVideoPlayerScreenRoute(),
-      arguments: {
-        ApiKeys.videoItem: getVideoData(post),
-        ApiKeys.videoType: VideoType.videoFeed,
+        ApiKeys.shorts: shorts,
+        ApiKeys.videoItem: [item],
+        ApiKeys.initialIndex: 0,
       },
     );
   }
@@ -143,7 +128,7 @@ class _FeedVideoCardState extends State<FeedVideoCard> {
   void _onTap() {
     // A video item with no playable source would open an empty player.
     if (_videoUrl.isEmpty) return;
-    _isShort ? _openShortsPlayer() : _openVideoPlayer();
+    _openInfiniteVideoPlayer();
   }
 
   @override

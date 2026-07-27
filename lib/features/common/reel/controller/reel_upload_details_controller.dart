@@ -9,6 +9,7 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/core/controller/navigation_helper_controller.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
@@ -199,6 +200,11 @@ class ReelUploadDetailsController extends GetxController {
           message:
           "Video uploaded successfully. It may take about 5 to 30 minutes to appear on your profile.",
         );
+
+        // Refresh the home feed like message / poll / photo uploads do, so the
+        // latest posts load once we land back on the bottom nav.
+        Get.find<NavigationHelperController>().shouldRefreshBottomBar.value =
+            true;
 
         // Clear stack and go to bottom nav
         Get.until(

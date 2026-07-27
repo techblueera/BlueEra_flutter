@@ -107,8 +107,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       ),
       (
         widget: DiscoverCategorySection(
-          title: "Grocery & General Store",
-          // title: AppStrings.grocery.tr,
+          title: AppStrings.groceryGeneralStore.tr,
           items: discoverGroceryCategories,
           columns: 5,
           onViewAll: () =>
@@ -120,8 +119,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       ),
       (
         widget: DiscoverCategorySection(
-          title: "Restaurant & Food Service",
-          // title:" AppStrings.food.tr",
+          title: AppStrings.restaurantFoodService.tr,
           items: discoverFoodCategories,
           columns: 5,
           onItemTap: (_) => Get.to(() => const RestaurantNearMeScreen()),
@@ -171,7 +169,7 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
       (widget: BookHomeServiceWidget(), tabs: {4}),
       (
         widget: DiscoverCategorySection(
-          title: "Home Services",
+          title: AppStrings.homeServices.tr,
           items: discoverHomeServicesCategories,
           columns: 5,
           onItemTap: (_) => Get.to(() => HomeServiceDiscoverScreenV2()),

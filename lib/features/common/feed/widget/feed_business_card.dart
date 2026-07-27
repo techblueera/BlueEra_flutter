@@ -3,19 +3,22 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/business/visit_business_profile/view/visit_business_profile_new.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
-import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 /// Renders one `type: "business"` entry from the mixed `/feed` response
-/// (see docs/backend/FRONTEND_FEED_INTEGRATION.md §4.5) as a tappable
-/// business / place card.
+/// (see docs/backend/FRONTEND_FEED_INTEGRATION.md §4.5) as a banner-style
+/// business card: a large logo/banner image on top, with the name, category,
+/// rating and address below.
 ///
-/// These items only arrive when the feed request carries `lat`/`long`
-/// (guide §6.1), and their author often resolves to "Unknown User" (guide
-/// §4.1) — so the card is built entirely from the business payload and never
-/// leans on [Post.user] for display.
+/// The card carries no visible action buttons, but tapping it opens the
+/// business's visiting profile ([VisitBusinessProfileNew]) — a `type:
+/// "business"` feed item always represents a business. Business items only
+/// arrive when the feed request carries `lat`/`long` (guide §6.1), and their
+/// author often resolves to "Unknown User" (guide §4.1), so the card is built
+/// entirely from the business payload for display.
 class FeedBusinessCard extends StatelessWidget {
   final Post post;
   final double? horizontalPadding;
@@ -53,7 +56,6 @@ class FeedBusinessCard extends StatelessWidget {
 
     final name = business.name?.trim() ?? '';
     final category = business.category?.trim() ?? '';
-    final description = business.description?.trim() ?? '';
     final address = business.location?.displayAddress ?? '';
     final rating = business.avgRating;
 
@@ -67,38 +69,36 @@ class FeedBusinessCard extends StatelessWidget {
       child: GestureDetector(
         onTap: _openBusiness,
         child: Container(
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.greyE5),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          padding: EdgeInsets.all(SizeConfig.size12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+        clipBehavior: Clip.hardEdge,
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.greyE5),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _BusinessBanner(
+              imageUrl: business.logo,
+              fallbackLabel: name,
+            ),
+            Padding(
+              padding: EdgeInsets.all(SizeConfig.size12),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CachedAvatarWidget(
-                    imageUrl: business.logo,
-                    size: SizeConfig.size48,
-                    borderRadius: 10,
-                    // The logo must not swallow the card tap.
-                    showProfileOnFullScreen: false,
-                  ),
-                  SizedBox(width: SizeConfig.size10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomText(
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: CustomText(
                           name.isNotEmpty ? name : 'Business',
                           fontSize: SizeConfig.medium,
                           fontWeight: FontWeight.w700,
@@ -106,64 +106,97 @@ class FeedBusinessCard extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        if (category.isNotEmpty) ...[
-                          SizedBox(height: SizeConfig.size2),
-                          CustomText(
-                            category,
+                      ),
+                      if (rating != null && rating > 0) ...[
+                        SizedBox(width: SizeConfig.size8),
+                        _RatingPill(
+                          rating: rating,
+                          totalRatings: business.totalRatings,
+                        ),
+                      ],
+                    ],
+                  ),
+                  if (category.isNotEmpty) ...[
+                    SizedBox(height: SizeConfig.size2),
+                    CustomText(
+                      category,
+                      fontSize: SizeConfig.small,
+                      color: AppColors.secondaryTextColor,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                  if (address.isNotEmpty) ...[
+                    SizedBox(height: SizeConfig.size10),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.location_on_outlined,
+                          size: SizeConfig.size16,
+                          color: AppColors.primaryColor,
+                        ),
+                        SizedBox(width: SizeConfig.size4),
+                        Expanded(
+                          child: CustomText(
+                            address,
                             fontSize: SizeConfig.small,
                             color: AppColors.secondaryTextColor,
-                            maxLines: 1,
+                            maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
-                        ],
+                        ),
                       ],
-                    ),
-                  ),
-                  if (rating != null && rating > 0) ...[
-                    SizedBox(width: SizeConfig.size8),
-                    _RatingPill(
-                      rating: rating,
-                      totalRatings: business.totalRatings,
                     ),
                   ],
                 ],
               ),
-              if (description.isNotEmpty) ...[
-                SizedBox(height: SizeConfig.size10),
-                CustomText(
-                  description,
-                  fontSize: SizeConfig.small,
-                  color: AppColors.secondaryTextColor,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-              if (address.isNotEmpty) ...[
-                SizedBox(height: SizeConfig.size10),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.location_on_outlined,
-                      size: SizeConfig.size16,
-                      color: AppColors.primaryColor,
-                    ),
-                    SizedBox(width: SizeConfig.size4),
-                    Expanded(
-                      child: CustomText(
-                        address,
-                        fontSize: SizeConfig.small,
-                        color: AppColors.secondaryTextColor,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ],
-          ),
+            ),
+          ],
         ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The banner image at the top of the card. Uses the business logo as the
+/// banner (the feed payload carries no dedicated banner), falling back to a
+/// branded placeholder with the business initial when there is no image.
+class _BusinessBanner extends StatelessWidget {
+  final String? imageUrl;
+  final String fallbackLabel;
+
+  const _BusinessBanner({required this.imageUrl, required this.fallbackLabel});
+
+  @override
+  Widget build(BuildContext context) {
+    final initial =
+        fallbackLabel.trim().isNotEmpty ? fallbackLabel.trim()[0].toUpperCase() : 'B';
+
+    final placeholder = Container(
+      color: AppColors.primaryColor.withValues(alpha: 0.08),
+      alignment: Alignment.center,
+      child: CustomText(
+        initial,
+        fontSize: SizeConfig.size40,
+        fontWeight: FontWeight.w700,
+        color: AppColors.primaryColor,
+      ),
+    );
+
+    return AspectRatio(
+      aspectRatio: 16 / 9,
+      child: SizedBox(
+        width: double.infinity,
+        child: (imageUrl?.isNotEmpty ?? false)
+            ? CachedNetworkImage(
+                imageUrl: imageUrl!,
+                fit: BoxFit.cover,
+                placeholder: (_, __) => placeholder,
+                errorWidget: (_, __, ___) => placeholder,
+              )
+            : placeholder,
       ),
     );
   }

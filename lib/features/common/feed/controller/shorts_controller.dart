@@ -65,6 +65,22 @@ class ShortsController extends GetxController{
   int maxDistance = 10000;
   int limit = 20;
 
+  /// Home-feed tap buckets — isolated from the Reels tab. Opening a short/long
+  /// video card from the home feed seeds the matching list with the tapped
+  /// video, then paginates `/videos/hot/short` (or `/hot/long`). Each keeps its
+  /// own page/hasMore/loading/seed so the two surfaces never interfere.
+  RxList<ShortFeedItem> homeShortPosts = <ShortFeedItem>[].obs;
+  int homeShortPage = 1;
+  bool homeShortHasMore = true;
+  RxBool homeShortIsLoadingMore = false.obs;
+  String? homeShortSeed;
+
+  RxList<ShortFeedItem> homeLongPosts = <ShortFeedItem>[].obs;
+  int homeLongPage = 1;
+  bool homeLongHasMore = true;
+  RxBool homeLongIsLoadingMore = false.obs;
+  String? homeLongSeed;
+
   /// Channel Shorts
   RxList<ShortFeedItem> allChannelShorts = <ShortFeedItem>[].obs;
   int allChannelShortsPage = 1;
@@ -200,6 +216,115 @@ class ShortsController extends GetxController{
     } finally {
       isFirstLoadTrending.value = false;
       trendingVideoFeedIsLoadingMore.value = false;
+    }
+  }
+
+  /// Seed a home-feed tap bucket with the just-tapped video and reset its
+  /// pagination, so the reels player opens on that video and then infinite
+  /// scrolls fresh `hot/short` (or `hot/long`) content after it.
+  void primeHomeFeed({required bool isLong, required List<ShortFeedItem> initial}) {
+    if (isLong) {
+      homeLongPosts.value = [...initial];
+      homeLongPage = 1;
+      homeLongHasMore = true;
+      homeLongIsLoadingMore.value = false;
+      homeLongSeed = null;
+    } else {
+      homeShortPosts.value = [...initial];
+      homeShortPage = 1;
+      homeShortHasMore = true;
+      homeShortIsLoadingMore.value = false;
+      homeShortSeed = null;
+    }
+  }
+
+  ///GET home-feed hot SHORTS — `/videos/hot/short`. Appends the next page after
+  ///the seeded (tapped) video, de-duping by id so the tapped video never
+  ///repeats. Replays the shuffle `seed` across pages for a stable random order.
+  Future<void> getHomeShortFeed() async {
+    if (!homeShortHasMore || homeShortIsLoadingMore.isTrue) return;
+    try {
+      homeShortIsLoadingMore.value = true;
+      final response = await FeedRepo().getHotVideos(
+        type: 'short',
+        queryParams: {
+          ApiKeys.page: homeShortPage.toString(),
+          ApiKeys.limit: limit,
+          if (homeShortSeed != null) ApiKeys.seed: homeShortSeed,
+        },
+      );
+
+      if (response.isSuccess) {
+        final res = VideoResponse.fromHotJson(response.response?.data);
+        final videos = res.data?.videos ?? [];
+
+        final seed = res.pagination?.seed;
+        if (seed != null && seed.isNotEmpty) homeShortSeed = seed;
+
+        final existingIds =
+            homeShortPosts.map((e) => e.video?.id).whereType<String>().toSet();
+        homeShortPosts.addAll(
+          videos.where((v) => !existingIds.contains(v.video?.id)),
+        );
+
+        if (res.pagination?.hasMore ?? false) {
+          homeShortPage++;
+        } else {
+          homeShortHasMore = false;
+        }
+      } else {
+        // Stop hammering a failing endpoint; the player just parks on what it has.
+        homeShortHasMore = false;
+      }
+    } catch (e, s) {
+      logs("getHomeShortFeed ERROR: $e\n$s");
+      homeShortHasMore = false;
+    } finally {
+      homeShortIsLoadingMore.value = false;
+    }
+  }
+
+  ///GET home-feed hot LONG videos — `/videos/hot/long`. Same paginate + dedupe
+  ///+ seed-replay contract as [getHomeShortFeed].
+  Future<void> getHomeLongFeed() async {
+    if (!homeLongHasMore || homeLongIsLoadingMore.isTrue) return;
+    try {
+      homeLongIsLoadingMore.value = true;
+      final response = await FeedRepo().getHotVideos(
+        type: 'long',
+        queryParams: {
+          ApiKeys.page: homeLongPage.toString(),
+          ApiKeys.limit: limit,
+          if (homeLongSeed != null) ApiKeys.seed: homeLongSeed,
+        },
+      );
+
+      if (response.isSuccess) {
+        final res = VideoResponse.fromHotJson(response.response?.data);
+        final videos = res.data?.videos ?? [];
+
+        final seed = res.pagination?.seed;
+        if (seed != null && seed.isNotEmpty) homeLongSeed = seed;
+
+        final existingIds =
+            homeLongPosts.map((e) => e.video?.id).whereType<String>().toSet();
+        homeLongPosts.addAll(
+          videos.where((v) => !existingIds.contains(v.video?.id)),
+        );
+
+        if (res.pagination?.hasMore ?? false) {
+          homeLongPage++;
+        } else {
+          homeLongHasMore = false;
+        }
+      } else {
+        homeLongHasMore = false;
+      }
+    } catch (e, s) {
+      logs("getHomeLongFeed ERROR: $e\n$s");
+      homeLongHasMore = false;
+    } finally {
+      homeLongIsLoadingMore.value = false;
     }
   }
 
@@ -713,6 +838,10 @@ class ShortsController extends GetxController{
         return underProgressShortsPosts;
       case Shorts.draft:
         return draftShortsPosts;
+      case Shorts.homeShort:
+        return homeShortPosts;
+      case Shorts.homeLong:
+        return homeLongPosts;
     }
   }
 
@@ -807,6 +936,8 @@ class ShortsController extends GetxController{
     _updateVideoInList(oldestShortsPosts, videoId, isSaved: isSaved);
     _updateVideoInList(savedShorts, videoId, isSaved: isSaved);
     _updateVideoInList(allChannelShorts, videoId, isSaved: isSaved);
+    _updateVideoInList(homeShortPosts, videoId, isSaved: isSaved);
+    _updateVideoInList(homeLongPosts, videoId, isSaved: isSaved);
   }
 
   /// Helper method to update a video in a specific list
