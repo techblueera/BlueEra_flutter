@@ -209,14 +209,12 @@ class _FinanceCard extends StatelessWidget {
   }
 
   String _resolveAddress(FinanceBusinessItem item) {
-    // final branchLoc = item.contactUs?.firstOrNull?.branch?.location;
-    // final branchName = item.contactUs?.firstOrNull?.branch?.name;
+    // Mirror the header (visit_business_common_header.dart:318): pipe the
+    // resolved address through `getLocalityAddress` so both surfaces show
+    // the same "<locality>, <city>" truncation instead of the full string.
     final candidates = <String?>[
       item.location?.address,
       item.location?.name,
-      // branchLoc?.address,
-      // branchLoc?.name,
-      // branchName,
     ];
     for (final c in candidates) {
       final t = c?.trim() ?? '';
@@ -278,6 +276,10 @@ class _FinanceCard extends StatelessWidget {
   }
 
   String _distanceFromUser(FinanceBusinessItem item) {
+    // Match the header (visit_business_common_header.dart:297): always show
+    // `X.XX KM`, no unit-tiered rewrite, no "Away" suffix. Coords come from
+    // the GeoJSON `[lng, lat]` array on the finance model (the header pulls
+    // from named lat/lon fields on BusinessProfileDetails).
     final coords = item.contactUs?.firstOrNull?.branch?.location?.coordinates ??
         item.location?.coordinates;
     if (coords == null || coords.length < 2) return 'N/A';
@@ -286,9 +288,7 @@ class _FinanceCard extends StatelessWidget {
     if (lat == 0.0 || lng == 0.0) return 'N/A';
     final km = calculateDistance(lat, lng);
     if (km == null) return 'N/A';
-    if (km < 1) return '${(km * 1000).toStringAsFixed(0)}m Away';
-    if (km < 10) return '${km.toStringAsFixed(1)}KM Away';
-    return '${km.toStringAsFixed(0)}KM Away';
+    return '${km.toStringAsFixed(2)} KM';
   }
 
   Widget _buildCoverSection({

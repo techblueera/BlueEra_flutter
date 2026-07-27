@@ -1,10 +1,8 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/services/share_service.dart';
 import 'package:BlueEra/features/common/Discover/model/other_service_business_search_res_model.dart';
-import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
@@ -335,11 +333,15 @@ class ServiceBusinessCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Logo / business name open the owning business profile;
-            // the rest of the header still opens the map sheet.
-            DiscoverProfileTap(
-              accountType: AppConstants.business,
-              businessId: _profile?.id,
+            // Avatar tap opens this listing's [OthersServiceDetailScreen]
+            // (same target as the "Book Now" pill). The business-name
+            // still uses [DiscoverProfileTap] to reach the owner's
+            // business profile — the two are intentionally different.
+            // `HitTestBehavior.opaque` keeps the tap here from falling
+            // through to the outer row's map-sheet gesture.
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _openStore,
               child: CachedAvatarWidget(
                 imageUrl: _avatarUrl,
                 size: 58,
@@ -355,17 +357,13 @@ class ServiceBusinessCard extends StatelessWidget {
                 // mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   /// Business Name
-                  DiscoverProfileTap(
-                    accountType: AppConstants.business,
-                    businessId: _profile?.id,
-                    child: CustomText(
-                      _profile?.businessName ?? _profile?.profileName ?? _na,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.black22,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                  CustomText(
+                    _profile?.businessName ?? _profile?.profileName ?? _na,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.black22,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
 
                   const SizedBox(height: 4),

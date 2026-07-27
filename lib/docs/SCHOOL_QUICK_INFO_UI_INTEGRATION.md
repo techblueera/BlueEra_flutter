@@ -13,6 +13,24 @@ field or a suggestion is a **backend change only** — no frontend release.
 > saves. The backend validates shape only (non-empty, length) and **never
 > rejects a field for belonging to another category**.
 
+### Storage vs. rendering — a distinction worth getting right
+
+Quick Info is **one shared sub-document**. Every field for every category is
+declared on the same `quickInfo` object in the schema, side by side, and
+**nothing is ever stripped based on category**. A college listing that stores
+`board` keeps it.
+
+What is category-specific is only which subset the backend **advertises** in
+`fields` for you to render. So:
+
+- `data` — whatever that listing actually has stored. May contain leftovers
+  from another category on older listings.
+- `fields` — the inputs to render, for this listing's category only.
+
+**Render from `fields`, read values from `data`.** Do not assume `data`'s keys
+and `fields`' keys are the same set — on a well-formed listing they are, but the
+backend does not guarantee it, by design.
+
 ---
 
 ## 1. Base URL & auth
@@ -60,6 +78,8 @@ skill training share another.
 | Method | Path | Who | Purpose |
 |---|---|---|---|
 | `GET` | `/schools/options?category=<name>` | anyone | Fields + suggestions for one category |
+| `GET` | `/schools/options?type=<TYPE>` | anyone | Same, keyed by a listing's stored `type` (`COLLEGE_UNIVERSITY`, …) |
+| `GET` | `/schools/options?schoolId=<id>` | anyone | Same, resolved from the listing itself |
 | `GET` | `/schools/options` | anyone | All categories at once (+ legacy boards/mediums) |
 | `GET` | `/schools/:id/quick-info` | anyone | A listing's saved values **and** its field set |
 | `PUT` | `/schools/:id/quick-info` | owner | **Partial** save — recommended for the edit form |
@@ -84,6 +104,18 @@ GET /schools/options?category=Sports%20%26%20Hobby
 The category is matched tolerantly: casing, spacing and punctuation are ignored,
 and short aliases work (`College` → `College/University`, `Coaching` →
 `Coaching/Institute`).
+
+Two equivalent ways in, for when you don't hold a canonical category name:
+
+```
+GET /schools/options?type=SPORTS_HOBBY          # a listing's stored `type`
+GET /schools/options?schoolId=<listing id>      # resolve from the listing
+```
+
+Precedence is `category` → `type` → the listing's own labels; the first one that
+resolves to a known group wins. `?schoolId=` for a listing that does not exist
+is a `404`. A label that resolves to nothing is **not** an error — you get every
+field and `group: null`.
 
 ### Response — `200 OK`
 
@@ -179,7 +211,8 @@ this endpoint, so existing code keeps working. They are also available as the
 ## 6. Load an existing listing — `GET /schools/:id/quick-info`
 
 Returns the saved values **and** the field set for that listing's category, so
-an edit form renders in one call.
+an edit form renders in one call. **This is the endpoint to use when you have a
+listing id** — you do not need to know or send its category.
 
 ```json
 {
@@ -190,14 +223,43 @@ an edit form renders in one call.
     "streams": ["CSE", "ECE"],
     "numberOfStudents": 2400
   },
-  "category": "College/University",
+  "category": "COLLEGE_UNIVERSITY",
+  "group": "college",
   "fields": [ /* descriptors, same shape as above */ ]
 }
 ```
 
 `data` may be `{}` for a listing whose owner has not filled anything in.
-`category` is `null` when the listing has no category set — `fields` then
-contains every field.
+
+`group` is the resolved field group (`school` | `college` | `sports` |
+`professional`), or `null` when the listing carries no usable category — in
+which case `fields` contains every field. **Key off `group`, not off the
+`category` string**: `category` is only the raw label the group was resolved
+from, and it may be a canonical name (`"College/University"`) or the listing's
+stored type (`"COLLEGE_UNIVERSITY"`).
+
+### Where the category actually comes from
+
+Most listings leave `School.category` empty and carry their level-0 Siksha
+category in `School.type` (`"SCHOOL_EDUCATION"`, `"COACHING_INSTITUTE"`,
+`"COLLEGE_UNIVERSITY"`, `"SPORTS_HOBBY"`, `"PROFESSIONAL_LEARN"`,
+`"SKILL_TRAINING"`, …). The endpoint resolves in this order and takes the first
+value that maps to a known group:
+
+1. `?category=` on the request (optional override)
+2. `School.category`
+3. `School.type`
+
+Pass `?category=` only to override a listing you know is mislabelled:
+
+```
+GET /schools/:id/quick-info?category=College/University
+```
+
+> **`categoryId` is not accepted anywhere.** This service stores no category
+> ObjectId and has no way to resolve one — the category ids live in
+> be_user_service. Send the category **name** or the listing's **type** string,
+> or just send the listing id and let the backend resolve it.
 
 ---
 
@@ -221,7 +283,9 @@ Send `quickInfo` inline with the rest of the listing:
 ```
 
 Set `category` on the listing at creation time — it is what decides the field
-set every later screen renders.
+set every later screen renders. If you only set `type` (as the business
+creation flow does), that works too: the backend falls back to it. Setting
+neither leaves the listing showing every field.
 
 ### On edit — `PUT /schools/:id/quick-info`
 
@@ -336,6 +400,13 @@ descriptor simply appears in `fields`.
 3. Existing `/schools/options` calls that read `boards` /
    `mediumsOfInstruction` keep working unchanged — no rush to migrate them.
 4. Keep any "Other → free text" input; the backend still accepts custom values.
+5. If you already read `category` from `GET /schools/:id/quick-info`, switch to
+   the new `group`. `category` used to be `School.category` alone, which is
+   empty on essentially every listing, so it was always `null` in practice; it
+   now carries whichever label the group was resolved from and may be a raw
+   `type` string like `"COLLEGE_UNIVERSITY"`.
+6. Stop sending `categoryId` — it has never been accepted, and because unknown
+   query params are ignored it failed silently rather than erroring.
 
 ---
 
@@ -343,8 +414,77 @@ descriptor simply appears in `fields`.
 
 ```bash
 curl -s "https://<host>/schools/options?category=College/University" | jq
+curl -s "https://<host>/schools/options?type=SPORTS_HOBBY"           | jq '.data.group'
+curl -s "https://<host>/schools/options?schoolId=<id>"               | jq '.data.group'
+curl -s "https://<host>/schools/<id>/quick-info"                     | jq '{category, group}'
 curl -s "https://<host>/schools/options" | jq '.data.categories'
 ```
+
+### Test data on the shared environment
+
+All 67 listings have been seeded with quick info matching their own category, so
+each group can be exercised end to end. Pick any id from the right-hand column:
+
+| `School.type` | Listings | Resolved `group` | A listing id to test with |
+|---|---|---|---|
+| `SCHOOL_EDUCATION` | 23 | `school` | `6a0d4d1cb733d67595e3c0ad` |
+| `COLLEGE_UNIVERSITY` | 13 | `college` | `6a1fbd414c67d23ea10098b3` |
+| `SKILL_TRAINING` | 9 | `professional` | `6a1ea07d1748a82049fd90b1` |
+| `SPORTS_HOBBY` | 7 | `sports` | `6a1d46584c67d23ea100943e` |
+| `PROFESSIONAL_SUPPORT_EDUCATION` | 5 | `professional` | `6a365310ad29e72fcf1b905c` |
+| `PROFESSIONAL_LEARN` | 3 | `professional` | `6a1fc9c44c67d23ea10098e6` |
+| `COACHING_EXAM_PREPARATION` | 3 | `school` | `6a43becaae6c1ea1bba88c04` |
+| `COACHING_INSTITUTE` | 2 | `school` | `6a1fc37f1748a82049fd928a` |
+| `CREATIVE_SPORT_HOBBY` | 1 | `sports` | `6a45e2ef75beafb6c59b136d` |
+| `Private University` | 1 | `college` | `6a5f320b38898ad30ee8efa7` |
+
+Note there are **more `type` values than the six canonical categories** —
+`COACHING_EXAM_PREPARATION`, `PROFESSIONAL_SUPPORT_EDUCATION`,
+`CREATIVE_SPORT_HOBBY` and the free-text `Private University` all exist in the
+data. They are matched by keyword and resolve to a group correctly. This is
+another reason to key off `group` rather than trying to match `type` yourself.
+
+What `data` looks like for each group after seeding:
+
+```jsonc
+// school — 6a0d4d1cb733d67595e3c0ad
+{ "classRange": "Nursery - Class 5", "studentTeacherRatio": "1:15",
+  "board": ["CBSE"], "mediumOfInstruction": ["English"], "numberOfStudents": 320 }
+
+// college — 6a1fbd414c67d23ea10098b3
+{ "classRange": "1 year", "studentTeacherRatio": "1:12",
+  "coursesOffered": ["BCA", "BBA", "B.Com"], "affiliatedUniversity": "University of Calcutta",
+  "streams": ["Science", "Commerce", "Arts"], "numberOfStudents": 900 }
+
+// sports — 6a1d46584c67d23ea100943e
+{ "sportsOffered": ["Cricket", "Football", "Badminton"],
+  "sportsFacilities": ["Playground", "Indoor Stadium"],
+  "achievements": ["State Champion 2024"], "numberOfStudents": 140 }
+
+// professional — 6a1ea07d1748a82049fd90b1
+{ "skillPrograms": ["Digital Marketing", "Web Development"],
+  "industryPartnerships": ["Google", "Microsoft"],
+  "certifications": ["NSDC"], "numberOfStudents": 180 }
+```
+
+Values vary between listings within a group, so two school listings will not
+show the same board or class range.
+
+> The seed also removed a legacy `fees` key that 62 listings carried. It was
+> never in the schema or the field catalogue, so it was never rendered — but it
+> did show up in `data`. If you were reading `data.fees`, it is gone.
+
+### Getting every field back instead of the category's subset?
+
+That means the category did not resolve — check `group` in the response:
+
+- `group: null` → nothing in `?category=` / `School.category` / `School.type`
+  matched a known category. Confirm what the listing actually stores
+  (`GET /schools/:id` → `category`, `type`), and if it is a genuinely new label,
+  add it to `CATEGORY_KEYWORDS` in `src/config/schoolQuickInfoFields.js`.
+- Sending `?categoryId=<ObjectId>` → **unsupported**, and unknown query params
+  are ignored, so `/schools/options?categoryId=…` silently returns the legacy
+  all-categories payload. Send `category`, `type` or `schoolId` instead.
 
 Swagger: documented under the **Schools** tag as `GET /schools/options`,
 `GET /schools/{id}/quick-info` and `PUT /schools/{id}/quick-info`. The field

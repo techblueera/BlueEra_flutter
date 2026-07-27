@@ -1,13 +1,18 @@
 import 'package:BlueEra/core/api/model/school_details_res_model.dart';
+import 'package:BlueEra/core/api/model/school_quick_info_field.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
+import 'package:BlueEra/core/constants/shimmer_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
+import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
+import 'package:BlueEra/features/business/widgets/business_contact_map_card.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
 import 'package:BlueEra/features/me/school/view/category/acadamics/widgets/school_quick_info_view.dart';
@@ -24,11 +29,15 @@ import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:BlueEra/widgets/social_gallery_grid.dart';
+import 'package:BlueEra/widgets/visit_business_common_header.dart';
+import 'package:BlueEra/widgets/visit_business_stats_card.dart';
 import 'package:BlueEra/widgets/website_preview_card.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
+
+import '../../../business/widgets/business_qrcode_widget.dart';
 
 class DiscoverSchoolHomeScreen extends StatefulWidget {
   const DiscoverSchoolHomeScreen({super.key});
@@ -40,6 +49,12 @@ class DiscoverSchoolHomeScreen extends StatefulWidget {
 
 class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
   final schoolAboutUsController = getOrPut(() => SchoolAboutUsController());
+  // Shared business-profile controller. `permanent: true` matches how every
+  // other Discover detail screen (finance / lab / hospital) binds it — the
+  // header keys off the same instance so nav doesn't refetch.
+  final viewBusinessDetailsController =
+      getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+  Worker? _profileHydrateWorker;
 
   @override
   void initState() {
@@ -60,6 +75,32 @@ class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
         ownerID: ownerId.isNotEmpty ? ownerId : id,
       );
     }
+
+    // Hydrate the shared business-profile controller from the school
+    // owner id so [VisitBusinessCommonHeader] has data on first paint,
+    // and re-hydrate whenever the school controller swaps in a fresh
+    // record post-fetch.
+    void hydrateProfile(String? ownerIdVal) {
+      final uid = (ownerIdVal ?? '').trim();
+      if (uid.isEmpty) return;
+      // ignore: unawaited_futures
+      viewBusinessDetailsController.viewBusinessProfileById(uid);
+    }
+
+    hydrateProfile(ownerId);
+    final rx = schoolAboutUsController.schoolDetailsData;
+    if (rx != null) {
+      _profileHydrateWorker = ever<SchoolDetailsData>(
+        rx,
+        (d) => hydrateProfile(d.ownerId),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _profileHydrateWorker?.dispose();
+    super.dispose();
   }
 
   @override
@@ -75,20 +116,57 @@ class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
       return Scaffold(
         backgroundColor: Colors.transparent,
         appBar: CommonBackAppBar(
-          title: AppStrings.school,
+          title: _resolveAppBarTitle(data),
         ),
         bottomNavigationBar: hasData ? _buildBottomBar(context) : null,
         body: (!hasData && isLoading)
             ? const Center(child: CircularProgressIndicator())
             : SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.only(top: 10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    /// HEADER with rating, type, establishment
-                    _SchoolHeader(controller: schoolAboutUsController),
+                    Obx(() {
+                      // Subscribe to silent profile refreshes — bumps on every
+                      // successful fetch so this Obx rebuilds even when the
+                      // loader is skipped.
+                      viewBusinessDetailsController.profileVersion.value;
+                      if (viewBusinessDetailsController
+                          .isProfileLoading.value) {
+                        return buildBusinessHeaderSkeleton();
+                      }
+                      final details = viewBusinessDetailsController
+                          .visitedBusinessProfileDetails?.data;
+                      return Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 10),
+                        child: Column(
+                          children: [
+                            VisitBusinessCommonHeader(
+                              details: details,
+                              onRated: () => viewBusinessDetailsController
+                                  .viewBusinessProfileById(
+                                data?.ownerId ?? '',
+                                silent: true,
+                              ),
+                              onFollowChanged: () =>
+                                  viewBusinessDetailsController
+                                      .viewBusinessProfileById(
+                                data?.ownerId ?? '',
+                                silent: true,
+                              ),
+                              shareLink: serviceDeepLinkBusiness(
+                                id: details?.userId,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            VisitBusinessStatsCard(details: details),
+                          ],
+                        ),
+                      );
+                    }),
 
-                    SizedBox(height: SizeConfig.size10),
+                    // SizedBox(height: SizeConfig.size10),
 
                     /// DIRECTOR / PRINCIPAL MESSAGE
                     DirectorCard(
@@ -100,7 +178,9 @@ class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
                     /// mode).
                     SchoolQuickInfoCard(controller: schoolAboutUsController),
 
-                    SizedBox(height: SizeConfig.size10),
+                    if (data?.aboutId?.management?.isNotEmpty ?? false) ...[
+                      SizedBox(height: SizeConfig.size10),
+                    ],
 
                     /// MANAGEMENT
                     _ManagementSection(data: data),
@@ -110,7 +190,8 @@ class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
                     // 10px margin on every side. The former spacer stacked
                     // on top of those two margins, producing a ~30px gap
                     // between the cards instead of the intended ~10px.
-                    SizedBox(height: SizeConfig.size10),
+                    if (data?.courses?.isNotEmpty ?? false)
+                      SizedBox(height: SizeConfig.size10),
 
                     /// COURSES
                     _CoursesSection(data: data),
@@ -131,25 +212,58 @@ class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
                     /// REVIEWS (placeholder)
                     _ReviewsSection(),
 
-                    SizedBox(height: SizeConfig.size10),
+                    // SizedBox(height: SizeConfig.size10),
 
                     /// CONTACT US (clickable phone, email, website)
-                    _ContactUsSection(data: data),
-
-                    SizedBox(height: SizeConfig.size10),
+                    // _ContactUsSection(data: data),
+                    //
+                    // SizedBox(height: SizeConfig.size10),
+                    Obx(() {
+                      if (viewBusinessDetailsController
+                          .isProfileLoading.value) {
+                        return const SizedBox.shrink();
+                      }
+                      final details = viewBusinessDetailsController
+                          .visitedBusinessProfileDetails?.data;
+                      return Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 10),
+                        child: BusinessContactMapCard(
+                          businessProfileDetails: details,
+                          showEditButton: false,
+                        ),
+                      );
+                    }),
 
                     /// WEBSITE PREVIEW
+                    SizedBox(height: SizeConfig.size10),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 10),
                       child: WebsitePreviewCard(
-                        url: data?.contacts?.firstOrNull?.branch?.website ?? '',
+                        url: viewBusinessDetailsController
+                                .visitedBusinessProfileDetails
+                                ?.data
+                                ?.websiteUrl ??
+                            '',
                       ),
                     ),
 
-                    SizedBox(height: SizeConfig.size10),
+                    // SizedBox(height: SizeConfig.size10),
+
+                    Obx(() {
+                      if (viewBusinessDetailsController
+                          .isProfileLoading.value) {
+                        return const SizedBox.shrink();
+                      }
+                      final details = viewBusinessDetailsController
+                          .visitedBusinessProfileDetails?.data;
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        child: BusinessQrCodeWidget(data: details),
+                      );
+                    }),
 
                     /// LOCATION MAP
-                    _LocationSection(data: data),
+                    // _LocationSection(data: data),
 
                     SizedBox(
                         height: kBottomNavigationBarHeight + SizeConfig.size50),
@@ -453,10 +567,13 @@ class _ManagementSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final management = data?.aboutId?.management ?? [];
     if (management.isEmpty) {
-      return _emptySection(
-        Icons.people_outline,
-        AppStrings.managementTrust.tr,
-        AppStrings.noManagementDetailsAvailable.tr,
+      return Padding(
+        padding: const EdgeInsets.only(top: 10),
+        child: _emptySection(
+          Icons.people_outline,
+          AppStrings.managementTrust.tr,
+          AppStrings.noManagementDetailsAvailable.tr,
+        ),
       );
     }
     return SchoolManagementSection(
@@ -476,17 +593,25 @@ class _CoursesSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final courses = data?.courses ?? [];
     if (courses.isEmpty) {
-      return _emptySection(
-        Icons.menu_book_outlined,
-        AppStrings.coursesLabel.tr,
-        AppStrings.noCoursesAvailable.tr,
+      return Padding(
+        padding: const EdgeInsets.only(top: 10),
+        child: _emptySection(
+          Icons.menu_book_outlined,
+          AppStrings.coursesLabel.tr,
+          AppStrings.noCoursesAvailable.tr,
+        ),
       );
     }
     // Reuse the same card the owner Academics tab uses, in read-only
     // mode (no edit/delete callbacks → the overflow menu is hidden).
-    // On the public detail screen the list scrolls horizontally inside
-    // a single white surface — keeps the section compact even for
-    // schools with many courses.
+    //
+    // Vertical layout — the shared card packs a 165px image plus a fee
+    // row, description, eligibility/duration chips, and a "Direct
+    // Admission" pill into its right column. At a 320px horizontal-rail
+    // width the right column was ~130px wide, squeezing the admission
+    // pill into the bottom-right corner. Stacking cards vertically
+    // gives each one the full page width and lets the internal layout
+    // breathe.
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: SizeConfig.paddingXSL),
       child: CommonCardWidget(
@@ -497,29 +622,10 @@ class _CoursesSection extends StatelessWidget {
             _sectionHeader(
                 Icons.menu_book_outlined, AppStrings.coursesLabel.tr),
             SizedBox(height: SizeConfig.paddingXS),
-            // Horizontal scroller. Each card is width-capped so the row
-            // reads as a rail; IntrinsicHeight lets the row size to the
-            // tallest card without a hard-coded pixel height that would
-            // clip long descriptions/admission buttons.
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
-              child: IntrinsicHeight(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    for (int i = 0; i < courses.length; i++) ...[
-                      SizedBox(
-                        width: 320,
-                        child: SchoolCourseListItemCard(course: courses[i]),
-                      ),
-                      if (i != courses.length - 1)
-                        SizedBox(width: SizeConfig.size10),
-                    ],
-                  ],
-                ),
-              ),
-            ),
+            for (int i = 0; i < courses.length; i++) ...[
+              SchoolCourseListItemCard(course: courses[i]),
+              if (i != courses.length - 1) SizedBox(height: SizeConfig.size10),
+            ],
           ],
         ),
       ),
@@ -805,6 +911,38 @@ class _LocationSection extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 // SHARED HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
+
+/// Picks the AppBar title for the discover screen from the resolved
+/// school category. `data.quickInfoCategory` is the canonical string
+/// (e.g. "College/University") when the source stream can resolve one
+/// of the six categories from the business chain; otherwise we fall
+/// back to `data.type`, and `resolveQuickInfoCategoryKey` normalises
+/// casing / spacing / punctuation before matching.
+///
+/// Returns [AppStrings.school] when nothing resolves — preserves the
+/// pre-existing title for schools with a missing / unrecognised
+/// category so we never render a blank app bar.
+String _resolveAppBarTitle(SchoolDetailsData? data) {
+  final canonical = resolveQuickInfoCategoryKey(
+    data?.quickInfoCategory ?? data?.type,
+  );
+  switch (canonical) {
+    case 'School Education':
+      return AppStrings.schoolEducation;
+    case 'College/University':
+      return 'College/University';
+    case 'Coaching/Institute':
+      return 'Coaching/Institute';
+    case 'Sports & Hobby':
+      return 'Sports & Hobby';
+    case 'Professional Learn':
+      return 'Professional Learn';
+    case 'Skill Training':
+      return 'Skill Training';
+    default:
+      return AppStrings.school;
+  }
+}
 
 Widget _sectionHeader(IconData icon, String title) {
   return Row(
