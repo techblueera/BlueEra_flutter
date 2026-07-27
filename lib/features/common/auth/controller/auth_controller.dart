@@ -40,11 +40,8 @@ import 'package:BlueEra/features/me/hospital/controller/hospital_service_ai_cont
 import 'package:BlueEra/features/me/hotel/controller/hotel_service_controller.dart';
 import 'package:BlueEra/features/me/laboratory/controller/lab_service_ai_controller.dart';
 import 'package:BlueEra/features/me/others/controller/business_profile_full_controller.dart';
-import 'package:BlueEra/features/me/content_creator/controller/earn_artist_controller.dart';
-import 'package:BlueEra/features/me/professionals_consultant/controller/ai_professionals_controller.dart';
 import 'package:BlueEra/features/me/school/controller/school_controller.dart';
 import 'package:BlueEra/features/personal/auth/controller/view_personal_details_controller.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/self_employed/controller/self_work_service_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:get/get.dart';
@@ -420,53 +417,17 @@ class AuthController extends GetxController {
       // and forget — UI must not block on socket handshake.
       unawaited(ChatSocketService().connectToSocket());
 
-      // Parallelize the two slowest network steps so the user reaches
-      // the Add Bio screen ~one round-trip sooner:
-      //   1. viewPersonalProfile  — needed because the Add Bio screen
-      //      reads the freshly-created personal profile.
-      //   2. createServiceController / createMinimalEarnService —
-      //      placeholder earn-service for PROFESSIONAL / SELF_EMPLOYED.
-      //      Backend side-effect; navigation doesn't depend on it but
-      //      we wait so any failure surfaces to the user before they
-      //      leave this screen.
+      // The earn profile (professional / selfWork service / earn-artist) is
+      // now created server-side by updateIndividualAccountUser itself — the
+      // app no longer fires a second REST call per profileType. If that
+      // server-side step fails the API returns 502 and writes nothing, which
+      // the `!response.isSuccess` branch above already surfaces.
+      // Still needed here: viewPersonalProfile — the Add Bio screen reads the
+      // freshly-created personal profile.
       final personalController = Get.put(ViewPersonalDetailsController(), permanent: true);
       final pending = <Future<void>>[
         personalController.viewPersonalProfile(forceRefresh: true),
       ];
-      if (reqData?['profileType'] == PROFESSIONAL) {
-        final controller = getOrPut(() => AiProfessionalsController());
-        final data = {
-          "name": reqData?['name'],
-          "email": reqData?['email'],
-          "gender": reqData?['gender'],
-          "profileType": reqData?['profileType'],
-          "profession": reqData?['profession'],
-          "designation": reqData?['designation'],
-          "pincode": reqData?['pincode'],
-          "address": reqData?['address'],
-        };
-        pending.add(controller.createServiceController(reqParm: data));
-      } else if (reqData?['profileType'] == SELF_EMPLOYED) {
-        final controller = getOrPut(() => SelfWorkServiceController());
-        controller.professionCategory = reqData?['profession'];
-        pending.add(controller.createMinimalEarnService(
-          serviceSubType: 'selfWork',
-          professionCategoryOverride: controller.professionCategory?.toUpperCase(),
-        ));
-      } else if (reqData?['profession'] == CONTENT_CREATOR ||
-          reqData?['profession'] == ARTIST) {
-        // Artist / Content-Creator: create the earn-artist profile. Per the
-        // earn-artist guide's field mapping, the parent group (ARTIST /
-        // CONTENT_CREATOR) → payload `type`, and the picked subcategory
-        // (carried in `designation`) → payload `category`.
-        final artistController = getOrPut(() => EarnArtistController());
-        pending.add(artistController
-            .createMinimalArtistProfile(
-              type: reqData?['profession'],
-              category: reqData?['designation'],
-            )
-            .then<void>((_) {}));
-      }
       await Future.wait(pending);
       // https://be.beapp.in/api/map-service/api/stores?page=1&limit=20&lat=21.1902733&lng=72.8644417&type=Service&radius=1500&category_id=CONSULTING_BUSINESS_SERVICES
       // Cascade settled — only now surface the success message so the
@@ -512,13 +473,6 @@ class AuthController extends GetxController {
     }
   }
 
-  /// Automotive sub-sectors that are functionally "Service Other" — they
-  /// have no dedicated module yet, so create-business hands them off to
-  /// `createOtherProfileController` with `type = "other"`, identical to
-  /// SUPPORT_SERVICES / generic Service businesses. Mirror of the set in
-  /// `_isSpecificServiceSpecialAutomotive` on `BottomNavigationBarScreen`
-  /// (which routes the same businesses to `AutomotiveServiceMain` on
-  /// re-entry); both lists MUST stay in sync.
   static const Set<String> _automotiveOtherCategories = {
     'VEHICLE SERVICE',
     'VEHICLE_SERVICE',
@@ -687,10 +641,6 @@ class AuthController extends GetxController {
     }
   }
 
-  /// Motel branch helper for [addBusinessUser]: reverse-geocodes
-  /// lat/lon to city/state/pincode, then creates the hotel-service
-  /// placeholder. Extracted because the inline version was hard to
-  /// read alongside the other branch creations inside `Future.wait`.
   Future<void> _createMotelService(Map<String, dynamic> reqData) async {
     final controller = getOrPut(() => HotelServiceController());
     final locationMap = jsonDecode(reqData[ApiKeys.business_location]);

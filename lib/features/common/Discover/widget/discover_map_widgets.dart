@@ -37,41 +37,53 @@ Widget bannerMapCircleIconButton({
 
 /// Banner-style location pill (black 35% backdrop, white icon + locality
 /// label + chevron). Mirrors the pill from `BannerCarousel`.
-Widget bannerMapLocationPill() {
+///
+/// Pass [label] to pin a specific location (e.g. a place the user searched for
+/// in the Book-Home-Services flow); omit it to reactively show the device's
+/// current locality from [LocationService].
+Widget bannerMapLocationPill({String? label}) {
+  if (label != null && label.trim().isNotEmpty) {
+    return _locationPillShell(label);
+  }
   return Obx(() {
     final loc = LocationService.userCurrentAddress.value;
     final title =
         [loc.subLocality, loc.city].where((e) => e.isNotEmpty).join(', ');
-    return Container(
-      padding: EdgeInsets.symmetric(
-          horizontal: SizeConfig.size10, vertical: SizeConfig.size8),
-      decoration: BoxDecoration(
-        color: AppColors.black.withValues(alpha: 0.35),
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.location_on_outlined,
-              color: AppColors.white, size: SizeConfig.size20),
-          SizedBox(width: SizeConfig.size6),
-          Flexible(
-            child: CustomText(
-              title.isEmpty ? AppStrings.selectLocationPill.tr : title,
-              fontSize: SizeConfig.medium,
-              color: AppColors.white,
-              fontWeight: FontWeight.w700,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          SizedBox(width: SizeConfig.size4),
-          Icon(Icons.keyboard_arrow_down,
-              color: AppColors.white, size: SizeConfig.size18),
-        ],
-      ),
-    );
+    return _locationPillShell(
+        title.isEmpty ? AppStrings.selectLocationPill.tr : title);
   });
+}
+
+Widget _locationPillShell(String title) {
+  return Container(
+    padding: EdgeInsets.symmetric(
+        horizontal: SizeConfig.size10, vertical: SizeConfig.size8),
+    decoration: BoxDecoration(
+      color: AppColors.black.withValues(alpha: 0.35),
+      borderRadius: BorderRadius.circular(24),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.location_on_outlined,
+            color: AppColors.white, size: SizeConfig.size20),
+        SizedBox(width: SizeConfig.size6),
+        Flexible(
+          child: CustomText(
+            title,
+            fontSize: SizeConfig.medium,
+            color: AppColors.white,
+            fontWeight: FontWeight.w700,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        SizedBox(width: SizeConfig.size4),
+        Icon(Icons.keyboard_arrow_down,
+            color: AppColors.white, size: SizeConfig.size18),
+      ],
+    ),
+  );
 }
 
 /// Inline tap-to-expand map preview that replaces the static
@@ -85,20 +97,32 @@ class DiscoverMapPreview extends StatelessWidget {
   final double initialZoom;
   final double height;
 
+  /// Optional camera center. When set (e.g. a place picked in the Book-Home-
+  /// Services flow), the preview frames that location instead of the device
+  /// fix. Its label should be passed via [locationLabel] so the pill agrees.
+  final LatLng? center;
+
+  /// Optional pinned label for the location pill (the picked place). Null →
+  /// the pill reactively shows the device's current locality.
+  final String? locationLabel;
+
   const DiscoverMapPreview({
     super.key,
     required this.statusBarHeight,
     required this.onTap,
     this.initialZoom = 12,
     this.height = 230,
+    this.center,
+    this.locationLabel,
   });
 
   @override
   Widget build(BuildContext context) {
-    final initialLat =
-        LocationService.lat != 0.0 ? LocationService.lat : 28.6139;
-    final initialLng =
-        LocationService.lng != 0.0 ? LocationService.lng : 77.2090;
+    final target = center ??
+        LatLng(
+          LocationService.lat != 0.0 ? LocationService.lat : 28.6139,
+          LocationService.lng != 0.0 ? LocationService.lng : 77.2090,
+        );
 
     return ClipRRect(
       borderRadius:
@@ -119,7 +143,7 @@ class DiscoverMapPreview extends StatelessWidget {
                 absorbing: true,
                 child: GoogleMap(
                   initialCameraPosition: CameraPosition(
-                    target: LatLng(initialLat, initialLng),
+                    target: target,
                     zoom: initialZoom,
                   ),
                   myLocationEnabled: false,
@@ -152,7 +176,7 @@ class DiscoverMapPreview extends StatelessWidget {
                   onTap: () => Navigator.pop(context),
                 ),
                 SizedBox(width: SizeConfig.size8),
-                Expanded(child: bannerMapLocationPill()),
+                Expanded(child: bannerMapLocationPill(label: locationLabel)),
               ],
             ),
           ),

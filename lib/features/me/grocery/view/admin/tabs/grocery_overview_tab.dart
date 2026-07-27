@@ -16,10 +16,7 @@ import 'package:get/get.dart';
 /// **Overview** tab of the grocery merchant home: the profile the customer
 /// sees — joined card, live photos, description, contact/map, website, QR and
 /// the referral share banner.
-///
-/// Every section reads from the permanent [ViewBusinessDetailsController], so
-/// this tab fires no grocery API of its own.
-///
+
 /// Content-only: the host wraps it in the shared refreshable scroll view,
 /// which pads `left: 20` and nothing on the right — hence the symmetric
 /// 12-px insets below (they add to the left inset the host already applies).

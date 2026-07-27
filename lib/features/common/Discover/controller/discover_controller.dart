@@ -742,11 +742,53 @@ class DiscoverController extends GetxController {
   final FetchCache _profConCache = FetchCache();
   final FetchCache _rentalCache = FetchCache();
 
-  /// Radius (km) the earn-services search is scoped to. Wide enough that a
-  /// city-sized area is covered while still letting the backend rank by
-  /// proximity.
-  static final int _earnServiceRadiusKm = kmRadius1500;
+  /// Radius (km) the earn-services search is scoped to — tightened to a real
+  /// "near you" area (was 1500 km, which is national-scale). The v2 Book-Home-
+  /// Services flow is location-first, so a tight radius is the point.
+  static final int _earnServiceRadiusKm = kmRadius200;
 
+  // ── Earn-discover location override (v2 entry screen) ─────────────────────
+  // The entry screen lets the user pick WHERE they want a service — the device
+  // location OR a searched place. That choice scopes the earn-services search
+  // for this flow only; it deliberately does NOT mutate the global
+  // `LocationService`, so unrelated screens keep their own location. Null here
+  // means "no explicit pick" → fall back to the global fix (device location).
+  double? earnDiscoverLat;
+  double? earnDiscoverLng;
+
+  /// Human-readable label for the picked location (e.g. "Lucknow, Uttar
+  /// Pradesh"), shown in the entry field + results header pill.
+  final RxString earnDiscoverLocationLabel = ''.obs;
+
+  /// Set the location the earn-services search should scope to. Pass all-null
+  /// to clear the override and fall back to the device fix.
+  void setEarnDiscoverLocation({double? lat, double? lng, String? label}) {
+    earnDiscoverLat = lat;
+    earnDiscoverLng = lng;
+    earnDiscoverLocationLabel.value = label ?? '';
+  }
+
+  /// The lat/lng the earn search resolves to: the explicit pick when set,
+  /// otherwise the global device fix.
+  double get _earnLat => earnDiscoverLat ?? LocationService.lat;
+  double get _earnLng => earnDiscoverLng ?? LocationService.lng;
+
+  // ── Local "saved provider" toggle (favorite star on the card) ─────────────
+  // There is no saved-providers backend yet, so this is an in-memory, session-
+  // only set that just fills the star. Persisting it is a future backend task.
+  final RxSet<String> locallySavedProviderIds = <String>{}.obs;
+
+  bool isProviderLocallySaved(String? id) =>
+      id != null && locallySavedProviderIds.contains(id);
+
+  void toggleProviderLocalSave(String? id) {
+    if (id == null || id.isEmpty) return;
+    if (locallySavedProviderIds.contains(id)) {
+      locallySavedProviderIds.remove(id);
+    } else {
+      locallySavedProviderIds.add(id);
+    }
+  }
 
   /// Adds `lat` / `lng` / `radius` to an earn-services request — but only with
   /// a real fix. `LocationService` reports 0,0 before the first fix resolves
@@ -754,8 +796,8 @@ class DiscoverController extends GetxController {
   /// to the middle of the ocean and return nothing; omitting the params lets
   /// the backend fall back to its unscoped behaviour instead.
   void _addLocationParams(Map<String, dynamic> queryParams) {
-    final lat = LocationService.lat;
-    final lng = LocationService.lng;
+    final lat = _earnLat;
+    final lng = _earnLng;
     if (lat == 0 && lng == 0) return;
     queryParams[ApiKeys.lat] = lat;
     queryParams[ApiKeys.lng] = lng;
@@ -765,11 +807,12 @@ class DiscoverController extends GetxController {
   /// Includes the coarse location: the results are now radius-scoped, so a
   /// re-entry from a materially different place must refetch rather than reuse
   /// the previous area's list. Rounded to ~1 km (2 dp) so ordinary GPS jitter
-  /// doesn't invalidate the cache on every screen open.
+  /// doesn't invalidate the cache on every screen open. Uses the picked
+  /// override when set so switching location forces a fresh fetch.
   String get _earnServiceSignature =>
       'earn|${selectedEarnServiceData.value?.slugId ?? ''}'
-      '|${LocationService.lat.toStringAsFixed(2)}'
-      ',${LocationService.lng.toStringAsFixed(2)}';
+      '|${_earnLat.toStringAsFixed(2)}'
+      ',${_earnLng.toStringAsFixed(2)}';
   String get _profConSignature =>
       'profCon|${selectedProfessionalConsultantData.value?.slugId ?? ''}';
 

@@ -159,8 +159,14 @@ class _MedicalHomeScreenV2State extends State<MedicalHomeScreenV2>
   /// Products tab: Top Selling + category-with-inventory, both behind the
   /// controller's freshness guard.
   void _ensureProductsLoaded() {
+    // The business-products endpoint keys on the business document's `_id`
+    // (the store), NOT the owner's `user_id` — passing the user id returns an
+    // empty list. `widget.businessId` here is the user id (MedicalScreen passes
+    // it because the profile endpoint deliberately wants the user id), so use
+    // the global `businessId` instead — the same store id MedicalController's
+    // post-publish refresh already passes to this call.
     _medicalController.fetchMedicalProductsTabDataIfNeeded(
-      businessId: widget.businessId,
+      businessId: businessId,
     );
   }
 

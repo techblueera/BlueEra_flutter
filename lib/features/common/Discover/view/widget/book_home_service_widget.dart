@@ -1,6 +1,6 @@
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/features/common/Discover/view/self_profession_discover_screen.dart';
+import 'package:BlueEra/features/common/Discover/view/self_profession_discover_entry_screen.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_category_section.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
 import 'package:flutter/material.dart';
@@ -40,9 +40,12 @@ class _BookHomeServiceWidgetState extends State<BookHomeServiceWidget> {
           : null,
       viewAllLabel: _showAll ? AppStrings.showLess.tr : AppStrings.showMore.tr,
       onItemTap: (item) {
-        Get.to(() => SelfProfessionDiscoverScreen(
-            selfEmployedCategories: categories,
-            selectedSelfProfessionData: item));
+        // v2 is location-first: open the entry screen (map + "Where you Want?"
+        // + profession grid). The specific tile tapped just enters the flow;
+        // the user picks location and category there.
+        Get.to(() => SelfProfessionDiscoverEntryScreen(
+              selfEmployedCategories: categories,
+            ));
       },
     );
   }
