@@ -16,21 +16,32 @@ import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
 
-/// Shared "joined date + identity + cover" stack used by every business
-/// profile overview (product / food / grocery / manufacturer / …).
-///
-/// Three stacked cards: a joined-date pill, an identity card (logo avatar
-/// with an edit pin + name/rating), and a cover-banner card with its own edit
-/// button. The avatar pin edits the **logo**; the banner's button edits the
-/// **cover** — they were previously cross-wired so editing the logo replaced
-/// the cover image.
 class BusinessJoinedProfileCard extends StatelessWidget {
   final ViewBusinessDetailsController businessController;
+
+  /// Whether the cards drop their elevation shadow. Every card here shares the
+  /// same shadow, so this one flag controls all of them — pass `false` on
+  /// surfaces that already sit on a shadowed/elevated container.
+  final bool showShadow;
 
   const BusinessJoinedProfileCard({
     super.key,
     required this.businessController,
+    this.showShadow = true,
   });
+
+  /// Shared elevation shadow used by every card (joined pill, identity, cover).
+  static const List<BoxShadow> _cardShadow = [
+    BoxShadow(
+      color: Color(0x42001120),
+      blurRadius: 10,
+      offset: Offset(0, 2),
+    ),
+  ];
+
+  /// The shadow list to hand a card's `BoxDecoration`, or `null` when
+  /// [showShadow] is off (BoxDecoration treats null as "no shadow").
+  List<BoxShadow>? get _shadow => showShadow ? _cardShadow : null;
 
   @override
   Widget build(BuildContext context) {
@@ -68,13 +79,7 @@ class BusinessJoinedProfileCard extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: Colors.grey.shade200, width: 1),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x42001120),
-              blurRadius: 10,
-              offset: Offset(0, 2),
-            ),
-          ],
+          boxShadow: _shadow,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -107,13 +112,7 @@ class BusinessJoinedProfileCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x42001120),
-            blurRadius: 10,
-            offset: Offset(0, 2),
-          ),
-        ],
+        boxShadow: _shadow,
       ),
       clipBehavior: clip ? Clip.hardEdge : Clip.none,
       child: child,
@@ -129,15 +128,17 @@ class BusinessJoinedProfileCard extends StatelessWidget {
         (details?.subCategoryDetails?.name ?? details?.typeOfBusiness ?? '')
             .toString();
 
-    return Container(
-      width: Get.width,
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(
-          SizeConfig.size14,
-          SizeConfig.size14,
-          SizeConfig.size14,
-          SizeConfig.size12,
-        ),
+    // No forced width: the card is wrapped in IntrinsicWidth by the caller, so
+    // it hugs its content (name/rating) instead of stretching full width. A
+    // very long name still clamps to the available width (ellipsis) because
+    // IntrinsicWidth is bounded by the parent's constraints.
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        SizeConfig.size14,
+        SizeConfig.size14,
+        SizeConfig.size14,
+        SizeConfig.size12,
+      ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
@@ -199,7 +200,6 @@ class BusinessJoinedProfileCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
     );
   }
 

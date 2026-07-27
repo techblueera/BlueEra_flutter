@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:ui';
 
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
@@ -9,13 +8,11 @@ import 'package:BlueEra/core/constants/app_image_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
-import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/services/multipart_image_service.dart';
 import 'package:BlueEra/core/services/photo_picker_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
+import 'package:BlueEra/features/business/widgets/business_joined_profile_card.dart';
 import 'package:BlueEra/features/business/widgets/business_qrcode_widget.dart';
 import 'package:BlueEra/features/business/widgets/profile_share_banner.dart';
 import 'package:BlueEra/features/business/widgets/website_overview_card.dart';
@@ -28,7 +25,6 @@ import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:croppy/croppy.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:get/get.dart';
 
 /// **Overview** tab of the medical merchant home: the profile the customer
@@ -63,7 +59,13 @@ class _MedicalOverviewTabState extends State<MedicalOverviewTab> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildBannerSection(widget.data?.businessProfile),
+        // Joined profile card (logo + name + cover banner + edit affordances),
+        // same widget grocery's overview uses. It renders the cover, so the
+        // old standalone medical banner section is gone.
+        BusinessJoinedProfileCard(
+            businessController: _businessController,
+            showShadow: false,
+        ),
         SizedBox(height: SizeConfig.size12),
         _buildLivePhotosSection(),
         SizedBox(height: SizeConfig.size12),
@@ -71,7 +73,7 @@ class _MedicalOverviewTabState extends State<MedicalOverviewTab> {
         SizedBox(height: SizeConfig.size12),
         _buildTestimonialsSection(),
         _buildContactSection(widget.data?.businessProfile),
-        SizedBox(height: SizeConfig.size12),
+        SizedBox(height: SizeConfig.size2),
         Obx(() => Padding(
               padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
               child: WebsiteOverviewCard(
@@ -81,11 +83,13 @@ class _MedicalOverviewTabState extends State<MedicalOverviewTab> {
                     .updateBusinessProfileDetails({ApiKeys.websiteUrl: url}),
               ),
             )),
+        SizedBox(height: SizeConfig.size2),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
           child: const ProfileShareBanner(),
         ),
         // ── QR Code (mirrors the hospital overview QR card) ──
+        SizedBox(height: SizeConfig.size2),
         Obx(() {
           final details = _businessController.businessProfileDetails.value?.data;
           if (details == null) return const SizedBox.shrink();
@@ -93,152 +97,13 @@ class _MedicalOverviewTabState extends State<MedicalOverviewTab> {
             padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
             child: BusinessQrCodeWidget(
               data: details,
-              // Encode the medical deep link so scanning opens the pharmacy
-              // directly (`/app/medical/<ownerUserId>` →
-              // MedicalPharmacyDetailScreen) instead of the generic profile
-              // share-preview. Mirrors the hospital/grocery QR overrides.
-              deepLinkOverride:
-                  medicalBusinessDeepLink(medicalBusinessId: details.userId),
+              deepLinkOverride: medicalBusinessDeepLink(medicalBusinessId: details.userId),
             ),
           );
         }),
         SizedBox(height: SizeConfig.size12),
       ],
     );
-  }
-
-  Widget _buildBannerSection(BusinessProfile? profile) {
-    return Padding(
-      padding: EdgeInsets.only(
-          left: SizeConfig.size12,
-          right: SizeConfig.size12,
-          top: SizeConfig.size12),
-      child: Obx(() {
-        final cover = _businessController.coverImage?.value ?? '';
-        final hasBanner = cover.isNotEmpty;
-
-        return GestureDetector(
-          onTap: () => _onEditCover(profile),
-          child: AspectRatio(
-            aspectRatio: 16 / 9,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-              ),
-              clipBehavior: Clip.hardEdge,
-              child: hasBanner
-                  ? _filledBannerContent(cover)
-                  : _emptyBannerContent(),
-            ),
-          ),
-        );
-      }),
-    );
-  }
-
-  Widget _emptyBannerContent() {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.red.shade400, width: 2),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            right: SizeConfig.size12,
-            bottom: SizeConfig.size12,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.photo_camera_outlined,
-                    size: 20, color: AppColors.primaryColor),
-                SizedBox(width: SizeConfig.size6),
-                CustomText(AppStrings.otherAddYourBannerHere.tr,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primaryColor),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _filledBannerContent(String url) {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        CachedNetworkImage(
-          imageUrl: url,
-          fit: BoxFit.cover,
-          placeholder: (_, __) => Container(color: Colors.grey.shade100),
-          errorWidget: (_, __, ___) => Container(color: Colors.grey.shade200),
-        ),
-        Positioned(
-          right: SizeConfig.size10,
-          bottom: SizeConfig.size10,
-          child: Container(
-            padding: EdgeInsets.symmetric(
-                horizontal: SizeConfig.size12, vertical: SizeConfig.size6),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: const [
-                BoxShadow(
-                    color: Colors.black26, blurRadius: 4, offset: Offset(0, 1)),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.edit_outlined,
-                    size: 16, color: AppColors.primaryColor),
-                SizedBox(width: SizeConfig.size4),
-                CustomText(AppStrings.edit,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primaryColor),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Future<void> _onEditCover(BusinessProfile? profile) async {
-    try {
-      final newPath = await PhotoPickerService.pickSinglePhoto(
-        context,
-        AppStrings.editCoverPicture.tr,
-        cropAspectRatio: CropAspectRatio(width: 16, height: 9),
-      );
-      if (newPath == null || newPath.isEmpty) return;
-
-      _businessController.coverImage?.value = newPath;
-      final file = File(newPath);
-      final compressed = await FlutterImageCompress.compressAndGetFile(
-        file.absolute.path,
-        "${file.path}_compressed.jpg",
-        quality: 75,
-      );
-      final dataImage =
-          await multiPartImage(imagePath: compressed?.path ?? newPath);
-      if (dataImage == null) {
-        commonSnackBar(message: AppStrings.imageProcessingFailed.tr);
-        return;
-      }
-      final reqProfile = {
-        ApiKeys.businessId: businessId,
-        ApiKeys.business_name: profile?.businessName,
-        "coverPicture": dataImage,
-      };
-      await _businessController.updateBusinessProfileDetails(reqProfile);
-    } catch (e) {
-      commonSnackBar(message: AppStrings.updatePictureFailed.tr);
-    }
   }
 
   Widget _buildLivePhotosSection() {
@@ -606,9 +471,7 @@ class _MedicalOverviewTabState extends State<MedicalOverviewTab> {
     );
   }
 
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // CONTACT US
-  // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   Widget _buildContactSection(BusinessProfile? profile) {
     if (profile == null) return const SizedBox.shrink();
     final loc = profile.businessLocation;

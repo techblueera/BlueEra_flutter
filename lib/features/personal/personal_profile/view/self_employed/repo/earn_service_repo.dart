@@ -1,11 +1,27 @@
 import 'package:BlueEra/core/api/apiService/api_base_helper.dart';
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/api/apiService/base_service.dart';
 import 'package:BlueEra/core/api/apiService/response_model.dart';
+import 'package:BlueEra/core/services/location/location_service.dart';
 
 class EarnServiceRepo extends BaseService {
 
   /// Earn Services
   Future<ResponseModel> addServiceRepo({required Map<String, dynamic> params}) async {
+    // Stamp the provider's current location on every create so the service is
+    // discoverable by nearby search. Every caller funnels through here, so this
+    // is the single place it needs to happen. `location` is GeoJSON — its
+    // coordinates are ordered [long, lat]; the flat `lat`/`long` fields are kept
+    // alongside it because the backend reads both.
+    final double lat = LocationService.lat;
+    final double long = LocationService.lng;
+    params[ApiKeys.lat] = lat;
+    params[ApiKeys.long] = long;
+    params[ApiKeys.location] = {
+      ApiKeys.type: 'Point',
+      ApiKeys.coordinates: [long, lat],
+    };
+
     final response = await ApiBaseHelper().postHTTP(
       earnServices,
       params: params,

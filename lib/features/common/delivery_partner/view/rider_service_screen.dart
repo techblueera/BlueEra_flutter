@@ -21,8 +21,8 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/features/business/widgets/profile_share_banner.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 // Store "Manage your store" CTA + Inquiry chat list removed with the Store /
-// Inquiry tabs — imports kept commented for easy restore.
-// import 'package:BlueEra/widgets/order_actions_carousel.dart';
+// Inquiry tabs — Inquiry import kept commented for easy restore.
+import 'package:BlueEra/widgets/order_actions_carousel.dart';
 // import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
 import 'package:BlueEra/features/common/Discover/view/go_live_permission_screen.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/widget/me_tab_back_handler_mixin.dart';
@@ -315,11 +315,24 @@ class _RiderServiceScreenState extends State<RiderServiceScreen>
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // Actions deck pinned to the top of the Order tab (contribution,
+            // bank/UPI, profile, refer & earn), above the order/preference
+            // content. Catalog slide routes to the Overview tab since riders
+            // have no product/service catalog.
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
+              child: OrderActionsCarousel(
+                onAddCatalog: () => _tabController.animateTo(1),
+                catalogIcon: Icons.person_outline_rounded,
+                catalogTitle: 'Complete Profile',
+                catalogSubtitle: 'Manage your details',
+              ),
+            ),
+            SizedBox(height: SizeConfig.size12),
             // _buildOrderSubTabs(hasActiveOrders),
             // SizedBox(height: SizeConfig.size12),
             _buildPreferenceOrOrders(hasActiveOrders),
             // Inquiry sub-tab content removed:
-            // OrderActionsCarousel(onAddCatalog: () => _tabController.animateTo(2), …)
             // BusinessChatsList(isForwardUI: false, excludeSenderId: userId, …)
           ],
         );

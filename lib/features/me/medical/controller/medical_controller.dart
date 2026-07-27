@@ -979,6 +979,9 @@ class MedicalController extends GetxController {
           medicalNestedCategoryList.value = (responseModel.response!.data as List)
               .map((json) => MedicalNestedCategoryModel.fromJson(json))
               .toList();
+          // Level-0 categories the snap-search grid renders (all of them).
+          log('level-0 categories (${medicalNestedCategoryList.length}): '
+              '${medicalNestedCategoryList.map((e) => '${e.name} [${e.key}] level=${e.level}').toList()}');
           await HiveServices().saveMedicalNestedCategories(medicalNestedCategoryList);
         }
       } else {

@@ -9,10 +9,10 @@ import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
+import 'package:BlueEra/features/me/medical/constants/medical_category_assets.dart';
 import 'package:BlueEra/features/me/medical/controller/medical_controller.dart';
 import 'package:BlueEra/features/me/medical/model/medical_product_model.dart';
 import 'package:BlueEra/features/me/medical/model/snap_search_result_model.dart';
-import 'package:BlueEra/features/me/medical/model/medical_nested_category_model.dart';
 import 'package:BlueEra/features/me/medical/view/medical_level2_category_screen.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
@@ -248,22 +248,24 @@ class _AddMedicalSnapSearchScreenState extends State<AddMedicalSnapSearchScreen>
     );
   }
 
-  static const List<Map<String, String>> _staticCategories = [
-    {'title': AppStrings.medicalAyurvedaNutrition, 'key': 'AYURVEDA_NUTRITION', 'image': 'assets/category/medical/AyurvedaNutrition.png'},
-    {'title': AppStrings.medicalHomePatientCare, 'key': 'HOME_PATIENT_CARE', 'image': 'assets/category/medical/Home_Patient_Care.png'},
-    {'title': AppStrings.medicalDevicesCat, 'key': 'MEDICAL_DEVICES', 'image': 'assets/category/medical/Medical_Devices.png'},
-    {'title': AppStrings.medicalOtcMedicines, 'key': 'OTC_MEDICINES', 'image': 'assets/category/medical/OTC_Medicines.png'},
-    {'title': AppStrings.medicalPersonalBabyCare, 'key': 'PERSONAL_BABY_CARE', 'image': 'assets/category/medical/Personal_Baby_Care.png'},
-    {'title': AppStrings.medicalWoundCareFirstAid, 'key': 'WOUND_CARE_FIRST_AID', 'image': 'assets/category/medical/Wound_Care_First_Aid.png'},
-  ];
-
   Widget _buildCategoryGrid() {
     return Obx(() {
       if (controller.medicalNestedCategoryLoading.value) {
         return const Center(child: CircularProgressIndicator());
       }
 
+      // Level-0 categories straight from the API — no longer a hardcoded list.
+      // Each one's `children` are its level-1 categories, which is what the
+      // level-2 screen renders when a tile is tapped.
       final categories = controller.medicalNestedCategoryList;
+      if (categories.isEmpty) {
+        return CustomFormCard(
+          padding: const EdgeInsets.all(12),
+          child: EmptyStateWidget(
+            message: AppStrings.medicalNoProductsIdentified.tr,
+          ),
+        );
+      }
       return CustomFormCard(
         padding: const EdgeInsets.all(12),
         child: Column(
@@ -284,28 +286,19 @@ class _AddMedicalSnapSearchScreenState extends State<AddMedicalSnapSearchScreen>
               crossAxisSpacing: 8,
               mainAxisSpacing: 8,
               padding: EdgeInsets.zero,
-              itemCount: _staticCategories.length,
+              itemCount: categories.length,
               itemBuilder: (context, index) {
-                final cat = _staticCategories[index];
+                final cat = categories[index];
+                final children = cat.children ?? [];
                 return _buildCategoryItem(
-                  title: cat['title']!,
-                  imagePath: cat['image']!,
+                  title: cat.name ?? '',
+                  imagePath: kMedicalCategoryImages[cat.key ?? ''] ?? '',
                   onTap: () {
-                    logs("cat['key']!== ${cat['key']!}");
-                    final matched = _findApiCategory(
-                      cat['key']!,
-                      categories,
-                    );
-                    logs("matched=== ${matched}");
-                    if (matched == null) {
-                      return;
-                    }
-                    final children = matched.children ?? [];
                     if (children.isEmpty) return;
                     Get.to(() => MedicalLevel2CategoryScreen(
-                      title: cat['title']!.tr.replaceAll('\n', ' '),
-                      level2Categories: children,
-                    ));
+                          title: (cat.name ?? '').replaceAll('\n', ' '),
+                          level2Categories: children,
+                        ));
                   },
                 );
               },
@@ -363,24 +356,6 @@ class _AddMedicalSnapSearchScreenState extends State<AddMedicalSnapSearchScreen>
         ),
       ),
     );
-  }
-
-  MedicalNestedCategoryModel? _findApiCategory(
-    String staticKey,
-    List<MedicalNestedCategoryModel> categories,
-  ) {
-    final normalizedKey = staticKey.toUpperCase().replaceAll(' ', '_');
-    for (final level0 in categories) {
-      if ((level0.key ?? '').toUpperCase().replaceAll(' ', '_') == normalizedKey) {
-        return level0;
-      }
-      for (final level1 in (level0.children ?? <MedicalNestedCategoryModel>[])) {
-        if ((level1.key ?? '').toUpperCase().replaceAll(' ', '_') == normalizedKey) {
-          return level1;
-        }
-      }
-    }
-    return null;
   }
 
   Widget _buildProductList() {
