@@ -28,6 +28,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../../../core/constants/common_methods.dart';
+import '../../../../../core/constants/shimmer_utils.dart';
+import '../../../../../widgets/visit_business_common_header.dart';
+import '../../../../../widgets/visit_business_stats_card.dart';
 import '../../../../business/widgets/business_contact_map_card.dart';
 
 class FinanceDetailScreen extends StatefulWidget {
@@ -165,7 +169,39 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // ─── Header ───
-              _buildHeader(data),
+              Obx(() {
+                // Subscribe to silent profile refreshes — bumps on every
+                // successful fetch so this Obx rebuilds even when the
+                // loader is skipped.
+                viewBusinessDetailsController.profileVersion.value;
+                if (viewBusinessDetailsController.isProfileLoading.value) {
+                  return buildBusinessHeaderSkeleton();
+                }
+                final details = viewBusinessDetailsController
+                    .visitedBusinessProfileDetails?.data;
+                return Column(
+                  children: [
+                    VisitBusinessCommonHeader(
+                      details: details,
+                      onRated: () =>
+                          viewBusinessDetailsController.viewBusinessProfileById(
+                        data.userId ?? '',
+                        silent: true,
+                      ),
+                      onFollowChanged: () =>
+                          viewBusinessDetailsController.viewBusinessProfileById(
+                        data.userId ?? '',
+                        silent: true,
+                      ),
+                      shareLink: serviceDeepLinkBusiness(
+                        id: details?.userId,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    VisitBusinessStatsCard(details: details),
+                  ],
+                );
+              }),
               SizedBox(height: SizeConfig.size10),
 
               // ─── Organisation ───

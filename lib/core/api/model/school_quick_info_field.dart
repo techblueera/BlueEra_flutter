@@ -61,12 +61,14 @@ class QuickInfoField {
 const Map<String, List<String>> kQuickInfoFieldsByCategory = {
   'School Education': [
     'classRange',
+    'studentTeacherRatio',
     'board',
     'mediumOfInstruction',
     'numberOfStudents',
   ],
   'Coaching/Institute': [
     'classRange',
+    'studentTeacherRatio',
     'board',
     'mediumOfInstruction',
     'numberOfStudents',

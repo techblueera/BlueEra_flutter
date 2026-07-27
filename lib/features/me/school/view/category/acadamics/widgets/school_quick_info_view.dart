@@ -82,7 +82,7 @@ class SchoolQuickInfoCard extends StatelessWidget {
   /// generic label so the card doesn't render "null Highlights".
   String _headingFor(String? category) {
     if (category == null || category.trim().isEmpty) return 'Highlights';
-    return '$category Highlights';
+    return 'Highlights';
   }
 
   static bool _hasValue(dynamic v) {
@@ -136,19 +136,49 @@ class _FilledChipsGrid extends StatelessWidget {
 
   /// Best-effort icon per known field key. Everything unknown falls back to
   /// the generic `outlinedDocument` glyph so new backend fields render
-  /// without a frontend change.
+  /// without a frontend change. Keys mirror
+  /// `kQuickInfoFieldsByCategory` (school_quick_info_field.dart) so
+  /// every field in the six Siksha categories has a matching glyph.
   static String _iconFor(String key) {
     switch (key) {
+      // School Education / Coaching-Institute (shared)
       case 'classRange':
         return AppIconAssets.classIcon;
       case 'board':
-        return AppIconAssets.outlinedDocument;
+        return AppIconAssets.standardIcon;
       case 'mediumOfInstruction':
         return AppIconAssets.mediumIcon;
       case 'numberOfStudents':
         return AppIconAssets.multiPersonsIcon;
+
+      // College / University
       case 'studentTeacherRatio':
         return AppIconAssets.personProfileIcon;
+      case 'coursesOffered':
+        // No dedicated glyph — reuse the academic-calendar icon which
+        // is already used for course listings elsewhere.
+        return AppIconAssets.academic_calendar;
+      case 'affiliatedUniversity':
+        return AppIconAssets.affiliatedUniversityIcon;
+      case 'streams':
+        return AppIconAssets.streamsIcon;
+
+      // Sports & Hobby
+      case 'sportsOffered':
+        return AppIconAssets.sportsOfferedIcon;
+      case 'sportsFacilities':
+        return AppIconAssets.sportsFacilitiesIcon;
+      case 'achievements':
+        return AppIconAssets.achievementsIcon;
+
+      // Professional Learn / Skill Training (shared)
+      case 'skillPrograms':
+        return AppIconAssets.skillsIcon;
+      case 'industryPartnerships':
+        return AppIconAssets.industryPartnershipsIcon;
+      case 'certifications':
+        return AppIconAssets.certificationsIcon;
+
       default:
         return AppIconAssets.outlinedDocument;
     }
@@ -189,6 +219,8 @@ class _InfoChip extends StatelessWidget {
           LocalAssets(
             imagePath: icon,
             imgColor: AppColors.primaryColor,
+            height: 20,
+            width: 20,
           ),
           SizedBox(height: SizeConfig.size6),
           CustomText(
