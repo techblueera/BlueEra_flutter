@@ -165,7 +165,8 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
                       textEditController: controller.vehicleRegistrationNumberController,
                       validator: ValidationMethod.validateDeliveryVehicleNumber,
                       isCapitalize: true,
-                      maxLength: 12,
+                      maxLength: 10,
+                      regularExpression: r'[A-Za-z0-9]',
                     ),
                     SizedBox(height: SizeConfig.paddingM),
 
@@ -179,7 +180,7 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
                       isValidate: true,
                     ),
                     SizedBox(height: SizeConfig.paddingM),
-        
+
                     /// terms & conditions
                     SizedBox(
                       width: double.infinity,
@@ -207,7 +208,7 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
                             ),
                           )),
                           SizedBox(width: SizeConfig.size8),
-        
+
                           /// ✅ Terms & Privacy Rich Text
                           Expanded(
                             child: RichText(
@@ -250,7 +251,7 @@ class _VehicleInformationRidingScreenState extends State<VehicleInformationRidin
                         ],
                       ),
                     ),
-        
+
                     SizedBox(height: SizeConfig.paddingL),
                     CustomBtn(
                       title: controller.isRiderVehicleInformationLoading.value

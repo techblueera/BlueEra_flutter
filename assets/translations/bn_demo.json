@@ -3982,6 +3982,7 @@
   "emergency_fill_full_name": "অনুগ্রহ করে পুরো নাম পূরণ করুন",
   "emergency_fill_mobile": "অনুগ্রহ করে মোবাইল নম্বর পূরণ করুন",
   "emergency_fill_vehicle": "অনুগ্রহ করে বাহনের বিবরণ পূরণ করুন",
+  "emergency_invalid_vehicle": "সঠিক বাহন নম্বর লিখুন (যেমন MH12AB1234)",
   "emergency_full_name_hint": "আপনার পুরো নাম লিখুন",
   "emergency_known_allergies": "পরিচিত অ্যালার্জি",
   "emergency_known_disease": "পরিচিত রোগ",

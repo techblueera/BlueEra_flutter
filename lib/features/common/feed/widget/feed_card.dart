@@ -119,6 +119,7 @@ class _FeedCardState extends State<FeedCard> {
   Widget buildPostWidget() {
     FeedType? feedType = FeedType.fromValue(_post?.type?.toUpperCase());
     logs("widget.postFilteredType= ${widget.postFilteredType}");
+    logs("feedType ${feedType}");
     switch (feedType) {
       // `image_post` is a photo-first post that shares message_post's exact
       // schema (docs/backend/FRONTEND_FEED_INTEGRATION.md §4.2), so it renders

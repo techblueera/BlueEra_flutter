@@ -3995,6 +3995,7 @@
   "emergency_fill_full_name": "Please fill full name",
   "emergency_fill_mobile": "Please fill mobile number",
   "emergency_fill_vehicle": "Please fill vehicle details",
+  "emergency_invalid_vehicle": "Enter a valid vehicle number (e.g. MH12AB1234)",
   "emergency_full_name_hint": "Enter your full name",
   "emergency_known_allergies": "Known Allergies",
   "emergency_known_disease": "Known Disease",

@@ -376,12 +376,11 @@ class ValidationMethod {
       return 'Vehicle number is required.';
     }
 
-    final regex = RegExp(r'^(?:[A-Z]{2}[- ]?\d{1,2}[- ]?[A-Z]{1,3}[- ]?\d{4}|\d{2}[- ]?BH[- ]?\d{4}[- ]?[A-Z]{1,2})$');
-    // final regex = RegExp(r'^[A-Z]{2}[A-Z0-9]{8,10}$');
+    /// [State 2 letters][District 1-2 digits][Series 1-2 letters][Number 1-4 digits]
+    final regex = RegExp(r'^[A-Za-z]{2}[0-9]{1,2}[A-Za-z]{1,2}[0-9]{1,4}$');
 
-    if (!regex.hasMatch(value.trim().toUpperCase())) {
-      return 'Please enter a valid vehicle number';
-      return 'Please enter a valid vehicle number (2 letters followed by 8-10 digits).';
+    if (!regex.hasMatch(value.trim())) {
+      return 'Please enter a valid vehicle number (e.g. MH12AB1234)';
     }
 
     return null;

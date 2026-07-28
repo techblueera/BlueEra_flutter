@@ -377,6 +377,9 @@ class VideoData {
   final bool? acceptBookingsOrEnquiries;
   final bool? isBrandPromotion;
   final String? brandPromotionLink;
+
+  /// Creator-declared "this video was made with AI" disclosure.
+  final bool? isAiGenerated;
   final Stats? stats;
   final String? createdAt;
   final String? updatedAt;
@@ -411,6 +414,7 @@ class VideoData {
     this.acceptBookingsOrEnquiries,
     this.isBrandPromotion,
     this.brandPromotionLink,
+    this.isAiGenerated,
     this.stats,
     this.createdAt,
     this.updatedAt,
@@ -458,6 +462,7 @@ class VideoData {
       acceptBookingsOrEnquiries: json['acceptBookingsOrEnquiries'],
       isBrandPromotion: json['isBrandPromotion'],
       brandPromotionLink: json['brandPromotionLink'],
+      isAiGenerated: json['isAiGenerated'],
       stats: json['stats'] != null ? Stats.fromJson(json['stats']) : null,
       createdAt: json['createdAt'],
       updatedAt: json['updatedAt'],
@@ -494,6 +499,7 @@ class VideoData {
         'acceptBookingsOrEnquiries': acceptBookingsOrEnquiries,
         'isBrandPromotion': isBrandPromotion,
         'brandPromotionLink': brandPromotionLink,
+        'isAiGenerated': isAiGenerated,
         'stats': stats?.toJson(),
         'createdAt': createdAt,
         'updatedAt': updatedAt,
@@ -529,6 +535,7 @@ class VideoData {
     bool? acceptBookingsOrEnquiries,
     bool? isBrandPromotion,
     String? brandPromotionLink,
+    bool? isAiGenerated,
     Stats? stats,
     String? createdAt,
     String? updatedAt,
@@ -564,6 +571,7 @@ class VideoData {
           acceptBookingsOrEnquiries ?? this.acceptBookingsOrEnquiries,
       isBrandPromotion: isBrandPromotion ?? this.isBrandPromotion,
       brandPromotionLink: brandPromotionLink ?? this.brandPromotionLink,
+      isAiGenerated: isAiGenerated ?? this.isAiGenerated,
       stats: stats ?? this.stats,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -931,7 +939,12 @@ class Author {
         accountType: json['account_type'] as String?,
         username: json['username'] as String?,
         profileImage: json['profile_image'] as String?,
-        name: json['name'] as String? ?? '',
+        // Business accounts carry their display name under business_name and
+        // leave `name` null, which used to land here as '' and render a blank
+        // author on the reel player.
+        name: (json['name'] ?? json['business_name'] ?? json['businessName'])
+                as String? ??
+            '',
         designation: json['designation'] as String?,
         isVerified: json['isVerified'] as bool?,
         followersCount: json['followersCount'] as int?,
@@ -1300,4 +1313,55 @@ class Pagination {
       seed: seed ?? this.seed,
     );
   }
+}
+
+/// Identity of whoever posted a reel, resolved the same way everywhere it is
+/// displayed.
+///
+/// A reel is owned either by a channel or by an individual/business author, and
+/// **either side can arrive with fields missing** — a channel row with no
+/// `name`, an author whose `name` is null because the account is a business, or
+/// a feed item built client-side that only carried a handle. The players used
+/// to pick one side and `?? ''` it, so any such gap rendered as a blank name.
+///
+/// These walk the whole chain instead: preferred side first, then the other
+/// side, then either handle. The result is empty only when the payload
+/// genuinely carries no identity at all.
+extension ShortFeedItemIdentity on ShortFeedItem {
+  bool get _hasChannel => (channel?.id?.trim().isNotEmpty ?? false);
+
+  /// Display name — falls back to the uploader's username rather than going
+  /// blank, so a reel always names someone.
+  String get displayName => _firstNonEmpty([
+        if (_hasChannel) channel?.name,
+        author?.name,
+        channel?.name,
+        author?.username,
+        channel?.username,
+      ]);
+
+  /// The `@handle` shown under the name. Empty when there is none to show.
+  String get displayHandle => _firstNonEmpty([
+        if (_hasChannel) channel?.username,
+        author?.username,
+        channel?.username,
+      ]);
+
+  String get displayAvatar => _firstNonEmpty([
+        if (_hasChannel) channel?.logoUrl,
+        author?.profileImage,
+        channel?.logoUrl,
+      ]);
+
+  bool get displayIsVerified =>
+      (_hasChannel ? channel?.isVerified : author?.isVerified) ?? false;
+}
+
+/// First value that is non-null and non-blank after trimming, else `''`.
+String _firstNonEmpty(List<String?> values) {
+  for (final v in values) {
+    final t = v?.trim() ?? '';
+    if (t.isNotEmpty) return t;
+  }
+  return '';
 }

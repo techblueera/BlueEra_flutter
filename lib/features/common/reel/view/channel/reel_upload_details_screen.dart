@@ -76,6 +76,10 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
   bool _acceptBookings = false;
   bool _isBrandPromotion = false;
 
+  /// Creator-declared AI disclosure. Applies to both long videos and shorts,
+  /// so unlike the message-post flow there is nothing to gate it behind.
+  bool _isAiGenerated = false;
+
   final _formKey = GlobalKey<FormState>();
   final reelUploadDetailsController = Get.put<ReelUploadDetailsController>(ReelUploadDetailsController());
   Map<String, String>? tagUsers;
@@ -182,6 +186,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
     _acceptBookings = VideoFeedItemMetaData.video?.acceptBookingsOrEnquiries ?? false;
     _isBrandPromotion = VideoFeedItemMetaData.video?.isBrandPromotion ?? false;
     _brandPromotionLink.text = VideoFeedItemMetaData.video?.brandPromotionLink ?? '';
+    _isAiGenerated = VideoFeedItemMetaData.video?.isAiGenerated ?? false;
   }
 
   @override
@@ -547,6 +552,34 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
                           style: TextStyle(
                             fontSize: SizeConfig.medium,
                             color: AppColors.black,
+                          ),
+                        ),
+                        thumbColor: WidgetStateProperty.all(Colors.white),
+                        inactiveTrackColor: AppColors.greyE6,
+                      ),
+
+                      /// AI disclosure — applies to both long videos and shorts.
+                      SwitchListTile(
+                        visualDensity: VisualDensity(vertical: -2),
+                        contentPadding: EdgeInsets.zero,
+                        value: _isAiGenerated,
+                        onChanged: (value) {
+                          setState(() {
+                            _isAiGenerated = value;
+                          });
+                        },
+                        title: Text(
+                          AppStrings.isVideoAiGenerated.tr,
+                          style: TextStyle(
+                            fontSize: SizeConfig.medium,
+                            color: AppColors.black,
+                          ),
+                        ),
+                        subtitle: Text(
+                          AppStrings.isVideoAiGeneratedHint.tr,
+                          style: TextStyle(
+                            fontSize: SizeConfig.small,
+                            color: AppColors.grey83,
                           ),
                         ),
                         thumbColor: WidgetStateProperty.all(Colors.white),
@@ -1338,6 +1371,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
           ApiKeys.allowComments: _showComments,
           ApiKeys.acceptBookingsOrEnquiries: _acceptBookings,
           ApiKeys.isBrandPromotion: _isBrandPromotion,
+          ApiKeys.is_ai_generated: _isAiGenerated,
         };
 
         if (reelUploadDetailsController.video == Video.video) {
@@ -1470,6 +1504,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
         ApiKeys.allowComments: _showComments,
         ApiKeys.acceptBookingsOrEnquiries: _acceptBookings,
         ApiKeys.isBrandPromotion: _isBrandPromotion,
+        ApiKeys.is_ai_generated: _isAiGenerated,
       };
       if (_isBrandPromotion) {
         if (_brandPromotionLink.text.isNotEmpty)
@@ -1498,6 +1533,7 @@ class _ReelUploadDetailsScreenState extends State<ReelUploadDetailsScreen> {
         ApiKeys.allowComments: _showComments,
         ApiKeys.acceptBookingsOrEnquiries: _acceptBookings,
         ApiKeys.isBrandPromotion: _isBrandPromotion,
+        ApiKeys.is_ai_generated: _isAiGenerated,
       };
       if (_isBrandPromotion) {
         if (_brandPromotionLink.text.isNotEmpty)

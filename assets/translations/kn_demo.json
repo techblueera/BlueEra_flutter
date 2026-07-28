@@ -4151,6 +4151,7 @@
   "emergency_fill_full_name": "ದಯವಿಟ್ಟು ಪೂರ್ಣ ಹೆಸರು ಭರ್ತಿ ಮಾಡಿ",
   "emergency_fill_mobile": "ದಯವಿಟ್ಟು ಮೊಬೈಲ್ ಸಂಖ್ಯೆ ಭರ್ತಿ ಮಾಡಿ",
   "emergency_fill_vehicle": "ದಯವಿಟ್ಟು ವಾಹನ ವಿವರಗಳನ್ನು ಭರ್ತಿ ಮಾಡಿ",
+  "emergency_invalid_vehicle": "ಮಾನ್ಯವಾದ ವಾಹನ ಸಂಖ್ಯೆ ನಮೂದಿಸಿ (ಉದಾ. MH12AB1234)",
   "emergency_full_name_hint": "ನಿಮ್ಮ ಪೂರ್ಣ ಹೆಸರು ನಮೂದಿಸಿ",
   "emergency_known_allergies": "ತಿಳಿದಿರುವ ಅಲರ್ಜಿಗಳು",
   "emergency_known_disease": "ತಿಳಿದಿರುವ ರೋಗ",

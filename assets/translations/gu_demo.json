@@ -3991,6 +3991,7 @@
   "emergency_fill_full_name": "કૃપા કરી પૂરું નામ ભરો",
   "emergency_fill_mobile": "કૃપા કરી મોબાઇલ નંબર ભરો",
   "emergency_fill_vehicle": "કૃપા કરી વાહન વિગતો ભરો",
+  "emergency_invalid_vehicle": "માન્ય વાહન નંબર દાખલ કરો (દા.ત. MH12AB1234)",
   "emergency_full_name_hint": "તમારું પૂરું નામ દાખલ કરો",
   "emergency_known_allergies": "જાણીતી એલર્જી",
   "emergency_known_disease": "જાણીતો રોગ",

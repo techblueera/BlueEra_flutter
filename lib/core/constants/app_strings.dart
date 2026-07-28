@@ -1081,6 +1081,8 @@ class AppStrings {
   static const titleOfPost = "titleOfPost";
   static const natureOfPost = "natureOfPost";
   static const selectNatureOfPost = "selectNatureOfPost";
+  static const isVideoAiGenerated = "isVideoAiGenerated";
+  static const isVideoAiGeneratedHint = "isVideoAiGeneratedHint";
   static const exampleNature = "exampleNature";
   static const addLinkTitle = "addLinkTitle";
   static const referenceLink = "referenceLink";
@@ -4377,6 +4379,7 @@ class AppStrings {
   static const String emergencyFillMobile = "emergency_fill_mobile";
   static const String emergencyFillAlternate = "emergency_fill_alternate";
   static const String emergencyFillVehicle = "emergency_fill_vehicle";
+  static const String emergencyInvalidVehicle = "emergency_invalid_vehicle";
   static const String emergencySavedBasicInfo = "emergency_saved_basic_info";
   static const String emergencySavedMedicalInfo = "emergency_saved_medical_info";
   static const String emergencySavedContact = "emergency_saved_contact";

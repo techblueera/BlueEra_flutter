@@ -13,6 +13,7 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/chat/view/add_symbol/add_symbol_screen.dart';
 import 'package:BlueEra/features/common/auth/controller/auth_controller.dart';
+import 'package:BlueEra/features/common/feed/widget/feed_author_header_widget.dart';
 import 'package:BlueEra/features/common/jobs/controller/applied_job_controller.dart';
 import 'package:BlueEra/features/journey/repo/travel_repo.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/profile_settings_new_screen.dart';
@@ -313,7 +314,9 @@ class CommonBackAppBar extends StatelessWidget implements PreferredSizeWidget {
                         if (isGuestUser()) {
                           createProfileScreen();
                         } else if (isIndividualUser()) {
-                          Get.to(() => PersonalProfileSetupNewScreen());
+                          openMeOverview();
+
+                          // Get.to(() => PersonalProfileSetupNewScreen());
                         } else if (isBusinessUser()) {
                           navigatePushTo(context, BusinessOwnProfileScreen());
                         }

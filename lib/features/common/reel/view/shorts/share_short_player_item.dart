@@ -14,6 +14,7 @@ import 'package:BlueEra/features/common/comment/view/comment_bottom_sheet.dart';
 import 'package:BlueEra/features/common/feed/controller/full_screen_short_controller.dart';
 import 'package:BlueEra/features/common/feed/controller/shorts_controller.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
+import 'package:BlueEra/features/common/feed/widget/feed_author_header_widget.dart';
 import 'package:BlueEra/features/common/reel/widget/reels_shorts_popup_menu.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/personal_profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
@@ -34,7 +35,7 @@ class ShareShortPlayerItem extends StatefulWidget {
   final bool autoPlay;
   final bool shouldPreload;
   final VoidCallback onTapOption;
-   
+
 
   const ShareShortPlayerItem({
     super.key,
@@ -42,7 +43,7 @@ class ShareShortPlayerItem extends StatefulWidget {
     required this.autoPlay,
     this.shouldPreload = false,
     required this.onTapOption,
-  
+
   });
 
   @override
@@ -81,11 +82,11 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
 
   Future<void> _fetchVideoDataAndSetup() async {
     try {
- 
+
         fullScreenShortController.videoItem = widget.videoItem;
         getAndSetData();
         _setupVideoAfterFetch();
-      
+
     } catch (e) {
       if (mounted && !_isDisposed) {
         setState(() => _hasError = true);
@@ -98,7 +99,7 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
       if (!_isDisposed) {
         // For shared videos, we don't need to sync with ShortsController lists
         // since they're not part of any feed
-        
+
         // // Sync initial state from ShortsController lists to ensure consistency
         // final shortsController = Get.find<ShortsController>();
         // final videoId = fullScreenShortController.videoItem?.video?.id ?? '0';
@@ -407,16 +408,13 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
 
   void getAndSetData() {
     if (fullScreenShortController.videoItem == null) return;
-    
-    if (fullScreenShortController.videoItem?.channel?.id != null) {
-      profileImage = fullScreenShortController.videoItem?.channel?.logoUrl ?? '';
-      name = fullScreenShortController.videoItem?.channel?.name ?? '';
-      designation = fullScreenShortController.videoItem?.channel?.username ?? '';
-    } else {
-      profileImage = fullScreenShortController.videoItem?.author?.profileImage ?? '';
-      name = fullScreenShortController.videoItem?.author?.name ?? '';
-      designation = fullScreenShortController.videoItem?.author?.username ?? '';
-    }
+
+    // Same fall-through resolution as ShortPlayerItem — a channel with no name
+    // (or an author with no name) must still show who posted the reel.
+    final item = fullScreenShortController.videoItem!;
+    profileImage = item.displayAvatar;
+    name = item.displayName;
+    designation = item.displayHandle;
     isShortSavedInDb = HiveServices()
         .isVideoSaved(fullScreenShortController.videoItem?.videoId ?? '');
   }
@@ -857,13 +855,18 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
                   fontWeight: FontWeight.w700,
                   color: AppColors.white,
                 ),
-                SizedBox(height: SizeConfig.size1),
-                CustomText(
-                  "@${designation}",
-                  fontSize: SizeConfig.small,
-                  color: AppColors.white,
-                  fontWeight: FontWeight.w600,
-                ),
+                // Hidden when there is no handle, or when the name already fell
+                // back to it — a bare "@" reads as broken.
+                if (designation.isNotEmpty &&
+                    designation.toLowerCase() != name.toLowerCase()) ...[
+                  SizedBox(height: SizeConfig.size1),
+                  CustomText(
+                    "@$designation",
+                    fontSize: SizeConfig.small,
+                    color: AppColors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ],
               ],
             ),
           ),
@@ -890,7 +893,9 @@ class ShareShortPlayerItemState extends State<ShareShortPlayerItem>
               ?.toUpperCase() ==
           AppConstants.individual) {
         if (fullScreenShortController.videoItem?.author?.id == userId) {
-          navigatePushTo(context, PersonalProfileSetupNewScreen());
+          openMeOverview();
+
+          // navigatePushTo(context, PersonalProfileSetupNewScreen());
         } else {
           Get.to(() => NewVisitProfileScreen(
               authorId: fullScreenShortController.videoItem?.author?.id ?? '', screenFromName: AppConstants.feedScreen,));

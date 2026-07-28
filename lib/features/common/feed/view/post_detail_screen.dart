@@ -21,7 +21,7 @@ class PostDeatilPage extends StatelessWidget {
       onWillPop: () async {
         Get.offAllNamed(
           RouteHelper.getBottomNavigationBarScreenRoute(),
-          arguments: {ApiKeys.initialIndex: 1},
+          arguments: {ApiKeys.initialIndex: 3},
         );
 
         return false;
@@ -34,7 +34,7 @@ class PostDeatilPage extends StatelessWidget {
                 onBackTap: () {
                   Get.offAllNamed(
                     RouteHelper.getBottomNavigationBarScreenRoute(),
-                    arguments: {ApiKeys.initialIndex: 1},
+                    arguments: {ApiKeys.initialIndex: 3},
                   );
                 },
                 title: AppStrings.post,

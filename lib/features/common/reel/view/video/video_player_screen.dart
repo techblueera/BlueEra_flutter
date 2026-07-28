@@ -17,6 +17,7 @@ import 'package:BlueEra/features/common/comment/view/comment_bottom_sheet.dart';
 import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_action_widget.dart';
+import 'package:BlueEra/features/common/feed/widget/feed_author_header_widget.dart';
 import 'package:BlueEra/features/common/reel/controller/single_video_player_controller.dart';
 import 'package:BlueEra/features/common/reel/widget/video_card.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/personal_profile_setup_new_screen.dart';
@@ -678,7 +679,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       /// we don't have channel so will call profile
       if (videoController.videoFeedItem?.author?.accountType?.toUpperCase() == AppConstants.individual) {
         if (videoController.videoFeedItem?.author?.id == userId) {
-          navigatePushTo(context, PersonalProfileSetupNewScreen());
+          openMeOverview();
+
+          // navigatePushTo(context, PersonalProfileSetupNewScreen());
         } else {
           Get.to(() => NewVisitProfileScreen(authorId: videoController.videoFeedItem?.author?.id??'', screenFromName: AppConstants.feedScreen,));
         }

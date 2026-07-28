@@ -527,7 +527,7 @@ class _PersonalProfileSetupNewScreenState
                     ],
                   ),
                 ),
-  
+
                 Padding(
                   padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
                   child: Container(

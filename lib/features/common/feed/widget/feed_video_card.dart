@@ -75,6 +75,29 @@ class _FeedVideoCardState extends State<FeedVideoCard> {
     return post.media?.firstOrNull ?? '';
   }
 
+  /// Who uploaded this video. Business accounts carry their display name in
+  /// `businessName` and individuals in `name` — the same split
+  /// [FeedAuthorHeaderWidget] uses, so a video card names the same person the
+  /// same way a post card does. Falls through the remaining name fields so a
+  /// looser payload still renders someone rather than a blank row.
+  String get _uploaderName {
+    final user = post.user;
+    final isIndividual =
+        (user?.accountType?.toUpperCase() ?? AppConstants.individual) ==
+            AppConstants.individual;
+    final candidates = <String?>[
+      isIndividual ? user?.name : user?.businessName,
+      user?.name,
+      user?.businessName,
+      user?.username,
+      post.channel?.name,
+    ];
+    for (final c in candidates) {
+      if (c?.trim().isNotEmpty ?? false) return c!.trim();
+    }
+    return '';
+  }
+
   @override
   void dispose() {
     // Drop out of the manager's visibility race, else a scrolled-away card can
@@ -389,35 +412,107 @@ class _FeedVideoCardState extends State<FeedVideoCard> {
                 ),
                 SizedBox(height: SizeConfig.size4),
               ],
-              Row(
-                children: [
-                  // Channel name when the video has one, else the author.
-                  Flexible(
-                    child: CustomText(
-                      post.channel?.name ?? post.user?.name ?? '',
-                      color: AppColors.white,
-                      fontSize: SizeConfig.size12,
-                      fontWeight: FontWeight.w500,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  SizedBox(width: SizeConfig.size8),
-                  Icon(Icons.play_arrow_rounded,
-                      color: AppColors.white, size: SizeConfig.size18),
-                  SizedBox(width: SizeConfig.size2),
-                  CustomText(
-                    formatNumberLikePost(post.viewsCount ?? 0),
-                    color: AppColors.white,
-                    fontSize: SizeConfig.size12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ],
-              ),
+              _buildUploaderRow(),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  /// Uploader identity + view count. The card previously showed the channel
+  /// name *instead of* the author, so a channel video never said who posted it;
+  /// the uploader now always leads, with the channel kept as a second line when
+  /// it names something different.
+  Widget _buildUploaderRow() {
+    final uploader = _uploaderName;
+    final channelName = post.channel?.name?.trim() ?? '';
+    final showChannel = channelName.isNotEmpty &&
+        channelName.toLowerCase() != uploader.toLowerCase();
+
+    return Row(
+      children: [
+        if (uploader.isNotEmpty) ...[
+          _buildUploaderAvatar(),
+          SizedBox(width: SizeConfig.size8),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomText(
+                  uploader,
+                  color: AppColors.white,
+                  fontSize: SizeConfig.size12,
+                  fontWeight: FontWeight.w600,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (showChannel)
+                  CustomText(
+                    channelName,
+                    color: AppColors.white.withValues(alpha: 0.75),
+                    fontSize: SizeConfig.size10,
+                    fontWeight: FontWeight.w500,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+              ],
+            ),
+          ),
+          SizedBox(width: SizeConfig.size8),
+        ] else
+          const Spacer(),
+        _buildViewsChip(),
+      ],
+    );
+  }
+
+  Widget _buildUploaderAvatar() {
+    final url = (post.user?.profileImage?.trim().isNotEmpty ?? false)
+        ? post.user!.profileImage!.trim()
+        : (post.channel?.logoUrl?.trim() ?? '');
+    final size = SizeConfig.size24;
+
+    final placeholder = Container(
+      width: size,
+      height: size,
+      color: AppColors.white.withValues(alpha: 0.25),
+      alignment: Alignment.center,
+      child: Icon(Icons.person,
+          color: AppColors.white, size: SizeConfig.size14),
+    );
+
+    return ClipOval(
+      child: (url.isNotEmpty && isNetworkImage(url))
+          ? CachedNetworkImage(
+              imageUrl: url,
+              width: size,
+              height: size,
+              fit: BoxFit.cover,
+              placeholder: (_, __) => placeholder,
+              errorWidget: (_, __, ___) => placeholder,
+            )
+          : placeholder,
+    );
+  }
+
+  /// View count with an eye icon — an explicit "this many people watched it",
+  /// rather than the play glyph it used to sit behind.
+  Widget _buildViewsChip() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(Icons.visibility_rounded,
+            color: AppColors.white, size: SizeConfig.size16),
+        SizedBox(width: SizeConfig.size4),
+        CustomText(
+          formatNumberLikePost(post.viewsCount ?? 0),
+          color: AppColors.white,
+          fontSize: SizeConfig.size12,
+          fontWeight: FontWeight.w600,
+        ),
+      ],
     );
   }
 

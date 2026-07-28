@@ -166,7 +166,8 @@ class _VehicleInformationWidgetState extends State<VehicleInformationWidget> {
                             controller.vehicleRegistrationNumberController,
                         validator: ValidationMethod.validateDeliveryVehicleNumber,
                         isCapitalize: true,
-                        maxLength: 12,
+                        maxLength: 10,
+                        regularExpression: r'[A-Za-z0-9]',
                       ),
                       SizedBox(height: SizeConfig.paddingM),
 

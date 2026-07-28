@@ -363,7 +363,12 @@ ShortFeedItem getVideoData(Post video) {
       sharesCount: video.sharesCount,
       viewsCount: video.viewsCount,
       author: Author(
-        name: video.user?.name,
+        // `Author` has one `name` field for both account kinds, so resolve the
+        // business/individual split here — otherwise a business's reel opens
+        // the player with no name at all (its name lives in `businessName`).
+        name: (video.user?.name?.trim().isNotEmpty ?? false)
+            ? video.user?.name
+            : video.user?.businessName,
         username: video.user?.username,
         designation: video.user?.designation,
         profileImage: video.user?.profileImage,
