@@ -259,14 +259,24 @@ class LabTestController extends GetxController {
 
   // ---- Writes ---------------------------------------------------------------
 
-  Future<bool> selectCatalog(String id,
-      {Map<String, dynamic>? customData}) async {
+  Future<bool> selectCatalog(
+    String id, {
+    required String collection,
+    Map<String, dynamic>? customData,
+  }) async {
     try {
       isSaving.value = true;
       final ResponseModel res =
           await _repo.selectCatalogTests([id], overrides: customData);
       if (res.isSuccess) {
         commonSnackBar(message: AppStrings.labSelectedSuccess.tr);
+        // Mirror the create/update/delete pattern: refresh both lists so
+        // the tapped catalog card flips to `alreadyAdded` and the new
+        // entry shows up under "My Test" without a manual reload.
+        await Future.wait([
+          fetchCatalog(groupCategory: collection),
+          fetchTests(collection),
+        ]);
         return true;
       }
       commonSnackBar(

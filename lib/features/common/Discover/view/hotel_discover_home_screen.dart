@@ -1,12 +1,10 @@
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
-import 'package:BlueEra/core/services/location/location_service.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/business/visiting_card/view/widget/business_location_widget.dart';
 import 'package:BlueEra/features/chat/auth/service/chat_click_tracker.dart';
@@ -16,16 +14,14 @@ import 'package:BlueEra/features/common/store/controller/store_controller.dart';
 import 'package:BlueEra/features/me/hotel/view/widget/hotel_home_gallery_widget.dart';
 import 'package:BlueEra/features/me/hotel/widget/hotel_booking_sheet.dart';
 import 'package:BlueEra/features/me/hotel/widget/hotel_enquiry_sheet.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
-import 'package:BlueEra/widgets/common_rating_row.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/expandable_text.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
-import 'package:BlueEra/widgets/visit_business_stats_card.dart';
+import 'package:BlueEra/widgets/visit_business_hero.dart';
 import 'package:BlueEra/widgets/website_preview_card.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -83,9 +79,7 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(
-        title: profile?.name,
-      ),
+      extendBodyBehindAppBar: true,
       bottomNavigationBar: profile?.businessId != userId
           ? SafeArea(
               child: Padding(
@@ -97,20 +91,6 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
                 ),
                 child: Row(
                   children: [
-                    // Expanded(
-                    //   child: PositiveCustomBtn(
-                    //     onTap: () async {
-                    //       final chatViewController =
-                    //           Get.find<ChatViewController>();
-                    //       chatViewController.checkChatConnectionAndOpenChat(
-                    //         userId: profile?.businessId ?? '',
-                    //         route: AppConstants.route_discover,
-                    //       );
-                    //     },
-                    //     title: AppStrings.chat,
-                    //   ),
-                    // ),
-                    // const SizedBox(width: 10),
                     Expanded(
                       child: PositiveCustomBtn(
                         onTap: _openHotelEnquirySheet,
@@ -123,199 +103,64 @@ class _HotelDiscoverHomeScreenState extends State<HotelDiscoverHomeScreen> {
             )
           : null,
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(SizeConfig.size12),
+        padding: EdgeInsets.zero,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // --- Header ---
-            _buildHeader(),
-            SizedBox(height: SizeConfig.size10),
-
+            // --- Header (edge-to-edge hero includes overlay app-bar) ---
             Obx(() {
               viewBusinessDetailsController.profileVersion.value;
-              return VisitBusinessStatsCard(
-                details: viewBusinessDetailsController.visitedBusinessProfileDetails?.data,
+              final details = viewBusinessDetailsController
+                  .visitedBusinessProfileDetails?.data;
+              return VisitBusinessHero(
+                details: details,
+                onRated: () => viewBusinessDetailsController
+                    .viewBusinessProfileById(
+                  profile?.businessId ?? '',
+                  silent: true,
+                ),
+                onFollowChanged: () => viewBusinessDetailsController
+                    .viewBusinessProfileById(
+                  profile?.businessId ?? '',
+                  silent: true,
+                ),
               );
             }),
+            Padding(
+              padding: EdgeInsets.all(SizeConfig.size12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // --- Choose Room ---
+                  _buildChooseRoom(),
 
-            // --- Choose Room ---
-            SizedBox(height: SizeConfig.size10),
-            _buildChooseRoom(),
+                  // --- Gallery ---
+                  SizedBox(height: SizeConfig.size10),
+                  _buildGallerySection(),
 
-            // --- Gallery ---
-            SizedBox(height: SizeConfig.size10),
-            _buildGallerySection(),
+                  // --- Amenities ---
+                  SizedBox(height: SizeConfig.size10),
+                  _buildAmenitiesSection(),
 
-            // --- Amenities ---
-            SizedBox(height: SizeConfig.size10),
-            _buildAmenitiesSection(),
+                  // --- Contact Us ---
+                  SizedBox(height: SizeConfig.size10),
+                  _buildContactCard(),
+                  SizedBox(height: SizeConfig.size10),
 
-            // --- Contact Us ---
-            SizedBox(height: SizeConfig.size10),
-            _buildContactCard(),
-            SizedBox(height: SizeConfig.size10),
+                  /// WEBSITE PREVIEW
+                  WebsitePreviewCard(
+                    url: profile?.website ?? '',
+                  ),
 
-            /// WEBSITE PREVIEW
-            WebsitePreviewCard(
-              url: profile?.website ?? '',
+                  // --- Location Map ---
+                  _buildLocationSection(),
+                  SizedBox(height: kBottomNavigationBarHeight + 30),
+                ],
+              ),
             ),
-
-            // --- Location Map ---
-            // SizedBox(height: SizeConfig.size10),
-            _buildLocationSection(),
-            SizedBox(height: kBottomNavigationBarHeight + 30),
           ],
         ),
       ),
-    );
-  }
-
-  // ─── HEADER ─────────────────────────────────────────────────────────
-
-  Widget _buildHeader() {
-    final size = MediaQuery.of(context).size;
-
-    return CommonCardWidget(
-      padding: 0,
-      cardMargin: 0,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Banner + Logo
-          SizedBox(
-            height: size.height * 0.21,
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                // Banner
-                Container(
-                  width: double.infinity,
-                  height: size.height * 0.17,
-                  decoration: BoxDecoration(
-                    color: Colors.blueGrey[100],
-                    borderRadius: const BorderRadius.only(
-                      topLeft: Radius.circular(10),
-                      topRight: Radius.circular(10),
-                    ),
-                  ),
-                  child: (profile?.coverUrl?.isNotEmpty ?? false)
-                      ? ClipRRect(
-                          borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(10),
-                            topRight: Radius.circular(10),
-                          ),
-                          child: CachedNetworkImage(
-                            imageUrl: profile?.coverUrl ?? "",
-                            fit: BoxFit.cover,
-                            width: double.infinity,
-                            height: size.height * 0.17,
-                            placeholder: (ctx, _) => Container(color: Colors.blueGrey[100]),
-                            errorWidget: (ctx, _, __) => Container(
-                              color: Colors.blueGrey[100],
-                              child: Icon(Icons.image_outlined, color: Colors.blueGrey[300], size: 40),
-                            ),
-                          ),
-                        )
-                      : Center(
-                          child: Icon(Icons.image_outlined, color: Colors.blueGrey[300], size: 40),
-                        ),
-                ),
-
-                // Logo
-                Positioned(
-                  bottom: 0,
-                  left: 20,
-                  child: Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 4),
-                      boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 10)],
-                    ),
-                    child: ClipOval(
-                      child: (profile?.logoUrl?.isNotEmpty ?? false)
-                          ? CachedNetworkImage(
-                              imageUrl: profile?.logoUrl ?? "",
-                              fit: BoxFit.cover,
-                              placeholder: (ctx, _) => LocalAssets(
-                                imagePath: AppIconAssets.place_holder_image,
-                                boxFix: BoxFit.cover,
-                              ),
-                              errorWidget: (ctx, _, __) => LocalAssets(
-                                imagePath: AppIconAssets.place_holder_image,
-                                boxFix: BoxFit.cover,
-                              ),
-                            )
-                          : LocalAssets(
-                              imagePath: AppIconAssets.place_holder_image,
-                              boxFix: BoxFit.cover,
-                            ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Name & Description
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(
-                  profile?.name ?? "",
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (profile?.description?.isNotEmpty ?? false) ...[
-                  const SizedBox(height: 4),
-                  ExpandableText(
-                    text: profile?.description ?? "",
-                    trimLines: 2,
-                    expandMode: ExpandMode.dialog,
-                  ),
-                ],
-              ],
-            ),
-          ),
-
-          // Rating, Reviews & Distance
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8),
-            child: _buildRatingDistanceRow(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildRatingDistanceRow() {
-    final coords = profile?.location?.coordinates;
-    String? distanceText;
-
-    if (coords != null && coords.length >= 2 && LocationService.lat != 0.0 && LocationService.lng != 0.0) {
-      final hotelLat = coords[1].toDouble();
-      final hotelLng = coords[0].toDouble();
-      if (hotelLat != 0.0 && hotelLng != 0.0) {
-        final km = calculateDistanceKm(
-          LocationService.lat,
-          LocationService.lng,
-          hotelLat,
-          hotelLng,
-        );
-        distanceText = '${km.toStringAsFixed(1)} ${AppStrings.kmAwayLabel.tr}';
-      }
-    }
-
-    return CommonRatingRow(
-      rating: double.tryParse(profile?.rating?.toString() ?? '0') ?? 0.0,
-      reviews: profile?.reviews ?? 0,
-      distance: distanceText,
     );
   }
 

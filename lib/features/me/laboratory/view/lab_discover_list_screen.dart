@@ -123,13 +123,19 @@ class _LabDiscoverCard extends StatelessWidget {
   });
 
   // ── Data helpers ──────────────────────────────────────────────
+  // Hero shows the cover banner, never the logo. The API field is
+  // `coverPicture` (see `viewBusinessProfileModel.dart` — `coverimage`
+  // is deserialised from `coverPicture`). Falls back to the first live
+  // photo when the lab hasn't uploaded a cover yet.
   String get _image {
+    final cover = item.raw['coverPicture']?.toString() ?? '';
+    if (cover.isNotEmpty) return cover;
     final photos = item.raw['live_photos'];
     if (photos is List && photos.isNotEmpty) {
       final first = photos.first?.toString() ?? '';
       if (first.isNotEmpty) return first;
     }
-    return item.logo;
+    return '';
   }
 
   String get _location {

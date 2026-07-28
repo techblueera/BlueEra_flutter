@@ -6,7 +6,6 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-import 'package:BlueEra/widgets/go_live_pill.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/auth/controller/view_business_details_controller.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_flag_controller.dart';
@@ -18,6 +17,7 @@ import 'package:BlueEra/features/me/others/view/v2/tabs/other_overview_tab_v2.da
 import 'package:BlueEra/features/me/others/view/v2/tabs/other_posts_tab_v2.dart';
 import 'package:BlueEra/features/me/others/view/v2/tabs/other_services_tab_v2.dart';
 import 'package:BlueEra/features/me/others/view/v2/tabs/other_stats_tab_v2.dart';
+import 'package:BlueEra/widgets/go_live_pill.dart';
 import 'package:BlueEra/widgets/home_tab_scaffold.dart';
 import 'package:BlueEra/widgets/refer_earn_pill.dart';
 import 'package:flutter/material.dart';
@@ -37,7 +37,8 @@ class OtherHomeScreenV2 extends StatefulWidget {
 class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
     with SingleTickerProviderStateMixin, MeTabBackHandlerMixin {
   late final BusinessProfileFullController _otherController;
-  final _businessController   = getOrPut(() => ViewBusinessDetailsController(), permanent: true);
+  final _businessController =
+      getOrPut(() => ViewBusinessDetailsController(), permanent: true);
 
   late final TabController _tabController;
 
@@ -97,7 +98,7 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFEAF2FB),
+      // backgroundColor: const Color(0xFFEAF2FB),
       body: SafeArea(
         top: false,
         child: Stack(
@@ -192,7 +193,10 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
         alignment: Alignment.centerLeft,
         child: SizedBox(
           height: double.infinity,
-          child: Drawer(backgroundColor: Colors.transparent, elevation: 0, child: ProfileMenuDrawer()),
+          child: Drawer(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              child: ProfileMenuDrawer()),
         ),
       ),
     );
@@ -260,8 +264,4 @@ class _OtherHomeScreenV2State extends State<OtherHomeScreenV2>
       ),
     );
   }
-
-
-
 }
-
