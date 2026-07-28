@@ -753,9 +753,83 @@ Future<void> _sendReplyViaApi({
   }
 }
 
+/// Identity of the in-app "BlueEra" broadcast thread (the Admin conversation).
+///
+/// Persisted the first time the thread is resolved so a later killed-state
+/// broadcast tap can open it from local state instead of waiting on the chat
+/// socket to re-deliver the chat list.
+class BlueEraChatRef {
+  const BlueEraChatRef({
+    required this.userId,
+    required this.conversationId,
+    this.type = AppStrings.Admin,
+    this.name,
+    this.contactNo,
+    this.profileImage,
+  });
+
+  final String userId;
+  final String conversationId;
+
+  /// Conversation type as the backend reports it; defaults to the literal
+  /// "Admin" that makes PersonalChatScreen render the broadcast thread.
+  final String type;
+  final String? name;
+  final String? contactNo;
+  final String? profileImage;
+
+  /// Fill in the display fields (and backend conversation type) this ref is
+  /// missing from [other], when [other] describes the same thread. Used to
+  /// dress a push-derived ref — which only ever carries ids — with the name and
+  /// avatar last seen on the chat-list row.
+  BlueEraChatRef withDisplayFieldsFrom(BlueEraChatRef? other) {
+    if (other == null) return this;
+    final sameThread = (other.conversationId.isNotEmpty &&
+            other.conversationId == conversationId) ||
+        (other.userId.isNotEmpty && other.userId == userId);
+    if (!sameThread) return this;
+    return BlueEraChatRef(
+      userId: userId.isNotEmpty ? userId : other.userId,
+      conversationId:
+          conversationId.isNotEmpty ? conversationId : other.conversationId,
+      type: type != AppStrings.Admin ? type : other.type,
+      name: name ?? other.name,
+      contactNo: contactNo ?? other.contactNo,
+      profileImage: profileImage ?? other.profileImage,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'userId': userId,
+        'conversationId': conversationId,
+        'type': type,
+        if (name != null) 'name': name,
+        if (contactNo != null) 'contactNo': contactNo,
+        if (profileImage != null) 'profileImage': profileImage,
+      };
+
+  static BlueEraChatRef? fromJson(Map<String, dynamic> json) {
+    final userId = (json['userId'] ?? '').toString();
+    final conversationId = (json['conversationId'] ?? '').toString();
+    if (userId.isEmpty && conversationId.isEmpty) return null;
+    final type = (json['type'] ?? '').toString();
+    return BlueEraChatRef(
+      userId: userId,
+      conversationId: conversationId,
+      type: type.isNotEmpty ? type : AppStrings.Admin,
+      name: json['name']?.toString(),
+      contactNo: json['contactNo']?.toString(),
+      profileImage: json['profileImage']?.toString(),
+    );
+  }
+}
+
 class AppNotificationHandler {
   static FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
+
+  /// Secure-storage key for the cached [BlueEraChatRef].
+  static const String _blueEraChatRefKey = 'blueera_broadcast_chat_ref';
 
   /// Secure-storage key for the id of the last launch-notification we've
   /// already routed from. Prevents cold-start re-routing on every launch
@@ -804,6 +878,48 @@ class AppNotificationHandler {
   /// notification cold-start. See
   /// docs/backend/notification_fast_open_design.md (Phase 1 & 3).
   static PendingDeepLink? pendingDeepLink;
+
+  /// Wait until the root navigator exists and is mounted, or [timeout]
+  /// elapses.
+  ///
+  /// Replaces the blind `Future.delayed` settle delays on the cold-start
+  /// notification path. Those cost a flat 300ms on every killed-state tap even
+  /// though the navigator is usually already up by the time the launch payload
+  /// has been parsed; this returns as soon as it actually is (typically within
+  /// a frame), while still giving a slow device the full budget.
+  static Future<void> _waitForNavigator({
+    Duration timeout = const Duration(milliseconds: 700),
+  }) async {
+    final deadline = DateTime.now().add(timeout);
+    while (DateTime.now().isBefore(deadline)) {
+      final navigator = Get.key.currentState;
+      if (navigator != null && navigator.mounted) return;
+      await _nextFrameOrTick();
+    }
+  }
+
+  /// Wait until [route] is the current GetX route (i.e. a preceding
+  /// `offAllNamed` has actually landed) or [timeout] elapses. Same rationale as
+  /// [_waitForNavigator] — the stack swap normally completes in one frame, so
+  /// the target screen no longer waits out a fixed 200–350ms behind it.
+  static Future<void> _waitForRoute(
+    String route, {
+    Duration timeout = const Duration(milliseconds: 700),
+  }) async {
+    final deadline = DateTime.now().add(timeout);
+    while (DateTime.now().isBefore(deadline)) {
+      if (Get.key.currentState != null && Get.currentRoute == route) return;
+      await _nextFrameOrTick();
+    }
+  }
+
+  /// One frame, or a short tick — whichever lands first. `endOfFrame` schedules
+  /// a frame when the scheduler is idle, but the timer keeps the poll loops
+  /// above honest if the engine isn't producing frames yet.
+  static Future<void> _nextFrameOrTick() => Future.any([
+        WidgetsBinding.instance.endOfFrame,
+        Future<void>.delayed(const Duration(milliseconds: 32)),
+      ]);
 
   /// Public, thin entry point onto the existing routing switch. Used by
   /// [NotificationRouter.route] so deep-link routing has a single owner while
@@ -921,8 +1037,9 @@ class AppNotificationHandler {
               _openIncomingCallScreen(data);
             }
           } else {
-            // Wait for navigator to be ready (splash screen signals this)
-            await Future.delayed(const Duration(milliseconds: 300));
+            // Route as soon as the navigator is actually mounted instead of
+            // paying a flat 300ms on every killed-state tap.
+            await _waitForNavigator();
             _onTapNotificationFromStatusBar(data, fromColdStart: true);
           }
         } catch (e) {
@@ -997,10 +1114,11 @@ class AppNotificationHandler {
               _openIncomingCallScreen(data);
             }
           } else {
-            // Wait for the GetMaterialApp navigator to be ready, then route.
-            // fromColdStart pushes the home shell first so the target screen
-            // has a proper back stack (same as the Android launch path).
-            await Future.delayed(const Duration(milliseconds: 300));
+            // Route the moment the GetMaterialApp navigator is mounted (no
+            // fixed delay — see [_waitForNavigator]). fromColdStart pushes the
+            // home shell first so the target screen has a proper back stack
+            // (same as the Android launch path).
+            await _waitForNavigator();
             _onTapNotificationFromStatusBar(data, fromColdStart: true);
           }
         }
@@ -2855,8 +2973,9 @@ class AppNotificationHandler {
         // instead of booting behind the deep-link target screen.
         arguments: {'initialIndex': 0, 'deferHeavyInit': true},
       );
-      // Small delay for home screen to settle before pushing target
-      await Future.delayed(const Duration(milliseconds: 200));
+      // Push the target as soon as the home shell is actually on the stack
+      // (usually one frame) rather than after a fixed delay.
+      await _waitForRoute(RouteHelper.getBottomNavigationBarScreenRoute());
     }
 
     // Also capture broadcast/system notifications that were received in the
@@ -3078,11 +3197,14 @@ class AppNotificationHandler {
           RouteHelper.getBottomNavigationBarScreenRoute(),
           arguments: {ApiKeys.initialIndex: 2, 'deferHeavyInit': true},
         );
-        // Let the Connect tab + its chat list settle before opening the chat.
-        await Future.delayed(const Duration(milliseconds: 350));
-        // Awaited: on a cold start _openBlueEraChat polls for the chat list to
-        // load, so keep the socket-dispose guard held until it has actually
-        // opened the broadcast thread (or exhausted its retries).
+        // Open the thread as soon as the Connect tab is on the stack. The chat
+        // list no longer has to have LOADED first — _openBlueEraChat resolves
+        // the thread from local state — so this is a one-frame wait instead of
+        // the old fixed 350ms.
+        await _waitForRoute(RouteHelper.getBottomNavigationBarScreenRoute());
+        // Awaited: on a cold start _openBlueEraChat may still fall back to
+        // polling for the chat list, so keep the socket-dispose guard held
+        // until it has actually opened the broadcast thread.
         await _openBlueEraChat(data);
         // The outgoing host's dispose() has run by now (it fires during the
         // transition above), so it's safe to drop the guard for the next
@@ -3534,32 +3656,57 @@ class AppNotificationHandler {
     // warm / list cached). Open it straight away.
     if (_openBlueEraChatFromList()) return;
 
-    // Cold start (killed-state tap): the personal chat list is fetched over the
-    // socket only after the handshake completes, so the BlueEra row is not yet
-    // present — this is why the broadcast chat previously failed to open and
-    // the tap fell through to a plain personal chat / the read-only screen.
-    // Make sure the socket is connecting (which requests the list) and poll for
-    // the row to appear before giving up. Opening it via the chat-list row is
-    // the only path that carries the conversationId + the literal "Admin" type
-    // that makes PersonalChatScreen render the broadcast thread with history.
     final chatViewController = getOrPut(() => ChatViewController());
-    chatViewController.connectSocket();
 
-    const maxAttempts = 24; // ~6s total (24 × 250ms) to cover a slow handshake.
+    // Killed-state tap. The personal chat list only arrives over the socket
+    // AFTER the handshake, so the in-memory row above is always missing here.
+    // This used to poll that list for up to 6s BEFORE navigating, which is
+    // what made a broadcast tap sit on the Connect tab staring at nothing on
+    // both Android and iOS.
+    //
+    // Instead, resolve the thread from state we already hold on-device — the
+    // push payload, the identity cached the last time the thread was opened,
+    // or the Hive chat-list cache — and navigate immediately. Nothing is lost
+    // by not waiting: [PersonalChatScreen.initState] re-emits the page-1
+    // history request itself, and the socket buffers that emit until the
+    // handshake lands, so the messages fill in on the already-open screen.
+    final ref = await _resolveBlueEraChatRef(data);
+    if (ref != null && ref.conversationId.isNotEmpty) {
+      unawaited(_cacheBlueEraChatRef(ref));
+      chatViewController.connectSocket();
+      await chatViewController.openChatFromChatList(
+        userId: ref.userId,
+        conversationId: ref.conversationId,
+        type: ref.type,
+        contactName: ref.name,
+        contactNo: ref.contactNo,
+        profileImage: ref.profileImage,
+      );
+      return;
+    }
+
+    // Nothing on-device identifies the thread yet (first broadcast after a
+    // fresh install / cache wipe). Kick the socket and poll briefly for the
+    // row — much shorter than before, because the id fallback below now opens
+    // the thread anyway rather than dead-ending on the read-only screen.
+    chatViewController.connectSocket();
+    const maxAttempts = 8; // ~2s total (8 × 250ms).
     for (int attempt = 0; attempt < maxAttempts; attempt++) {
       await Future.delayed(const Duration(milliseconds: 250));
       if (_openBlueEraChatFromList()) return;
     }
 
-    // The row still hasn't loaded after waiting. Fall back to the BlueEra
-    // account id carried on the push, opening it explicitly as an Admin
-    // (broadcast) thread so it still renders with BroadcastMessageCard rather
-    // than as a plain personal chat.
-    final senderId = (data['senderId'] ?? data['sender_id'] ?? '').toString();
+    // The row still hasn't loaded. Fall back to the BlueEra account id carried
+    // on the push, opening it explicitly as an Admin (broadcast) thread so it
+    // still renders with BroadcastMessageCard rather than as a plain personal
+    // chat.
+    final senderId = ref?.userId.isNotEmpty == true
+        ? ref!.userId
+        : (data['senderId'] ?? data['sender_id'] ?? '').toString();
     if (senderId.isNotEmpty) {
       final conversationId =
           (data['conversationId'] ?? data['conversation_id'] ?? '').toString();
-      chatViewController.openChatFromChatList(
+      await chatViewController.openChatFromChatList(
         userId: senderId,
         conversationId: conversationId,
         type: AppStrings.Admin,
@@ -3579,27 +3726,126 @@ class AppNotificationHandler {
   static bool _openBlueEraChatFromList() {
     try {
       final chatViewController = getOrPut(() => ChatViewController());
-      final list =
+      final ref = _blueEraRefFromChatList(
           chatViewController.getPersonalChatListModel?.value.chatList ??
-              <ChatList?>[];
-      for (final chat in list) {
-        if (chat == null) continue;
-        final name = (chat.sender?.name ?? '').trim().toLowerCase();
-        final type = (chat.sender?.accountType ?? '');
-        final isBlueEra = name == 'blueera' || type == AppStrings.Admin;
-        if (!isBlueEra) continue;
-        chatViewController.openChatFromChatList(
-          userId: chat.sender?.id ?? '',
-          conversationId: chat.conversationId ?? '',
-          type: type.isNotEmpty ? type : AppStrings.Admin,
-          contactName: chat.sender?.name,
-          contactNo: chat.sender?.contactNo,
-          profileImage: chat.sender?.profileImage,
-        );
-        return true;
-      }
+              <ChatList?>[]);
+      if (ref == null) return false;
+      // Remember who the BlueEra thread is so the next killed-state tap can
+      // open it without waiting for the socket to deliver this list again.
+      unawaited(_cacheBlueEraChatRef(ref));
+      chatViewController.openChatFromChatList(
+        userId: ref.userId,
+        conversationId: ref.conversationId,
+        type: ref.type,
+        contactName: ref.name,
+        contactNo: ref.contactNo,
+        profileImage: ref.profileImage,
+      );
+      return true;
     } catch (_) {}
     return false;
+  }
+
+  /// Best on-device identity for the BlueEra broadcast thread, in descending
+  /// order of trust. A ref with a conversationId is openable straight away; one
+  /// with only a userId is kept as a last-resort fallback.
+  static Future<BlueEraChatRef?> _resolveBlueEraChatRef(
+      Map<String, dynamic> data) async {
+    final fromPayload = _blueEraRefFromPayload(data);
+    final cached = await _readCachedBlueEraChatRef();
+    // Only pay for the Hive read when the cache can't answer.
+    final fromHive = (cached != null && cached.conversationId.isNotEmpty)
+        ? null
+        : await _blueEraRefFromHiveChatLists();
+
+    // A push carries ids but never the thread's display fields (name, avatar,
+    // backend conversation type) — those only exist on a resolved chat-list
+    // row, so borrow them from the cached/Hive row when it's the same thread.
+    final known = (cached != null && cached.conversationId.isNotEmpty)
+        ? cached
+        : fromHive;
+
+    for (final ref in [fromPayload, cached, fromHive]) {
+      if (ref != null && ref.conversationId.isNotEmpty) {
+        return ref.withDisplayFieldsFrom(known);
+      }
+    }
+    // No conversationId anywhere — hand back whatever id we do have so the
+    // caller can still fall back to opening by user id.
+    for (final ref in [fromPayload, cached, fromHive]) {
+      if (ref != null && ref.userId.isNotEmpty) return ref;
+    }
+    return null;
+  }
+
+  /// The BlueEra thread as carried on the push itself.
+  static BlueEraChatRef? _blueEraRefFromPayload(Map<String, dynamic> data) {
+    final userId = (data['senderId'] ?? data['sender_id'] ?? '').toString();
+    final conversationId =
+        (data['conversationId'] ?? data['conversation_id'] ?? '').toString();
+    if (userId.isEmpty && conversationId.isEmpty) return null;
+    // Deliberately NOT falling back to `title` for the name — on a broadcast
+    // that's the announcement headline, not the sender, and it would end up as
+    // the chat's app-bar name.
+    final senderName = (data['senderName'] ?? '').toString();
+    return BlueEraChatRef(
+      userId: userId,
+      conversationId: conversationId,
+      name: senderName.isNotEmpty ? senderName : null,
+    );
+  }
+
+  /// The BlueEra row inside the Hive-cached chat lists. Survives a kill, so on
+  /// a cold start it answers in a couple of milliseconds where the socket
+  /// needed seconds.
+  static Future<BlueEraChatRef?> _blueEraRefFromHiveChatLists() async {
+    try {
+      final cached = await LocalStorageHelper().getAllChatListsFromLocal();
+      for (final list in cached.values) {
+        final ref = _blueEraRefFromChatList(list);
+        if (ref != null) return ref;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  /// Pick the BlueEra system row out of [list] (in-memory or Hive-cached).
+  static BlueEraChatRef? _blueEraRefFromChatList(Iterable<ChatList?> list) {
+    for (final chat in list) {
+      if (chat == null) continue;
+      final name = (chat.sender?.name ?? '').trim().toLowerCase();
+      final type = (chat.sender?.accountType ?? '');
+      final isBlueEra = name == 'blueera' || type == AppStrings.Admin;
+      if (!isBlueEra) continue;
+      return BlueEraChatRef(
+        userId: chat.sender?.id ?? '',
+        conversationId: chat.conversationId ?? '',
+        type: type.isNotEmpty ? type : AppStrings.Admin,
+        name: chat.sender?.name,
+        contactNo: chat.sender?.contactNo,
+        profileImage: chat.sender?.profileImage,
+      );
+    }
+    return null;
+  }
+
+  static Future<void> _cacheBlueEraChatRef(BlueEraChatRef ref) async {
+    if (ref.conversationId.isEmpty) return;
+    try {
+      await SharedPreferenceUtils.setSecureValue(
+          _blueEraChatRefKey, jsonEncode(ref.toJson()));
+    } catch (_) {}
+  }
+
+  static Future<BlueEraChatRef?> _readCachedBlueEraChatRef() async {
+    try {
+      final raw = await SharedPreferenceUtils.getSecureValue(_blueEraChatRefKey);
+      if (raw is! String || raw.isEmpty) return null;
+      return BlueEraChatRef.fromJson(
+          Map<String, dynamic>.from(jsonDecode(raw) as Map));
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Open the incoming-call receiving screen from a notification body tap.
