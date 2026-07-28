@@ -243,14 +243,30 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen>
           if (i >= controller.catalogTests.length) {
             return _buildListTrailer();
           }
+          final item = controller.catalogTests[i];
           return _CatalogCard(
-            item: controller.catalogTests[i],
+            item: item,
+            savedTest: _findOverride(item),
             backgroundColor: LabSoftCardColor.forIndex(i),
-            onTap: () => _showCatalogBottomSheet(controller.catalogTests[i]),
+            onTap: () => _showCatalogBottomSheet(item),
           );
         },
       );
     });
+  }
+
+  /// Returns this lab's own [PathologyTest] copy for [item] when it was
+  /// added via `POST /test-catalog/select` — matched by `catalogTestId`.
+  /// The catalog list ships `suggested*` prices / default hours; the lab's
+  /// overrides live on the PathologyTest. Reading `controller.tests` here
+  /// makes the enclosing `Obx` subscribe to it, so the card repaints
+  /// after every successful select/deselect.
+  PathologyTest? _findOverride(TestCatalogItem item) {
+    if (item.id == null) return null;
+    for (final t in controller.tests) {
+      if (t.catalogTestId == item.id) return t;
+    }
+    return null;
   }
 
   void _confirmDelete(PathologyTest t) {
@@ -268,6 +284,10 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen>
   }
 
   void _showCatalogBottomSheet(TestCatalogItem item) {
+    // Reuse the same catalog-vs-lab overlay logic the card uses so the
+    // sheet re-opens with the lab's last saved overrides instead of the
+    // catalog defaults.
+    final PathologyTest? override = _findOverride(item);
     final nameCtrl = TextEditingController(text: item.testName ?? "");
     final paramsCtrl = TextEditingController(
       text: (item.testParameters ?? []).join(", "),
@@ -277,19 +297,34 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen>
         .map((e) => e.trim())
         .where((e) => e.isNotEmpty)
         .toList();
-    final selectedMethod = RxString(
-      methodOptions.isNotEmpty ? methodOptions.first : "",
-    );
+    // Prefer the lab's saved method if it's one of the catalog's options;
+    // otherwise fall back to the first option.
+    final String initialMethod = () {
+      final saved = (override?.testMethod ?? '').trim();
+      if (saved.isNotEmpty && methodOptions.contains(saved)) return saved;
+      return methodOptions.isNotEmpty ? methodOptions.first : '';
+    }();
+    final selectedMethod = RxString(initialMethod);
     final hoursCtrl = TextEditingController(
-      text: (item.estimatedReportHours ?? 24).toString(),
+      text: (override?.estimatedReportHours ??
+              item.estimatedReportHours ??
+              24)
+          .toString(),
     );
     final feesCtrl = TextEditingController(
-      text: (item.suggestedTestFees ?? 0).toString(),
+      text: (override?.testFees ?? item.suggestedTestFees ?? 0).toString(),
     );
     final priceCtrl = TextEditingController(
-      text: (item.suggestedCustomerPrice ?? 0).toString(),
+      text: (override?.customerPrice ?? item.suggestedCustomerPrice ?? 0)
+          .toString(),
     );
     final formKey = GlobalKey<FormState>();
+    // Owner-only "Remove from my catalog" mode. Only meaningful when the
+    // lab has already added this catalog test; checkbox in the title row
+    // toggles it on. Turning it on freezes every field to read-only and
+    // flips the Post Now button to fire /test-catalog/deselect.
+    final bool alreadyAdded = item.alreadyAdded == true;
+    final isDeselectMode = false.obs;
 
     showModalBottomSheet(
       context: context,
@@ -308,143 +343,225 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen>
           ),
           child: Form(
             key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CustomText(
-                  AppStrings.labCheckDetails.tr,
-                  fontWeight: FontWeight.w700,
-                  fontSize: SizeConfig.size16,
-                ),
-                SizedBox(height: SizeConfig.size12),
-                CommonTextField(
-                  textEditController: nameCtrl,
-                  title: AppStrings.labHintHemoglobin.tr,
-                  hintText: AppStrings.labHint138.tr,
-                  isValidate: true,
-                ),
-                SizedBox(height: SizeConfig.size8),
-                CommonTextField(
-                  textEditController: paramsCtrl,
-                  title: AppStrings.labTestParameters.tr,
-                  hintText: AppStrings.labHint138.tr,
-                  maxLine: 2,
-                ),
-                SizedBox(height: SizeConfig.size8),
-                if (methodOptions.isNotEmpty) ...[
-                  CustomText(
-                    AppStrings.labTestMethod.tr,
-                    fontWeight: FontWeight.w500,
-                    fontSize: SizeConfig.size14,
+            child: Obx(() {
+              final readOnly = isDeselectMode.value;
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Title row + optional Remove checkbox
+                  Row(
+                    children: [
+                      Expanded(
+                        child: CustomText(
+                          AppStrings.labCheckDetails.tr,
+                          fontWeight: FontWeight.w700,
+                          fontSize: SizeConfig.size16,
+                        ),
+                      ),
+                      if (alreadyAdded)
+                        InkWell(
+                          onTap: () =>
+                              isDeselectMode.value = !isDeselectMode.value,
+                          borderRadius: BorderRadius.circular(6),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: Checkbox(
+                                  value: readOnly,
+                                  // activeColor: AppColors.white,
+                                  checkColor: AppColors.white,
+                                  onChanged: (v) =>
+                                      isDeselectMode.value = v ?? false,
+                                  visualDensity: VisualDensity.compact,
+                                  materialTapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
+                              ),
+                              SizedBox(width: SizeConfig.size6),
+                              CustomText(
+                                AppStrings.remove.tr,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.primaryColor,
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
                   ),
-                  SizedBox(height: SizeConfig.size8),
-                  Obx(() => Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: methodOptions
-                            .map((method) => _methodChip(
-                                  method: method,
-                                  isSelected: selectedMethod.value == method,
-                                  onTap: () => selectedMethod.value = method,
-                                ))
-                            .toList(),
+                  SizedBox(height: SizeConfig.size12),
+                  // Dim the whole field group when the Remove checkbox is
+                  // on so users see that the form is frozen — the title,
+                  // checkbox and Post/Remove button stay at full opacity.
+                  Opacity(
+                    opacity: readOnly ? 0.5 : 1.0,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        CommonTextField(
+                          textEditController: nameCtrl,
+                          title: AppStrings.labHintHemoglobin.tr,
+                          hintText: AppStrings.labHint138.tr,
+                          isValidate: true,
+                          readOnly: readOnly,
+                        ),
+                        SizedBox(height: SizeConfig.size8),
+                        CommonTextField(
+                          textEditController: paramsCtrl,
+                          title: AppStrings.labTestParameters.tr,
+                          hintText: AppStrings.labHint138.tr,
+                          maxLine: 2,
+                          readOnly: readOnly,
+                        ),
+                        SizedBox(height: SizeConfig.size8),
+                        if (methodOptions.isNotEmpty) ...[
+                          CustomText(
+                            AppStrings.labTestMethod.tr,
+                            fontWeight: FontWeight.w500,
+                            fontSize: SizeConfig.size14,
+                          ),
+                          SizedBox(height: SizeConfig.size8),
+                          Obx(() => Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: methodOptions
+                                    .map((method) => _methodChip(
+                                          method: method,
+                                          isSelected:
+                                              selectedMethod.value == method,
+                                          onTap: readOnly
+                                              ? () {}
+                                              : () =>
+                                                  selectedMethod.value = method,
+                                        ))
+                                    .toList(),
+                              )),
+                        ],
+                        SizedBox(height: SizeConfig.size8),
+                        CommonTextField(
+                          textEditController: hoursCtrl,
+                          title: AppStrings.labEstimatedReportHours.tr,
+                          keyBoardType: TextInputType.number,
+                          isValidate: true,
+                          readOnly: readOnly,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return AppStrings.required.tr;
+                            }
+                            final hours = int.tryParse(value);
+                            if (hours == null || hours <= 0) {
+                              return "Invalid hours";
+                            }
+                            if (hours > 999) return "Max 999 hours";
+                            return null;
+                          },
+                        ),
+                        SizedBox(height: SizeConfig.size8),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: CommonTextField(
+                                textEditController: feesCtrl,
+                                title: AppStrings.labTestFees.tr,
+                                keyBoardType: TextInputType.number,
+                                isValidate: true,
+                                readOnly: readOnly,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return AppStrings.required.tr;
+                                  }
+                                  final fees = int.tryParse(value);
+                                  if (fees == null || fees <= 0) {
+                                    return "Invalid fees";
+                                  }
+                                  if (fees > 1000000) return "Max 1,000,000";
+                                  return null;
+                                },
+                              ),
+                            ),
+                            SizedBox(width: SizeConfig.size12),
+                            Expanded(
+                              child: CommonTextField(
+                                textEditController: priceCtrl,
+                                title: AppStrings.labCustomerPrice.tr,
+                                keyBoardType: TextInputType.number,
+                                isValidate: true,
+                                readOnly: readOnly,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return AppStrings.required.tr;
+                                  }
+                                  final price = int.tryParse(value);
+                                  final mrp = int.tryParse(feesCtrl.text);
+                                  if (price == null || price <= 0) {
+                                    return "Invalid price";
+                                  }
+                                  if (price > 1000000) return "Max 1,000,000";
+                                  if (mrp != null && price > mrp) {
+                                    return "Customer price cannot exceed MRP";
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: SizeConfig.size16),
+                  Obx(() => PositiveCustomBtn(
+                        onTap: controller.isLoading.value
+                            ? null
+                            : () async {
+                                // Deselect path: skip form validation (fields
+                                // are read-only) and fire /deselect. On
+                                // success, controller refreshes the catalog
+                                // so this card's `alreadyAdded` flips to
+                                // false and the pill/border go away.
+                                if (isDeselectMode.value) {
+                                  final ok = await controller.deselectCatalog(
+                                    item.id!,
+                                    collection: widget.collection,
+                                  );
+                                  if (ok) Get.back();
+                                  return;
+                                }
+                                if (formKey.currentState!.validate()) {
+                                  final overrides = {
+                                    "testName": nameCtrl.text,
+                                    "testParameters": paramsCtrl.text
+                                        .split(",")
+                                        .map((e) => e.trim())
+                                        .toList(),
+                                    "estimatedReportHours":
+                                        int.tryParse(hoursCtrl.text) ?? 24,
+                                    "testFees":
+                                        int.tryParse(feesCtrl.text) ?? 0,
+                                    "customerPrice":
+                                        int.tryParse(priceCtrl.text) ?? 0,
+                                    "testMethod": selectedMethod.value,
+                                  };
+                                  final ok = await controller.selectCatalog(
+                                    item.id!,
+                                    collection: widget.collection,
+                                    customData: overrides,
+                                  );
+                                  if (ok) Get.back();
+                                }
+                              },
+                        title: isDeselectMode.value
+                            ? AppStrings.remove.tr
+                            : AppStrings.postNow,
                       )),
+                  SizedBox(height: SizeConfig.size30),
                 ],
-                SizedBox(height: SizeConfig.size8),
-                CommonTextField(
-                  textEditController: hoursCtrl,
-                  title: AppStrings.labEstimatedReportHours.tr,
-                  keyBoardType: TextInputType.number,
-                  isValidate: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return AppStrings.required.tr;
-                    }
-                    final hours = int.tryParse(value);
-                    if (hours == null || hours <= 0) return "Invalid hours";
-                    if (hours > 999) return "Max 999 hours";
-                    return null;
-                  },
-                ),
-                SizedBox(height: SizeConfig.size8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: CommonTextField(
-                        textEditController: feesCtrl,
-                        title: AppStrings.labTestFees.tr,
-                        keyBoardType: TextInputType.number,
-                        isValidate: true,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return AppStrings.required.tr;
-                          }
-                          final fees = int.tryParse(value);
-                          if (fees == null || fees <= 0) return "Invalid fees";
-                          if (fees > 1000000) return "Max 1,000,000";
-                          return null;
-                        },
-                      ),
-                    ),
-                    SizedBox(width: SizeConfig.size12),
-                    Expanded(
-                      child: CommonTextField(
-                        textEditController: priceCtrl,
-                        title: AppStrings.labCustomerPrice.tr,
-                        keyBoardType: TextInputType.number,
-                        isValidate: true,
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return AppStrings.required.tr;
-                          }
-                          final price = int.tryParse(value);
-                          final mrp = int.tryParse(feesCtrl.text);
-                          if (price == null || price <= 0) {
-                            return "Invalid price";
-                          }
-                          if (price > 1000000) return "Max 1,000,000";
-                          if (mrp != null && price > mrp) {
-                            return "Customer price cannot exceed MRP";
-                          }
-                          return null;
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: SizeConfig.size16),
-                Obx(() => PositiveCustomBtn(
-                      onTap: controller.isLoading.value
-                          ? null
-                          : () async {
-                              if (formKey.currentState!.validate()) {
-                                final overrides = {
-                                  "testName": nameCtrl.text,
-                                  "testParameters": paramsCtrl.text
-                                      .split(",")
-                                      .map((e) => e.trim())
-                                      .toList(),
-                                  "estimatedReportHours":
-                                      int.tryParse(hoursCtrl.text) ?? 24,
-                                  "testFees": int.tryParse(feesCtrl.text) ?? 0,
-                                  "customerPrice":
-                                      int.tryParse(priceCtrl.text) ?? 0,
-                                  "testMethod": selectedMethod.value,
-                                };
-                                final ok = await controller.selectCatalog(
-                                  item.id!,
-                                  collection: widget.collection,
-                                  customData: overrides,
-                                );
-                                if (ok) Get.back();
-                              }
-                            },
-                      title: AppStrings.postNow,
-                    )),
-                SizedBox(height: SizeConfig.size30),
-              ],
-            ),
+              );
+            }),
           ),
         ),
       ),
@@ -487,10 +604,19 @@ class _CatalogCard extends StatelessWidget {
   final Color backgroundColor;
   final VoidCallback onTap;
 
+  /// This lab's own [PathologyTest] copy of [item] when already added —
+  /// its `customerPrice`, `estimatedReportHours` (etc.) win over the
+  /// catalog defaults when displaying badges. Null when the lab has not
+  /// added this test yet, or for a manually-created test with no catalog
+  /// linkage. (Named `savedTest`, not `override`, so it doesn't collide
+  /// with the `@override` annotation on `build()`.)
+  final PathologyTest? savedTest;
+
   const _CatalogCard({
     required this.item,
     required this.backgroundColor,
     required this.onTap,
+    this.savedTest,
   });
 
   @override
@@ -657,6 +783,9 @@ class _CatalogCard extends StatelessWidget {
   }
 
   Widget _reportTimingBadge() {
+    // Saved lab copy wins when a custom turnaround has been set.
+    final hours =
+        savedTest?.estimatedReportHours ?? item.estimatedReportHours ?? 0;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -672,8 +801,7 @@ class _CatalogCard extends StatelessWidget {
           children: [
             TextSpan(text: "${AppStrings.labReportsWithinPrefix.tr} "),
             TextSpan(
-              text:
-                  "${item.estimatedReportHours ?? 0} ${AppStrings.labHoursWord.tr}",
+              text: "$hours ${AppStrings.labHoursWord.tr}",
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ],
@@ -683,6 +811,11 @@ class _CatalogCard extends StatelessWidget {
   }
 
   Widget _priceBadge() {
+    // Prefer the lab's own customer price when it exists — otherwise fall
+    // back to the catalog's suggested value so unadded tests still show
+    // a sensible number.
+    final price =
+        savedTest?.customerPrice ?? item.suggestedCustomerPrice ?? 0;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -691,7 +824,7 @@ class _CatalogCard extends StatelessWidget {
         border: Border.all(color: Colors.black12),
       ),
       child: CustomText(
-        "${AppStrings.labInrPrefix.tr}${item.suggestedCustomerPrice ?? '0'}",
+        "${AppStrings.labInrPrefix.tr}$price",
         fontWeight: FontWeight.bold,
         fontSize: SizeConfig.size14,
       ),

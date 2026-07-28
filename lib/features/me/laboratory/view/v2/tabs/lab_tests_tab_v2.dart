@@ -470,12 +470,12 @@ class _PopularTestsSection extends StatelessWidget {
                     ),
                   ),
                   child: InkWell(
-                    onTap: () {
-                      LabTestListScreen(
+                    onTap: () => Get.to(
+                      () => const LabTestListScreen(
                         collection: '',
                         title: 'Popular Tests',
-                      );
-                    },
+                      ),
+                    ),
                     child: CustomText(
                       "View All",
                       fontSize: 12,
