@@ -128,16 +128,18 @@ class _FinanceCard extends StatelessWidget {
     final String address = _resolveAddress(item);
     final String category = item.category ?? item.type ?? '';
 
+    // Hero shows the cover banner, never the logo. Falls back to gallery
+    // images only when the business hasn't uploaded a cover yet.
     final List<String> coverImages = <String>[];
-    if (item.gallery != null) {
+    if ((item.coverUrl ?? '').isNotEmpty) {
+      coverImages.add(item.coverUrl!);
+    }
+    if (coverImages.isEmpty && item.gallery != null) {
       for (final g in item.gallery!) {
         if (g.imageUrls != null) {
           coverImages.addAll(g.imageUrls!.where((u) => u.trim().isNotEmpty));
         }
       }
-    }
-    if (coverImages.isEmpty && (item.coverUrl ?? '').isNotEmpty) {
-      coverImages.add(item.coverUrl!);
     }
 
     const String na = 'N/A';

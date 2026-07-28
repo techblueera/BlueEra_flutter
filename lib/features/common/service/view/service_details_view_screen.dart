@@ -1,6 +1,13 @@
 import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_constant.dart' show getInitials, canGoogleMapOpen, isGuestUser, createProfileScreen, navigatePushTo, AppConstants;
+import 'package:BlueEra/core/constants/app_constant.dart'
+    show
+        getInitials,
+        canGoogleMapOpen,
+        isGuestUser,
+        createProfileScreen,
+        navigatePushTo,
+        AppConstants;
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/custom_carousel_slider.dart';
@@ -22,12 +29,12 @@ class ServiceDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     bool isSelfService = false;
     // log('type--> ${service.serviceProvider?.type}');
-    if(service.serviceProvider?.type?.toLowerCase()
-        == ProviderType.user.name.toLowerCase() ||
-        service.serviceProvider?.type?.toLowerCase() == ProviderType.business.name.toLowerCase()){
+    if (service.serviceProvider?.type?.toLowerCase() ==
+            ProviderType.user.name.toLowerCase() ||
+        service.serviceProvider?.type?.toLowerCase() ==
+            ProviderType.business.name.toLowerCase()) {
       isSelfService = service.serviceProvider?.id == userId;
     }
     // else if(service.serviceProvider?.type?.toLowerCase() == ProductServiceProviderType.business.name.toLowerCase()){
@@ -35,7 +42,8 @@ class ServiceDetailsScreen extends StatelessWidget {
     //   log('businessId--> $businessId');
     //   isSelfService = service.serviceProvider?.id == businessId;
     // }
-    else if(service.serviceProvider?.type?.toLowerCase() == ProviderType.channel.name.toLowerCase()){
+    else if (service.serviceProvider?.type?.toLowerCase() ==
+        ProviderType.channel.name.toLowerCase()) {
       isSelfService = service.serviceProvider?.id == channelId;
     }
     // log('isSelfService--> $isSelfService');
@@ -54,7 +62,7 @@ class ServiceDetailsScreen extends StatelessWidget {
               // --- Image Slider ---
               if (service.photos != null && service.photos!.isNotEmpty)
                 InkWell(
-                  onTap: (){
+                  onTap: () {
                     navigatePushTo(
                       Get.context!,
                       ImageViewScreen(
@@ -77,8 +85,7 @@ class ServiceDetailsScreen extends StatelessWidget {
                   ),
                 ),
 
-              if(!isSelfService)
-              ...[
+              if (!isSelfService) ...[
                 SizedBox(height: SizeConfig.size20),
                 CustomFormCard(
                   margin: EdgeInsets.zero,
@@ -92,11 +99,11 @@ class ServiceDetailsScreen extends StatelessWidget {
                             : null,
                         child: service.business?.logo == null
                             ? CustomText(
-                          getInitials(service.business?.businessName),
-                          fontSize: SizeConfig.size18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        )
+                                getInitials(service.business?.businessName),
+                                fontSize: SizeConfig.size18,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              )
                             : null,
                       ),
                       Expanded(
@@ -106,7 +113,8 @@ class ServiceDetailsScreen extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 CustomText(
-                                  service.business?.businessName?.capitalizeFirst ??
+                                  service.business?.businessName
+                                          ?.capitalizeFirst ??
                                       "NA",
                                   fontSize: SizeConfig.large18,
                                   fontWeight: FontWeight.w700,
@@ -134,23 +142,30 @@ class ServiceDetailsScreen extends StatelessWidget {
 
                           Discounts? maxDiscount;
                           if ((service.discounts?.length ?? 0) > 0)
-                            maxDiscount = service.discounts
-                                ?.reduce((a, b) => (a.amountOff ?? 0) > (b.amountOff ?? 0) ? a : b);
+                            maxDiscount = service.discounts?.reduce((a, b) =>
+                                (a.amountOff ?? 0) > (b.amountOff ?? 0)
+                                    ? a
+                                    : b);
 
-                          final chatViewController = Get.find<ChatViewController>();
-                          List<Map<String, String>> urlList = service.photos?.map((e) => {ApiKeys.url: e}).toList()??[];
-                          Map<String,dynamic> data={
-                            ApiKeys.service_id : "${service.id}",
-                            ApiKeys.price: "${service.priceRange?.min} - ${service.priceRange?.max} per ${service.perUnit ?? ''}",
-                            ApiKeys.discount: "${(maxDiscount?.amountOff != null)
-                                ? "${maxDiscount?.amountOff.toString()}% Off"
-                                : "0% Off"}",
+                          final chatViewController =
+                              Get.find<ChatViewController>();
+                          List<Map<String, String>> urlList = service.photos
+                                  ?.map((e) => {ApiKeys.url: e})
+                                  .toList() ??
+                              [];
+                          Map<String, dynamic> data = {
+                            ApiKeys.service_id: "${service.id}",
+                            ApiKeys.price:
+                                "${service.priceRange?.min} - ${service.priceRange?.max} per ${service.perUnit ?? ''}",
+                            ApiKeys.discount:
+                                "${(maxDiscount?.amountOff != null) ? "${maxDiscount?.amountOff.toString()}% Off" : "0% Off"}",
                             ApiKeys.message: "${service.title}",
                             ApiKeys.message_type: AppConstants.service,
                             ApiKeys.title: service.title,
-                            ApiKeys.sub_category : "${service.business?.categoryOfBusiness?.name ?? "N/A"}",
-                            ApiKeys.variant : "${service.business?.businessName ?? "N/A"}",
-
+                            ApiKeys.sub_category:
+                                "${service.business?.categoryOfBusiness?.name ?? "N/A"}",
+                            ApiKeys.variant:
+                                "${service.business?.businessName ?? "N/A"}",
                             ApiKeys.url: urlList,
                           };
                           chatViewController.checkChatConnectionAndOpenChat(
@@ -159,7 +174,6 @@ class ServiceDetailsScreen extends StatelessWidget {
                             isWithProductSend: true,
                             route: AppConstants.route_discover,
                           );
-
                         },
                         child: Container(
                           // width: Get.width,
@@ -180,7 +194,8 @@ class ServiceDetailsScreen extends StatelessWidget {
                           decoration: BoxDecoration(
                               color: AppColors.primaryColor,
                               borderRadius: BorderRadius.circular(5),
-                              border: Border.all(color: AppColors.primaryColor)),
+                              border:
+                                  Border.all(color: AppColors.primaryColor)),
                         ),
                       ),
                     ],
@@ -198,7 +213,8 @@ class ServiceDetailsScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(13),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.secondaryTextColor.withValues(alpha: 0.1),
+                        color:
+                            AppColors.secondaryTextColor.withValues(alpha: 0.1),
                         spreadRadius: 0.5,
                         blurRadius: 1,
                         offset: Offset(0, 1),
@@ -237,7 +253,8 @@ class ServiceDetailsScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(13),
                     boxShadow: [
                       BoxShadow(
-                        color: AppColors.secondaryTextColor.withValues(alpha: 0.1),
+                        color:
+                            AppColors.secondaryTextColor.withValues(alpha: 0.1),
                         spreadRadius: 0.5,
                         blurRadius: 1,
                         offset: Offset(0, 1),
@@ -273,7 +290,8 @@ class ServiceDetailsScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(13),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.secondaryTextColor.withValues(alpha: 0.1),
+                          color: AppColors.secondaryTextColor
+                              .withValues(alpha: 0.1),
                           spreadRadius: 0.5,
                           blurRadius: 1,
                           offset: Offset(0, 1),
@@ -302,7 +320,8 @@ class ServiceDetailsScreen extends StatelessWidget {
                                   color: Colors.blue.shade50,
                                   borderRadius:
                                       BorderRadius.circular(SizeConfig.size20),
-                                  border: Border.all(color: Colors.blue.shade200),
+                                  border:
+                                      Border.all(color: Colors.blue.shade200),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
@@ -325,18 +344,18 @@ class ServiceDetailsScreen extends StatelessWidget {
                   ),
                 ),
 
-              SizedBox(height: SizeConfig.size20),
+              // SizedBox(height: SizeConfig.size10),
 
               // --- Business Info ---
               InkWell(
-                onTap: (){
+                onTap: () {
                   canGoogleMapOpen(
                       latitude:
-                      service.business?.businessLocation?.lat?.toDouble() ??
-                          0.0,
+                          service.business?.businessLocation?.lat?.toDouble() ??
+                              0.0,
                       longitude:
-                      service.business?.businessLocation?.lon?.toDouble() ??
-                          0.0);
+                          service.business?.businessLocation?.lon?.toDouble() ??
+                              0.0);
                 },
                 child: Container(
                   width: Get.width,
@@ -347,7 +366,8 @@ class ServiceDetailsScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(13),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.secondaryTextColor.withValues(alpha: 0.1),
+                          color: AppColors.secondaryTextColor
+                              .withValues(alpha: 0.1),
                           spreadRadius: 0.5,
                           blurRadius: 1,
                           offset: Offset(0, 1),
@@ -362,16 +382,18 @@ class ServiceDetailsScreen extends StatelessWidget {
                           CustomText(AppStrings.businessLocation,
                               fontSize: SizeConfig.size18,
                               fontWeight: FontWeight.bold),
-                          Icon(Icons.directions,color: AppColors.primaryColor,),
-
+                          Icon(
+                            Icons.directions,
+                            color: AppColors.primaryColor,
+                          ),
                         ],
                       ),
-                      Divider(color: AppColors.secondaryTextColor,thickness: 0.5,),
-
+                      Divider(
+                        color: AppColors.secondaryTextColor,
+                        thickness: 0.5,
+                      ),
                       SizedBox(height: SizeConfig.size12),
                       _businessCard(context),
-
-
                     ],
                   ),
                 ),
@@ -388,7 +410,8 @@ class ServiceDetailsScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(13),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.secondaryTextColor.withValues(alpha: 0.1),
+                          color: AppColors.secondaryTextColor
+                              .withValues(alpha: 0.1),
                           spreadRadius: 0.5,
                           blurRadius: 1,
                           offset: Offset(0, 1),
@@ -428,7 +451,6 @@ class ServiceDetailsScreen extends StatelessWidget {
 
     return Row(
       children: [
-
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

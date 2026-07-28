@@ -2,7 +2,6 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
@@ -24,17 +23,16 @@ import 'package:BlueEra/features/me/laboratory/repo/lab_test_repo.dart';
 import 'package:BlueEra/features/me/laboratory/view/lab_test_list_screen.dart';
 import 'package:BlueEra/features/me/laboratory/widget/lab_enquiry_sheet.dart';
 import 'package:BlueEra/features/me/laboratory/widget/lab_soft_card_color.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/image_view_screen.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
-import 'package:BlueEra/widgets/visit_business_common_header.dart';
-import 'package:BlueEra/widgets/visit_business_stats_card.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+
+import '../../../../widgets/visit_business_hero.dart';
 
 /// Customer-facing lab profile — mirrors [MedicalPharmacyDetailScreen]:
 /// shared header + stats, a horizontal Popular Tests carousel using the
@@ -200,7 +198,7 @@ class _LabDetailScreenState extends State<LabDetailScreen> {
     }
 
     return Scaffold(
-      appBar: CommonBackAppBar(title: 'Laboratory'),
+      extendBodyBehindAppBar: true,
       bottomNavigationBar: Obx(() {
         viewBusinessDetailsController.profileVersion.value;
         final bar = _buildEnquiryBottomBar(
@@ -212,46 +210,32 @@ class _LabDetailScreenState extends State<LabDetailScreen> {
         onRefresh: _refresh,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.zero,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Shared profile header — banner, logo, rating, follow/share.
               Obx(() {
+                // Subscribe to silent profile refreshes — bumps on every
+                // successful fetch so this Obx rebuilds even when the
+                // loader is skipped.
                 viewBusinessDetailsController.profileVersion.value;
                 if (viewBusinessDetailsController.isProfileLoading.value) {
                   return buildBusinessHeaderSkeleton();
                 }
                 final details = viewBusinessDetailsController
                     .visitedBusinessProfileDetails?.data;
-                return Padding(
-                  padding: EdgeInsets.all(SizeConfig.size12),
-                  child: VisitBusinessCommonHeader(
-                    details: details,
-                    // Share the lab via its typed deep link so the recipient
-                    // lands back on this detail screen (not the generic
-                    // profile preview). Uses the same business-profile id the
-                    // screen hydrates from.
-                    shareLink: labsDeepLink(businessId: widget.businessId),
-                    onRated: () =>
-                        viewBusinessDetailsController.viewBusinessProfileById(
-                      widget.businessId,
-                      silent: true,
-                    ),
-                    onFollowChanged: () =>
-                        viewBusinessDetailsController.viewBusinessProfileById(
-                      widget.businessId,
-                      silent: true,
-                    ),
+                return VisitBusinessHero(
+                  details: details,
+                  onRated: () =>
+                      viewBusinessDetailsController.viewBusinessProfileById(
+                    widget.businessId,
+                    silent: true,
                   ),
-                );
-              }),
-              Obx(() {
-                viewBusinessDetailsController.profileVersion.value;
-                return Padding(
-                  padding: EdgeInsets.symmetric(horizontal: SizeConfig.size12),
-                  child: VisitBusinessStatsCard(
-                    details: viewBusinessDetailsController
-                        .visitedBusinessProfileDetails?.data,
+                  onFollowChanged: () =>
+                      viewBusinessDetailsController.viewBusinessProfileById(
+                    widget.businessId,
+                    silent: true,
                   ),
                 );
               }),

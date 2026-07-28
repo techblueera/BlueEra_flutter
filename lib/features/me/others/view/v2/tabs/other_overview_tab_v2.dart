@@ -228,7 +228,7 @@ class OtherOverviewTabV2 extends StatelessWidget {
             ),
           ),
 
-          SizedBox(height: SizeConfig.size10),
+          // SizedBox(height: SizeConfig.size10),
 
           Padding(
             padding: EdgeInsets.only(

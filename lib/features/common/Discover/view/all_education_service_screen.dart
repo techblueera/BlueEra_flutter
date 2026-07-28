@@ -243,14 +243,17 @@ class _AllEducationServiceScreenState extends State<AllEducationServiceScreen> {
   Widget selfProfessionCard(SchoolDetailsData service) {
     const String na = 'N/A';
 
-    final List<String> coverImages = <String>[
-      ...?service.galleryPhotos?.where((u) => u.trim().isNotEmpty),
-    ];
-    if (coverImages.isEmpty && (service.bannerUrl ?? '').isNotEmpty) {
+    // Hero shows the cover banner, never the logo. Falls back to gallery
+    // photos only when the school hasn't uploaded a banner yet.
+    final List<String> coverImages = <String>[];
+    if ((service.bannerUrl ?? '').isNotEmpty) {
       coverImages.add(service.bannerUrl!);
     }
-    if (coverImages.isEmpty && (service.logo ?? '').isNotEmpty) {
-      coverImages.add(service.logo!);
+    if (coverImages.isEmpty) {
+      coverImages.addAll(
+        service.galleryPhotos?.where((u) => u.trim().isNotEmpty) ??
+            const <String>[],
+      );
     }
 
     final String name =

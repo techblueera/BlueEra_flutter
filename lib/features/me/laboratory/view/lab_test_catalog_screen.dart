@@ -434,6 +434,7 @@ class _LabTestCatalogScreenState extends State<LabTestCatalogScreen>
                                 };
                                 final ok = await controller.selectCatalog(
                                   item.id!,
+                                  collection: widget.collection,
                                   customData: overrides,
                                 );
                                 if (ok) Get.back();

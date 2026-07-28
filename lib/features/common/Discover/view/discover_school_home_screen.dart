@@ -1,10 +1,8 @@
 import 'package:BlueEra/core/api/model/school_details_res_model.dart';
-import 'package:BlueEra/core/api/model/school_quick_info_field.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/shimmer_utils.dart';
@@ -21,7 +19,6 @@ import 'package:BlueEra/features/me/school/view/category/school_home/school_dire
 import 'package:BlueEra/features/me/school/view/category/school_home/school_management_view.dart';
 import 'package:BlueEra/features/me/school/widget/education_enquiry_sheet.dart';
 import 'package:BlueEra/features/me/school/widget/school_course_list_item_card.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -29,8 +26,7 @@ import 'package:BlueEra/widgets/empty_state_widget.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:BlueEra/widgets/social_gallery_grid.dart';
-import 'package:BlueEra/widgets/visit_business_common_header.dart';
-import 'package:BlueEra/widgets/visit_business_stats_card.dart';
+import 'package:BlueEra/widgets/visit_business_hero.dart';
 import 'package:BlueEra/widgets/website_preview_card.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -115,18 +111,17 @@ class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
 
       return Scaffold(
         backgroundColor: Colors.transparent,
-        appBar: CommonBackAppBar(
-          title: _resolveAppBarTitle(data),
-        ),
+        extendBodyBehindAppBar: true,
         bottomNavigationBar: hasData ? _buildBottomBar(context) : null,
         body: (!hasData && isLoading)
             ? const Center(child: CircularProgressIndicator())
             : SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: EdgeInsets.only(top: 10),
+                padding: EdgeInsets.zero,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // ─── Header (edge-to-edge hero includes overlay app-bar) ───
                     Obx(() {
                       // Subscribe to silent profile refreshes — bumps on every
                       // successful fetch so this Obx rebuilds even when the
@@ -138,30 +133,17 @@ class _DiscoverSchoolHomeScreenState extends State<DiscoverSchoolHomeScreen> {
                       }
                       final details = viewBusinessDetailsController
                           .visitedBusinessProfileDetails?.data;
-                      return Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 10),
-                        child: Column(
-                          children: [
-                            VisitBusinessCommonHeader(
-                              details: details,
-                              onRated: () => viewBusinessDetailsController
-                                  .viewBusinessProfileById(
-                                data?.ownerId ?? '',
-                                silent: true,
-                              ),
-                              onFollowChanged: () =>
-                                  viewBusinessDetailsController
-                                      .viewBusinessProfileById(
-                                data?.ownerId ?? '',
-                                silent: true,
-                              ),
-                              shareLink: serviceDeepLinkBusiness(
-                                id: details?.userId,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            VisitBusinessStatsCard(details: details),
-                          ],
+                      return VisitBusinessHero(
+                        details: details,
+                        onRated: () => viewBusinessDetailsController
+                            .viewBusinessProfileById(
+                          data?.ownerId ?? '',
+                          silent: true,
+                        ),
+                        onFollowChanged: () => viewBusinessDetailsController
+                            .viewBusinessProfileById(
+                          data?.ownerId ?? '',
+                          silent: true,
                         ),
                       );
                     }),
@@ -911,38 +893,6 @@ class _LocationSection extends StatelessWidget {
 // ─────────────────────────────────────────────────────────────────────────────
 // SHARED HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
-
-/// Picks the AppBar title for the discover screen from the resolved
-/// school category. `data.quickInfoCategory` is the canonical string
-/// (e.g. "College/University") when the source stream can resolve one
-/// of the six categories from the business chain; otherwise we fall
-/// back to `data.type`, and `resolveQuickInfoCategoryKey` normalises
-/// casing / spacing / punctuation before matching.
-///
-/// Returns [AppStrings.school] when nothing resolves — preserves the
-/// pre-existing title for schools with a missing / unrecognised
-/// category so we never render a blank app bar.
-String _resolveAppBarTitle(SchoolDetailsData? data) {
-  final canonical = resolveQuickInfoCategoryKey(
-    data?.quickInfoCategory ?? data?.type,
-  );
-  switch (canonical) {
-    case 'School Education':
-      return AppStrings.schoolEducation;
-    case 'College/University':
-      return 'College/University';
-    case 'Coaching/Institute':
-      return 'Coaching/Institute';
-    case 'Sports & Hobby':
-      return 'Sports & Hobby';
-    case 'Professional Learn':
-      return 'Professional Learn';
-    case 'Skill Training':
-      return 'Skill Training';
-    default:
-      return AppStrings.school;
-  }
-}
 
 Widget _sectionHeader(IconData icon, String title) {
   return Row(

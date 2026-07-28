@@ -14,7 +14,6 @@ import 'package:BlueEra/features/common/Discover/view/finance/finance_job_listin
 import 'package:BlueEra/features/common/Discover/view/finance/widget/finance_enquiry_sheet.dart';
 import 'package:BlueEra/features/common/Discover/widget/discover_profile_navigation.dart';
 import 'package:BlueEra/features/me/others/controller/other_enquiry_controller.dart';
-import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -28,10 +27,8 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../../../core/constants/common_methods.dart';
 import '../../../../../core/constants/shimmer_utils.dart';
-import '../../../../../widgets/visit_business_common_header.dart';
-import '../../../../../widgets/visit_business_stats_card.dart';
+import '../../../../../widgets/visit_business_hero.dart';
 import '../../../../business/widgets/business_contact_map_card.dart';
 
 class FinanceDetailScreen extends StatefulWidget {
@@ -111,10 +108,7 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CommonBackAppBar(
-        title: controller.selectedDetail.value?.profileName ??
-            AppStrings.financeService.tr,
-      ),
+      extendBodyBehindAppBar: true,
       bottomNavigationBar: Obx(() {
         final data = controller.selectedDetail.value;
         if (data == null || data.userId == userId) {
@@ -164,11 +158,11 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
           return Center(child: CustomText(AppStrings.noDataFound.tr));
         }
         return SingleChildScrollView(
-          padding: EdgeInsets.all(SizeConfig.size12),
+          padding: EdgeInsets.zero,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ─── Header ───
+              // ─── Header (edge-to-edge hero includes overlay app-bar) ───
               Obx(() {
                 // Subscribe to silent profile refreshes — bumps on every
                 // successful fetch so this Obx rebuilds even when the
@@ -179,87 +173,79 @@ class _FinanceDetailScreenState extends State<FinanceDetailScreen> {
                 }
                 final details = viewBusinessDetailsController
                     .visitedBusinessProfileDetails?.data;
-                return Column(
+                return VisitBusinessHero(
+                  details: details,
+                  onRated: () =>
+                      viewBusinessDetailsController.viewBusinessProfileById(
+                    data.userId ?? '',
+                    silent: true,
+                  ),
+                  onFollowChanged: () =>
+                      viewBusinessDetailsController.viewBusinessProfileById(
+                    data.userId ?? '',
+                    silent: true,
+                  ),
+                );
+              }),
+              Padding(
+                padding: EdgeInsets.all(SizeConfig.size12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    VisitBusinessCommonHeader(
-                      details: details,
-                      onRated: () =>
-                          viewBusinessDetailsController.viewBusinessProfileById(
-                        data.userId ?? '',
-                        silent: true,
-                      ),
-                      onFollowChanged: () =>
-                          viewBusinessDetailsController.viewBusinessProfileById(
-                        data.userId ?? '',
-                        silent: true,
-                      ),
-                      shareLink: serviceDeepLinkBusiness(
-                        id: details?.userId,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    VisitBusinessStatsCard(details: details),
+                    // ─── Organisation ───
+                    if (data.aboutOrganisation?.isNotEmpty ?? false) ...[
+                      _buildOrganisationSection(data.aboutOrganisation!),
+                      SizedBox(height: SizeConfig.size10),
+                    ],
+
+                    // ─── Management ───
+                    if (data.management?.isNotEmpty ?? false) ...[
+                      _buildManagementSection(data.management!),
+                      SizedBox(height: SizeConfig.size10),
+                    ],
+
+                    // ─── Our Team / Staff ───
+                    if (data.staff?.isNotEmpty ?? false) ...[
+                      _buildStaffSection(data.staff!),
+                      SizedBox(height: SizeConfig.size10),
+                    ],
+
+                    // ─── Jobs ───
+                    _buildJobsSection(),
+                    SizedBox(height: SizeConfig.size10),
+
+                    // ─── Blogs ───
+                    if (data.blogs?.isNotEmpty ?? false) ...[
+                      _buildBlogsSection(data.blogs!),
+                      SizedBox(height: SizeConfig.size10),
+                    ],
+
+                    // ─── Gallery ───
+                    _buildGallerySection(data.gallery),
+
+                    // ─── Contact Us ───
+                    Obx(() {
+                      if (viewBusinessDetailsController.isProfileLoading.value) {
+                        return const SizedBox.shrink();
+                      }
+                      final details = viewBusinessDetailsController
+                          .visitedBusinessProfileDetails?.data;
+                      return BusinessContactMapCard(
+                        businessProfileDetails: details,
+                        showEditButton: false,
+                      );
+                    }),
+                    SizedBox(height: SizeConfig.size16),
+
+                    // ─── Website preview ───
+                    WebsitePreviewCard(url: data.effectiveWebsite ?? ''),
+
+                    SizedBox(height: SizeConfig.size16),
+
+                    SizedBox(height: kBottomNavigationBarHeight + 30),
                   ],
-                );
-              }),
-              SizedBox(height: SizeConfig.size10),
-
-              // ─── Organisation ───
-              if (data.aboutOrganisation?.isNotEmpty ?? false) ...[
-                _buildOrganisationSection(data.aboutOrganisation!),
-                SizedBox(height: SizeConfig.size10),
-              ],
-
-              // ─── Management ───
-              if (data.management?.isNotEmpty ?? false) ...[
-                _buildManagementSection(data.management!),
-                SizedBox(height: SizeConfig.size10),
-              ],
-
-              // ─── Our Team / Staff ───
-              if (data.staff?.isNotEmpty ?? false) ...[
-                _buildStaffSection(data.staff!),
-                SizedBox(height: SizeConfig.size10),
-              ],
-
-              // ─── Jobs ───
-              _buildJobsSection(),
-              SizedBox(height: SizeConfig.size10),
-
-              // ─── Blogs ───
-              if (data.blogs?.isNotEmpty ?? false) ...[
-                _buildBlogsSection(data.blogs!),
-                SizedBox(height: SizeConfig.size10),
-              ],
-
-              // ─── Gallery ───
-              _buildGallerySection(data.gallery),
-              // SizedBox(height: SizeConfig.size16),
-
-              // ─── Contact Us ───
-              // _buildContactSection(data),
-              Obx(() {
-                if (viewBusinessDetailsController.isProfileLoading.value) {
-                  return const SizedBox.shrink();
-                }
-                final details = viewBusinessDetailsController
-                    .visitedBusinessProfileDetails?.data;
-                return BusinessContactMapCard(
-                  businessProfileDetails: details,
-                  showEditButton: false,
-                );
-              }),
-              SizedBox(height: SizeConfig.size16),
-
-              // ─── Website preview ───
-              WebsitePreviewCard(url: data.effectiveWebsite ?? ''),
-
-              SizedBox(height: SizeConfig.size16),
-
-              // ─── Location Map ───
-              // _buildLocationSection(data),
-
-              SizedBox(height: kBottomNavigationBarHeight + 30),
+                ),
+              ),
             ],
           ),
         );

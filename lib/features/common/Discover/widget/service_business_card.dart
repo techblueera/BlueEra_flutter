@@ -11,7 +11,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../../core/constants/app_constant.dart';
 import '../../../../core/constants/common_methods.dart';
+import '../../../business/widgets/rating_widget.dart';
 import '../view/others_service_detail_screen.dart';
 
 /// Service-style business card used by the "Services Near Me" screen.
@@ -186,12 +188,6 @@ class ServiceBusinessCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.black25,
                 borderRadius: BorderRadius.circular(20),
-                // boxShadow: [
-                //   BoxShadow(
-                //     color: Colors.black.withValues(alpha: 0.08),
-                //     blurRadius: 4,
-                //   ),
-                // ],
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -222,7 +218,7 @@ class ServiceBusinessCard extends StatelessWidget {
               children: [
                 _circleIconBtn(AppIconAssets.share_bold, onTap: _shareBusiness),
                 const SizedBox(height: 8),
-                _circleIconBtn(AppIconAssets.star, onTap: () {}),
+                _circleIconBtn(AppIconAssets.star, onTap: _onRateTap),
               ],
             ),
           ),
@@ -636,6 +632,20 @@ class ServiceBusinessCard extends StatelessWidget {
     Get.to(() => OthersServiceDetailScreen(
           visitUserId: _profile?.userId ?? '',
         ));
+  }
+
+  Future<void> _onRateTap() async {
+    final businessId = (_profile?.id ?? '').trim();
+    if (businessId.isEmpty) return;
+    final ctx = Get.context;
+    if (ctx == null) return;
+    await showDialog(
+      context: ctx,
+      builder: (_) => RatingFeedbackDialog(
+        businessId: businessId,
+        reviewFor: AppConstants.business,
+      ),
+    );
   }
 
   Future<void> _shareBusiness() async {

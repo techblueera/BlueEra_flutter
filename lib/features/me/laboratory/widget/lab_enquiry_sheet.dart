@@ -129,6 +129,12 @@ class LabEnquirySheet {
       profile: listing.labImage,
       route: AppConstants.route_discover,
     );
+    // The card is delivered asynchronously by be_chat_service after it
+    // consumes the Kafka event (see LABORATORY_ENQUIRY_INTEGRATION_GUIDE.md
+    // §5). The socket `newMessageReceived` push races the just-mounted
+    // chat screen's listener and can drop; a burst re-fetch guarantees
+    // the card surfaces on its own within ~3s.
+    chatViewController.refreshOpenConversationMessages();
   }
 }
 

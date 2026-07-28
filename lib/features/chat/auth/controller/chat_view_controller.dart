@@ -2292,6 +2292,28 @@ class ChatViewController extends GetxController {
     Future.delayed(const Duration(seconds: 3), emit);
   }
 
+  /// Re-emit the open conversation's history in a short burst — mirrors
+  /// [refreshBusinessChatListAfterOrder] but for a single conversation.
+  /// Enquiry sheets (lab / hotel / hospital / education / business) POST
+  /// the enquiry, open the chat, then depend on `be_chat_service` to
+  /// publish the in-chat card via Kafka. When the socket's
+  /// `newMessageReceived` push races the just-mounted chat screen's
+  /// listener, the card silently drops and the user sees an empty
+  /// thread. The burst gives the backend up to 3s to persist the card
+  /// and re-fetches history so it lands on its own.
+  ///
+  /// No-op if no conversation is open. Safe to call after any enquiry
+  /// submission.
+  void refreshOpenConversationMessages() {
+    final convId = userOpenConversationId.value;
+    if (convId.isEmpty) return;
+    _emitFetchMessages(convId); // immediate — catches cards already indexed
+    Future.delayed(const Duration(milliseconds: 1200),
+        () => _emitFetchMessages(convId));
+    Future.delayed(const Duration(seconds: 3),
+        () => _emitFetchMessages(convId));
+  }
+
   void isChatFromBusinessProfile(bool value) {
     chatFromBusinessProfile.value = value;
   }
