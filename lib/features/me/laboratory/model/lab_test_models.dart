@@ -99,6 +99,11 @@ class PathologyTest {
   // `POST /test-catalog/select`. Read-only — never sent on create/update.
   // Used by the catalog screen's tab to isolate manual entries.
   String? source;
+  // Source-catalog id (present only when `source == "catalog"`). Used by
+  // the catalog list to overlay this lab's price/hours/method overrides
+  // onto the `TestCatalogItem` (whose `suggested*` fields are the
+  // catalog defaults, not the lab's saved values). Read-only.
+  String? catalogTestId;
 
   PathologyTest({
     this.id,
@@ -124,6 +129,7 @@ class PathologyTest {
     this.groupCategory,
     this.packageType,
     this.source,
+    this.catalogTestId,
   });
 
   factory PathologyTest.fromJson(Map<String, dynamic> json) => PathologyTest(
@@ -159,6 +165,7 @@ class PathologyTest {
         groupCategory: json["groupCategory"],
         packageType: json["packageType"],
         source: json["source"],
+        catalogTestId: json["catalogTestId"]?.toString(),
       );
 
   Map<String, dynamic> toJson() {

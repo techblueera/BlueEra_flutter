@@ -20,6 +20,9 @@ mixin LabServiceApi {
   // Test catalog (predefined tests)
   final String testCatalog = 'lab-service/test-catalog';
   final String testCatalogSelect = 'lab-service/test-catalog/select';
+  // Mirror of /select — removes the caller's copy of a catalog test.
+  // See lib/docs/FLUTTER_CATALOGUE_INTEGRATION.md PART 4c.
+  final String testCatalogDeselect = 'lab-service/test-catalog/deselect';
   final String testLabServiceFullDetails =
       'lab-service/laboratory-profiles/full-details';
 

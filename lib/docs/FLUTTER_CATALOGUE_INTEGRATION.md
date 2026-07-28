@@ -79,25 +79,6 @@ existing UI's separate Add-Test and Add-Package screens; do not fold them.
   (`_id, testName, groupCategory, estimatedReportHours, customerPrice, testFees, specimenCollectionMethod`),
   so you can show `name`, `customerPrice`, and the bundled test names/count
   directly. No second call needed for the list.
-- **Filters (all optional, AND together):**
-
-| Param | Values | Notes |
-|---|---|---|
-| `packageType` | one of the 26 presets | Not in the list → **400** with the allowed values |
-| `gender` | `Male` \| `Female` \| `All` | |
-| `isActive` | `true` \| `false` | anything else → 400 |
-| `search` | string | case-insensitive match on `name` |
-
-```
-GET /packages/me?packageType=Full%20Body%20Checkup&isActive=true
-```
-
-Encode the value — several presets contain `&` (`Ophthalmology & ENT`,
-`Fertility & Pregnancy Package`, `Allergy & Immunology Package`). Use
-`URLSearchParams` / `Uri(queryParameters:)` and it is handled for you.
-
-The same filters work on `GET /packages/laboratory/{labId}` for the public view.
-
 - **Do NOT use `GET /packages`** (unscoped — returns every lab's packages) or
   `GET /packages/laboratory/{labId}` (needs a labId and returns raw, unpopulated
   test ids). `GET /packages/me` is the correct owner list.
@@ -158,7 +139,6 @@ The same filters work on `GET /packages/laboratory/{labId}` for the public view.
 | Field | Widget | Backend field | Req? | Validation | Default | Options API | Payload key |
 |---|---|---|---|---|---|---|---|
 | Package Name | `TextFormField` | `name` | ✅ | non-empty | — | — | `name` |
-| Preset / Type | `DropdownButtonFormField` | `packageType` | ⚪ | one of 26 | — | `GET /test-catalog/enums` → `packageType` | `packageType` |
 | Tests | Searchable multi-select `BottomSheet` | `tests` | ✅ | **≥ 1** selected | — | `GET /pathology-tests` (token) | `tests` = `[testId]` |
 | Package MRP | `TextFormField` (number) | `packageMrp` | ✅ | number ≥ 0 | — | — | `packageMrp` |
 | Customer Price | `TextFormField` (number) | `customerPrice` | ✅ | number ≥ 0, ≤ MRP (advisable) | — | — | `customerPrice` |
@@ -166,39 +146,6 @@ The same filters work on `GET /packages/laboratory/{labId}` for the public view.
 | Image | `ImagePicker` → upload → URL | `imageUrl` | ⚪ | valid URL | — | `GET /upload/init` + PUT to S3 | `imageUrl` (publicUrl) |
 | Gender | `DropdownButtonFormField` | `gender` | ⚪ | one of 3 | `All` | `enums.gender` (reuse) | `gender` |
 | Active | `Switch` | `isActive` | ⚪ | bool | `true` | — | `isActive` |
-
-### ⚠️ `packageType` vs `name` — do not conflate them
-
-`packageType` is the **preset** the package is built on — one of the same 26
-values a test's `packageType` uses (`Basic Health Checkup`, `Full Body Checkup`,
-`Thyroid Package`, …). `name` is the lab's **own display title**.
-
-```jsonc
-// RIGHT
-"name": "Monsoon Wellness Offer",     // the lab's title, shown to customers
-"packageType": "Full Body Checkup"    // the preset — drives the icon + filter
-
-// WRONG (what clients did before packageType existed)
-"name": "Basic Health Checkup"        // preset written into name -> every package
-                                      // ends up with the same title
-```
-
-**Drive the icon switch off `packageType`, not `name`:**
-
-```dart
-switch (package.packageType) {          // NOT package.name
-  case 'Basic Health Checkup':  return AppIconAssets.basicHealthCampIcon;
-  case 'Full Body Checkup':     return AppIconAssets.fullBodycheckupIcon;
-  // …
-  default:                      return AppIconAssets.healthPackageIcon;
-}
-```
-
-`packageType` is **optional**, so `null` is possible on very old records — the
-`default:` branch already covers that.
-
-Options come from `GET /test-catalog/enums` → `data.packageType` (the same call
-the Test form already makes; cache it once and reuse).
 
 **Never send from the Package form:** `userId`, `laboratoryId` (both from token).
 Also do not send any Test-only field (`groupCategory`, `packageType`, `specimen`,
@@ -229,6 +176,98 @@ Basic Information → Category → Parameters → Pricing → Guidance → Save
 Dropdown-loading APIs (call before/while opening the screen): `/test-catalog/enums`,
 `/test-categories/laboratory/{labId}`, `/test-parameters/laboratory/{labId}` — all
 three can run in parallel.
+
+---
+
+## PART 4b — Add from Catalog with edits (`/test-catalog/select`)
+
+This is the **other** way a lab adds a test — picking a ready-made test from the
+602-row master catalog instead of authoring one by hand (PART 4). Use this when
+the catalog screen's "Add" button is tapped.
+
+```
+POST /test-catalog/select
+Authorization: Bearer <token>
+```
+
+The catalog defines the test's **identity** (name, category, group, package,
+specimen, parameters). The lab may **override only operational fields** — its own
+price, turnaround, method and guidance. Send the edits **flat in the body**
+alongside `catalogTestIds`:
+
+```json
+{
+  "catalogTestIds": ["6a4e22fa60dbb66122b57865"],
+  "estimatedReportHours": 12,
+  "testFees": 390,
+  "customerPrice": 249,
+  "testMethod": "Automated Hematology Analyzer (5-part differential)",
+  "beforeTestGuidance": "12 hours fasting.",
+  "gender": "All"
+}
+```
+
+**Overridable (owner-editable) fields:**
+
+| Field | Type | Validation |
+|---|---|---|
+| `testFees` | number | ≥ 0 |
+| `customerPrice` | number | ≥ 0 |
+| `estimatedReportHours` | int | whole number > 0 |
+| `testMethod` | string | — |
+| `beforeTestGuidance` / `postTestGuidance` | string | — |
+| `organSystemTested` / `description` | string | — |
+| `gender` | enum | `Male`/`Female`/`All` |
+| `applicableForChild` / `prescriptionRequired` | bool | — |
+
+**Ignored — always taken from the catalog** (send them or not, they never apply):
+`testName`, `groupCategory`, `packageType`, `specimen`,
+`specimenCollectionMethod`, `testCategory`, `testParameters`. This is deliberate:
+the same catalog test means the same thing for every lab, so an owner cannot
+rename or re-classify it — only price/operate it. Verified: sending
+`testName: "HACKED NAME"` is ignored and the test stays "Complete Blood Count
+(CBC)".
+
+- **Response `201`:** `{ data: [PathologyTest], message: "N test(s) added..." }`
+  — the returned doc reflects your overrides (e.g. `estimatedReportHours: 12`).
+- **`400`** on a bad override (e.g. `testFees: -5` → "Invalid testFees...").
+- Adding the same catalog test again **updates** the lab's copy (upsert on
+  `testName + laboratoryId`) — this is also how you **edit** an added catalog
+  test: re-`select` with new override values. (Or use `PUT /pathology-tests/{id}`
+  if you have the test's `_id`.)
+- Multiple tests, per-test overrides: use `selections: [{ catalogTestId, testFees, ... }]`
+  instead of the flat form; a per-item value wins over a body-level one.
+
+> **Why your earlier edits "didn't save":** before this, `/select` copied *all*
+> fields from the catalog and only honoured `testFees`/`customerPrice` — and only
+> inside `selections[]`. A flat `estimatedReportHours`/`testMethod` was silently
+> dropped. Now the flat operational fields apply.
+
+---
+
+## PART 4c — Remove from Catalog (`/test-catalog/deselect`)
+
+The mirror of `/select` — an owner removes a test they no longer offer. The
+catalog screen has `catalogTestId`s (and the `alreadyAdded` flag), so removal is
+by catalog id, not the PathologyTest `_id`.
+
+```
+POST /test-catalog/deselect
+Authorization: Bearer <token>
+
+{ "catalogTestIds": ["6a4e22fa60dbb66122b57865"] }
+```
+
+- **Response `200`:** `{ removedCount: 1, message: "1 test(s) removed..." }`.
+- Deletes only the caller's own lab copies (scoped) — catalog and other labs
+  untouched. **`400`** on empty array; **`404`** if the caller has no lab profile.
+- After it succeeds, refetch the catalog list — the row's `alreadyAdded` flips to
+  `false` (verified), so the button returns to "Add".
+- For a **manually created** test (not from catalog), use
+  `DELETE /pathology-tests/{id}` — deselect only removes `source: "catalog"` copies.
+
+**UI:** on the catalog row, when `alreadyAdded == true`, show "Added ✓" with a
+remove action → `deselect`; when `false`, show "Add" → `select`.
 
 ---
 
@@ -609,7 +648,6 @@ with a `message` naming the field; always surface that too.
 | Flutter widget | Backend field | Payload key | Required | Type |
 |---|---|---|---|---|
 | TextFormField | name | `name` | ✅ | String |
-| Dropdown (enums.packageType) | packageType | `packageType` | ⚪ | String enum (preset) |
 | Multiselect sheet | tests | `tests` | ✅ (≥1) | [ObjectId] |
 | Number field | packageMrp | `packageMrp` | ✅ | num |
 | Number field | customerPrice | `customerPrice` | ✅ | num |

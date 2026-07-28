@@ -19,7 +19,14 @@ class LabTestRepo extends BaseService {
   }
 
   Future<ResponseModel> getPathologyTests(String collection) async {
-    return await ApiBaseHelper().getHTTP("$testPathology?groupCategory=$collection");
+    // Group-category values can contain spaces and ampersands (e.g.
+    // "Blood & Routine Tests"); the `&` in particular is a query-string
+    // separator and silently truncates the filter server-side if not
+    // encoded — which drops the newly-added tests from the response and
+    // makes `_findOverride` in the catalog screen return null.
+    final encoded = Uri.encodeComponent(collection);
+    return await ApiBaseHelper()
+        .getHTTP("$testPathology?groupCategory=$encoded");
   }
 
   Future<ResponseModel> createPathologyTest(Map<String, dynamic> data) async {
@@ -35,7 +42,9 @@ class LabTestRepo extends BaseService {
   }
 
   Future<ResponseModel> getPathologyTestsByLab(String labId, String collection) async {
-    return await ApiBaseHelper().getHTTP("$testPathology/laboratory/$labId?collection=$collection");
+    final encoded = Uri.encodeComponent(collection);
+    return await ApiBaseHelper()
+        .getHTTP("$testPathology/laboratory/$labId?collection=$encoded");
   }
 
   // Catalog: GET predefined tests
@@ -55,6 +64,17 @@ class LabTestRepo extends BaseService {
         .postHTTP(testCatalogSelect, params: {
           "catalogTestIds": catalogTestIds,
           if (overrides != null) ...overrides,
+        });
+  }
+
+  // Catalog: POST deselect — removes the caller's lab copies of these
+  // catalog tests. Response: { removedCount, message }. Scoped to the
+  // caller — other labs' copies are untouched. Manually-created (non-
+  // catalog) tests are removed via deletePathologyTest instead.
+  Future<ResponseModel> deselectCatalogTests(List<String> catalogTestIds) async {
+    return await ApiBaseHelper()
+        .postHTTP(testCatalogDeselect, params: {
+          "catalogTestIds": catalogTestIds,
         });
   }
 }

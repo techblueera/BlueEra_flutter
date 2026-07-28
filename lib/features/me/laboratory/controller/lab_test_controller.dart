@@ -293,6 +293,44 @@ class LabTestController extends GetxController {
     }
   }
 
+  /// Mirror of [selectCatalog] for the "Remove from my catalog" flow —
+  /// hits `/test-catalog/deselect`, then refreshes both lists so the
+  /// tapped card flips back to `alreadyAdded: false` and the entry is
+  /// gone from "My Test" without a manual reload.
+  Future<bool> deselectCatalog(
+    String id, {
+    required String collection,
+  }) async {
+    try {
+      isSaving.value = true;
+      final ResponseModel res = await _repo.deselectCatalogTests([id]);
+      if (res.isSuccess) {
+        // The backend response always ships a user-facing `message`
+        // (e.g. "1 test(s) removed..."); fall back to a plain string if
+        // it ever comes back empty.
+        commonSnackBar(
+          message: res.response?.data['message'] ?? 'Removed',
+        );
+        await Future.wait([
+          fetchCatalog(groupCategory: collection),
+          fetchTests(collection),
+        ]);
+        return true;
+      }
+      commonSnackBar(
+        message: res.response?.data['message'] ??
+            AppStrings.somethingWentWrong.tr,
+      );
+      return false;
+    } catch (e) {
+      logs("LabTestController.deselectCatalog ERROR $e");
+      commonSnackBar(message: "${AppStrings.hotelErrorPrefix.tr} $e");
+      return false;
+    } finally {
+      isSaving.value = false;
+    }
+  }
+
   Future<bool> createTest(PathologyTest test) async {
     try {
       isSaving.value = true;
