@@ -37,7 +37,9 @@ import '../../../core/constants/app_strings.dart';
 ///
 /// The clip and the poster both come off the signed-in profile, so the whole
 /// card composes itself from whatever the caller's account type resolves to;
-/// each part self-hides when the profile carries no URL for it.
+/// each part self-hides when the profile carries no URL for it. The clip also
+/// self-hides when the placement opts out via [showPromoVideo] — the Discover
+/// bottom sheet does.
 class ProfileShareBanner extends StatefulWidget {
   /// Marks this placement as an individual / professional one, so the card
   /// sources its poster, referral code and editability from the PERSONAL
@@ -84,6 +86,15 @@ class ProfileShareBanner extends StatefulWidget {
   /// mid-scroll would be an interruption.
   final bool autoPlayVideo;
 
+  /// Renders the promo clip at all.
+  ///
+  /// The Discover bottom sheet passes `false`: that sheet opens on its own once
+  /// a day, and a video playing inside it is more than the placement is asking
+  /// for — the poster and the share row carry it. Inline placements on the
+  /// me-section profile screens leave this `true`; the user navigated there
+  /// deliberately, so the clip is content they can choose to play.
+  final bool showPromoVideo;
+
   const ProfileShareBanner({
     super.key,
     this.overrideName,
@@ -93,6 +104,7 @@ class ProfileShareBanner extends StatefulWidget {
     this.referralCode,
     this.showCloseButton = false,
     this.autoPlayVideo = false,
+    this.showPromoVideo = true,
   });
 
   @override
@@ -243,7 +255,10 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
     // white rounded surface), so keep a tight uniform 10px inset and no
     // top margin instead of stacking padding on the dialog's own inset.
     final bool dialogMode = widget.showCloseButton;
-    final videoUrl = _resolveVideoUrl();
+    // Null when the placement opts out of the clip (Discover sheet) — the
+    // player below is skipped entirely rather than built and hidden, so no
+    // VideoPlayerController is ever created for it.
+    final videoUrl = widget.showPromoVideo ? _resolveVideoUrl() : null;
     final poster = (marketingCardUrl?.trim().isNotEmpty ?? false)
         ? marketingCardUrl!.trim()
         : null;
@@ -262,8 +277,10 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
           const _DashedDivider(),
           SizedBox(height: SizeConfig.size12),
           // Clip sits between the header and the headline, and collapses away
-          // entirely when the profile has none — kept OUT of the
-          // [RepaintBoundary] below so it never lands in the shared PNG.
+          // entirely when the profile has none or the placement opted out —
+          // kept OUT of the [RepaintBoundary] below so it never lands in the
+          // shared PNG. Its trailing divider goes with it, otherwise the two
+          // rules stack a few pixels apart with nothing between them.
           if (videoUrl != null) ...[
             _PromoVideoPlayer(
               key: ValueKey(videoUrl),
@@ -271,10 +288,9 @@ class _ProfileShareBannerState extends State<ProfileShareBanner> {
               autoPlay: widget.autoPlayVideo,
             ),
             SizedBox(height: SizeConfig.size12),
+            const _DashedDivider(),
+            SizedBox(height: SizeConfig.size12),
           ],
-          SizedBox(height: SizeConfig.size10),
-          const _DashedDivider(),
-          SizedBox(height: SizeConfig.size12),
           _headline(referralCode, referralCodeEditable),
           // The poster is the backend-generated card and nothing else — no
           // client-composed artwork. A profile whose card isn't generated yet
