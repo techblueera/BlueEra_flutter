@@ -72,15 +72,10 @@ class _OtherServicesTabV2State extends State<OtherServicesTabV2> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(height: SizeConfig.size12),
-          // Same deck the Inquiry tab carries. Its catalog card opens the
-          // add-service flow here — on this tab the host's "switch to
-          // Services" callback would be a no-op.
-          OrderActionsCarousel(
-            onAddCatalog: _onAddServiceTap,
-            catalogIcon: Icons.design_services_rounded,
-            catalogTitle: AppStrings.addService.tr,
-            catalogSubtitle: AppStrings.listTheServicesYouOffer.tr,
-          ),
+          // Contribution / Bank / Refer deck. No catalog card here: this tab IS
+          // the add surface and carries its own add masthead, so a card pointing
+          // at the screen you are already on would be noise.
+          OrderActionsCarousel(),
           SizedBox(height: SizeConfig.size12),
           CommonCardWidget(
             cardMargin: 0,

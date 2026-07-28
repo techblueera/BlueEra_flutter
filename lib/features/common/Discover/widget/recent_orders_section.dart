@@ -4,9 +4,7 @@ import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/chat/auth/controller/chat_view_controller.dart';
 import 'package:BlueEra/features/chat/auth/model/GetChatListModel.dart';
 import 'package:BlueEra/features/chat/view/business_chat/business_chat_list.dart';
-import 'package:BlueEra/features/chat/view/business_chat/widgets/ride_drop_location_sheet.dart';
 import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
-import 'package:BlueEra/features/common/connect/view/inquiry_ride_order_selection_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
@@ -55,12 +53,10 @@ class RecentOrdersSection extends StatelessWidget {
       final rows = orders.take(maxRows).toList();
       return Container(
         margin: EdgeInsets.only(bottom: SizeConfig.size12),
-        padding: EdgeInsets.fromLTRB(
-          SizeConfig.size14,
-          SizeConfig.size14,
-          SizeConfig.size14,
-          SizeConfig.size10,
-        ),
+        // Uniform inset now that the card ends on the last order row — the
+        // tighter bottom value existed only to offset the Book-a-Ride button's
+        // own padding.
+        padding: EdgeInsets.all(SizeConfig.size14),
         decoration: BoxDecoration(
           color: AppColors.white,
           borderRadius: BorderRadius.circular(10),
@@ -75,8 +71,6 @@ class RecentOrdersSection extends StatelessWidget {
               if (i != rows.length - 1)
                 Divider(height: SizeConfig.size20, color: AppColors.whiteE5),
             ],
-            SizedBox(height: SizeConfig.size12),
-            _bookRideButton(context),
           ],
         ),
       );
@@ -115,36 +109,6 @@ class RecentOrdersSection extends StatelessWidget {
     );
   }
 
-  /// One action for the card rather than one per row: collecting from several
-  /// shops in a single trip is what the multi-shop flow exists for, and the
-  /// next screen is where the user ticks which of these orders to pick up.
-  Widget _bookRideButton(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton.icon(
-        onPressed: () async {
-          final drop = await showRideDropLocationSheet(context);
-          if (drop == null) return;
-          Get.to(() => InquiryRideOrderSelectionScreen(dropAddress: drop));
-        },
-        style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: AppColors.primaryColor),
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-        icon: const Icon(Icons.two_wheeler,
-            size: 18, color: AppColors.primaryColor),
-        label: CustomText(
-          'Book a Ride',
-          fontSize: SizeConfig.medium,
-          fontWeight: FontWeight.w600,
-          color: AppColors.primaryColor,
-        ),
-      ),
-    );
-  }
 }
 
 /// Bottom-nav index the Connect (chat / inquiry) tab lives at.

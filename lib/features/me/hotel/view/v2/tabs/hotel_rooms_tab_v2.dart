@@ -35,18 +35,12 @@ class HotelRoomsTabV2 extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(height: SizeConfig.size12),
-          // Same deck the Inquiry tab carries. Its catalog card opens the
-          // room-selection flow here — on this tab the host's "switch to
-          // Rooms" callback would be a no-op.
+          // Contribution / Bank / Refer deck. No catalog card here: this tab IS
+          // the add surface and carries its own add masthead, so a card pointing
+          // at the screen you are already on would be noise.
           Padding(
             padding: EdgeInsets.symmetric(horizontal: SizeConfig.size8),
-            child: OrderActionsCarousel(
-              onAddCatalog: () => Get.to(RoomSelectionScreen())
-                  ?.then((_) => controller.loadHotelData()),
-              catalogIcon: Icons.king_bed_rounded,
-              catalogTitle: AppStrings.roomLabel.tr,
-              catalogSubtitle: AppStrings.manageRoomsAvailability.tr,
-            ),
+            child: OrderActionsCarousel(),
           ),
           SizedBox(height: SizeConfig.size12),
           Padding(

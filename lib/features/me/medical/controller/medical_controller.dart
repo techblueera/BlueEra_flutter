@@ -995,6 +995,70 @@ class MedicalController extends GetxController {
     }
   }
 
+  // ── Categories: progressive level → subtree drill-down ──────────────────
+  // See docs/backend/MEDICAL_CATEGORIES_FLUTTER_GUIDE.md.
+
+  /// Level-0 roots for the snap-search grid, loaded via
+  /// `GET /categories/nested?level=0` — flat, WITHOUT the subtree payload.
+  ///
+  /// Deliberately separate from [medicalNestedCategoryList], which holds the
+  /// FULL nested tree: `medical_category_screen.dart` renders each root's
+  /// `children` inline and would break if that call were narrowed to level 0.
+  RxList<MedicalNestedCategoryModel> medicalRootCategoryList =
+      <MedicalNestedCategoryModel>[].obs;
+  RxBool medicalRootCategoryLoading = true.obs;
+
+  /// Loads the level-0 roots. Cheap by design — no `children` come back, so a
+  /// tapped root is expanded by [fetchMedicalCategorySubtree].
+  Future<void> fetchMedicalRootCategories() async {
+    try {
+      medicalRootCategoryLoading.value = true;
+      ResponseModel responseModel = await MedicalRepo()
+          .fetchGroceryNestedCategoryRepo(queryParams: {'level': 0});
+      if (responseModel.isSuccess && responseModel.response?.data is List) {
+        medicalRootCategoryList.value = (responseModel.response!.data as List)
+            .map((json) => MedicalNestedCategoryModel.fromJson(json))
+            .toList();
+      } else {
+        medicalRootCategoryList.clear();
+      }
+    } catch (e, s) {
+      log('stack trace -- $s');
+      medicalRootCategoryList.clear();
+    } finally {
+      medicalRootCategoryLoading.value = false;
+    }
+  }
+
+  /// Expands one root into its full nested subtree via
+  /// `GET /categories/nested?categoryId=<id>`. Returns the node — its
+  /// `children` are the level-1 categories, each nested down to the level-3
+  /// leaves — or null when the call fails.
+  ///
+  /// Unlike the level query, this responds with a single OBJECT, not a list.
+  ///
+  /// The caller owns the loading state — [MedicalLevel2CategoryScreen] opens
+  /// first and shimmers while this runs, so there's no shared "expanding" flag
+  /// for the grid that launched it.
+  Future<MedicalNestedCategoryModel?> fetchMedicalCategorySubtree(
+      String categoryId) async {
+    if (categoryId.isEmpty) return null;
+    try {
+      ResponseModel responseModel = await MedicalRepo()
+          .fetchGroceryNestedCategoryRepo(
+              queryParams: {'categoryId': categoryId});
+      final data = responseModel.response?.data;
+      if (responseModel.isSuccess && data is Map) {
+        return MedicalNestedCategoryModel.fromJson(
+            Map<String, dynamic>.from(data));
+      }
+      return null;
+    } catch (e, s) {
+      log('stack trace -- $s');
+      return null;
+    }
+  }
+
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   // INVENTORY UPDATE / DELETE
   // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

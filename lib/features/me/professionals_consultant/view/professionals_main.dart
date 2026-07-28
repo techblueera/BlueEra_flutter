@@ -7,7 +7,6 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/features/me/professionals_consultant/view/professional_service_offered.dart';
 import 'package:BlueEra/widgets/order_actions_carousel.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
@@ -356,28 +355,14 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
     ];
   }
 
-  /// Opens the "services offered" editor — the same screen the Service tab's
-  /// own Add pill uses — and refetches only when the child reports a save.
-  Future<void> _onAddService() async {
-    final didSave = await Get.to(() => ProfessionalServiceOffered());
-    if (didSave == true) {
-      _ctrl.professionalsFullDetailsController();
-    }
-  }
-
   List<Widget> _buildServiceTab() {
     return [
-      // Same deck the Order tab carries. Its catalog card opens the
-      // add-service editor here — on this tab the "switch to Service"
-      // callback would be a no-op.
+      // Contribution / Bank / Refer deck. No catalog card here: this tab IS
+      // the add surface and carries its own add masthead, so a card pointing
+      // at the screen you are already on would be noise.
       Container(
         margin: const EdgeInsets.symmetric(horizontal: 20),
-        child: OrderActionsCarousel(
-          onAddCatalog: _onAddService,
-          catalogIcon: Icons.design_services_rounded,
-          catalogTitle: AppStrings.addService.tr,
-          catalogSubtitle: AppStrings.listTheServicesYouOffer.tr,
-        ),
+        child: OrderActionsCarousel(),
       ),
       SizedBox(height: SizeConfig.size12),
       Container(

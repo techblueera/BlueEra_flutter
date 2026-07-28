@@ -2,7 +2,6 @@ import 'package:BlueEra/core/api/model/school_course_res_model.dart'
     as course_res;
 import 'package:BlueEra/core/api/model/school_details_res_model.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
-import 'package:BlueEra/core/constants/app_strings.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/features/me/school/controller/course_controller.dart';
 import 'package:BlueEra/features/me/school/controller/school_about_us_controller.dart';
@@ -65,17 +64,12 @@ class SchoolAcademicsTabV2 extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(height: SizeConfig.size12),
-        // Same deck the Inquiry tab carries. Its catalog card opens the
-        // add-course flow here — on this tab the host's "switch to Academics"
-        // callback would be a no-op.
+        // Contribution / Bank / Refer deck. No catalog card here: this tab IS
+        // the add surface and carries its own add masthead, so a card pointing
+        // at the screen you are already on would be noise.
         Padding(
           padding: EdgeInsets.symmetric(horizontal: SizeConfig.size4),
-          child: OrderActionsCarousel(
-            onAddCatalog: _openAdd,
-            catalogIcon: Icons.menu_book_rounded,
-            catalogTitle: AppStrings.academics.tr,
-            catalogSubtitle: AppStrings.manageAcademicsCalendar.tr,
-          ),
+          child: OrderActionsCarousel(),
         ),
         _coursesSection(context),
       ],

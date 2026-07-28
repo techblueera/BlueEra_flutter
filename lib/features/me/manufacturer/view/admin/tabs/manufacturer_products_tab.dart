@@ -41,17 +41,12 @@ class ManufacturerProductsTab extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Same deck the Order tab carries. Its catalog card runs the host's
-        // real add-product flow here — the "switch to Products" callback the
-        // Order tab passes would be a no-op on this tab.
+        // Contribution / Bank / Refer deck. No catalog card here: this tab IS
+        // the add surface and carries its own add masthead, so a card pointing
+        // at the screen you are already on would be noise.
         Padding(
           padding: EdgeInsets.only(right: productsTabTrailingInset),
-          child: OrderActionsCarousel(
-            onAddCatalog: onAddProduct,
-            catalogIcon: Icons.precision_manufacturing_rounded,
-            catalogTitle: AppStrings.addProduct.tr,
-            catalogSubtitle: AppStrings.listItemsCustomersCanOrder.tr,
-          ),
+          child: OrderActionsCarousel(),
         ),
         SizedBox(height: SizeConfig.size16),
         ProductsTabBanner(

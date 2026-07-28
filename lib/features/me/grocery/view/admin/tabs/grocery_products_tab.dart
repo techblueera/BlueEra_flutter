@@ -42,17 +42,12 @@ class GroceryProductsTab extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Same deck the Order tab carries. Its catalog card goes straight to
-        // the add-product flow here — on this tab the host's "switch to
-        // Products" callback would be a no-op.
+        // Contribution / Bank / Refer deck. No catalog card here: this tab IS
+        // the add surface and carries its own add masthead, so a card pointing
+        // at the screen you are already on would be noise.
         Padding(
           padding: EdgeInsets.only(right: productsTabTrailingInset),
-          child: OrderActionsCarousel(
-            onAddCatalog: () => _onAddMoreProducts(controller),
-            catalogIcon: Icons.local_grocery_store_rounded,
-            catalogTitle: AppStrings.addGrocery.tr,
-            catalogSubtitle: AppStrings.listItemsCustomersCanOrder.tr,
-          ),
+          child: OrderActionsCarousel(),
         ),
         SizedBox(height: SizeConfig.size16),
         ProductsTabBanner(

@@ -4,13 +4,11 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
-import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
-
 import 'package:BlueEra/core/widgets/custom_form_card.dart';
-import 'package:BlueEra/features/me/medical/constants/medical_category_assets.dart';
 import 'package:BlueEra/features/me/medical/controller/medical_controller.dart';
+import 'package:BlueEra/features/me/medical/model/medical_nested_category_model.dart';
 import 'package:BlueEra/features/me/medical/model/medical_product_model.dart';
 import 'package:BlueEra/features/me/medical/model/snap_search_result_model.dart';
 import 'package:BlueEra/features/me/medical/view/medical_level2_category_screen.dart';
@@ -38,7 +36,9 @@ class _AddMedicalSnapSearchScreenState extends State<AddMedicalSnapSearchScreen>
   @override
   void initState() {
     super.initState();
-    controller.fetchGroceryNestedCategory();
+    // Level-0 roots only — the subtree for a root is pulled when it's tapped.
+    // See docs/backend/MEDICAL_CATEGORIES_FLUTTER_GUIDE.md §3.
+    controller.fetchMedicalRootCategories();
   }
 
   @override
@@ -250,14 +250,13 @@ class _AddMedicalSnapSearchScreenState extends State<AddMedicalSnapSearchScreen>
 
   Widget _buildCategoryGrid() {
     return Obx(() {
-      if (controller.medicalNestedCategoryLoading.value) {
+      if (controller.medicalRootCategoryLoading.value) {
         return const Center(child: CircularProgressIndicator());
       }
 
-      // Level-0 categories straight from the API — no longer a hardcoded list.
-      // Each one's `children` are its level-1 categories, which is what the
-      // level-2 screen renders when a tile is tapped.
-      final categories = controller.medicalNestedCategoryList;
+      // Level-0 roots straight from `?level=0` — flat, so a tile's level-1
+      // children are fetched on tap rather than shipped with this list.
+      final categories = controller.medicalRootCategoryList;
       if (categories.isEmpty) {
         return CustomFormCard(
           padding: const EdgeInsets.all(12),
@@ -289,17 +288,11 @@ class _AddMedicalSnapSearchScreenState extends State<AddMedicalSnapSearchScreen>
               itemCount: categories.length,
               itemBuilder: (context, index) {
                 final cat = categories[index];
-                final children = cat.children ?? [];
                 return _buildCategoryItem(
                   title: cat.name ?? '',
-                  imagePath: kMedicalCategoryImages[cat.key ?? ''] ?? '',
-                  onTap: () {
-                    if (children.isEmpty) return;
-                    Get.to(() => MedicalLevel2CategoryScreen(
-                          title: (cat.name ?? '').replaceAll('\n', ' '),
-                          level2Categories: children,
-                        ));
-                  },
+                  // Guide §3: render the root grid with the API's own `image`.
+                  imageUrl: cat.image,
+                  onTap: () => _openCategory(cat),
                 );
               },
             ),
@@ -309,10 +302,25 @@ class _AddMedicalSnapSearchScreenState extends State<AddMedicalSnapSearchScreen>
     });
   }
 
+  /// Opens the level-1 list for a root, WITHOUT waiting on the network: the
+  /// next screen fetches its own subtree and shimmers while it does, so the tap
+  /// lands on a new screen instead of a spinner over the grid just tapped.
+  ///
+  /// `children` is passed along when the root already carries it — the guide
+  /// flags that `?level=` is a newer backend build, and until it ships this
+  /// endpoint returns the full tree, so there's nothing to re-fetch.
+  void _openCategory(MedicalNestedCategoryModel cat) {
+    Get.to(() => MedicalLevel2CategoryScreen(
+          title: (cat.name ?? '').replaceAll('\n', ' '),
+          level2Categories: cat.children ?? const [],
+          categoryId: cat.sId,
+        ));
+  }
+
   Widget _buildCategoryItem({
     required String title,
-    required String imagePath,
     required VoidCallback onTap,
+    String? imageUrl,
   }) {
     return InkWell(
       onTap: onTap,
@@ -327,16 +335,10 @@ class _AddMedicalSnapSearchScreenState extends State<AddMedicalSnapSearchScreen>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              imagePath,
+            SizedBox(
               height: SizeConfig.size60,
               width: SizeConfig.size60,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) => LocalAssets(
-                imagePath: AppIconAssets.place_holder_image,
-                height: SizeConfig.size60,
-                width: SizeConfig.size60,
-              ),
+              child: _categoryArt(imageUrl),
             ),
             SizedBox(height: SizeConfig.paddingXSL),
             SizedBox(
@@ -355,6 +357,29 @@ class _AddMedicalSnapSearchScreenState extends State<AddMedicalSnapSearchScreen>
           ],
         ),
       ),
+    );
+  }
+
+  /// Tile art: the category's own `image` from the API and nothing else. The
+  /// bundled per-key art is gone — the backend now writes an `image` onto every
+  /// level-0 category (guide §5), so a second source would only drift from it.
+  /// A missing URL or a failed load falls back to the generic placeholder.
+  Widget _categoryArt(String? imageUrl) {
+    final url = (imageUrl ?? '').trim();
+    if (url.isEmpty) return _placeholderArt();
+    return CachedNetworkImage(
+      imageUrl: url,
+      fit: BoxFit.contain,
+      placeholder: (_, __) => _placeholderArt(),
+      errorWidget: (_, __, ___) => _placeholderArt(),
+    );
+  }
+
+  Widget _placeholderArt() {
+    return LocalAssets(
+      imagePath: AppIconAssets.place_holder_image,
+      height: SizeConfig.size60,
+      width: SizeConfig.size60,
     );
   }
 

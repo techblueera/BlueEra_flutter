@@ -29,16 +29,10 @@ class VehicleVehiclesTabV2 extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Same deck the Inquiry tab carries. Its catalog card opens the
-          // add-vehicle flow here — on this tab the host's "switch to
-          // Vehicles" callback would be a no-op.
-          OrderActionsCarousel(
-            onAddCatalog: () =>
-                VehicleOwnerActions.addVehicle(context, controller),
-            catalogIcon: Icons.directions_car_rounded,
-            catalogTitle: AppStrings.vehiclesTab.tr,
-            catalogSubtitle: AppStrings.manageVehicleListings.tr,
-          ),
+          // Contribution / Bank / Refer deck. No catalog card here: this tab IS
+          // the add surface and carries its own add masthead, so a card pointing
+          // at the screen you are already on would be noise.
+          OrderActionsCarousel(),
           SizedBox(height: SizeConfig.size12),
           Obx(() {
         final state = controller.myVehiclesState.value.status;

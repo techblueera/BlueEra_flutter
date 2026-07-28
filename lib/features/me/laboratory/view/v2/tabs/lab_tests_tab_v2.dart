@@ -147,16 +147,10 @@ class _LabTestsTabV2State extends State<LabTestsTabV2> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           SizedBox(height: SizeConfig.size12),
-          // Same deck the Inquiry tab carries. Its catalog card opens the
-          // add-tests flow here — on this tab the host's "switch to Tests"
-          // callback would be a no-op.
-          OrderActionsCarousel(
-            onAddCatalog: () =>
-                Get.to(() => LabCategoryScreen(controller: widget.controller)),
-            catalogIcon: Icons.biotech_rounded,
-            catalogTitle: AppStrings.tests.tr,
-            catalogSubtitle: AppStrings.manageLabTests.tr,
-          ),
+          // Contribution / Bank / Refer deck. No catalog card here: this tab IS
+          // the add surface and carries its own add masthead, so a card pointing
+          // at the screen you are already on would be noise.
+          OrderActionsCarousel(),
           SizedBox(height: SizeConfig.size12),
 
           // Single Obx wraps the data-driven region so we can collapse the
