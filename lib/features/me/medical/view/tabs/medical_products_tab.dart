@@ -10,10 +10,10 @@ import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/me/grocery/model/grocery_business_products_model.dart';
 import 'package:BlueEra/features/me/grocery/widget/grocery_top_selling_product_card.dart';
 import 'package:BlueEra/features/me/grocery/widget/grocery_variants_sheet.dart';
-import 'package:BlueEra/features/me/medical/constants/medical_category_assets.dart';
 import 'package:BlueEra/features/me/medical/controller/medical_controller.dart';
 import 'package:BlueEra/features/me/medical/model/my_medical_super_category_model.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:BlueEra/widgets/order_actions_carousel.dart';
 import 'package:BlueEra/widgets/products_tab_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -46,6 +46,14 @@ class MedicalProductsTab extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(height: SizeConfig.size10),
+        // Contribution / Bank / Refer deck. No catalog card here: this tab IS
+        // the add surface and carries its own add masthead, so a card pointing
+        // at the screen you are already on would be noise.
+        Padding(
+          padding: EdgeInsets.only(right: productsTabTrailingInset),
+          child: OrderActionsCarousel(),
+        ),
+        SizedBox(height: SizeConfig.size16),
         ProductsTabBanner(
           title: AppStrings.productsTab.tr,
           subtitle: AppStrings.manageYourStoreProducts.tr,
@@ -204,12 +212,11 @@ class MedicalProductsTab extends StatelessWidget {
   /// products list in between. That screen fetches the category's products and
   /// flattens every variant into one grid.
   Widget _categoryTile(MyMedicalSuperCategoryModel item) {
-    // Prefer the bundled static art for the known level-0 keys (same map the
-    // snap-search grid uses); fall back to the API's own image for any key
-    // that isn't mapped. The tile renders a bundled asset path directly.
-    final image = kMedicalCategoryImages[item.key ?? ''] ?? item.image;
+    // The API's own `image` is the only source now — the bundled per-key art
+    // this used to prefer is gone, so the rail can't drift from whatever the
+    // backend serves. ProductCategoryTile renders the placeholder when empty.
     return ProductCategoryTile(
-      image: image,
+      image: item.image,
       name: item.name,
       onTap: () => Get.toNamed(
         RouteHelper.getMyMedicalVariantScreenRoute(),

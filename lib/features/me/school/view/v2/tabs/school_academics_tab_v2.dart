@@ -8,6 +8,7 @@ import 'package:BlueEra/features/me/school/controller/school_about_us_controller
 import 'package:BlueEra/features/me/school/view/category/acadamics/add_more_course_screen.dart';
 import 'package:BlueEra/features/me/school/widget/school_course_list_item_card.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/order_actions_carousel.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -57,6 +58,25 @@ class SchoolAcademicsTabV2 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Column so the deck sits above both states the Obx can return — the
+    // empty placeholder and the populated course list alike.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(height: SizeConfig.size12),
+        // Contribution / Bank / Refer deck. No catalog card here: this tab IS
+        // the add surface and carries its own add masthead, so a card pointing
+        // at the screen you are already on would be noise.
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: SizeConfig.size4),
+          child: OrderActionsCarousel(),
+        ),
+        _coursesSection(context),
+      ],
+    );
+  }
+
+  Widget _coursesSection(BuildContext context) {
     return Obx(() {
       final data = controller.schoolDetailsData?.value;
       final courses = data?.courses ?? const <Courses>[];

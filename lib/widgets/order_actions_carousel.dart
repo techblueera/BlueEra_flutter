@@ -16,13 +16,19 @@ import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-/// Auto-playing carousel pinned to the top of the merchant "Order" tab.
+/// Auto-playing carousel pinned to the top of the merchant "Order" tab, and to
+/// the top of the Products / Service tab.
 ///
-/// Four slides, all sharing one compact card style:
+/// Up to four slides, all sharing one compact card style:
 ///   • Contribution      → opens the contribution screen (reactive to plan)
 ///   • Add bank / UPI     → opens the payment-settings screen
 ///   • Add product/serv   → switches the host's own Products/Service tab
 ///   • Refer & earn       → opens the referral screen
+///
+/// The catalog ("Add product" / "Add service") card is OPTIONAL: omit
+/// [onAddCatalog] and the deck drops to three slides. The Products / Service
+/// tabs do exactly that — that tab already carries its own add masthead, so a
+/// card pointing at the screen you're on is noise.
 ///
 /// Every slide is the same [_ActionCard] — light pastel gradient, hairline
 /// tinted border, dark-ink title, accent medallion + chevron — so the deck
@@ -35,20 +41,22 @@ import 'package:get/get.dart';
 class OrderActionsCarousel extends StatefulWidget {
   const OrderActionsCarousel({
     super.key,
-    required this.onAddCatalog,
-    required this.catalogIcon,
-    required this.catalogTitle,
-    required this.catalogSubtitle,
+    this.onAddCatalog,
+    this.catalogIcon,
+    this.catalogTitle,
+    this.catalogSubtitle,
   });
 
   /// Switches the host screen's TabController to its Products / Service tab.
-  final VoidCallback onAddCatalog;
+  /// Null drops the catalog card from the deck entirely.
+  final VoidCallback? onAddCatalog;
 
   /// Icon + copy for the "Add product" / "Add service" card — supplied by the
   /// host since the wording differs between product and service businesses.
-  final IconData catalogIcon;
-  final String catalogTitle;
-  final String catalogSubtitle;
+  /// Ignored when [onAddCatalog] is null.
+  final IconData? catalogIcon;
+  final String? catalogTitle;
+  final String? catalogSubtitle;
 
   @override
   State<OrderActionsCarousel> createState() => _OrderActionsCarouselState();
@@ -154,12 +162,13 @@ class _OrderActionsCarouselState extends State<OrderActionsCarousel> {
   }
 
   Widget _buildDeck({required bool hideContribution}) {
-    // The Contribute card is dropped once the deposit gate is satisfied; the
-    // other three always show.
+    // The Contribute card is dropped once the deposit gate is satisfied, and
+    // the catalog card whenever the host supplies no action for it; Bank and
+    // Refer always show.
     final slides = <Widget>[
       if (!hideContribution) _slide(_contributionCard()),
       _slide(_bankCard()),
-      _slide(_catalogCard()),
+      if (widget.onAddCatalog != null) _slide(_catalogCard()),
       _slide(_referCard()),
     ];
     _slideCount = slides.length;
@@ -291,16 +300,17 @@ class _OrderActionsCarouselState extends State<OrderActionsCarousel> {
 
   Widget _catalogCard() {
     return _ActionCard(
-      onTap: widget.onAddCatalog,
+      // Only built when onAddCatalog is non-null (see _buildDeck).
+      onTap: widget.onAddCatalog!,
       background: const [Color(0xFFEEF2FF), Color(0xFFD7DDFF)],
       border: const Color(0xFF6366F1),
       accent: const [Color(0xFF4F46E5), Color(0xFF4338CA)],
       chevronTint: const Color(0xFF4F46E5),
       titleColor: const Color(0xFF1E1B4B),
       subtitleColor: const Color(0xFF4B4FA6),
-      icon: widget.catalogIcon,
-      title: widget.catalogTitle,
-      subtitle: widget.catalogSubtitle,
+      icon: widget.catalogIcon ?? Icons.inventory_2_rounded,
+      title: widget.catalogTitle ?? '',
+      subtitle: widget.catalogSubtitle ?? '',
     );
   }
 

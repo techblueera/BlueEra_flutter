@@ -7,6 +7,7 @@ import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/app_strings.dart';
+import 'package:BlueEra/widgets/order_actions_carousel.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/getx_utils.dart';
 import 'package:BlueEra/core/constants/snackbar_helper.dart';
@@ -356,6 +357,14 @@ class _ProfessionalsMainScreenState extends State<ProfessionalsMainScreen>
 
   List<Widget> _buildServiceTab() {
     return [
+      // Contribution / Bank / Refer deck. No catalog card here: this tab IS
+      // the add surface and carries its own add masthead, so a card pointing
+      // at the screen you are already on would be noise.
+      Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20),
+        child: OrderActionsCarousel(),
+      ),
+      SizedBox(height: SizeConfig.size12),
       Container(
         margin: const EdgeInsets.symmetric(horizontal: 20),
         child: Obx(() {

@@ -15,6 +15,7 @@ import 'package:BlueEra/features/common/service/view/business_service_list.dart'
 import 'package:BlueEra/features/me/hospital/view/v2/widgets/empty_section_placeholder.dart';
 import 'package:BlueEra/widgets/common_card_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
+import 'package:BlueEra/widgets/order_actions_carousel.dart';
 import 'package:BlueEra/widgets/service_home_title_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -70,6 +71,11 @@ class _OtherServicesTabV2State extends State<OtherServicesTabV2> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          SizedBox(height: SizeConfig.size12),
+          // Contribution / Bank / Refer deck. No catalog card here: this tab IS
+          // the add surface and carries its own add masthead, so a card pointing
+          // at the screen you are already on would be noise.
+          OrderActionsCarousel(),
           SizedBox(height: SizeConfig.size12),
           CommonCardWidget(
             cardMargin: 0,

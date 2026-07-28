@@ -11,6 +11,7 @@ import 'package:BlueEra/features/me/grocery/view/all_top_selling_grocery_product
 import 'package:BlueEra/features/me/grocery/widget/grocery_top_selling_product_card.dart';
 import 'package:BlueEra/features/me/grocery/widget/grocery_variants_sheet.dart';
 import 'package:BlueEra/widgets/empty_state_widget.dart';
+import 'package:BlueEra/widgets/order_actions_carousel.dart';
 import 'package:BlueEra/widgets/products_tab_widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -41,6 +42,14 @@ class GroceryProductsTab extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Contribution / Bank / Refer deck. No catalog card here: this tab IS
+        // the add surface and carries its own add masthead, so a card pointing
+        // at the screen you are already on would be noise.
+        Padding(
+          padding: EdgeInsets.only(right: productsTabTrailingInset),
+          child: OrderActionsCarousel(),
+        ),
+        SizedBox(height: SizeConfig.size16),
         ProductsTabBanner(
           title: AppStrings.productsTab.tr,
           subtitle: AppStrings.manageYourStoreProducts.tr,

@@ -10,10 +10,9 @@
 /// }
 /// ```
 ///
-/// The app renders [url] directly (the poster is composed server-side now)
-/// instead of building the banner artwork on the client — but only when
-/// [readyUrl] is non-null (status `ready` + a real URL); otherwise the caller
-/// falls back to the client-composed banner.
+/// The app renders [url] directly — the poster is composed server-side and is
+/// the ONLY artwork the share card shows. There is no client-composed
+/// fallback: when [readyUrl] is null the card simply renders without a poster.
 ///
 /// Note there is **no video here** — the referral promo clip is a top-level
 /// `referal_video` on the profile response, not part of this object.
@@ -44,13 +43,15 @@ class MarketingCard {
         'source_hash': sourceHash,
       };
 
-  /// The poster URL to display, or null when it isn't ready to show (still
-  /// generating, failed, or no URL). Only `status == "ready"` with a real URL
-  /// is safe to render.
-  String? get readyUrl =>
-      (status.toLowerCase() == 'ready' && url.trim().isNotEmpty)
-          ? url.trim()
-          : null;
+  /// The poster URL to display, or null when the payload carries none.
+  ///
+  /// The URL is the ONLY thing gated on — [status] is not. It used to also
+  /// require `status == "ready"`, which meant a profile that came back with a
+  /// real, servable poster URL but any other status string (or none at all)
+  /// rendered no poster. Since the card has no client-composed fallback any
+  /// more, that gate showed nothing at all rather than the poster the backend
+  /// had already generated.
+  String? get readyUrl => url.trim().isNotEmpty ? url.trim() : null;
 
   /// Parse helper tolerant of the raw value being a `Map` (or null/other).
   static MarketingCard? fromRaw(dynamic raw) => raw is Map

@@ -100,6 +100,11 @@ class ProfessionalConsData {
     gallery = json['gallery'] != null ? Gallery.fromJson(json['gallery']) : null;
     timings = json['timings'] != null ? Timings.fromJson(json['timings']) : null;
     contact = json['contact'] != null ? Contact.fromJson(json['contact']) : null;
+    // Average rating for the star badge on the discover card. Accepts the
+    // three spellings the other services use so the badge lights up whichever
+    // one this endpoint settles on; absent → null → the badge self-hides.
+    rating = _numOrNull(
+        json['rating'] ?? json['avgRating'] ?? json['averageRating']);
     if (json['certificates'] != null) {
       certificates = [];
       json['certificates'].forEach((v) {
@@ -129,6 +134,15 @@ class ProfessionalConsData {
   Contact? contact;
   List<Certificates>? certificates;
   List<ProfessionalPortfolio>? portfolio;
+
+  /// Average rating, or null when the API doesn't send one.
+  num? rating;
+
+  static num? _numOrNull(dynamic v) {
+    if (v == null) return null;
+    if (v is num) return v;
+    return num.tryParse(v.toString());
+  }
 
   Map<String, dynamic> toJson() {
     final map = <String, dynamic>{};

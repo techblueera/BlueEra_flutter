@@ -80,7 +80,10 @@ class _SharePromoSheetBody extends StatelessWidget {
     if (isBusinessUser()) {
       return const ProfileShareBanner(
         showCloseButton: true,
-        autoPlayVideo: true,
+        // No promo clip on Discover: this sheet opens by itself once a day, so
+        // it stays the poster + share row. (`autoPlayVideo` is moot while the
+        // clip is hidden — flip showPromoVideo back to true to restore both.)
+        showPromoVideo: false,
       );
     }
     final viewCtrl = getOrPut(() => ViewPersonalDetailsController());
@@ -96,8 +99,8 @@ class _SharePromoSheetBody extends StatelessWidget {
         accountType: AppConstants.individual,
         // Surface the banner's own ✕ — it pops the sheet.
         showCloseButton: true,
-        // Sheet-only: the clip starts itself, muted. See ProfileShareBanner.
-        autoPlayVideo: true,
+        // No promo clip on Discover — see the business branch above.
+        showPromoVideo: false,
       );
     });
   }

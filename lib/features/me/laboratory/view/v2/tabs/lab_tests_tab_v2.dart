@@ -14,6 +14,7 @@ import 'package:BlueEra/features/me/laboratory/view/packages/my_lab_packages_scr
 import 'package:BlueEra/features/me/laboratory/widget/lab_soft_card_color.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
+import 'package:BlueEra/widgets/order_actions_carousel.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -145,6 +146,11 @@ class _LabTestsTabV2State extends State<LabTestsTabV2> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          SizedBox(height: SizeConfig.size12),
+          // Contribution / Bank / Refer deck. No catalog card here: this tab IS
+          // the add surface and carries its own add masthead, so a card pointing
+          // at the screen you are already on would be noise.
+          OrderActionsCarousel(),
           SizedBox(height: SizeConfig.size12),
 
           // Single Obx wraps the data-driven region so we can collapse the

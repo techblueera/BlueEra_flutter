@@ -6,6 +6,7 @@ import 'package:BlueEra/features/me/vehicle/controller/vehicle_controller.dart';
 import 'package:BlueEra/features/me/vehicle/view/v2/actions/vehicle_owner_actions.dart';
 import 'package:BlueEra/features/me/vehicle/view/v2/widgets/vehicle_overview_sections.dart';
 import 'package:BlueEra/features/me/vehicle/view/widgets/vehicle_discover_card.dart';
+import 'package:BlueEra/widgets/order_actions_carousel.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -23,7 +24,17 @@ class VehicleVehiclesTabV2 extends StatelessWidget {
           left: SizeConfig.size12,
           right: SizeConfig.size12,
           top: SizeConfig.size12),
-      child: Obx(() {
+      // Column so the deck sits above every state the Obx can return —
+      // loading, empty and the populated fleet list alike.
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Contribution / Bank / Refer deck. No catalog card here: this tab IS
+          // the add surface and carries its own add masthead, so a card pointing
+          // at the screen you are already on would be noise.
+          OrderActionsCarousel(),
+          SizedBox(height: SizeConfig.size12),
+          Obx(() {
         final state = controller.myVehiclesState.value.status;
         if (state == Status.LOADING && controller.myVehicles.isEmpty) {
           return const Padding(
@@ -67,7 +78,9 @@ class VehicleVehiclesTabV2 extends StatelessWidget {
             );
           },
         );
-      }),
+          }),
+        ],
+      ),
     );
   }
 }

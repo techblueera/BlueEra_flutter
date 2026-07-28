@@ -152,6 +152,14 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     _initializeSocketConnections();
     _initializeChatMediaFolders();
     checkByRiderCall();
+    // BEFORE the first build, so the very first frame renders the tab the user
+    // actually lands on. This used to live in the post-frame callback below,
+    // which meant frame 1 always painted the Me tab (`currentIndex` starts at
+    // 0) — mounting a whole me-section dashboard for one frame, firing its boot
+    // APIs, and tearing it down when the index flipped to Discover. A pharmacy
+    // owner, for instance, saw medical business-products / gallery /
+    // categories-with-inventory all land while sitting on Discover.
+    _applyLandingTab();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _handlePostFrameInitialization();
       _maybePromptGuestToCreateProfile();
@@ -506,11 +514,18 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
     }
   }
 
-  void _handlePostFrameInitialization() {
-    // Own-profile fetch is part of the home boot. When this screen is only the
-    // deep-link background host (deferHeavyInit), skip it until the user first
-    // navigates a tab — it then runs from _ensureHeavyInit().
-    final boot = !widget.deferHeavyInit;
+  /// Picks the tab the app opens on. Called SYNCHRONOUSLY from `initState`
+  /// (before the first build) — never from a post-frame callback.
+  ///
+  /// `BottomBarController.currentIndex` is born at 0 (Me), so whatever this
+  /// leaves it at is what frame 1 paints. Deciding after the first frame made
+  /// the app mount the user's me-section dashboard for a single frame on every
+  /// launch: its `initState` fired the tab's boot APIs, then the index flipped
+  /// to Discover and disposed it while those requests were still in flight.
+  ///
+  /// Every input here is a global resolved in `main()` before `runApp`, so
+  /// there is nothing to wait a frame for.
+  void _applyLandingTab() {
     if (isBusiness()) {
       // Business users land on Discover (1) by default on app open / login /
       // signup — same as individuals. They used to open straight onto their
@@ -520,6 +535,28 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
       // post-action nav that requests a specific tab) still wins because it
       // passes a non-null initialIndex.
       bottomBarController.currentIndex.value = widget.initialIndex ?? 1;
+      return;
+    }
+    // Riders (bike rider / car-taxi driver) and gig workers always land on
+    // the Me tab (index 0) on login — regardless of whether their profile
+    // has been created yet — so their dashboard / onboarding is front and
+    // centre. Every other individual type uses the requested initial tab
+    // (Discover by default).
+    final isRider = isRiderProfession(userProfessionGlobal);
+    final isGigWorker = userProfileTypeGlobal == GIG_WORKER;
+    bottomBarController.currentIndex.value =
+        (isRider || isGigWorker) ? 0 : (widget.initialIndex ?? 1);
+  }
+
+  void _handlePostFrameInitialization() {
+    // Own-profile fetch is part of the home boot. When this screen is only the
+    // deep-link background host (deferHeavyInit), skip it until the user first
+    // navigates a tab — it then runs from _ensureHeavyInit().
+    final boot = !widget.deferHeavyInit;
+    if (isBusiness()) {
+      // Landing tab is already set — see _applyLandingTab, called from
+      // initState so it lands before the first frame.
+      //
       // Keep the controller registered even on a deferred open so any
       // Get.find<ViewBusinessDetailsController>() elsewhere stays safe; only
       // the network fetch is part of the home boot and gets deferred.
@@ -538,18 +575,6 @@ class _BottomNavigationBarScreenState extends State<BottomNavigationBarScreen> {
             () => businessCtrl.isBusinessProfileReady.value = true);
       }
     } else {
-      // Riders (bike rider / car-taxi driver) and gig workers always land on
-      // the Me tab (index 0) on login — regardless of whether their profile
-      // has been created yet — so their dashboard / onboarding is front and
-      // centre. Every other individual type uses the requested initial tab
-      // (Discover by default).
-      final isRider = isRiderProfession(userProfessionGlobal);
-      final isGigWorker = userProfileTypeGlobal == GIG_WORKER;
-      if (isRider || isGigWorker) {
-        bottomBarController.currentIndex.value = 0;
-      } else {
-        bottomBarController.currentIndex.value = widget.initialIndex ?? 1;
-      }
       // Individual own-profile fetch — the personal profile carries
       // securityDeposit (Go-Live gate), joining_bounce, etc. Fetch directly
       // here since we already know it's an individual, unless already loaded.
