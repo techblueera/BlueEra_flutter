@@ -4150,6 +4150,7 @@
   "emergency_fill_full_name": "कृपया पूर्ण नाव भरा",
   "emergency_fill_mobile": "कृपया मोबाइल नंबर भरा",
   "emergency_fill_vehicle": "कृपया वाहन तपशील भरा",
+  "emergency_invalid_vehicle": "वैध वाहन क्रमांक टाका (उदा. MH12AB1234)",
   "emergency_full_name_hint": "तुमचे पूर्ण नाव प्रविष्ट करा",
   "emergency_known_allergies": "ज्ञात अॅलर्जी",
   "emergency_known_disease": "ज्ञात आजार",

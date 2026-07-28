@@ -13,6 +13,7 @@ import 'package:BlueEra/features/common/search/model/search_models.dart';
 /// See docs/backend/FLUTTER_INTEGRATION_SEARCH.md.
 class SearchRepo {
   static const String _searchPath = 'search-service/search';
+  static const String _contentPath = 'search-service/search/content';
   static const String _suggestPath = 'search-service/suggest';
 
   /// Full hybrid search. [type] scopes to a single entityType (optional).
@@ -39,6 +40,41 @@ class SearchRepo {
 
     // The search service returns fields at the top level (no `data` envelope),
     // so parse from the raw response map rather than ResponseModel.data.
+    final raw = res.response?.data;
+    if (res.isSuccess && raw is Map) {
+      return SearchResponse.fromJson(Map<String, dynamic>.from(raw));
+    }
+    throw (raw is Map ? raw['message'] : null) ?? 'search failed';
+  }
+
+  /// Content-only search — posts and videos, never catalogue entities.
+  ///
+  /// Separate endpoint from [search]: the scope is fixed server-side, so no
+  /// query parameter can widen it to products/groceries/hospitals. [type]
+  /// narrows further to a single kind and accepts `post` or `video` only
+  /// (anything else is a 400); omit it for both.
+  ///
+  /// See docs/backend/CONTENT_SEARCH_INTEGRATION.md.
+  Future<SearchResponse> searchContent(
+    String q, {
+    String? type,
+    int page = 1,
+    int limit = 20,
+  }) async {
+    final ResponseModel res = await ApiBaseHelper().getHTTP(
+      _contentPath,
+      showProgress: false,
+      params: {
+        'q': q,
+        if (type != null && type.isNotEmpty) 'type': type,
+        'page': page,
+        'limit': limit,
+      },
+      onError: (_) {},
+      onSuccess: (_) {},
+    );
+
+    // Same envelope-less shape as [search] — fields sit at the top level.
     final raw = res.response?.data;
     if (res.isSuccess && raw is Map) {
       return SearchResponse.fromJson(Map<String, dynamic>.from(raw));

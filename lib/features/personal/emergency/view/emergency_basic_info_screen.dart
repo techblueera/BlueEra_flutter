@@ -68,6 +68,10 @@ class _EmergencyBasicInfoScreenState extends State<EmergencyBasicInfoScreen> {
                   title: AppStrings.vehicleNumber.tr,
                   hintText: AppStrings.emergencyVehicleHint.tr,
                   textEditController: controller.vehicleController,
+                  isCapitalize: true,
+                  maxLength: 10,
+                  regularExpression: r'[A-Za-z0-9]',
+                  validator: controller.validateVehicleNumber,
                 ),
                 SizedBox(height: 16),
                 Obx(() => CustomBtn(

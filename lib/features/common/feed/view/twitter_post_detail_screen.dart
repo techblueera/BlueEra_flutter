@@ -18,6 +18,7 @@ import 'package:BlueEra/features/common/comment/view/post_ai_comment_screen.dart
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
+import 'package:BlueEra/features/common/feed/widget/feed_author_header_widget.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/features/common/feed/widget/social_message_post_grid_widget.dart';
 import 'package:BlueEra/features/common/reel/widget/auto_play_video_card.dart';
@@ -1120,7 +1121,9 @@ class _TwitterPostDetailScreenState extends State<TwitterPostDetailScreen> {
   void _openProfile(User? user) {
     if (user?.id == null) return;
     if (userId == user?.id) {
-      navigatePushTo(context, PersonalProfileSetupNewScreen());
+      openMeOverview();
+
+      // navigatePushTo(context, PersonalProfileSetupNewScreen());
     } else {
       Get.to(() => NewVisitProfileScreen(
             authorId: user?.id ?? '',

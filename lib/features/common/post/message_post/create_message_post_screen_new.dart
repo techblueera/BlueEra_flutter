@@ -21,6 +21,7 @@ import 'package:BlueEra/widgets/commom_textfield.dart';
 import 'package:BlueEra/widgets/common_back_app_bar.dart';
 import 'package:BlueEra/widgets/common_drop_down-dialoge.dart';
 import 'package:BlueEra/widgets/custom_btn.dart';
+import 'package:BlueEra/widgets/custom_switch_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
 import 'package:BlueEra/widgets/local_assets.dart';
 import 'package:flutter/material.dart';
@@ -105,49 +106,45 @@ class _CreateMessagePostScreenNewState
                 isValidate: (msgController.postText.value.isNotEmpty &&
                     (msgController.imagesList.length >= 1)),
                 onTap: (msgController.postText.value.isNotEmpty &&
-
-                    (msgController.imagesList.length >= 1))
+                        (msgController.imagesList.length >= 1))
                     ? () async {
-                  await Future.delayed(Duration(milliseconds: 200));
-                  final input = msgController.postText.value.trim();
-                  if (containsHttpButNotHttps(input)) {
-                    commonSnackBar(
-                        message: AppStrings.onlyHttpsAllowed);
-                    return;
-                  }
-                  if (msgController.postText.value.isEmpty ||
-                      msgController.postText.value.trim().length < 30) {
-                    return commonSnackBar(
-                        message: AppStrings.lekhaMin30);
-                  }
+                        await Future.delayed(Duration(milliseconds: 200));
+                        final input = msgController.postText.value.trim();
+                        if (containsHttpButNotHttps(input)) {
+                          commonSnackBar(message: AppStrings.onlyHttpsAllowed);
+                          return;
+                        }
+                        if (msgController.postText.value.isEmpty ||
+                            msgController.postText.value.trim().length < 30) {
+                          return commonSnackBar(message: AppStrings.lekhaMin30);
+                        }
 
-                  if (msgController.imagesList.length < 1) {
-                    commonSnackBar(
-                        message: AppStrings.atleastOnePhoto);
-                    return;
-                  }
+                        if (msgController.imagesList.length < 1) {
+                          commonSnackBar(message: AppStrings.atleastOnePhoto);
+                          return;
+                        }
 
-                  if (!msgController.isMsgPostEdit) {
-                    Get.to(() => MessagePostPreviewScreenNew(
-                      postVia: widget.postVia,
-                      isEdit: msgController.isMsgPostEdit,
-                    ));
-                    return;
-                  }
+                        if (!msgController.isMsgPostEdit) {
+                          Get.to(() => MessagePostPreviewScreenNew(
+                                postVia: widget.postVia,
+                                isEdit: msgController.isMsgPostEdit,
+                              ));
+                          return;
+                        }
 
-                  if (msgController.isMsgPostEdit) {
-                    if (widget.post?.taggedUsers?.isNotEmpty ?? false) {
-                      final taggedIds = widget.post?.taggedUsers ?? [];
+                        if (msgController.isMsgPostEdit) {
+                          if (widget.post?.taggedUsers?.isNotEmpty ?? false) {
+                            final taggedIds = widget.post?.taggedUsers ?? [];
 
-                      tagUserController.selectedUsers.value =
-                          tagUserController.allUsers.where((user) {
-                            final isTagged = taggedIds.contains(user.id);
-                            user.isSelected.value = isTagged;
-                            return isTagged;
-                          }).toList();
-                    }
-                  }
-                }
+                            tagUserController.selectedUsers.value =
+                                tagUserController.allUsers.where((user) {
+                              final isTagged = taggedIds.contains(user.id);
+                              user.isSelected.value = isTagged;
+                              return isTagged;
+                            }).toList();
+                          }
+                        }
+                      }
                     : null,
                 title: AppStrings.continueText),
           ),
@@ -193,10 +190,9 @@ class _CreateMessagePostScreenNewState
                       ],
                     ),
                     SizedBox(height: SizeConfig.size10),
-
                     CommonTextField(
                       textEditController:
-                      msgController.descriptionMessage.value,
+                          msgController.descriptionMessage.value,
                       hintText: AppStrings.lekhaHint,
                       title: "",
                       maxLine: 5,
@@ -206,7 +202,7 @@ class _CreateMessagePostScreenNewState
                       textInputAction: TextInputAction.newline,
                       onChange: (val) {
                         String newVal =
-                        val.replaceAll(RegExp(r'\n{3,}'), '\n\n');
+                            val.replaceAll(RegExp(r'\n{3,}'), '\n\n');
                         newVal =
                             newVal.replaceAll(RegExp(r'https?:\/\/\S+'), '');
 
@@ -215,8 +211,8 @@ class _CreateMessagePostScreenNewState
                           msgController.descriptionMessage.value.text = newVal;
                           msgController.descriptionMessage.value.selection =
                               TextSelection.fromPosition(
-                                TextPosition(offset: newVal.length),
-                              );
+                            TextPosition(offset: newVal.length),
+                          );
                         }
 
                         msgController.postText.value = newVal;
@@ -231,20 +227,16 @@ class _CreateMessagePostScreenNewState
                         return null;
                       },
                     ),
-
                     SizedBox(height: SizeConfig.size5),
-
                     Align(
                       alignment: Alignment.centerRight,
                       child: Obx(() => CustomText(
-                        "${msgController.postText.value.length}/1800",
-                        color: Colors.grey,
-                        fontSize: 12,
-                      )),
+                            "${msgController.postText.value.length}/1800",
+                            color: Colors.grey,
+                            fontSize: 12,
+                          )),
                     ),
-
                     SizedBox(height: SizeConfig.size15),
-
                     Obx(() {
                       if (!msgController.isAddTitle.value) {
                         return InkWell(
@@ -264,13 +256,13 @@ class _CreateMessagePostScreenNewState
                               children: [
                                 Expanded(
                                     child:
-                                    CustomText(AppStrings.addLekhaTitle)),
+                                        CustomText(AppStrings.addLekhaTitle)),
                               ],
                             ),
                             SizedBox(height: SizeConfig.size10),
                             CommonTextField(
                               textEditController:
-                              msgController.postTitleController.value,
+                                  msgController.postTitleController.value,
                               hintText: AppStrings.titleOfPost,
                               title: "",
                               maxLength: 50,
@@ -286,15 +278,12 @@ class _CreateMessagePostScreenNewState
                       }
                       return SizedBox();
                     }),
-
                     SizedBox(height: SizeConfig.size15),
                     Align(
                       alignment: Alignment.centerLeft,
                       child: CustomText(AppStrings.natureOfPost),
                     ),
-
                     SizedBox(height: SizeConfig.size10),
-
                     CommonDropdownDialog<VideoCategoryData>(
                       items: reelUploadDetailsController.videoCategory,
                       selectedValue: _commonCategory,
@@ -309,8 +298,42 @@ class _CreateMessagePostScreenNewState
                             value?.name ?? "";
                       },
                     ),
-
                     SizedBox(height: SizeConfig.size15),
+
+                    /// AI disclosure — video posts only.
+                    Obx(() {
+                      if (msgController.selectedType.value != MediaType.video) {
+                        return SizedBox.shrink();
+                      }
+                      return Padding(
+                        padding: EdgeInsets.only(bottom: SizeConfig.size15),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  CustomText(AppStrings.isVideoAiGenerated.tr),
+                                  SizedBox(height: SizeConfig.size5),
+                                  CustomText(
+                                    AppStrings.isVideoAiGeneratedHint.tr,
+                                    color: Colors.grey.shade600,
+                                    fontSize: 12,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(width: SizeConfig.size10),
+                            CustomSwitch(
+                              value: msgController.isAiGeneratedVideo.value,
+                              onChanged: (val) =>
+                                  msgController.isAiGeneratedVideo.value = val,
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
 
                     Obx(() {
                       if (!msgController.isAddLink.value) {
@@ -332,8 +355,7 @@ class _CreateMessagePostScreenNewState
                                 CustomText(AppStrings.referenceLink),
                                 InkWell(
                                   onTap: () {
-                                    msgController.referenceLinkController
-                                        .value
+                                    msgController.referenceLinkController.value
                                         .clear();
                                     msgController.isAddLink.value = false;
                                   },
@@ -347,7 +369,7 @@ class _CreateMessagePostScreenNewState
                             SizedBox(height: SizeConfig.size10),
                             HttpsTextField(
                               controller:
-                              msgController.referenceLinkController.value,
+                                  msgController.referenceLinkController.value,
                               hintText: AppStrings.addWebsiteLink,
                             ),
                           ],
@@ -355,9 +377,7 @@ class _CreateMessagePostScreenNewState
                       }
                       return SizedBox();
                     }),
-
                     SizedBox(height: SizeConfig.size15),
-
                     GestureDetector(
                       onTap: () async {
                         await Get.to(() => TagUserScreen());
@@ -366,20 +386,19 @@ class _CreateMessagePostScreenNewState
                         title: AppStrings.addTagPeople,
                       ),
                     ),
-
                     Obx(() => tagUserController.selectedUsers.isNotEmpty
                         ? Padding(
-                      padding: EdgeInsets.only(top: SizeConfig.size16),
-                      child: Wrap(
-                        children: tagUserController.selectedUsers
-                            .map((user) => UserChip(
-                          user: user,
-                          onRemove: () => tagUserController
-                              .removeSelectedUser(user),
-                        ))
-                            .toList(),
-                      ),
-                    )
+                            padding: EdgeInsets.only(top: SizeConfig.size16),
+                            child: Wrap(
+                              children: tagUserController.selectedUsers
+                                  .map((user) => UserChip(
+                                        user: user,
+                                        onRemove: () => tagUserController
+                                            .removeSelectedUser(user),
+                                      ))
+                                  .toList(),
+                            ),
+                          )
                         : SizedBox.shrink()),
                     SizedBox(height: SizeConfig.size15),
                   ]
@@ -391,7 +410,6 @@ class _CreateMessagePostScreenNewState
       ),
     );
   }
-
 }
 
 class AddLinkRow extends StatelessWidget {

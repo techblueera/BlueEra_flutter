@@ -17,6 +17,7 @@ import 'package:BlueEra/features/common/feed/controller/video_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/feed/view/home_feed_screen_new.dart';
+import 'package:BlueEra/features/common/feed/widget/feed_author_header_widget.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_card_widget.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_reference_widget.dart';
@@ -943,7 +944,9 @@ class _MessagePostWidgetState extends State<MessagePostWidget> {
     String? userAccountType = data?.user?.accountType?.toUpperCase();
     if (userAccountType == AppConstants.individual) {
       if (userId == authorId) {
-        navigatePushTo(context, PersonalProfileSetupNewScreen());
+        openMeOverview();
+
+        // navigatePushTo(context, PersonalProfileSetupNewScreen());
       } else {
         Get.to(() => NewVisitProfileScreen(
               authorId: authorId ?? "",

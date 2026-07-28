@@ -21,9 +21,10 @@ import 'package:get/get.dart';
 
 import '../../../../core/api/apiService/api_keys.dart';
 import '../../../../core/constants/app_icon_assets.dart';
-import '../../../../widgets/common_search_bar.dart';
 import '../../../core/constants/getx_utils.dart';
 import '../../../core/constants/snackbar_helper.dart';
+import '../../common/search/controller/content_search_controller.dart';
+import '../../common/search/widget/content_search_field.dart';
 import '../../../widgets/custom_text_cm.dart';
 import '../../common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import '../auth/controller/add_chat_symbol_controller.dart';
@@ -55,6 +56,10 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
   final addSymbolController = getOrPut(() => AddChatSymbolController());
   final bottomBarController = getOrPut(() => BottomBarController());
 
+  /// Shared with [ContentSearchField] in the header — read here only to keep
+  /// the search row pinned while its suggestion panel is open.
+  final contentSearchController = getOrPut(() => ContentSearchController());
+
   /// Drives the collapsing search header. The Social/Community TabBar stays
   /// pinned at the top; only the search row above it slides away on a
   /// sustained scroll-down and returns on the first upward scroll —
@@ -69,6 +74,9 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
     // Vertical-only: horizontal carousels inside feed cards (and the
     // horizontal TabBarView swipe) must not drive the header collapse.
     if (notification.metrics.axis != Axis.vertical) return false;
+    // Never collapse the row out from under an open suggestion panel — that
+    // would tear the dropdown off its anchor mid-search.
+    if (contentSearchController.isPanelOpen.value) return false;
     if (notification is ScrollUpdateNotification) {
       final delta = notification.scrollDelta ?? 0;
       if (delta > 0) {
@@ -438,12 +446,10 @@ class _OrderMainChatScreenState extends State<OrderMainChatScreen>
         SizedBox(width: SizeConfig.size8),
         Expanded(
           child: _glassPill(
-            child: CommonSearchBar(
-              onChange: (value) => chatViewController.onSearchChatList(value),
-              borderRadius: 14,
-              backgroundColor: Colors.transparent,
-              controller: TextEditingController(),
-            ),
+            // Type-ahead over posts/videos (search-service/search/content) plus
+            // people, with its own floating suggestion panel — see
+            // docs/backend/CONTENT_SEARCH_INTEGRATION.md.
+            child: const ContentSearchField(),
           ),
         ),
         SizedBox(width: SizeConfig.size8),

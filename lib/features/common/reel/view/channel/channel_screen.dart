@@ -12,6 +12,7 @@ import 'package:BlueEra/features/business/visiting_card/view/business_own_profil
 import 'package:BlueEra/features/common/channel_feed_view/channel_joined_user_screen.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/view/feed_screen.dart';
+import 'package:BlueEra/features/common/feed/widget/feed_author_header_widget.dart';
 import 'package:BlueEra/features/common/reel/controller/channel_controller.dart';
 import 'package:BlueEra/features/common/reel/models/channel_model.dart';
 import 'package:BlueEra/features/common/reel/view/channel/channel_products_listing.dart';
@@ -902,7 +903,9 @@ class _ChannelScreenState extends State<ChannelScreen>
     String authorId = widget.authorId;
     if (accountType.toUpperCase() == AppConstants.individual.toUpperCase()) {
       if (authorId == userId) {
-        Get.to(() => PersonalProfileSetupNewScreen());
+        openMeOverview();
+
+        // Get.to(() => PersonalProfileSetupNewScreen());
       } else {
         Get.to(() =>
             NewVisitProfileScreen(

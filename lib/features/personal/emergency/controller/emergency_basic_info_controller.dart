@@ -67,16 +67,24 @@ class EmergencyBasicInfoController extends GetxController {
     return re.hasMatch(v);
   }
 
+  /// [State 2 letters][District 1-2 digits][Series 1-2 letters][Number 1-4 digits]
+  static final vehicleNumberRegExp =
+      RegExp(r'^[A-Za-z]{2}[0-9]{1,2}[A-Za-z]{1,2}[0-9]{1,4}$');
+
   bool _isValidVehicle(String value) {
-    final v = value.trim().toUpperCase();
+    final v = value.trim();
     if (v.isEmpty) return true;
+    return vehicleNumberRegExp.hasMatch(v);
+  }
 
-    // Standard: [State 2L][Dist 2D][Alpha 1-2L][Num 4D]
-    // BH Series: [Year 2D][BH][Num 4D][Alpha 1-2L]
-    final re =
-        RegExp(r'^([A-Z]{2}\d{2}[A-Z]{1,2}\d{4}|(\d{2}BH\d{4}[A-Z]{1,2}))$');
-
-    return re.hasMatch(v);
+  /// Field-level validator for the vehicle number text field.
+  String? validateVehicleNumber(String? value) {
+    final v = (value ?? '').trim();
+    if (v.isEmpty) return AppStrings.emergencyFillVehicle.tr;
+    if (!vehicleNumberRegExp.hasMatch(v)) {
+      return AppStrings.emergencyInvalidVehicle.tr;
+    }
+    return null;
   }
 
   String get mergedBloodGroup =>

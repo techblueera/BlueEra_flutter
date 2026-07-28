@@ -296,21 +296,14 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
   }
 
   void getAndSetData() {
-    if (fullScreenShortController.videoItem?.channel?.id != null) {
-      profileImage =
-          fullScreenShortController.videoItem?.channel?.logoUrl ?? '';
-      name = fullScreenShortController.videoItem?.channel?.name ?? '';
-      designation =
-          fullScreenShortController.videoItem?.channel?.username ?? '';
-      isVerified =
-          fullScreenShortController.videoItem?.channel?.isVerified ?? false;
-    } else {
-      profileImage =
-          fullScreenShortController.videoItem?.author?.profileImage ?? '';
-      name = widget.videoItem.author?.name ?? '';
-      designation = widget.videoItem.author?.username ?? '';
-      isVerified = widget.videoItem.author?.isVerified ?? false;
-    }
+    // Channel-owned reels lead with the channel, author-owned with the author,
+    // but each field falls through to the other side (and then to the handle)
+    // rather than rendering blank — see [ShortFeedItemIdentity].
+    final item = fullScreenShortController.videoItem ?? widget.videoItem;
+    profileImage = item.displayAvatar;
+    name = item.displayName;
+    designation = item.displayHandle;
+    isVerified = item.displayIsVerified;
     isShortSavedInDb = HiveServices()
         .isVideoSaved(fullScreenShortController.videoItem?.videoId ?? '');
     _isFollowing =
@@ -908,13 +901,19 @@ class ShortPlayerItemState extends State<ShortPlayerItem>
                     ],
                   ],
                 ),
-                SizedBox(height: SizeConfig.size1),
-                CustomText(
-                  "@${designation}",
-                  fontSize: SizeConfig.small,
-                  color: AppColors.white,
-                  fontWeight: FontWeight.w600,
-                ),
+                // Only when there is a real handle, and not when the name has
+                // already fallen back to that same handle — otherwise this line
+                // was a bare "@" or a duplicate of the name above it.
+                if (designation.isNotEmpty &&
+                    designation.toLowerCase() != name.toLowerCase()) ...[
+                  SizedBox(height: SizeConfig.size1),
+                  CustomText(
+                    "@$designation",
+                    fontSize: SizeConfig.small,
+                    color: AppColors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ],
               ],
             ),
           ),

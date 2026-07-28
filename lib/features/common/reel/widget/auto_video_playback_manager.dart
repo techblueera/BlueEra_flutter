@@ -7,7 +7,12 @@ import 'package:video_player/video_player.dart';
 class SimplePriorityVideoManager extends GetxController {
   VideoPlayerController? _controller;
   final currentIndex = (-1).obs;
-  final ValueNotifier<bool> isMuted = ValueNotifier<bool>(true);
+
+  /// Feed video starts with sound on. Muting is an explicit user action via
+  /// [toggleMute], and because this manager is a single shared instance the
+  /// choice then sticks for every autoplaying card in the session — feed
+  /// videos, post videos and broadcast cards alike.
+  final ValueNotifier<bool> isMuted = ValueNotifier<bool>(false);
   final Map<String, int> playCount = {};
   RxBool showReplayOverlay = false.obs;
 

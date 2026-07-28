@@ -1297,6 +1297,7 @@
   "emergency_fill_full_name": "தயவுசெய்து முழுப் பெயரை நிரப்பவும்",
   "emergency_fill_mobile": "தயவுசெய்து மொபைல் எண்ணை நிரப்பவும்",
   "emergency_fill_vehicle": "தயவுசெய்து வாகன விவரங்களை நிரப்பவும்",
+  "emergency_invalid_vehicle": "சரியான வாகன எண்ணை உள்ளிடவும் (எ.கா. MH12AB1234)",
   "emergency_full_name_hint": "உங்கள் முழுப் பெயரை உள்ளிடவும்",
   "emergency_known_allergies": "தெரிந்த ஒவ்வாமைகள்",
   "emergency_known_disease": "தெரிந்த நோய்",

@@ -157,6 +157,7 @@ class MessagePostController extends GetxController {
     messageText.value = "";
     postText.value = "";
     isAddLink.value = false;
+    isAiGeneratedVideo.value = false;
     originalVideoSourcePath = null;
     Get.find<TagUserController>().clearAllSelections();
     Get.find<TagUserController>().selectedUsers.clear();
@@ -184,6 +185,12 @@ class MessagePostController extends GetxController {
   RxList<String> uploadImageList = <String>[].obs;
   RxList<File> imagesList = <File>[].obs;
   Rx<MediaType?> selectedType = Rx<MediaType?>(null);
+
+  /// User-declared "this clip was made with AI" flag. Only meaningful for
+  /// [MediaType.video] — the switch that sets it is hidden for photo posts and
+  /// the value is reset whenever the video is dropped, so a stale `true` can
+  /// never ride along with a later photo post.
+  RxBool isAiGeneratedVideo = false.obs;
 
   // Path of the ORIGINAL video the user picked, kept around so re-trim can
   // always go back to the source. Without this, "Retry" would re-feed a
@@ -219,7 +226,10 @@ class MessagePostController extends GetxController {
 
   void removeMedia(int index) {
     imagesList.removeAt(index);
-    if (imagesList.isEmpty) selectedType.value = null;
+    if (imagesList.isEmpty) {
+      selectedType.value = null;
+      isAiGeneratedVideo.value = false;
+    }
   }
 
   // 🟢 PICK MEDIA (image or video)
@@ -590,6 +600,12 @@ class MessagePostController extends GetxController {
       if (natureOfPostController.value.text.isNotEmpty)
         formData.fields.add(MapEntry(
             ApiKeys.nature_of_post, natureOfPostController.value.text));
+
+      ///AI-GENERATED VIDEO DISCLOSURE...
+      /// Video-only: photo posts never carry this field.
+      if (selectedType.value == MediaType.video)
+        formData.fields.add(MapEntry(
+            ApiKeys.is_ai_generated, isAiGeneratedVideo.value.toString()));
 
       ///REFERENCE LINK...
       if (referenceLinkController.value.text.isNotEmpty)

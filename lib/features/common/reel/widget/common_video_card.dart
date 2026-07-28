@@ -2,13 +2,13 @@ import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
+import 'package:BlueEra/core/constants/common_methods.dart';
 import 'package:BlueEra/core/constants/shared_preference_utils.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
 import 'package:BlueEra/core/routes/route_helper.dart';
-import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/common/feed/models/video_feed_model.dart';
 import 'package:BlueEra/features/common/reel/widget/reel_video_popup_menu.dart';
-import 'package:BlueEra/features/personal/personal_profile/view/personal_profile_setup_new_screen.dart';
 import 'package:BlueEra/features/personal/personal_profile/view/visit_personal_profile/new_visiting_profile_screen.dart';
 import 'package:BlueEra/widgets/cached_avatar_widget.dart';
 import 'package:BlueEra/widgets/custom_text_cm.dart';
@@ -227,6 +227,7 @@ class CommonVideoCard extends StatelessWidget {
 
   void _openProfile(BuildContext context, ShortFeedItem videoItem) {
     // If channel exists → open channel screen
+
     if (videoItem.channel?.id != null) {
       Navigator.pushNamed(
         context,
@@ -240,12 +241,13 @@ class CommonVideoCard extends StatelessWidget {
       return;
     }
 
+
     // If Individual account
     if (videoItem.author?.accountType?.toUpperCase() ==
         AppConstants.individual) {
       final isMyProfile = videoItem.author?.id == userId;
       if (isMyProfile) {
-        navigatePushTo(context, PersonalProfileSetupNewScreen());
+        _openMeOverview();
       } else {
         Get.to(() => NewVisitProfileScreen(
               authorId: videoItem.author?.id ?? '',
@@ -259,7 +261,7 @@ class CommonVideoCard extends StatelessWidget {
     if (videoItem.author?.accountType?.toUpperCase() == AppConstants.business) {
       final isMyBusiness = videoItem.author?.id == userId;
       if (isMyBusiness) {
-        navigatePushTo(context, BusinessOwnProfileScreen());
+        _openMeOverview();
       } else {
         Get.to(() => VisitBusinessProfileNew(
               businessId: videoItem.author?.id ?? '',
@@ -267,6 +269,21 @@ class CommonVideoCard extends StatelessWidget {
             ));
       }
       return;
+    }
+  }
+
+  /// Own profile → the bottom-nav "Me" tab's Overview screen instead of a
+  /// pushed profile screen. Reuses the live nav shell when present (pop any
+  /// pushed screens, then switch tab); otherwise routes to it fresh.
+  void _openMeOverview() {
+    if (Get.isRegistered<BottomBarController>()) {
+      Get.until((route) => route.isFirst);
+      Get.find<BottomBarController>().openMeOverviewTab();
+    } else {
+      Get.offAllNamed(
+        RouteHelper.getBottomNavigationBarScreenRoute(),
+        arguments: {ApiKeys.initialIndex: BottomBarController.meTabIndex},
+      );
     }
   }
 }

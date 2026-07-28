@@ -174,7 +174,6 @@ class _MessagePostWidgetState extends State<ChannelFeedMessagePostWidget> {
                             child: ExpandableText(
                               text: subTitle.trim(),
                               trimLines: 3,
-
                               style: TextStyle(
                                   color: AppColors.mainTextColor,
                                   fontFamily: AppConstants.OpenSans,

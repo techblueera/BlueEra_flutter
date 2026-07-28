@@ -1,3 +1,4 @@
+import 'package:BlueEra/core/api/apiService/api_keys.dart';
 import 'package:BlueEra/core/constants/app_colors.dart';
 import 'package:BlueEra/core/constants/app_constant.dart';
 import 'package:BlueEra/core/constants/common_methods.dart';
@@ -6,7 +7,9 @@ import 'package:BlueEra/core/constants/app_enum.dart';
 import 'package:BlueEra/core/constants/app_icon_assets.dart';
 import 'package:BlueEra/core/constants/block_report_selection_dialog.dart';
 import 'package:BlueEra/core/constants/size_config.dart';
+import 'package:BlueEra/core/routes/route_helper.dart';
 import 'package:BlueEra/features/business/visiting_card/view/business_own_profile_screen.dart';
+import 'package:BlueEra/features/common/bottomNavigationBar/controller/bottom_bar_controller.dart';
 import 'package:BlueEra/features/common/feed/controller/feed_controller.dart';
 import 'package:BlueEra/features/common/feed/models/posts_response.dart';
 import 'package:BlueEra/features/common/feed/widget/feed_option_popup_menu.dart';
@@ -21,7 +24,17 @@ import 'package:get/get.dart';
 
 import '../../../../core/constants/shared_preference_utils.dart';
 import '../../../business/visit_business_profile/view/visit_business_profile_new.dart';
-
+void openMeOverview() {
+  if (Get.isRegistered<BottomBarController>()) {
+    Get.until((route) => route.isFirst);
+    Get.find<BottomBarController>().openMeOverviewTab();
+  } else {
+    Get.offAllNamed(
+      RouteHelper.getBottomNavigationBarScreenRoute(),
+      arguments: {ApiKeys.initialIndex: BottomBarController.meTabIndex},
+    );
+  }
+}
 class PostAuthorHeader extends StatelessWidget {
   final Post? post;
   final String authorId;
@@ -95,7 +108,8 @@ class PostAuthorHeader extends StatelessWidget {
                 if (post?.user?.accountType?.toUpperCase() ==
                     AppConstants.individual) {
                   if (userId == authorId) {
-                    navigatePushTo(context, PersonalProfileSetupNewScreen());
+                    openMeOverview();
+                    // navigatePushTo(context, PersonalProfileSetupNewScreen());
                   } else {
                     Get.to(() => NewVisitProfileScreen(
                           authorId: authorId,
@@ -106,7 +120,9 @@ class PostAuthorHeader extends StatelessWidget {
                 if (post?.user?.accountType?.toUpperCase() ==
                     AppConstants.business) {
                   if (businessId == post?.user?.business_id) {
-                    navigatePushTo(context, BusinessOwnProfileScreen());
+                    openMeOverview();
+
+                    // navigatePushTo(context, BusinessOwnProfileScreen());
                   } else {
                     Get.to(() => VisitBusinessProfileNew(
                           businessId: post?.user?.business_id ?? "",

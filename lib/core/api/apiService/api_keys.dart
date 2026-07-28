@@ -126,6 +126,7 @@ class ApiKeys {
   static const sub_title = 'sub_title';
   static const poll = 'poll';
   static const nature_of_post = 'nature_of_post';
+  static const is_ai_generated = 'is_ai_generated';
   static const onPlaceSelected = 'onPlaceSelected';
   static const cover = 'cover';
   static const lat = 'lat';
